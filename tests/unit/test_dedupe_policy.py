@@ -18,6 +18,7 @@ from services.dedupe.reviews import (
     record_review_decision,
     save_review_candidate,
 )
+from services.dedupe.signals import dedupe_title_key
 
 
 def job(**overrides):
@@ -44,6 +45,25 @@ def weak_identity_job(**overrides):
 
 
 class DedupePolicyTests(unittest.TestCase):
+    def test_boilerplate_only_descriptions_never_auto_merge(self):
+        left = weak_identity_job(description=(
+            "We offer a competitive benefits package. Equal opportunity employer."
+        ))
+        right = weak_identity_job(description=(
+            "Benefits include medical and dental. EEO employer."
+        ))
+
+        self.assertEqual(reduce_boilerplate(left["description"])["comparison_text"], "")
+        self.assertEqual(reduce_boilerplate(right["description"])["comparison_text"], "")
+        result = duplicate_confidence(left, right)
+
+        # Empty post-stripping descriptions are not enough for an automatic merge;
+        # absent strong identity, the conservative policy can only request review.
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(result["reason"], "SAME_COMPANY_TITLE_EXACT_DESCRIPTION")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+
     def test_boilerplate_is_removed_before_similarity(self):
         left = weak_identity_job(description=(
             "Manage Windows infrastructure and Active Directory. "
@@ -100,16 +120,31 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(result["reason"], "EXACT_REQUISITION")
         self.assertEqual(result["signals"]["strong_signals"], ["ATS_TENANT_REQUISITION"])
 
-    def test_normalized_near_title_without_strong_id_requires_review(self):
+    def test_abbreviation_equivalent_title_without_strong_id_requires_review(self):
         left = weak_identity_job(title="Windows Sysadmin")
         right = weak_identity_job(title="Windows Systems Administrator")
 
         result = duplicate_confidence(left, right)
 
+        self.assertEqual(dedupe_title_key(left["title"]),
+                         dedupe_title_key(right["title"]))
         self.assertEqual(result["confidence"], 0.94)
         self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
         self.assertEqual(result["signals"]["strong_signals"], [])
         self.assertTrue(result["signals"]["title"]["equal"])
+
+    def test_genuine_title_key_drift_without_strong_id_is_not_merged(self):
+        left = weak_identity_job(title="Windows Systems Administrator")
+        right = weak_identity_job(title="Windows Systems Engineer")
+
+        self.assertNotEqual(dedupe_title_key(left["title"]),
+                            dedupe_title_key(right["title"]))
+        result = duplicate_confidence(left, right)
+
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertEqual(result["signals"]["strong_signals"], [])
 
     def test_salary_only_change_without_strong_id_still_requires_review(self):
         left = weak_identity_job(attributes={
@@ -125,6 +160,12 @@ class DedupePolicyTests(unittest.TestCase):
 
         result = duplicate_confidence(left, right)
 
+        self.assertEqual(left["ats_tenant"], "")
+        self.assertEqual(right["ats_tenant"], "")
+        self.assertEqual(left["requisition"], "")
+        self.assertEqual(right["requisition"], "")
+        self.assertEqual(left.get("employer_requisition", ""), "")
+        self.assertEqual(right.get("employer_requisition", ""), "")
         self.assertNotEqual(left["attributes"]["salary_min"], right["attributes"]["salary_min"])
         self.assertEqual(result["confidence"], 0.94)
         self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
@@ -158,6 +199,12 @@ class DedupePolicyTests(unittest.TestCase):
 
         result = duplicate_confidence(left, right)
 
+        self.assertEqual(left["ats_tenant"], "")
+        self.assertEqual(right["ats_tenant"], "")
+        self.assertEqual(left["requisition"], "")
+        self.assertEqual(right["requisition"], "")
+        self.assertEqual(left.get("employer_requisition", ""), "")
+        self.assertEqual(right.get("employer_requisition", ""), "")
         self.assertEqual(result["confidence"], 0.94)
         self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
         self.assertEqual(result["signals"]["strong_signals"], [])
