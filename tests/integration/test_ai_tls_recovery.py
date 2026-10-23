@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.ai.providers import AIProviderError
 from services.ai.providers.transport import request_guard
 from services.ai.tasks import AITaskRouter
 from tests.integration import test_durable_ai_evaluation as evaluation_tests
@@ -75,44 +76,75 @@ class DurableTLSRecoveryTests(unittest.TestCase):
     new_client = evaluation_tests.DurableAIEvaluationTests.new_client
     run_worker = evaluation_tests.DurableAIEvaluationTests.run_worker
 
-    def test_guard_completion_does_not_wait_for_blocked_watcher_cleanup(self):
+    def test_request_owner_finishes_cleanup_before_guard_returns(self):
         watcher_close_started = threading.Event()
-        watcher_close_finished = threading.Event()
         release_watcher_close = threading.Event()
         cancellation = threading.Event()
+        request_started = threading.Event()
 
-        class BlockingStream:
+        class TrackedResource:
+            def __init__(self):
+                self.closed = threading.Event()
+                self.close_threads = []
+
             def get_extra_info(self, _name):
                 return None
 
             def close(self):
+                self.close_threads.append(threading.current_thread().name)
                 if threading.current_thread().name == 'mjobs-request-deadline':
                     watcher_close_started.set()
                     release_watcher_close.wait(2)
-                    watcher_close_finished.set()
+                self.closed.set()
 
-        class Client:
+        class Client(TrackedResource):
             _transport = None
             _mounts = {}
 
-            def close(self):
-                pass
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                self.close()
+
+        client = Client()
+        response = TrackedResource()
+        stream = TrackedResource()
+
+        def run_request():
+            try:
+                with client, request_guard(client, deadline=time.monotonic() + 2,
+                                           cancellation_event=cancellation) as guard:
+                    guard.response = response
+                    guard.stream = stream
+                    request_started.set()
+                    while not guard.interrupted:
+                        time.sleep(.001)
+                    guard.check()
+            except AIProviderError as error:
+                return error.code
 
         try:
-            with request_guard(Client(), deadline=time.monotonic() + 2,
-                               cancellation_event=cancellation) as guard:
-                guard.stream = BlockingStream()
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                work = pool.submit(run_request)
+                self.assertTrue(request_started.wait(.2))
                 cancellation.set()
-                self.assertTrue(watcher_close_started.wait(.2))
-                # The watcher has already recorded the interruption. Clearing
-                # the synthetic signal lets the owner exercise only finalization.
-                cancellation.clear()
-                before = time.monotonic()
-            self.assertLess(time.monotonic() - before, .2,
-                            'request completion waited for watcher-owned cleanup')
+                self.assertEqual(work.result(timeout=.5), 'AI_PROVIDER_CANCELLED')
+            self.assertTrue(response.closed.is_set())
+            self.assertTrue(stream.closed.is_set())
+            self.assertTrue(client.closed.is_set())
+            self.assertFalse(any(t.name == 'mjobs-request-deadline'
+                                 for t in threading.enumerate()),
+                             'request returned with watcher-owned cleanup still live')
+            self.assertFalse(any('mjobs-request-deadline' in resource.close_threads
+                                 for resource in (response, stream, client)),
+                             'watcher performed a potentially blocking high-level close')
         finally:
             release_watcher_close.set()
-            self.assertTrue(watcher_close_finished.wait(.2))
+            deadline = time.monotonic() + .3
+            while (any(t.name == 'mjobs-request-deadline' for t in threading.enumerate())
+                   and time.monotonic() < deadline):
+                time.sleep(.005)
 
     def test_tls_cancellation_and_deadline_persist_without_uncertain_replay(self):
         for provider_type in HTTPS_PROVIDERS:
@@ -146,6 +178,14 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                             self.assertEqual(response.status_code, 200, response.text)
                         result = work.result(timeout=3)
                         terminal_at = time.monotonic()
+                        self.assertFalse(any(t.name == 'mjobs-request-deadline'
+                                             for t in threading.enumerate()),
+                                         'durable terminal state preceded watcher cleanup')
+                        self.assertTrue(client.is_closed,
+                                        'durable terminal state preceded client cleanup')
+                        self.assertEqual(len(duplicates), 1)
+                        self.assertEqual(duplicates[0].fileno(), -1,
+                                         'durable terminal state retained interruption socket')
                         response_closed = closed.wait(.4)
                         response_closed_at = closed.closed_at
                         elapsed = terminal_at - before
@@ -163,9 +203,6 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                     if not cancel:
                         self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
                     self.assertTrue(response_closed, 'TLS peer remained connected')
-                    self.assertEqual(len(duplicates), 1)
-                    self.assertEqual(duplicates[0].fileno(), -1)
-                    self.assertTrue(client.is_closed)
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
                     reopened = Store(self.url)
                     try:
