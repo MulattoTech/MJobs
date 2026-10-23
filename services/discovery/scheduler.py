@@ -171,6 +171,8 @@ def schedule_due_search_profiles(store, at=None):
             operation_id = enqueue_operation(
                 store, "DISCOVER", search_profile["profile_id"], params,
                 connection=connection,
+                task_key=(f"collect:{source_id}:saved-search:{search_id}:"
+                          f"{scheduled_for}"),
             )
             store._audit(connection, search_id, "SEARCH_PROFILE_SCHEDULE_ENQUEUED", {
                 "profile_id": search_profile["profile_id"],
@@ -228,7 +230,10 @@ def schedule_due_sources(store, at=None):
             "source_id": source["id"], "profile_ids": profile_ids,
             "scheduled_for": schedule_key, "scheduler": "source-policy-v1",
         }
-        operation_id = enqueue_operation(store, "DISCOVER", profile_ids[0], params)
+        operation_id = enqueue_operation(
+            store, "DISCOVER", profile_ids[0], params,
+            task_key=f"collect:{source['id']}:{schedule_key}",
+        )
         scheduled.append({
             "source_id": source["id"], "operation_id": operation_id,
             "profile_ids": profile_ids, "scheduled_for": schedule_key,
