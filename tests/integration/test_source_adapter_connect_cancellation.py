@@ -27,6 +27,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_source_http_socket_budget import tcp_connect_stall
 from tests.integration.test_spine import PROFILE
+from workers import tasks as worker_tasks
 from workers.tasks import execute_operation
 from services.discovery.sources.registry import source_adapter
 
@@ -113,7 +114,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     self.assertEqual(adapter.search().items, ())
                 self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
 
-    def run_source(self, provider, mode, *, tenant=None):
+    def run_source(self, provider, mode, *, tenant=None, pre_collection_delay=0):
         tenant = tenant or source_tenant(provider)
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
@@ -123,10 +124,23 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             store.bind_workspace_mode("FIXTURE")
             cleanup.callback(store.engine.dispose)  # Release Windows SQLite handles before deleting the directory.
             source = empty_source(provider) if mode == "positive" else tcp_connect_stall()
+            original_collect_source = worker_tasks.collect_source
             original_connect = socket.socket.connect
             original_connect_ex = socket.socket.connect_ex
             errors, outcome = [], []
+            collection_ready = threading.Event()
+            collection_release = threading.Event()
             worker = None
+
+            def observe_collect_source(*args, **kwargs):
+                # Keep worker/SQLite setup outside the socket-entry oracle while
+                # preserving the real collector and its one-second TCP bound.
+                if pre_collection_delay:
+                    time.sleep(pre_collection_delay)
+                collection_ready.set()
+                if not collection_release.wait(1):
+                    raise AssertionError("Test did not release source collection")
+                return original_collect_source(*args, **kwargs)
 
             def observe_connect(connection, address):
                 if mode != "positive" and address[:2] == state["address"]:
@@ -148,6 +162,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
             }), patch("socket.socket.connect", new=observe_connect), patch(
                     "socket.socket.connect_ex", new=observe_connect_ex), patch(
+                    "workers.tasks.collect_source", new=observe_collect_source), patch(
                     "workers.tasks.timeout", return_value=.8 if mode == "deadline" else 30):
                 if provider == "lever":
                     from services.discovery.sources.lever import endpoint as production_endpoint
@@ -184,6 +199,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     started = time.monotonic()
                     worker.start()
                     try:
+                        self.assertTrue(collection_ready.wait(3),
+                            f"{provider} worker never reached source collection; "
+                            f"errors={errors}; outcomes={len(outcome)}")
+                        collection_release.set()
                         self.assertTrue(engaged.wait(1), f"{provider} never reached owned TCP boundary")
                         pending = None
                         if mode == "cancel":
@@ -272,6 +291,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
     def test_lever_eu_public_cancel_during_real_tcp_connect(self):
         self.run_source("lever", "cancel", tenant="eu:synthetic")
+
+    def test_lever_eu_public_cancel_after_delayed_worker_setup(self):
+        self.run_source("lever", "cancel", tenant="eu:synthetic", pre_collection_delay=1.05)
 
     def test_lever_global_finite_deadline_during_real_tcp_connect(self):
         self.run_source("lever", "deadline", tenant="global:synthetic")
