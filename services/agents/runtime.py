@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from hashlib import sha256
+import json
 import re
 import time
 from typing import Any
@@ -13,7 +14,8 @@ from services.agents.registry import (
 )
 from services.agents.acceptance import CollectionContract, validate_collection_output
 from services.agents.traces import (
-    MAX_AGENT_STEPS, append_agent_event, new_run_id, read_agent_trace,
+    MAX_AGENT_STEPS, MAX_DIAGNOSTIC_ATTEMPTS, append_agent_event, new_run_id,
+    read_agent_trace,
 )
 
 
@@ -21,6 +23,7 @@ _SAFE_TOOL = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 DEFAULT_RUN_DURATION_MS = 30_000
 MAX_RUN_DURATION_MS = 120_000
 MAX_RUN_PAGES = 100
+MAX_DIAGNOSTIC_SLICE_STEPS = 5
 _ESCAPE_OUTCOMES = {"AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"}
 
 
@@ -39,11 +42,109 @@ class AgentRuntime:
         self.task = task
         self.registry.seal()
 
+    def diagnose_slice(self, calls: object, *, max_attempts: int = 2,
+                       max_duration_ms: int = DEFAULT_RUN_DURATION_MS,
+                       max_pages: int | None = None,
+                       collection_contract: CollectionContract | None = None) -> dict[str, Any]:
+        """Repeat a small read-only slice; agreement is diagnostic, never correctness proof.
+
+        Each attempt is a separately persisted run with its own duration/page
+        budgets. Attempt count and calls per slice are hard-capped. Duration
+        checks remain cooperative between tool calls; this does not preempt a
+        synchronous handler already in progress.
+        """
+        if type(max_attempts) is not int or not 2 <= max_attempts <= MAX_DIAGNOSTIC_ATTEMPTS:
+            raise ValueError("Diagnostic reruns must be between two and three attempts")
+        if (not isinstance(calls, list) or not calls
+                or len(calls) > MAX_DIAGNOSTIC_SLICE_STEPS):
+            raise ValueError("A diagnostic slice must contain one to five tool calls")
+        if (type(max_duration_ms) is not int
+                or not 1 <= max_duration_ms <= MAX_RUN_DURATION_MS):
+            raise ValueError("Agent run duration must be between one and 120000 milliseconds")
+        if max_pages is not None and (type(max_pages) is not int
+                                      or not 1 <= max_pages <= MAX_RUN_PAGES):
+            raise ValueError("Agent page budget must be between one and 100 pages")
+        if (collection_contract is not None
+                and not isinstance(collection_contract, CollectionContract)):
+            raise ValueError("Agent collection success contract is invalid")
+
+        # Snapshot the complete, validated slice before any attempt. Store
+        # arguments as canonical JSON text so a read handler holding an alias
+        # to the caller's input cannot change later-attempt dispatch or data.
+        # Replaying a proposal or side effect, even once, is not a diagnostic
+        # read.
+        validated_calls = []
+        for call in calls:
+            if not isinstance(call, dict) or set(call) != {"name", "arguments"}:
+                raise ValueError("Diagnostic slices require registered read-only tool calls")
+            try:
+                tool = self.registry.get(call["name"])
+            except AgentToolError:
+                raise ValueError("Diagnostic slices require registered read-only tool calls") from None
+            if tool.classification != ToolClass.READ:
+                raise ValueError("Diagnostic slices support read-only tools only")
+            try:
+                _, canonical_arguments = self.registry.parse(tool, call["arguments"])
+            except AgentToolError:
+                raise ValueError(
+                    "Diagnostic slices require valid registered read-only tool arguments"
+                ) from None
+            validated_calls.append((tool.name, canonical_arguments))
+        validated_calls = tuple(validated_calls)
+
+        diagnostic_id = new_run_id()
+        attempts = []
+        signatures = []
+        for attempt_number in range(1, max_attempts + 1):
+            run_result = self.run(
+                [{"name": name, "arguments": json.loads(arguments)}
+                 for name, arguments in validated_calls],
+                max_duration_ms=max_duration_ms, max_pages=max_pages,
+                collection_contract=collection_contract,
+                _diagnostic_id=diagnostic_id, _diagnostic_attempt=attempt_number,
+            )
+            trace = read_agent_trace(self.store, run_result["run_id"])
+            terminal = trace["terminal"]
+            attempts.append({
+                "run_id": run_result["run_id"],
+                "state": run_result["state"],
+                "stop_reason": run_result["stop_reason"],
+                "step_count": len(run_result["steps"]),
+                "budget_consumed_ms": terminal["budget_consumed_ms"],
+                "pages_consumed": run_result["pages_consumed"],
+            })
+            signatures.append((
+                run_result["state"], run_result["stop_reason"],
+                tuple((step["tool_name"], step["result_code"], step["output"])
+                      for step in run_result["steps"]),
+                run_result["pages_consumed"], run_result["collection_result"],
+            ))
+            if run_result["stop_reason"] in _ESCAPE_OUTCOMES:
+                break
+
+        agreement = len(signatures) >= 2 and all(
+            signature == signatures[0] for signature in signatures[1:])
+        return {
+            "diagnostic_id": diagnostic_id,
+            "attempt_count": len(attempts),
+            "max_attempts": max_attempts,
+            "max_tool_calls_per_attempt": len(validated_calls),
+            "duration_budget_per_attempt_ms": max_duration_ms,
+            "total_declared_duration_budget_ms": max_attempts * max_duration_ms,
+            "max_pages_per_attempt": max_pages,
+            "agreement": agreement,
+            "correctness": "NOT_ESTABLISHED",
+            "interpretation": "AGREEMENT_IS_NOT_CORRECTNESS",
+            "attempts": attempts,
+        }
+
     def run(self, calls: object, *, cost_usd: float | None = None,
             input_tokens: int | None = None, output_tokens: int | None = None,
             max_duration_ms: int = DEFAULT_RUN_DURATION_MS,
             max_pages: int | None = None,
-            collection_contract: CollectionContract | None = None) -> dict[str, Any]:
+            collection_contract: CollectionContract | None = None,
+            _diagnostic_id: str | None = None,
+            _diagnostic_attempt: int | None = None) -> dict[str, Any]:
         self._validate_metrics(cost_usd, input_tokens, output_tokens)
         if (type(max_duration_ms) is not int or not 1 <= max_duration_ms <= MAX_RUN_DURATION_MS):
             raise ValueError("Agent run duration must be between one and 120000 milliseconds")
@@ -51,16 +152,28 @@ class AgentRuntime:
             raise ValueError("Agent page budget must be between one and 100 pages")
         if collection_contract is not None and not isinstance(collection_contract, CollectionContract):
             raise ValueError("Agent collection success contract is invalid")
+        if (_diagnostic_id is None) != (_diagnostic_attempt is None):
+            raise ValueError("Diagnostic trace metadata must include both identifier and attempt")
+        if (_diagnostic_id is not None
+                and (not isinstance(_diagnostic_id, str)
+                     or not re.fullmatch(r"[0-9a-f]{32}", _diagnostic_id)
+                     or type(_diagnostic_attempt) is not int
+                     or not 1 <= _diagnostic_attempt <= MAX_DIAGNOSTIC_ATTEMPTS)):
+            raise ValueError("Diagnostic trace metadata is invalid")
         started = time.monotonic()
         deadline = started + max_duration_ms / 1000
         run_id = new_run_id()
         profile_ref = sha256(self.profile_id.encode("utf-8")).hexdigest()[:24]
-        append_agent_event(self.store, run_id, "AGENT_RUN_STARTED", {
+        started_event = {
             "schema_version": 1, "task": self.task, "profile_ref": profile_ref,
             "step_limit": MAX_AGENT_STEPS, "max_duration_ms": max_duration_ms,
             "max_pages": max_pages,
             "success_artifact": "collection_output" if collection_contract else "all_tools_completed",
-        })
+        }
+        if _diagnostic_id is not None:
+            started_event.update({"diagnostic_id": _diagnostic_id,
+                                  "diagnostic_attempt": _diagnostic_attempt})
+        append_agent_event(self.store, run_id, "AGENT_RUN_STARTED", started_event)
         if not isinstance(calls, list):
             calls = []
             state = "REJECTED"
@@ -131,7 +244,7 @@ class AgentRuntime:
         if stop_reason is None:
             stop_reason = state
         consumed_ms = max(0, int(round((time.monotonic() - started) * 1000)))
-        append_agent_event(self.store, run_id, "AGENT_RUN_TERMINAL", {
+        terminal_event = {
             "state": state, "step_count": len(results), "cost_usd": cost_usd,
             "input_tokens": input_tokens, "output_tokens": output_tokens,
             "stop_reason": stop_reason, "budget_consumed_ms": consumed_ms,
@@ -141,7 +254,11 @@ class AgentRuntime:
                                    "observed_count": collection_result.observed_count,
                                    "tail_matches": collection_result.tail_matches}
                                   if collection_result else None),
-        })
+        }
+        if _diagnostic_id is not None:
+            terminal_event.update({"diagnostic_id": _diagnostic_id,
+                                   "diagnostic_attempt": _diagnostic_attempt})
+        append_agent_event(self.store, run_id, "AGENT_RUN_TERMINAL", terminal_event)
         return {"run_id": run_id, "state": state, "steps": results,
                 "stop_reason": stop_reason,
                 "max_pages": max_pages,

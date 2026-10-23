@@ -143,7 +143,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     created = context.request.put(origin + "/search-profiles", data={
                         "id": "limited-semantic", "profile_id": "fixture", "name": "Semantic Python only",
                         "enabled": False, "include_titles": ["Python Developer"], "remote": "ANY",
-                        "employment_types": [], "source_ids": [],
+                        "employment_types": [], "source_ids": [], "date_window": "LAST_7_DAYS",
                         "job_filters": {"q": "", "remote_type": "", "provider": "", "sort": "title"},
                     })
                     self.assertEqual(created.status, 200, created.text())
@@ -157,6 +157,14 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                         selected_search.select_option("limited-semantic")
                     self.assertEqual([job["title"] for job in limited.value.json()["jobs"]], ["Python Developer"])
                     expect(page.get_by_role("heading", name="Python Developer", exact=True)).to_be_visible()
+                    expect(page.get_by_label("Posted within", exact=True)).to_have_value("LAST_7_DAYS")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "search_profile_id=limited-semantic" in response.url
+                            and "date_window=ANY" in response.url
+                            and "posted_within_days" not in response.url) as saved_date_cleared:
+                        page.get_by_label("Posted within", exact=True).select_option("")
+                    self.assertEqual(saved_date_cleared.value.status, 200)
                     selected_search.select_option("")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("")
                     expect(page.get_by_label("Education requirement", exact=True).locator("option")).to_have_count(6)
@@ -176,17 +184,37 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                         page.get_by_label("Job source", exact=True).select_option("")
                     self.assertEqual(len(source_cleared.value.json()["jobs"]), 2)
 
-                    # A date-only change must fetch new results immediately, then clear cleanly.
+                    # Canonical date-only changes fetch immediately; custom bounds remain explicit UTC.
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
-                            and "posted_within_days=7" in response.url) as date_only:
-                        page.get_by_label("Posted within", exact=True).select_option("7")
-                    self.assertEqual(date_only.value.status, 200)
+                            and "date_window=LAST_HOUR" in response.url) as last_hour:
+                        page.get_by_label("Posted within", exact=True).select_option("LAST_HOUR")
+                    self.assertEqual(last_hour.value.status, 200)
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
+                            and "date_window=TODAY" in response.url) as today:
+                        page.get_by_label("Posted within", exact=True).select_option("TODAY")
+                    self.assertEqual(today.value.status, 200)
+                    page.get_by_label("Posted within", exact=True).select_option("CUSTOM")
+                    expect(page.get_by_label("Posted after (UTC)", exact=True)).to_be_visible()
+                    expect(page.get_by_label("Posted before (UTC)", exact=True)).to_be_visible()
+                    page.get_by_label("Posted after (UTC)", exact=True).fill("2026-10-01T00:00:00")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "date_window=CUSTOM" in response.url
+                            and "date_start=2026-10-01T00%3A00%3A00Z" in response.url
+                            and "date_end=2026-10-02T00%3A00%3A00Z" in response.url) as custom:
+                        page.get_by_label("Posted before (UTC)", exact=True).fill("2026-10-02T00:00:00")
+                    self.assertEqual(custom.value.status, 200)
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "date_window" not in response.url
+                            and "date_start" not in response.url
+                            and "date_end" not in response.url
                             and "posted_within_days" not in response.url) as date_cleared:
                         page.get_by_label("Posted within", exact=True).select_option("")
                     self.assertEqual(date_cleared.value.status, 200)
+                    expect(page.get_by_label("Posted after (UTC)", exact=True)).to_have_count(0)
 
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
@@ -225,7 +253,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Skill", exact=True).select_option("PYTHON")
                     page.get_by_label("Education requirement", exact=True).select_option("BACHELORS_REQUIRED")
                     page.get_by_label("Clearance requirement", exact=True).select_option("PUBLIC_TRUST")
-                    page.get_by_label("Posted within", exact=True).select_option("7")
+                    page.get_by_label("Posted within", exact=True).select_option("LAST_7_DAYS")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
                     page.get_by_label("Application provider", exact=True).select_option("mock-ats")
                     page.get_by_label("Job source", exact=True).select_option(source_a)
@@ -269,6 +297,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and f"job_source_id={source_a}" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
+                            and "date_window=LAST_7_DAYS" in response.url
                             and "remote_type=REMOTE" in response.url
                             and "provider=mock-ats" in response.url
                             and "sort=company" in response.url) as restored_jobs:
@@ -287,7 +316,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("BACHELORS_REQUIRED")
                     expect(page.get_by_label("Clearance requirement", exact=True)).to_have_value("PUBLIC_TRUST")
                     expect(page.get_by_label("ATS", exact=True)).to_have_value("greenhouse")
-                    expect(page.get_by_label("Posted within", exact=True)).to_have_value("7")
+                    expect(page.get_by_label("Posted within", exact=True)).to_have_value("LAST_7_DAYS")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
                     expect(page.get_by_label("Application provider", exact=True)).to_have_value("mock-ats")
                     expect(page.get_by_label("Job source", exact=True)).to_have_value(source_a)
