@@ -90,7 +90,15 @@ class ProcessIdentity:
 def process_identity(pid, *, proc=Path("/proc")):
     # comm can contain spaces and parentheses; fields after its final ')' are
     # state (3), ppid (4), pgrp (5), session (6), ... starttime (22).
-    fields = (proc / str(pid) / "stat").read_text().rsplit(")", 1)[1].split()
+    stat_path = proc / str(pid) / "stat"
+    try:
+        stat = stat_path.read_text()
+    except ProcessLookupError as error:
+        # A process can exit after its /proc entry is discovered but before
+        # stat is opened. Normalize ESRCH to the same absent-process signal
+        # used by callers when the proc entry has already disappeared.
+        raise FileNotFoundError(stat_path) from error
+    fields = stat.rsplit(")", 1)[1].split()
     return ProcessIdentity(pid, int(fields[1]), int(fields[2]), int(fields[3]), int(fields[19]), fields[0])
 
 
@@ -112,7 +120,7 @@ def signal_owned(owned, sig):
     try:
         try:
             current = process_identity(owned.pid)
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
             return False
         # Parent changes after our parent worker dies. Session, group and
         # starttime must retain their verified values. pidfd binds this signal

@@ -153,6 +153,10 @@ def tcp_source(mode, *, tls_context=None):
                 # header-stall accepts TCP and reads the request, then sends
                 # no response bytes. This is not a TCP-connect-stall claim.
         except OSError:
+            # A body reader that honors cancellation closes its owned response
+            # socket; expose that fact to the deadline integration oracle.
+            if mode == "body-drip":
+                state["peer_closed"].set()
             pass  # The real client watchdog can close its owned connection.
         finally:
             if connection is not None:
@@ -297,6 +301,9 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             if mode == "tls-stall":
                                 self.assertTrue(socket_state["peer_closed"].wait(.3),
                                                 "Owned TLS connection remained alive after interruption")
+                            if mode == "body-drip":
+                                self.assertTrue(socket_state["peer_closed"].wait(.3),
+                                                "Remotive body response remained open after worker deadline")
                             print(f"OWNED_SOURCE_BUDGET mode={mode} cancel={cancel} "
                                   f"latency={settled_elapsed:.3f}s")
                             self.assertLess(socket_state["bytes"], 65536)

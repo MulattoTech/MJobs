@@ -115,15 +115,17 @@ class Remotive:
             active_response = []
 
             def interrupt_request():
+                # Close the transport first so a blocked body read is woken
+                # before response cleanup can wait on that same stream.
+                try:
+                    client.close()
+                except Exception:
+                    pass
                 if active_response:
                     try:
                         active_response[0].close()
                     except Exception:
                         pass
-                try:
-                    client.close()
-                except Exception:
-                    pass
 
             def watch_cancellation():
                 while not stop_watcher.wait(CANCELLATION_POLL_INTERVAL):
@@ -175,7 +177,11 @@ class Remotive:
                         if callable(remaining_budget):
                             body_budget = min(body_budget, remaining_budget())
                         deadline = time.monotonic() + body_budget
-                        for chunk in response.iter_bytes(chunk_size=65536):
+                        # Do not let HTTPX aggregate a 64 KiB body chunk before
+                        # observing cancellation/deadline checks. Slow-drip
+                        # responses may otherwise postpone the worker check for
+                        # many seconds while yielding individually small parts.
+                        for chunk in response.iter_bytes(chunk_size=None):
                             self.check()
                             content.extend(chunk)
                             if len(content) > 5_000_000:
@@ -219,7 +225,10 @@ class Remotive:
             finally:
                 stop_watcher.set()
                 if watcher.is_alive():
-                    watcher.join(timeout=1)
+                    # Closing an HTTPX response/client may contend with the
+                    # active body read. Do not let that cleanup extend the
+                    # worker operation deadline by a full second.
+                    watcher.join(timeout=CANCELLATION_POLL_INTERVAL)
 
             if cancellation_errors:
                 raise cancellation_errors[0]

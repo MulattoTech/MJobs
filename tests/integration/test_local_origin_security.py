@@ -149,6 +149,19 @@ class LocalOriginSecurityTests(unittest.TestCase):
                 self.assertNotIn("attacker.example", response.text + str(response.headers))
                 self.assertNotIn("Private synthetic search", response.text)
 
+    def test_allowed_and_denied_requests_enforce_object_free_csp(self):
+        allowed = self.client.get("/health", headers={
+            "origin": "http://testserver", "sec-fetch-site": "same-origin",
+        })
+        self.assertEqual(allowed.status_code, 200, allowed.text)
+        self.assertIn("object-src 'none'", allowed.headers.get("content-security-policy", ""))
+
+        denied = self.client.get(
+            "/settings", headers={"sec-fetch-site": "cross-site"},
+        )
+        self.assertEqual(denied.status_code, 403, denied.text)
+        self.assertIn("object-src 'none'", denied.headers.get("content-security-policy", ""))
+
     def test_unhandled_private_read_error_has_safe_headers_and_recovers_after_reopen(self):
         self.assertEqual(self.client.put('/search-profiles', json=self.search).status_code, 200)
         expected_headers = self.client.get('/search-profiles/private-search').headers
