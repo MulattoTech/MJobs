@@ -837,6 +837,147 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(future_response.status_code, 200, future_response.text)
         self.assertEqual(future_response.json()["jobs"], [])
 
+    def test_canonical_date_windows_include_boundaries_and_exclude_older_postings(self):
+        reference_time = datetime(2026, 10, 8, 12, 34, 56, tzinfo=timezone.utc)
+        clock = self.enterContext(patch("apps.api.main.datetime", wraps=datetime))
+        clock.now.return_value = reference_time
+        jobs = {row["title"]: row for row in self.store.jobs()}
+        included_id = jobs["Python Developer"]["id"]
+        excluded_id = jobs["Data Engineer"]["id"]
+        cases = {
+            "LAST_HOUR": reference_time - timedelta(hours=1),
+            "TODAY": reference_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            "LAST_24_HOURS": reference_time - timedelta(hours=24),
+            "LAST_3_DAYS": reference_time - timedelta(days=3),
+            "LAST_7_DAYS": reference_time - timedelta(days=7),
+            "LAST_30_DAYS": reference_time - timedelta(days=30),
+        }
+        for date_window, boundary in cases.items():
+            with self.subTest(date_window=date_window):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == included_id).values(
+                        attributes={"reported_posted_at": boundary.isoformat()}))
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == excluded_id).values(
+                        attributes={"reported_posted_at": (boundary - timedelta(seconds=1)).isoformat()}))
+                response = self.client.get("/jobs", params={"date_window": date_window, "sort": "title"})
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual([row["id"] for row in response.json()["jobs"]], [included_id])
+        for reported in (None, "not a source date", (reference_time + timedelta(seconds=1)).isoformat()):
+            with self.subTest(reported=reported):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).values(
+                        attributes={"reported_posted_at": reported}))
+                response = self.client.get("/jobs", params={"date_window": "LAST_30_DAYS"})
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(response.json()["jobs"], [])
+
+    def test_custom_date_window_is_inclusive_and_rejects_ambiguous_or_mixed_bounds(self):
+        jobs = {row["title"]: row for row in self.store.jobs()}
+        start_id = jobs["Python Developer"]["id"]
+        end_id = jobs["Data Engineer"]["id"]
+        start = "2026-10-01T00:00:00+00:00"
+        end = "2026-10-02T00:00:00+00:00"
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == start_id).values(
+                attributes={"reported_posted_at": start}))
+            connection.execute(update(m.jobs).where(m.jobs.c.id == end_id).values(
+                attributes={"reported_posted_at": end}))
+        response = self.client.get("/jobs", params={
+            "date_window": "CUSTOM", "date_start": start, "date_end": end, "sort": "title",
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual({row["id"] for row in response.json()["jobs"]}, {start_id, end_id})
+
+        invalid = (
+            {"date_window": "CUSTOM", "date_start": start},
+            {"date_window": "CUSTOM", "date_start": end, "date_end": start},
+            {"date_window": "CUSTOM", "date_start": "2026-10-01T00:00:00", "date_end": end},
+            {"date_window": "CUSTOM", "date_start": "2026-10-01T01:00:00+01:00", "date_end": end},
+            {"date_window": "LAST_HOUR", "date_start": start, "date_end": end},
+            {"date_window": "LAST_HOUR", "posted_within_days": 1},
+        )
+        for params in invalid:
+            with self.subTest(params=params):
+                self.assertEqual(self.client.get("/jobs", params=params).status_code, 422)
+
+    def test_custom_date_window_round_trips_reopens_and_invalid_update_is_atomic(self):
+        jobs = {row["title"]: row for row in self.store.jobs()}
+        included_id = jobs["Python Developer"]["id"]
+        excluded_id = jobs["Data Engineer"]["id"]
+        start = "2026-10-01T00:00:00Z"
+        end = "2026-10-02T00:00:00Z"
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == included_id).values(
+                attributes={"reported_posted_at": "2026-10-01T12:00:00+00:00"}))
+            connection.execute(update(m.jobs).where(m.jobs.c.id == excluded_id).values(
+                attributes={"reported_posted_at": "2026-10-03T00:00:00+00:00"}))
+        payload = {
+            **self._profile(job_filters={
+                "q": "", "remote_type": "", "provider": "", "sort": "title",
+                "posted_within_days": "",
+            }),
+            "include_titles": [], "remote": "ANY", "date_window": "CUSTOM",
+            "date_start": start, "date_end": end,
+        }
+        saved = self.client.put("/search-profiles", json=payload)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        row = next(item for item in self.client.get("/search-profiles", params={
+            "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+        self.assertEqual(row["criteria"]["date_window"], "CUSTOM")
+        self.assertEqual(row["criteria"]["date_start"], "2026-10-01T00:00:00+00:00")
+        self.assertEqual(row["criteria"]["date_end"], "2026-10-02T00:00:00+00:00")
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                with patch.object(reopened, "jobs", wraps=reopened.jobs) as jobs_query:
+                    response = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter", "sort": "title",
+                    })
+                    self.assertEqual(response.status_code, 200, response.text)
+                    self.assertEqual([job["id"] for job in response.json()["jobs"]], [included_id])
+                    self.assertEqual(jobs_query.call_args.kwargs["posted_after"],
+                                     datetime(2026, 10, 1, tzinfo=timezone.utc))
+                    self.assertEqual(jobs_query.call_args.kwargs["posted_before"],
+                                     datetime(2026, 10, 2, tzinfo=timezone.utc))
+                    jobs_query.reset_mock()
+                    explicit_any = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter",
+                        "date_window": "ANY", "override_saved_match_score": True, "sort": "title",
+                    })
+                    self.assertEqual(explicit_any.status_code, 200, explicit_any.text)
+                    self.assertEqual({job["id"] for job in explicit_any.json()["jobs"]},
+                                     {included_id, excluded_id})
+                    self.assertIsNone(jobs_query.call_args.kwargs["posted_after"])
+                    self.assertIsNone(jobs_query.call_args.kwargs["posted_before"])
+                    jobs_query.reset_mock()
+                    explicit_wider = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter",
+                        "date_window": "CUSTOM", "date_start": "2026-09-30T00:00:00Z",
+                        "date_end": "2026-10-04T00:00:00Z", "sort": "title",
+                    })
+                    self.assertEqual(explicit_wider.status_code, 200, explicit_wider.text)
+                    self.assertEqual({job["id"] for job in explicit_wider.json()["jobs"]},
+                                     {included_id, excluded_id})
+                    clock = self.enterContext(patch("apps.api.main.datetime", wraps=datetime))
+                    clock.now.return_value = datetime(2026, 10, 21, tzinfo=timezone.utc)
+                    explicit_legacy_wider = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter",
+                        "posted_within_days": 30, "sort": "title",
+                    })
+                    self.assertEqual(explicit_legacy_wider.status_code, 200, explicit_legacy_wider.text)
+                    self.assertEqual({job["id"] for job in explicit_legacy_wider.json()["jobs"]},
+                                     {included_id, excluded_id})
+                for invalid_start in ("2026-10-01T00:00:00", "2026-10-01T01:00:00+01:00"):
+                    invalid = client.put("/search-profiles", json={**payload, "date_start": invalid_start})
+                    self.assertEqual(invalid.status_code, 422, invalid.text)
+                unchanged = next(item for item in client.get("/search-profiles", params={
+                    "profile_id": "fixture"}).json()["search_profiles"] if item["id"] == "saved-filter")
+                self.assertEqual(unchanged["criteria"]["date_start"], "2026-10-01T00:00:00+00:00")
+        finally:
+            reopened.engine.dispose()
+
     def test_posted_within_search_filter_round_trips_profile_scoped(self):
         filters = {"q": "", "title": "", "company": "", "location": "", "salary_min": "",
                    "salary_max": "", "min_match_score": "", "experience_level": "",
