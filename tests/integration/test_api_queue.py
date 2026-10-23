@@ -64,6 +64,42 @@ class ApiQueueTests(unittest.TestCase):
         self.assertEqual(identifiers[0], identifiers[1])
         self.assertEqual(self.store.count("worker_operations"), 1)
 
+    def test_task_key_replays_without_replacing_original_operation_params(self):
+        task_key = "collect:source-a:2026-10-08T12:00:00+00:00"
+        first = enqueue_operation(self.store, "DISCOVER", "fixture", {
+            "source_id": "source-a", "scheduled_for": "2026-10-08T12:00:00+00:00",
+            "scheduler_observation": "first",
+        }, task_key=task_key)
+        replay = enqueue_operation(self.store, "DISCOVER", "fixture", {
+            "scheduler_observation": "replayed-after-restart",
+            "scheduled_for": "2026-10-08T12:00:00+00:00", "source_id": "source-a",
+        }, task_key=task_key)
+
+        self.assertEqual(replay, first)
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == first)).mappings().one()
+        self.assertEqual(row["params"]["scheduler_observation"], "first")
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_task_key_reuse_for_another_entity_fails_closed(self):
+        task_key = "collect:source-a:2026-10-08T12:00:00+00:00"
+        identifier = enqueue_operation(
+            self.store, "DISCOVER", "profile-a", {"source_id": "source-a"},
+            task_key=task_key,
+        )
+
+        with self.assertRaisesRegex(ValueError, "TASK_IDENTITY_CONFLICT"):
+            enqueue_operation(
+                self.store, "DISCOVER", "profile-b", {"source_id": "source-a"},
+                task_key=task_key,
+            )
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == identifier)).mappings().one()
+        self.assertEqual(row["entity_id"], "profile-a")
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
     def test_api_saves_explicit_facts_and_reports_durable_queueing(self):
         with TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root, "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
             response = client.put("/profiles", json=PROFILE)
