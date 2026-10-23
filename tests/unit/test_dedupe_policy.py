@@ -122,6 +122,31 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(result["reason"], "EXACT_REQUISITION")
         self.assertEqual(result["signals"]["strong_signals"], ["ATS_TENANT_REQUISITION"])
 
+    def test_same_ats_requisition_does_not_override_mismatched_company(self):
+        left = job(
+            application_url="https://acme.example/jobs/123",
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers and Active Directory.",
+            company={"name": "Acme", "domains": ["acme.example"]},
+        )
+        right = job(
+            application_url="https://other.example/jobs/123",
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits.",
+            company={"name": "Other Company", "domains": ["other.example"]},
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["ats_tenant"], right["ats_tenant"])
+        self.assertEqual(left["requisition"], right["requisition"])
+        self.assertFalse(result["signals"]["company"]["same_company"])
+        self.assertFalse(result["signals"]["strong_match"])
+        self.assertIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+
     def test_abbreviation_equivalent_title_without_strong_id_requires_review(self):
         left = weak_identity_job(title="Windows Sysadmin")
         right = weak_identity_job(title="Windows Systems Administrator")

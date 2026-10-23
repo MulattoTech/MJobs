@@ -88,7 +88,8 @@ def duplicate_confidence(left, right, thresholds=None):
     evidence = duplicate_candidate_evidence(left_copy, right_copy)
 
     strong = set(evidence["strong_signals"])
-    if "ATS_TENANT_REQUISITION" in strong or "EMPLOYER_REQUISITION" in strong:
+    if (evidence["strong_match"]
+            and ("ATS_TENANT_REQUISITION" in strong or "EMPLOYER_REQUISITION" in strong)):
         score, reason = 1.0, "EXACT_REQUISITION"
     elif "SOURCE_JOB_RELATIONSHIP" in strong:
         score, reason = 1.0, "EXACT_SOURCE_RELATIONSHIP"
