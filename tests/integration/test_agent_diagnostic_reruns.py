@@ -92,6 +92,7 @@ class DiagnosticSliceTests(unittest.TestCase):
                     max_attempts=3)
 
                 self.assertEqual(invocations, ["synthetic"])
+                self.assertFalse(result["agreement"])
                 self.assertEqual(result["attempt_count"], 1)
                 self.assertEqual(len(result["attempts"]), 1)
                 attempt = result["attempts"][0]

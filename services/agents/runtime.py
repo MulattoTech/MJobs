@@ -122,7 +122,8 @@ class AgentRuntime:
             if run_result["stop_reason"] in _ESCAPE_OUTCOMES:
                 break
 
-        agreement = all(signature == signatures[0] for signature in signatures[1:])
+        agreement = len(signatures) >= 2 and all(
+            signature == signatures[0] for signature in signatures[1:])
         return {
             "diagnostic_id": diagnostic_id,
             "attempt_count": len(attempts),
