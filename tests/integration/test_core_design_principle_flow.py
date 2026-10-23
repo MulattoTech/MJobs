@@ -42,6 +42,11 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
         store.migrate()
         return store
 
+    def _reopen_store(self) -> Store:
+        store = Store(self.database_url)
+        store.migrate()
+        return store
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-core-design-")
         self.root = Path(self.temp.name)
@@ -206,8 +211,7 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
             self.assertEqual(counts["submit"], 0)
 
         self.store.engine.dispose()
-        self.store = Store(self.database_url)
-        self.store.migrate()
+        self.store = self._reopen_store()
         self.store.bind_workspace_mode("FIXTURE")
 
         self.assertEqual(get_search_profile(self.store, search_id)["profile_id"], "fixture")
@@ -249,6 +253,11 @@ class CoreDesignPrincipleFlowPostgresTests(CoreDesignPrincipleFlowTests):
         store = Store(self.database_url)
         from packages.persistence import resume_workspace  # noqa: F401
 
+        m.metadata.create_all(store.engine)
+        return store
+
+    def _reopen_store(self) -> Store:
+        store = Store(self.database_url)
         m.metadata.create_all(store.engine)
         return store
 
