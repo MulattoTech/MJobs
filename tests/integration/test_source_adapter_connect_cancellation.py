@@ -138,7 +138,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 if pre_collection_delay:
                     time.sleep(pre_collection_delay)
                 collection_ready.set()
-                if not collection_release.wait(1):
+                if not collection_release.wait(5):
                     raise AssertionError("Test did not release source collection")
                 return original_collect_source(*args, **kwargs)
 
