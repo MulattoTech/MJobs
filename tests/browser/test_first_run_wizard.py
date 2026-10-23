@@ -28,6 +28,23 @@ from workers.tasks import execute_operation
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def tab_to(page, target, *, max_tabs=100):
+    """Reach a control using browser Tab navigation, never a mouse click."""
+    for _ in range(max_tabs):
+        page.keyboard.press("Tab")
+        if target.evaluate("element => element === document.activeElement"):
+            return
+    active = page.locator("body").evaluate("element => ({tag: document.activeElement.tagName, "
+                                           "id: document.activeElement.id, "
+                                           "text: document.activeElement.innerText})")
+    target_state = target.evaluate("element => ({tag: element.tagName, id: element.id, "
+                                   "disabled: element.disabled, value: element.value, "
+                                   "options: element.options ? Array.from(element.options, "
+                                   "option => option.value) : null})")
+    raise AssertionError(f"Control was not reachable with Tab: {target}; target={target_state}; "
+                         f"active={active}")
+
+
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class FirstRunWizardBrowserTests(unittest.TestCase):
@@ -173,15 +190,31 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         context.route(origin + "/discovery", run_fixture_discovery)
                         page = context.new_page()
                         page.set_default_timeout(12000)
+                        document_requests = []
+                        page.on("request", lambda request: document_requests.append(request.url)
+                                if request.is_navigation_request() else None)
                         page.on("pageerror", lambda error: page_errors.append(str(error)))
                         page.goto(origin, wait_until="domcontentloaded")
                         wizard = page.get_by_role("region", name="First-run setup")
                         expect(wizard).to_be_visible()
                         expect(wizard.get_by_role("listitem")).to_have_count(10)
                         expect(wizard).to_contain_text("External submission stays off")
-                        wizard.get_by_role("button", name="Open profile", exact=True).click()
+                        # Tab through the real browser's focus order into the
+                        # wizard, then activate its action without a pointer.
+                        set_up_later = wizard.get_by_role("button", name="Set up later", exact=True)
+                        tab_to(page, set_up_later)
+                        page.keyboard.press("Tab")
+                        open_profile = wizard.get_by_role("button", name="Open profile", exact=True)
+                        expect(open_profile).to_be_focused()
+                        self.assertTrue(open_profile.evaluate("element => element.matches(':focus-visible')"))
+                        self.assertGreater(float(open_profile.evaluate(
+                            "element => parseFloat(getComputedStyle(element).outlineWidth)")), 0)
+                        document_request_count = len(document_requests)
+                        page.keyboard.press("Enter")
                         expect(page.get_by_role("button", name="Profile", exact=True)).to_have_attribute(
                             "aria-current", "page")
+                        self.assertEqual(len(document_requests), document_request_count,
+                                         "Enter on a wizard action must not submit or navigate the page")
                         page.get_by_label("Full name", exact=True).fill("Example Applicant")
                         page.get_by_label("Email", exact=True).fill("imported@example.invalid")
                         page.locator("label").filter(has_text="Work arrangements").locator("select").select_option("REMOTE")
@@ -353,13 +386,63 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         wizard = page.get_by_role("region", name="First-run setup")
                         expect(wizard.get_by_role("listitem").nth(8).get_by_text("Complete", exact=True)).to_be_visible()
                         source = wizard.get_by_label("Enabled source for this search", exact=True)
-                        source.select_option(source_id)
                         search = wizard.get_by_label("First-run saved search profile", exact=True)
-                        search.select_option(saved_search["id"])
-
-                        wizard.get_by_role("button", name="Run saved search", exact=True).click()
+                        run_saved_search = wizard.get_by_role("button", name="Run saved search", exact=True)
+                        # Traverse the native selects in DOM order. Selecting
+                        # the source intentionally clears the prior search, so
+                        # move back to choose the compatible search afterward.
+                        expect(source).to_be_enabled()
+                        expect(search).to_be_enabled()
+                        tab_to(page, search)
+                        expect(search).to_be_focused()
+                        self.assertTrue(search.evaluate("element => element.matches(':focus-visible')"))
+                        self.assertGreater(float(search.evaluate(
+                            "element => parseFloat(getComputedStyle(element).outlineWidth)")), 0)
+                        page.keyboard.press("Home")
+                        expect(search).to_have_value("")
+                        expect(run_saved_search).to_be_disabled()
+                        page.keyboard.press("Tab")
+                        expect(source).to_be_focused()
+                        self.assertTrue(source.evaluate("element => element.matches(':focus-visible')"))
+                        self.assertGreater(float(source.evaluate(
+                            "element => parseFloat(getComputedStyle(element).outlineWidth)")), 0)
+                        page.keyboard.press("Home")
+                        expect(source).to_have_value("")
+                        expect(run_saved_search).to_be_disabled()
+                        page.keyboard.press("ArrowDown")
+                        expect(source).to_have_value(source_id)
+                        page.keyboard.press("Shift+Tab")
+                        expect(search).to_be_focused()
+                        search_values = search.locator("option").evaluate_all(
+                            "options => options.map(option => option.value)")
+                        search_index = search_values.index(saved_search["id"])
+                        self.assertGreater(search_index, 0)
+                        for _ in range(search_index):
+                            page.keyboard.press("ArrowDown")
+                        expect(search).to_have_value(saved_search["id"])
+                        self.assertTrue(run_saved_search.is_enabled(), {
+                            "source": source.input_value(),
+                            "search": search.input_value(),
+                            "search_options": search_values,
+                            "saved_search": saved_search,
+                            "busy_status": page.get_by_role("status").all_inner_texts(),
+                        })
+                        page.keyboard.press("Tab")
+                        expect(source).to_be_focused()
+                        page.keyboard.press("Tab")
+                        expect(run_saved_search).to_be_focused()
+                        self.assertTrue(run_saved_search.evaluate("element => element.matches(':focus-visible')"))
+                        self.assertGreater(float(run_saved_search.evaluate(
+                            "element => parseFloat(getComputedStyle(element).outlineWidth)")), 0)
+                        document_request_count = len(document_requests)
+                        with page.expect_response(lambda response:
+                                "/collect" in response.url and response.request.method == "POST") as keyboard_collect:
+                            page.keyboard.press("Space")
+                        self.assertEqual(keyboard_collect.value.status, 202)
                         last_step = wizard.get_by_role("listitem").nth(9)
                         expect(last_step.get_by_text("Complete", exact=True)).to_be_visible(timeout=20000)
+                        self.assertEqual(len(document_requests), document_request_count,
+                                         "Enter on Run saved search must not submit a form")
                         for step in wizard.get_by_role("listitem").all():
                             expect(step.get_by_text("Complete", exact=True)).to_be_visible()
 
@@ -518,14 +601,28 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                             expect(counts.get_by_text("Captured: 3", exact=True)).to_be_visible()
                             expect(counts.get_by_text("Prefiltered candidates: 2", exact=True)).to_be_visible()
                         wizard = page.get_by_role("region", name="First-run setup")
-                        wizard.get_by_role("button", name="Set up later", exact=True).click()
+                        set_up_later = wizard.get_by_role("button", name="Set up later", exact=True)
+                        tab_to(page, set_up_later)
+                        page.keyboard.press("Enter")
                         resume = page.get_by_role("button", name=re.compile(r"^Resume first-run setup"))
                         expect(resume).to_be_visible()
+                        self.assertEqual(page.evaluate(
+                            "key => localStorage.getItem(key)",
+                            f"mjobs-first-run-wizard-hidden:{profile_id}"), "1")
                         page.reload(wait_until="domcontentloaded")
                         expect(resume).to_be_visible()
-                        resume.click()
+                        resume = page.get_by_role("button", name=re.compile(r"^Resume first-run setup"))
+                        tab_to(page, resume)
+                        expect(resume).to_be_focused()
+                        self.assertTrue(resume.evaluate("element => element.matches(':focus-visible')"))
+                        self.assertGreater(float(resume.evaluate(
+                            "element => parseFloat(getComputedStyle(element).outlineWidth)")), 0)
+                        page.keyboard.press("Space")
                         resumed_wizard = page.get_by_role("region", name="First-run setup")
                         expect(resumed_wizard).to_be_visible()
+                        self.assertIsNone(page.evaluate(
+                            "key => localStorage.getItem(key)",
+                            f"mjobs-first-run-wizard-hidden:{profile_id}"))
                         expect(resumed_wizard.get_by_role("listitem").nth(9).get_by_text("Complete", exact=True)).to_be_visible()
                         self.assertEqual(external_requests, [])
                         self.assertEqual(application_requests, [])
