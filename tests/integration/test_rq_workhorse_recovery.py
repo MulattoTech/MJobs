@@ -217,6 +217,11 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
             self.assertEqual(process_identity(123, proc=root),
                              ProcessIdentity(123, 100, 100, 100, 87654))
 
+    def test_running_treats_proc_stat_process_lookup_race_as_gone(self):
+        owned = ProcessIdentity(123, 100, 100, 100, 87654)
+        with patch.object(Path, "read_text", side_effect=ProcessLookupError(3, "No such process")):
+            self.assertFalse(workhorse_fixture.running(owned))
+
     def test_reused_pid_or_changed_session_is_never_signalled(self):
         owned = ProcessIdentity(123, 100, 100, 100, 87654)
         for changed in (replace(owned, started=87655), replace(owned, session=999),
@@ -233,10 +238,12 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
                    return_value=replace(owned, parent=1)), self.signals() as kill:
             self.assertTrue(signal_owned(owned, signal.SIGTERM))
             kill.assert_called_once_with(987, signal.SIGTERM)
-        with patch("tests.integration.rq_workhorse_fixture.process_identity",
-                   side_effect=FileNotFoundError), self.signals() as kill:
-            self.assertFalse(signal_owned(owned, signal.SIGTERM))
-            kill.assert_not_called()
+        for vanished in (FileNotFoundError, ProcessLookupError):
+            with self.subTest(vanished=vanished), patch(
+                    "tests.integration.rq_workhorse_fixture.process_identity",
+                    side_effect=vanished), self.signals() as kill:
+                self.assertFalse(signal_owned(owned, signal.SIGTERM))
+                kill.assert_not_called()
 
     def test_public_admission_replay_cancel_and_fresh_readback_need_no_redis(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-rq-admission-") as directory:
