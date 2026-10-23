@@ -10,6 +10,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
+from packages.domain.operation_errors import source_collection_error_category
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.ai.prompt_provenance import capture_parser
@@ -22,6 +23,65 @@ from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
 from services.discovery.search_semantics import normalize_reported_timestamp, parse_timestamp
+
+
+class SourceCollectionBoundaryError(RuntimeError):
+    """A collection failure whose private or unstable details were withheld."""
+
+
+_SAFE_LEGACY_SOURCE_CODES = frozenset({
+    "COMPANY_ATS_BINDING_REVIEW_REQUIRED",
+    "COMPANY_ATS_JOB_TENANT_MISMATCH",
+    "COMPANY_DOMAIN_REVIEW_REQUIRED",
+    "COMPANY_SOURCE_DISABLED",
+    "SOURCE_BACKOFF",
+    "SOURCE_COOLDOWN",
+    "SOURCE_DISABLED",
+    "SOURCE_DUPLICATE_JOB_ID",
+    "SOURCE_INVALID_CONTENT_TYPE",
+    "SOURCE_INVALID_FORMAT",
+    "SOURCE_INVALID_JOB",
+    "SOURCE_INVALID_JOB_LOCATION",
+    "SOURCE_INVALID_JSON",
+    "SOURCE_JOB_ID_MISMATCH",
+    "SOURCE_JOB_LIMIT",
+    "SOURCE_JOB_NOT_FOUND",
+    "SOURCE_NO_VALID_JOBS",
+    "SOURCE_PAYLOAD_INVALID",
+    "SOURCE_PAYLOAD_LIMIT",
+    "SOURCE_ROUTE_IDENTITY_CONFLICT",
+    "SOURCE_UNAVAILABLE",
+    "SOURCE_UNSUPPORTED",
+})
+
+
+def _safe_legacy_source_code(code):
+    if code in _SAFE_LEGACY_SOURCE_CODES:
+        return True
+    if type(code) is not str:
+        return False
+    http_status = code.removeprefix("SOURCE_HTTP_")
+    return len(http_status) == 3 and http_status.isdigit()
+
+
+def _public_collection_failure(failure):
+    if isinstance(failure, httpx.HTTPError):
+        public_failure = SourceError("SOURCE_NETWORK_ERROR")
+        category = "NETWORK_ERROR"
+    elif isinstance(failure, SourceError):
+        public_failure = failure
+        category = source_collection_error_category(failure.code)
+        if category is None and not _safe_legacy_source_code(failure.code):
+            return SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED"), None
+        if category is None:
+            return public_failure, None
+    else:
+        public_failure = SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED")
+        category = None
+    if category is None:
+        return SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED"), None
+    public_failure.operation_error_category = category
+    return public_failure, category
 
 
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
@@ -339,7 +399,14 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     last_error=source["last_error"],
                     backoff_until=source["backoff_until"],
                 ))
+            if authority_rejected:
+                public_failure, _ = _public_collection_failure(failure)
+                if public_failure is not failure:
+                    raise public_failure from None
             raise
+        public_failure, operation_category = _public_collection_failure(failure)
+        source_health_error = (failure.code if isinstance(failure, SourceError)
+                               and operation_category is not None else operation_category)
         # Only external fetch failures count against availability. Cancellation,
         # DB failures and local programming errors are not evidence of an outage.
         if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
@@ -358,11 +425,13 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 source_endpoint=observed_endpoint,
                 succeeded=False, available=available, enumerated=enumerated, accepted=accepted,
                 completeness_sum=completeness_sum, salary_known=salary_known,
-                error_code=failure.code if isinstance(failure, SourceError) else type(failure).__name__)
+                error_code=operation_category)
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
                 consecutive_failures=m.job_sources.c.consecutive_failures + 1,
-                health_status="RATE_LIMITED" if isinstance(failure, SourceError) and failure.code == "SOURCE_RATE_LIMITED" else "FAILED",
-                last_error=failure.code if isinstance(failure, SourceError) else type(failure).__name__,
+                health_status="RATE_LIMITED" if operation_category == "RATE_LIMITED" else "FAILED",
+                last_error=source_health_error,
                 backoff_until=backoff.isoformat(),
                 **({"enabled": False} if disabled else {})))
-        raise
+        if public_failure is failure:
+            raise
+        raise public_failure from None
