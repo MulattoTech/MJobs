@@ -1,10 +1,18 @@
 """Synthetic XSS regression coverage for third-party posting descriptions."""
+from html import escape
 import unittest
 
 from services.discovery.sources.structured_text import structured_text
 
 
 class StructuredTextWebSecurityTests(unittest.TestCase):
+    def test_entity_nesting_beyond_decode_limit_fails_closed(self):
+        payload = "<script>deep-script-sentinel</script><p>Untrusted text</p>"
+        for _ in range(10):
+            payload = escape(payload)
+
+        self.assertEqual(structured_text(payload), "")
+
     def test_nested_encoded_active_content_is_removed(self):
         result = structured_text(
             "&amp;amp;lt;script&amp;amp;gt;script-sentinel"

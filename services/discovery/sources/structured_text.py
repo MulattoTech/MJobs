@@ -29,6 +29,9 @@ def structured_text(value):
         if decoded == value:
             break
         value = decoded
+    else:
+        if unescape(value) != value:
+            return ""
 
     parsed = BeautifulSoup(value, "html.parser")
     for element in parsed(("script", "style", "noscript", "template")):
