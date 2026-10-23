@@ -64,7 +64,8 @@ def test_source_collection_mapping_returns_only_canonical_categories(provider_co
     assert source_collection_error_category(provider_code) == expected
 
 
-@pytest.mark.parametrize("provider_code", [None, "", "SOURCE_PAYLOAD_INVALID", "SOURCE_HTTP_5000",
-                                             "SOURCE_HTTP_5XX", "token=PRIVATE"])
+@pytest.mark.parametrize("provider_code", [None, "", 500, ["SOURCE_HTTP_503"], "SOURCE_PAYLOAD_INVALID",
+                                             "SOURCE_HTTP_404", "SOURCE_HTTP_5000", "SOURCE_HTTP_5XX",
+                                             "token=PRIVATE"])
 def test_source_collection_mapping_rejects_unclassified_provider_codes(provider_code):
     assert source_collection_error_category(provider_code) is None

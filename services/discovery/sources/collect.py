@@ -56,12 +56,9 @@ _SAFE_LEGACY_SOURCE_CODES = frozenset({
 
 
 def _safe_legacy_source_code(code):
-    if code in _SAFE_LEGACY_SOURCE_CODES:
-        return True
     if type(code) is not str:
         return False
-    http_status = code.removeprefix("SOURCE_HTTP_")
-    return len(http_status) == 3 and http_status.isdigit()
+    return code in _SAFE_LEGACY_SOURCE_CODES
 
 
 def _public_collection_failure(failure):
@@ -69,18 +66,15 @@ def _public_collection_failure(failure):
         public_failure = SourceError("SOURCE_NETWORK_ERROR")
         category = "NETWORK_ERROR"
     elif isinstance(failure, SourceError):
-        public_failure = failure
         category = source_collection_error_category(failure.code)
         if category is None and not _safe_legacy_source_code(failure.code):
             return SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED"), None
-        if category is None:
-            return public_failure, None
+        public_failure = SourceError(failure.code, retry_seconds=failure.retry_seconds)
     else:
         public_failure = SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED")
         category = None
-    if category is None:
-        return SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED"), None
-    public_failure.operation_error_category = category
+    if category is not None:
+        public_failure.operation_error_category = category
     return public_failure, category
 
 
@@ -408,7 +402,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         if provider_boundary:
             public_failure, operation_category = _public_collection_failure(failure)
             source_health_error = (failure.code if isinstance(failure, SourceError)
-                                   and operation_category is not None else operation_category)
+                                       and (operation_category is not None
+                                            or _safe_legacy_source_code(failure.code))
+                                       else operation_category)
         else:
             # Once a fetch has completed, failures belong to local normalization,
             # authorization, or persistence. Keep their transactional exception
@@ -425,6 +421,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         # Only external fetch failures count against availability. Cancellation,
         # DB failures and local programming errors are not evidence of an outage.
         if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
+                                 and type(failure.code) is str
                                  and (failure.code.startswith('SOURCE_HTTP_') or failure.code in {
                                      'SOURCE_RATE_LIMITED', 'SOURCE_REDIRECT_BLOCKED', 'SOURCE_TIME_LIMIT',
                                      'SOURCE_TIMEOUT', 'SOURCE_NETWORK_ERROR', 'SOURCE_SERVER_ERROR'})):
@@ -454,4 +451,5 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 })
         if public_failure is failure:
             raise
-        raise public_failure from None
+        deferred_public_failure = public_failure
+    raise deferred_public_failure from None

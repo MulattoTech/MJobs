@@ -87,12 +87,37 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
                 })
                 self.assertNotIn("PRIVATE", repr(audit))
 
+    def test_safe_legacy_failure_is_rebuilt_and_preserves_only_its_code(self):
+        private = "provider-token=PRIVATE-CAUSE"
+        provider_failure = SourceError("SOURCE_INVALID_FORMAT")
+        provider_failure.__cause__ = RuntimeError(private)
+        provider_failure.__traceback__ = provider_failure.__cause__.__traceback__
+        source_id = self._source("safe-legacy")
+
+        with patch("services.discovery.sources.collect.source_adapter",
+                   return_value=_FailingAdapter(provider_failure)):
+            with self.assertRaises(SourceError) as raised:
+                collect_source(self.store, source_id, "fixture")
+
+        self.assertIsNot(raised.exception, provider_failure)
+        self.assertEqual(raised.exception.code, "SOURCE_INVALID_FORMAT")
+        self.assertIsNone(raised.exception.__cause__)
+        self.assertIsNone(raised.exception.__context__)
+        self.assertNotIn(private, repr(raised.exception))
+        source, observation, audit = self._persisted_failure(source_id)
+        self.assertEqual(source["last_error"], "SOURCE_INVALID_FORMAT")
+        self.assertEqual(observation["error_code"], "SOURCE_INVALID_FORMAT")
+        self.assertIsNone(audit)
+
     def test_unknown_and_secret_bearing_failures_are_sanitized_and_not_persisted(self):
         private = "provider-token=PRIVATE-SENTINEL"
         for suffix, provider_failure in (
             ("internal", RuntimeError(private)),
             ("unknown-source", SourceError(private)),
             ("identifier-secret", SourceError("PRIVATE_SENTINEL")),
+            ("unclassified-http", SourceError("SOURCE_HTTP_404")),
+            ("bare-status", SourceError(500)),
+            ("unhashable-code", SourceError(["SOURCE_HTTP_503"])),
         ):
             with self.subTest(suffix=suffix):
                 source_id = self._source(suffix)
