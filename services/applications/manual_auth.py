@@ -373,19 +373,21 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
         )
         if any(_has_reparse_component(path) for path in configured_paths):
             return None
-        root = configured_root.resolve()
-        application_root = configured_application_root.resolve()
-        profile = configured_profile.resolve()
+        root = os.path.realpath(configured_root)
+        application_root = os.path.realpath(configured_application_root)
+        profile = os.path.realpath(configured_profile)
+        root_prefix = root.rstrip(os.sep) + os.sep
+        application_prefix = application_root.rstrip(os.sep) + os.sep
         # Recheck the original names after resolution so an alias introduced
         # during validation cannot authorize a redirected session profile.
         if (any(_has_reparse_component(path) for path in configured_paths)
-                or not application_root.is_relative_to(root)
-                or not profile.is_relative_to(application_root)
-                or not profile.is_dir()):
+                or not application_root.startswith(root_prefix)
+                or not profile.startswith(application_prefix)
+                or not os.path.isdir(profile)):
             return None
     except (OSError, RuntimeError, TypeError, ValueError):
         return None
-    return dict(route), profile
+    return dict(route), Path(profile)
 
 
 def open_manual_auth_window(store, application_id: str, attempt_id: str,
