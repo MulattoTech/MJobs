@@ -34,7 +34,7 @@ provider allowlist. URL/provider policies are enforced in code. The API also has
 egress: do not model all external access as worker-only.
 
 ```mermaid
-flowchart LR
+flowchart TD
     Browser[Local browser] --> API[API and built UI]
     API --> DB[(PostgreSQL)]
     Scheduler[Scheduler] --> DB
