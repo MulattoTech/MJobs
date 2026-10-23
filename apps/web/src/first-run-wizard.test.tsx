@@ -61,7 +61,7 @@ it('renders all ten setup steps and keeps external submission unavailable', asyn
   expect(html).not.toContain('Automatic applications');
 });
 
-it('keeps first-run controls keyboard-native and gives each control an accessible name', async () => {
+it('renders native first-run controls with accessible names and non-submitting buttons', async () => {
   const { FirstRunWizard } = await modules['./first-run-wizard.tsx']!();
   vi.stubGlobal('localStorage', { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() });
   const html = renderToStaticMarkup(<FirstRunWizard
@@ -105,7 +105,7 @@ it('rejects buttons whose content does not provide an accessible name', () => {
   }
 });
 
-it('keeps the collapsed first-run resume action a named, keyboard-native button', async () => {
+it('keeps the collapsed first-run resume action a named native button', async () => {
   const { FirstRunWizard } = await modules['./first-run-wizard.tsx']!();
   vi.stubGlobal('localStorage', { getItem: () => '1', setItem: vi.fn(), removeItem: vi.fn() });
   const html = renderToStaticMarkup(<FirstRunWizard
