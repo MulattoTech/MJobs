@@ -217,6 +217,11 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
             self.assertEqual(process_identity(123, proc=root),
                              ProcessIdentity(123, 100, 100, 100, 87654))
 
+    def test_running_treats_proc_stat_process_lookup_race_as_gone(self):
+        owned = ProcessIdentity(123, 100, 100, 100, 87654)
+        with patch.object(Path, "read_text", side_effect=ProcessLookupError(3, "No such process")):
+            self.assertFalse(workhorse_fixture.running(owned))
+
     def test_reused_pid_or_changed_session_is_never_signalled(self):
         owned = ProcessIdentity(123, 100, 100, 100, 87654)
         for changed in (replace(owned, started=87655), replace(owned, session=999),
