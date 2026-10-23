@@ -219,6 +219,60 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
         self.assertEqual(result["signals"]["strong_signals"], [])
 
+    def test_same_ats_tenant_with_distinct_requisitions_stays_separate(self):
+        left = job(
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers, Active Directory, and PowerShell automation.",
+            application_url="https://ats.example/jobs/req-a",
+            ats_tenant="acme-ats",
+            requisition="REQ-A",
+        )
+        right = job(
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits administration.",
+            application_url="https://ats.example/jobs/req-b",
+            ats_tenant="acme-ats",
+            requisition="REQ-B",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["company"], right["company"])
+        self.assertEqual(left["ats_tenant"], right["ats_tenant"])
+        self.assertTrue(left["requisition"] and right["requisition"])
+        self.assertNotEqual(left["requisition"], right["requisition"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertNotIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
+
+    def test_same_requisition_in_different_ats_tenants_stays_separate(self):
+        left = job(
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers, Active Directory, and PowerShell automation.",
+            application_url="https://tenant-a.example/jobs/req-123",
+            ats_tenant="tenant-a",
+            requisition="REQ-123",
+        )
+        right = job(
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits administration.",
+            application_url="https://tenant-b.example/jobs/req-123",
+            ats_tenant="tenant-b",
+            requisition="REQ-123",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["company"], right["company"])
+        self.assertTrue(left["requisition"] and right["requisition"])
+        self.assertEqual(left["requisition"], right["requisition"])
+        self.assertNotEqual(left["ats_tenant"], right["ats_tenant"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertNotIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
+
     def test_same_title_and_description_in_different_city_requires_review(self):
         left = weak_identity_job()
         right = weak_identity_job(
