@@ -399,14 +399,29 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     last_error=source["last_error"],
                     backoff_until=source["backoff_until"],
                 ))
-            if authority_rejected:
-                public_failure, _ = _public_collection_failure(failure)
-                if public_failure is not failure:
-                    raise public_failure from None
+            if authority_rejected and isinstance(failure, SourceError):
+                category = source_collection_error_category(failure.code)
+                if category is not None:
+                    failure.operation_error_category = category
             raise
-        public_failure, operation_category = _public_collection_failure(failure)
-        source_health_error = (failure.code if isinstance(failure, SourceError)
-                               and operation_category is not None else operation_category)
+        provider_boundary = available is None
+        if provider_boundary:
+            public_failure, operation_category = _public_collection_failure(failure)
+            source_health_error = (failure.code if isinstance(failure, SourceError)
+                                   and operation_category is not None else operation_category)
+        else:
+            # Once a fetch has completed, failures belong to local normalization,
+            # authorization, or persistence. Keep their transactional exception
+            # semantics while persisting only a stable code/type, never its text.
+            public_failure = failure
+            operation_category = (source_collection_error_category(failure.code)
+                                  if isinstance(failure, SourceError) else None)
+            if operation_category is not None:
+                failure.operation_error_category = operation_category
+            source_health_error = (failure.code if isinstance(failure, SourceError)
+                                   and (operation_category is not None
+                                        or _safe_legacy_source_code(failure.code))
+                                   else type(failure).__name__)
         # Only external fetch failures count against availability. Cancellation,
         # DB failures and local programming errors are not evidence of an outage.
         if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
@@ -425,13 +440,18 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 source_endpoint=observed_endpoint,
                 succeeded=False, available=available, enumerated=enumerated, accepted=accepted,
                 completeness_sum=completeness_sum, salary_known=salary_known,
-                error_code=operation_category)
+                error_code=source_health_error)
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
                 consecutive_failures=m.job_sources.c.consecutive_failures + 1,
                 health_status="RATE_LIMITED" if operation_category == "RATE_LIMITED" else "FAILED",
                 last_error=source_health_error,
                 backoff_until=backoff.isoformat(),
                 **({"enabled": False} if disabled else {})))
+            if operation_category is not None:
+                store._audit(connection, source_id, "SOURCE_COLLECTION_FAILED", {
+                    "error_category": operation_category,
+                    "provider": source["provider"],
+                })
         if public_failure is failure:
             raise
         raise public_failure from None

@@ -57,7 +57,10 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
                 m.job_sources.c.id == source_id)).mappings().one()
             observation = connection.execute(select(m.source_quality_observations).where(
                 m.source_quality_observations.c.configured_source_id == source_id)).mappings().one()
-        return dict(source), dict(observation)
+            audit = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == source_id,
+                m.audit.c.action == "SOURCE_COLLECTION_FAILED")).mappings().one_or_none()
+        return dict(source), dict(observation), dict(audit) if audit else None
 
     def test_known_source_failures_persist_and_return_canonical_categories(self):
         cases = (
@@ -75,9 +78,14 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
                         collect_source(self.store, source_id, "fixture")
                 self.assertEqual(raised.exception.operation_error_category, category)
                 self.assertNotIn("PRIVATE", str(raised.exception))
-                source, observation = self._persisted_failure(source_id)
+                source, observation, audit = self._persisted_failure(source_id)
                 self.assertEqual(source["last_error"], health_error)
-                self.assertEqual(observation["error_code"], category)
+                self.assertEqual(observation["error_code"], health_error)
+                self.assertEqual(audit["payload"], {
+                    "error_category": category,
+                    "provider": "greenhouse",
+                })
+                self.assertNotIn("PRIVATE", repr(audit))
 
     def test_unknown_and_secret_bearing_failures_are_sanitized_and_not_persisted(self):
         private = "provider-token=PRIVATE-SENTINEL"
@@ -94,9 +102,10 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
                         collect_source(self.store, source_id, "fixture")
                 self.assertEqual(str(raised.exception), "SOURCE_COLLECTION_FAILED")
                 self.assertNotIn(private, str(raised.exception))
-                source, observation = self._persisted_failure(source_id)
+                source, observation, audit = self._persisted_failure(source_id)
                 self.assertIsNone(source["last_error"])
                 self.assertIsNone(observation["error_code"])
+                self.assertIsNone(audit)
                 self.assertNotIn(private, repr(source))
                 self.assertNotIn(private, repr(observation))
 
