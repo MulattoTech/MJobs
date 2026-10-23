@@ -263,6 +263,7 @@ class DedupePolicyTests(unittest.TestCase):
         result = duplicate_confidence(left, right)
 
         self.assertEqual(left["company"], right["company"])
+        self.assertTrue(result["signals"]["company"]["same_company"])
         self.assertEqual(left["ats_tenant"], right["ats_tenant"])
         self.assertTrue(left["requisition"] and right["requisition"])
         self.assertNotEqual(left["requisition"], right["requisition"])
