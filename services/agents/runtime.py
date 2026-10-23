@@ -119,6 +119,8 @@ class AgentRuntime:
                       for step in run_result["steps"]),
                 run_result["pages_consumed"], run_result["collection_result"],
             ))
+            if run_result["stop_reason"] in _ESCAPE_OUTCOMES:
+                break
 
         agreement = all(signature == signatures[0] for signature in signatures[1:])
         return {

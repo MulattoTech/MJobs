@@ -7,7 +7,7 @@ import unittest
 from pydantic import BaseModel, ConfigDict
 
 from packages.persistence.store import Store
-from services.agents.registry import AgentTool, PolicyDecision, ToolClass, ToolRegistry
+from services.agents.registry import AgentTool, AgentToolError, PolicyDecision, ToolClass, ToolRegistry
 from services.agents.runtime import AgentRuntime, read_agent_trace
 from tests.integration.test_spine import PROFILE
 
@@ -76,6 +76,31 @@ class DiagnosticSliceTests(unittest.TestCase):
             self.assertEqual(attempt["pages_consumed"], 1)
             self.assertNotIn("observed-a", json.dumps(trace))
             self.assertNotIn("observed-b", json.dumps(trace))
+
+    def test_terminal_escape_outcomes_stop_further_diagnostic_attempts(self):
+        for outcome in ("AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"):
+            with self.subTest(outcome=outcome):
+                invocations = []
+
+                def stop_with_outcome(args, context):
+                    invocations.append(args.value)
+                    raise AgentToolError(outcome)
+
+                runtime = self.runtime(ToolClass.READ, stop_with_outcome)
+                result = runtime.diagnose_slice(
+                    [{"name": "read_value", "arguments": {"value": "synthetic"}}],
+                    max_attempts=3)
+
+                self.assertEqual(invocations, ["synthetic"])
+                self.assertEqual(result["attempt_count"], 1)
+                self.assertEqual(len(result["attempts"]), 1)
+                attempt = result["attempts"][0]
+                self.assertEqual(attempt["state"], outcome)
+                self.assertEqual(attempt["stop_reason"], outcome)
+                trace = read_agent_trace(self.store, attempt["run_id"])
+                self.assertEqual(trace["terminal"]["state"], outcome)
+                self.assertEqual(trace["terminal"]["stop_reason"], outcome)
+                self.assertEqual(trace["steps"][0]["result_code"], outcome)
 
     def test_matching_diagnostic_attempts_do_not_claim_correctness(self):
         runtime = self.runtime(ToolClass.READ,
