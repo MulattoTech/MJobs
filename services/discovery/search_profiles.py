@@ -1,5 +1,6 @@
 """Persistent data-driven search profiles for one local MJobs workspace."""
 from decimal import Decimal, InvalidOperation
+import re
 
 from sqlalchemy import select
 
@@ -28,6 +29,17 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
+UTC_DATE_BOUND = re.compile(
+    r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}"
+    r"(?::[0-9]{2}(?:\.[0-9]{1,6})?)?(?:Z|\+00:00)$"
+)
+
+
+def parse_utc_date_bound(value):
+    """Parse an explicit ISO-8601 UTC search bound, rejecting ambiguous local/offset time."""
+    if not isinstance(value, str) or not UTC_DATE_BOUND.fullmatch(value):
+        return None
+    return parse_timestamp(value)
 
 
 def _clean_search_scheduler(value):
@@ -223,7 +235,7 @@ def save_search_profile(store, data):
         raise ValueError("Search profile negative condition is invalid")
     max_travel_percent = _bounded_float(data.get("max_travel_percent"), 0, 100, "Maximum travel percent")
     if date_window == "CUSTOM":
-        start, end = parse_timestamp(date_start), parse_timestamp(date_end)
+        start, end = parse_utc_date_bound(date_start), parse_utc_date_bound(date_end)
         if start is None or end is None or start > end:
             raise ValueError("Custom date filtering requires an ordered ISO start/end")
         date_start, date_end = start.isoformat(), end.isoformat()
