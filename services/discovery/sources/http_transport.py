@@ -20,7 +20,10 @@ import httpcore
 import httpx
 
 
-_POLL = .02
+# Keep cancellation checks prompt while leaving a scheduling window for the
+# public cancellation write that those checks observe.  A tighter loop can
+# repeatedly win SQLite read access under loaded synthetic integration runs.
+_POLL = .05
 _DNS_SLOTS = threading.BoundedSemaphore(4)
 _MAX_ADDRESSES = 8
 _RESOLVER_CODE = (
