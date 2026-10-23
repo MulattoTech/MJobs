@@ -482,6 +482,8 @@ def write_checkpoint(root: Path, task: str, objective: str, owner: str,
             raise ValueError("checkpoint owned by a different task branch/owner or diverged; reconcile")
         if previous and previous.get("transfer_history"):
             item["transfer_history"] = previous["transfer_history"]
+        if previous and implementation_state is None and "implementation_state" in previous:
+            item["implementation_state"] = previous["implementation_state"]
 
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_name = None

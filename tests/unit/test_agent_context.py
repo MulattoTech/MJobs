@@ -110,6 +110,32 @@ class AgentContextTests(unittest.TestCase):
         self.assertIn("?? unfinished.txt", recovery["uncommitted_changes"])
         self.assertEqual(dirty.read_bytes(), dirty_bytes)
 
+    def test_checkpoint_update_without_implementation_state_preserves_journal(self):
+        state = {
+            "current_phase": "implementation",
+            "completed_steps": ["persist required milestone fields"],
+            "files_added": [],
+            "files_modified": ["tools/agent_context.py"],
+            "tests_completed": ["pytest tests/unit/test_agent_context.py"],
+            "tests_remaining": ["hosted CI"],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": ["full acceptance remains PARTIAL"],
+            "last_safe_checkpoint": "after focused tests",
+        }
+        write_checkpoint(
+            self.root, "MJ-REQ-004", "Persist milestone journal", "Gemini",
+            "Verify journal recovery", [], [], [], implementation_state=state,
+        )
+
+        write_checkpoint(
+            self.root, "MJ-REQ-004", "Persist milestone journal", "Gemini",
+            "Run ordinary checkpoint update", ["pytest tests/unit/test_agent_context.py"], [], [],
+        )
+
+        self.assertEqual(load_checkpoint(self.root, "MJ-REQ-004")["implementation_state"], state)
+
     def test_implementation_state_requires_all_fields_and_valid_collections(self):
         text_fields = ("current_phase", "last_safe_checkpoint")
         list_fields = (
