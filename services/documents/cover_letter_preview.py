@@ -12,6 +12,7 @@ from services.documents.errors import PreparationError
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _MAX_FACTS = 1000
+_UNSPECIFIED_PROFILE_ID = object()
 
 
 def _fail(code: str, message: str):
@@ -119,6 +120,7 @@ def build_cover_letter_preview(
     *,
     expected_profile_version,
     expected_job_fingerprint,
+    facts_profile_id=_UNSPECIFIED_PROFILE_ID,
     style="professional",
     length="normal",
 ):
@@ -134,6 +136,18 @@ def build_cover_letter_preview(
         _fail("COVER_LETTER_PREVIEW_PROFILE_REQUIRED", "A current profile snapshot is required")
     if profile.get("version") != expected_profile_version:
         _fail("COVER_LETTER_PREVIEW_PROFILE_STALE", "The profile changed; reload current approved facts")
+    if facts_profile_id is _UNSPECIFIED_PROFILE_ID:
+        # A directly supplied current-profile snapshot is bound by containment;
+        # detached fact lists must carry an explicit profile identity.
+        if facts is profile.get("facts"):
+            facts_profile_id = profile["id"]
+        else:
+            facts_profile_id = None
+    if type(facts_profile_id) is not str or facts_profile_id != profile["id"]:
+        _fail(
+            "COVER_LETTER_PREVIEW_EVIDENCE_INVALID",
+            "Career-fact provenance does not belong to the current profile",
+        )
 
     job_data = _job_snapshot(job)
     if (type(expected_job_fingerprint) is not str
