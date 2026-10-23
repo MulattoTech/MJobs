@@ -1741,7 +1741,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if effective_application_capability == "":
             effective_application_capability = None
         saved_date_window = search_profile["criteria"].get("date_window", "ANY") if search_profile else "ANY"
-        effective_date_window = date_window if explicit_date_window else saved_date_window
+        explicit_date_filter = explicit_date_window or posted_within_days is not None
+        if explicit_date_window:
+            effective_date_window = date_window
+        elif posted_within_days is not None:
+            effective_date_window = "ANY"
+        else:
+            effective_date_window = saved_date_window
         if effective_date_window == "ANY" and not explicit_date_window:
             effective_posted_within = posted_within_days if posted_within_days is not None else (
                 int(saved_posted_within) if saved_posted_within else None)
@@ -1797,6 +1803,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                         if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED"):
                             yield row
 
+        effective_search_criteria = search_profile["criteria"] if search_profile else None
+        if effective_search_criteria is not None and explicit_date_filter:
+            effective_search_criteria = {
+                **effective_search_criteria,
+                "date_window": "ANY",
+                "date_start": None,
+                "date_end": None,
+            }
         rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
@@ -1811,7 +1825,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           application_capability=effective_application_capability,
                           posted_after=posted_after, posted_before=posted_before,
                           exclude_company_ids=excluded_company_ids,
-                          search_criteria=search_profile["criteria"] if search_profile else None,
+                          search_criteria=effective_search_criteria,
                           row_filter=visibility_filter)
         if profile_id and include_dismissed:
             from services.tracking.jobs import list_job_tracking

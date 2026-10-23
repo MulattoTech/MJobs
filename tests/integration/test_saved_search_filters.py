@@ -947,8 +947,28 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
                         "date_window": "ANY", "override_saved_match_score": True, "sort": "title",
                     })
                     self.assertEqual(explicit_any.status_code, 200, explicit_any.text)
+                    self.assertEqual({job["id"] for job in explicit_any.json()["jobs"]},
+                                     {included_id, excluded_id})
                     self.assertIsNone(jobs_query.call_args.kwargs["posted_after"])
                     self.assertIsNone(jobs_query.call_args.kwargs["posted_before"])
+                    jobs_query.reset_mock()
+                    explicit_wider = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter",
+                        "date_window": "CUSTOM", "date_start": "2026-09-30T00:00:00Z",
+                        "date_end": "2026-10-04T00:00:00Z", "sort": "title",
+                    })
+                    self.assertEqual(explicit_wider.status_code, 200, explicit_wider.text)
+                    self.assertEqual({job["id"] for job in explicit_wider.json()["jobs"]},
+                                     {included_id, excluded_id})
+                    clock = self.enterContext(patch("apps.api.main.datetime", wraps=datetime))
+                    clock.now.return_value = datetime(2026, 10, 21, tzinfo=timezone.utc)
+                    explicit_legacy_wider = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter",
+                        "posted_within_days": 30, "sort": "title",
+                    })
+                    self.assertEqual(explicit_legacy_wider.status_code, 200, explicit_legacy_wider.text)
+                    self.assertEqual({job["id"] for job in explicit_legacy_wider.json()["jobs"]},
+                                     {included_id, excluded_id})
                 for invalid_start in ("2026-10-01T00:00:00", "2026-10-01T01:00:00+01:00"):
                     invalid = client.put("/search-profiles", json={**payload, "date_start": invalid_start})
                     self.assertEqual(invalid.status_code, 422, invalid.text)
