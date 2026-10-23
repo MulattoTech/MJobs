@@ -1,22 +1,25 @@
 """MJ-REQ-216: deterministic identity evidence and non-merging controls.
 
-Exercise the real resolver over only its four input tables. No migrations,
+Exercise the real resolver over isolated input tables. No migrations,
 network, API server, or external employer data are needed.
 """
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from sqlalchemy import create_engine, select
 
 from packages.persistence import models as m
 from services.company_discovery.resolution import resolve_company
+from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 
 
 class CompanyResolutionTests(unittest.TestCase):
     def setUp(self):
         self.engine = create_engine("sqlite:///:memory:")
         self.addCleanup(self.engine.dispose)
-        self.tables = (m.companies, m.company_aliases, m.company_domains, m.company_sources)
+        self.tables = (m.companies, m.company_aliases, m.company_domains,
+                       m.company_ats_tenants, m.company_sources, m.company_discovery_requests)
         m.metadata.create_all(self.engine, tables=self.tables)
         self.store = SimpleNamespace(engine=self.engine)
 
@@ -38,16 +41,33 @@ class CompanyResolutionTests(unittest.TestCase):
     def domain(self, company_id, host="northstar.example", *, verified=True):
         self.insert(m.company_domains, id="domain-" + company_id, company_id=company_id,
                     domain=host, confidence=.99, verified=verified,
-                    verification_method="FIRST_PARTY_CAREER_LINK",
+                    verification_method="FIRST_PARTY_JOB_LINK",
                     first_seen_at="2026-10-01T00:00:00Z",
                     last_verified_at="2026-10-01T00:00:00Z" if verified else None,
                     evidence=["Synthetic official career link"])
 
-    def ats(self, company_id, tenant="northstar", provider="greenhouse"):
+    def untrusted_ats(self, company_id, tenant="northstar", provider="greenhouse"):
         self.insert(m.company_sources, id="ats-" + company_id, company_id=company_id,
                     provider=provider, tenant=tenant,
                     endpoint="https://ats.example/" + tenant,
                     discovered_automatically=False)
+
+    def ats(self, company_id, tenant="northstar", provider="greenhouse"):
+        # These are the same tenant/source registration helpers used by public
+        # ATS enrollment; raw source observations are not identity authority.
+        career_url = "https://" + company_id + ".example/careers"
+        self.domain(company_id, company_id + ".example")
+        with self.engine.begin() as connection:
+            tenant_row = register_ats_tenant(
+                connection, company_id, provider=provider, tenant_identifier=tenant,
+                confidence=.99, evidence=["Synthetic verified career page: " + career_url])
+            return upsert_company_job_source(
+                connection, company_id=company_id, provider=provider,
+                tenant_identifier=tenant, career_url=career_url,
+                public_api_url="https://ats.example/" + tenant,
+                collection_strategy="API", confidence=.99, enabled=True,
+                ats_tenant_id=tenant_row["id"],
+                last_validation="2026-10-01T00:00:00Z")
 
     def resolve(self, name="Unrelated Display Name", **evidence):
         return resolve_company(self.store, {"company_name": name, **evidence})
@@ -183,17 +203,103 @@ class CompanyResolutionTests(unittest.TestCase):
         self.company("second", "Unrelated Finance")
         self.ats("first")
         self.ats("second", provider="lever")
-        self.domain("first")
-        result = self.resolve(ats_tenant="northstar", company_website="https://northstar.example")
+        result = self.resolve(ats_tenant="northstar", company_website="https://first.example")
         self.assert_existing(result, "first", .99,
                              ["VERIFIED_DOMAIN_MATCH", "ATS_TENANT_MATCH"])
 
+    def test_untrusted_ats_source_cannot_override_verified_application_domain(self):
+        self.company("verified-employer", "Northstar Robotics")
+        self.company("untrusted-employer", "Unrelated Finance")
+        self.domain("verified-employer")
+        self.untrusted_ats("untrusted-employer")
+        for label, overrides in (
+            ("unlinked-low-confidence", {}),
+            ("disabled", {"enabled": False}),
+            ("automatic-unreviewed", {"discovered_automatically": True}),
+            ("high-confidence-without-authorization", {"confidence": .99}),
+        ):
+            with self.subTest(source=label):
+                with self.engine.begin() as connection:
+                    connection.execute(m.company_sources.update().values(
+                        **{"enabled": True, "confidence": .45,
+                           "discovered_automatically": False, **overrides}))
+                result = self.resolve(ats_tenant="northstar",
+                                      application_url="https://northstar.example/jobs/1")
+                self.assert_existing(result, "verified-employer", .90,
+                                     ["VERIFIED_DOMAIN_MATCH"])
+
+    def test_enrolled_source_loses_tenant_authority_when_disabled_or_unvalidated(self):
+        self.company("known", "Northstar Holdings")
+        source = self.ats("known")
+        for label, changes in (
+            ("disabled", {"enabled": False}),
+            ("low-source-confidence", {"confidence": .45}),
+            ("unvalidated", {"last_validation": None}),
+            ("unlinked", {"ats_tenant_id": None}),
+            ("changed-provider", {"provider": "lever"}),
+            ("changed-tenant", {"tenant": "other"}),
+            ("unverified-career-host", {"career_url": "https://unverified.example/careers"}),
+            ("malformed-authorization", {"identity_authorization": {"kind": "UNTRUSTED"}}),
+            ("missing-review-request", {"identity_authorization": {
+                "kind": "USER_CONFIRMED_DOMAIN", "website": "https://known.example/",
+                "request_id": "missing"}}),
+        ):
+            with self.subTest(source=label):
+                with self.engine.begin() as connection:
+                    connection.execute(m.company_sources.update().values(**{**source, **changes}))
+                result = self.resolve(ats_tenant=changes.get("tenant", "northstar"))
+                self.assertTrue(result["is_new"])
+                self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
+
+    def test_tenant_record_must_be_evidenced_and_belong_to_source_company(self):
+        self.company("known", "Northstar Holdings")
+        self.company("other", "Unrelated Finance")
+        self.ats("known")
+        with self.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_ats_tenants)).mappings().one())
+        for changes in ({"confidence": .45}, {"evidence": []}, {"company_id": "other"}):
+            with self.subTest(changes=changes):
+                with self.engine.begin() as connection:
+                    connection.execute(m.company_ats_tenants.update().values(**{**original, **changes}))
+                result = self.resolve(ats_tenant="northstar")
+                self.assertTrue(result["is_new"])
+                self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
+
+    def test_automatic_enrolled_source_remains_valid_with_current_domain_proof(self):
+        self.company("known", "Northstar Holdings")
+        self.ats("known")
+        with self.engine.begin() as connection:
+            connection.execute(m.company_sources.update().values(discovered_automatically=True))
+        self.assert_existing(self.resolve(ats_tenant="northstar"), "known", .95,
+                             ["ATS_TENANT_MATCH"])
+
+    def test_revoked_or_ambiguous_career_domain_cannot_authorize_tenant(self):
+        self.company("known", "Northstar Holdings")
+        self.company("other", "Unrelated Finance")
+        self.ats("known")
+        with self.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_domains)).mappings().one())
+        for changes in ({"verified": False}, {"evidence": []},
+                        {"verification_method": "CANDIDATE_DOMAIN_UNVERIFIED"}):
+            with self.subTest(changes=changes):
+                with self.engine.begin() as connection:
+                    connection.execute(m.company_domains.update().values(**{**original, **changes}))
+                self.assertTrue(self.resolve(ats_tenant="northstar")["is_new"])
+        with self.engine.begin() as connection:
+            connection.execute(m.company_domains.update().values(**original))
+        self.domain("other", "known.example")
+        self.assertTrue(self.resolve(ats_tenant="northstar")["is_new"])
+
     def test_resolution_is_repeatable_and_does_not_persist_candidate_evidence(self):
         self.company("known", "Northstar Holdings")
+        self.ats("known")
         with self.engine.connect() as connection:
             before = {table.name: connection.execute(select(table)).all() for table in self.tables}
-        first = self.resolve(company_website="https://unverified.example")
-        self.assertEqual(first, self.resolve(company_website="https://unverified.example"))
+        with patch("socket.socket", side_effect=AssertionError("Resolution must not use network")):
+            first = self.resolve(company_website="https://unverified.example")
+            self.assertEqual(first, self.resolve(company_website="https://unverified.example"))
+            self.assert_existing(self.resolve(ats_tenant="northstar"), "known", .95,
+                                 ["ATS_TENANT_MATCH"])
         with self.engine.connect() as connection:
             after = {table.name: connection.execute(select(table)).all() for table in self.tables}
         self.assertEqual(before, after)
