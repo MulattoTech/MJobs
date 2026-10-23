@@ -931,11 +931,24 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         try:
             with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
                                        operation_mode="FIXTURE")) as client:
-                response = client.get("/jobs", params={
-                    "profile_id": "fixture", "search_profile_id": "saved-filter", "sort": "title",
-                })
-                self.assertEqual(response.status_code, 200, response.text)
-                self.assertEqual([job["id"] for job in response.json()["jobs"]], [included_id])
+                with patch.object(reopened, "jobs", wraps=reopened.jobs) as jobs_query:
+                    response = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter", "sort": "title",
+                    })
+                    self.assertEqual(response.status_code, 200, response.text)
+                    self.assertEqual([job["id"] for job in response.json()["jobs"]], [included_id])
+                    self.assertEqual(jobs_query.call_args.kwargs["posted_after"],
+                                     datetime(2026, 10, 1, tzinfo=timezone.utc))
+                    self.assertEqual(jobs_query.call_args.kwargs["posted_before"],
+                                     datetime(2026, 10, 2, tzinfo=timezone.utc))
+                    jobs_query.reset_mock()
+                    explicit_any = client.get("/jobs", params={
+                        "profile_id": "fixture", "search_profile_id": "saved-filter",
+                        "date_window": "ANY", "override_saved_match_score": True, "sort": "title",
+                    })
+                    self.assertEqual(explicit_any.status_code, 200, explicit_any.text)
+                    self.assertIsNone(jobs_query.call_args.kwargs["posted_after"])
+                    self.assertIsNone(jobs_query.call_args.kwargs["posted_before"])
                 for invalid_start in ("2026-10-01T00:00:00", "2026-10-01T01:00:00+01:00"):
                     invalid = client.put("/search-profiles", json={**payload, "date_start": invalid_start})
                     self.assertEqual(invalid.status_code, 422, invalid.text)

@@ -542,6 +542,7 @@ function App() {
   async function loadJobs(id=profileId) {
     const sequence=++jobsSequence.current; const current=queryRef.current;
     const params = new URLSearchParams({q:current.q,sort:current.sort});
+    const selectedSearchProfileActive=searchProfiles.some(search=>search.id===current.searchProfileId&&search.profile_id===id);
     if(current.title)params.set('title',current.title);if(current.company)params.set('company',current.company);
     if(current.locationText)params.set('location',current.locationText);
     if(current.salaryMin)params.set('salary_min',current.salaryMin);if(current.salaryMax)params.set('salary_max',current.salaryMax);if(current.minMatchScore)params.set('min_match_score',current.minMatchScore);
@@ -556,9 +557,10 @@ function App() {
     if(current.dateWindow==='LEGACY_14_DAYS')params.set('posted_within_days','14');
     else if(current.dateWindow&&current.dateWindow!=='CUSTOM')params.set('date_window',current.dateWindow);
     else if(current.dateWindow==='CUSTOM'&&current.dateStart&&current.dateEnd){params.set('date_window','CUSTOM');params.set('date_start',utcDateBound(current.dateStart));params.set('date_end',utcDateBound(current.dateEnd));}
+    else if(selectedSearchProfileActive)params.set('date_window','ANY');
     if(current.atsProvider)params.set('ats_provider',current.atsProvider);if(current.jobSourceId)params.set('job_source_id',current.jobSourceId);
     if(id)params.set('profile_id',id);if(current.remote)params.set('remote_type',current.remote);if(current.provider)params.set('provider',current.provider);
-    if(searchProfiles.some(search=>search.id===current.searchProfileId&&search.profile_id===id)){params.set('search_profile_id',current.searchProfileId);params.set('override_saved_match_score','true');}
+    if(selectedSearchProfileActive){params.set('search_profile_id',current.searchProfileId);params.set('override_saved_match_score','true');}
     if(current.showDismissed)params.set('include_dismissed','true');
     params.set('include_blacklisted',String(current.showBlacklisted));
     const result=await api<{jobs:Job[]}>('/jobs?'+params);

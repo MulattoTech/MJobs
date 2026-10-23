@@ -143,7 +143,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     created = context.request.put(origin + "/search-profiles", data={
                         "id": "limited-semantic", "profile_id": "fixture", "name": "Semantic Python only",
                         "enabled": False, "include_titles": ["Python Developer"], "remote": "ANY",
-                        "employment_types": [], "source_ids": [],
+                        "employment_types": [], "source_ids": [], "date_window": "LAST_7_DAYS",
                         "job_filters": {"q": "", "remote_type": "", "provider": "", "sort": "title"},
                     })
                     self.assertEqual(created.status, 200, created.text())
@@ -157,6 +157,14 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                         selected_search.select_option("limited-semantic")
                     self.assertEqual([job["title"] for job in limited.value.json()["jobs"]], ["Python Developer"])
                     expect(page.get_by_role("heading", name="Python Developer", exact=True)).to_be_visible()
+                    expect(page.get_by_label("Posted within", exact=True)).to_have_value("LAST_7_DAYS")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "search_profile_id=limited-semantic" in response.url
+                            and "date_window=ANY" in response.url
+                            and "posted_within_days" not in response.url) as saved_date_cleared:
+                        page.get_by_label("Posted within", exact=True).select_option("")
+                    self.assertEqual(saved_date_cleared.value.status, 200)
                     selected_search.select_option("")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("")
                     expect(page.get_by_label("Education requirement", exact=True).locator("option")).to_have_count(6)
