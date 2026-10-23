@@ -193,8 +193,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                              "Connect must still be pending at public cancellation")
                             started = time.monotonic()
                             response = client.post(f"/operations/{identifier}/cancel")
+                            cancel_response_elapsed = time.monotonic() - started
                             self.assertEqual(response.status_code, 202, response.text)
                             worker.join(timeout=.35)
+                            worker_settle_elapsed = time.monotonic() - started
                             if worker.is_alive():
                                 pending = client.get(f"/operations/{identifier}").json()
                                 worker.join(timeout=2.3)  # Observe natural timeout, never force green by closing the listener.
@@ -235,7 +237,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
+                            print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
+                                  f"worker={worker_settle_elapsed:.3f}s")
                             self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
+                                f"cancel_response={cancel_response_elapsed:.3f}s; "
+                                f"worker_settle={worker_settle_elapsed:.3f}s; "
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
                                 f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
