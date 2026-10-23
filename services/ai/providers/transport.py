@@ -13,6 +13,7 @@ from services.ai.providers import AIProviderError
 
 _MAX_DNS_WORKERS = 4
 _MAX_ADDRESS_ATTEMPTS = 8
+_CANCELLATION_POLL_INTERVAL = .01
 _DNS_SLOTS = threading.BoundedSemaphore(_MAX_DNS_WORKERS)
 _CONNECT_PENDING = {
     errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY, errno.EINTR,
@@ -301,7 +302,8 @@ class _RequestGuard:
             except AIProviderError:
                 return
             remaining = max(0, self.deadline - time.monotonic())
-            self.finished.wait(min(.01, remaining) if self.cancellation_event is not None else remaining)
+            self.finished.wait(min(_CANCELLATION_POLL_INTERVAL, remaining)
+                               if self.cancellation_event is not None else remaining)
 
 
 @contextmanager
@@ -336,5 +338,9 @@ def request_guard(client, *, deadline, cancellation_event=None):
         guard.check()
     finally:
         guard.finished.set()
-        watcher.join(timeout=1)
+        # Socket shutdown normally lets the request owner and watcher unwind
+        # together. A response/client close can still contend with the active
+        # HTTPX call, so do not add a full second to the request deadline while
+        # waiting for watcher-owned cleanup.
+        watcher.join(timeout=_CANCELLATION_POLL_INTERVAL)
         guard.close()
