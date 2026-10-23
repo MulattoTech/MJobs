@@ -14,7 +14,7 @@ from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.search_profiles import save_search_profile
 from services.discovery.sources.collect import configure_source
@@ -140,6 +140,10 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         first_tick = schedule_due_sources(self.store, at)
         self.assertEqual({row["source_id"] for row in first_tick["scheduled"]}, {fast, slow})
         self.assertTrue(all(row["profile_ids"] == ["fixture", "fixture-two"] for row in first_tick["scheduled"]))
+        self.assertEqual({row["operation_id"] for row in first_tick["scheduled"]}, {
+            identity("operation-task", "DISCOVER", f"collect:{fast}:initial"),
+            identity("operation-task", "DISCOVER", f"collect:{slow}:initial"),
+        })
         self.assertEqual(schedule_due_sources(self.store, at)["scheduled"], [])
         with self.store.engine.begin() as connection:
             connection.execute(update(m.operations).values(state="COMPLETED"))
@@ -148,6 +152,34 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         self.assertEqual([row["source_id"] for row in later["scheduled"]], [fast])
         reasons = {row["source_id"]: row["reason"] for row in later["skipped"]}
         self.assertEqual(reasons[slow], "NOT_DUE")
+
+    def test_same_collection_window_replay_keeps_original_operation_when_profiles_change(self):
+        source_id = configure_source(self.store, "profile-change", poll_interval=900,
+                                     jitter_seconds=0)
+        save_search_profile(self.store, {
+            "id": "one", "profile_id": "fixture", "name": "one", "enabled": True,
+            "include_titles": ["Engineer"], "remote": "ANY", "employment_types": [],
+            "source_ids": [],
+        })
+        at = datetime(2026, 10, 1, 12, 0, tzinfo=timezone.utc)
+        first = schedule_due_sources(self.store, at)["scheduled"][0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == first["operation_id"]).values(state="COMPLETED"))
+
+        second_profile = self.second_profile()
+        save_search_profile(self.store, {
+            "id": "two", "profile_id": second_profile, "name": "two", "enabled": True,
+            "include_titles": ["Engineer"], "remote": "ANY", "employment_types": [],
+            "source_ids": [],
+        })
+        replay = schedule_due_sources(self.store, at)["scheduled"][0]
+
+        self.assertEqual(replay["operation_id"], first["operation_id"])
+        with self.store.engine.connect() as connection:
+            operations = list(connection.execute(select(m.operations)).mappings())
+        self.assertEqual(len(operations), 1)
+        self.assertEqual(operations[0]["params"]["profile_ids"], ["fixture"])
 
     def test_scheduled_collection_fetches_once_then_rescores_other_profiles(self):
         second_profile = self.second_profile()
