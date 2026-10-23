@@ -43,7 +43,8 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(response.headers["referrer-policy"], "no-referrer")
         self.assertEqual(response.headers["content-security-policy"],
                          "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-                         "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+                         "connect-src 'self'; object-src 'none'; frame-ancestors 'none'; "
+                         "base-uri 'self'; form-action 'self'")
 
         cross_origin = self.client.put("/profiles/fixture/ai-cost-policy",
                                        headers={"origin": "https://attacker.example"}, json={})

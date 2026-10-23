@@ -23,6 +23,36 @@ def require(condition, reason):
         raise RuntimeError(reason)
 
 
+def validate_registry_probe(adapter, batch, requests):
+    """Require the registry probe to prove board identity and job attribution."""
+    require(sorted(requests) == ["/v1/boards/fixture", "/v1/boards/fixture/jobs"],
+            "registry request evidence mismatch")
+    company = batch.source_company
+    require(
+        batch.endpoint == "https://boards-api.greenhouse.io/v1/boards/fixture/jobs"
+        and company is not None
+        and company.identity_parts == ("greenhouse", "fixture")
+        and company.name == "Synthetic employer"
+        and company.domain == "https://job-boards.greenhouse.io/fixture",
+        "registry source identity mismatch",
+    )
+    require(len(batch.items) == 1, "registry job inventory mismatch")
+    item = batch.items[0]
+    require(item.company == company, "registry job company attribution mismatch")
+    normalized = adapter.normalize(item.raw)
+    attributes = normalized.get("attributes")
+    require(
+        normalized.get("requisition") == "288"
+        and normalized.get("title") == "Synthetic role"
+        and isinstance(attributes, dict)
+        and attributes.get("provider") == "greenhouse"
+        and attributes.get("tenant") == "fixture"
+        and attributes.get("native_posting_id") == 288,
+        "registry normalized job attribution mismatch",
+    )
+    return normalized
+
+
 def exercise(report, root, timeout):
     active = CHECKS[0]
     deadline = time.monotonic() + timeout - 0.5
@@ -70,11 +100,15 @@ def exercise(report, root, timeout):
         adapter = source_adapter({"provider": "greenhouse", "tenant": "fixture", "rate_limit": 600},
                                  transport=httpx.MockTransport(source_response), check=check)
         batch = adapter.search()
-        require(len(batch.items) == 1 and batch.items[0].raw["id"] == 288
-                and set(requests) == {"/v1/boards/fixture", "/v1/boards/fixture/jobs"},
-                "registry did not execute synthetic adapter collection")
+        normalized_source_job = validate_registry_probe(adapter, batch, requests)
         report["observations"]["registry_requests"] = sorted(requests)
-        passed(active, "registry selected Greenhouse and executed two isolated synthetic HTTP GETs")
+        report["observations"].update(
+            registry_company=batch.source_company.name,
+            registry_job_requisition=normalized_source_job["requisition"],
+            registry_provider=normalized_source_job["attributes"]["provider"],
+            registry_tenant=normalized_source_job["attributes"]["tenant"],
+        )
+        passed(active, "registry source identity and normalized job tenant/provider matched the isolated fixture")
 
         db = f"sqlite:///{(root / 'fixture.db').as_posix()}"
         store = Store(db)
