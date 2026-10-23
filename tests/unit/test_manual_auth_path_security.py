@@ -100,10 +100,13 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
         sentinel.write_text("not-a-real-secret", encoding="utf-8")
         self._directory_alias(redirected)
 
-        with patch.object(manual_auth, "run_browser", return_value="BROWSER_STARTED"):
+        with patch.object(
+            manual_auth, "run_browser", return_value="BROWSER_STARTED",
+        ) as run_browser:
             result = self._open()
 
         self.assertEqual(result, manual_auth.STALE)
+        run_browser.assert_not_called()
         self.assertEqual(sentinel.read_text(encoding="utf-8"), "not-a-real-secret")
         self.assertNotIn(str(redirected), result)
 
