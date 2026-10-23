@@ -93,7 +93,8 @@ BROWSER_SECURITY_HEADERS = {
     "Referrer-Policy": "no-referrer",
     "Content-Security-Policy": (
         "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-        "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        "connect-src 'self'; object-src 'none'; frame-ancestors 'none'; "
+        "base-uri 'self'; form-action 'self'"
     ),
 }
 
