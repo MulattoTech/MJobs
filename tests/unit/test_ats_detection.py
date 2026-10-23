@@ -4,6 +4,115 @@ from services.ats_detection.detector import detect_ats
 
 
 class ATSDetectionTests(unittest.TestCase):
+    def test_invalid_or_deceptive_direct_and_redirect_hosts_are_not_evidence(self):
+        for url in (
+            "https://jobs.lever.co.attacker.example/acme",
+            "https://notlever.co/acme",
+            "https://jobs.lever.co@attacker.example/acme",
+            "https://user:password@jobs.lever.co/acme",
+            "https://jobs.lever.co:invalid/acme",
+            "https://jobs.lever.co:65536/acme",
+            "https://[invalid/acme",
+            "javascript://jobs.lever.co/acme",
+            "file://jobs.lever.co/acme",
+        ):
+            for redirect in (False, True):
+                with self.subTest(url=url, redirect=redirect):
+                    result = (detect_ats("https://acme.example/careers", redirect_chain=[url])
+                              if redirect else detect_ats(url))
+                    self.assertEqual(result.status, "NO_MATCH")
+                    self.assertIsNone(result.provider)
+                    self.assertEqual(result.confidence, 0.0)
+                    self.assertEqual(result.candidates, ())
+                    self.assertFalse(result.application_supported)
+
+    def test_regional_lever_board_links_identify_custom_careers_pages(self):
+        for host in ("jobs.lever.co", "jobs.eu.lever.co"):
+            for tag in ("a", "iframe"):
+                with self.subTest(host=host, tag=tag):
+                    attribute = "href" if tag == "a" else "src"
+                    result = detect_ats("https://acme.example/careers",
+                                        f'<{tag} {attribute}="https://{host}/acme"></{tag}>')
+                    self.assertEqual(result.status, "MATCH")
+                    self.assertEqual(result.provider, "lever")
+                    self.assertIn("BOARD_LINK", result.evidence)
+                    self.assertFalse(result.application_supported)
+
+    def test_same_lever_slug_in_different_regions_is_not_one_board(self):
+        result = detect_ats("https://acme.example/careers",
+                            '<a href="https://jobs.lever.co/acme">Global</a>'
+                            '<a href="https://jobs.eu.lever.co/acme">EU</a>')
+        self.assertEqual(result.status, "NO_MATCH")
+        self.assertIsNone(result.provider)
+        self.assertFalse(result.application_supported)
+
+    def test_duplicate_weak_paths_do_not_raise_confidence_to_a_match(self):
+        result = detect_ats("https://acme.example/recruiting/",
+                            '<form action="/recruiting/"></form>' * 20,
+                            redirect_chain=["https://acme.example/recruiting/"] * 20)
+        self.assertEqual(result.status, "NO_MATCH")
+        self.assertEqual(result.candidates, ())
+        self.assertFalse(result.application_supported)
+
+    def test_repeated_configuration_cannot_resolve_conflicting_providers(self):
+        result = detect_ats("https://acme.example/careers",
+                            '<div data-ats-provider="Lever"></div>' * 20
+                            + '<div data-ats-provider="Greenhouse"></div>')
+        self.assertEqual(result.status, "AMBIGUOUS")
+        self.assertIsNone(result.provider)
+        self.assertEqual({item.provider for item in result.candidates}, {"lever", "greenhouse"})
+        self.assertEqual(len({item.confidence for item in result.candidates}), 1)
+        self.assertFalse(result.application_supported)
+
+    def test_malformed_metadata_does_not_override_independent_board_evidence(self):
+        result = detect_ats("https://acme.example/careers",
+                            '<script type="application/ld+json">{"atsProvider":</script>'
+                            '<a href="https://jobs.lever.co/acme">Jobs</a>')
+        self.assertEqual(result.status, "MATCH")
+        self.assertEqual(result.provider, "lever")
+        self.assertEqual(result.evidence, ("BOARD_LINK",))
+        self.assertFalse(result.application_supported)
+
+    def test_deceptive_script_urls_do_not_establish_provider_evidence(self):
+        for url in (
+            "https://jobs.lever.co.attacker.example/widget.js",
+            "https://attacker.example/assets/jobs.lever.co/widget.js",
+            "https://attacker.example/widget.js?source=jobs.lever.co",
+            "https://jobs.lever.co@attacker.example/widget.js",
+            "https://attacker.example/widget.js#jobs.lever.co",
+            "https://jobs.lever.co:invalid/widget.js",
+            "javascript://jobs.lever.co/widget.js",
+            "https://attacker.example/api.lever.co/v0/postings/acme",
+        ):
+            with self.subTest(url=url):
+                result = detect_ats("https://acme.example/careers",
+                                    f'<script src="{url}"></script>')
+                self.assertEqual(result.status, "NO_MATCH")
+                self.assertIsNone(result.provider)
+                self.assertFalse(result.application_supported)
+
+    def test_valid_provider_scripts_remain_evidence_without_authorizing_apply(self):
+        for url in (
+            "https://jobs.lever.co/acme/widget.js",
+            "https://widget.lever.co/acme.js",
+            "https://api.lever.co/v0/postings/acme?mode=json",
+        ):
+            with self.subTest(url=url):
+                result = detect_ats("https://acme.example/careers",
+                                    f'<script src="{url}"></script>')
+                self.assertEqual(result.status, "MATCH")
+                self.assertEqual(result.provider, "lever")
+                self.assertIn("SCRIPT_URL", result.evidence)
+                self.assertFalse(result.application_supported)
+
+    def test_script_query_cannot_introduce_another_provider(self):
+        result = detect_ats("https://acme.example/careers",
+                            '<script src="https://jobs.lever.co/acme.js?next=ashbyhq.com"></script>')
+        self.assertEqual(result.status, "MATCH")
+        self.assertEqual(result.provider, "lever")
+        self.assertEqual({item.provider for item in result.candidates}, {"lever"})
+        self.assertFalse(result.application_supported)
+
     def test_official_greenhouse_links_and_iframes_are_structural_evidence(self):
         for markup in (
             '<a href="https://job-boards.greenhouse.io/acme">Open jobs</a>',
