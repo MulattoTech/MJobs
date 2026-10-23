@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 import hashlib
+import os
 from pathlib import Path
 import math
 import re
@@ -328,6 +329,9 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
     if (not isinstance(application_id, str)
             or not _FINGERPRINT.fullmatch(application_id)):
         return None
+    application_path_id = os.path.basename(application_id)
+    if application_path_id != application_id:
+        return None
     if not isinstance(attempt_id, str) or not _ATTEMPT_ID.fullmatch(attempt_id):
         return None
 
@@ -362,7 +366,7 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
 
     try:
         configured_root = Path(output_dir)
-        configured_application_root = configured_root / application_id
+        configured_application_root = configured_root / application_path_id
         configured_profile = configured_application_root / "browser-profile"
         configured_paths = (
             configured_root, configured_application_root, configured_profile,
