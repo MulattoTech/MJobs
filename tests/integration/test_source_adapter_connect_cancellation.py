@@ -264,6 +264,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
                                 f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
+                        collection_release.set()
+                        if worker.is_alive():
+                            client.post(f"/operations/{identifier}/cancel")
                         worker.join(timeout=3)
                         self.assertFalse(worker.is_alive(), "Owned adapter worker leaked")
 
