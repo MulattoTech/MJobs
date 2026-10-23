@@ -8,7 +8,7 @@ from unittest.mock import patch
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.discovery.scheduler import schedule_due_search_profiles, schedule_due_sources
 from services.discovery.search_profiles import save_search_profile
 from services.discovery.sources.collect import configure_source
@@ -67,6 +67,10 @@ class SavedSearchSchedulerTests(unittest.TestCase):
         self.assertEqual(len(first["saved_searches"]["scheduled"]), 1)
         scheduled = first["saved_searches"]["scheduled"][0]
         self.assertEqual(scheduled["search_profile_id"], "search-one")
+        self.assertEqual(scheduled["operation_id"], identity(
+            "operation-task", "DISCOVER",
+            f"collect:{source_id}:saved-search:search-one:{self.at.isoformat()}",
+        ))
         self.assertEqual(scheduled["source_id"], source_id)
         self.assertEqual(repeated["saved_searches"]["scheduled"], [])
         with self.store.engine.connect() as connection:
