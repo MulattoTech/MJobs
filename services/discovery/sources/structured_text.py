@@ -18,13 +18,17 @@ _BLOCK_TAGS = {
     "nav", "ol", "p", "pre", "section", "table", "tbody", "td", "th",
     "thead", "tr", "ul",
 }
+_MAX_ENTITY_DECODE_PASSES = 8
 
 
 def structured_text(value):
     """Return safe readable text while preserving headings, paragraphs, and lists."""
     value = str(value or "")[:500_000]
-    for _ in range(2):
-        value = unescape(value)
+    for _ in range(_MAX_ENTITY_DECODE_PASSES):
+        decoded = unescape(value)
+        if decoded == value:
+            break
+        value = decoded
 
     parsed = BeautifulSoup(value, "html.parser")
     for element in parsed(("script", "style", "noscript", "template")):
