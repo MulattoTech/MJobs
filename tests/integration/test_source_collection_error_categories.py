@@ -1,6 +1,7 @@
 """Source collection persists canonical categories without provider exception text."""
 
 from pathlib import Path
+import os
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -18,6 +19,8 @@ from services.discovery.sources.collect import (
 )
 from services.discovery.sources.errors import SourceError
 from tests.integration.test_spine import PROFILE
+from workers.dispatch import enqueue_operation
+from workers.tasks import execute_operation
 
 
 class _FailingAdapter:
@@ -42,6 +45,7 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
 
     def tearDown(self):
@@ -67,6 +71,7 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
             ("network", httpx.ConnectError("provider-token=PRIVATE"), "NETWORK_ERROR", "NETWORK_ERROR"),
             ("rate", SourceError("SOURCE_RATE_LIMITED", retry_seconds=120), "RATE_LIMITED", "SOURCE_RATE_LIMITED"),
             ("changed", SourceError("SOURCE_CHANGED"), "SOURCE_CHANGED", "SOURCE_CHANGED"),
+            ("auth", SourceError("SOURCE_HTTP_401"), "AUTH_REQUIRED", "SOURCE_HTTP_401"),
             ("blocked", SourceError("SOURCE_REDIRECT_BLOCKED"), "SOURCE_BLOCKED", "SOURCE_REDIRECT_BLOCKED"),
         )
         for suffix, provider_failure, category, health_error in cases:
@@ -155,6 +160,37 @@ class SourceCollectionErrorCategoryTests(unittest.TestCase):
         self.assertEqual(source["health_status"], "NOT_CHECKED")
         self.assertIsNone(source["last_error"])
         self.assertEqual(observations, [])
+
+    def test_worker_public_result_uses_canonical_category_and_keeps_legacy_diagnostics(self):
+        source_id = self._source("worker-public-result")
+        operation_id = enqueue_operation(
+            self.store, "DISCOVER", "fixture", {"source_id": source_id}
+        )
+
+        def collect(store, source, profile, **kwargs):
+            with patch("services.discovery.sources.collect.source_adapter",
+                       return_value=_FailingAdapter(SourceError("SOURCE_HTTP_401"))):
+                return collect_source(store, source, profile, **kwargs)
+
+        environment = {
+            "MJOBS_DATABASE_URL": self.store.url,
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+            "MJOBS_OUTPUT_DIR": str(self.root / "outputs"),
+        }
+        with patch("workers.tasks.collect_source", side_effect=collect), patch.dict(
+                os.environ, environment):
+            result = execute_operation(operation_id)
+
+        self.assertEqual(result["status"], "DEAD_LETTERED", result)
+        self.assertEqual(result["error_category"], "AUTH_REQUIRED", result)
+        with self.store.engine.connect() as connection:
+            operation_error = connection.execute(select(m.operations.c.error).where(
+                m.operations.c.id == operation_id)).scalar_one()
+        self.assertEqual(operation_error, "AUTH_REQUIRED")
+        source, observation, audit = self._persisted_failure(source_id)
+        self.assertEqual(source["last_error"], "SOURCE_HTTP_401")
+        self.assertEqual(observation["error_code"], "SOURCE_HTTP_401")
+        self.assertEqual(audit["payload"]["error_category"], "AUTH_REQUIRED")
 
 
 if __name__ == "__main__":

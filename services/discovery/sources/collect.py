@@ -54,6 +54,12 @@ _SAFE_LEGACY_SOURCE_CODES = frozenset({
     "SOURCE_UNSUPPORTED",
 })
 
+_PUBLIC_TERMINAL_SOURCE_CATEGORIES = frozenset({
+    "AUTH_REQUIRED",
+    "SOURCE_BLOCKED",
+    "SOURCE_CHANGED",
+})
+
 
 def _safe_legacy_source_code(code):
     if type(code) is not str:
@@ -69,7 +75,8 @@ def _public_collection_failure(failure):
         category = source_collection_error_category(failure.code)
         if category is None and not _safe_legacy_source_code(failure.code):
             return SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED"), None
-        public_failure = SourceError(failure.code, retry_seconds=failure.retry_seconds)
+        public_code = category if category in _PUBLIC_TERMINAL_SOURCE_CATEGORIES else failure.code
+        public_failure = SourceError(public_code, retry_seconds=failure.retry_seconds)
     else:
         public_failure = SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED")
         category = None

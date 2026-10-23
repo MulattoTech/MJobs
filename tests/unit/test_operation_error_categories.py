@@ -55,6 +55,7 @@ def test_validator_rejects_unknown_values_without_echoing_them(value):
         ("SOURCE_HTTP_500", "NETWORK_ERROR"),
         ("SOURCE_RATE_LIMITED", "RATE_LIMITED"),
         ("SOURCE_HTTP_429", "RATE_LIMITED"),
+        ("SOURCE_HTTP_401", "AUTH_REQUIRED"),
         ("SOURCE_CHANGED", "SOURCE_CHANGED"),
         ("SOURCE_REDIRECT_BLOCKED", "SOURCE_BLOCKED"),
         ("SOURCE_HTTP_403", "SOURCE_BLOCKED"),

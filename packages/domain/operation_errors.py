@@ -32,10 +32,11 @@ def source_collection_error_category(provider_code):
         return None
     if provider_code in {"SOURCE_RATE_LIMITED", "SOURCE_HTTP_429"}:
         return "RATE_LIMITED"
+    if provider_code == "SOURCE_HTTP_401":
+        return "AUTH_REQUIRED"
     if provider_code == "SOURCE_CHANGED":
         return "SOURCE_CHANGED"
-    if provider_code in {"SOURCE_REDIRECT_BLOCKED", "SOURCE_BLOCKED", "SOURCE_HTTP_401",
-                         "SOURCE_HTTP_403"}:
+    if provider_code in {"SOURCE_REDIRECT_BLOCKED", "SOURCE_BLOCKED", "SOURCE_HTTP_403"}:
         return "SOURCE_BLOCKED"
     if provider_code in {"SOURCE_NETWORK_ERROR", "SOURCE_TIMEOUT", "SOURCE_TIME_LIMIT",
                          "SOURCE_SERVER_ERROR"}:
