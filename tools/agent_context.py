@@ -22,6 +22,35 @@ ROUTING_STATES = {
     "EXECUTE", "RESUME", "DELEGATE", "VERIFY",
     "INTEGRATE", "REPLAN", "PARTIALLY_BLOCKED", "BLOCKED", "COMPLETE",
 }
+IMPLEMENTATION_STATE_TEXT_FIELDS = ("current_phase", "last_safe_checkpoint")
+IMPLEMENTATION_STATE_LIST_FIELDS = (
+    "completed_steps", "files_added", "files_modified", "tests_completed",
+    "tests_remaining", "migrations_applied", "live_integrations_tested",
+    "known_errors", "known_limitations",
+)
+
+
+def validate_implementation_state(value: object) -> list[str]:
+    """Validate the required MJ-REQ-008 milestone journal fields."""
+    if not isinstance(value, dict):
+        return ["implementation state must be a JSON object"]
+    errors: list[str] = []
+    expected_fields = set(IMPLEMENTATION_STATE_TEXT_FIELDS + IMPLEMENTATION_STATE_LIST_FIELDS)
+    unexpected = sorted((key for key in value if key not in expected_fields), key=str)
+    if unexpected:
+        errors.append(f"unexpected implementation state fields: {unexpected}")
+    for key in IMPLEMENTATION_STATE_TEXT_FIELDS:
+        if key not in value:
+            errors.append(f"{key} is required")
+        elif not isinstance(value[key], str) or not value[key].strip():
+            errors.append(f"{key} must be nonempty text")
+    for key in IMPLEMENTATION_STATE_LIST_FIELDS:
+        if key not in value:
+            errors.append(f"{key} is required")
+        elif (not isinstance(value[key], list)
+              or any(not isinstance(item, str) or not item.strip() for item in value[key])):
+            errors.append(f"{key} must be a list of nonempty strings")
+    return errors
 
 
 def git(root: Path, *args: str) -> str | None:
@@ -86,6 +115,11 @@ def validate_checkpoint(value: object) -> list[str]:
                         or not isinstance(entry.get("reason"), str)
                         or not isinstance(entry.get("transferred_at"), str)):
                     errors.append(f"transfer_history[{idx}] must specify from_owner, to_owner, reason, and transferred_at")
+    if "implementation_state" in value:
+        errors.extend(
+            f"implementation_state: {error}"
+            for error in validate_implementation_state(value["implementation_state"])
+        )
     return errors
 
 
@@ -375,6 +409,9 @@ def bootstrap(root: Path, task: str | None = None, include_github: bool = False)
         try:
             checkpoint = load_checkpoint(root, task)
             result["checkpoint"] = checkpoint
+            result["implementation_state"] = (
+                checkpoint.get("implementation_state") if checkpoint else None
+            )
             rel = relation(root, checkpoint) if checkpoint else "NOT_FOUND"
             result["checkpoint_relation"] = rel
             routing = route_task(task, checkpoint, rel)
@@ -409,7 +446,8 @@ def write_checkpoint(root: Path, task: str, objective: str, owner: str,
                      next_action: str, tests_pass: list[str],
                      tests_not_run: list[str], blockers: list[str],
                      routing_state: str = "RESUME",
-                     milestone_id: str | None = None) -> Path:
+                     milestone_id: str | None = None,
+                     implementation_state: dict | None = None) -> Path:
     head, branch = git(root, "rev-parse", "HEAD"), git(root, "branch", "--show-current")
     if not head or not SHA.fullmatch(head) or not branch:
         raise ValueError("Git HEAD and branch must be verified before checkpointing")
@@ -429,6 +467,8 @@ def write_checkpoint(root: Path, task: str, objective: str, owner: str,
     }
     if milestone_id:
         item["milestone_id"] = milestone_id
+    if implementation_state is not None:
+        item["implementation_state"] = implementation_state
 
     errors = validate_checkpoint(item)
     if errors:
@@ -476,6 +516,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--next-action")
     parser.add_argument("--routing-state", default="RESUME", choices=sorted(ROUTING_STATES))
     parser.add_argument("--milestone-id", help="Optional milestone reference in implementation journal")
+    parser.add_argument("--implementation-state",
+                        help="Optional JSON object containing all required MJ-REQ-008 journal fields")
     parser.add_argument("--test-pass", action="append", default=[])
     parser.add_argument("--test-not-run", action="append", default=[])
     parser.add_argument("--blocker", action="append", default=[])
@@ -487,9 +529,14 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "checkpoint":
             if not all((args.task, args.objective, args.owner, args.next_action)):
                 parser.error("checkpoint needs --task, --objective, --owner and --next-action")
+            implementation_state = (
+                json.loads(args.implementation_state)
+                if args.implementation_state is not None else None
+            )
             path = write_checkpoint(args.root, args.task, args.objective, args.owner,
                                     args.next_action, args.test_pass, args.test_not_run, args.blocker,
-                                    args.routing_state, args.milestone_id)
+                                    args.routing_state, args.milestone_id,
+                                    implementation_state=implementation_state)
             print(f"Checkpoint written: {path}")
             return 0
         if args.command == "transfer":
