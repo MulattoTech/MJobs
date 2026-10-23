@@ -91,7 +91,7 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
             _winapi.CreateJunction(str(target), str(self.profile))
         else:
             self.profile.symlink_to(target, target_is_directory=True)
-        self.addCleanup(self.profile.rmdir)
+        self.addCleanup(self.profile.rmdir if os.name == "nt" else self.profile.unlink)
 
     def test_redirected_profile_fails_closed_before_browser_launch(self):
         redirected = self.application_root / "redirected-private-profile"
