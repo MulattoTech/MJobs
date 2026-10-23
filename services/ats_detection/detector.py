@@ -227,9 +227,14 @@ def detect_ats(visible_careers_url: str, html: str = "", *,
             pass
     for tag in soup.find_all("script", src=True):
         src = str(tag.get("src") or "")
-        for provider in _vendor_for_host(_host(src)):
+        script_providers = _vendor_for_host(_host(src))
+        for provider in script_providers:
             add(provider, "SCRIPT_URL")
         for signature in _SIGNATURES:
+            # Provider text in an untrusted URL's path, query, userinfo or
+            # hostname suffix is not structural provider evidence.
+            if signature.provider not in script_providers:
+                continue
             for signal, pattern in signature.patterns:
                 if signal in {"SCRIPT_URL", "PUBLIC_API"} and re.search(pattern, src, re.I):
                     add(signature.provider, signal)
