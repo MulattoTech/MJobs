@@ -241,6 +241,96 @@ class SourceATSFailureContinuityTests(unittest.TestCase):
         self.assertIsNone(recovered_view["quality"]["components"]["availability"])
         self.assertEqual(recovered_view["status"], "ENABLED")
 
+    def test_latest_availability_is_scoped_to_current_endpoint_after_retarget(self):
+        company = resolve_company(self.store, {
+            "company_name": "Retargeted Employer",
+            "company_website": "https://retargeted.example/",
+        })
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": company["company_id"],
+                "name": company["name"],
+                "domain": "",
+            })
+        source = upsert_company_job_source(
+            self.store,
+            company_id=company["company_id"],
+            provider="json_feed",
+            tenant_identifier=company["company_id"],
+            career_url="https://retargeted.example/careers",
+            public_api_url="https://retargeted.example/jobs-v1.json",
+            collection_strategy="PUBLIC_JSON",
+            confidence=0.88,
+            discovered_automatically=True,
+        )
+        with self.store.engine.begin() as connection:
+            record_observation(
+                connection,
+                company_source_id=source["id"],
+                source_endpoint=source["endpoint"],
+                observed_at="2000-01-01T00:00:00Z",
+                succeeded=False,
+                available=False,
+                error_code="SOURCE_UNAVAILABLE",
+            )
+
+        current = upsert_company_job_source(
+            self.store,
+            company_id=company["company_id"],
+            provider="json_feed",
+            tenant_identifier=company["company_id"],
+            career_url="https://retargeted.example/careers",
+            public_api_url="https://retargeted.example/jobs-v2.json",
+            collection_strategy="PUBLIC_JSON",
+            confidence=0.88,
+            discovered_automatically=True,
+        )
+        self.assertEqual(current["id"], source["id"])
+        self.assertEqual(
+            next(row for row in list_company_source_view(self.store)
+                 if row["id"] == current["id"])["status"],
+            "ENABLED",
+        )
+
+        with self.store.engine.begin() as connection:
+            record_observation(
+                connection,
+                company_source_id=current["id"],
+                source_endpoint=current["endpoint"],
+                observed_at="2000-01-02T00:00:00Z",
+                succeeded=False,
+                available=False,
+                error_code="SOURCE_UNAVAILABLE",
+            )
+            record_observation(
+                connection,
+                company_source_id=current["id"],
+                source_endpoint=source["endpoint"],
+                observed_at="2000-01-03T00:00:00Z",
+                succeeded=True,
+                available=True,
+            )
+        self.assertEqual(
+            next(row for row in list_company_source_view(self.store)
+                 if row["id"] == current["id"])["status"],
+            "COMPANY_SOURCE_REVIEW_REQUIRED",
+        )
+
+        with self.store.engine.begin() as connection:
+            record_observation(
+                connection,
+                company_source_id=current["id"],
+                source_endpoint=current["endpoint"],
+                observed_at="2000-01-04T00:00:00Z",
+                succeeded=True,
+                available=True,
+            )
+        self.assertEqual(
+            next(row for row in list_company_source_view(self.store)
+                 if row["id"] == current["id"])["status"],
+            "ENABLED",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

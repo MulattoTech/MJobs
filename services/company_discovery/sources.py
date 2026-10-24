@@ -426,6 +426,11 @@ def list_company_source_view(store, profile_id=None):
         tenants = {row["id"]: dict(row) for row in c.execute(select(m.company_ats_tenants).where(
             m.company_ats_tenants.c.company_id.in_(company_ids))).mappings()}
         qualities = {row['id']: company_source_quality(c, row) for row in rows}
+        current_availability = m.source_quality_observations.join(
+            m.company_sources,
+            (m.source_quality_observations.c.company_source_id == m.company_sources.c.id)
+            & (m.source_quality_observations.c.source_endpoint == m.company_sources.c.endpoint),
+        )
         availability_ranked = select(
             m.source_quality_observations.c.company_source_id,
             m.source_quality_observations.c.available,
@@ -434,8 +439,8 @@ def list_company_source_view(store, profile_id=None):
                 order_by=(m.source_quality_observations.c.observed_at.desc(),
                           m.source_quality_observations.c.id.desc()),
             ).label("rank"),
-        ).where(
-            m.source_quality_observations.c.company_source_id.in_(ids),
+        ).select_from(current_availability).where(
+            m.company_sources.c.id.in_(ids),
             m.source_quality_observations.c.available.is_not(None),
         ).subquery()
         latest_availability = dict(c.execute(select(
