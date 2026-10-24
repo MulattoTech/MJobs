@@ -453,7 +453,9 @@ def list_company_source_view(store, profile_id=None):
         tenant = tenants.get(row["ats_tenant_id"], {})
         confidence = row["confidence"]
         valid_confidence = type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1
-        review = not valid_confidence or confidence < 0.75
+        quality = qualities[row['id']]
+        review = (not valid_confidence or confidence < 0.75
+                  or quality['components']['availability'] == 0)
         result.append({
             "id": row["id"], "company_id": row["company_id"], "company_name": row["company_name"],
             "profile_id": profile_id,
@@ -473,7 +475,7 @@ def list_company_source_view(store, profile_id=None):
             "monitoring": {key: value for key, value in monitors.get(row['id'], {}).items()
                 if key in {'request_timeout','rate_limit','concurrency','jitter_seconds','revision','enabled','poll_interval','status','failure_count','last_attempt','next_due','last_error',
                            'operation_id','rediscovery_operation_id','authorization'}} or None,
-            "quality": qualities[row['id']],
+            "quality": quality,
             "provenance": {
                 "domain_method": domain["verification_method"] if domain else None,
                 "domain_candidates_ambiguous": len(verified) > 1 and domain is None,
