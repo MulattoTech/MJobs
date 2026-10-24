@@ -51,6 +51,10 @@ def plain_text(value):
 class Greenhouse:
     def __init__(self, tenant, transport=None, check=None, request_timeout=10, rate_limit=60, concurrency=1):
         self.tenant = tenant_identifier(tenant)
+        # Direct adapter callers validate provider ownership strictly. The
+        # collection boundary may relax only its fresh, per-call adapter when
+        # the configured source has no authoritative company binding.
+        self._authoritative_tenant_binding = True
         if type(request_timeout) is not int or not 2 <= request_timeout <= 60:
             raise ValueError("SOURCE_INVALID_REQUEST_TIMEOUT")
         if type(rate_limit) is not int or not 1 <= rate_limit <= 600:
@@ -67,6 +71,11 @@ class Greenhouse:
         self._status_lock = threading.Lock()
         self._request_failed = False
         self.status = "NOT_CHECKED"
+
+    def set_authoritative_tenant_binding(self, authoritative):
+        if type(authoritative) is not bool:
+            raise ValueError("SOURCE_INVALID_TENANT_BINDING")
+        self._authoritative_tenant_binding = authoritative
 
     def capabilities(self):
         return SourceCapabilities(CollectionStrategy.API, frozenset({
@@ -274,14 +283,34 @@ class Greenhouse:
             parsed = urlsplit(url)
             decoded_path = unquote(parsed.path)
             path = decoded_path.split("/")
-            if (parsed.scheme != "https"
-                    or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io")
-                    or parsed.username or parsed.password or parsed.port not in (None, 443)
-                    or "\\" in decoded_path or any(segment in (".", "..") for segment in path)
+            provider_host = parsed.hostname in (
+                "boards.greenhouse.io", "job-boards.greenhouse.io",
+            )
+            provider_shaped_path = (
+                len(path) >= 3
+                and path[2].casefold() == "jobs"
+            )
+            structurally_invalid = (
+                parsed.scheme != "https"
+                or parsed.username
+                or parsed.password
+                or parsed.port not in (None, 443)
+                or "\\" in decoded_path
+                or any(segment in (".", "..") for segment in path)
+            )
+            if not provider_host:
+                if self._authoritative_tenant_binding and provider_shaped_path:
+                    raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+                return ""
+            if (structurally_invalid
                     or len(path) < 2 or path[1].casefold() != self.tenant):
-                raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+                if self._authoritative_tenant_binding:
+                    raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+                return ""
         except ValueError:
-            raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH") from None
+            if self._authoritative_tenant_binding:
+                raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH") from None
+            return ""
         return url
 
     def normalize(self, raw):

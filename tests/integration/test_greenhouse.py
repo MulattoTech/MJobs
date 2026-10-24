@@ -1,5 +1,6 @@
 """First-party public source contracts; no employer submission endpoints."""
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 import importlib
 import tempfile
 import threading
@@ -9,10 +10,12 @@ from unittest.mock import Mock, patch
 from types import SimpleNamespace
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now, upsert
+from services.company_discovery.domains import record_company_domain
+from services.company_discovery.sources import upsert_company_job_source
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
@@ -41,6 +44,33 @@ class GreenhouseTests(unittest.TestCase):
     def tearDown(self):
         self.store.engine.dispose()
         self.directory.cleanup()
+
+    def bind_collector(self, store, source_id, tenant="example"):
+        company_id = f"company-{tenant}"
+        domain = f"{tenant}.example"
+        with store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": company_id, "name": f"{tenant} employer", "domain": "",
+            })
+        record_company_domain(
+            store, company_id, domain, "FIRST_PARTY_JOB_LINK", ["synthetic verified job"],
+        )
+        company_source = upsert_company_job_source(
+            store,
+            company_id=company_id,
+            provider="greenhouse",
+            tenant_identifier=tenant,
+            career_url=f"https://{domain}/careers",
+            public_api_url=f"https://boards-api.greenhouse.io/v1/boards/{tenant}/jobs",
+            collection_strategy="API",
+            confidence=0.99,
+            discovered_automatically=True,
+        )
+        with store.engine.begin() as connection:
+            connection.execute(update(m.company_sources).where(
+                m.company_sources.c.id == company_source["id"]
+            ).values(collector_source_id=source_id))
+        return company_source
 
     def transport(self, request):
         self.requests.append(request)
@@ -508,9 +538,9 @@ class GreenhouseTests(unittest.TestCase):
         adapter = Greenhouse("example")
         with self.assertRaisesRegex(ValueError, "SOURCE_INVALID_JOB_LOCATION"):
             adapter.normalize(dict(RAW, location="Remote"))
-        with self.assertRaises(SourceError) as raised:
-            adapter.normalize(dict(RAW, absolute_url="https://outside.test/apply"))
-        self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
+        untrusted = adapter.normalize(dict(RAW, absolute_url="https://outside.test/apply"))
+        self.assertEqual(untrusted["application_url"], "")
+        self.assertEqual(untrusted["attributes"]["application_url_status"], "UNAVAILABLE")
         source = configure_source(self.store, "example")
         def response(request):
             return httpx.Response(200, json={"jobs": [RAW, dict(RAW, id=9, location=[])]}) if request.url.path.endswith("/jobs") else httpx.Response(200, json={"name": "Example"})
@@ -522,6 +552,14 @@ class GreenhouseTests(unittest.TestCase):
 
     def test_cross_tenant_row_aborts_mixed_batch_before_any_company_or_job_write(self):
         source = configure_source(self.store, "example")
+        self.bind_collector(self.store, source)
+        before = {
+            table: self.store.count(table)
+            for table in (
+                "companies", "company_job_sources", "canonical_jobs",
+                "job_postings", "posting_snapshots",
+            )
+        }
 
         def mixed_routes(request):
             if request.url.path.endswith("/jobs"):
@@ -542,11 +580,94 @@ class GreenhouseTests(unittest.TestCase):
                 transport=httpx.MockTransport(mixed_routes),
             )
         self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
-        self.assertEqual(self.store.count("companies"), 0)
-        self.assertEqual(self.store.count("company_job_sources"), 0)
-        self.assertEqual(self.store.count("canonical_jobs"), 0)
-        self.assertEqual(self.store.count("job_postings"), 0)
-        self.assertEqual(self.store.count("posting_snapshots"), 0)
+        self.assertEqual(
+            {
+                table: self.store.count(table)
+                for table in before
+            },
+            before,
+        )
+
+    def test_unbound_legacy_and_employer_routes_are_unavailable_and_never_persisted(self):
+        source = configure_source(self.store, "legacy-example")
+        rows = [
+            dict(RAW, id=2001, internal_job_id=2001),
+            dict(
+                RAW,
+                id=2002,
+                internal_job_id=2002,
+                absolute_url="https://employer.example/careers/python?gh_jid=2002",
+            ),
+        ]
+
+        def response(request):
+            if request.url.path.endswith("/jobs"):
+                return httpx.Response(200, json={"jobs": rows, "meta": {"total": 2}})
+            return httpx.Response(200, json={"name": "Legacy Employer"})
+
+        result = collect_source(
+            self.store, source, "fixture", transport=httpx.MockTransport(response),
+        )
+        self.assertEqual((result["jobs_seen"], result["rejected"]), (2, 0))
+        with self.store.engine.connect() as connection:
+            postings = list(connection.execute(select(m.postings)).mappings())
+            routes = list(connection.execute(select(m.routes)).mappings())
+            jobs = list(connection.execute(select(m.jobs)).mappings())
+        self.assertEqual({row["application_url"] for row in postings}, {""})
+        self.assertEqual({row["url"] for row in routes}, {""})
+        self.assertEqual(
+            {row["attributes"]["application_url_status"] for row in jobs}, {"UNAVAILABLE"},
+        )
+
+    def test_bound_and_unbound_concurrent_collectors_do_not_share_url_policy(self):
+        other_directory = tempfile.TemporaryDirectory()
+        other_store = Store(
+            f"sqlite:///{(Path(other_directory.name) / 'unbound.db').as_posix()}"
+        )
+        other_store.migrate()
+        other_store.save_profile(PROFILE)
+        self.addCleanup(other_directory.cleanup)
+        self.addCleanup(other_store.engine.dispose)
+
+        bound_source = configure_source(self.store, "example")
+        self.bind_collector(self.store, bound_source)
+        unbound_source = configure_source(other_store, "legacy-example")
+        foreign = dict(
+            RAW,
+            id=3001,
+            internal_job_id=3001,
+            absolute_url="https://job-boards.greenhouse.io/other/jobs/3001",
+        )
+
+        def transport(request):
+            if request.url.path.endswith("/jobs"):
+                return httpx.Response(200, json={"jobs": [foreign]})
+            return httpx.Response(200, json={"name": "Concurrent Employer"})
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            bound = executor.submit(
+                collect_source,
+                self.store,
+                bound_source,
+                "fixture",
+                transport=httpx.MockTransport(transport),
+            )
+            unbound = executor.submit(
+                collect_source,
+                other_store,
+                unbound_source,
+                "fixture",
+                transport=httpx.MockTransport(transport),
+            )
+            with self.assertRaises(SourceError) as raised:
+                bound.result()
+            unbound_result = unbound.result()
+
+        self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
+        self.assertEqual(unbound_result["jobs_seen"], 1)
+        with other_store.engine.connect() as connection:
+            posting = connection.execute(select(m.postings)).mappings().one()
+        self.assertEqual(posting["application_url"], "")
 
     def test_adapter_health_and_detail_validation(self):
         adapter = Greenhouse("example", transport=httpx.MockTransport(lambda request: httpx.Response(429) if request.url.path.endswith("/jobs") else httpx.Response(200, json={"name": "Example"})))

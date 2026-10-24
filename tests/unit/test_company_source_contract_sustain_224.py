@@ -167,6 +167,18 @@ class CompanySourceContractSustain224Tests(unittest.TestCase):
                 self.assertEqual(normalized["application_url"], "")
                 self.assertEqual(normalized["attributes"]["application_url_status"], "UNAVAILABLE")
 
+    def test_greenhouse_unbound_policy_is_instance_local_and_direct_calls_stay_strict(self):
+        unbound = _adapter("greenhouse")
+        unbound.set_authoritative_tenant_binding(False)
+        sanitized = unbound.normalize(_greenhouse_job(tenant="other-company"))
+        self.assertEqual(sanitized["application_url"], "")
+        self.assertEqual(sanitized["attributes"]["application_url_status"], "UNAVAILABLE")
+
+        direct = _adapter("greenhouse")
+        with self.assertRaises(SourceError) as raised:
+            direct.normalize(_greenhouse_job(tenant="other-company"))
+        self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
+
     def test_ambiguous_official_page_tenants_fail_before_enrollment(self):
         cases = {
             "greenhouse": (
