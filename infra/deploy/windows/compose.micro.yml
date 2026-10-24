@@ -1,0 +1,5 @@
+networks:
+  source-egress:
+    ipam:
+      config:
+        - subnet: 192.168.64.0/27

@@ -1,0 +1,15 @@
+[Unit]
+Description=MJobs validated-main personal preview deployment
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+WorkingDirectory=/opt/mjobs-cd
+ExecStart=/opt/mjobs-ops-venv/bin/python /opt/mjobs-cd/host_update.py
+TimeoutStartSec=0
+NoNewPrivileges=true
