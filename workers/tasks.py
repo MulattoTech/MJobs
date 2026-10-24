@@ -269,11 +269,14 @@ def execute_operation(operation_id, *, registry_module=None,
                         # used for filtering and scoring, even if the user edits the
                         # saved search while source collection is running.
                         history_filters = dict(search_profile["criteria"])
+                    collection_options = {}
+                    if source_registry is not DEFAULT_SOURCE_ADAPTER_REGISTRY:
+                        collection_options["registry"] = source_registry
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
                         refresh_matches=search_profile is None,
-                        registry=source_registry,
+                        **collection_options,
                     )
                     history_results = collection_result.get("jobs_seen")
                     _record_supported_collection_candidates(
@@ -380,9 +383,12 @@ def execute_operation(operation_id, *, registry_module=None,
                     finally:
                         client.close()
 
+                review_options = {}
+                if application_registry is not DEFAULT_APPLICATION_ADAPTER_REGISTRY:
+                    review_options["registry"] = application_registry
                 result = handle_form_review(
                     store, operation, fetch_html=fetch_form_html, check=check,
-                    registry=application_registry,
+                    **review_options,
                 )
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
