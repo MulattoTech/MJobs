@@ -539,6 +539,15 @@ source_quality_observations = table("source_quality_observations",
     ))
 Index("ix_quality_configured_time", source_quality_observations.c.configured_source_id, source_quality_observations.c.observed_at)
 Index("ix_quality_company_time", source_quality_observations.c.company_source_id, source_quality_observations.c.observed_at)
+APPLICATION_STATES = (
+    "DRAFT", "PREPARED", "FILLING", "AUTH_REQUIRED", "USER_INTERVENTION_REQUIRED",
+    "READY_TO_SUBMIT", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "SUBMITTING",
+    "SUBMISSION_UNCONFIRMED", "CONFIRMED", "EXTERNALLY_APPLIED", "FAILED", "CANCELLED",
+    "REJECTED", "BLOCKED", "DEAD_LETTERED", "DISCARDED", "UNKNOWN",
+)
+APPLICATION_STATE_CHECK = (
+    "state IN (" + ",".join(f"'{state}'" for state in APPLICATION_STATES) + ")"
+)
 matches = table("job_matches", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                 Column("profile_id", ForeignKey("career_profiles.id"), nullable=False), Column("profile_version", String(64), nullable=False),
                 Column("score", Float, nullable=False), Column("missing", JSON, nullable=False), Column("components", JSON, nullable=False),
@@ -552,13 +561,8 @@ applications = table("applications", Column("job_id", ForeignKey("canonical_jobs
                      Column("document_version", Integer, nullable=False, server_default="1"),
                      Column("confirmation", JSON), Column("created_at", String(64), nullable=False), Column("submitted_at", String(64)),
                      constraints=(UniqueConstraint("job_id", "profile_id"),
-                                  CheckConstraint(
-                                      "state IN ('DRAFT','PREPARED','FILLING','AUTH_REQUIRED',"
-                                      "'USER_INTERVENTION_REQUIRED','READY_TO_SUBMIT','DRY_RUN_COMPLETE',"
-                                      "'REVIEW_REQUIRED','SUBMITTING','SUBMISSION_UNCONFIRMED','CONFIRMED',"
-                                      "'EXTERNALLY_APPLIED','FAILED','CANCELLED','REJECTED','BLOCKED',"
-                                      "'DEAD_LETTERED','DISCARDED','UNKNOWN')",
-                                      name="ck_applications_state_valid")))
+                                  CheckConstraint(APPLICATION_STATE_CHECK,
+                                                  name="ck_applications_state_valid")))
 application_route_choices = table("application_route_choices",
                                   Column("application_id", ForeignKey("applications.id"), nullable=False),
                                   Column("route_id", ForeignKey("application_routes.id"), nullable=False),

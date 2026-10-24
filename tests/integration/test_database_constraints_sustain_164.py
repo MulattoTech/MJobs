@@ -1,5 +1,6 @@
 """Sustained SQLite enforcement checks for the core relational spine."""
 
+import ast
 from copy import deepcopy
 import os
 from pathlib import Path
@@ -9,7 +10,10 @@ from unittest.mock import patch
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, inspect, select, text, update
+from alembic.script import ScriptDirectory
+from sqlalchemy import create_engine, event, inspect, select, text, update
+from sqlalchemy.engine import Engine
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import NullPool
 
@@ -21,27 +25,121 @@ from tests.integration.test_spine import PROFILE
 TIMESTAMP = "2026-10-24T12:00:00Z"
 PARENT_REVISION = "20261018cm01"
 TARGET_REVISION = "20261024dc01"
-APPLICATION_STATES = (
-    "DRAFT",
-    "PREPARED",
-    "FILLING",
-    "AUTH_REQUIRED",
-    "USER_INTERVENTION_REQUIRED",
-    "READY_TO_SUBMIT",
-    "DRY_RUN_COMPLETE",
-    "REVIEW_REQUIRED",
-    "SUBMITTING",
-    "SUBMISSION_UNCONFIRMED",
-    "CONFIRMED",
-    "EXTERNALLY_APPLIED",
-    "FAILED",
-    "CANCELLED",
-    "REJECTED",
-    "BLOCKED",
-    "DEAD_LETTERED",
-    "DISCARDED",
-    "UNKNOWN",
+APPLICATION_STATES = m.APPLICATION_STATES
+APPLICATION_WRITER_PATHS = (
+    "services/applications/mock_adapter.py",
+    "services/documents/generate.py",
+    "services/applications/external_capture.py",
+    "services/applications/confirmation_recovery.py",
 )
+APPLICATION_WRITE_BOUNDARY_PATHS = (
+    *APPLICATION_WRITER_PATHS,
+    "packages/persistence/profile_restore.py",
+    "packages/persistence/store.py",
+)
+
+
+def _uppercase_literals(node):
+    return {
+        item.value
+        for item in ast.walk(node)
+        if (isinstance(item, ast.Constant) and isinstance(item.value, str)
+            and item.value and item.value == item.value.upper()
+            and item.value.replace("_", "").isalpha())
+    }
+
+
+def _application_writer_states(root):
+    states = set()
+    for relative_path in APPLICATION_WRITER_PATHS:
+        path = root / relative_path
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "transition" and len(node.args) >= 3):
+                states.update(_uppercase_literals(node.args[2]))
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "values"):
+                owner = ast.get_source_segment(source, node.func.value) or ""
+                if "m.applications" in owner:
+                    for keyword in node.keywords:
+                        if keyword.arg == "state":
+                            states.update(_uppercase_literals(keyword.value))
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                    and node.func.id == "upsert" and len(node.args) >= 3
+                    and ast.get_source_segment(source, node.args[1]) == "m.applications"
+                    and isinstance(node.args[2], ast.Dict)):
+                for key, value in zip(node.args[2].keys, node.args[2].values):
+                    if isinstance(key, ast.Constant) and key.value == "state":
+                        states.update(_uppercase_literals(value))
+            if (relative_path.endswith("confirmation_recovery.py")
+                    and isinstance(node, (ast.Assign, ast.AnnAssign))):
+                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                if any(isinstance(target, ast.Name) and target.id == "state" for target in targets):
+                    states.update(_uppercase_literals(node.value))
+    return states
+
+
+def _profile_restore_state_set(root, variable):
+    path = root / "packages/persistence/profile_restore.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    states = set()
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Assign)
+                and any(isinstance(target, ast.Name) and target.id == variable
+                        for target in node.targets)):
+            states.update(_uppercase_literals(node.value))
+    return states
+
+
+def _profile_restore_normalized_states(root):
+    path = root / "packages/persistence/profile_restore.py"
+    source = path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    states = set()
+    application_loops = [
+        node for node in ast.walk(tree)
+        if (isinstance(node, ast.For)
+            and ast.get_source_segment(source, node.iter) == 'history["applications"]')
+    ]
+    if len(application_loops) != 1:
+        raise AssertionError("Expected one bounded application restore loop")
+    for node in ast.walk(application_loops[0]):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        if any(
+                (isinstance(target, ast.Name) and target.id == "state")
+                or (isinstance(target, (ast.Tuple, ast.List))
+                    and any(isinstance(item, ast.Name) and item.id == "state"
+                            for item in target.elts))
+                for target in targets):
+            states.update(_uppercase_literals(node.value))
+    return states
+
+
+def _application_write_boundary_paths(root):
+    paths = set()
+    for base in (root / "services", root / "packages"):
+        for path in base.rglob("*.py"):
+            source = path.read_text(encoding="utf-8")
+            if "m.applications" not in source:
+                continue
+            tree = ast.parse(source)
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                rendered = ast.get_source_segment(source, node) or ""
+                is_upsert = (isinstance(node.func, ast.Name) and node.func.id == "upsert"
+                             and len(node.args) >= 2
+                             and ast.get_source_segment(source, node.args[1]) == "m.applications")
+                is_direct_write = ("m.applications" in rendered
+                                   and (".insert()" in rendered or "update(m.applications)" in rendered))
+                if is_upsert or is_direct_write:
+                    paths.add(path.relative_to(root).as_posix())
+                    break
+    return paths
 
 
 class DatabaseConstraintsSustainTests(unittest.TestCase):
@@ -122,6 +220,8 @@ class DatabaseConstraintsSustainTests(unittest.TestCase):
             reopened.engine.dispose()
 
     def test_match_score_outside_zero_to_one_hundred_rejects_atomically(self):
+        # sqlite3 binds NaN as NULL, so that case proves only local fail-closed
+        # behavior through NOT NULL; it is not evidence for PostgreSQL CHECK semantics.
         for index, score in enumerate((-0.01, 100.01, float("inf"), float("-inf"), float("nan"))):
             with self.subTest(score=score), self.assertRaises(IntegrityError):
                 with self.store.engine.begin() as connection:
@@ -209,6 +309,9 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
             else:
                 command.upgrade(config, revision)
 
+    def _migration_module(self, config):
+        return ScriptDirectory.from_config(config).get_revision(TARGET_REVISION).module
+
     def _legacy_database(self, directory, filename, *, score=95, state="PREPARED"):
         url = f"sqlite:///{(Path(directory) / filename).as_posix()}"
         config = self._config(url)
@@ -247,6 +350,23 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                 "('application','job','route','fixture','v1',:state,'MOCK','[]','{}',"
                 "1,NULL,:created,NULL)"
             ), {"state": state, "created": TIMESTAMP})
+            connection.execute(text(
+                "INSERT INTO application_route_choices "
+                "(id,application_id,route_id,underlying_key,requested_mode,state,created_at) "
+                "VALUES ('route-choice','application','route','fixture-route','THIS_ROUTE',"
+                "'PLANNED',:created)"
+            ), {"created": TIMESTAMP})
+            connection.execute(text(
+                "INSERT INTO documents "
+                "(id,application_id,kind,version,profile_version,files,fact_ids,sha256,template,"
+                "created_at,generation_model,generation_context) VALUES "
+                "('document','application','resume',1,'v1','{}','[]','{}','fixture',"
+                ":created,NULL,NULL)"
+            ), {"created": TIMESTAMP})
+            connection.execute(text(
+                "INSERT INTO application_attempts (id,application_id,state,steps,started_at) "
+                "VALUES ('attempt','application','RUNNING','[]',:started)"
+            ), {"started": TIMESTAMP})
         return url, config, engine
 
     @staticmethod
@@ -256,13 +376,100 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
             for constraint in inspect(engine).get_check_constraints(table)
         }
 
+    @staticmethod
+    def _schema_signature(engine, table):
+        inspector = inspect(engine)
+        return {
+            "columns": tuple(
+                (column["name"], column["nullable"], str(column.get("default")))
+                for column in inspector.get_columns(table)
+            ),
+            "foreign_keys": tuple(sorted(
+                (tuple(item["constrained_columns"]), item["referred_table"],
+                 tuple(item["referred_columns"]))
+                for item in inspector.get_foreign_keys(table)
+            )),
+            "indexes": tuple(sorted(
+                (item["name"], tuple(item["column_names"]), bool(item["unique"]))
+                for item in inspector.get_indexes(table)
+            )),
+            "uniques": tuple(sorted(
+                (str(item["name"]), tuple(item["column_names"]))
+                for item in inspector.get_unique_constraints(table)
+            )),
+        }
+
+    @staticmethod
+    def _row_snapshot(engine):
+        tables = (
+            "job_matches",
+            "applications",
+            "application_route_choices",
+            "documents",
+            "application_attempts",
+        )
+        with engine.connect() as connection:
+            return {
+                table: [dict(row) for row in connection.execute(
+                    text(f"SELECT * FROM {table} ORDER BY id")
+                ).mappings()]
+                for table in tables
+            }
+
+    def test_state_policy_matches_bounded_writers_and_legacy_normalization(self):
+        root = Path(__file__).resolve().parents[2]
+        config = self._config("sqlite://")
+        migration = self._migration_module(config)
+        writer_states = _application_writer_states(root)
+        ambiguous_states = _profile_restore_state_set(root, "ambiguous_states")
+        terminal_states = _profile_restore_state_set(root, "terminal_states")
+        normalized_states = _profile_restore_normalized_states(root)
+
+        self.assertEqual(
+            _application_write_boundary_paths(root),
+            set(APPLICATION_WRITE_BOUNDARY_PATHS),
+        )
+        self.assertEqual(set(m.APPLICATION_STATES), set(migration.APPLICATION_STATES))
+        self.assertEqual(writer_states, set(migration.WRITER_APPLICATION_STATES))
+        self.assertEqual(terminal_states, set(migration.RESTORED_TERMINAL_APPLICATION_STATES))
+        self.assertEqual(
+            ambiguous_states - set(migration.APPLICATION_STATES),
+            set(migration.DEPRECATED_AMBIGUOUS_APPLICATION_STATES),
+        )
+        self.assertEqual(
+            normalized_states,
+            set(migration.RESTORE_NORMALIZED_APPLICATION_STATES),
+        )
+        self.assertEqual(
+            set(migration.APPLICATION_STATES),
+            writer_states | terminal_states | set(migration.LEGACY_APPLICATION_STATES),
+        )
+        self.assertIn("SUBMISSION_UNCONFIRMED", migration.APPLICATION_STATES)
+
     def test_upgrade_downgrade_and_reupgrade_preserve_valid_rows(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-constraint-migration-") as directory:
             url, config, engine = self._legacy_database(directory, "valid.db")
             try:
+                tracked_tables = (
+                    "job_matches",
+                    "applications",
+                    "application_route_choices",
+                    "documents",
+                    "application_attempts",
+                )
+                original_schema = {
+                    table: self._schema_signature(engine, table)
+                    for table in tracked_tables
+                }
+                original_rows = self._row_snapshot(engine)
                 self._migrate(config, url, TARGET_REVISION)
                 self.assertIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
                 self.assertIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(
+                    {table: self._schema_signature(engine, table) for table in tracked_tables},
+                    original_schema,
+                )
+                self.assertEqual(self._row_snapshot(engine), original_rows)
                 with engine.connect() as connection:
                     self.assertEqual(connection.execute(text(
                         "SELECT score FROM job_matches WHERE id='match'"
@@ -277,6 +484,11 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                 self._migrate(config, url, PARENT_REVISION, downgrade=True)
                 self.assertNotIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
                 self.assertNotIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(
+                    {table: self._schema_signature(engine, table) for table in tracked_tables},
+                    original_schema,
+                )
+                self.assertEqual(self._row_snapshot(engine), original_rows)
                 with engine.connect() as connection:
                     self.assertEqual(connection.execute(text(
                         "SELECT score FROM job_matches WHERE id='match'"
@@ -284,10 +496,18 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                     self.assertEqual(connection.execute(text(
                         "SELECT state FROM applications WHERE id='application'"
                     )).scalar_one(), "PREPARED")
+                    self.assertEqual(connection.execute(text(
+                        "SELECT version_num FROM alembic_version"
+                    )).scalar_one(), PARENT_REVISION)
 
                 self._migrate(config, url, TARGET_REVISION)
                 self.assertIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
                 self.assertIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(
+                    {table: self._schema_signature(engine, table) for table in tracked_tables},
+                    original_schema,
+                )
+                self.assertEqual(self._row_snapshot(engine), original_rows)
                 with engine.connect() as connection:
                     self.assertEqual(connection.execute(text(
                         "SELECT version_num FROM alembic_version"
@@ -338,6 +558,96 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                     )).scalar_one(), TARGET_REVISION)
             finally:
                 engine.dispose()
+
+    def test_batch_failures_roll_back_schema_rows_version_and_retry_cleanly(self):
+        tracked_tables = (
+            "job_matches",
+            "applications",
+            "application_route_choices",
+            "documents",
+            "application_attempts",
+        )
+        phases = (
+            ("after-first-batch", "before_cursor_execute"),
+            ("during-second-batch", "after_cursor_execute"),
+        )
+        for phase, event_name in phases:
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory(
+                    prefix=f"mjobs-constraint-{phase}-") as directory:
+                url, config, engine = self._legacy_database(directory, "fault.db")
+                original_schema = {
+                    table: self._schema_signature(engine, table)
+                    for table in tracked_tables
+                }
+                original_rows = self._row_snapshot(engine)
+                database = make_url(url).database
+                injected = []
+
+                def interrupt_second_batch(connection, _cursor, statement,
+                                           _parameters, _context, _executemany):
+                    normalized = (statement.upper().replace('"', "")
+                                  .replace("[", "").replace("]", ""))
+                    if (connection.engine.url.database == database
+                            and normalized.lstrip().startswith(
+                                "CREATE TABLE _ALEMBIC_TMP_APPLICATIONS")):
+                        injected.append(statement)
+                        raise RuntimeError(f"synthetic {phase} interruption")
+
+                event.listen(Engine, event_name, interrupt_second_batch)
+                try:
+                    with self.assertRaisesRegex(RuntimeError, f"synthetic {phase} interruption"):
+                        self._migrate(config, url, TARGET_REVISION)
+                finally:
+                    event.remove(Engine, event_name, interrupt_second_batch)
+                    engine.dispose()
+                self.assertEqual(len(injected), 1)
+
+                fresh = create_engine(url, poolclass=NullPool)
+                try:
+                    table_names = inspect(fresh).get_table_names()
+                    self.assertFalse(any(name.startswith("_alembic_tmp") for name in table_names))
+                    self.assertNotIn(
+                        "ck_job_matches_score_range",
+                        self._check_names(fresh, "job_matches"),
+                    )
+                    self.assertNotIn(
+                        "ck_applications_state_valid",
+                        self._check_names(fresh, "applications"),
+                    )
+                    self.assertEqual(
+                        {table: self._schema_signature(fresh, table) for table in tracked_tables},
+                        original_schema,
+                    )
+                    self.assertEqual(self._row_snapshot(fresh), original_rows)
+                    with fresh.connect() as connection:
+                        self.assertEqual(connection.execute(text(
+                            "SELECT version_num FROM alembic_version"
+                        )).scalar_one(), PARENT_REVISION)
+                finally:
+                    fresh.dispose()
+
+                self._migrate(config, url, TARGET_REVISION)
+                retried = create_engine(url, poolclass=NullPool)
+                try:
+                    self.assertIn(
+                        "ck_job_matches_score_range",
+                        self._check_names(retried, "job_matches"),
+                    )
+                    self.assertIn(
+                        "ck_applications_state_valid",
+                        self._check_names(retried, "applications"),
+                    )
+                    self.assertFalse(any(
+                        name.startswith("_alembic_tmp")
+                        for name in inspect(retried).get_table_names()
+                    ))
+                    self.assertEqual(self._row_snapshot(retried), original_rows)
+                    with retried.connect() as connection:
+                        self.assertEqual(connection.execute(text(
+                            "SELECT version_num FROM alembic_version"
+                        )).scalar_one(), TARGET_REVISION)
+                finally:
+                    retried.dispose()
 
 
 if __name__ == "__main__":
