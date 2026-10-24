@@ -124,7 +124,9 @@ def create_application_multipage_state_router(store) -> APIRouter:
                 raise MultipageStateError(
                     "WORKSPACE_MODE_UNBOUND", "Workspace mode must be bound before checkpoint recovery",
                 )
-            from services.applications.workday_recovery import reconcile_workday_checkpoint
+            from services.applications.workday_recovery import (
+                reconcile_workday_checkpoint,
+            )
 
             return reconcile_workday_checkpoint(
                 store, profile_id, application_id,
