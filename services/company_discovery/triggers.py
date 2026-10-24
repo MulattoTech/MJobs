@@ -8,7 +8,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.company_discovery.flywheel import directly_monitored
 from services.company_discovery.domains import resolve_verified_company_domain
-from services.company_discovery.resolution import resolve_company
+from services.company_discovery.resolution import candidate_ats_provider, resolve_company
 from services.company_discovery.public_resolution import resolve_public_company
 from workers.dispatch import enqueue_operation
 
@@ -145,12 +145,21 @@ def _queue_public_add(store, candidate, profile_id, request_id, fingerprint):
 
 
 def triggers_for_job(store, job, match_score=None):
+    attributes = job.get("attributes")
+    attributes = attributes if isinstance(attributes, dict) else {}
     candidate = {
         "company_name": job.get("company"),
-        "company_website": (job.get("attributes") or {}).get("company_website"),
+        "company_website": attributes.get("company_website"),
         "application_url": job.get("application_url"),
-        "ats_tenant": (job.get("attributes") or {}).get("tenant"),
+        "ats_tenant": attributes.get("tenant"),
     }
+    # Only propagate normalized job evidence, never a top-level-only label.
+    declaration = {"ats_provider": attributes.get("provider")}
+    if "provider" in job:
+        declaration["provider"] = job["provider"]
+    provider = candidate_ats_provider(declaration)
+    if provider is not None:
+        candidate["ats_provider"] = provider
     resolved = resolve_company(store, candidate)
     reasons = []
     if resolved["is_new"] or not directly_monitored(store, resolved["company_id"]):

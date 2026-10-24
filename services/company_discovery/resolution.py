@@ -5,13 +5,67 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity
+from services.applications.provider_registry import is_builtin_provider
 from services.company_discovery.aliases import normalize_alias
-from services.company_discovery.domains import is_aggregator_domain, normalize_domain
+from services.company_discovery.domains import VERIFIED_METHODS, is_aggregator_domain, normalize_domain
 from services.normalization.jobs import normalize_company_name
+from services.dedupe.routes import FIRST_PARTY_PROVIDERS
+
+
+def candidate_ats_provider(candidate):
+    """Normalize explicit platform identity; absent/conflicting labels fail closed.
+
+    A recognized label only scopes the lookup. It does not authorize a source;
+    the live enrollment gate still establishes employer identity.
+    """
+    providers = []
+    for key in ("ats_provider", "provider"):
+        if key not in candidate:
+            continue
+        value = candidate[key]
+        if not isinstance(value, str) or not value.isascii():
+            return None
+        value = value.strip().casefold()
+        if (value == "generic_html" or not value
+                or not (value in FIRST_PARTY_PROVIDERS or is_builtin_provider(value))):
+            return None
+        providers.append(value)
+    return providers[0] if providers and len(set(providers)) == 1 else None
 
 
 def _hostname(value):
     return normalize_domain(value)
+
+
+def _authorized_ats_source(connection, source, tenants, domains):
+    """Read current enrollment authority, not just a discovered tenant string."""
+    tenant = tenants.get(source.get("ats_tenant_id"))
+    if (not source["enabled"] or not source["last_validation"]
+            or not source["confidence"] >= 0.90 or tenant is None
+            or tenant["company_id"] != source["company_id"]
+            or tenant["provider"] != source["provider"]
+            or tenant["tenant_identifier"] != source["tenant"]
+            or not tenant["confidence"] >= 0.90 or not tenant["evidence"]):
+        return False
+    # A reviewed source keeps its live request/audit/operation revocation gates.
+    # Never fall back to a domain match after its explicit authorization fails.
+    if source["identity_authorization"] is not None:
+        from services.company_discovery.requests import authorize_confirmed_source
+        try:
+            resolved = authorize_confirmed_source(connection, source)
+        except (ValueError, KeyError, TypeError):
+            return False
+        return (resolved["company_id"] == source["company_id"]
+                and "USER_CONFIRMED_DOMAIN" in resolved["evidence"])
+    host = _hostname(source["career_url"])
+    if not host or is_aggregator_domain(host):
+        return False
+    # Match the enrollment contract's exact official career host. Conflicting
+    # verified owners are not authority for either employer, even at equal scores.
+    owners = {row["company_id"] for row in domains
+              if row["domain"] == host and row["verification_method"] in VERIFIED_METHODS
+              and row["evidence"]}
+    return owners == {source["company_id"]}
 
 
 def resolve_company(store, candidate):
@@ -24,6 +78,7 @@ def resolve_company(store, candidate):
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
     application_url = str(candidate.get("application_url") or "").strip()
     ats_tenant = str(candidate.get("ats_tenant") or candidate.get("tenant") or "").strip().casefold()
+    ats_provider = candidate_ats_provider(candidate)
     website_host = _hostname(website)
     application_host = _hostname(application_url)
     normalized_name = normalize_company_name(name)
@@ -36,6 +91,16 @@ def resolve_company(store, candidate):
         aliases = [dict(row) for row in connection.execute(select(m.company_aliases).where(
             m.company_aliases.c.verified.is_(True)
         )).mappings()]
+        matching_sources = [source for source in sources if ats_tenant and ats_provider
+                            and source["provider"] == ats_provider
+                            and str(source["tenant"] or "").casefold() == ats_tenant]
+        if matching_sources:
+            tenants = {row["id"]: dict(row) for row in connection.execute(
+                select(m.company_ats_tenants)).mappings()}
+            sources = [source for source in matching_sources
+                       if _authorized_ats_source(connection, source, tenants, domains)]
+        else:
+            sources = []
     by_id = {company["id"]: company for company in companies}
     source_by_company = {}
     for source in sources:
