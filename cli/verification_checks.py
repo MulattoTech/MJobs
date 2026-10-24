@@ -104,7 +104,15 @@ def _corroborate(report, expected):
     if not isinstance(observed, dict) or report.get("workspace") != expected.get("workspace"):
         raise ValueError("connected observations missing or workspace mismatch")
     checks = report["checks"]
-    passed = lambda name: checks[name]["status"] == "PASS"
+    passed = lambda name: isinstance(checks.get(name), dict) and checks[name].get("status") == "PASS"
+    if passed("Browser worker healthy"):
+        dry_run_submissions = observed.get("dry_run_submission_count")
+        if (not passed("Dry-run mode functional") or not passed("mock application fill")
+                or type(dry_run_submissions) is not int or dry_run_submissions != 0):
+            raise ValueError("browser execution evidence missing")
+    if passed("duplicate-submission protection") and (
+            not passed("mock confirmation") or not passed("mock global source")):
+        raise ValueError("duplicate-submission evidence missing")
     # A PASS from the global source probe depends on the registry's selected
     # source identity too; do not let downstream success bypass that evidence
     # when the registry row is FAIL or NOT_RUN.
