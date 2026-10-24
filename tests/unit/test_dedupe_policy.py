@@ -147,6 +147,38 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(result["disposition"], "SEPARATE")
         self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
 
+    def test_same_employer_requisition_does_not_override_mismatched_company(self):
+        left = weak_identity_job(
+            company={"name": "Acme", "domains": ["acme.example"]},
+            employer_requisition="REQ-123",
+        )
+        right = weak_identity_job(
+            company={"name": "Other Company", "domains": ["other.example"]},
+            employer_requisition="req-123",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertFalse(result["signals"]["company"]["same_company"])
+        self.assertFalse(result["signals"]["strong_match"])
+        self.assertEqual(result["signals"]["strong_signals"], ["EMPLOYER_REQUISITION"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+
+    def test_same_employer_requisition_with_company_corroboration_is_exact(self):
+        company = {"name": "Acme", "domains": ["acme.example"]}
+        left = weak_identity_job(company=company, employer_requisition="REQ-123")
+        right = weak_identity_job(company=company, employer_requisition="req-123")
+
+        result = duplicate_confidence(left, right)
+
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertTrue(result["signals"]["strong_match"])
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+
     def test_same_source_job_id_does_not_override_mismatched_company(self):
         left = weak_identity_job(
             company={"name": "Acme", "domains": ["acme.example"]},
