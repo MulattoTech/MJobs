@@ -329,6 +329,7 @@ class DedupePolicyTests(unittest.TestCase):
 
         self.assertEqual(left["company"], right["company"])
         self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertEqual(left["ats_tenant"], "acme-ats")
         self.assertEqual(left["ats_tenant"], right["ats_tenant"])
         self.assertTrue(left["requisition"] and right["requisition"])
         self.assertNotEqual(left["requisition"], right["requisition"])
