@@ -18,6 +18,7 @@ from services.company_discovery.requests import authorize_discovery_request
 from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.sources.registry import (
+    configured_source_registry,
     DEFAULT_SOURCE_ADAPTER_REGISTRY,
     SourceAdapterRegistry,
 )
@@ -48,6 +49,7 @@ from workers.retries import discovery_retry_plan
 from workers.application_form_review import FormReviewError, handle_form_review
 from services.applications.provider_registry import (
     ApplicationAdapterRegistry,
+    configured_application_registry,
     DEFAULT_APPLICATION_ADAPTER_REGISTRY,
 )
 from services.applications.controlled_dry_run import ControlledDryRunError, execute as execute_controlled_dry_run
@@ -170,9 +172,13 @@ def _saved_search_candidate_job_ids(store, source_id, search_profile, *, capture
     return tuple(sorted({posting["job_id"] for posting in candidates}))
 
 
-def execute_operation(operation_id, *,
+def execute_operation(operation_id, *, registry_module=None,
                       source_registry: SourceAdapterRegistry = DEFAULT_SOURCE_ADAPTER_REGISTRY,
                       application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+    if source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY:
+        source_registry = configured_source_registry(registry_module)
+    if application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY:
+        application_registry = configured_application_registry(registry_module)
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     try:

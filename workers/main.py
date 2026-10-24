@@ -11,6 +11,11 @@ from packages.domain.operation_mode import operation_mode_from_env
 from workers.dispatch import dispatch_pending
 from workers.operations import CATEGORIES, QUEUES, category_limit, timeout
 from workers.structured_logging import configure_operation_logger
+from services.applications.provider_registry import configured_application_registry
+from services.discovery.sources.registry import (
+    configured_extension_registry_module,
+    configured_source_registry,
+)
 
 
 def main():
@@ -28,6 +33,9 @@ def main():
     timeout()
     for category in CATEGORIES:
         category_limit(category)
+    registry_module = configured_extension_registry_module()
+    configured_source_registry(registry_module)
+    configured_application_registry(registry_module)
     # RQ forks its work horse while the outbox thread can import scoring code.
     # Load the task graph on this thread first: a forked child cannot release a
     # module lock inherited from the now-absent dispatcher thread (for example
@@ -39,7 +47,7 @@ def main():
     def dispatch():
         while not stopped.is_set():
             try:
-                dispatch_pending(store, redis_url)
+                dispatch_pending(store, redis_url, registry_module=registry_module)
             except Exception as error:
                 logging.warning("Outbox dispatch will retry: %s", type(error).__name__)
             stopped.wait(2)

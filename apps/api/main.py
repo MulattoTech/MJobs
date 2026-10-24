@@ -37,6 +37,8 @@ from services.career_profile.durable_extraction import (
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.sources.registry import (
+    configured_extension_registry_module,
+    configured_source_registry,
     DEFAULT_SOURCE_ADAPTER_REGISTRY,
     SourceAdapterRegistry,
 )
@@ -59,6 +61,7 @@ from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
 from services.applications.provider_registry import (
     ApplicationAdapterRegistry,
+    configured_application_registry,
     DEFAULT_APPLICATION_ADAPTER_REGISTRY,
 )
 from services.ai.providers import AIProviderError, create_provider
@@ -637,6 +640,8 @@ class SourceInput(BaseModel):
 
     @model_validator(mode="after")
     def global_sources_use_canonical_tenant(self):
+        if self.provider == "remote_ok":
+            self.provider = "remoteok"
         if self.provider == 'lever':
             from services.discovery.sources.lever import tenant_identity
             self.tenant = tenant_identity(self.tenant)
@@ -698,6 +703,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                operation_mode="PERSONAL", *,
                source_registry: SourceAdapterRegistry = DEFAULT_SOURCE_ADAPTER_REGISTRY,
                application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+    if (source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY
+            or application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+        registry_module = configured_extension_registry_module()
+        if source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY:
+            source_registry = configured_source_registry(registry_module)
+        if application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY:
+            application_registry = configured_application_registry(registry_module)
     operation_mode = parse_operation_mode(operation_mode)
     public_host = os.environ.get("MJOBS_PUBLIC_HOST", "").strip().lower()
     if public_host and ("." not in public_host or not re.fullmatch(

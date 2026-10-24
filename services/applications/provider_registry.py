@@ -3,11 +3,13 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from importlib import import_module
+import os
 import re
 from types import MappingProxyType
 
 
 _ID = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
+_MODULE_ID = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\Z")
 _RESERVED = frozenset({"disabled"})
 
 
@@ -125,6 +127,27 @@ class ApplicationAdapterRegistry:
 
 
 DEFAULT_APPLICATION_ADAPTER_REGISTRY = ApplicationAdapterRegistry()
+
+
+def configured_application_registry(
+        module_name: str | None = None) -> ApplicationAdapterRegistry:
+    """Load the immutable deployment registry selected for this process."""
+    if module_name is None:
+        module_name = os.environ.get("MJOBS_EXTENSION_REGISTRY_MODULE", "").strip()
+    if not isinstance(module_name, str):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID")
+    if not module_name:
+        return DEFAULT_APPLICATION_ADAPTER_REGISTRY
+    if (len(module_name) > 255 or not module_name.isascii()
+            or not _MODULE_ID.fullmatch(module_name)):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID")
+    try:
+        registry = getattr(import_module(module_name), "APPLICATION_ADAPTER_REGISTRY")
+    except (ImportError, AttributeError):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID") from None
+    if not isinstance(registry, ApplicationAdapterRegistry):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID")
+    return registry
 
 
 def _registry(registry):

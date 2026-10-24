@@ -3,7 +3,7 @@ from inspect import signature
 from pathlib import Path
 import subprocess
 import sys
-from types import MappingProxyType, SimpleNamespace
+from types import MappingProxyType, ModuleType, SimpleNamespace
 
 import pytest
 
@@ -14,6 +14,88 @@ from services.discovery.sources.registry import (
     SourceAdapterRegistry,
 )
 from services.applications.provider_registry import DEFAULT_APPLICATION_ADAPTER_REGISTRY
+
+
+@pytest.mark.parametrize("module_name, install_wrong_type", [
+    ("bad-module", False),
+    ("éxtensions", False),
+    ("missing.registry.module", False),
+    ("tests.wrong_extension_registry", True),
+    (7, False),
+])
+def test_registry_module_selector_fails_closed_without_factory_calls(
+        monkeypatch, module_name, install_wrong_type):
+    from services.applications.provider_registry import configured_application_registry
+    from services.discovery.sources.registry import configured_source_registry
+
+    calls = []
+    module = ModuleType("tests.wrong_extension_registry")
+    module.SOURCE_ADAPTER_REGISTRY = lambda: calls.append("source")
+    module.APPLICATION_ADAPTER_REGISTRY = lambda: calls.append("application")
+    if install_wrong_type:
+        monkeypatch.setitem(sys.modules, module.__name__, module)
+
+    with pytest.raises(ValueError, match="ADAPTER_CONFIGURATION_INVALID"):
+        configured_source_registry(module_name)
+    with pytest.raises(ValueError, match="ADAPTER_CONFIGURATION_INVALID"):
+        configured_application_registry(module_name)
+    assert calls == []
+
+
+def test_worker_startup_snapshots_registry_selector_for_dispatch(monkeypatch):
+    from workers import main as worker_main
+
+    store = SimpleNamespace(bind_workspace_mode=lambda _mode: None)
+    store.engine = SimpleNamespace(dispose=lambda: None)
+    redis = SimpleNamespace(close=lambda: None)
+    worker = SimpleNamespace(work=lambda **_kwargs: None)
+    stopped = SimpleNamespace(is_set=lambda: False, wait=lambda _seconds: None,
+                              set=lambda: None)
+    dispatched = []
+
+    class InlineThread:
+        def __init__(self, *, target, daemon):
+            assert daemon is True
+            self.target = target
+
+        def start(self):
+            self.target()
+
+        def join(self, *, timeout):
+            assert timeout == 5
+
+    checks = {"stopped": False}
+    stopped.is_set = lambda: checks["stopped"]
+
+    def dispatch(_store, redis_url, *, registry_module=None):
+        dispatched.append((_store, redis_url, registry_module))
+        checks["stopped"] = True
+
+    monkeypatch.setenv("MJOBS_DATABASE_URL", "sqlite:///unused.db")
+    monkeypatch.setenv("MJOBS_REDIS_URL", "redis://unused/0")
+    monkeypatch.setenv("MJOBS_WORKER_QUEUE", "mjobs-application")
+    monkeypatch.setattr(worker_main, "operation_mode_from_env", lambda: "PERSONAL")
+    monkeypatch.setattr(worker_main, "Store", lambda _url: store)
+    monkeypatch.setattr(worker_main, "timeout", lambda: 180)
+    monkeypatch.setattr(worker_main, "category_limit", lambda _category: 1)
+    monkeypatch.setattr(worker_main, "configured_extension_registry_module",
+                        lambda: "tests.runtime_extensions")
+    source_registry = object()
+    application_registry = object()
+    monkeypatch.setattr(worker_main, "configured_source_registry",
+                        lambda selector: source_registry if selector == "tests.runtime_extensions" else None)
+    monkeypatch.setattr(worker_main, "configured_application_registry",
+                        lambda selector: application_registry if selector == "tests.runtime_extensions" else None)
+    monkeypatch.setattr(worker_main, "dispatch_pending", dispatch)
+    monkeypatch.setattr(worker_main, "configure_operation_logger", lambda: None)
+    monkeypatch.setattr(worker_main.threading, "Event", lambda: stopped)
+    monkeypatch.setattr(worker_main.threading, "Thread", InlineThread)
+    monkeypatch.setattr(worker_main.Redis, "from_url", lambda *_args, **_kwargs: redis)
+    monkeypatch.setattr(worker_main, "Worker", lambda *_args, **_kwargs: worker)
+
+    worker_main.main()
+
+    assert dispatched == [(store, "redis://unused/0", "tests.runtime_extensions")]
 
 
 def test_registry_dependency_is_explicit_at_every_admission_and_revalidation_boundary():

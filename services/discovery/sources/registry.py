@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from importlib import import_module
+import os
 import re
 from types import MappingProxyType
 
@@ -11,6 +12,7 @@ from services.discovery.sources.greenhouse import SourceError
 
 
 _ID = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
+_MODULE_ID = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\Z")
 _RESERVED = frozenset({"disabled"})
 
 
@@ -96,6 +98,34 @@ class SourceAdapterRegistry:
 
 
 DEFAULT_SOURCE_ADAPTER_REGISTRY = SourceAdapterRegistry()
+
+
+def configured_extension_registry_module(module_name: str | None = None) -> str:
+    """Return the trusted deployment selector in a queue-safe form."""
+    if module_name is None:
+        module_name = os.environ.get("MJOBS_EXTENSION_REGISTRY_MODULE", "").strip()
+    if not isinstance(module_name, str):
+        raise ValueError("SOURCE_ADAPTER_CONFIGURATION_INVALID")
+    if not module_name:
+        return ""
+    if (len(module_name) > 255 or not module_name.isascii()
+            or not _MODULE_ID.fullmatch(module_name)):
+        raise ValueError("SOURCE_ADAPTER_CONFIGURATION_INVALID")
+    return module_name
+
+
+def configured_source_registry(module_name: str | None = None) -> SourceAdapterRegistry:
+    """Load the immutable deployment registry selected for this process."""
+    module_name = configured_extension_registry_module(module_name)
+    if not module_name:
+        return DEFAULT_SOURCE_ADAPTER_REGISTRY
+    try:
+        registry = getattr(import_module(module_name), "SOURCE_ADAPTER_REGISTRY")
+    except (ImportError, AttributeError):
+        raise ValueError("SOURCE_ADAPTER_CONFIGURATION_INVALID") from None
+    if not isinstance(registry, SourceAdapterRegistry):
+        raise ValueError("SOURCE_ADAPTER_CONFIGURATION_INVALID")
+    return registry
 
 
 def source_adapter(source: dict, *, transport=None, check=None,
