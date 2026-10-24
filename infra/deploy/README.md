@@ -1,136 +1,142 @@
-# MJobs — Access-protected Ubuntu personal preview
+# MJobs — Windows Docker Desktop owner-only preview
 
-This is an **opt-in, owner-only developer preview**, not a production security or
-full-feature acceptance claim. It runs MJobs' actual React + FastAPI + PostgreSQL +
-Redis + worker/scheduler + Chromium Docker Compose stack; it is **not** a static
-frontend replacement. Real employer submissions stay disabled.
+This is a developer-preview deployment, **not** a production-readiness claim. It
+serves the **real full stack**: React, FastAPI, PostgreSQL 17, Redis 7,
+scheduler, discovery/AI/document/application workers and Playwright Chromium.
+Real employer submissions remain OFF. There is no native MJobs multiuser auth.
 
-## Architecture and operational facts
+## Live architecture
 
-- **URL:** https://mjobs.m-techlabs.com (Cloudflare Access sign-in required).
-- **Source:** [MulattoTech/MJobs](https://github.com/MulattoTech/MJobs),
-  protected `main`.
-- **Origin:** the existing Ubuntu 24.04 Multipass/Hyper-V VM `devfleet-primary`
-  on the owner's PC. The machine must stay powered on and the VM running.
-- **Networking:** a dedicated, outbound-only Cloudflare Tunnel container on the
-  VM's host network sends traffic to `127.0.0.1:18701`. The application's port
-  is published only on VM loopback; no SSH, Docker daemon, Redis, PostgreSQL or
-  desktop port is made public. Existing unrelated Cloudflare/DevFleet assets
-  remain untouched.
-- **Authentication:** Cloudflare Access permits only the account owner's
-  verified email via the existing Cloudflare identity provider. The tunnel
-  separately validates an Access JWT for the configured application audience.
-  MJobs itself **does not have native multi-user auth**; the Access layer is
-  mandatory for this deployment.
-- **Data:** Docker named PostgreSQL, Redis and document volumes persist across
-  container updates. The original database password and credentials encryption
-  key are never generated during upgrades and must be protected together.
-- **Cost:** uses already-owned hardware and Cloudflare's current free services.
-  This is not an SLA or zero-electricity-cost promise.
+- URL: **https://mjobs.m-techlabs.com**, restricted to the owner's Cloudflare
+  account email using the Cloudflare Access application `MJobs Personal Preview`.
+- Origin: existing Windows PC `MulattoTechBox`, running Docker Desktop's
+  **shared WSL2 Linux engine**. No standalone 8 GB Hyper-V VM is needed for MJobs.
+- Compose source: `C:\Tools\Dev\MJobs-Micro` — an **isolated clone**, not
+  the active `C:\Tools\Dev\MJobs` developer checkout.
+- Compose project: `mjobs-micro`. Local API/frontend:
+  `http://127.0.0.1:18801` only (never LAN-exposed).
+- Small dedicated network override: `compose.micro.yml` copied from
+  [infra/deploy/windows/compose.micro.yml](windows/compose.micro.yml).
+  It uses the unused `192.168.64.0/27` source-egress subnet because the PC's
+  Docker Desktop automatic address pools are full. Re-evaluate for other hosts.
+- Cloudflare Tunnel: `mjobs-windows-docker`. A separate hardened
+  `mjobs-micro-cloudflared` Docker container joins the `mjobs-micro_ui`
+  bridge and forwards to `http://api:8000`. The Cloudflare Tunnel ingress
+  separately requires and validates the Access JWT audience. Its token is a
+  protected local file and never belongs in Git or Compose environment output.
+- The old Ubuntu VM `devfleet-primary` is **no longer the MJobs origin**.
+  Its MJobs Compose services and tunnel are stopped and its update timer is
+  disabled; its original volumes and verified backup remain intact. The VM's
+  unrelated DevFleet control-plane service remains running and must not be
+  terminated as part of MJobs operations.
 
-## Continuous delivery
+The Windows Docker environment is already shared with the owner's other
+services. It does not reserve the Ubuntu VM's 8 GB for MJobs. At migration the
+ten MJobs runtime containers together consumed roughly 0.8 GB of active memory;
+Docker/WSL page cache can temporarily grow considerably during image builds.
+Docker's WSL2 backend can reclaim unused cache over time. Windows PC and
+Docker Desktop must stay running for the site to stay available.
 
-The existing independent main-branch CI, integration and secret checks remain
-unchanged. `.github/workflows/mjobs-deployment-candidate.yml` runs on every
-`main` push, waits for these **exact SHA** checks to pass, builds and validates
-the entire Docker image, and publishes a non-secret candidate manifest. The
-candidate job does **not** publish sensitive data, create a GitHub Release or
-bypass required PR checks.
+## Startup and resilience
 
-A VM-local root-owned timer checks `main` about every ten minutes. The pull
-updater `infra/deploy/host_update.py` accepts only a SHA with successful
-GitHub Actions checks `Deployment / candidate`, `CI / required`,
-`Integration / PostgreSQL and Redis`, and `Security / secret scan`. It
-clones and verifies that SHA, builds a SHA-tagged image without remote write
-credentials, verifies the candidate again, then quiesces only MJobs writer
-services. Before switching it runs the repository's quiescent PostgreSQL +
-document backup tool and verifies the archive. It starts the candidate on the
-**same** persistent Compose volumes and checks `/ready` plus the exact commit
-reported by `/__deployment`. On failure it attempts to restore the previous
-known-good image. The last deployed SHA is held in the protected
-`/var/lib/mjobs-cd/deployed.json` manifest.
+The Docker Compose services and the Cloudflare Tunnel sidecar have
+`restart: unless-stopped`; Docker Desktop itself was configured to start
+silently at **Windows user sign-in** by the per-user Startup helper
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\MJobsMicro-StartDocker.vbs`.
+There is **no** unattended boot guarantee before Windows user sign-in, no
+outside-network port forwarding, and no public Docker daemon/Redis/PostgreSQL.
 
-**Deliberate fail-closed migration policy:** No unattended rollout occurs if
-Alembic source/migration history differs from the prior deployed revision. A
-maintainer must use `docs/runbooks/LOCAL_BACKUP.md` and
-`cli.guarded_migration` to review and apply a pending populated-database
-schema change with a verified full backup. Automated downgrade or data loss is
-never performed. This means some changes to `main` may **not** deploy
-automatically until a guarded migration is reviewed.
+Secrets remain in `C:\Tools\Dev\MJobs-Micro\.env` (NTFS ACL owner, SYSTEM
+and Administrators only). A new key was generated for the new **empty**
+workspace: no career profiles, applications, documents, job listings, or
+provider credentials existed on the original VM. The original VM's keys,
+volumes and backups were preserved; they were not copied or overwritten.
 
-If the PC/VM is offline, updates are delayed; commits and independent checks
-still run on GitHub. No inbound SSH, personal access token, registry login, or
-self-hosted GitHub runner is required.
+Check services from a Windows PowerShell terminal without printing secrets:
 
-## Install on the existing VM
-
-The current deployment was provisioned in a dedicated checkout/project. For a
-fresh host, do **not** blindly use this sequence on an occupied database.
-
-1. Confirm the dedicated VM has Docker Engine/Compose v2, enough resources and
-   protected operator access, then create a separate checkout of exact reviewed
-   `main` in a private release directory.
-2. Create project-local `.env` only for a new empty installation via
-   `python -m cli.init_env`; retain it and the separately protected original
-   `MJOBS_CREDENTIAL_ENCRYPTION_KEY` for all subsequent releases.
-3. Start the PERSONAL Compose project with
-   `MJOBS_PORT=18701 MJOBS_OPERATION_MODE=PERSONAL MJOBS_COMPOSE_MOCK=0`.
-   Confirm `http://127.0.0.1:18701/ready` returns 200 and all workers are
-   healthy.
-4. In Cloudflare, configure a **dedicated** remotely managed tunnel to
-   `http://127.0.0.1:18701`, require Access JWT validation in the tunnel
-   ingress config, attach a self-hosted Access app restricted to owner identity,
-   and create a proxied tunnel CNAME. Do not reuse unrelated tunnels.
-   Store tunnel token only at `/etc/mjobs/cloudflared-token` with permissions
-   limited to root and the container UID. Run cloudflared with a pinned image,
-   read-only root filesystem and only this token mounted read-only.
-5. Pin the deployed source, image tag and SHA in
-   `/var/lib/mjobs-cd/deployed.json` (mode 0600). Retain the original `.env`
-   in `/etc/mjobs/personal.env` (root-only 0600). Install the reviewed
-   updater into `/opt/mjobs-cd/host_update.py` and an isolated Python
-   environment at `/opt/mjobs-ops-venv`, populated from
-   `requirements.lock`. Install `mjobs-cd.service` and `mjobs-cd.timer`
-   into `/etc/systemd/system/`; reload systemd and enable **only**
-   `mjobs-cd.timer`. The timer checks latest eligible main commits without
-   changing unrelated DevFleet services.
-
-The Ubuntu VM does not automatically power on when its physical Windows host is
-shut down. Confirm the existing Multipass start policy independently; avoid
-changing unrelated VMs or host-wide login/boot tasks without review.
-
-## Diagnostics
-
-On the VM, as an authorized operator:
-
-```bash
-sudo systemctl status mjobs-cd.timer --no-pager
-sudo journalctl -u mjobs-cd.service -n 75 --no-pager
-sudo docker compose -p mjobs-personal -f /home/ubuntu/mjobs-runtime/compose.yml ps
-curl --fail http://127.0.0.1:18701/ready
-curl --fail http://127.0.0.1:18701/__deployment
+```powershell
+docker ps --filter label=com.docker.compose.project=mjobs-micro
+docker ps --filter name=mjobs-micro-cloudflared
+Invoke-RestMethod http://127.0.0.1:18801/ready
+Invoke-RestMethod http://127.0.0.1:18801/__deployment
+docker logs mjobs-micro-cloudflared --tail 40
 ```
 
-The deployed checkout path can change on promotion; find the **actual** path in
-`/var/lib/mjobs-cd/deployed.json` first, never edit a running Compose file
-blindly. The `/ready` endpoint proves database, queue, workers and scheduler
-readiness; `/__deployment` reports only public commit/version/mode, not
-credentials. The protected manifest and service journal distinguish newest
-`main`, successfully built candidate and deployed SHA.
+The local `/__deployment` endpoint exposes only the source SHA, version and
+workspace mode. A 302 to Cloudflare Access proves unauthenticated protection;
+the owner must complete an actual Access login to verify the browser session.
+The local API, frontend and worker readiness were verified independently.
 
-When updating fails, inspect the failed `mjobs-cd.service` journal and
-the candidate's GitHub checks. The updater attempts to re-run the previous
-SHA-tagged image without removing database/queue/documents volumes; an
-uncertain failure must be escalated rather than deleting volumes. Verified
-archives under `/var/lib/mjobs-cd/backups/` are **private sensitive data**
-and need an independent off-host recovery copy for resilience against PC/disk
-failure. Never commit backups or `.env`.
+The new Windows baseline backup was created and verified using
+`python -m cli.local_backup`, then the application was restarted and checked
+again. The protected backup is under
+`%LOCALAPPDATA%\MJobsMicro\backups`. An off-PC recovery copy remains
+necessary for resilience to hardware/disk failure. Never use
+`docker compose down -v` to troubleshoot a populated project.
 
-## Security and acceptance limits
+## Verified-main deployment without always-on agents
 
-The app currently remains a developer preview. Authentication works at the
-Cloudflare edge only; a human must sign in to validate the full authenticated
-end-to-end journey. A 302 redirect for an unauthenticated browser proves Access
-enforcement, **not** authenticated API or workflow acceptance. Verify
-synthetic profile creation, persistence, document generation, job collection,
-background queues and exact SHA after integration. No live application
-submission should be exercised as a deployment test.
+The existing GitHub main workflows still run independent CI, integration
+and security checks. `.github/workflows/mjobs-deployment-candidate.yml`
+builds the full candidate from each main SHA only after those required
+checks pass. It produces a non-secret candidate manifest; it does not
+publish personal data or call an untrusted self-hosted runner.
+
+The per-user Windows Scheduled Task **MJobs Micro - Verified Main Update**
+runs silently via `pythonw.exe` every ten minutes; it has no resident
+controller. Its source is
+[windows/update_mjobs_micro.py](windows/update_mjobs_micro.py), installed
+as `%LOCALAPPDATA%\MJobsMicro\update.py`. It reads the protected
+`%LOCALAPPDATA%\MJobsMicro\state.json` baseline and only considers an
+exact main commit after these checks all report success:
+
+- Deployment / candidate
+- CI / required
+- Integration / PostgreSQL and Redis
+- Security / secret scan
+
+A verified commit is cloned to an isolated release directory, rechecked
+against latest main, compared with the currently deployed Alembic migration
+sources, and built into a SHA-tagged Docker image. **Changed migration
+sources block unattended rollout.** A guarded operator-approved migration
+is necessary; no automatic database downgrade is attempted.
+
+For an eligible unchanged-schema build, the updater quiesces only the
+`mjobs-micro` application writers, uses MJobs' own local backup utility to
+save/verify PostgreSQL and document data, starts the new image with the
+**same persistent volumes**, then requires `/ready` and `/__deployment`
+to report the expected exact SHA. A failure tries to restore the prior
+known-good image. The updater never edits active worktrees, changes unrelated
+Docker containers or host network/driver settings, or submits a real job
+application.
+
+Inspect the private updater journal without revealing secrets:
+
+```powershell
+Get-Content "$env:LOCALAPPDATA\MJobsMicro\update.log" -Tail 40
+schtasks.exe /Query /TN "MJobs Micro - Verified Main Update" /V /FO LIST
+```
+
+If a new `main` revision has not passed all checks, **the current MJobs
+version is kept running**. In particular, the Windows preview is currently
+pinned to the tested deployment branch until this deployment implementation
+passes protected PR checks and enters `main`. Do not treat a successful
+pull request or static README page as full production acceptance.
+
+## Rollback and limitations
+
+Manual fallback: keep both old SHA image and original isolated checkout;
+use the known `mjobs-micro` Compose project with its original image tag,
+environment mode, port and verified backup. Do not clear named volumes or
+regenerate the credential encryption key. If an unknown application
+submission is encountered, retain the durable state for human review;
+never blindly replay.
+
+The old Ubuntu MJobs deployment is retained only as an extra recovery
+reference. It must not be restarted in parallel with the Windows PERSONAL
+stack or reattached to the public DNS hostname.
+
+**Not yet verified:** a real authenticated Cloudflare browser session,
+remote personal-document workflows, and a complete post-merge update and
+automated rollback drill. The MJobs product itself remains a developer
+preview with unsatisfied acceptance criteria.
