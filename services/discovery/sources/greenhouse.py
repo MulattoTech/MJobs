@@ -238,6 +238,8 @@ class Greenhouse:
             raise SourceError("SOURCE_INVALID_FORMAT")
         if len(payload["jobs"]) > 1000:
             raise SourceError("SOURCE_JOB_LIMIT")
+        for raw in payload["jobs"]:
+            self._application_url(raw)
         company = SourceCompany(("greenhouse", self.tenant), plain_text(board.get("name") or self.tenant)[:200],
                                 "https://job-boards.greenhouse.io/" + self.tenant)
         meta = payload.get('meta')
@@ -262,6 +264,24 @@ class Greenhouse:
             raise SourceError("SOURCE_JOB_ID_MISMATCH")
         return raw
 
+    def _application_url(self, raw):
+        if not isinstance(raw, dict):
+            return ""
+        url = str(raw.get("absolute_url") or "")
+        if not url:
+            return ""
+        try:
+            parsed = urlsplit(url)
+            path = parsed.path.split("/")
+            if (parsed.scheme != "https"
+                    or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io")
+                    or parsed.username or parsed.password or parsed.port not in (None, 443)
+                    or len(path) < 2 or path[1].casefold() != self.tenant):
+                raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+        except ValueError:
+            raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH") from None
+        return url
+
     def normalize(self, raw):
         if not isinstance(raw, dict) or type(raw.get("id")) is not int or raw["id"] <= 0 or not isinstance(raw.get("title"), str) or not raw["title"].strip():
             raise SourceError("SOURCE_INVALID_JOB")
@@ -277,18 +297,7 @@ class Greenhouse:
         title_info = normalize_title(title)
         education = parse_education_requirement(description)
         skill_data = extract_skills(combined)
-        url = str(raw.get("absolute_url") or "")
-        if url:
-            try:
-                parsed = urlsplit(url)
-                path = parsed.path.split("/")
-                if (parsed.scheme != "https"
-                        or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io")
-                        or parsed.username or parsed.password or parsed.port not in (None, 443)
-                        or len(path) < 2 or path[1].casefold() != self.tenant):
-                    raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
-            except ValueError:
-                raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH") from None
+        url = self._application_url(raw)
         ranges = []
         for row in (raw.get("pay_input_ranges") if isinstance(raw.get("pay_input_ranges"), list) else []):
             if not isinstance(row, dict):

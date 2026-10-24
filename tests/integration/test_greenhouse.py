@@ -18,6 +18,7 @@ from services.discovery.sources.contract import (
     SourceCompany, SourceItem,
 )
 from services.discovery.sources.greenhouse import Greenhouse
+from services.discovery.sources.errors import SourceError
 from services.discovery.sources.collect import configure_source, collect_source, persist_posting
 from services.discovery.sources.registry import source_adapter
 from tests.integration.test_spine import PROFILE
@@ -253,7 +254,13 @@ class GreenhouseTests(unittest.TestCase):
             try:
                 time.sleep(0.25)
                 if request.url.path.endswith("/jobs"):
-                    return httpx.Response(200, json={"jobs": [RAW]})
+                    return httpx.Response(200, json={"jobs": [dict(
+                        RAW,
+                        absolute_url=(
+                            "https://job-boards.greenhouse.io/"
+                            "configured-concurrency/jobs/1234"
+                        ),
+                    )]})
                 return httpx.Response(200, json={"name": "Configured Concurrency Employer"})
             finally:
                 with guard:
@@ -501,7 +508,9 @@ class GreenhouseTests(unittest.TestCase):
         adapter = Greenhouse("example")
         with self.assertRaisesRegex(ValueError, "SOURCE_INVALID_JOB_LOCATION"):
             adapter.normalize(dict(RAW, location="Remote"))
-        self.assertEqual(adapter.normalize(dict(RAW, absolute_url="https://outside.test/apply"))["application_url"], "")
+        with self.assertRaises(SourceError) as raised:
+            adapter.normalize(dict(RAW, absolute_url="https://outside.test/apply"))
+        self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
         source = configure_source(self.store, "example")
         def response(request):
             return httpx.Response(200, json={"jobs": [RAW, dict(RAW, id=9, location=[])]}) if request.url.path.endswith("/jobs") else httpx.Response(200, json={"name": "Example"})
@@ -510,6 +519,34 @@ class GreenhouseTests(unittest.TestCase):
             return httpx.Response(200, json={"jobs": [RAW, dict(RAW, id=9, location=["Remote"])]}) if request.url.path.endswith("/jobs") else response(request)
         result = collect_source(self.store, source, "fixture", transport=httpx.MockTransport(malformed))
         self.assertEqual((result["jobs_seen"], result["rejected"]), (1, 1))
+
+    def test_cross_tenant_row_aborts_mixed_batch_before_any_company_or_job_write(self):
+        source = configure_source(self.store, "example")
+
+        def mixed_routes(request):
+            if request.url.path.endswith("/jobs"):
+                foreign = dict(
+                    RAW,
+                    id=1235,
+                    title="Foreign tenant role",
+                    absolute_url="https://job-boards.greenhouse.io/other/jobs/1235",
+                )
+                return httpx.Response(200, json={"jobs": [RAW, foreign], "meta": {"total": 2}})
+            return httpx.Response(200, json={"name": "Example Public Employer"})
+
+        with self.assertRaises(SourceError) as raised:
+            collect_source(
+                self.store,
+                source,
+                "fixture",
+                transport=httpx.MockTransport(mixed_routes),
+            )
+        self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
+        self.assertEqual(self.store.count("companies"), 0)
+        self.assertEqual(self.store.count("company_job_sources"), 0)
+        self.assertEqual(self.store.count("canonical_jobs"), 0)
+        self.assertEqual(self.store.count("job_postings"), 0)
+        self.assertEqual(self.store.count("posting_snapshots"), 0)
 
     def test_adapter_health_and_detail_validation(self):
         adapter = Greenhouse("example", transport=httpx.MockTransport(lambda request: httpx.Response(429) if request.url.path.endswith("/jobs") else httpx.Response(200, json={"name": "Example"})))

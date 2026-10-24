@@ -127,25 +127,17 @@ class CompanySourceContractSustain224Tests(unittest.TestCase):
                 self.assertEqual(first.tenant, expected_tenant)
                 self.assertEqual(_validated_inventory(first), _validated_inventory(second))
 
-    def test_missing_malformed_redirected_and_cross_tenant_data_fail_before_write(self):
-        writes: list[tuple[str, str, str]] = []
-
-        def validate_then_write(adapter) -> None:
-            rows = _validated_inventory(adapter)
-            writes.extend(rows)
-
+    def test_missing_malformed_and_redirected_source_data_fail_closed(self):
         for provider, missing_tenant in (("greenhouse", ""), ("lever", "global:")):
             with self.subTest(provider=provider, case="missing-tenant"):
                 with self.assertRaises(ValueError):
                     registry.source_adapter({"provider": provider, "tenant": missing_tenant})
-                self.assertEqual(writes, [])
 
         for provider in sorted(COMPANY_ATS_PROVIDERS):
             with self.subTest(provider=provider, case="redirect"):
                 redirected = httpx.Response(302, headers={"location": "https://attacker.invalid/jobs"})
                 with self.assertRaisesRegex(SourceError, "SOURCE_REDIRECT_BLOCKED"):
-                    validate_then_write(_adapter(provider, invalid_response=redirected))
-                self.assertEqual(writes, [])
+                    _validated_inventory(_adapter(provider, invalid_response=redirected))
 
         malformed = {
             "greenhouse": {**_greenhouse_job(), "id": "101"},
@@ -162,7 +154,33 @@ class CompanySourceContractSustain224Tests(unittest.TestCase):
                 with self.subTest(provider=provider, case=case):
                     with self.assertRaises(SourceError):
                         adapter.normalize(row)
-                    self.assertEqual(writes, [])
+
+    def test_greenhouse_application_url_contract_uses_exact_failure_code(self):
+        adapter = _adapter("greenhouse")
+        invalid_urls = {
+            "http": "http://job-boards.greenhouse.io/acme/jobs/101",
+            "attacker-host": "https://attacker.invalid/acme/jobs/101",
+            "userinfo": "https://user@job-boards.greenhouse.io/acme/jobs/101",
+            "disallowed-port": "https://job-boards.greenhouse.io:444/acme/jobs/101",
+            "cross-tenant": "https://job-boards.greenhouse.io/other/jobs/101",
+        }
+        for case, url in invalid_urls.items():
+            with self.subTest(case=case), self.assertRaises(SourceError) as raised:
+                adapter.normalize({**_greenhouse_job(), "absolute_url": url})
+            self.assertEqual(raised.exception.code, "COMPANY_ATS_JOB_TENANT_MISMATCH")
+
+        for host in ("boards.greenhouse.io", "job-boards.greenhouse.io"):
+            with self.subTest(host=host):
+                url = f"https://{host}/acme/jobs/101"
+                normalized = adapter.normalize({**_greenhouse_job(), "absolute_url": url})
+                self.assertEqual(normalized["application_url"], url)
+                self.assertEqual(normalized["attributes"]["application_url_status"], "PROVIDER_SUPPLIED")
+
+        for missing in (None, ""):
+            with self.subTest(missing=missing):
+                normalized = adapter.normalize({**_greenhouse_job(), "absolute_url": missing})
+                self.assertEqual(normalized["application_url"], "")
+                self.assertEqual(normalized["attributes"]["application_url_status"], "UNAVAILABLE")
 
     def test_ambiguous_official_page_tenants_fail_before_enrollment(self):
         cases = {
