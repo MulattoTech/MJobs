@@ -310,9 +310,12 @@ def handle_form_review(store, operation, *, fetch_html, check, registry=None):
     except UnicodeEncodeError:
         raise FormReviewError("FORM_REVIEW_FETCH_FAILED") from None
 
+    analysis_options = {"route_url": normalized["url"]}
+    if registry is not None:
+        analysis_options["registry"] = registry
     try:
         analysis = _safe_report(analyze_application_form(
-            params["provider"], html, route_url=normalized["url"], registry=registry,
+            params["provider"], html, **analysis_options,
         ), provider=params["provider"])
     except FormReviewError:
         raise
