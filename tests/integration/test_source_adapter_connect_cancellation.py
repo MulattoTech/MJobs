@@ -239,7 +239,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         if mode == "cancel":
                             print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s")
-                            self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
+                            self.assertLess(cancel_response_elapsed, .35,
+                                f"{provider}: public cancel blocked {cancel_response_elapsed:.3f}s; "
                                 f"cancel_response={cancel_response_elapsed:.3f}s; "
                                 f"worker_settle={worker_settle_elapsed:.3f}s; "
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
