@@ -11,8 +11,9 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.flywheel import discover_company_source
+from services.company_discovery.quality import record_observation
 from services.company_discovery.resolution import resolve_company
-from services.company_discovery.sources import upsert_company_job_source
+from services.company_discovery.sources import list_company_source_view, upsert_company_job_source
 
 
 class SourceATSFailureContinuityTests(unittest.TestCase):
@@ -182,6 +183,63 @@ class SourceATSFailureContinuityTests(unittest.TestCase):
         self.assertEqual(sibling_view["status"], "ENABLED")
         self.assertEqual(sibling_view["quality"]["components"]["availability"], 100.0)
         self.assertNotIn("ValueError", source_view.text)
+
+    def test_aged_out_latest_failure_stays_review_required_until_later_success(self):
+        company = resolve_company(self.store, {
+            "company_name": "Historical Failure Employer",
+            "company_website": "https://historical.example/",
+        })
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": company["company_id"],
+                "name": company["name"],
+                "domain": "",
+            })
+        source = upsert_company_job_source(
+            self.store,
+            company_id=company["company_id"],
+            provider="json_feed",
+            tenant_identifier=company["company_id"],
+            career_url="https://historical.example/careers",
+            public_api_url="https://historical.example/jobs.json",
+            collection_strategy="PUBLIC_JSON",
+            confidence=0.88,
+            discovered_automatically=True,
+        )
+        with self.store.engine.begin() as connection:
+            record_observation(
+                connection,
+                company_source_id=source["id"],
+                source_endpoint=source["endpoint"],
+                observed_at="2000-01-01T00:00:00Z",
+                succeeded=False,
+                available=False,
+                error_code="SOURCE_UNAVAILABLE",
+            )
+
+        failed_view = next(
+            row for row in list_company_source_view(self.store)
+            if row["id"] == source["id"]
+        )
+        self.assertIsNone(failed_view["quality"]["components"]["availability"])
+        self.assertEqual(failed_view["status"], "COMPANY_SOURCE_REVIEW_REQUIRED")
+
+        with self.store.engine.begin() as connection:
+            record_observation(
+                connection,
+                company_source_id=source["id"],
+                source_endpoint=source["endpoint"],
+                observed_at="2000-01-02T00:00:00Z",
+                succeeded=True,
+                available=True,
+            )
+
+        recovered_view = next(
+            row for row in list_company_source_view(self.store)
+            if row["id"] == source["id"]
+        )
+        self.assertIsNone(recovered_view["quality"]["components"]["availability"])
+        self.assertEqual(recovered_view["status"], "ENABLED")
 
 
 if __name__ == "__main__":
