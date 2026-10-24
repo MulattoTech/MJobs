@@ -11,7 +11,7 @@ from unittest.mock import patch
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine, event, inspect, select, text, update
+from sqlalchemy import CheckConstraint, create_engine, event, inspect, select, text, update
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.exc import IntegrityError
@@ -37,6 +37,7 @@ APPLICATION_WRITE_BOUNDARY_PATHS = (
     "packages/persistence/profile_restore.py",
     "packages/persistence/store.py",
 )
+REBUILT_TABLES = ("job_matches", "applications")
 
 
 def _uppercase_literals(node):
@@ -371,10 +372,49 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
 
     @staticmethod
     def _check_names(engine, table):
+        return set(DatabaseConstraintMigrationTests._check_signature(engine, table))
+
+    @staticmethod
+    def _normalize_check_sql(value):
+        normalized = "".join(str("" if value is None else value).upper().split())
+        while normalized.startswith("(") and normalized.endswith(")"):
+            normalized = normalized[1:-1]
+        return normalized.replace('"', "").replace("`", "").replace("[", "").replace("]", "")
+
+    @staticmethod
+    def _check_signature(engine, table):
+        checks = inspect(engine).get_check_constraints(table)
+        if any(not item["name"] for item in checks):
+            raise AssertionError(f"Unnamed CHECK constraint on {table}")
         return {
-            constraint["name"]
-            for constraint in inspect(engine).get_check_constraints(table)
+            item["name"]: DatabaseConstraintMigrationTests._normalize_check_sql(item["sqltext"])
+            for item in checks
         }
+
+    @staticmethod
+    def _metadata_check_signature(table):
+        return {
+            constraint.name: DatabaseConstraintMigrationTests._normalize_check_sql(
+                constraint.sqltext
+            )
+            for constraint in table.constraints
+            if isinstance(constraint, CheckConstraint)
+        }
+
+    def _expected_target_checks(self, parent_checks):
+        additions = {
+            "job_matches": self._metadata_check_signature(m.matches),
+            "applications": self._metadata_check_signature(m.applications),
+        }
+        expected = {}
+        for table in REBUILT_TABLES:
+            overlap = set(parent_checks[table]) & set(additions[table])
+            self.assertEqual(overlap, set(), f"target CHECK already exists at parent for {table}")
+            expected[table] = {**parent_checks[table], **additions[table]}
+        return expected
+
+    def _check_snapshot(self, engine):
+        return {table: self._check_signature(engine, table) for table in REBUILT_TABLES}
 
     @staticmethod
     def _schema_signature(engine, table):
@@ -462,9 +502,10 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                     for table in tracked_tables
                 }
                 original_rows = self._row_snapshot(engine)
+                parent_checks = self._check_snapshot(engine)
+                target_checks = self._expected_target_checks(parent_checks)
                 self._migrate(config, url, TARGET_REVISION)
-                self.assertIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
-                self.assertIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(self._check_snapshot(engine), target_checks)
                 self.assertEqual(
                     {table: self._schema_signature(engine, table) for table in tracked_tables},
                     original_schema,
@@ -482,8 +523,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                     )).scalar_one(), TARGET_REVISION)
 
                 self._migrate(config, url, PARENT_REVISION, downgrade=True)
-                self.assertNotIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
-                self.assertNotIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(self._check_snapshot(engine), parent_checks)
                 self.assertEqual(
                     {table: self._schema_signature(engine, table) for table in tracked_tables},
                     original_schema,
@@ -501,8 +541,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                     )).scalar_one(), PARENT_REVISION)
 
                 self._migrate(config, url, TARGET_REVISION)
-                self.assertIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
-                self.assertIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(self._check_snapshot(engine), target_checks)
                 self.assertEqual(
                     {table: self._schema_signature(engine, table) for table in tracked_tables},
                     original_schema,
@@ -525,14 +564,15 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                 state=unknown_state,
             )
             try:
+                parent_checks = self._check_snapshot(engine)
+                target_checks = self._expected_target_checks(parent_checks)
                 with self.assertRaisesRegex(
                     RuntimeError,
                     "1 invalid job match score row.*1 invalid application state row",
                 ) as raised:
                     self._migrate(config, url, TARGET_REVISION)
                 self.assertNotIn(unknown_state, str(raised.exception))
-                self.assertNotIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
-                self.assertNotIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(self._check_snapshot(engine), parent_checks)
                 with engine.connect() as connection:
                     self.assertEqual(connection.execute(text(
                         "SELECT version_num FROM alembic_version"
@@ -550,8 +590,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                         "UPDATE applications SET state='REVIEW_REQUIRED' WHERE id='application'"
                     ))
                 self._migrate(config, url, TARGET_REVISION)
-                self.assertIn("ck_job_matches_score_range", self._check_names(engine, "job_matches"))
-                self.assertIn("ck_applications_state_valid", self._check_names(engine, "applications"))
+                self.assertEqual(self._check_snapshot(engine), target_checks)
                 with engine.connect() as connection:
                     self.assertEqual(connection.execute(text(
                         "SELECT version_num FROM alembic_version"
@@ -580,6 +619,8 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                     for table in tracked_tables
                 }
                 original_rows = self._row_snapshot(engine)
+                parent_checks = self._check_snapshot(engine)
+                target_checks = self._expected_target_checks(parent_checks)
                 database = make_url(url).database
                 injected = []
 
@@ -606,14 +647,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                 try:
                     table_names = inspect(fresh).get_table_names()
                     self.assertFalse(any(name.startswith("_alembic_tmp") for name in table_names))
-                    self.assertNotIn(
-                        "ck_job_matches_score_range",
-                        self._check_names(fresh, "job_matches"),
-                    )
-                    self.assertNotIn(
-                        "ck_applications_state_valid",
-                        self._check_names(fresh, "applications"),
-                    )
+                    self.assertEqual(self._check_snapshot(fresh), parent_checks)
                     self.assertEqual(
                         {table: self._schema_signature(fresh, table) for table in tracked_tables},
                         original_schema,
@@ -629,14 +663,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
                 self._migrate(config, url, TARGET_REVISION)
                 retried = create_engine(url, poolclass=NullPool)
                 try:
-                    self.assertIn(
-                        "ck_job_matches_score_range",
-                        self._check_names(retried, "job_matches"),
-                    )
-                    self.assertIn(
-                        "ck_applications_state_valid",
-                        self._check_names(retried, "applications"),
-                    )
+                    self.assertEqual(self._check_snapshot(retried), target_checks)
                     self.assertFalse(any(
                         name.startswith("_alembic_tmp")
                         for name in inspect(retried).get_table_names()
