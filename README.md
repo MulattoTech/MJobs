@@ -10,7 +10,7 @@ and preparing applications without losing control of your data.
 [![Integration](https://github.com/MulattoTech/MJobs/actions/workflows/integration.yml/badge.svg)](https://github.com/MulattoTech/MJobs/actions/workflows/integration.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-[Install](docs/INSTALLATION.md) · [Try the demo](docs/USER_TESTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Develop](docs/DEVELOPMENT.md) · [Roadmap](https://github.com/users/MulattoTech/projects/1)
+[**Open the Access-protected preview**](https://mjobs.m-techlabs.com) · [Deployment](infra/deploy/README.md) · [Install](docs/INSTALLATION.md) · [Try the demo](docs/USER_TESTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Develop](docs/DEVELOPMENT.md) · [Roadmap](https://github.com/users/MulattoTech/projects/1)
 
 </div>
 
@@ -18,6 +18,12 @@ and preparing applications without losing control of your data.
 
 > [!IMPORTANT]
 > **Public developer preview, not a production-ready release.** Working components and passing builds are not proof that the full product is accepted. External employer submissions stay **OFF**. Review the [acceptance dashboard](docs/PROGRESS_DASHBOARD.md) and [security policy](SECURITY.md) before using personal data.
+
+## Owner-only online preview
+
+The [online preview](https://mjobs.m-techlabs.com) is a **Cloudflare Access-protected personal test installation**, not a public production service. It uses MJobs' full Docker stack on the owner's existing Ubuntu VM. Access requires an authorized Cloudflare login, and the physical host must be running. Changes to the protected `main` branch trigger an independent full-image validation; the host installs an eligible exact-SHA candidate only after passing checks, verified database/document backup, and a healthy smoke test. A pending database migration deliberately blocks unattended rollout. See [the deployment and rollback guide](infra/deploy/README.md) and [GitHub deployment-candidate status](https://github.com/MulattoTech/MJobs/actions/workflows/mjobs-deployment-candidate.yml).
+
+**Status note:** Cloudflare Access protection and the local full-stack baseline were verified during infrastructure setup; authenticated remote end-to-end functionality and unattended updates must be verified after the deployment PR is integrated. A login prompt alone does not establish completed release acceptance.
 
 ## What you can explore
 
