@@ -135,6 +135,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             collection_release = threading.Event()
             deadline_started_at = []
             cancel_calls = []
+            worker_finished_at = []
             worker = None
 
             def observe_collect_source(*args, **kwargs):
@@ -224,6 +225,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             outcome.append(execute_operation(identifier))
                         except BaseException as error:
                             errors.append(type(error).__name__)
+                        finally:
+                            worker_finished_at.append(time.monotonic())
 
                     worker = threading.Thread(target=execute, name="mjobs-owned-adapter-worker", daemon=True)
                     started = time.monotonic()
@@ -272,7 +275,6 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 f"store={cancel_store_elapsed:.3f}s; "
                                 f"response_tail={cancel_response_tail_elapsed:.3f}s")
                             worker.join(timeout=.35)
-                            worker_settle_elapsed = time.monotonic() - started
                             if worker.is_alive():
                                 pending = client.get(f"/operations/{identifier}").json()
                                 worker.join(timeout=2.3)  # Observe natural timeout, never force green by closing the listener.
@@ -280,6 +282,16 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             worker.join(timeout=3 if mode == "positive" else 1.1)
                         elapsed = time.monotonic() - started
                         self.assertFalse(worker.is_alive(), f"Owned {provider} worker exceeded fixture bound")
+                        if mode == "cancel":
+                            self.assertEqual(len(worker_finished_at), 1,
+                                             "Owned adapter worker completion was not observed exactly once")
+                            worker_settle_elapsed = worker_finished_at[0] - started
+                            worker_after_response_elapsed = max(
+                                0, worker_finished_at[0] - response_finished_at)
+                            self.assertLess(worker_after_response_elapsed, .35 + 2.3,
+                                f"{provider}: cancelled worker exceeded the existing fixture allowance; "
+                                f"after_response={worker_after_response_elapsed:.3f}s; "
+                                f"worker_settle={worker_settle_elapsed:.3f}s")
                         self.assertEqual(errors, [])
                         self.assertEqual(len(outcome), 1)
                         expected = "COMPLETED" if mode == "positive" else "CANCELLED" if mode == "cancel" else "DEAD_LETTERED"
@@ -317,7 +329,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                   f"dispatch={cancel_dispatch_elapsed:.3f}s "
                                   f"store={cancel_store_elapsed:.3f}s "
                                   f"response_tail={cancel_response_tail_elapsed:.3f}s "
-                                  f"worker={worker_settle_elapsed:.3f}s")
+                                  f"worker={worker_settle_elapsed:.3f}s "
+                                  f"worker_after_response={worker_after_response_elapsed:.3f}s")
                     finally:
                         collection_release.set()
                         if worker.is_alive():
