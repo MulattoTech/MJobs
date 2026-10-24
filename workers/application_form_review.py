@@ -218,7 +218,7 @@ def _lock_review_identity(connection, application_id):
         ).with_for_update()).first()
 
 
-def _validate_application(connection, operation, params):
+def _validate_application(connection, operation, params, *, registry=None):
     if (operation.get("kind") != _KIND
             or operation.get("entity_id") != params["application_id"]):
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
@@ -250,7 +250,7 @@ def _validate_application(connection, operation, params):
         if version is None or str(version) != params["profile_version"]:
             raise FormReviewError("FORM_REVIEW_INPUT_STALE")
     normalized = normalize_application_route(
-        row["provider"], row["url"], route_metadata=row,
+        row["provider"], row["url"], route_metadata=row, registry=registry,
     )
     if normalized is None:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
@@ -265,7 +265,7 @@ def _validate_application(connection, operation, params):
     return normalized
 
 
-def handle_form_review(store, operation, *, fetch_html, check):
+def handle_form_review(store, operation, *, fetch_html, check, registry=None):
     """Analyze one frozen supported application route and persist a safe report.
 
     `fetch_html` must be the caller's bounded, read-only public request function.
@@ -290,7 +290,9 @@ def handle_form_review(store, operation, *, fetch_html, check):
         if replay is not None:
             return replay
         _validate_claimed(connection, operation, lock=False)
-        normalized = _validate_application(connection, operation, params)
+        normalized = _validate_application(
+            connection, operation, params, registry=registry,
+        )
 
     check()
     try:
@@ -310,7 +312,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
 
     try:
         analysis = _safe_report(analyze_application_form(
-            params["provider"], html, route_url=normalized["url"],
+            params["provider"], html, route_url=normalized["url"], registry=registry,
         ), provider=params["provider"])
     except FormReviewError:
         raise
@@ -338,7 +340,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
         )
         if replay is not None:
             return replay
-        _validate_application(connection, operation, params)
+        _validate_application(connection, operation, params, registry=registry)
         store._audit(connection, application_id, _AUDIT_ACTION, payload)
     return {"operation_id": operation_id, "status": analysis["status"],
             "analysis": analysis}

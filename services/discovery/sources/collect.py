@@ -87,7 +87,7 @@ def _public_collection_failure(failure):
 
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
                      request_timeout=10, rate_limit=60, jitter_seconds=30, *, connection=None,
-                     preserve_existing=False):
+                     preserve_existing=False, registry=None):
     if provider == "remote_ok":
         provider = "remoteok"
     if provider == "greenhouse":
@@ -107,7 +107,7 @@ def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_in
     source_id = identity(provider, tenant)
     policy = {"provider": provider, "tenant": tenant, "request_timeout": request_timeout,
               "rate_limit": rate_limit, "concurrency": concurrency}
-    capabilities = source_adapter(policy).capabilities()
+    capabilities = source_adapter(policy, registry=registry).capabilities()
     with (nullcontext(connection) if connection is not None else store.engine.begin()) as connection:
         if preserve_existing:
             insert = {'postgresql': postgres_insert, 'sqlite': sqlite_insert}[connection.dialect.name]
@@ -152,7 +152,7 @@ def persist_posting(connection, data):
 
 
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
-                   *, refresh_matches=True, import_guard=None):
+                   *, refresh_matches=True, import_guard=None, registry=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
@@ -175,7 +175,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             raise SourceError("SOURCE_BACKOFF")
         if source["last_attempt"] and datetime.fromisoformat(source["last_attempt"]) + timedelta(seconds=source["poll_interval"]) > datetime.now(timezone.utc):
             raise SourceError("SOURCE_COOLDOWN")
-        adapter: SourceAdapter = source_adapter(source, transport=transport, check=check)
+        adapter: SourceAdapter = source_adapter(
+            source, transport=transport, check=check, registry=registry,
+        )
         connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(last_attempt=timestamp, health_status="COLLECTING"))
     available = None
     observed_endpoint = None
