@@ -1,11 +1,15 @@
 """Synthetic contracts for review-first Workday page navigation decisions."""
+from contextlib import nullcontext
 import unittest
+from unittest.mock import patch
 
 from services.applications.adapters.workday_navigation import (
     CAPABILITIES,
     classify_step,
     decide_transition,
+    workday_origin,
 )
+from services.applications.multipage_state import transition_workday_multipage_state
 
 
 def observation(path, heading, *, labels=(), actions=("Save and Continue",), stale=False):
@@ -88,6 +92,77 @@ class WorkdayNavigationTests(unittest.TestCase):
                                            confirmed_state=confirmed)["decision"], "RESUME_FROM_CONFIRMED_STEP")
         self.assertEqual(decide_transition(confirmed, changed, "RESUME", interrupted=True,
                                            confirmed_state=confirmed)["decision"], "MANUAL_REVIEW")
+
+    def test_transition_requires_previous_observation_except_for_save_progress(self):
+        current_observation = observation("apply", "My Experience", labels=["Resume"])
+        current = classify_step(current_observation)
+        origin = workday_origin(current_observation["url"])
+        prior_state = {
+            "profile_id": "fixture",
+            "application_id": "application-1",
+            "version": 1,
+            "current_page_id": "my_experience",
+            "page_order": [
+                "my_information", "my_experience", "application_questions",
+                "voluntary_disclosures",
+            ],
+            "progress": {},
+            "workday_navigation": {
+                "application_origin": origin,
+                "workspace_mode": "FIXTURE",
+                "route_id": "route-1",
+                "route_digest": "a" * 64,
+                "current_fingerprint": current["fingerprint"],
+                "visited_fingerprints": [current["fingerprint"]],
+            },
+        }
+
+        class FakeEngine:
+            def connect(self):
+                return nullcontext(object())
+
+        class FakeStore:
+            engine = FakeEngine()
+
+        route = {"route_id": "route-1", "origin": origin, "route_digest": "a" * 64}
+        with (
+            patch("services.applications.multipage_state._workspace_mode",
+                  return_value="FIXTURE"),
+            patch("services.applications.multipage_state._route_digest",
+                  return_value="a" * 64),
+            patch("services.applications.multipage_state._workday_application_route",
+                  return_value=route),
+            patch("services.applications.multipage_state.load_multipage_state",
+                  return_value=prior_state),
+            patch("services.applications.multipage_state._persist_multipage_request",
+                  return_value={"version": 2}),
+        ):
+            missing_resume = transition_workday_multipage_state(
+                FakeStore(), "fixture", "application-1", prior_state, None,
+                current_observation, "RESUME", request_id="resume-missing-previous",
+            )
+            malformed_classification = transition_workday_multipage_state(
+                FakeStore(), "fixture", "application-1", prior_state,
+                {"url": "not-a-workday-url", "headings": [None]},
+                current_observation, "NEXT", request_id="next-malformed-previous",
+            )
+            save_without_previous = transition_workday_multipage_state(
+                FakeStore(), "fixture", "application-1", prior_state, None,
+                current_observation, "SAVE_PROGRESS", request_id="save-no-previous",
+            )
+
+        self.assertEqual(missing_resume, {
+            "decision": "MANUAL_REVIEW",
+            "reason": "WORKDAY_OBSERVATION_REQUIRED",
+            "state": None,
+        })
+        self.assertEqual(malformed_classification, {
+            "decision": "MANUAL_REVIEW",
+            "reason": "UNKNOWN_OR_INVALID_OBSERVATION",
+            "state": None,
+        })
+        self.assertEqual(save_without_previous["decision"], "CONFIRMED", save_without_previous)
+        self.assertEqual(save_without_previous["reason"], "CURRENT_PAGE_CONFIRMED")
 
     def test_final_submit_is_never_confirmed_or_executed(self):
         review = classify_step(observation("apply", "Review", actions=("Submit",)))

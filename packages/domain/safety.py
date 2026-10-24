@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from typing import Iterable
+from typing import Iterable, cast
 
 
 def _boolean(value: object, name: str) -> None:
@@ -12,7 +12,10 @@ def _boolean(value: object, name: str) -> None:
 
 
 def _score(value: object, name: str) -> None:
-    if type(value) not in (int, float) or not isfinite(value) or not 0 <= value <= 100:
+    if type(value) not in (int, float):
+        raise ValueError(f"{name} must be finite and between 0 and 100")
+    numeric_value = cast(int | float, value)
+    if not isfinite(numeric_value) or not 0 <= numeric_value <= 100:
         raise ValueError(f"{name} must be finite and between 0 and 100")
 
 
@@ -136,9 +139,10 @@ def select_verified_facts(profile: Iterable[Fact], requested_ids: Iterable[str])
         indexed[fact.id] = fact
     selected = []
     for fact_id in dict.fromkeys(requested_ids):
-        fact = indexed.get(fact_id)
-        if (fact is None or not fact.verified or not fact.user_approved
-                or not fact.source.strip() or not fact.text.strip() or fact.confidence < 80):
+        selected_fact = indexed.get(fact_id)
+        if (selected_fact is None or not selected_fact.verified or not selected_fact.user_approved
+                or not selected_fact.source.strip() or not selected_fact.text.strip()
+                or selected_fact.confidence < 80):
             raise ValueError(f"Missing verified approved fact: {fact_id}")
-        selected.append(fact)
+        selected.append(selected_fact)
     return tuple(selected)

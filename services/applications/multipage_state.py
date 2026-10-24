@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 
 from sqlalchemy import select
 
@@ -606,6 +607,11 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
         except MultipageStateError as error:
             return _workday_manual_review(error.code)
         return {"decision": "CONFIRMED", "reason": "CURRENT_PAGE_CONFIRMED", "state": state}
+    if previous_observation is None:
+        return _workday_manual_review("WORKDAY_OBSERVATION_REQUIRED")
+    if (not isinstance(previous_observation, Mapping)
+            or classify_step(previous_observation).get("status") != "KNOWN"):
+        return _workday_manual_review("UNKNOWN_OR_INVALID_OBSERVATION")
     if intended_action == "RESUME":
         decision = decide_transition(
             previous_observation, current, intended_action,

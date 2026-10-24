@@ -9,9 +9,9 @@ from __future__ import annotations
 import importlib.util
 import shutil
 import sys
+import tomllib
 import unittest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATHS = (
@@ -57,12 +57,12 @@ class PythonQualityContractTests(unittest.TestCase):
 
     def test_ruff_and_practical_typecheck_have_offline_commands_and_exclusions(self):
         config_names, config_text = _quality_configuration()
-        test_requirements = (ROOT / ".github/test-requirements.txt").read_text(
-            encoding="utf-8",
-        ).casefold()
+        requirements = (ROOT / ".github/test-requirements.txt").read_text(encoding="utf-8")
+        test_requirements = requirements.casefold()
         workflow = (ROOT / ".github/workflows/ci.yml").read_text(
             encoding="utf-8",
         ).casefold()
+        config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         findings = []
 
         if not _available("ruff"):
@@ -87,6 +87,43 @@ class PythonQualityContractTests(unittest.TestCase):
             findings.append("no tracked mypy/pyright configuration found")
         if not all(marker in config_text.casefold() for marker in ("generated", "private")):
             findings.append("quality configuration does not exclude generated and private paths")
+
+        if config["tool"]["mjobs-python-quality"]["requires-python"] != ">=3.12":
+            findings.append("quality configuration does not declare Python >=3.12")
+        if config["tool"]["ruff"]["target-version"] != "py312":
+            findings.append("Ruff target is not Python 3.12")
+        if config["tool"]["mypy"]["python_version"] != "3.12":
+            findings.append("mypy target is not Python 3.12")
+        if tuple(config["tool"]["mypy"]["files"]) != PUBLIC_TYPED_MODULES:
+            findings.append("mypy scope differs from the three bounded public modules")
+
+        pinned = {
+            line.partition("==")[0].casefold().replace("_", "-"): line.partition("==")[2]
+            for line in requirements.splitlines()
+            if "==" in line and not line.lstrip().startswith("#")
+        }
+        expected_pins = {
+            "ruff": "0.17.2",
+            "mypy": "2.4.0",
+            "mypy-extensions": "1.1.0",
+            "pathspec": "1.1.1",
+            "librt": "0.16.0",
+            "ast-serialize": "0.13.1",
+            "typing-extensions": "4.16.0",
+        }
+        for package, version in expected_pins.items():
+            if pinned.get(package) != version:
+                findings.append(f"{package} is not pinned to {version}")
+
+        required_commands = (
+            "python -m ruff check " + " ".join(PUBLIC_TYPED_MODULES),
+            "python -m mypy --config-file pyproject.toml",
+        )
+        for command in required_commands:
+            if command.casefold() not in workflow:
+                findings.append(f"CI is missing bounded quality command: {command}")
+        if "python -m pytest -q tests/unit" not in workflow:
+            findings.append("existing unit-test CI gate is missing")
 
         self.assertEqual(
             findings,

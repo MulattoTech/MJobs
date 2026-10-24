@@ -9,7 +9,6 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 
-
 _ACTION_FINGERPRINT_KEY = "pipeline_workbench_action_fingerprint"
 _SAFE_STATES = frozenset({
     "QUEUED", "RUNNING", "COMPLETED", "FAILED", "BLOCKED", "CANCELLED",

@@ -13,7 +13,6 @@ from packages.persistence.store import identity
 from services.dedupe.routes import load_job_routes, plan_application_routes
 from services.tracking.applications import PIPELINE_STATUSES
 
-
 STAGES = (
     "DISCOVERED", "NEEDS_SCORING", "NEEDS_REVIEW", "READY_TO_PREPARE",
     "PREPARING", "PREPARED", "TRACKING",
@@ -202,7 +201,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
 
     mode = str(workspace or "UNBOUND").upper()
     match_by_job = {row["job_id"]: row for row in match_rows}
-    tracking_by_entity = {}
+    tracking_by_entity: dict[str, tuple[int, str, str]] = {}
     for row in audit_rows:
         entity = row["entity_id"]
         payload = row.get("payload") or {}

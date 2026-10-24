@@ -33,8 +33,8 @@ class SourceCapabilities:
     def supports(self, capability: SourceCapability) -> bool:
         return capability in self.features
 
-    def as_dict(self) -> dict:
-        payload = {
+    def as_dict(self) -> dict[str, object]:
+        payload: dict[str, object] = {
             "strategy": self.strategy.value,
             "capabilities": sorted(capability.value for capability in self.features),
         }
