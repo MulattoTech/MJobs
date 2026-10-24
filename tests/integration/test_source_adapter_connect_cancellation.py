@@ -22,6 +22,7 @@ from fastapi.testclient import TestClient
 import httpx
 from sqlalchemy import select
 
+from apps.api import main as api_main
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -133,6 +134,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             collection_ready = threading.Event()
             collection_release = threading.Event()
             deadline_started_at = []
+            cancel_calls = []
             worker = None
 
             def observe_collect_source(*args, **kwargs):
@@ -166,6 +168,16 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 deadline_started_at.append(time.monotonic())
                 return .8 if mode == "deadline" else 30
 
+            original_request_cancel = api_main.request_cancel
+
+            def observe_request_cancel(*args, **kwargs):
+                call = {"entered_at": time.monotonic()}
+                cancel_calls.append(call)
+                try:
+                    return original_request_cancel(*args, **kwargs)
+                finally:
+                    call["exited_at"] = time.monotonic()
+
             with source as (endpoint, engaged, state), ExitStack() as endpoints, patch.dict(os.environ, {
                     "MJOBS_DATABASE_URL": url, "MJOBS_OPERATION_MODE": "FIXTURE",
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
@@ -185,6 +197,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 else:
                     endpoints.enter_context(patch(
                         f"services.discovery.sources.{provider}.{ENDPOINTS[provider]}", endpoint))
+                if mode == "cancel":
+                    endpoints.enter_context(patch("apps.api.main.request_cancel",
+                                                  new=observe_request_cancel))
                 with TestClient(create_app(store, "http://127.0.0.1:1", root,
                         "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
                     self.assertEqual(client.put("/profiles", json=PROFILE).status_code, 200)
@@ -242,8 +257,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                              "Connect must still be pending at public cancellation")
                             started = time.monotonic()
                             response = client.post(f"/operations/{identifier}/cancel")
-                            cancel_response_elapsed = time.monotonic() - started
+                            response_finished_at = time.monotonic()
+                            cancel_response_elapsed = response_finished_at - started
                             self.assertEqual(response.status_code, 202, response.text)
+                            self.assertEqual(len(cancel_calls), 1,
+                                             f"Expected one public cancellation call, got {len(cancel_calls)}")
+                            cancel_call = cancel_calls[0]
+                            cancel_dispatch_elapsed = cancel_call["entered_at"] - started
+                            cancel_store_elapsed = cancel_call["exited_at"] - cancel_call["entered_at"]
+                            cancel_response_tail_elapsed = response_finished_at - cancel_call["exited_at"]
                             worker.join(timeout=.35)
                             worker_settle_elapsed = time.monotonic() - started
                             if worker.is_alive():
@@ -287,9 +309,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
                             print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
+                                  f"dispatch={cancel_dispatch_elapsed:.3f}s "
+                                  f"store={cancel_store_elapsed:.3f}s "
+                                  f"response_tail={cancel_response_tail_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s")
                             self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
                                 f"cancel_response={cancel_response_elapsed:.3f}s; "
+                                f"dispatch={cancel_dispatch_elapsed:.3f}s; "
+                                f"store={cancel_store_elapsed:.3f}s; "
+                                f"response_tail={cancel_response_tail_elapsed:.3f}s; "
                                 f"worker_settle={worker_settle_elapsed:.3f}s; "
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
                                 f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
