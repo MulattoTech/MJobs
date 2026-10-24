@@ -1,8 +1,6 @@
 """Contract oracle for every registered employer-specific ATS source."""
 from __future__ import annotations
 
-import ast
-import inspect
 import unittest
 from urllib.parse import urlsplit
 
@@ -15,27 +13,12 @@ from services.discovery.sources.errors import SourceError
 
 
 COMPANY_ATS_PROVIDERS = frozenset({"greenhouse", "lever"})
-GLOBAL_SOURCE_PROVIDERS = frozenset({"remotive", "wwr", "remoteok", "remote_ok"})
+GLOBAL_SOURCE_PROVIDERS = frozenset({"remotive", "wwr", "remoteok"})
 
 
 def _registered_provider_names() -> frozenset[str]:
-    """Read the small explicit factory so a new registration needs a contract case."""
-    tree = ast.parse(inspect.getsource(registry.source_adapter))
-    names: set[str] = set()
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Compare):
-            continue
-        values = [node.left, *node.comparators]
-        for value in values:
-            if isinstance(value, ast.Constant) and isinstance(value.value, str):
-                names.add(value.value)
-            elif isinstance(value, (ast.Tuple, ast.Set)):
-                names.update(
-                    element.value
-                    for element in value.elts
-                    if isinstance(element, ast.Constant) and isinstance(element.value, str)
-                )
-    return frozenset(names)
+    """Bind coverage to the immutable production registry's canonical IDs."""
+    return frozenset(registry.DEFAULT_SOURCE_ADAPTER_REGISTRY.providers())
 
 
 def _greenhouse_job(*, tenant: str = "acme", identifier: int = 101) -> dict:
