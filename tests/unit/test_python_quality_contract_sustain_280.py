@@ -94,6 +94,8 @@ class PythonQualityContractTests(unittest.TestCase):
             findings.append("Ruff target is not Python 3.12")
         if config["tool"]["mypy"]["python_version"] != "3.12":
             findings.append("mypy target is not Python 3.12")
+        if config["tool"]["mypy"].get("follow_imports") != "skip":
+            findings.append("mypy must skip imported modules to keep the configured check bounded")
         if tuple(config["tool"]["mypy"]["files"]) != PUBLIC_TYPED_MODULES:
             findings.append("mypy scope differs from the three bounded public modules")
 

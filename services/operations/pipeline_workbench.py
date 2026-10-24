@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 import unicodedata
+from typing import cast
 
 from sqlalchemy import case, func, select
 
@@ -213,7 +214,9 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
             previous = tracking_by_entity.get(entity)
             sequence = payload.get("sequence", 0)
             if previous is None or sequence >= previous[0]:
-                tracking_by_entity[entity] = (sequence, status, attribution)
+                tracking_by_entity[entity] = cast(
+                    tuple[int, str, str], (sequence, status, attribution),
+                )
 
     profile_rescores = [dict(op) for op in operations if op["kind"] == "DISCOVER"
                         and (op["params"] or {}).get("rescore_only")
