@@ -278,12 +278,17 @@ class Greenhouse:
         education = parse_education_requirement(description)
         skill_data = extract_skills(combined)
         url = str(raw.get("absolute_url") or "")
-        try:
-            parsed = urlsplit(url)
-            if parsed.scheme != "https" or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io") or parsed.username or parsed.password or parsed.port not in (None, 443):
-                url = ""
-        except ValueError:
-            url = ""
+        if url:
+            try:
+                parsed = urlsplit(url)
+                path = parsed.path.split("/")
+                if (parsed.scheme != "https"
+                        or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io")
+                        or parsed.username or parsed.password or parsed.port not in (None, 443)
+                        or len(path) < 2 or path[1].casefold() != self.tenant):
+                    raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+            except ValueError:
+                raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH") from None
         ranges = []
         for row in (raw.get("pay_input_ranges") if isinstance(raw.get("pay_input_ranges"), list) else []):
             if not isinstance(row, dict):
