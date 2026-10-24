@@ -86,6 +86,34 @@ class AnswerExportPathSecurityTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.workspace = Path(self.directory.name)
 
+    def test_application_id_validator_accepts_safe_persisted_identifiers(self):
+        for application_id in (
+            "a",
+            "application-fixture",
+            "fixture_1",
+            "a" * 128,
+        ):
+            with self.subTest(application_id=application_id):
+                self.assertEqual(
+                    answers.validate_answer_export_application_id(application_id),
+                    application_id,
+                )
+
+    def test_application_id_validator_rejects_non_basename_identifiers(self):
+        for application_id in (
+            "",
+            ".",
+            "..",
+            "nested/application",
+            "..\\outside",
+            "A" * 64,
+            "caf\N{LATIN SMALL LETTER E WITH ACUTE}",
+            "a" * 129,
+        ):
+            with self.subTest(application_id=application_id):
+                with self.assertRaisesRegex(ValueError, rf"^{PATH_ERROR}$"):
+                    answers.validate_answer_export_application_id(application_id)
+
     def test_public_route_rejects_malformed_id_before_store_or_filesystem_access(self):
         store = Store(f"sqlite:///{(self.workspace / 'route.db').as_posix()}")
         store.migrate()
@@ -138,7 +166,7 @@ class AnswerExportPathSecurityTests(unittest.TestCase):
                 "..\\outside",
                 "../outside",
                 "",
-                "a" * 63,
+                "a" * 129,
                 "A" * 64,
             ):
                 with self.subTest(application_id=application_id):

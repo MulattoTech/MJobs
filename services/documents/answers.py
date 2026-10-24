@@ -32,7 +32,7 @@ _QUESTION_NEGATION = re.compile(
 
 _EXPORT_LOCKS_GUARD = Lock()
 _EXPORT_LOCKS = {}
-_APPLICATION_ID = re.compile(r"[0-9a-f]{64}\Z")
+_APPLICATION_ID = re.compile(r"[a-z0-9][a-z0-9_-]{0,127}\Z")
 _EXPORT_FILE = re.compile(r"[0-9a-f]{64}-[0-9a-f]{64}\.txt\Z")
 _PATH_ERROR = "ANSWER_EXPORT_PATH_INVALID"
 
