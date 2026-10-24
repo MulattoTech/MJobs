@@ -266,6 +266,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             cancel_dispatch_elapsed = cancel_call["entered_at"] - started
                             cancel_store_elapsed = cancel_call["exited_at"] - cancel_call["entered_at"]
                             cancel_response_tail_elapsed = response_finished_at - cancel_call["exited_at"]
+                            self.assertLess(cancel_response_elapsed, .35,
+                                f"{provider}: public cancel response blocked {cancel_response_elapsed:.3f}s; "
+                                f"dispatch={cancel_dispatch_elapsed:.3f}s; "
+                                f"store={cancel_store_elapsed:.3f}s; "
+                                f"response_tail={cancel_response_tail_elapsed:.3f}s")
                             worker.join(timeout=.35)
                             worker_settle_elapsed = time.monotonic() - started
                             if worker.is_alive():
@@ -313,14 +318,6 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                   f"store={cancel_store_elapsed:.3f}s "
                                   f"response_tail={cancel_response_tail_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s")
-                            self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
-                                f"cancel_response={cancel_response_elapsed:.3f}s; "
-                                f"dispatch={cancel_dispatch_elapsed:.3f}s; "
-                                f"store={cancel_store_elapsed:.3f}s; "
-                                f"response_tail={cancel_response_tail_elapsed:.3f}s; "
-                                f"worker_settle={worker_settle_elapsed:.3f}s; "
-                                f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
-                                f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
                         collection_release.set()
                         if worker.is_alive():
