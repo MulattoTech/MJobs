@@ -180,7 +180,10 @@ class Greenhouse:
             finally:
                 stop_watcher.set()
                 if watcher.is_alive():
-                    watcher.join(timeout=1)
+                    # Closing an HTTPX response/client may contend with the
+                    # active request. Do not let that cleanup extend prompt
+                    # worker cancellation by a full second.
+                    watcher.join(timeout=CANCELLATION_POLL_INTERVAL)
             if cancellation_errors:
                 raise cancellation_errors[0]
             self.check()

@@ -1,0 +1,532 @@
+"""Isolated, fail-closed extension registries for sources and ATS adapters."""
+from inspect import signature
+from pathlib import Path
+import subprocess
+import sys
+from types import MappingProxyType, ModuleType, SimpleNamespace
+
+import pytest
+
+from services.applications.provider_registry import ApplicationAdapterRegistry
+from services.discovery.sources.greenhouse import SourceError
+from services.discovery.sources.registry import (
+    DEFAULT_SOURCE_ADAPTER_REGISTRY,
+    SourceAdapterRegistry,
+)
+from services.applications.provider_registry import DEFAULT_APPLICATION_ADAPTER_REGISTRY
+
+
+@pytest.mark.parametrize("module_name, install_wrong_type", [
+    ("bad-module", False),
+    ("éxtensions", False),
+    ("missing.registry.module", False),
+    ("tests.wrong_extension_registry", True),
+    (7, False),
+])
+def test_registry_module_selector_fails_closed_without_factory_calls(
+        monkeypatch, module_name, install_wrong_type):
+    from services.applications.provider_registry import configured_application_registry
+    from services.discovery.sources.registry import configured_source_registry
+
+    calls = []
+    module = ModuleType("tests.wrong_extension_registry")
+    module.SOURCE_ADAPTER_REGISTRY = lambda: calls.append("source")
+    module.APPLICATION_ADAPTER_REGISTRY = lambda: calls.append("application")
+    if install_wrong_type:
+        monkeypatch.setitem(sys.modules, module.__name__, module)
+
+    with pytest.raises(ValueError, match="ADAPTER_CONFIGURATION_INVALID"):
+        configured_source_registry(module_name)
+    with pytest.raises(ValueError, match="ADAPTER_CONFIGURATION_INVALID"):
+        configured_application_registry(module_name)
+    assert calls == []
+
+
+def test_worker_startup_snapshots_registry_selector_for_dispatch(monkeypatch):
+    from workers import main as worker_main
+
+    store = SimpleNamespace(bind_workspace_mode=lambda _mode: None)
+    store.engine = SimpleNamespace(dispose=lambda: None)
+    redis = SimpleNamespace(close=lambda: None)
+    worker = SimpleNamespace(work=lambda **_kwargs: None)
+    stopped = SimpleNamespace(is_set=lambda: False, wait=lambda _seconds: None,
+                              set=lambda: None)
+    dispatched = []
+
+    class InlineThread:
+        def __init__(self, *, target, daemon):
+            assert daemon is True
+            self.target = target
+
+        def start(self):
+            self.target()
+
+        def join(self, *, timeout):
+            assert timeout == 5
+
+    checks = {"stopped": False}
+    stopped.is_set = lambda: checks["stopped"]
+
+    def dispatch(_store, redis_url, *, registry_module=None):
+        dispatched.append((_store, redis_url, registry_module))
+        checks["stopped"] = True
+
+    monkeypatch.setenv("MJOBS_DATABASE_URL", "sqlite:///unused.db")
+    monkeypatch.setenv("MJOBS_REDIS_URL", "redis://unused/0")
+    monkeypatch.setenv("MJOBS_WORKER_QUEUE", "mjobs-application")
+    monkeypatch.setattr(worker_main, "operation_mode_from_env", lambda: "PERSONAL")
+    monkeypatch.setattr(worker_main, "Store", lambda _url: store)
+    monkeypatch.setattr(worker_main, "timeout", lambda: 180)
+    monkeypatch.setattr(worker_main, "category_limit", lambda _category: 1)
+    monkeypatch.setattr(worker_main, "configured_extension_registry_module",
+                        lambda: "tests.runtime_extensions")
+    source_registry = object()
+    application_registry = object()
+    monkeypatch.setattr(worker_main, "configured_source_registry",
+                        lambda selector: source_registry if selector == "tests.runtime_extensions" else None)
+    monkeypatch.setattr(worker_main, "configured_application_registry",
+                        lambda selector: application_registry if selector == "tests.runtime_extensions" else None)
+    monkeypatch.setattr(worker_main, "dispatch_pending", dispatch)
+    monkeypatch.setattr(worker_main, "configure_operation_logger", lambda: None)
+    monkeypatch.setattr(worker_main.threading, "Event", lambda: stopped)
+    monkeypatch.setattr(worker_main.threading, "Thread", InlineThread)
+    monkeypatch.setattr(worker_main.Redis, "from_url", lambda *_args, **_kwargs: redis)
+    monkeypatch.setattr(worker_main, "Worker", lambda *_args, **_kwargs: worker)
+
+    worker_main.main()
+
+    assert dispatched == [(store, "redis://unused/0", "tests.runtime_extensions")]
+
+
+def test_registry_dependency_is_explicit_at_every_admission_and_revalidation_boundary():
+    from apps.api.application_form_review import (
+        _application_route,
+        create_application_form_review_router,
+    )
+    from services.applications.form_review_providers import (
+        analyze_application_form,
+        normalize_application_route,
+    )
+    from services.discovery.sources.collect import collect_source, configure_source
+    from workers.application_form_review import _validate_application, handle_form_review
+
+    boundaries = (
+        configure_source,
+        collect_source,
+        normalize_application_route,
+        analyze_application_form,
+        _validate_application,
+        handle_form_review,
+        _application_route,
+        create_application_form_review_router,
+    )
+    assert all("registry" in signature(boundary).parameters for boundary in boundaries)
+
+
+def test_api_admission_and_worker_revalidation_use_the_same_registry(monkeypatch):
+    import apps.api.application_form_review as api
+    import workers.application_form_review as worker
+
+    registry = ApplicationAdapterRegistry([("fixture_app", lambda: object())])
+    row = {
+        "application_id": "application-1",
+        "profile_id": "profile-1",
+        "route_id": "route-1",
+        "target": "REAL",
+        "provider": "fixture_app",
+        "tenant": "fixture",
+        "requisition": "1",
+        "url": "https://fixture.invalid/jobs/1",
+    }
+
+    class Result:
+        def mappings(self):
+            return self
+
+        def one_or_none(self):
+            return row
+
+    connection = SimpleNamespace(execute=lambda _query: Result())
+    observed = []
+
+    def normalize(provider, url, *, route_metadata, registry=None):
+        observed.append((provider, url, route_metadata, registry))
+        return {"provider": provider, "url": url}
+
+    monkeypatch.setattr(api, "normalize_application_route", normalize)
+    monkeypatch.setattr(worker, "normalize_application_route", normalize)
+
+    _, api_route = api._application_route(
+        object(), "profile-1", "application-1",
+        connection=connection, registry=registry,
+    )
+    worker_route = worker._validate_application(
+        connection,
+        {"kind": "APPLICATION_FORM_REVIEW", "entity_id": "application-1"},
+        {
+            "application_id": "application-1",
+            "profile_id": "profile-1",
+            "route_id": "route-1",
+            "provider": "fixture_app",
+            "route_url": "https://fixture.invalid/jobs/1",
+        },
+        registry=registry,
+    )
+
+    assert api_route == worker_route
+    assert [entry[3] for entry in observed] == [registry, registry]
+
+
+def test_default_registries_preserve_builtin_order_and_are_read_only():
+    sources = SourceAdapterRegistry()
+    applications = ApplicationAdapterRegistry()
+
+    assert sources.providers() == (
+        "lever", "greenhouse", "remotive", "wwr", "remoteok",
+    )
+    assert applications.providers() == (
+        "ashby", "bamboohr", "breezy", "generic_html", "greenhouse",
+        "lever", "recruitee", "smartrecruiters", "teamtailor", "workable",
+        "workday",
+    )
+    assert isinstance(sources.factories, MappingProxyType)
+    assert isinstance(applications.factories, MappingProxyType)
+
+
+def test_source_registry_isolated_snapshot_and_fail_closed_factory_admission():
+    calls = []
+
+    def factory(source, **kwargs):
+        calls.append((dict(source), kwargs))
+        return object()
+
+    extensions = [("fixture_source", factory)]
+    registry = SourceAdapterRegistry(extensions)
+    extensions.append(("late_source", factory))
+
+    assert registry.providers()[-1] == "fixture_source"
+    assert "late_source" not in registry.providers()
+    assert "fixture_source" not in DEFAULT_SOURCE_ADAPTER_REGISTRY.providers()
+    assert registry.create({"provider": "fixture_source", "tenant": "fixture"}) is not None
+    assert len(calls) == 1
+
+
+def test_configure_source_uses_the_supplied_registry_without_global_mutation(tmp_path):
+    from packages.persistence.store import Store
+    from services.discovery.sources.collect import configure_source
+    from services.discovery.sources.contract import (
+        CollectionStrategy,
+        SourceCapabilities,
+        SourceCapability,
+    )
+
+    calls = []
+
+    class Adapter:
+        def capabilities(self):
+            return SourceCapabilities(
+                CollectionStrategy.API,
+                frozenset({SourceCapability.DISCOVERY}),
+            )
+
+    def factory(source, **kwargs):
+        calls.append((dict(source), kwargs))
+        return Adapter()
+
+    store = Store(f"sqlite:///{(tmp_path / 'extensions.db').as_posix()}")
+    store.migrate()
+    registry = SourceAdapterRegistry([("fixture_source", factory)])
+
+    source_id = configure_source(
+        store, "fixture-tenant", provider="fixture_source", registry=registry,
+    )
+
+    assert isinstance(source_id, str)
+    assert calls == [({
+        "provider": "fixture_source",
+        "tenant": "fixture-tenant",
+        "request_timeout": 10,
+        "rate_limit": 60,
+        "concurrency": 1,
+    }, {"transport": None, "check": None})]
+    assert "fixture_source" not in DEFAULT_SOURCE_ADAPTER_REGISTRY.providers()
+
+    blocked = SourceAdapterRegistry([("fixture_source", factory)], disabled=("fixture_source",))
+    for provider in ("fixture_source", "unknown", "sourcé", "bad-id"):
+        with pytest.raises(SourceError, match="SOURCE_UNSUPPORTED"):
+            blocked.create({"provider": provider, "tenant": "fixture"})
+    assert len(calls) == 1
+
+    for extensions in (
+        [("disabled", factory)],
+        [("greenhouse", factory)],
+        [("fixture_source", factory), ("fixture_source", factory)],
+        [("sourcé", factory)],
+        [("bad-id", factory)],
+    ):
+        with pytest.raises(ValueError):
+            SourceAdapterRegistry(extensions)
+    assert len(calls) == 1
+
+
+def test_application_registry_isolated_snapshot_and_fail_closed_factory_admission():
+    calls = []
+
+    class Adapter:
+        def normalize_route(self, route):
+            return dict(route)
+
+        def capabilities(self):
+            return {"route_normalization": True}
+
+    def factory():
+        calls.append("called")
+        return Adapter()
+
+    extensions = [("fixture_app", factory)]
+    registry = ApplicationAdapterRegistry(extensions)
+    extensions.append(("late_app", factory))
+
+    assert registry.providers()[-1] == "fixture_app"
+    assert "late_app" not in registry.providers()
+    assert "fixture_app" not in DEFAULT_APPLICATION_ADAPTER_REGISTRY.providers()
+    assert registry.get("fixture_app") is not None
+    assert len(calls) == 1
+
+    blocked = ApplicationAdapterRegistry([("fixture_app", factory)], disabled=("fixture_app",))
+    for provider in ("fixture_app", "unknown", "providér", "bad-id"):
+        assert blocked.get(provider) is None
+    assert len(calls) == 1
+
+    for extensions in (
+        [("disabled", factory)],
+        [("greenhouse", factory)],
+        [("fixture_app", factory), ("fixture_app", factory)],
+        [("providér", factory)],
+        [("bad-id", factory)],
+    ):
+        with pytest.raises(ValueError):
+            ApplicationAdapterRegistry(extensions)
+    assert len(calls) == 1
+
+
+def test_custom_application_registry_is_used_for_route_and_read_only_form_analysis():
+    from services.applications.form_review_providers import (
+        analyze_application_form,
+        normalize_application_route,
+    )
+
+    calls = []
+
+    class Adapter:
+        def normalize_route(self, route):
+            calls.append(("normalize", dict(route)))
+            return dict(route) if route.get("url") == "https://fixture.invalid/jobs/1" else None
+
+        def analyze_form(self, html, *, route_url):
+            calls.append(("analyze", html, route_url))
+            return {"status": "PASS", "fields": []}
+
+        @staticmethod
+        def requires_human_review(_report):
+            return False
+
+    registry = ApplicationAdapterRegistry([("fixture_app", Adapter)])
+    route = normalize_application_route(
+        "fixture_app", "https://fixture.invalid/jobs/1", registry=registry,
+    )
+    report = analyze_application_form(
+        "fixture_app", "<form></form>",
+        route_url="https://fixture.invalid/jobs/1", registry=registry,
+    )
+
+    assert route == {
+        "provider": "fixture_app",
+        "url": "https://fixture.invalid/jobs/1",
+    }
+    assert report == {"status": "ANALYZED", "reason": None, "fields": []}
+    assert calls[-1] == (
+        "analyze", "<form></form>", "https://fixture.invalid/jobs/1",
+    )
+
+
+def test_optional_adapter_modules_do_not_block_registry_startup_in_subprocess():
+    root = Path(__file__).resolve().parents[2]
+    script = r'''
+import builtins
+real_import = builtins.__import__
+blocked = {
+    "services.discovery.sources.wwr",
+    "services.applications.adapters.ashby",
+}
+def guarded(name, globals=None, locals=None, fromlist=(), level=0):
+    if name in blocked:
+        raise ImportError("optional integration unavailable")
+    return real_import(name, globals, locals, fromlist, level)
+builtins.__import__ = guarded
+from services.discovery.sources.registry import SourceAdapterRegistry
+from services.applications.provider_registry import ApplicationAdapterRegistry
+import services.applications.form_review_providers
+import workers.application_form_review
+import apps.api.application_form_review
+assert SourceAdapterRegistry().providers()[0] == "lever"
+assert ApplicationAdapterRegistry().providers()[0] == "ashby"
+'''
+    result = subprocess.run(
+        [sys.executable, "-c", script], cwd=root,
+        stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=10,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_registry_construction_does_not_mutate_ai_provider_factory_witness():
+    from services.ai.tasks import AITaskRouter
+
+    witness = lambda _provider: None
+    router = AITaskRouter(provider_factory=witness)
+    SourceAdapterRegistry([("fixture_source", lambda *_args, **_kwargs: None)])
+    ApplicationAdapterRegistry([("fixture_app", lambda: None)])
+
+    assert router.provider_factory is witness
+
+
+def test_api_runtime_threads_registry_snapshots_into_public_admission(monkeypatch, tmp_path):
+    from fastapi import APIRouter
+    from fastapi.testclient import TestClient
+
+    import apps.api.application_form_review as form_review_api
+    from apps.api.main import create_app
+    from packages.persistence.store import Store
+    from services.discovery.sources.contract import (
+        CollectionStrategy,
+        SourceCapabilities,
+        SourceCapability,
+    )
+
+    observed = {}
+
+    def capture_form_router(_store, *, registry=None):
+        observed["application_registry"] = registry
+        return APIRouter()
+
+    class SourceAdapter:
+        def capabilities(self):
+            return SourceCapabilities(
+                CollectionStrategy.API,
+                frozenset({SourceCapability.DISCOVERY}),
+            )
+
+    source_calls = []
+
+    def source_factory(source, **kwargs):
+        source_calls.append((dict(source), kwargs))
+        return SourceAdapter()
+
+    source_registry = SourceAdapterRegistry([("fixture_source", source_factory)])
+    application_registry = ApplicationAdapterRegistry([("fixture_app", lambda: object())])
+    monkeypatch.setattr(
+        form_review_api, "create_application_form_review_router", capture_form_router,
+    )
+
+    store = Store(f"sqlite:///{(tmp_path / 'api-runtime.db').as_posix()}")
+    store.migrate()
+    try:
+        app = create_app(
+            store, "http://127.0.0.1:1", tmp_path / "outputs",
+            operation_mode="PERSONAL", source_registry=source_registry,
+            application_registry=application_registry,
+        )
+        with TestClient(app) as client:
+            response = client.put("/sources", json={
+                "provider": "fixture_source",
+                "tenant": "fixture-tenant",
+            })
+        assert response.status_code == 200, response.text
+    finally:
+        store.engine.dispose()
+
+    assert observed["application_registry"] is application_registry
+    assert len(source_calls) == 1
+    assert source_calls[0][0]["provider"] == "fixture_source"
+
+
+def test_worker_runtime_threads_registry_snapshots_and_keeps_rq_entrypoint(monkeypatch, tmp_path):
+    import workers.tasks as tasks
+    from packages.persistence.store import Store
+    from services.discovery.sources.collect import configure_source
+    from services.discovery.sources.contract import (
+        CollectionStrategy,
+        SourceCapabilities,
+        SourceCapability,
+    )
+    from tests.integration.test_spine import PROFILE
+    from workers.dispatch import enqueue_operation
+
+    parameters = signature(tasks.execute_operation).parameters
+    assert parameters["source_registry"].default is DEFAULT_SOURCE_ADAPTER_REGISTRY
+    assert parameters["application_registry"].default is DEFAULT_APPLICATION_ADAPTER_REGISTRY
+
+    class SourceAdapter:
+        def capabilities(self):
+            return SourceCapabilities(
+                CollectionStrategy.API,
+                frozenset({SourceCapability.DISCOVERY}),
+            )
+
+    source_registry = SourceAdapterRegistry([
+        ("fixture_source", lambda _source, **_kwargs: SourceAdapter()),
+    ])
+    application_registry = ApplicationAdapterRegistry([
+        ("fixture_app", lambda: object()),
+    ])
+    database_url = f"sqlite:///{(tmp_path / 'worker-runtime.db').as_posix()}"
+    store = Store(database_url)
+    store.migrate()
+    store.bind_workspace_mode("PERSONAL")
+    store.save_profile(PROFILE)
+    source_id = configure_source(
+        store, "fixture-tenant", provider="fixture_source", registry=source_registry,
+    )
+    discovery_id = enqueue_operation(
+        store, "DISCOVER", "fixture",
+        {"source_id": source_id, "profile_ids": ["fixture"]},
+    )
+    review_id = enqueue_operation(
+        store, "APPLICATION_FORM_REVIEW", "application-1",
+        {"route_url": "https://fixture.invalid/jobs/1"},
+    )
+    observed = {}
+
+    def collect(_store, _source_id, _profile_id, **kwargs):
+        observed["source_registry"] = kwargs.get("registry")
+        return {"jobs_seen": 0}
+
+    def review(_store, _operation, **kwargs):
+        observed["application_registry"] = kwargs.get("registry")
+        return {"status": "ANALYZED"}
+
+    monkeypatch.setenv("MJOBS_DATABASE_URL", database_url)
+    monkeypatch.setenv("MJOBS_OPERATION_MODE", "PERSONAL")
+    monkeypatch.setenv("MJOBS_OUTPUT_DIR", str(tmp_path / "outputs"))
+    monkeypatch.setattr(tasks, "collect_source", collect)
+    monkeypatch.setattr(tasks, "recalculate", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(tasks, "handle_form_review", review)
+    monkeypatch.setattr(tasks, "log_operation_finished", lambda *_args, **_kwargs: None)
+    try:
+        discovery = tasks.execute_operation(
+            discovery_id, source_registry=source_registry,
+            application_registry=application_registry,
+        )
+        form_review = tasks.execute_operation(
+            review_id, source_registry=source_registry,
+            application_registry=application_registry,
+        )
+    finally:
+        store.engine.dispose()
+
+    assert discovery["status"] == "COMPLETED"
+    assert form_review["status"] == "COMPLETED"
+    assert observed == {
+        "source_registry": source_registry,
+        "application_registry": application_registry,
+    }

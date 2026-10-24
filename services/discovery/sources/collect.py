@@ -10,6 +10,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
+from packages.domain.operation_errors import source_collection_error_category
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.ai.prompt_provenance import capture_parser
@@ -24,9 +25,69 @@ from services.discovery.sources.registry import source_adapter
 from services.discovery.search_semantics import normalize_reported_timestamp, parse_timestamp
 
 
+class SourceCollectionBoundaryError(RuntimeError):
+    """A collection failure whose private or unstable details were withheld."""
+
+
+_SAFE_LEGACY_SOURCE_CODES = frozenset({
+    "COMPANY_ATS_BINDING_REVIEW_REQUIRED",
+    "COMPANY_ATS_JOB_TENANT_MISMATCH",
+    "COMPANY_DOMAIN_REVIEW_REQUIRED",
+    "COMPANY_SOURCE_DISABLED",
+    "SOURCE_BACKOFF",
+    "SOURCE_COOLDOWN",
+    "SOURCE_DISABLED",
+    "SOURCE_DUPLICATE_JOB_ID",
+    "SOURCE_INVALID_CONTENT_TYPE",
+    "SOURCE_INVALID_FORMAT",
+    "SOURCE_INVALID_JOB",
+    "SOURCE_INVALID_JOB_LOCATION",
+    "SOURCE_INVALID_JSON",
+    "SOURCE_JOB_ID_MISMATCH",
+    "SOURCE_JOB_LIMIT",
+    "SOURCE_JOB_NOT_FOUND",
+    "SOURCE_NO_VALID_JOBS",
+    "SOURCE_PAYLOAD_INVALID",
+    "SOURCE_PAYLOAD_LIMIT",
+    "SOURCE_ROUTE_IDENTITY_CONFLICT",
+    "SOURCE_UNAVAILABLE",
+    "SOURCE_UNSUPPORTED",
+})
+
+_PUBLIC_TERMINAL_SOURCE_CATEGORIES = frozenset({
+    "AUTH_REQUIRED",
+    "SOURCE_BLOCKED",
+    "SOURCE_CHANGED",
+})
+
+
+def _safe_legacy_source_code(code):
+    if type(code) is not str:
+        return False
+    return code in _SAFE_LEGACY_SOURCE_CODES
+
+
+def _public_collection_failure(failure):
+    if isinstance(failure, httpx.HTTPError):
+        public_failure = SourceError("SOURCE_NETWORK_ERROR")
+        category = "NETWORK_ERROR"
+    elif isinstance(failure, SourceError):
+        category = source_collection_error_category(failure.code)
+        if category is None and not _safe_legacy_source_code(failure.code):
+            return SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED"), None
+        public_code = category if category in _PUBLIC_TERMINAL_SOURCE_CATEGORIES else failure.code
+        public_failure = SourceError(public_code, retry_seconds=failure.retry_seconds)
+    else:
+        public_failure = SourceCollectionBoundaryError("SOURCE_COLLECTION_FAILED")
+        category = None
+    if category is not None:
+        public_failure.operation_error_category = category
+    return public_failure, category
+
+
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
                      request_timeout=10, rate_limit=60, jitter_seconds=30, *, connection=None,
-                     preserve_existing=False):
+                     preserve_existing=False, registry=None):
     if provider == "remote_ok":
         provider = "remoteok"
     if provider == "greenhouse":
@@ -46,7 +107,7 @@ def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_in
     source_id = identity(provider, tenant)
     policy = {"provider": provider, "tenant": tenant, "request_timeout": request_timeout,
               "rate_limit": rate_limit, "concurrency": concurrency}
-    capabilities = source_adapter(policy).capabilities()
+    capabilities = source_adapter(policy, registry=registry).capabilities()
     with (nullcontext(connection) if connection is not None else store.engine.begin()) as connection:
         if preserve_existing:
             insert = {'postgresql': postgres_insert, 'sqlite': sqlite_insert}[connection.dialect.name]
@@ -91,7 +152,7 @@ def persist_posting(connection, data):
 
 
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
-                   *, refresh_matches=True, import_guard=None):
+                   *, refresh_matches=True, import_guard=None, registry=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
@@ -114,7 +175,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             raise SourceError("SOURCE_BACKOFF")
         if source["last_attempt"] and datetime.fromisoformat(source["last_attempt"]) + timedelta(seconds=source["poll_interval"]) > datetime.now(timezone.utc):
             raise SourceError("SOURCE_COOLDOWN")
-        adapter: SourceAdapter = source_adapter(source, transport=transport, check=check)
+        adapter: SourceAdapter = source_adapter(
+            source, transport=transport, check=check, registry=registry,
+        )
         connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(last_attempt=timestamp, health_status="COLLECTING"))
     available = None
     observed_endpoint = None
@@ -339,10 +402,35 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     last_error=source["last_error"],
                     backoff_until=source["backoff_until"],
                 ))
+            if authority_rejected and isinstance(failure, SourceError):
+                category = source_collection_error_category(failure.code)
+                if category is not None:
+                    failure.operation_error_category = category
             raise
+        provider_boundary = available is None
+        if provider_boundary:
+            public_failure, operation_category = _public_collection_failure(failure)
+            source_health_error = (failure.code if isinstance(failure, SourceError)
+                                       and (operation_category is not None
+                                            or _safe_legacy_source_code(failure.code))
+                                       else operation_category)
+        else:
+            # Once a fetch has completed, failures belong to local normalization,
+            # authorization, or persistence. Keep their transactional exception
+            # semantics while persisting only a stable code/type, never its text.
+            public_failure = failure
+            operation_category = (source_collection_error_category(failure.code)
+                                  if isinstance(failure, SourceError) else None)
+            if operation_category is not None:
+                failure.operation_error_category = operation_category
+            source_health_error = (failure.code if isinstance(failure, SourceError)
+                                   and (operation_category is not None
+                                        or _safe_legacy_source_code(failure.code))
+                                   else type(failure).__name__)
         # Only external fetch failures count against availability. Cancellation,
         # DB failures and local programming errors are not evidence of an outage.
         if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
+                                 and type(failure.code) is str
                                  and (failure.code.startswith('SOURCE_HTTP_') or failure.code in {
                                      'SOURCE_RATE_LIMITED', 'SOURCE_REDIRECT_BLOCKED', 'SOURCE_TIME_LIMIT',
                                      'SOURCE_TIMEOUT', 'SOURCE_NETWORK_ERROR', 'SOURCE_SERVER_ERROR'})):
@@ -358,11 +446,19 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 source_endpoint=observed_endpoint,
                 succeeded=False, available=available, enumerated=enumerated, accepted=accepted,
                 completeness_sum=completeness_sum, salary_known=salary_known,
-                error_code=failure.code if isinstance(failure, SourceError) else type(failure).__name__)
+                error_code=source_health_error)
             connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
                 consecutive_failures=m.job_sources.c.consecutive_failures + 1,
-                health_status="RATE_LIMITED" if isinstance(failure, SourceError) and failure.code == "SOURCE_RATE_LIMITED" else "FAILED",
-                last_error=failure.code if isinstance(failure, SourceError) else type(failure).__name__,
+                health_status="RATE_LIMITED" if operation_category == "RATE_LIMITED" else "FAILED",
+                last_error=source_health_error,
                 backoff_until=backoff.isoformat(),
                 **({"enabled": False} if disabled else {})))
-        raise
+            if operation_category is not None:
+                store._audit(connection, source_id, "SOURCE_COLLECTION_FAILED", {
+                    "error_category": operation_category,
+                    "provider": source["provider"],
+                })
+        if public_failure is failure:
+            raise
+        deferred_public_failure = public_failure
+    raise deferred_public_failure from None
