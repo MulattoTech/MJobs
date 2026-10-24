@@ -318,6 +318,12 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                   f"store={cancel_store_elapsed:.3f}s "
                                   f"response_tail={cancel_response_tail_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s")
+                            self.assertLess(worker_settle_elapsed, .35,
+                                f"{provider}: cancelled worker did not settle within 0.35s; "
+                                f"cancel_response={cancel_response_elapsed:.3f}s; "
+                                f"worker_settle={worker_settle_elapsed:.3f}s; "
+                                f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
+                                f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
                         collection_release.set()
                         if worker.is_alive():
