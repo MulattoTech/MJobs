@@ -5,8 +5,11 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
-import msvcrt
 import os
+if os.name == 'nt':
+    import msvcrt
+else:
+    msvcrt = None
 from pathlib import Path
 import re
 import shutil
@@ -16,7 +19,7 @@ import time
 import urllib.error
 import urllib.request
 
-HOME = Path(os.environ['LOCALAPPDATA']) / 'MJobsMicro'
+HOME = Path(os.environ.get('LOCALAPPDATA') or (Path.home() / '.local' / 'share')) / 'MJobsMicro'
 BASE = Path(r'C:\Tools\Dev\MJobs-Micro')
 OPS_PYTHON = Path(r'C:\Tools\Dev\MJobs\.venv\Scripts\python.exe')
 STATE = HOME / 'state.json'
@@ -191,6 +194,8 @@ def run_update():
     log(f'SUCCESS: deployed validated main SHA {sha}')
 
 def main():
+    if os.name != 'nt':
+        return 2
     HOME.mkdir(parents=True, exist_ok=True)
     lock = HOME / 'update.lock'
     try:
