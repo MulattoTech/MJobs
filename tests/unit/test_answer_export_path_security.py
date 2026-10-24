@@ -6,6 +6,10 @@ import unittest
 from unittest.mock import patch
 from types import SimpleNamespace
 
+from fastapi.testclient import TestClient
+
+from apps.api.main import create_app
+from packages.persistence.store import Store
 from services.documents import answers
 
 
@@ -81,6 +85,39 @@ class AnswerExportPathSecurityTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-answer-path-")
         self.addCleanup(self.directory.cleanup)
         self.workspace = Path(self.directory.name)
+
+    def test_public_route_rejects_malformed_id_before_store_or_filesystem_access(self):
+        store = Store(f"sqlite:///{(self.workspace / 'route.db').as_posix()}")
+        store.migrate()
+        self.addCleanup(store.engine.dispose)
+        payload = {
+            "profile_id": "fixture",
+            "items": [{
+                "question": "Synthetic question?",
+                "text": "Synthetic answer.",
+                "reviewed": True,
+            }],
+        }
+
+        with TestClient(create_app(
+            store, "http://127.0.0.1:1", self.workspace,
+        ), raise_server_exceptions=False) as client:
+            with (patch.object(
+                    store, "application",
+                    side_effect=AssertionError("application store accessed before path validation"),
+                ) as application,
+                patch.object(
+                    answers, "Path", side_effect=AssertionError("filesystem path constructed"),
+                ) as path):
+                response = client.post(
+                    "/profiles/fixture/applications/nested%5Capplication/answers/export",
+                    json=payload,
+                )
+
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(response.json(), {"detail": PATH_ERROR})
+        application.assert_not_called()
+        path.assert_not_called()
 
     def _directory_alias(self, alias: Path, target: Path):
         if os.name == "nt":

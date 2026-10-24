@@ -120,13 +120,18 @@ def _has_reparse_component(path: Path) -> bool:
         return True
 
 
-def _answer_export_application_root(output_dir, application_id):
+def validate_answer_export_application_id(application_id):
     if (not isinstance(application_id, str)
             or not _APPLICATION_ID.fullmatch(application_id)):
         raise ValueError(_PATH_ERROR)
     application_path_id = os.path.basename(application_id)
     if application_path_id != application_id:
         raise ValueError(_PATH_ERROR)
+    return application_path_id
+
+
+def _answer_export_application_root(output_dir, application_id):
+    application_path_id = validate_answer_export_application_id(application_id)
     try:
         configured_root = Path(output_dir)
         configured_application_root = configured_root / application_path_id
