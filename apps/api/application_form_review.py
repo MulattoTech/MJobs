@@ -30,7 +30,8 @@ class FormReviewRequest(BaseModel):
     request_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 
 
-def _application_route(store, profile_id: str, application_id: str, *, connection=None):
+def _application_route(store, profile_id: str, application_id: str, *, connection=None,
+                       registry=None):
     context = store.engine.connect() if connection is None else nullcontext(connection)
     with context as connection:
         row = connection.execute(select(
@@ -50,7 +51,7 @@ def _application_route(store, profile_id: str, application_id: str, *, connectio
     if row["target"] == "MOCK":
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
     normalized = normalize_application_route(
-        row["provider"], row["url"], route_metadata=row,
+        row["provider"], row["url"], route_metadata=row, registry=registry,
     )
     if normalized is None:
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
@@ -77,7 +78,7 @@ def _input_fingerprint(frozen):
     ).encode("utf-8")).hexdigest()
 
 
-def create_application_form_review_router(store) -> APIRouter:
+def create_application_form_review_router(store, *, registry=None) -> APIRouter:
     router = APIRouter()
 
     @router.get(
@@ -86,8 +87,11 @@ def create_application_form_review_router(store) -> APIRouter:
     def read_form_review_capabilities(profile_id: str, application_id: str):
         provider = None
         try:
-            row, route = _application_route(store, profile_id, application_id)
-            if row["target"] == "REAL" and route["provider"] in providers():
+            row, route = _application_route(
+                store, profile_id, application_id, registry=registry,
+            )
+            if (row["target"] == "REAL"
+                    and route["provider"] in providers(registry=registry)):
                 provider = route["provider"]
         except HTTPException as error:
             if error.status_code != 409:
@@ -207,7 +211,7 @@ def create_application_form_review_router(store) -> APIRouter:
                 m.routes.c.id == application.route_id,
             ).with_for_update()).first()
             row, route = _application_route(store, profile_id, application_id,
-                                            connection=connection)
+                                            connection=connection, registry=registry)
             frozen = _frozen_review_input(store, profile_id, application_id, row, route,
                                          profile_version=version)
             params = {**frozen, "request_id": value.request_id,
@@ -237,7 +241,9 @@ def create_application_form_review_router(store) -> APIRouter:
         "/profiles/{profile_id}/applications/{application_id}/form-reviews/latest",
     )
     def read_latest_form_review(profile_id: str, application_id: str):
-        row, route = _application_route(store, profile_id, application_id)
+        row, route = _application_route(
+            store, profile_id, application_id, registry=registry,
+        )
         frozen = _frozen_review_input(store, profile_id, application_id, row, route)
         return review_response(
             profile_id,
