@@ -13,6 +13,7 @@ from services.ai.providers import AIProviderError
 
 _MAX_DNS_WORKERS = 4
 _MAX_ADDRESS_ATTEMPTS = 8
+_CANCELLATION_POLL_INTERVAL = .01
 _DNS_SLOTS = threading.BoundedSemaphore(_MAX_DNS_WORKERS)
 _CONNECT_PENDING = {
     errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY, errno.EINTR,
@@ -173,12 +174,12 @@ class _RequestGuard:
         self.lock = threading.Lock()
         self.finished = threading.Event()
 
-    def check(self):
+    def check(self, *, close_resources=True):
         if self.cancellation_event is not None and self.cancellation_event.is_set():
-            self.interrupt("AI_PROVIDER_CANCELLED")
+            self.interrupt("AI_PROVIDER_CANCELLED", close_resources=close_resources)
             raise AIProviderError("AI_PROVIDER_CANCELLED")
         if time.monotonic() >= self.deadline:
-            self.interrupt("AI_PROVIDER_TIMEOUT")
+            self.interrupt("AI_PROVIDER_TIMEOUT", close_resources=close_resources)
             raise AIProviderError("AI_PROVIDER_TIMEOUT")
 
     def register_connecting(self, connection):
@@ -254,7 +255,7 @@ class _RequestGuard:
         self.close()
         self.check()
 
-    def interrupt(self, code=None):
+    def interrupt(self, code=None, *, close_resources=True):
         with self.lock:
             stream, response = self.stream, self.response
             connection = self.interrupt_socket
@@ -278,6 +279,8 @@ class _RequestGuard:
             except OSError:
                 pass
         _shutdown_stream_socket(stream)
+        if not close_resources:
+            return
         # A connect-complete trace can fire before the pool owns the stream.
         # Close it explicitly too; shutdown alone must not leave an orphan FD.
         for resource in (response, stream, self.client):
@@ -297,11 +300,15 @@ class _RequestGuard:
     def watch(self):
         while not self.finished.is_set():
             try:
-                self.check()
+                # The watcher only wakes request-owned sockets. Potentially
+                # blocking HTTPX closes belong to the request thread so its
+                # terminal state cannot outlive detached cleanup.
+                self.check(close_resources=False)
             except AIProviderError:
                 return
             remaining = max(0, self.deadline - time.monotonic())
-            self.finished.wait(min(.01, remaining) if self.cancellation_event is not None else remaining)
+            self.finished.wait(min(_CANCELLATION_POLL_INTERVAL, remaining)
+                               if self.cancellation_event is not None else remaining)
 
 
 @contextmanager
@@ -336,5 +343,8 @@ def request_guard(client, *, deadline, cancellation_event=None):
         guard.check()
     finally:
         guard.finished.set()
-        watcher.join(timeout=1)
+        # The watcher performs only bounded socket interruption, never HTTPX
+        # response/stream/client closes. Join it completely so no request-owned
+        # cleanup thread can survive the guard.
+        watcher.join()
         guard.close()
