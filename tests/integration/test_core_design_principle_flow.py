@@ -6,6 +6,7 @@ service boundaries without contacting or submitting to a real employer.
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -18,6 +19,7 @@ from sqlalchemy import create_engine, select, update
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity
+from services.applications.attempt_history import FINISHED, STARTED, read_attempt_history
 from services.applications.mock_adapter import apply_mock
 from services.applications.preflight import latest_preflight
 from services.company_discovery.flywheel import directly_monitored
@@ -31,6 +33,46 @@ from tests.integration.test_spine import PROFILE
 
 
 PROFILE_IDS = ("fixture", "uncertain", "auth", "captcha")
+PRIVATE_SENTINEL = "private-profile-answer-7f291c38"
+EXPECTED_ATTEMPTS = {
+    "fixture": {
+        "state": "DRY_RUN_COMPLETE",
+        "error_code": None,
+        "mode": "DRY_RUN",
+        "current_step": "VALIDATE",
+        "steps": [
+            "NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED",
+            "UPLOAD_RESUME:COMPLETED", "FILL_CONTACT:COMPLETED",
+            "FILL_LOCATION:COMPLETED", "ANSWER_STANDARD:COMPLETED",
+            "ANSWER_CUSTOM:COMPLETED", "VALIDATE:COMPLETED",
+        ],
+    },
+    "uncertain": {
+        "state": "REVIEW_REQUIRED",
+        "error_code": "REVIEW_REQUIRED",
+        "mode": "MOCK_SUBMISSION",
+        "current_step": "FILL_LOCATION",
+        "steps": [
+            "NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED",
+            "UPLOAD_RESUME:COMPLETED", "FILL_CONTACT:COMPLETED",
+            "FILL_LOCATION:STARTED",
+        ],
+    },
+    "auth": {
+        "state": "AUTH_REQUIRED",
+        "error_code": "AUTH_REQUIRED",
+        "mode": "MOCK_SUBMISSION",
+        "current_step": "DETECT_FORM",
+        "steps": ["NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED"],
+    },
+    "captcha": {
+        "state": "USER_INTERVENTION_REQUIRED",
+        "error_code": "USER_INTERVENTION_REQUIRED",
+        "mode": "MOCK_SUBMISSION",
+        "current_step": "DETECT_FORM",
+        "steps": ["NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED"],
+    },
+}
 
 
 class CoreDesignPrincipleFlowTests(unittest.TestCase):
@@ -59,6 +101,8 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
                 "name": f"Alex {profile_id.title()}",
                 "email": f"{profile_id}@example.test",
             })
+            next(answer for answer in profile["answers"]
+                 if answer["id"] == "fixture_question")["text"] = PRIVATE_SENTINEL
             self.store.save_profile(profile)
 
     def tearDown(self):
@@ -94,6 +138,41 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.routes).where(m.routes.c.id == route["id"]).values(url=url))
 
+    def _attempt_audits(self, application_ids) -> list[dict]:
+        with self.store.engine.connect() as connection:
+            rows = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id.in_(sorted(application_ids)),
+                m.audit.c.action.in_((STARTED, FINISHED)),
+            ).order_by(m.audit.c.id)).mappings()
+            return [{"id": row["id"], "entity_id": row["entity_id"],
+                     "action": row["action"], "payload": row["payload"]}
+                    for row in rows]
+
+    def _attempt_histories(self, application_ids) -> dict[str, dict]:
+        return {
+            profile_id: read_attempt_history(
+                self.store, profile_id, application_ids[profile_id])
+            for profile_id in PROFILE_IDS
+        }
+
+    def _assert_attempt_contracts(self, histories, application_ids) -> None:
+        for profile_id, expected in EXPECTED_ATTEMPTS.items():
+            history = histories[profile_id]
+            self.assertEqual(history["profile_id"], profile_id)
+            self.assertEqual(history["application_id"], application_ids[profile_id])
+            self.assertFalse(history["external_submission_enabled"])
+            self.assertFalse(history["has_more"])
+            self.assertEqual(len(history["attempts"]), 1)
+            attempt = history["attempts"][0]
+            self.assertEqual(attempt["application_id"], application_ids[profile_id])
+            self.assertEqual(attempt["state"], expected["state"])
+            self.assertEqual(attempt["error_code"], expected["error_code"])
+            self.assertEqual(attempt["mode"], expected["mode"])
+            self.assertEqual(attempt["current_step"], expected["current_step"])
+            self.assertEqual(attempt["steps"], expected["steps"])
+            self.assertIsNone(attempt["confirmation"])
+            self.assertFalse(attempt["legacy_metadata"])
+
     def test_verified_profile_to_safe_mock_application_survives_reopen(self):
         profile = self.store.profile("fixture")
         self.assertTrue(profile["facts"])
@@ -101,6 +180,8 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
                             for fact in profile["facts"]))
         self.assertTrue(all(answer["verified"] and answer["user_approved"]
                             for answer in profile["answers"]))
+        self.assertIn(PRIVATE_SENTINEL,
+                      {answer["text"] for answer in profile["answers"]})
 
         search_id = save_search_profile(self.store, self._search_profile())
         search = get_search_profile(self.store, search_id)
@@ -179,36 +260,47 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
                 f"{origin}/ats/apply/{requisition}?dynamic=unknown",
             )
             uncertain = apply_mock(
-                self.store, application_ids["uncertain"], origin, self.root, submit=False,
+                self.store, application_ids["uncertain"], origin, self.root, submit=True,
                 request_id="core-design-uncertain",
             )
             self.assertEqual(uncertain["state"], "REVIEW_REQUIRED")
             self.assertIn("UNKNOWN_DYNAMIC_REQUIRED_FIELD", uncertain["trace"])
+            self.assertIsNone(uncertain["confirmation"])
 
             self._set_route_url(
                 application_ids["auth"],
                 f"{origin}/ats/apply/{requisition}?auth_expired=true",
             )
             auth = apply_mock(
-                self.store, application_ids["auth"], origin, self.root, submit=False,
+                self.store, application_ids["auth"], origin, self.root, submit=True,
                 request_id="core-design-auth",
             )
             self.assertEqual(auth["state"], "AUTH_REQUIRED")
             self.assertIn("AUTH_REQUIRED", auth["trace"])
+            self.assertIsNone(auth["confirmation"])
 
             self._set_route_url(
                 application_ids["captcha"],
                 f"{origin}/ats/apply/{requisition}?challenge=true",
             )
             captcha = apply_mock(
-                self.store, application_ids["captcha"], origin, self.root, submit=False,
+                self.store, application_ids["captcha"], origin, self.root, submit=True,
                 request_id="core-design-captcha",
             )
             self.assertEqual(captcha["state"], "USER_INTERVENTION_REQUIRED")
             self.assertIn("CHALLENGE_DETECTED", captcha["trace"])
+            self.assertIsNone(captcha["confirmation"])
 
             counts = httpx.get(origin + "/_test/request-counts").json()
             self.assertEqual(counts["submit"], 0)
+
+            histories_before = self._attempt_histories(application_ids)
+            attempt_audits_before = self._attempt_audits(application_ids.values())
+            self._assert_attempt_contracts(histories_before, application_ids)
+            self.assertNotIn(PRIVATE_SENTINEL,
+                             json.dumps(histories_before, sort_keys=True))
+            self.assertNotIn(PRIVATE_SENTINEL,
+                             json.dumps(attempt_audits_before, sort_keys=True))
 
         self.store.engine.dispose()
         self.store = self._reopen_store()
@@ -230,6 +322,14 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
         self.assertEqual(self.store.count("applications"), 4)
         self.assertEqual(self.store.count("application_attempts"), 4)
         self.assertTrue(all(row["confirmation"] is None for row in self.store.applications()))
+        histories_after = self._attempt_histories(application_ids)
+        attempt_audits_after = self._attempt_audits(application_ids.values())
+        self._assert_attempt_contracts(histories_after, application_ids)
+        self.assertEqual(histories_after, histories_before)
+        self.assertEqual(attempt_audits_after, attempt_audits_before)
+        self.assertNotIn(PRIVATE_SENTINEL, json.dumps(histories_after, sort_keys=True))
+        self.assertNotIn(PRIVATE_SENTINEL,
+                         json.dumps(attempt_audits_after, sort_keys=True))
 
 
 @unittest.skipUnless(
