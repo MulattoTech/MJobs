@@ -358,8 +358,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             except (httpx.HTTPError, ValueError, PublicFetchError) as failure:
                 record_known_feed_failure(store, company_id=resolved['company_id'],
                     career_url=str(careers.url), endpoint=feed['url'], strategy=feed['strategy'],
-                    available=False if isinstance(failure, (httpx.HTTPError, PublicHTTPStatusError)) else feed_available,
-                    error_code=type(failure).__name__)
+                    available=False, error_code='SOURCE_UNAVAILABLE')
                 if isinstance(failure, PublicFetchError) and not (
                         isinstance(failure, PublicHTTPStatusError) and failure.status_code in {404, 410}):
                     raise
