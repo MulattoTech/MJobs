@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 import hashlib
+import os
 from pathlib import Path
 import math
 import re
@@ -22,6 +23,7 @@ STALE = "STALE"
 _AUTH_DECLARED = "USER_AUTH_COMPLETION_DECLARED"
 _AUTH_REVOKED = "USER_AUTH_COMPLETION_REVOKED"
 _FINGERPRINT = re.compile(r"[0-9a-f]{64}\Z")
+_ATTEMPT_ID = re.compile(r"[0-9a-f]{32}\Z")
 _MAX_AUTH_DECLARATION_SECONDS = 900
 
 
@@ -306,12 +308,31 @@ def _manual_login_url(mock_origin: str, requisition: str, client: MockClient) ->
     return login if client.allowed(login) else None
 
 
+def _has_reparse_component(path: Path) -> bool:
+    """Reject aliases before a private browser profile path is canonicalized."""
+    try:
+        absolute = path.absolute()
+        current = Path(absolute.anchor)
+        for part in absolute.parts[1:]:
+            current = current / part
+            if (current.is_symlink()
+                    or (hasattr(current, "is_junction") and current.is_junction())):
+                return True
+        return False
+    except (OSError, RuntimeError, ValueError):
+        return True
+
+
 def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
                           output_dir: str | Path):
     """Return the exact persisted mock attempt and its private browser profile."""
-    if not isinstance(application_id, str) or not application_id.strip():
+    if (not isinstance(application_id, str)
+            or not _FINGERPRINT.fullmatch(application_id)):
         return None
-    if not isinstance(attempt_id, str) or not attempt_id.strip():
+    application_path_id = os.path.basename(application_id)
+    if application_path_id != application_id:
+        return None
+    if not isinstance(attempt_id, str) or not _ATTEMPT_ID.fullmatch(attempt_id):
         return None
 
     workspace = store.workspace_status()
@@ -343,14 +364,30 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
             or "NAVIGATE:COMPLETED" not in (selected_attempt["steps"] or [])):
         return None
 
-    root = Path(output_dir).resolve()
-    application_root = (root / application_id).resolve()
-    profile = (application_root / "browser-profile").resolve()
-    if (not application_root.is_relative_to(root)
-            or not profile.is_relative_to(application_root)
-            or not profile.is_dir()):
+    try:
+        configured_root = Path(output_dir)
+        configured_application_root = configured_root / application_path_id
+        configured_profile = configured_application_root / "browser-profile"
+        configured_paths = (
+            configured_root, configured_application_root, configured_profile,
+        )
+        if any(_has_reparse_component(path) for path in configured_paths):
+            return None
+        root = os.path.realpath(configured_root)
+        application_root = os.path.realpath(configured_application_root)
+        profile = os.path.realpath(configured_profile)
+        root_prefix = root.rstrip(os.sep) + os.sep
+        application_prefix = application_root.rstrip(os.sep) + os.sep
+        # Recheck the original names after resolution so an alias introduced
+        # during validation cannot authorize a redirected session profile.
+        if (any(_has_reparse_component(path) for path in configured_paths)
+                or not application_root.startswith(root_prefix)
+                or not profile.startswith(application_prefix)
+                or not os.path.isdir(profile)):
+            return None
+    except (OSError, RuntimeError, TypeError, ValueError):
         return None
-    return dict(route), profile
+    return dict(route), Path(profile)
 
 
 def open_manual_auth_window(store, application_id: str, attempt_id: str,
