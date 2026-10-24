@@ -1,90 +1,184 @@
-"""Canonical registry for supported, review-first ATS application adapters."""
+"""Immutable registry for supported, review-first ATS application adapters."""
 from __future__ import annotations
 
-from collections.abc import Mapping
-
-from services.applications.adapters.ashby import AshbyApplicationAdapter
-from services.applications.adapters.bamboohr import BambooHRApplicationAdapter
-from services.applications.adapters.breezy import BreezyApplicationAdapter
-from services.applications.adapters.generic_html import GenericHTMLApplicationAdapter
-from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
-from services.applications.adapters.lever import LeverApplicationAdapter
-from services.applications.adapters.recruitee import RecruiteeApplicationAdapter
-from services.applications.adapters.smartrecruiters import SmartRecruitersApplicationAdapter
-from services.applications.adapters.teamtailor import TeamtailorApplicationAdapter
-from services.applications.adapters.workable import WorkableApplicationAdapter
-from services.applications.adapters.workday import WorkdayApplicationAdapter
+from collections.abc import Iterable, Mapping
+from importlib import import_module
+import os
+import re
+from types import MappingProxyType
 
 
-_ADAPTERS = {
-    "ashby": AshbyApplicationAdapter,
-    "bamboohr": BambooHRApplicationAdapter,
-    "breezy": BreezyApplicationAdapter,
-    "generic_html": GenericHTMLApplicationAdapter,
-    "greenhouse": GreenhouseApplicationAdapter,
-    "lever": LeverApplicationAdapter,
-    "recruitee": RecruiteeApplicationAdapter,
-    "smartrecruiters": SmartRecruitersApplicationAdapter,
-    "teamtailor": TeamtailorApplicationAdapter,
-    "workable": WorkableApplicationAdapter,
-    "workday": WorkdayApplicationAdapter,
-}
+_ID = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
+_MODULE_ID = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\Z")
+_RESERVED = frozenset({"disabled"})
+
+
+def _factory(module_name, type_name):
+    def create():
+        return getattr(import_module(module_name), type_name)()
+    return create
+
+
+_BUILTINS = (
+    ("ashby", _factory("services.applications.adapters.ashby", "AshbyApplicationAdapter")),
+    ("bamboohr", _factory("services.applications.adapters.bamboohr", "BambooHRApplicationAdapter")),
+    ("breezy", _factory("services.applications.adapters.breezy", "BreezyApplicationAdapter")),
+    ("generic_html", _factory("services.applications.adapters.generic_html", "GenericHTMLApplicationAdapter")),
+    ("greenhouse", _factory("services.applications.adapters.greenhouse", "GreenhouseApplicationAdapter")),
+    ("lever", _factory("services.applications.adapters.lever", "LeverApplicationAdapter")),
+    ("recruitee", _factory("services.applications.adapters.recruitee", "RecruiteeApplicationAdapter")),
+    ("smartrecruiters", _factory("services.applications.adapters.smartrecruiters", "SmartRecruitersApplicationAdapter")),
+    ("teamtailor", _factory("services.applications.adapters.teamtailor", "TeamtailorApplicationAdapter")),
+    ("workable", _factory("services.applications.adapters.workable", "WorkableApplicationAdapter")),
+    ("workday", _factory("services.applications.adapters.workday", "WorkdayApplicationAdapter")),
+)
 
 
 def _provider_id(provider: object) -> str | None:
-    """Return a canonical identifier without hashing untrusted values."""
-    return provider.casefold() if isinstance(provider, str) and provider.isascii() else None
-
-
-def providers() -> tuple[str, ...]:
-    """List the provider identifiers accepted by this registry."""
-    return tuple(_ADAPTERS)
-
-
-def get_provider(provider: object):
-    """Return a fresh adapter for a supported identifier, or ``None``."""
-    provider_id = _provider_id(provider)
-    adapter_type = _ADAPTERS.get(provider_id) if provider_id is not None else None
-    return adapter_type() if adapter_type is not None else None
-
-
-def normalize_route(provider: object, route: object) -> dict | None:
-    """Validate provider identity and delegate the intact route to its adapter.
-
-    Tenant and requisition metadata, as well as the original URL/host, are
-    passed through for provider-specific validation and normalization.
-    """
-    provider_id = _provider_id(provider)
-    if provider_id is None or not isinstance(route, Mapping):
+    """Return a canonical safe identifier without hashing untrusted values."""
+    if not isinstance(provider, str) or not provider.isascii():
         return None
-    adapter = get_provider(provider_id)
-    if adapter is None:
-        return None
-    route_provider = _provider_id(route.get("provider"))
-    if route_provider != provider_id:
-        return None
-    try:
-        adapter_route = dict(route)
-    except (TypeError, ValueError):
-        return None
-    # Some adapters require the canonical spelling; the case-insensitive
-    # identity comparison above still ensures it matches the selected adapter.
-    adapter_route["provider"] = provider_id
-    normalized = adapter.normalize_route(adapter_route)
-    if not isinstance(normalized, Mapping) or normalized.get("provider") != provider_id:
-        return None
-    if provider_id == "generic_html" and "tenant" in adapter_route:
-        supplied_tenant = adapter_route["tenant"]
-        if (not isinstance(supplied_tenant, str)
-                or supplied_tenant != normalized.get("tenant")):
+    provider_id = provider.casefold()
+    return provider_id if _ID.fullmatch(provider_id) else None
+
+
+class ApplicationAdapterRegistry:
+    """An immutable per-runtime snapshot of built-in and extension factories."""
+
+    def __init__(self, extensions: Iterable[tuple[str, object]] = (), *, disabled=()):
+        factories = dict(_BUILTINS)
+        extension_ids = set()
+        for entry in tuple(extensions):
+            if not isinstance(entry, (tuple, list)) or len(entry) != 2:
+                raise ValueError("APPLICATION_ADAPTER_DECLARATION_INVALID")
+            provider, factory = entry
+            provider_id = _provider_id(provider)
+            if provider_id is None or provider != provider_id or not callable(factory):
+                raise ValueError("APPLICATION_ADAPTER_DECLARATION_INVALID")
+            if provider_id in extension_ids:
+                raise ValueError("APPLICATION_ADAPTER_ID_DUPLICATE")
+            if provider_id in factories or provider_id in _RESERVED:
+                raise ValueError("APPLICATION_ADAPTER_ID_RESERVED")
+            extension_ids.add(provider_id)
+            factories[provider_id] = factory
+
+        disabled_ids = set()
+        for provider in tuple(disabled):
+            provider_id = _provider_id(provider)
+            if provider_id is None or provider != provider_id:
+                raise ValueError("APPLICATION_ADAPTER_ID_INVALID")
+            if provider_id not in factories:
+                raise ValueError("APPLICATION_ADAPTER_ID_UNKNOWN")
+            disabled_ids.add(provider_id)
+        self._factories = MappingProxyType(factories)
+        self._disabled = frozenset(disabled_ids)
+
+    @property
+    def factories(self):
+        return self._factories
+
+    def providers(self) -> tuple[str, ...]:
+        return tuple(provider for provider in self._factories if provider not in self._disabled)
+
+    def is_builtin(self, provider: object) -> bool:
+        provider_id = _provider_id(provider)
+        return provider_id in dict(_BUILTINS) if provider_id is not None else False
+
+    def get(self, provider: object):
+        provider_id = _provider_id(provider)
+        if provider_id is None or provider_id in self._disabled:
             return None
-    return dict(normalized)
+        factory = self._factories.get(provider_id)
+        if factory is None:
+            return None
+        try:
+            return factory()
+        except ImportError:
+            return None
+
+    def normalize_route(self, provider: object, route: object) -> dict | None:
+        provider_id = _provider_id(provider)
+        if provider_id is None or not isinstance(route, Mapping):
+            return None
+        adapter = self.get(provider_id)
+        if adapter is None or _provider_id(route.get("provider")) != provider_id:
+            return None
+        try:
+            adapter_route = dict(route)
+        except (TypeError, ValueError):
+            return None
+        adapter_route["provider"] = provider_id
+        normalized = adapter.normalize_route(adapter_route)
+        if not isinstance(normalized, Mapping) or normalized.get("provider") != provider_id:
+            return None
+        if provider_id == "generic_html" and "tenant" in adapter_route:
+            supplied_tenant = adapter_route["tenant"]
+            if (not isinstance(supplied_tenant, str)
+                    or supplied_tenant != normalized.get("tenant")):
+                return None
+        return dict(normalized)
+
+    def capabilities(self, provider: object) -> dict[str, bool] | None:
+        adapter = self.get(provider)
+        if adapter is None:
+            return None
+        declared = adapter.capabilities()
+        return dict(declared) if isinstance(declared, Mapping) else None
 
 
-def capabilities(provider: object) -> dict[str, bool] | None:
-    """Return a copy of the selected adapter's declared capability mapping."""
-    adapter = get_provider(provider)
-    if adapter is None:
-        return None
-    declared = adapter.capabilities()
-    return dict(declared) if isinstance(declared, Mapping) else None
+DEFAULT_APPLICATION_ADAPTER_REGISTRY = ApplicationAdapterRegistry()
+
+
+def configured_application_registry(
+        module_name: str | None = None) -> ApplicationAdapterRegistry:
+    """Load the immutable deployment registry selected for this process."""
+    if module_name is None:
+        module_name = os.environ.get("MJOBS_EXTENSION_REGISTRY_MODULE", "").strip()
+    if not isinstance(module_name, str):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID")
+    if not module_name:
+        return DEFAULT_APPLICATION_ADAPTER_REGISTRY
+    if (len(module_name) > 255 or not module_name.isascii()
+            or not _MODULE_ID.fullmatch(module_name)):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID")
+    try:
+        registry = getattr(import_module(module_name), "APPLICATION_ADAPTER_REGISTRY")
+    except (ImportError, AttributeError):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID") from None
+    if not isinstance(registry, ApplicationAdapterRegistry):
+        raise ValueError("APPLICATION_ADAPTER_CONFIGURATION_INVALID")
+    return registry
+
+
+def _registry(registry):
+    return DEFAULT_APPLICATION_ADAPTER_REGISTRY if registry is None else registry
+
+
+def providers(*, registry: ApplicationAdapterRegistry | None = None) -> tuple[str, ...]:
+    selected = _registry(registry)
+    return selected.providers() if isinstance(selected, ApplicationAdapterRegistry) else ()
+
+
+def get_provider(provider: object, *, registry: ApplicationAdapterRegistry | None = None):
+    selected = _registry(registry)
+    return selected.get(provider) if isinstance(selected, ApplicationAdapterRegistry) else None
+
+
+def is_builtin_provider(provider: object, *,
+                        registry: ApplicationAdapterRegistry | None = None) -> bool:
+    selected = _registry(registry)
+    return (selected.is_builtin(provider)
+            if isinstance(selected, ApplicationAdapterRegistry) else False)
+
+
+def normalize_route(provider: object, route: object, *,
+                    registry: ApplicationAdapterRegistry | None = None) -> dict | None:
+    selected = _registry(registry)
+    return (selected.normalize_route(provider, route)
+            if isinstance(selected, ApplicationAdapterRegistry) else None)
+
+
+def capabilities(provider: object, *,
+                 registry: ApplicationAdapterRegistry | None = None) -> dict[str, bool] | None:
+    selected = _registry(registry)
+    return selected.capabilities(provider) if isinstance(selected, ApplicationAdapterRegistry) else None

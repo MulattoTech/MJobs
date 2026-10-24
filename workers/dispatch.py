@@ -93,7 +93,7 @@ def _pending_operations(connection):
     return [next(preparations) if row["kind"] == "PREPARE" else row for row in rows]
 
 
-def dispatch_pending(store, redis_url):
+def dispatch_pending(store, redis_url, *, registry_module=None):
     recover_expired(store)
     redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
     try:
@@ -115,8 +115,12 @@ def dispatch_pending(store, redis_url):
                     job.delete()
                 except NoSuchJobError:
                     pass
-                Queue(QUEUES[row["kind"]], connection=redis).enqueue("workers.tasks.execute_operation", row["id"], job_id=row["id"], job_timeout=timeout(),
-                              result_ttl=86400, failure_ttl=86400)
+                task_options = ({"registry_module": registry_module}
+                                if registry_module is not None else {})
+                Queue(QUEUES[row["kind"]], connection=redis).enqueue(
+                    "workers.tasks.execute_operation", row["id"], **task_options,
+                    job_id=row["id"], job_timeout=timeout(),
+                    result_ttl=86400, failure_ttl=86400)
                 count += 1
         return {"status": "DISPATCHED", "count": count}
     except RedisError:

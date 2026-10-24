@@ -17,6 +17,11 @@ from services.company_discovery.public_client import PublicCompanyClient, Public
 from services.company_discovery.requests import authorize_discovery_request
 from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
+from services.discovery.sources.registry import (
+    configured_source_registry,
+    DEFAULT_SOURCE_ADAPTER_REGISTRY,
+    SourceAdapterRegistry,
+)
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
 from services.documents.comparison import ComparisonUnavailable
@@ -42,6 +47,11 @@ from workers.operations import (
 from workers.structured_logging import log_operation_finished
 from workers.retries import discovery_retry_plan
 from workers.application_form_review import FormReviewError, handle_form_review
+from services.applications.provider_registry import (
+    ApplicationAdapterRegistry,
+    configured_application_registry,
+    DEFAULT_APPLICATION_ADAPTER_REGISTRY,
+)
 from services.applications.controlled_dry_run import ControlledDryRunError, execute as execute_controlled_dry_run
 
 
@@ -162,7 +172,13 @@ def _saved_search_candidate_job_ids(store, source_id, search_profile, *, capture
     return tuple(sorted({posting["job_id"] for posting in candidates}))
 
 
-def execute_operation(operation_id):
+def execute_operation(operation_id, *, registry_module=None,
+                      source_registry: SourceAdapterRegistry = DEFAULT_SOURCE_ADAPTER_REGISTRY,
+                      application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+    if source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY:
+        source_registry = configured_source_registry(registry_module)
+    if application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY:
+        application_registry = configured_application_registry(registry_module)
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     try:
@@ -253,10 +269,14 @@ def execute_operation(operation_id):
                         # used for filtering and scoring, even if the user edits the
                         # saved search while source collection is running.
                         history_filters = dict(search_profile["criteria"])
+                    collection_options = {}
+                    if source_registry is not DEFAULT_SOURCE_ADAPTER_REGISTRY:
+                        collection_options["registry"] = source_registry
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
                         refresh_matches=search_profile is None,
+                        **collection_options,
                     )
                     history_results = collection_result.get("jobs_seen")
                     _record_supported_collection_candidates(
@@ -363,8 +383,12 @@ def execute_operation(operation_id):
                     finally:
                         client.close()
 
+                review_options = {}
+                if application_registry is not DEFAULT_APPLICATION_ADAPTER_REGISTRY:
+                    review_options["registry"] = application_registry
                 result = handle_form_review(
                     store, operation, fetch_html=fetch_form_html, check=check,
+                    **review_options,
                 )
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
