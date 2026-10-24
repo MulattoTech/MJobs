@@ -11,11 +11,14 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 from uuid import uuid4
 
 import httpx
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select, update
 
+from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity
@@ -26,10 +29,12 @@ from services.company_discovery.flywheel import directly_monitored
 from services.company_discovery.sources import list_company_source_view
 from services.dedupe.routes import load_job_routes, plan_application_routes
 from services.discovery.pipeline import discover
+from services.discovery.search_history import list_search_history
 from services.discovery.search_profiles import get_search_profile, save_search_profile
 from services.documents.generate import prepare
 from tests.integration.test_lever_form_review_flow import _disposable_postgres_url
 from tests.integration.test_spine import PROFILE
+from workers.tasks import execute_operation
 
 
 PROFILE_IDS = ("fixture", "uncertain", "auth", "captcha")
@@ -117,6 +122,7 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
             "name": "Verified Python and SQL roles",
             "enabled": True,
             "include_titles": ["Python Developer", "Data Engineer"],
+            "exclude_titles": ["Data Engineer"],
             "required_keywords": ["Python", "SQL"],
             "required_skills": ["Python", "SQL"],
             "remote": "ANY",
@@ -189,13 +195,63 @@ class CoreDesignPrincipleFlowTests(unittest.TestCase):
         self.assertEqual(search["source_ids"], [])
 
         with fixture_server() as origin:
-            for profile_id in PROFILE_IDS:
+            app = create_app(
+                self.store, origin, self.root, "redis://127.0.0.1:1/0",
+                operation_mode="FIXTURE",
+            )
+            with TestClient(app) as client:
+                queued = client.post("/discovery", json={
+                    "profile_id": "fixture",
+                    "search_profile_id": search_id,
+                    "request_id": "core-design-saved-search",
+                })
+                self.assertEqual(queued.status_code, 202, queued.text)
+                operation_id = queued.json()["operation_id"]
+                with patch.dict(os.environ, {
+                    "MJOBS_DATABASE_URL": self.store.url,
+                    "MJOBS_MOCK_ORIGIN": origin,
+                    "MJOBS_OUTPUT_DIR": str(self.root),
+                    "MJOBS_OPERATION_MODE": "FIXTURE",
+                }):
+                    result = execute_operation(operation_id)
+                self.assertEqual(result["status"], "COMPLETED", result)
+                public_jobs = client.get("/jobs", params={
+                    "profile_id": "fixture",
+                    "search_profile_id": search_id,
+                })
+                self.assertEqual(public_jobs.status_code, 200, public_jobs.text)
+                self.assertEqual(
+                    [row["title"] for row in public_jobs.json()["jobs"]],
+                    ["Python Developer"],
+                )
+
+            for profile_id in PROFILE_IDS[1:]:
                 discover(self.store, origin, profile_id)
 
             jobs = {row["requisition"]: row for row in self.store.jobs("fixture")}
             self.assertEqual(set(jobs), {"A", "B"})
             self.assertEqual(self.store.count("canonical_jobs"), 2)
             self.assertEqual(self.store.count("job_postings"), 4)
+            with self.store.engine.connect() as connection:
+                operation = dict(connection.execute(select(m.operations).where(
+                    m.operations.c.id == operation_id,
+                )).mappings().one())
+                captured_requisitions = set(connection.execute(
+                    select(m.jobs.c.requisition)
+                ).scalars())
+                matched_requisitions = set(connection.execute(
+                    select(m.jobs.c.requisition).join(
+                        m.matches, m.matches.c.job_id == m.jobs.c.id,
+                    ).where(
+                        m.matches.c.profile_id == "fixture",
+                        m.matches.c.profile_version == profile["version"],
+                    )
+                ).scalars())
+            self.assertEqual(operation["params"]["search_profile_id"], search_id)
+            self.assertEqual(captured_requisitions, {"A", "B"})
+            self.assertEqual(matched_requisitions, {"A"})
+            history = list_search_history(self.store, "fixture")["runs"][0]
+            self.assertEqual(history["filters"]["exclude_titles"], ["Data Engineer"])
 
             company_id = identity(origin + "/company")
             self.assertTrue(directly_monitored(self.store, company_id))
