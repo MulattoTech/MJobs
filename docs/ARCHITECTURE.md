@@ -3,7 +3,9 @@
 MJobs is a self-hosted, review-first job discovery and application-preparation system.
 This document maps the implemented boundaries required by MJ-REQ-285; it is not a
 claim that every provider or user flow has passed acceptance. The deployment source
-of truth is [compose.yml](../compose.yml), not the illustrative layout in
+of truth for the default stack is [compose.yml](../compose.yml), with the optional
+protected-preview topology described in the [deployment runbook](../infra/deploy/README.md),
+not the illustrative layout in
 [REPO_MAP.md](REPO_MAP.md). Provider behavior belongs behind adapters; the browser UI
 is not the authority for durable workflow state.
 
@@ -33,9 +35,29 @@ Python, document tools and Playwright Chromium under a non-root user.
 provider allowlist. URL/provider policies are enforced in code. The API also has
 egress: do not model all external access as worker-only.
 
+The optional owner-only PERSONAL preview adds an ingress boundary outside this
+Compose service list: remote browser, Cloudflare Access, then a separately managed
+Tunnel sidecar that validates the Access JWT and forwards to `api:8000` on the `ui`
+network. The API's host/origin guards are not a replacement for that edge identity
+check. The [deployment runbook](../infra/deploy/README.md) identifies an isolated
+`mjobs-micro` clone/project on Windows Docker Desktop's shared WSL2 engine, with
+loopback port 18801 and a [network override](../infra/deploy/windows/compose.micro.yml).
+It identifies the old Ubuntu deployment as preserved recovery material, not the
+active origin. These are documented deployment arrangements, not live host facts
+independently verified by this architecture document.
+
+Compose accepts `MJOBS_IMAGE` for a SHA-tagged runtime image; the API also receives
+`MJOBS_PUBLIC_HOST` and `MJOBS_DEPLOY_SHA`. [API startup](../apps/api/main.py) validates
+the configured hostname and revision, while `/__deployment` exposes only the source
+SHA, version and workspace mode. A candidate image or reported revision is not
+proof of authenticated remote workflow acceptance.
+
 ```mermaid
 flowchart TD
     Browser[Local browser] --> API[API and built UI]
+    Remote[Optional owner browser] --> Access[Cloudflare Access]
+    Access --> Tunnel[JWT-validating Tunnel sidecar]
+    Tunnel --> API
     API --> DB[(PostgreSQL)]
     Scheduler[Scheduler] --> DB
     DB --> Dispatch[Worker outbox dispatchers]
@@ -71,7 +93,8 @@ read-only `runtime-database` mount rather than falling back to an administrator.
 The `database` volume stores PostgreSQL data; `documents` stores artifacts;
 `queue` stores Redis data; fixture receipts use `mock-receipts`.
 `migration-backups` is separate from the host's verified full recovery archive.
-Detailed ER/schema documentation is a separate requirement, MJ-REQ-286.
+Detailed ER/schema documentation is in [DATABASE.md](DATABASE.md), owned by the
+separate requirement MJ-REQ-286.
 
 ## Workers
 
@@ -239,15 +262,44 @@ failure scopes. A restart does not replace a verified archive restore; encryptio
 keys and original protected configuration must be preserved, not rotated as a
 recovery shortcut.
 
+Protected-preview updates are a separate host-managed control plane, not an RQ
+worker. The [main candidate workflow](../.github/workflows/mjobs-deployment-candidate.yml)
+waits for [independent exact-SHA main checks](../tools/deploy/wait_for_checks.py),
+builds the image and records `CANDIDATE_VALIDATED_NOT_DEPLOYED`. A green PR or that
+manifest alone does not mean deployment occurred.
+
+The [Windows updater](../infra/deploy/windows/update_mjobs_micro.py) requires the
+deployment candidate, CI, PostgreSQL/Redis integration and secret-scan gates for
+the main SHA. It uses isolated release directories and SHA-tagged images, rejects
+changed Alembic sources, rechecks main/checks before rollout, quiesces this project's
+writers, and verifies a database/document backup before reusing persistent volumes.
+Readiness and `/__deployment` must match the expected SHA and PERSONAL mode. Failure
+after stopping writers attempts the prior image; rollback failure is reported, not
+silently treated as recovery. Changed migrations require separate guarded operator
+control; image rollback is not an automatic database downgrade.
+
+The [runbook](../infra/deploy/README.md) documents a periodic Windows Scheduled Task
+and user-sign-in-dependent Docker startup, not an always-available independent
+server. Host uptime, protected configuration, keys and backup retention remain
+operational dependencies. Its authenticated remote session, personal-document
+journey and full post-merge update/rollback drill are explicitly unverified there;
+do not infer those results from this description or a health response. The retained
+[Ubuntu updater](../infra/deploy/host_update.py) is not evidence that two PERSONAL
+origins should run concurrently.
+
 ## Security
 
 - **Workspace identity:** [operation mode](../packages/domain/operation_mode.py) and
   `Store.bind_workspace_mode` reject incompatible stored identities. PERSONAL and
   FIXTURE deployments must use distinct databases/Compose projects and volumes;
   changing the mode variable alone does not create isolated storage.
-- **Local API:** [trusted-host and local-origin middleware](../apps/api/main.py)
-  constrains browser access, alongside loopback port binding. This is not a claim
-  that the default deployment is a public multi-tenant service.
+- **API and edge identity:** [trusted-host and origin middleware](../apps/api/main.py)
+  retains strict localhost defaults and optionally permits one explicit
+  `MJOBS_PUBLIC_HOST`, whose expected origin is HTTPS even when the tunnel reaches
+  the API over HTTP. Cross-origin protections are not native user authentication:
+  the remote preview depends on separately configured Cloudflare Access and
+  ingress JWT validation. MJobs still has no native multiuser authentication;
+  loopback binding and an allowed host alone do not make public exposure safe.
 - **Untrusted sources:** the [public client](../services/company_discovery/public_client.py)
   and [source transport](../services/discovery/sources/http_transport.py) implement
   bounded fetch behavior. Public discovery validates destinations, DNS/IP and
