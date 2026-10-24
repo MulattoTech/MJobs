@@ -121,6 +121,55 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.assertIsNone(batch.source_company)
         self.assertEqual(adapter.health(), "HEALTHY")
 
+    def test_fixed_feed_rejects_redirects_without_visiting_location(self):
+        # The fixed public feed must not let a provider redirect the worker to
+        # an arbitrary destination. MockTransport keeps every case synthetic;
+        # a second recorded request means HTTPX followed the redirect.
+        locations = (
+            "https://127.0.0.1/private",
+            "https://10.0.0.1/private",
+            "https://169.254.169.254/latest/meta-data/",
+            "http://weworkremotely.com/remote-jobs.rss",
+            "https://attacker.example/remote-jobs.rss",
+            "https://weworkremotely.com:8443/remote-jobs.rss",
+        )
+        feed_url = "https://weworkremotely.com/remote-jobs.rss"
+
+        for location in locations:
+            with self.subTest(location=location):
+                visited = []
+
+                def respond(request):
+                    visited.append(str(request.url))
+                    if len(visited) == 1:
+                        return httpx.Response(302, headers={"location": location})
+                    # If followed, make the request appear successful so the
+                    # test detects the unwanted destination visit.
+                    return httpx.Response(200, content=RAW_WWR_RSS)
+
+                adapter = WeWorkRemotely(transport=httpx.MockTransport(respond))
+                with self.assertRaises(SourceError) as raised:
+                    adapter.search()
+
+                self.assertEqual(raised.exception.code, "SOURCE_UNAVAILABLE")
+                self.assertEqual(visited, [feed_url])
+                self.assertEqual(adapter.health(), "SOURCE_UNAVAILABLE")
+
+    def test_redirect_disabled_policy_accepts_normal_fixed_feed_response(self):
+        visited = []
+
+        def respond(request):
+            visited.append(str(request.url))
+            return httpx.Response(200, content=RAW_WWR_RSS,
+                                  headers={"content-type": "application/rss+xml"})
+
+        adapter = WeWorkRemotely(transport=httpx.MockTransport(respond))
+        batch = adapter.search()
+
+        self.assertEqual(visited, ["https://weworkremotely.com/remote-jobs.rss"])
+        self.assertEqual(len(batch.items), 3)
+        self.assertEqual(adapter.health(), "HEALTHY")
+
     def test_normalize_maps_to_canonical_job_fields(self):
         adapter = WeWorkRemotely(transport=httpx.MockTransport(self.transport))
         batch = adapter.search()
