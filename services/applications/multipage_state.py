@@ -607,14 +607,11 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
         except MultipageStateError as error:
             return _workday_manual_review(error.code)
         return {"decision": "CONFIRMED", "reason": "CURRENT_PAGE_CONFIRMED", "state": state}
-    if previous_observation is None:
-        return _workday_manual_review("WORKDAY_OBSERVATION_REQUIRED")
-    if (not isinstance(previous_observation, Mapping)
-            or classify_step(previous_observation).get("status") != "KNOWN"):
-        return _workday_manual_review("UNKNOWN_OR_INVALID_OBSERVATION")
     if intended_action == "RESUME":
+        # Resume validity comes from the fresh observation matching durable state;
+        # an earlier page observation is not part of that contract.
         decision = decide_transition(
-            previous_observation, current, intended_action,
+            current, current, intended_action,
             interrupted=True, confirmed_state=confirmed_state,
         )
         if decision["decision"] != "RESUME_FROM_CONFIRMED_STEP":
@@ -626,7 +623,17 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
             return _workday_manual_review("MULTIPAGE_VERSION_CONFLICT")
         return {"decision": decision["decision"], "reason": decision["reason"], "state": persisted}
 
-    previous = classify_step(previous_observation)
+    if intended_action in {"NEXT", "PREVIOUS"}:
+        if previous_observation is None:
+            return _workday_manual_review("WORKDAY_OBSERVATION_REQUIRED")
+        if (not isinstance(previous_observation, Mapping)
+                or classify_step(previous_observation).get("status") != "KNOWN"):
+            return _workday_manual_review("UNKNOWN_OR_INVALID_OBSERVATION")
+        previous = classify_step(previous_observation)
+    else:
+        previous = classify_step(
+            previous_observation if isinstance(previous_observation, Mapping) else {},
+        )
     if intended_action != "REFRESH" and previous.get("origin") != application_origin:
         return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
     visited_path = navigation.get("visited_fingerprints", ())

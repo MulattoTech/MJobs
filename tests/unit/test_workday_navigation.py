@@ -93,7 +93,7 @@ class WorkdayNavigationTests(unittest.TestCase):
         self.assertEqual(decide_transition(confirmed, changed, "RESUME", interrupted=True,
                                            confirmed_state=confirmed)["decision"], "MANUAL_REVIEW")
 
-    def test_transition_requires_previous_observation_except_for_save_progress(self):
+    def test_transition_requires_previous_observation_only_for_navigation_actions(self):
         current_observation = observation("apply", "My Experience", labels=["Resume"])
         current = classify_step(current_observation)
         origin = workday_origin(current_observation["url"])
@@ -141,6 +141,18 @@ class WorkdayNavigationTests(unittest.TestCase):
                 FakeStore(), "fixture", "application-1", prior_state, None,
                 current_observation, "RESUME", request_id="resume-missing-previous",
             )
+            missing_refresh = transition_workday_multipage_state(
+                FakeStore(), "fixture", "application-1", prior_state, None,
+                current_observation, "REFRESH", request_id="refresh-missing-previous",
+            )
+            missing_next = transition_workday_multipage_state(
+                FakeStore(), "fixture", "application-1", prior_state, None,
+                current_observation, "NEXT", request_id="next-missing-previous",
+            )
+            missing_previous = transition_workday_multipage_state(
+                FakeStore(), "fixture", "application-1", prior_state, None,
+                current_observation, "PREVIOUS", request_id="previous-missing-previous",
+            )
             malformed_classification = transition_workday_multipage_state(
                 FakeStore(), "fixture", "application-1", prior_state,
                 {"url": "not-a-workday-url", "headings": [None]},
@@ -151,11 +163,21 @@ class WorkdayNavigationTests(unittest.TestCase):
                 current_observation, "SAVE_PROGRESS", request_id="save-no-previous",
             )
 
-        self.assertEqual(missing_resume, {
-            "decision": "MANUAL_REVIEW",
-            "reason": "WORKDAY_OBSERVATION_REQUIRED",
+        self.assertEqual(missing_resume["decision"], "RESUME_FROM_CONFIRMED_STEP")
+        self.assertEqual(missing_resume["state"], prior_state)
+        self.assertEqual(missing_refresh, {
+            "decision": "REFRESH_AND_RECLASSIFY",
+            "reason": "REFRESH_REQUIRES_NEW_OBSERVATION",
+            "execute": False,
             "state": None,
         })
+        for result in (missing_next, missing_previous):
+            with self.subTest(result=result):
+                self.assertEqual(result, {
+                    "decision": "MANUAL_REVIEW",
+                    "reason": "WORKDAY_OBSERVATION_REQUIRED",
+                    "state": None,
+                })
         self.assertEqual(malformed_classification, {
             "decision": "MANUAL_REVIEW",
             "reason": "UNKNOWN_OR_INVALID_OBSERVATION",
