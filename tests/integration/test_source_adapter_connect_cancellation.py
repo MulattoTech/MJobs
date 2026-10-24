@@ -288,10 +288,6 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             worker_settle_elapsed = worker_finished_at[0] - started
                             worker_after_response_elapsed = max(
                                 0, worker_finished_at[0] - response_finished_at)
-                            self.assertLess(worker_after_response_elapsed, .35 + 2.3,
-                                f"{provider}: cancelled worker exceeded the existing fixture allowance; "
-                                f"after_response={worker_after_response_elapsed:.3f}s; "
-                                f"worker_settle={worker_settle_elapsed:.3f}s")
                         self.assertEqual(errors, [])
                         self.assertEqual(len(outcome), 1)
                         expected = "COMPLETED" if mode == "positive" else "CANCELLED" if mode == "cancel" else "DEAD_LETTERED"
@@ -331,6 +327,13 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                   f"response_tail={cancel_response_tail_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s "
                                   f"worker_after_response={worker_after_response_elapsed:.3f}s")
+                            self.assertLess(worker_settle_elapsed, .35,
+                                f"{provider}: cancelled worker did not settle within 0.35s; "
+                                f"cancel_response={cancel_response_elapsed:.3f}s; "
+                                f"worker_settle={worker_settle_elapsed:.3f}s; "
+                                f"worker_after_response={worker_after_response_elapsed:.3f}s; "
+                                f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
+                                f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
                         collection_release.set()
                         if worker.is_alive():
