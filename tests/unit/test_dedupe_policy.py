@@ -147,6 +147,39 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(result["disposition"], "SEPARATE")
         self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
 
+    def test_same_source_job_id_does_not_override_mismatched_company(self):
+        left = weak_identity_job(
+            company={"name": "Acme", "domains": ["acme.example"]},
+            source_relationships=[{"source": "feed", "source_job_id": "REQ-123"}],
+        )
+        right = weak_identity_job(
+            company={"name": "Other Company", "domains": ["other.example"]},
+            source_relationships=[{"source": "FEED", "source_job_id": "req-123"}],
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertFalse(result["signals"]["company"]["same_company"])
+        self.assertFalse(result["signals"]["strong_match"])
+        self.assertEqual(result["signals"]["strong_signals"], ["SOURCE_JOB_RELATIONSHIP"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+
+    def test_same_source_job_id_with_company_corroboration_is_exact(self):
+        company = {"name": "Acme", "domains": ["acme.example"]}
+        relationship = [{"source": "feed", "source_job_id": "REQ-123"}]
+        left = weak_identity_job(company=company, source_relationships=relationship)
+        right = weak_identity_job(company=company, source_relationships=relationship)
+
+        result = duplicate_confidence(left, right)
+
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertTrue(result["signals"]["strong_match"])
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_SOURCE_RELATIONSHIP")
+
     def test_abbreviation_equivalent_title_without_strong_id_requires_review(self):
         left = weak_identity_job(title="Windows Sysadmin")
         right = weak_identity_job(title="Windows Systems Administrator")
