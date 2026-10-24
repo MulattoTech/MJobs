@@ -45,7 +45,7 @@ export function FirstRunWizard({
   const [hidden, setHidden] = useState(() => localStorage.getItem(storageKey) === '1');
   const completed = steps.filter(step => step.complete).length;
 
-  if (hidden) return <button className="quiet" onClick={() => {
+  if (hidden) return <button type="button" className="quiet" onClick={() => {
     localStorage.removeItem(storageKey);
     setHidden(false);
   }}>Resume first-run setup ({completed}/{steps.length})</button>;
@@ -56,7 +56,7 @@ export function FirstRunWizard({
         <h2>First-run setup</h2>
         <p>{completed} of {steps.length} steps complete. Progress follows saved product data and setup choices saved in this browser for this profile.</p>
       </div>
-      <button className="quiet" onClick={() => {
+      <button type="button" className="quiet" onClick={() => {
         localStorage.setItem(storageKey, '1');
         setHidden(true);
       }}>Set up later</button>
@@ -72,9 +72,9 @@ export function FirstRunWizard({
           </span>
         </div>
         <div>
-          {step.action === 'navigate' && <button disabled={busy} onClick={() => onNavigate(step.id)}>{step.actionLabel}</button>}
-          {step.action === 'acknowledge' && !step.complete && <button disabled={busy} onClick={() => onAcknowledge(step.id)}>{step.actionLabel}</button>}
-          {step.skipLabel && !step.complete && <button className="quiet" disabled={busy} onClick={() => onAcknowledge(step.id)}>{step.skipLabel}</button>}
+          {step.action === 'navigate' && <button type="button" disabled={busy} onClick={() => onNavigate(step.id)}>{step.actionLabel}</button>}
+          {step.action === 'acknowledge' && !step.complete && <button type="button" disabled={busy} onClick={() => onAcknowledge(step.id)}>{step.actionLabel}</button>}
+          {step.skipLabel && !step.complete && <button type="button" className="quiet" disabled={busy} onClick={() => onAcknowledge(step.id)}>{step.skipLabel}</button>}
           {step.action === 'search' && <>
             <label htmlFor="first-run-search-profile">First-run saved search profile</label>
             <select id="first-run-search-profile" value={selectedSearchId} onChange={event => onSelectSearch(event.target.value)} disabled={busy || !searches.length}>
@@ -86,7 +86,7 @@ export function FirstRunWizard({
                 <option value="">Choose an enabled source</option>
                 {sources.map(source => <option key={source.id} value={source.id}>{source.name} ({source.provider})</option>)}
             </select>
-            <button disabled={busy || !canRunSearch || !selectedSourceId || !selectedSearchId} onClick={onRunSearch}>{step.actionLabel}</button>
+            <button type="button" disabled={busy || !canRunSearch || !selectedSourceId || !selectedSearchId} onClick={onRunSearch}>{step.actionLabel}</button>
           </>}
         </div>
       </li>)}
