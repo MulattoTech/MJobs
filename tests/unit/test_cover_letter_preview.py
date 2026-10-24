@@ -52,12 +52,14 @@ class CoverLetterPreviewTests(unittest.TestCase):
         self.job_fingerprint = cover_letter_preview_fingerprint(self.job)
 
     def _build(self, *, profile=None, job=None, facts=None, **options):
+        current_profile = self.profile if profile is None else profile
         return build_cover_letter_preview(
-            self.profile if profile is None else profile,
+            current_profile,
             self.job if job is None else job,
-            (self.profile if profile is None else profile).get("facts") if facts is None else facts,
+            current_profile.get("facts") if facts is None else facts,
             expected_profile_version=options.pop("expected_profile_version", self.profile_version),
             expected_job_fingerprint=options.pop("expected_job_fingerprint", self.job_fingerprint),
+            facts_profile_id=options.pop("facts_profile_id", current_profile.get("id")),
             **options,
         )
 
@@ -103,6 +105,18 @@ class CoverLetterPreviewTests(unittest.TestCase):
         with self.assertRaises(PreparationError) as stale_job:
             self._build(expected_job_fingerprint="c" * 64)
         self.assertEqual(stale_job.exception.code, "COVER_LETTER_PREVIEW_JOB_STALE")
+
+    def test_fact_provenance_requires_the_current_profile_identity(self):
+        foreign_profile = copy.deepcopy(self.profile)
+        foreign_profile["id"] = "another-profile-fixture"
+
+        with self.assertRaises(PreparationError) as missing_identity:
+            self._build(facts_profile_id=None)
+        self.assertEqual(missing_identity.exception.code, "COVER_LETTER_PREVIEW_EVIDENCE_INVALID")
+
+        with self.assertRaises(PreparationError) as foreign_identity:
+            self._build(facts=foreign_profile["facts"], facts_profile_id=foreign_profile["id"])
+        self.assertEqual(foreign_identity.exception.code, "COVER_LETTER_PREVIEW_EVIDENCE_INVALID")
 
     def test_full_preview_fingerprint_detects_company_and_context_only_changes(self):
         changed_company = copy.deepcopy(self.job)
