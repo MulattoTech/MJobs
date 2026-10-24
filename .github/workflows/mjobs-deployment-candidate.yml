@@ -1,0 +1,65 @@
+name: MJobs deployment candidate
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mjobs-deployment-candidate-main
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    name: Deployment / candidate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: read
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact main revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Wait for independent exact-SHA main checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m tools.deploy.wait_for_checks --sha "$GITHUB_SHA" --timeout-seconds 4200
+      - name: Configure BuildKit
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - name: Validate complete deployable image without publishing private data
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: infra/docker/Dockerfile
+          push: false
+          tags: mjobs-preview:sha-${{ github.sha }}
+          cache-from: type=gha,scope=mjobs-image
+          cache-to: type=gha,mode=max,scope=mjobs-image
+      - name: Record exact verified commit
+        run: |
+          mkdir -p outputs/deployment
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = {'source_commit': os.environ['GITHUB_SHA'],
+                  'result': 'CANDIDATE_VALIDATED_NOT_DEPLOYED',
+                  'deployment': 'pulled by isolated MJobs host'}
+          Path('outputs/deployment/candidate.json').write_text(
+              json.dumps(data, indent=2) + '\n', encoding='utf-8')
+          PY
+      - name: Retain non-secret candidate manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mjobs-deployment-candidate
+          path: outputs/deployment/candidate.json
+          retention-days: 7

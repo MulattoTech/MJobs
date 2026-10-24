@@ -1,0 +1,12 @@
+[Unit]
+Description=Check MJobs main for validated deployment revisions
+
+[Timer]
+OnBootSec=7min
+OnUnitInactiveSec=10min
+AccuracySec=1min
+Persistent=true
+Unit=mjobs-cd.service
+
+[Install]
+WantedBy=timers.target
