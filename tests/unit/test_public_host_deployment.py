@@ -8,22 +8,24 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
+from packages.persistence.store import Store
 
 
 HOST = "mjobs.m-techlabs.com"
 SHA = "a" * 40
 
 
-class InertStore:
-    def bind_workspace_mode(self, operation_mode):
-        self.mode = operation_mode
+def fresh_store():
+    store = Store("sqlite:///:memory:")
+    store.migrate()
+    return store
 
 
 class PublicHostTests(unittest.TestCase):
     def app(self, **values):
         env = {"MJOBS_PUBLIC_HOST": HOST, "MJOBS_DEPLOY_SHA": SHA, **values}
         with patch.dict(os.environ, env, clear=False):
-            return create_app(InertStore(), "http://127.0.0.1:8090",
+            return create_app(fresh_store(), "http://127.0.0.1:8090",
                               Path(tempfile.gettempdir()), operation_mode="PERSONAL")
 
     def test_exact_public_host_serves_revision_without_private_data(self):
@@ -57,12 +59,12 @@ class PublicHostTests(unittest.TestCase):
                     {"MJOBS_PUBLIC_HOST": HOST, "MJOBS_DEPLOY_SHA": "not-a-sha"}):
             with patch.dict(os.environ, env, clear=False):
                 with self.assertRaises(ValueError):
-                    create_app(InertStore(), "http://127.0.0.1:8090",
+                    create_app(fresh_store(), "http://127.0.0.1:8090",
                                Path(tempfile.gettempdir()), operation_mode="PERSONAL")
 
     def test_default_configuration_does_not_accept_public_hostname(self):
         with patch.dict(os.environ, {"MJOBS_PUBLIC_HOST": "", "MJOBS_DEPLOY_SHA": ""}):
-            app = create_app(InertStore(), "http://127.0.0.1:8090",
+            app = create_app(fresh_store(), "http://127.0.0.1:8090",
                              Path(tempfile.gettempdir()), operation_mode="PERSONAL")
         with TestClient(app) as client:
             self.assertEqual(client.get("/__deployment", headers={"Host": HOST}).status_code, 400)
