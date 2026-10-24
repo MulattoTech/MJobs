@@ -4,6 +4,7 @@ Exercise the real resolver over isolated input tables. No migrations,
 network, API server, or external employer data are needed.
 """
 from types import SimpleNamespace
+import json
 import unittest
 from unittest.mock import patch
 
@@ -12,6 +13,7 @@ from sqlalchemy import create_engine, select
 from packages.persistence import models as m
 from services.company_discovery.resolution import resolve_company
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
+from services.company_discovery.triggers import triggers_for_job
 
 
 class CompanyResolutionTests(unittest.TestCase):
@@ -180,11 +182,11 @@ class CompanyResolutionTests(unittest.TestCase):
     def test_ats_tenant_match_is_case_insensitive_and_exact(self):
         self.company("known", "Northstar Holdings")
         self.ats("known")
-        self.assert_existing(self.resolve(ats_tenant=" NORTHSTAR "), "known", .95,
+        self.assert_existing(self.resolve(ats_tenant=" NORTHSTAR ", ats_provider="GREENHOUSE"), "known", .95,
                              ["ATS_TENANT_MATCH"])
         for tenant in ("northstar-other", "", "unrelated"):
             with self.subTest(tenant=tenant):
-                result = self.resolve(ats_tenant=tenant)
+                result = self.resolve(ats_tenant=tenant, ats_provider="greenhouse")
                 self.assertTrue(result["is_new"])
                 self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
 
@@ -192,8 +194,8 @@ class CompanyResolutionTests(unittest.TestCase):
         self.company("first", "Northstar Robotics")
         self.company("second", "Unrelated Finance")
         self.ats("first")
-        self.ats("second", provider="lever")
-        result = self.resolve(ats_tenant="northstar")
+        self.ats("second")
+        result = self.resolve(ats_tenant="northstar", ats_provider="greenhouse")
         self.assertTrue(result["is_new"])
         self.assertNotIn(result["company_id"], {"first", "second"})
         self.assertIn("AMBIGUOUS_COMPANY_MATCH", result["evidence"])
@@ -202,8 +204,9 @@ class CompanyResolutionTests(unittest.TestCase):
         self.company("first", "Northstar Robotics")
         self.company("second", "Unrelated Finance")
         self.ats("first")
-        self.ats("second", provider="lever")
-        result = self.resolve(ats_tenant="northstar", company_website="https://first.example")
+        self.ats("second")
+        result = self.resolve(ats_tenant="northstar", ats_provider="greenhouse",
+                              company_website="https://first.example")
         self.assert_existing(result, "first", .99,
                              ["VERIFIED_DOMAIN_MATCH", "ATS_TENANT_MATCH"])
 
@@ -223,7 +226,7 @@ class CompanyResolutionTests(unittest.TestCase):
                     connection.execute(m.company_sources.update().values(
                         **{"enabled": True, "confidence": .45,
                            "discovered_automatically": False, **overrides}))
-                result = self.resolve(ats_tenant="northstar",
+                result = self.resolve(ats_tenant="northstar", ats_provider="greenhouse",
                                       application_url="https://northstar.example/jobs/1")
                 self.assert_existing(result, "verified-employer", .90,
                                      ["VERIFIED_DOMAIN_MATCH"])
@@ -247,7 +250,8 @@ class CompanyResolutionTests(unittest.TestCase):
             with self.subTest(source=label):
                 with self.engine.begin() as connection:
                     connection.execute(m.company_sources.update().values(**{**source, **changes}))
-                result = self.resolve(ats_tenant=changes.get("tenant", "northstar"))
+                result = self.resolve(ats_tenant=changes.get("tenant", "northstar"),
+                                      ats_provider="greenhouse")
                 self.assertTrue(result["is_new"])
                 self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
 
@@ -261,7 +265,7 @@ class CompanyResolutionTests(unittest.TestCase):
             with self.subTest(changes=changes):
                 with self.engine.begin() as connection:
                     connection.execute(m.company_ats_tenants.update().values(**{**original, **changes}))
-                result = self.resolve(ats_tenant="northstar")
+                result = self.resolve(ats_tenant="northstar", ats_provider="greenhouse")
                 self.assertTrue(result["is_new"])
                 self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
 
@@ -270,7 +274,7 @@ class CompanyResolutionTests(unittest.TestCase):
         self.ats("known")
         with self.engine.begin() as connection:
             connection.execute(m.company_sources.update().values(discovered_automatically=True))
-        self.assert_existing(self.resolve(ats_tenant="northstar"), "known", .95,
+        self.assert_existing(self.resolve(ats_tenant="northstar", ats_provider="greenhouse"), "known", .95,
                              ["ATS_TENANT_MATCH"])
 
     def test_revoked_or_ambiguous_career_domain_cannot_authorize_tenant(self):
@@ -284,11 +288,11 @@ class CompanyResolutionTests(unittest.TestCase):
             with self.subTest(changes=changes):
                 with self.engine.begin() as connection:
                     connection.execute(m.company_domains.update().values(**{**original, **changes}))
-                self.assertTrue(self.resolve(ats_tenant="northstar")["is_new"])
+                self.assertTrue(self.resolve(ats_tenant="northstar", ats_provider="greenhouse")["is_new"])
         with self.engine.begin() as connection:
             connection.execute(m.company_domains.update().values(**original))
         self.domain("other", "known.example")
-        self.assertTrue(self.resolve(ats_tenant="northstar")["is_new"])
+        self.assertTrue(self.resolve(ats_tenant="northstar", ats_provider="greenhouse")["is_new"])
 
     def test_resolution_is_repeatable_and_does_not_persist_candidate_evidence(self):
         self.company("known", "Northstar Holdings")
@@ -298,8 +302,93 @@ class CompanyResolutionTests(unittest.TestCase):
         with patch("socket.socket", side_effect=AssertionError("Resolution must not use network")):
             first = self.resolve(company_website="https://unverified.example")
             self.assertEqual(first, self.resolve(company_website="https://unverified.example"))
-            self.assert_existing(self.resolve(ats_tenant="northstar"), "known", .95,
+            self.assert_existing(self.resolve(ats_tenant="northstar", ats_provider="greenhouse"), "known", .95,
                                  ["ATS_TENANT_MATCH"])
         with self.engine.connect() as connection:
             after = {table.name: connection.execute(select(table)).all() for table in self.tables}
         self.assertEqual(before, after)
+
+    def test_wrong_missing_unknown_or_conflicting_candidate_provider_cannot_use_tenant(self):
+        self.company("known", "Northstar Holdings")
+        self.ats("known", provider="lever")
+        for declaration in (
+            {}, {"ats_provider": "greenhouse"}, {"ats_provider": "unknown"},
+            {"ats_provider": ""}, {"ats_provider": None}, {"ats_provider": ["lever"]},
+            {"ats_provider": "lever", "provider": "greenhouse"},
+            {"ats_provider": "lever", "provider": None},
+            {"ats_provider": "generic_html"}, {"ats_provider": "lеver"},
+        ):
+            with self.subTest(declaration=declaration):
+                result = self.resolve(ats_tenant="northstar", **declaration)
+                self.assertTrue(result["is_new"])
+                self.assertNotEqual(result["company_id"], "known")
+                self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
+
+    def test_unknown_provider_cannot_become_trusted_via_matching_source_label(self):
+        self.company("known", "Northstar Holdings")
+        self.ats("known", provider="unknown-platform")
+        result = self.resolve(ats_tenant="northstar", ats_provider="unknown-platform")
+        self.assertTrue(result["is_new"])
+        self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
+
+    def test_recognized_provider_catalogues_preserve_authorized_tenant_resolution(self):
+        for provider in ("bamboohr", "icims", "mock-ats"):
+            with self.subTest(provider=provider):
+                self.company(provider, provider + " Holdings")
+                self.ats(provider, provider=provider)
+                self.assert_existing(self.resolve(ats_tenant="northstar", ats_provider=provider),
+                                     provider, .95, ["ATS_TENANT_MATCH"])
+
+    def test_same_tenant_on_distinct_providers_selects_only_exact_authorized_provider(self):
+        self.company("greenhouse-owner", "Northstar Robotics")
+        self.company("lever-owner", "Unrelated Finance")
+        self.ats("greenhouse-owner")
+        self.ats("lever-owner", provider="lever")
+        for provider, expected in (("greenhouse", "greenhouse-owner"), ("lever", "lever-owner")):
+            with self.subTest(provider=provider):
+                self.assert_existing(self.resolve(ats_tenant="northstar", ats_provider=provider),
+                                     expected, .95, ["ATS_TENANT_MATCH"])
+        self.assert_existing(self.resolve(ats_tenant="northstar", provider="LEVER"),
+                             "lever-owner", .95, ["ATS_TENANT_MATCH"])
+
+    def test_provider_mismatch_preserves_name_and_verified_domain_evidence(self):
+        self.company("known", "Northstar Holdings")
+        self.ats("known", provider="lever")
+        self.assert_existing(self.resolve("Northstar Holdings", ats_tenant="northstar",
+                                          ats_provider="greenhouse"),
+                             "known", .75, ["NORMALIZED_NAME_EXACT"])
+        self.assert_existing(self.resolve(ats_tenant="northstar", ats_provider="greenhouse",
+                                          application_url="https://known.example/jobs/1"),
+                             "known", .90, ["VERIFIED_DOMAIN_MATCH"])
+
+    def test_trigger_propagates_normalized_provider_with_tenant_and_keeps_other_inputs(self):
+        self.company("known", "Northstar Holdings")
+        self.ats("known", provider="lever")
+        job = {"company": "Unrelated Display Name", "application_url": "https://jobs.example/apply",
+               "provider": "lever", "attributes": {"tenant": "northstar", "provider": "LEVER"}}
+        original = json.loads(json.dumps(job))
+        candidate, reasons = triggers_for_job(self.store, job, match_score=85)
+        self.assertEqual(candidate["ats_provider"], "lever")
+        self.assertEqual(candidate["ats_tenant"], "northstar")
+        self.assertEqual(candidate["application_url"], job["application_url"])
+        self.assertNotIn("PREVIOUSLY_UNSEEN_COMPANY", reasons)
+        self.assertIn("HIGH_MATCH_JOB", reasons)
+        self.assertEqual(job, original)
+
+    def test_trigger_does_not_promote_missing_unknown_or_conflicting_provider(self):
+        self.company("known", "Northstar Holdings")
+        self.ats("known", provider="lever")
+        for attrs, top in (
+            (None, {}), (["lever"], {}),
+            ({"tenant": "northstar"}, {}),
+            ({"tenant": "northstar"}, {"provider": "lever"}),
+            ({"tenant": "northstar", "provider": "unknown"}, {}),
+            ({"tenant": "northstar", "provider": ["lever"]}, {}),
+            ({"tenant": "northstar", "provider": "lever"}, {"provider": "greenhouse"}),
+        ):
+            with self.subTest(attrs=attrs, top=top):
+                candidate, reasons = triggers_for_job(self.store, {
+                    "company": "Unrelated Display Name", "attributes": attrs, **top})
+                self.assertNotIn("ats_provider", candidate)
+                self.assertIn("PREVIOUSLY_UNSEEN_COMPANY", reasons)
+                self.assertNotIn("ATS_TENANT_MATCH", resolve_company(self.store, candidate)["evidence"])

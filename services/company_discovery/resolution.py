@@ -5,9 +5,32 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity
+from services.applications.provider_registry import is_builtin_provider
 from services.company_discovery.aliases import normalize_alias
 from services.company_discovery.domains import VERIFIED_METHODS, is_aggregator_domain, normalize_domain
 from services.normalization.jobs import normalize_company_name
+from services.dedupe.routes import FIRST_PARTY_PROVIDERS
+
+
+def candidate_ats_provider(candidate):
+    """Normalize explicit platform identity; absent/conflicting labels fail closed.
+
+    A recognized label only scopes the lookup. It does not authorize a source;
+    the live enrollment gate still establishes employer identity.
+    """
+    providers = []
+    for key in ("ats_provider", "provider"):
+        if key not in candidate:
+            continue
+        value = candidate[key]
+        if not isinstance(value, str) or not value.isascii():
+            return None
+        value = value.strip().casefold()
+        if (value == "generic_html" or not value
+                or not (value in FIRST_PARTY_PROVIDERS or is_builtin_provider(value))):
+            return None
+        providers.append(value)
+    return providers[0] if providers and len(set(providers)) == 1 else None
 
 
 def _hostname(value):
@@ -55,6 +78,7 @@ def resolve_company(store, candidate):
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
     application_url = str(candidate.get("application_url") or "").strip()
     ats_tenant = str(candidate.get("ats_tenant") or candidate.get("tenant") or "").strip().casefold()
+    ats_provider = candidate_ats_provider(candidate)
     website_host = _hostname(website)
     application_host = _hostname(application_url)
     normalized_name = normalize_company_name(name)
@@ -67,7 +91,8 @@ def resolve_company(store, candidate):
         aliases = [dict(row) for row in connection.execute(select(m.company_aliases).where(
             m.company_aliases.c.verified.is_(True)
         )).mappings()]
-        matching_sources = [source for source in sources if ats_tenant
+        matching_sources = [source for source in sources if ats_tenant and ats_provider
+                            and source["provider"] == ats_provider
                             and str(source["tenant"] or "").casefold() == ats_tenant]
         if matching_sources:
             tenants = {row["id"]: dict(row) for row in connection.execute(
