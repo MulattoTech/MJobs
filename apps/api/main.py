@@ -36,6 +36,10 @@ from services.career_profile.durable_extraction import (
 )
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
+from services.discovery.sources.registry import (
+    DEFAULT_SOURCE_ADAPTER_REGISTRY,
+    SourceAdapterRegistry,
+)
 from services.discovery.search_profiles import (
     CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, FixtureSearchUnavailable, get_fixture_search_profile,
     get_search_profile, list_search_profiles, parse_utc_date_bound, save_search_profile,
@@ -53,6 +57,10 @@ from services.dedupe.routes import (load_job_routes, list_route_choices, plan_ap
 from services.dedupe.route_redirects import resolve_aggregator_redirect
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
+from services.applications.provider_registry import (
+    ApplicationAdapterRegistry,
+    DEFAULT_APPLICATION_ADAPTER_REGISTRY,
+)
 from services.ai.providers import AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter, fallback_capabilities
 from services.ai.cost_controls import AICostPolicy, CandidateScore
@@ -615,7 +623,10 @@ class CompanySourceWatchInput(BaseModel):
 
 class SourceInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
-    provider: Literal["greenhouse", "lever", "remotive", "remoteok", "wwr"] = "greenhouse"
+    provider: str = Field(
+        default="greenhouse", min_length=1, max_length=64,
+        pattern=r"^[a-z][a-z0-9_]{0,63}$",
+    )
     tenant: str = Field(min_length=1, max_length=87)
     enabled: bool = True
     poll_interval: int = Field(default=300, ge=300, le=604800)
@@ -629,7 +640,7 @@ class SourceInput(BaseModel):
         if self.provider == 'lever':
             from services.discovery.sources.lever import tenant_identity
             self.tenant = tenant_identity(self.tenant)
-        elif self.provider != "greenhouse" and self.tenant != "default":
+        elif self.provider in {"remotive", "remoteok", "wwr"} and self.tenant != "default":
             raise ValueError("Global sources use the canonical default tenant")
         return self
 
@@ -683,7 +694,10 @@ class SearchProfileInput(BaseModel):
     source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 
-def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0", operation_mode="PERSONAL"):
+def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0",
+               operation_mode="PERSONAL", *,
+               source_registry: SourceAdapterRegistry = DEFAULT_SOURCE_ADAPTER_REGISTRY,
+               application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
     operation_mode = parse_operation_mode(operation_mode)
     public_host = os.environ.get("MJOBS_PUBLIC_HOST", "").strip().lower()
     if public_host and ("." not in public_host or not re.fullmatch(
@@ -720,7 +734,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     from apps.api.application_confirmation_recovery import create_application_confirmation_recovery_router
     app.include_router(create_application_confirmation_recovery_router(store, mock_origin, operation_mode))
     from apps.api.application_form_review import create_application_form_review_router
-    app.include_router(create_application_form_review_router(store))
+    app.include_router(create_application_form_review_router(
+        store, registry=application_registry,
+    ))
     from apps.api.controlled_application_dry_run import create_controlled_application_dry_run_router
     app.include_router(create_controlled_application_dry_run_router(store))
     from apps.api.mock_dynamic_review import create_mock_dynamic_review_router
@@ -1566,7 +1582,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.put("/sources")
     def source_configure(value: SourceInput):
-        return {"id": configure_source(store, **value.model_dump())}
+        return {"id": configure_source(
+            store, **value.model_dump(), registry=source_registry,
+        )}
 
     @app.post("/sources/{source_id}/collect", status_code=202)
     def source_collect(source_id: str, value: DiscoveryInput):

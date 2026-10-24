@@ -306,3 +306,145 @@ def test_registry_construction_does_not_mutate_ai_provider_factory_witness():
     ApplicationAdapterRegistry([("fixture_app", lambda: None)])
 
     assert router.provider_factory is witness
+
+
+def test_api_runtime_threads_registry_snapshots_into_public_admission(monkeypatch, tmp_path):
+    from fastapi import APIRouter
+    from fastapi.testclient import TestClient
+
+    import apps.api.application_form_review as form_review_api
+    from apps.api.main import create_app
+    from packages.persistence.store import Store
+    from services.discovery.sources.contract import (
+        CollectionStrategy,
+        SourceCapabilities,
+        SourceCapability,
+    )
+
+    observed = {}
+
+    def capture_form_router(_store, *, registry=None):
+        observed["application_registry"] = registry
+        return APIRouter()
+
+    class SourceAdapter:
+        def capabilities(self):
+            return SourceCapabilities(
+                CollectionStrategy.API,
+                frozenset({SourceCapability.DISCOVERY}),
+            )
+
+    source_calls = []
+
+    def source_factory(source, **kwargs):
+        source_calls.append((dict(source), kwargs))
+        return SourceAdapter()
+
+    source_registry = SourceAdapterRegistry([("fixture_source", source_factory)])
+    application_registry = ApplicationAdapterRegistry([("fixture_app", lambda: object())])
+    monkeypatch.setattr(
+        form_review_api, "create_application_form_review_router", capture_form_router,
+    )
+
+    store = Store(f"sqlite:///{(tmp_path / 'api-runtime.db').as_posix()}")
+    store.migrate()
+    try:
+        app = create_app(
+            store, "http://127.0.0.1:1", tmp_path / "outputs",
+            operation_mode="PERSONAL", source_registry=source_registry,
+            application_registry=application_registry,
+        )
+        with TestClient(app) as client:
+            response = client.put("/sources", json={
+                "provider": "fixture_source",
+                "tenant": "fixture-tenant",
+            })
+        assert response.status_code == 200, response.text
+    finally:
+        store.engine.dispose()
+
+    assert observed["application_registry"] is application_registry
+    assert len(source_calls) == 1
+    assert source_calls[0][0]["provider"] == "fixture_source"
+
+
+def test_worker_runtime_threads_registry_snapshots_and_keeps_rq_entrypoint(monkeypatch, tmp_path):
+    import workers.tasks as tasks
+    from packages.persistence.store import Store
+    from services.discovery.sources.collect import configure_source
+    from services.discovery.sources.contract import (
+        CollectionStrategy,
+        SourceCapabilities,
+        SourceCapability,
+    )
+    from tests.integration.test_spine import PROFILE
+    from workers.dispatch import enqueue_operation
+
+    parameters = signature(tasks.execute_operation).parameters
+    assert parameters["source_registry"].default is DEFAULT_SOURCE_ADAPTER_REGISTRY
+    assert parameters["application_registry"].default is DEFAULT_APPLICATION_ADAPTER_REGISTRY
+
+    class SourceAdapter:
+        def capabilities(self):
+            return SourceCapabilities(
+                CollectionStrategy.API,
+                frozenset({SourceCapability.DISCOVERY}),
+            )
+
+    source_registry = SourceAdapterRegistry([
+        ("fixture_source", lambda _source, **_kwargs: SourceAdapter()),
+    ])
+    application_registry = ApplicationAdapterRegistry([
+        ("fixture_app", lambda: object()),
+    ])
+    database_url = f"sqlite:///{(tmp_path / 'worker-runtime.db').as_posix()}"
+    store = Store(database_url)
+    store.migrate()
+    store.bind_workspace_mode("PERSONAL")
+    store.save_profile(PROFILE)
+    source_id = configure_source(
+        store, "fixture-tenant", provider="fixture_source", registry=source_registry,
+    )
+    discovery_id = enqueue_operation(
+        store, "DISCOVER", "fixture",
+        {"source_id": source_id, "profile_ids": ["fixture"]},
+    )
+    review_id = enqueue_operation(
+        store, "APPLICATION_FORM_REVIEW", "application-1",
+        {"route_url": "https://fixture.invalid/jobs/1"},
+    )
+    observed = {}
+
+    def collect(_store, _source_id, _profile_id, **kwargs):
+        observed["source_registry"] = kwargs.get("registry")
+        return {"jobs_seen": 0}
+
+    def review(_store, _operation, **kwargs):
+        observed["application_registry"] = kwargs.get("registry")
+        return {"status": "ANALYZED"}
+
+    monkeypatch.setenv("MJOBS_DATABASE_URL", database_url)
+    monkeypatch.setenv("MJOBS_OPERATION_MODE", "PERSONAL")
+    monkeypatch.setenv("MJOBS_OUTPUT_DIR", str(tmp_path / "outputs"))
+    monkeypatch.setattr(tasks, "collect_source", collect)
+    monkeypatch.setattr(tasks, "recalculate", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(tasks, "handle_form_review", review)
+    monkeypatch.setattr(tasks, "log_operation_finished", lambda *_args, **_kwargs: None)
+    try:
+        discovery = tasks.execute_operation(
+            discovery_id, source_registry=source_registry,
+            application_registry=application_registry,
+        )
+        form_review = tasks.execute_operation(
+            review_id, source_registry=source_registry,
+            application_registry=application_registry,
+        )
+    finally:
+        store.engine.dispose()
+
+    assert discovery["status"] == "COMPLETED"
+    assert form_review["status"] == "COMPLETED"
+    assert observed == {
+        "source_registry": source_registry,
+        "application_registry": application_registry,
+    }
