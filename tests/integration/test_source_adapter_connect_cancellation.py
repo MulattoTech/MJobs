@@ -114,7 +114,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     self.assertEqual(adapter.search().items, ())
                 self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
 
-    def run_source(self, provider, mode, *, tenant=None, pre_collection_delay=0):
+    def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0):
         tenant = tenant or source_tenant(provider)
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
@@ -128,24 +128,26 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             original_connect = socket.socket.connect
             original_connect_ex = socket.socket.connect_ex
             errors, outcome = [], []
+            worker_ready = threading.Event()
+            worker_ready_at = []
             collection_ready = threading.Event()
             collection_release = threading.Event()
+            deadline_started_at = []
             worker = None
 
             def observe_collect_source(*args, **kwargs):
-                # Keep worker/SQLite setup outside the socket-entry oracle while
-                # preserving the real collector and its one-second TCP bound.
-                if pre_collection_delay:
-                    time.sleep(pre_collection_delay)
+                # This is a sticky, non-blocking observation after the production
+                # deadline has started. Never wait here: scheduler delay belongs
+                # to the test coordinator, not the production worker's deadline.
+                state["collection_entered_at"] = time.monotonic()
                 collection_ready.set()
-                if not collection_release.wait(5):
-                    raise AssertionError("Test did not release source collection")
                 return original_collect_source(*args, **kwargs)
 
             def observe_connect(connection, address):
                 if mode != "positive" and address[:2] == state["address"]:
                     state["connects"] += 1
                     state["connecting_socket"] = connection
+                    state["connect_entered_at"] = time.monotonic()
                     engaged.set()
                 return original_connect(connection, address)
 
@@ -154,8 +156,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 if mode != "positive" and address[:2] == state["address"]:
                     state["connects"] += 1
                     state["connecting_socket"] = connection
+                    state["connect_entered_at"] = time.monotonic()
                     engaged.set()
                 return status
+
+            def record_timeout():
+                # workers.tasks immediately adds this duration to monotonic time
+                # to construct its operation deadline.
+                deadline_started_at.append(time.monotonic())
+                return .8 if mode == "deadline" else 30
 
             with source as (endpoint, engaged, state), ExitStack() as endpoints, patch.dict(os.environ, {
                     "MJOBS_DATABASE_URL": url, "MJOBS_OPERATION_MODE": "FIXTURE",
@@ -163,7 +172,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             }), patch("socket.socket.connect", new=observe_connect), patch(
                     "socket.socket.connect_ex", new=observe_connect_ex), patch(
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
-                    "workers.tasks.timeout", return_value=.8 if mode == "deadline" else 30):
+                    "workers.tasks.timeout", side_effect=record_timeout):
                 if provider == "lever":
                     from services.discovery.sources.lever import endpoint as production_endpoint
                     # Resolve the real regional endpoint first; only replace its origin.
@@ -191,6 +200,12 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
                     def execute():
                         try:
+                            # This gate is deliberately before execute_operation,
+                            # where workers.tasks creates its deadline.
+                            worker_ready_at.append(time.monotonic())
+                            worker_ready.set()
+                            if not collection_release.wait(5):
+                                raise AssertionError("Test did not release worker before operation entry")
                             outcome.append(execute_operation(identifier))
                         except BaseException as error:
                             errors.append(type(error).__name__)
@@ -199,11 +214,26 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     started = time.monotonic()
                     worker.start()
                     try:
+                        self.assertTrue(worker_ready.wait(3),
+                            f"{provider} worker never reached pre-deadline gate; "
+                            f"errors={errors}; outcomes={len(outcome)}")
+                        if coordinator_delay:
+                            time.sleep(coordinator_delay)
+                        collection_release.set()
                         self.assertTrue(collection_ready.wait(3),
                             f"{provider} worker never reached source collection; "
                             f"errors={errors}; outcomes={len(outcome)}")
-                        collection_release.set()
-                        self.assertTrue(engaged.wait(1), f"{provider} never reached owned TCP boundary")
+                        if mode != "positive":
+                            self.assertTrue(engaged.wait(1), f"{provider} never reached owned TCP boundary")
+                        if coordinator_delay:
+                            self.assertGreater(coordinator_delay, .8)
+                            self.assertEqual(len(deadline_started_at), 1)
+                            self.assertGreater(deadline_started_at[0] - worker_ready_at[0], .8,
+                                "Forced coordinator delay must precede deadline construction")
+                            self.assertLess(state["collection_entered_at"] - deadline_started_at[0], .8,
+                                "Source collection entry must occur within the new deadline")
+                            self.assertLess(state["connect_entered_at"] - deadline_started_at[0], .8,
+                                "TCP connect entry must not inherit coordinator scheduling delay")
                         pending = None
                         if mode == "cancel":
                             connection = state["connecting_socket"]
@@ -295,8 +325,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
     def test_lever_eu_public_cancel_during_real_tcp_connect(self):
         self.run_source("lever", "cancel", tenant="eu:synthetic")
 
-    def test_lever_eu_public_cancel_after_delayed_worker_setup(self):
-        self.run_source("lever", "cancel", tenant="eu:synthetic", pre_collection_delay=1.05)
+    def test_lever_eu_deadline_survives_delayed_coordinator_before_worker_entry(self):
+        self.run_source("lever", "deadline", tenant="eu:synthetic", coordinator_delay=1.05)
 
     def test_lever_global_finite_deadline_during_real_tcp_connect(self):
         self.run_source("lever", "deadline", tenant="global:synthetic")
