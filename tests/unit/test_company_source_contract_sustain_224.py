@@ -163,6 +163,8 @@ class CompanySourceContractSustain224Tests(unittest.TestCase):
             "userinfo": "https://user@job-boards.greenhouse.io/acme/jobs/101",
             "disallowed-port": "https://job-boards.greenhouse.io:444/acme/jobs/101",
             "cross-tenant": "https://job-boards.greenhouse.io/other/jobs/101",
+            "literal-traversal": "https://job-boards.greenhouse.io/acme/../other/jobs/101",
+            "encoded-traversal": "https://job-boards.greenhouse.io/acme/%2e%2e/other/jobs/101",
         }
         for case, url in invalid_urls.items():
             with self.subTest(case=case), self.assertRaises(SourceError) as raised:

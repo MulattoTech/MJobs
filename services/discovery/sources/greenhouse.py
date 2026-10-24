@@ -5,7 +5,7 @@ import math
 import re
 import threading
 import time
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from bs4 import BeautifulSoup
 import httpx
@@ -272,10 +272,12 @@ class Greenhouse:
             return ""
         try:
             parsed = urlsplit(url)
-            path = parsed.path.split("/")
+            decoded_path = unquote(parsed.path)
+            path = decoded_path.split("/")
             if (parsed.scheme != "https"
                     or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io")
                     or parsed.username or parsed.password or parsed.port not in (None, 443)
+                    or "\\" in decoded_path or any(segment in (".", "..") for segment in path)
                     or len(path) < 2 or path[1].casefold() != self.tenant):
                 raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
         except ValueError:
