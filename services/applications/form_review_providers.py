@@ -4,13 +4,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 import re
 
-from services.applications.adapters.ashby import AshbyApplicationAdapter
-from services.applications.adapters.lever import LeverApplicationAdapter
-from services.applications.adapters.recruitee import RecruiteeApplicationAdapter
-from services.applications.adapters.workday_forms import analyze_workday_form_html
-from services.applications.adapters.lever_markup import analyze_lever_markup
 from services.applications.form_review import analyze_form_html
-from services.applications.provider_registry import get_provider, normalize_route
+from services.applications.provider_registry import (
+    get_provider, is_builtin_provider, normalize_route,
+)
 from services.applications.workday_dynamic_review import project_workday_dynamic_review
 
 
@@ -27,6 +24,12 @@ _ASCII_ROUTE_PROVIDERS = frozenset({
     "greenhouse", "lever", "ashby", "breezy",
 })
 _RAW_ROUTE_IDENTITY = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://([^/?#]*)([^?#]*)")
+
+
+def analyze_workday_form_html(html):
+    """Lazy, patchable boundary for the optional Workday form analyzer."""
+    from services.applications.adapters.workday_forms import analyze_workday_form_html as analyze
+    return analyze(html)
 
 
 def _provider_name(provider):
@@ -60,12 +63,13 @@ def _raw_route_identity_valid(provider, route_url, route_metadata):
     return True
 
 
-def normalize_application_route(provider, route_url, *, route_metadata=None) -> dict | None:
+def normalize_application_route(provider, route_url, *, route_metadata=None,
+                                registry=None) -> dict | None:
     """Normalize only routes accepted by the selected ATS adapter."""
     normalized_provider = _provider_name(provider)
     if not _raw_route_identity_valid(normalized_provider, route_url, route_metadata):
         return None
-    if get_provider(normalized_provider) is None:
+    if get_provider(normalized_provider, registry=registry) is None:
         return None
     route = {
         "provider": normalized_provider,
@@ -89,7 +93,7 @@ def normalize_application_route(provider, route_url, *, route_metadata=None) -> 
                 if not isinstance(value, str) or not value:
                     return None
                 route[key] = value
-    return normalize_route(normalized_provider, route)
+    return normalize_route(normalized_provider, route, registry=registry)
 
 
 def _safe_identifier(value):
@@ -160,14 +164,14 @@ def _contact_provider_report(analysis, adapter_type) -> dict:
     return {"status": "ANALYZED", "reason": None, "fields": fields}
 
 
-def _lever_report(analysis) -> dict:
+def _lever_report(analysis, adapter_type) -> dict:
     """Project Lever analyzer output using Lever's prompt allowlist."""
-    return _contact_provider_report(analysis, LeverApplicationAdapter)
+    return _contact_provider_report(analysis, adapter_type)
 
 
-def _recruitee_report(analysis) -> dict:
+def _recruitee_report(analysis, adapter_type) -> dict:
     """Project Recruitee analyzer output using Recruitee's stricter prompt policy."""
-    return _contact_provider_report(analysis, RecruiteeApplicationAdapter)
+    return _contact_provider_report(analysis, adapter_type)
 
 
 def _workday_report(analysis) -> dict:
@@ -240,17 +244,19 @@ def _workday_report(analysis) -> dict:
     return report
 
 
-def analyze_application_form(provider, html, *, route_url) -> dict:
+def analyze_application_form(provider, html, *, route_url, registry=None) -> dict:
     """Validate a public ATS route and analyze supplied HTML locally.
 
     This function performs no fetching, storage, browser interaction, or
     submission. Unknown providers and unsupported routes return fixed codes.
     """
     normalized_provider = _provider_name(provider)
-    adapter = get_provider(normalized_provider)
+    adapter = get_provider(normalized_provider, registry=registry)
     if adapter is None:
         return {"status": "REVIEW_REQUIRED", "reason": "PROVIDER_UNSUPPORTED", "fields": []}
-    route = normalize_application_route(normalized_provider, route_url)
+    route = normalize_application_route(
+        normalized_provider, route_url, registry=registry,
+    )
     if route is None:
         return {"status": "REVIEW_REQUIRED", "reason": "ROUTE_UNSUPPORTED", "fields": []}
 
@@ -260,7 +266,7 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
                 normalized_provider, html, route_url=route["url"],
             )
         if normalized_provider == "ashby":
-            return AshbyApplicationAdapter().analyze_form(html, route_url=route["url"])
+            return adapter.analyze_form(html, route_url=route["url"])
         if normalized_provider == "workday":
             return _workday_report(analyze_workday_form_html(html))
         if normalized_provider == "breezy":
@@ -275,14 +281,19 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
         if normalized_provider == "generic_html":
             # Its bounded control API does not claim HTML extraction support.
             return {"status": "REVIEW_REQUIRED", "reason": "FORM_SEMANTICS_UNSUPPORTED", "fields": []}
+        if not is_builtin_provider(normalized_provider, registry=registry):
+            return _contact_provider_report(
+                adapter.analyze_form(html, route_url=route["url"]), type(adapter),
+            )
         # The durable worker supplies bounded response bytes. Lever's static
         # markup parser accepts text, so decode locally and fail closed on malformed text.
+        from services.applications.adapters.lever_markup import analyze_lever_markup
         markup = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
         analysis = analyze_lever_markup(markup)
         if normalized_provider == "recruitee":
-            return _recruitee_report(analysis)
+            return _recruitee_report(analysis, type(adapter))
         if normalized_provider == "lever":
-            return _lever_report(analysis)
+            return _lever_report(analysis, type(adapter))
         return {"status": "REVIEW_REQUIRED", "reason": "FORM_SEMANTICS_UNSUPPORTED", "fields": []}
     except Exception:
         # Parser exception text is untrusted and may contain supplied markup.
