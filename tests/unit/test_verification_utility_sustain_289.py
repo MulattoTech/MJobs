@@ -60,8 +60,37 @@ def test_browser_pass_with_submit_activity_is_rejected(tmp_path):
         validate_report(report, expected, pid=123)
 
 
-@pytest.mark.parametrize(("submission_count", "accepted"), [(1, True), (2, False)])
-def test_duplicate_protection_pass_requires_one_durable_mock_receipt(tmp_path, submission_count, accepted):
+@pytest.mark.parametrize(
+    "missing_evidence",
+    ["Dry-run mode functional", "mock application fill", "dry_run_submission_count"],
+)
+def test_browser_pass_requires_each_supporting_evidence(tmp_path, missing_evidence):
+    expected, report = current_evidence(tmp_path)
+    for check_name in ("Browser worker healthy", "Dry-run mode functional", "mock application fill"):
+        report["checks"][check_name] = {"status": "PASS", "reason": "executed fixture evidence"}
+    report["observations"]["dry_run_submission_count"] = 0
+
+    if missing_evidence in report["checks"]:
+        report["checks"][missing_evidence] = {"status": "NOT_RUN", "reason": "not executed"}
+    else:
+        del report["observations"][missing_evidence]
+
+    with pytest.raises(ValueError, match="browser execution evidence missing"):
+        validate_report(report, expected, pid=123)
+
+
+@pytest.mark.parametrize("submission_count", [False, "0", 0.0])
+def test_browser_pass_rejects_non_integer_zero_submission_counts(tmp_path, submission_count):
+    expected, report = current_evidence(tmp_path)
+    for check_name in ("Browser worker healthy", "Dry-run mode functional", "mock application fill"):
+        report["checks"][check_name] = {"status": "PASS", "reason": "executed fixture evidence"}
+    report["observations"]["dry_run_submission_count"] = submission_count
+
+    with pytest.raises(ValueError, match="browser execution evidence missing"):
+        validate_report(report, expected, pid=123)
+
+
+def duplicate_receipt_evidence(tmp_path, submission_count):
     expected, report = current_evidence(tmp_path)
     workspace = Path(expected["workspace"])
     workspace.mkdir()
@@ -96,6 +125,24 @@ def test_duplicate_protection_pass_requires_one_durable_mock_receipt(tmp_path, s
         canonical_jobs=2,
         submission_count=submission_count,
     )
+    return expected, report
+
+
+@pytest.mark.parametrize(
+    ("submission_count", "missing_check", "accepted"),
+    [
+        (1, None, True),
+        (2, None, False),
+        (1, "mock confirmation", False),
+        (1, "mock global source", False),
+    ],
+)
+def test_duplicate_protection_pass_requires_durable_receipt_and_prerequisites(
+    tmp_path, submission_count, missing_check, accepted
+):
+    expected, report = duplicate_receipt_evidence(tmp_path, submission_count)
+    if missing_check:
+        report["checks"][missing_check] = {"status": "NOT_RUN", "reason": "not executed"}
 
     if accepted:
         validate_report(report, expected, pid=123)
