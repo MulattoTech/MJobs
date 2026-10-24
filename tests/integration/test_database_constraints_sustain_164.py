@@ -120,6 +120,23 @@ def _profile_restore_normalized_states(root):
     return states
 
 
+def _audit_history_application_states(root):
+    path = root / "services/audit_history.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    for node in tree.body:
+        if (isinstance(node, ast.Assign)
+                and any(isinstance(target, ast.Name) and target.id == "_APPLICATION_EVENTS"
+                        for target in node.targets)
+                and isinstance(node.value, ast.Dict)):
+            return {
+                key.value
+                for key in node.value.keys
+                if (isinstance(key, ast.Constant) and isinstance(key.value, str)
+                    and "_" not in key.value)
+            }
+    raise AssertionError("Expected bounded audit-history application event mapping")
+
+
 def _application_write_boundary_paths(root):
     paths = set()
     for base in (root / "services", root / "packages"):
@@ -464,6 +481,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
         ambiguous_states = _profile_restore_state_set(root, "ambiguous_states")
         terminal_states = _profile_restore_state_set(root, "terminal_states")
         normalized_states = _profile_restore_normalized_states(root)
+        audit_history_states = _audit_history_application_states(root)
 
         self.assertEqual(
             _application_write_boundary_paths(root),
@@ -484,6 +502,7 @@ class DatabaseConstraintMigrationTests(unittest.TestCase):
             set(migration.APPLICATION_STATES),
             writer_states | terminal_states | set(migration.LEGACY_APPLICATION_STATES),
         )
+        self.assertTrue(audit_history_states.issubset(migration.APPLICATION_STATES))
         self.assertIn("SUBMISSION_UNCONFIRMED", migration.APPLICATION_STATES)
 
     def test_upgrade_downgrade_and_reupgrade_preserve_valid_rows(self):

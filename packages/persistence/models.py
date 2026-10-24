@@ -540,7 +540,7 @@ source_quality_observations = table("source_quality_observations",
 Index("ix_quality_configured_time", source_quality_observations.c.configured_source_id, source_quality_observations.c.observed_at)
 Index("ix_quality_company_time", source_quality_observations.c.company_source_id, source_quality_observations.c.observed_at)
 APPLICATION_STATES = (
-    "DRAFT", "PREPARED", "FILLING", "AUTH_REQUIRED", "USER_INTERVENTION_REQUIRED",
+    "DRAFT", "QUEUED", "STARTED", "PREPARED", "FILLING", "AUTH_REQUIRED", "USER_INTERVENTION_REQUIRED",
     "READY_TO_SUBMIT", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "SUBMITTING",
     "SUBMISSION_UNCONFIRMED", "CONFIRMED", "EXTERNALLY_APPLIED", "FAILED", "CANCELLED",
     "REJECTED", "BLOCKED", "DEAD_LETTERED", "DISCARDED", "UNKNOWN",

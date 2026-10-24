@@ -39,7 +39,13 @@ RESTORED_TERMINAL_APPLICATION_STATES = (
     "DISCARDED",
     "UNKNOWN",
 )
-LEGACY_APPLICATION_STATES = ("DRAFT",)
+LEGACY_APPLICATION_STATES = (
+    "DRAFT",
+    # Store.transition historically persisted these preparation lifecycle labels,
+    # and services.audit_history still renders them as first-class application events.
+    "QUEUED",
+    "STARTED",
+)
 DEPRECATED_AMBIGUOUS_APPLICATION_STATES = (
     "SUBMISSION_CONFIRMED",
     "APPLICATION_SUBMITTED",
