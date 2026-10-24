@@ -20,7 +20,7 @@ from services.company_discovery.requests import record_discovery_requests
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
-from services.discovery.sources.greenhouse import SourceError, tenant_identifier
+from services.discovery.sources.greenhouse import Greenhouse, SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
 from services.discovery.search_semantics import normalize_reported_timestamp, parse_timestamp
 
@@ -178,6 +178,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         adapter: SourceAdapter = source_adapter(
             source, transport=transport, check=check, registry=registry,
         )
+        if isinstance(adapter, Greenhouse):
+            adapter.set_authoritative_tenant_binding(bound is not None)
         connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(last_attempt=timestamp, health_status="COLLECTING"))
     available = None
     observed_endpoint = None
