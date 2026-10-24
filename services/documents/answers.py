@@ -32,6 +32,9 @@ _QUESTION_NEGATION = re.compile(
 
 _EXPORT_LOCKS_GUARD = Lock()
 _EXPORT_LOCKS = {}
+_APPLICATION_ID = re.compile(r"[0-9a-f]{64}\Z")
+_EXPORT_FILE = re.compile(r"[0-9a-f]{64}-[0-9a-f]{64}\.txt\Z")
+_PATH_ERROR = "ANSWER_EXPORT_PATH_INVALID"
 
 DEFAULT_ANSWER_CONFIDENCE_POLICY = {
     "minimum_saved_answer_confidence": 80,
@@ -100,6 +103,76 @@ def _export_lock(application_id):
     # PostgreSQL also takes an advisory transaction lock to cover other workers.
     with _EXPORT_LOCKS_GUARD:
         return _EXPORT_LOCKS.setdefault(application_id, Lock())
+
+
+def _has_reparse_component(path: Path) -> bool:
+    """Reject filesystem aliases before a private export path is resolved."""
+    try:
+        absolute = path.absolute()
+        current = Path(absolute.anchor)
+        for part in absolute.parts[1:]:
+            current = current / part
+            if (current.is_symlink()
+                    or (hasattr(current, "is_junction") and current.is_junction())):
+                return True
+        return False
+    except (OSError, RuntimeError, ValueError):
+        return True
+
+
+def _answer_export_application_root(output_dir, application_id):
+    if (not isinstance(application_id, str)
+            or not _APPLICATION_ID.fullmatch(application_id)):
+        raise ValueError(_PATH_ERROR)
+    application_path_id = os.path.basename(application_id)
+    if application_path_id != application_id:
+        raise ValueError(_PATH_ERROR)
+    try:
+        configured_root = Path(output_dir)
+        configured_application_root = configured_root / application_path_id
+        configured_paths = (configured_root, configured_application_root)
+        if any(_has_reparse_component(path) for path in configured_paths):
+            raise ValueError(_PATH_ERROR)
+        root = os.path.realpath(configured_root)
+        application_root = os.path.realpath(configured_application_root)
+        root_prefix = root.rstrip(os.sep) + os.sep
+        if (any(_has_reparse_component(path) for path in configured_paths)
+                or not application_root.startswith(root_prefix)):
+            raise ValueError(_PATH_ERROR)
+        return Path(root), Path(application_root)
+    except (OSError, RuntimeError, TypeError, ValueError) as exc:
+        if isinstance(exc, ValueError) and str(exc) == _PATH_ERROR:
+            raise
+        raise ValueError(_PATH_ERROR) from None
+
+
+def _answer_export_path(application_root, version, file_name):
+    if (type(version) is not int or version < 1
+            or not isinstance(file_name, str)
+            or not _EXPORT_FILE.fullmatch(file_name)):
+        raise ValueError(_PATH_ERROR)
+    try:
+        answers_root = application_root / "answers"
+        version_root = answers_root / str(version)
+        path = version_root / file_name
+        configured_paths = (application_root, answers_root, version_root, path)
+        if any(_has_reparse_component(candidate) for candidate in configured_paths):
+            raise ValueError(_PATH_ERROR)
+
+        canonical_application_root = Path(os.path.realpath(application_root))
+        canonical_answers_root = Path(os.path.realpath(answers_root))
+        canonical_version_root = Path(os.path.realpath(version_root))
+        canonical_path = Path(os.path.realpath(path))
+        if (any(_has_reparse_component(candidate) for candidate in configured_paths)
+                or not canonical_answers_root.is_relative_to(canonical_application_root)
+                or not canonical_version_root.is_relative_to(canonical_answers_root)
+                or not canonical_path.is_relative_to(canonical_version_root)):
+            raise ValueError(_PATH_ERROR)
+        return canonical_path
+    except (OSError, RuntimeError, TypeError, ValueError) as exc:
+        if isinstance(exc, ValueError) and str(exc) == _PATH_ERROR:
+            raise
+        raise ValueError(_PATH_ERROR) from None
 
 
 def normalize_question(value):
@@ -194,10 +267,7 @@ def match_answer_question(question, saved_question, minimum_confidence=0.75):
 
 
 def export_answers(store, application_id, output_dir, items):
-    root = Path(output_dir).resolve()
-    application_root = (root / application_id).resolve()
-    if not application_root.is_relative_to(root):
-        raise ValueError("Application output path is invalid")
+    _root, application_root = _answer_export_application_root(output_dir, application_id)
     application_root.mkdir(parents=True, exist_ok=True)
     with _export_lock(application_id):
         with store.engine.begin() as connection:
@@ -283,11 +353,11 @@ def export_answers(store, application_id, output_dir, items):
             version = (latest or 0) + 1
             document_id = identity(application_id, "application-answer-export", version)
             digest = hashlib.sha256(content).hexdigest()
-            relative = f"answers/{version}/{document_id}-{digest}.txt"
-            path = (application_root / relative).resolve()
-            if not path.is_relative_to(application_root):
-                raise ValueError("Answer export storage path is invalid")
+            file_name = f"{document_id}-{digest}.txt"
+            relative = f"answers/{version}/{file_name}"
+            path = _answer_export_path(application_root, version, file_name)
             path.parent.mkdir(parents=True, exist_ok=True)
+            path = _answer_export_path(application_root, version, file_name)
             # Content-address the immutable path so a crash after file creation
             # but before the DB commit cannot poison a later attempt at this
             # version. Reuse only byte-identical output at the same digest path.
@@ -299,12 +369,14 @@ def export_answers(store, application_id, output_dir, items):
                 # Write to a unique same-directory temporary file and atomically
                 # promote it only after all bytes are present. A crash during the
                 # write leaves no partial file at the immutable revision path.
+                path = _answer_export_path(application_root, version, file_name)
                 temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
                 try:
                     with temporary.open("xb") as output:
                         output.write(content)
                         output.flush()
                         os.fsync(output.fileno())
+                    path = _answer_export_path(application_root, version, file_name)
                     os.replace(temporary, path)
                 finally:
                     temporary.unlink(missing_ok=True)
