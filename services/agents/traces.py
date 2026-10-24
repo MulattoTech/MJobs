@@ -11,6 +11,7 @@ from packages.persistence import models as m
 
 
 MAX_AGENT_STEPS = 20
+MAX_DIAGNOSTIC_ATTEMPTS = 3
 _RUN_ID = re.compile(r"^[0-9a-f]{32}$")
 _TERMINAL_STATES = {"COMPLETED", "REVIEW_REQUIRED", "REJECTED", "FAILED", "CANCELLED",
                     "LIMIT_REACHED", "AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED",
@@ -90,6 +91,24 @@ def append_agent_event(store, run_id: str, action: str, payload: dict) -> dict:
             raise ValueError("Agent run already has a terminal result")
         if action == "AGENT_RUN_STARTED" and rows:
             raise ValueError("Agent run already exists")
+        if action in {"AGENT_RUN_STARTED", "AGENT_RUN_TERMINAL"}:
+            has_diagnostic_id = "diagnostic_id" in payload
+            has_diagnostic_attempt = "diagnostic_attempt" in payload
+            if has_diagnostic_id != has_diagnostic_attempt:
+                raise ValueError("Diagnostic trace metadata must include identifier and attempt")
+            if has_diagnostic_id:
+                diagnostic_id = payload.get("diagnostic_id")
+                attempt = payload.get("diagnostic_attempt")
+                if (not isinstance(diagnostic_id, str) or not _RUN_ID.fullmatch(diagnostic_id)
+                        or type(attempt) is not int
+                        or not 1 <= attempt <= MAX_DIAGNOSTIC_ATTEMPTS):
+                    raise ValueError("Diagnostic trace metadata is invalid")
+            if action == "AGENT_RUN_TERMINAL":
+                started = next(row["payload"] for row in rows
+                               if row["action"] == "AGENT_RUN_STARTED")
+                if (started.get("diagnostic_id"), started.get("diagnostic_attempt")) != (
+                        payload.get("diagnostic_id"), payload.get("diagnostic_attempt")):
+                    raise ValueError("Diagnostic terminal metadata must match its run start")
         if action == "AGENT_TOOL_STEP":
             step = payload.get("step")
             steps = [row for row in rows if row["action"] == "AGENT_TOOL_STEP"]
@@ -118,6 +137,16 @@ def read_agent_trace(store, run_id: str) -> dict:
         raise ValueError("Agent run is unavailable")
     result = {"run_id": run_id, "started_at": rows[0]["timestamp"], "steps": [],
               "terminal": None, "proposal_events": []}
+    started = rows[0]["payload"]
+    result["run_limits"] = {
+        "step_limit": started.get("step_limit"),
+        "max_duration_ms": started.get("max_duration_ms"),
+        "max_pages": started.get("max_pages"),
+        "success_artifact": started.get("success_artifact"),
+    }
+    if "diagnostic_id" in started:
+        result["diagnostic"] = {"id": started["diagnostic_id"],
+                                "attempt": started["diagnostic_attempt"]}
     for row in rows[1:]:
         payload = dict(row["payload"])
         if row["action"] == "AGENT_TOOL_STEP":

@@ -426,6 +426,27 @@ def list_company_source_view(store, profile_id=None):
         tenants = {row["id"]: dict(row) for row in c.execute(select(m.company_ats_tenants).where(
             m.company_ats_tenants.c.company_id.in_(company_ids))).mappings()}
         qualities = {row['id']: company_source_quality(c, row) for row in rows}
+        current_availability = m.source_quality_observations.join(
+            m.company_sources,
+            (m.source_quality_observations.c.company_source_id == m.company_sources.c.id)
+            & (m.source_quality_observations.c.source_endpoint == m.company_sources.c.endpoint),
+        )
+        availability_ranked = select(
+            m.source_quality_observations.c.company_source_id,
+            m.source_quality_observations.c.available,
+            func.row_number().over(
+                partition_by=m.source_quality_observations.c.company_source_id,
+                order_by=(m.source_quality_observations.c.observed_at.desc(),
+                          m.source_quality_observations.c.id.desc()),
+            ).label("rank"),
+        ).select_from(current_availability).where(
+            m.company_sources.c.id.in_(ids),
+            m.source_quality_observations.c.available.is_not(None),
+        ).subquery()
+        latest_availability = dict(c.execute(select(
+            availability_ranked.c.company_source_id,
+            availability_ranked.c.available,
+        ).where(availability_ranked.c.rank == 1)).all())
         from services.company_discovery.monitoring import _validate, _profiles, source_version, supported_source
         from services.company_discovery.public_client import PublicFetchError
         monitors = {row['source_id']: dict(row) for row in c.execute(select(m.company_source_monitoring).where(
@@ -453,7 +474,9 @@ def list_company_source_view(store, profile_id=None):
         tenant = tenants.get(row["ats_tenant_id"], {})
         confidence = row["confidence"]
         valid_confidence = type(confidence) in (int, float) and math.isfinite(confidence) and 0 <= confidence <= 1
-        review = not valid_confidence or confidence < 0.75
+        quality = qualities[row['id']]
+        review = (not valid_confidence or confidence < 0.75
+                  or latest_availability.get(row['id']) is False)
         result.append({
             "id": row["id"], "company_id": row["company_id"], "company_name": row["company_name"],
             "profile_id": profile_id,
@@ -473,7 +496,7 @@ def list_company_source_view(store, profile_id=None):
             "monitoring": {key: value for key, value in monitors.get(row['id'], {}).items()
                 if key in {'request_timeout','rate_limit','concurrency','jitter_seconds','revision','enabled','poll_interval','status','failure_count','last_attempt','next_due','last_error',
                            'operation_id','rediscovery_operation_id','authorization'}} or None,
-            "quality": qualities[row['id']],
+            "quality": quality,
             "provenance": {
                 "domain_method": domain["verification_method"] if domain else None,
                 "domain_candidates_ambiguous": len(verified) > 1 and domain is None,

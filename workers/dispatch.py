@@ -12,10 +12,14 @@ from services.audit_history import record_application_preparation_event
 from workers.operations import QUEUES, recover_expired, timeout
 
 
-def enqueue_operation(store, kind, entity_id, params, *, connection=None, preparation_priority=None):
+def enqueue_operation(store, kind, entity_id, params, *, connection=None, preparation_priority=None,
+                      task_key=None):
     if kind not in QUEUES:
         raise ValueError("Unsupported operation kind")
-    operation_id = identity(kind, entity_id, params)
+    if task_key is not None and (not isinstance(task_key, str) or not task_key or len(task_key) > 256):
+        raise ValueError("Invalid task key")
+    operation_id = (identity("operation-task", kind, task_key)
+                    if task_key is not None else identity(kind, entity_id, params))
     saved_params = {**params, "preparation_priority": preparation_priority} if preparation_priority else params
     values = {"id": operation_id, "kind": kind, "entity_id": entity_id,
         "params": saved_params, "state": "QUEUED", "error": None, "updated_at": now()}
@@ -51,6 +55,11 @@ def enqueue_operation(store, kind, entity_id, params, *, connection=None, prepar
             if target_fingerprint(job) != preparation_priority["job_fingerprint"]:
                 raise ValueError("PREPARATION_INPUT_CHANGED")
         upsert(conn, m.operations, values)
+        if task_key is not None:
+            persisted = conn.execute(select(m.operations.c.kind, m.operations.c.entity_id).where(
+                m.operations.c.id == operation_id)).mappings().one()
+            if persisted["kind"] != kind or persisted["entity_id"] != entity_id:
+                raise ValueError("TASK_IDENTITY_CONFLICT")
         _record_queued_preparation(conn, kind, entity_id, params, operation_id)
         return operation_id
     if connection is None:
@@ -84,7 +93,7 @@ def _pending_operations(connection):
     return [next(preparations) if row["kind"] == "PREPARE" else row for row in rows]
 
 
-def dispatch_pending(store, redis_url):
+def dispatch_pending(store, redis_url, *, registry_module=None):
     recover_expired(store)
     redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
     try:
@@ -106,8 +115,12 @@ def dispatch_pending(store, redis_url):
                     job.delete()
                 except NoSuchJobError:
                     pass
-                Queue(QUEUES[row["kind"]], connection=redis).enqueue("workers.tasks.execute_operation", row["id"], job_id=row["id"], job_timeout=timeout(),
-                              result_ttl=86400, failure_ttl=86400)
+                task_options = ({"registry_module": registry_module}
+                                if registry_module is not None else {})
+                Queue(QUEUES[row["kind"]], connection=redis).enqueue(
+                    "workers.tasks.execute_operation", row["id"], **task_options,
+                    job_id=row["id"], job_timeout=timeout(),
+                    result_ttl=86400, failure_ttl=86400)
                 count += 1
         return {"status": "DISPATCHED", "count": count}
     except RedisError:

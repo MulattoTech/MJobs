@@ -257,8 +257,23 @@ def _evaluate_education(job: Mapping[str, Any], profile: Mapping[str, Any]) -> t
                 if isinstance(text, str) and text.strip():
                     degrees.append(text.casefold())
 
-    has_degree = any("bachelor" in d or "master" in d or "degree" in d for d in degrees)
     has_noncompletion = any("incomplete" in d or "not completed" in d for d in degrees)
+    has_degree = any(
+        ("bachelor" in degree or "master" in degree or "degree" in degree)
+        and "incomplete" not in degree
+        and "not completed" not in degree
+        for degree in degrees
+    )
+
+    # A preferred degree is a bonus, not a mandatory qualification. Keep an
+    # unmet preference neutral instead of applying the required-degree penalty.
+    if not has_degree and edu_req.upper().endswith("_PREFERRED"):
+        return (
+            60.0,
+            "Candidate does not confirm a degree listed as preferred; "
+            "no required-qualification penalty applies.",
+            {"source": "EDUCATION_PREFERRED"},
+        )
 
     if has_noncompletion and not has_degree:
         return 20.0, "Candidate notes incomplete degree while posting specifies an education requirement.", {"source": "EDUCATION_FACTS"}

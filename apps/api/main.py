@@ -3,6 +3,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import threading
 from contextlib import asynccontextmanager
 from dataclasses import asdict
@@ -35,8 +36,15 @@ from services.career_profile.durable_extraction import (
 )
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
+from services.discovery.sources.registry import (
+    configured_extension_registry_module,
+    configured_source_registry,
+    DEFAULT_SOURCE_ADAPTER_REGISTRY,
+    SourceAdapterRegistry,
+)
 from services.discovery.search_profiles import (
-    CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, FixtureSearchUnavailable, get_fixture_search_profile, get_search_profile, list_search_profiles, save_search_profile,
+    CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, FixtureSearchUnavailable, get_fixture_search_profile,
+    get_search_profile, list_search_profiles, parse_utc_date_bound, save_search_profile,
 )
 from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
 from services.tracking.applications import PIPELINE_STATUSES
@@ -51,6 +59,11 @@ from services.dedupe.routes import (load_job_routes, list_route_choices, plan_ap
 from services.dedupe.route_redirects import resolve_aggregator_redirect
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
+from services.applications.provider_registry import (
+    ApplicationAdapterRegistry,
+    configured_application_registry,
+    DEFAULT_APPLICATION_ADAPTER_REGISTRY,
+)
 from services.ai.providers import AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter, fallback_capabilities
 from services.ai.cost_controls import AICostPolicy, CandidateScore
@@ -104,8 +117,9 @@ CREDENTIAL_PROBE_MAX_IN_FLIGHT = 4
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
 
-    def __init__(self, app):
+    def __init__(self, app, public_host=""):
         self.app = app
+        self.public_host = public_host
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -121,7 +135,11 @@ class LocalOriginMiddleware:
         request = Request(scope, receive)
         origin = request.headers.get("origin")
         unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
-        foreign_origin = origin is not None and origin != str(request.base_url).rstrip("/")
+        expected_origin = str(request.base_url).rstrip("/")
+        if self.public_host and request.url.hostname == self.public_host:
+            # The authenticated Cloudflare HTTPS origin terminates TLS at the edge.
+            expected_origin = f"https://{self.public_host}"
+        foreign_origin = origin is not None and origin != expected_origin
         fetch_site = request.headers.get("sec-fetch-site")
         # Another port on localhost is same-site, but does not own this API.
         # Missing metadata preserves native clients; explicit invalid metadata
@@ -134,7 +152,7 @@ class LocalOriginMiddleware:
         # API namespaces grow as new workflows are added. Protect them by
         # default; only the public shell/assets and health probes are exempt.
         public_read = (request.url.path in ("/", "/health", "/ready", "/readiness",
-                                           "/favicon.ico", "/favicon.svg")
+                                           "/favicon.ico", "/favicon.svg", "/__deployment")
                        or request.url.path.startswith("/assets/"))
         if (foreign_origin or foreign_browser) and not public_read:
             response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
@@ -608,7 +626,10 @@ class CompanySourceWatchInput(BaseModel):
 
 class SourceInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
-    provider: Literal["greenhouse", "lever", "remotive", "remoteok", "wwr"] = "greenhouse"
+    provider: str = Field(
+        default="greenhouse", min_length=1, max_length=64,
+        pattern=r"^[a-z][a-z0-9_]{0,63}$",
+    )
     tenant: str = Field(min_length=1, max_length=87)
     enabled: bool = True
     poll_interval: int = Field(default=300, ge=300, le=604800)
@@ -619,10 +640,12 @@ class SourceInput(BaseModel):
 
     @model_validator(mode="after")
     def global_sources_use_canonical_tenant(self):
+        if self.provider == "remote_ok":
+            self.provider = "remoteok"
         if self.provider == 'lever':
             from services.discovery.sources.lever import tenant_identity
             self.tenant = tenant_identity(self.tenant)
-        elif self.provider != "greenhouse" and self.tenant != "default":
+        elif self.provider in {"remotive", "remoteok", "wwr"} and self.tenant != "default":
             raise ValueError("Global sources use the canonical default tenant")
         return self
 
@@ -676,8 +699,27 @@ class SearchProfileInput(BaseModel):
     source_ids: list[str] = Field(default_factory=list, max_length=100)
 
 
-def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0", operation_mode="PERSONAL"):
+def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0",
+               operation_mode="PERSONAL", *,
+               source_registry: SourceAdapterRegistry = DEFAULT_SOURCE_ADAPTER_REGISTRY,
+               application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+    if (source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY
+            or application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+        registry_module = configured_extension_registry_module()
+        if source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY:
+            source_registry = configured_source_registry(registry_module)
+        if application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY:
+            application_registry = configured_application_registry(registry_module)
     operation_mode = parse_operation_mode(operation_mode)
+    public_host = os.environ.get("MJOBS_PUBLIC_HOST", "").strip().lower()
+    if public_host and ("." not in public_host or not re.fullmatch(
+        r"(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*",
+        public_host,
+    )):
+        raise ValueError("MJOBS_PUBLIC_HOST_INVALID")
+    deploy_sha = os.environ.get("MJOBS_DEPLOY_SHA", "").strip().lower()
+    if deploy_sha and not re.fullmatch(r"[0-9a-f]{40}", deploy_sha):
+        raise ValueError("MJOBS_DEPLOY_SHA_INVALID")
     if operation_mode == "FIXTURE":
         guard = MockClient(mock_origin)
         guard.close()
@@ -704,7 +746,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     from apps.api.application_confirmation_recovery import create_application_confirmation_recovery_router
     app.include_router(create_application_confirmation_recovery_router(store, mock_origin, operation_mode))
     from apps.api.application_form_review import create_application_form_review_router
-    app.include_router(create_application_form_review_router(store))
+    app.include_router(create_application_form_review_router(
+        store, registry=application_registry,
+    ))
     from apps.api.controlled_application_dry_run import create_controlled_application_dry_run_router
     app.include_router(create_controlled_application_dry_run_router(store))
     from apps.api.mock_dynamic_review import create_mock_dynamic_review_router
@@ -761,8 +805,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_transient_retention_router(store=store))
     from apps.api.operation_progress import create_operation_progress_router
     app.include_router(create_operation_progress_router(store))
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
-    app.add_middleware(LocalOriginMiddleware)
+    hosts = ["127.0.0.1", "localhost", "api", "testserver"]
+    if public_host:
+        hosts.append(public_host)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
+    app.add_middleware(LocalOriginMiddleware, public_host=public_host)
 
     @app.exception_handler(Exception)
     async def unexpected_error(_, error):
@@ -883,6 +930,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             state = connection.execute(select(m.operations.c.state).where(
                 m.operations.c.id == operation_id)).scalar_one()
         return {"operation_id": operation_id, "state": state}
+
+    @app.get("/__deployment")
+    def deployment():
+        version = (Path(__file__).resolve().parents[2] / "VERSION").read_text(encoding="utf-8").strip()
+        return {"commit": deploy_sha or None, "version": version, "operation_mode": operation_mode}
 
     @app.get("/settings")
     def settings():
@@ -1542,7 +1594,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.put("/sources")
     def source_configure(value: SourceInput):
-        return {"id": configure_source(store, **value.model_dump())}
+        return {"id": configure_source(
+            store, **value.model_dump(), registry=source_registry,
+        )}
 
     @app.post("/sources/{source_id}/collect", status_code=202)
     def source_collect(source_id: str, value: DiscoveryInput):
@@ -1650,6 +1704,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              application_pipeline_status: str | None = Query(default=None, max_length=32),
              application_capability: Literal["", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"] | None = Query(default=None, max_length=24),
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
+             date_window: Literal["ANY", "LAST_HOUR", "TODAY", "LAST_24_HOURS", "LAST_3_DAYS",
+                                  "LAST_7_DAYS", "LAST_30_DAYS", "CUSTOM"] | None = None,
+             date_start: str | None = Query(default=None, max_length=64),
+             date_end: str | None = Query(default=None, max_length=64),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
@@ -1659,6 +1717,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
         if posted_within_days is not None and posted_within_days not in {1, 3, 7, 14, 30}:
             raise HTTPException(422, "Posted-within window must be 1, 3, 7, 14, or 30 days")
+        explicit_date_window = date_window is not None or date_start is not None or date_end is not None
+        if explicit_date_window and posted_within_days is not None:
+            raise HTTPException(422, "Canonical date windows cannot be combined with posted_within_days")
+        if date_window == "CUSTOM":
+            parsed_date_start = parse_utc_date_bound(date_start)
+            parsed_date_end = parse_utc_date_bound(date_end)
+            if parsed_date_start is None or parsed_date_end is None or parsed_date_start > parsed_date_end:
+                raise HTTPException(422, "Custom date filtering requires ordered ISO-8601 UTC bounds")
+        elif date_start is not None or date_end is not None:
+            raise HTTPException(422, "Custom date bounds require date_window=CUSTOM")
         skill_id = canonical_skill_id(skill) if skill else None
         if skill and skill_id is None:
             raise HTTPException(422, "Skill is not in the supported taxonomy")
@@ -1725,11 +1793,41 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         )
         if effective_application_capability == "":
             effective_application_capability = None
-        effective_posted_within = posted_within_days if posted_within_days is not None else (
-            int(saved_posted_within) if saved_posted_within else None)
-        posted_before = datetime.now(timezone.utc) if effective_posted_within is not None else None
-        posted_after = (posted_before - timedelta(days=effective_posted_within)
-                        if posted_before is not None else None)
+        saved_date_window = search_profile["criteria"].get("date_window", "ANY") if search_profile else "ANY"
+        explicit_date_filter = explicit_date_window or posted_within_days is not None
+        if explicit_date_window:
+            effective_date_window = date_window
+        elif posted_within_days is not None:
+            effective_date_window = "ANY"
+        else:
+            effective_date_window = saved_date_window
+        if effective_date_window == "ANY" and not explicit_date_window:
+            effective_posted_within = posted_within_days if posted_within_days is not None else (
+                int(saved_posted_within) if saved_posted_within else None)
+        else:
+            effective_posted_within = None
+        query_time = datetime.now(timezone.utc)
+        if effective_date_window == "CUSTOM":
+            if explicit_date_window:
+                posted_after, posted_before = parsed_date_start, parsed_date_end
+            else:
+                posted_after = parse_utc_date_bound(search_profile["criteria"].get("date_start"))
+                posted_before = parse_utc_date_bound(search_profile["criteria"].get("date_end"))
+        elif effective_date_window == "TODAY":
+            posted_after = query_time.replace(hour=0, minute=0, second=0, microsecond=0)
+            posted_before = query_time
+        elif effective_date_window in {"LAST_HOUR", "LAST_24_HOURS", "LAST_3_DAYS",
+                                       "LAST_7_DAYS", "LAST_30_DAYS"}:
+            delta = {
+                "LAST_HOUR": timedelta(hours=1), "LAST_24_HOURS": timedelta(days=1),
+                "LAST_3_DAYS": timedelta(days=3), "LAST_7_DAYS": timedelta(days=7),
+                "LAST_30_DAYS": timedelta(days=30),
+            }[effective_date_window]
+            posted_after, posted_before = query_time - delta, query_time
+        elif effective_posted_within is not None:
+            posted_after, posted_before = query_time - timedelta(days=effective_posted_within), query_time
+        else:
+            posted_after = posted_before = None
         result_limit = 500 if sort == "application_priority" else limit
         database_sort = "score" if sort == "application_priority" else sort
         excluded_company_ids = []
@@ -1758,6 +1856,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                         if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED"):
                             yield row
 
+        effective_search_criteria = search_profile["criteria"] if search_profile else None
+        if effective_search_criteria is not None and explicit_date_filter:
+            effective_search_criteria = {
+                **effective_search_criteria,
+                "date_window": "ANY",
+                "date_start": None,
+                "date_end": None,
+            }
         rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
@@ -1772,7 +1878,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           application_capability=effective_application_capability,
                           posted_after=posted_after, posted_before=posted_before,
                           exclude_company_ids=excluded_company_ids,
-                          search_criteria=search_profile["criteria"] if search_profile else None,
+                          search_criteria=effective_search_criteria,
                           row_filter=visibility_filter)
         if profile_id and include_dismissed:
             from services.tracking.jobs import list_job_tracking

@@ -1,7 +1,10 @@
 """API and outbox tests exercise persistence with the queue unavailable."""
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
+from importlib import import_module
+import sys
 import tempfile
+from types import ModuleType
 import unittest
 from unittest.mock import Mock, patch
 
@@ -42,6 +45,108 @@ class ApiQueueTests(unittest.TestCase):
         self.assertEqual(result["status"], "QUEUE_UNAVAILABLE")
         self.assertEqual(self.store.count("worker_operations"), 1)
 
+    def test_dispatch_serializes_registry_selector_for_real_task_entrypoint(self):
+        from rq.exceptions import NoSuchJobError
+
+        import workers.tasks as tasks
+        from services.applications.provider_registry import ApplicationAdapterRegistry
+        from services.discovery.sources.collect import configure_source
+        from services.discovery.sources.contract import (
+            CollectionStrategy,
+            SourceCapabilities,
+            SourceCapability,
+        )
+        from services.discovery.sources.registry import SourceAdapterRegistry
+
+        class SourceAdapter:
+            def capabilities(self):
+                return SourceCapabilities(
+                    CollectionStrategy.API,
+                    frozenset({SourceCapability.DISCOVERY}),
+                )
+
+        module_name = "tests.synthetic_extension_registry"
+        extension_module = ModuleType(module_name)
+        extension_module.SOURCE_ADAPTER_REGISTRY = SourceAdapterRegistry([
+            ("fixture_source", lambda _source, **_kwargs: SourceAdapter()),
+        ])
+        extension_module.APPLICATION_ADAPTER_REGISTRY = ApplicationAdapterRegistry([
+            ("fixture_app", lambda: object()),
+        ])
+        sys.modules[module_name] = extension_module
+
+        self.store.bind_workspace_mode("PERSONAL")
+        self.store.save_profile(PROFILE)
+        source_id = configure_source(
+            self.store, "fixture-tenant", provider="fixture_source",
+            registry=extension_module.SOURCE_ADAPTER_REGISTRY,
+        )
+        discovery_id = enqueue_operation(
+            self.store, "DISCOVER", "fixture",
+            {"source_id": source_id, "profile_ids": ["fixture"]},
+        )
+        review_id = enqueue_operation(
+            self.store, "APPLICATION_FORM_REVIEW", "application-1",
+            {"route_url": "https://fixture.invalid/jobs/1"},
+        )
+        deliveries = []
+
+        class SyntheticQueue:
+            def __init__(self, name, connection=None):
+                self.name = name
+
+            def enqueue(self, function, *args, **kwargs):
+                options = {
+                    key: kwargs.pop(key)
+                    for key in ("job_id", "job_timeout", "result_ttl", "failure_ttl")
+                }
+                deliveries.append((function, args, kwargs, options))
+
+        redis = Mock()
+        redis.ping.return_value = True
+        observed = {}
+
+        def collect(_store, _source_id, _profile_id, **kwargs):
+            observed["source_registry"] = kwargs.get("registry")
+            return {"jobs_seen": 0}
+
+        def review(_store, _operation, **kwargs):
+            observed["application_registry"] = kwargs.get("registry")
+            return {"status": "ANALYZED"}
+
+        environment = {
+            "MJOBS_DATABASE_URL": self.store.url,
+            "MJOBS_OPERATION_MODE": "PERSONAL",
+            "MJOBS_OUTPUT_DIR": str(self.root),
+        }
+        try:
+            with patch("workers.dispatch.Redis.from_url", return_value=redis), \
+                    patch("workers.dispatch.Job.fetch", side_effect=NoSuchJobError), \
+                    patch("workers.dispatch.Queue", SyntheticQueue), \
+                    patch.dict("os.environ", environment), \
+                    patch.object(tasks, "collect_source", side_effect=collect), \
+                    patch.object(tasks, "recalculate", return_value=None), \
+                    patch.object(tasks, "handle_form_review", side_effect=review), \
+                    patch.object(tasks, "log_operation_finished", return_value=None):
+                result = dispatch_pending(
+                    self.store, "redis://synthetic/0", registry_module=module_name,
+                )
+                self.assertEqual(result, {"status": "DISPATCHED", "count": 2})
+                for function, args, kwargs, options in deliveries:
+                    self.assertEqual(function, "workers.tasks.execute_operation")
+                    self.assertIn(args[0], {discovery_id, review_id})
+                    self.assertEqual(kwargs, {"registry_module": module_name})
+                    self.assertEqual(options["job_id"], args[0])
+                    module, name = function.rsplit(".", 1)
+                    getattr(import_module(module), name)(*args, **kwargs)
+        finally:
+            sys.modules.pop(module_name, None)
+
+        self.assertEqual(observed, {
+            "source_registry": extension_module.SOURCE_ADAPTER_REGISTRY,
+            "application_registry": extension_module.APPLICATION_ADAPTER_REGISTRY,
+        })
+
     def test_duplicate_enqueue_does_not_reopen_a_dead_letter(self):
         from sqlalchemy import select, update
         from packages.persistence import models as m
@@ -64,6 +169,42 @@ class ApiQueueTests(unittest.TestCase):
         self.assertEqual(identifiers[0], identifiers[1])
         self.assertEqual(self.store.count("worker_operations"), 1)
 
+    def test_task_key_replays_without_replacing_original_operation_params(self):
+        task_key = "collect:source-a:2026-10-08T12:00:00+00:00"
+        first = enqueue_operation(self.store, "DISCOVER", "fixture", {
+            "source_id": "source-a", "scheduled_for": "2026-10-08T12:00:00+00:00",
+            "scheduler_observation": "first",
+        }, task_key=task_key)
+        replay = enqueue_operation(self.store, "DISCOVER", "fixture", {
+            "scheduler_observation": "replayed-after-restart",
+            "scheduled_for": "2026-10-08T12:00:00+00:00", "source_id": "source-a",
+        }, task_key=task_key)
+
+        self.assertEqual(replay, first)
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == first)).mappings().one()
+        self.assertEqual(row["params"]["scheduler_observation"], "first")
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_task_key_reuse_for_another_entity_fails_closed(self):
+        task_key = "collect:source-a:2026-10-08T12:00:00+00:00"
+        identifier = enqueue_operation(
+            self.store, "DISCOVER", "profile-a", {"source_id": "source-a"},
+            task_key=task_key,
+        )
+
+        with self.assertRaisesRegex(ValueError, "TASK_IDENTITY_CONFLICT"):
+            enqueue_operation(
+                self.store, "DISCOVER", "profile-b", {"source_id": "source-a"},
+                task_key=task_key,
+            )
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == identifier)).mappings().one()
+        self.assertEqual(row["entity_id"], "profile-a")
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
     def test_api_saves_explicit_facts_and_reports_durable_queueing(self):
         with TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root, "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
             response = client.put("/profiles", json=PROFILE)
@@ -83,6 +224,18 @@ class ApiQueueTests(unittest.TestCase):
         with TestClient(create_app(self.store, "http://127.0.0.1:8090", self.root, operation_mode="FIXTURE")) as client:
             invalid = dict(PROFILE, facts=[dict(PROFILE["facts"][0], verified="yes")])
             self.assertEqual(client.put("/profiles", json=invalid).status_code, 422)
+
+    def test_remote_ok_alias_cannot_bypass_global_source_tenant_policy(self):
+        with TestClient(create_app(
+                self.store, "http://127.0.0.1:8090", self.root,
+                operation_mode="PERSONAL")) as client:
+            response = client.put("/sources", json={
+                "provider": "remote_ok",
+                "tenant": "non-default",
+            })
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(self.store.count("job_sources"), 0)
 
     def test_personal_mode_rejects_fixture_actions_and_keeps_public_collection(self):
         self.store.bind_workspace_mode("PERSONAL")
