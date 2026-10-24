@@ -3,6 +3,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import threading
 from contextlib import asynccontextmanager
 from dataclasses import asdict
@@ -105,8 +106,9 @@ CREDENTIAL_PROBE_MAX_IN_FLIGHT = 4
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
 
-    def __init__(self, app):
+    def __init__(self, app, public_host=""):
         self.app = app
+        self.public_host = public_host
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -122,7 +124,11 @@ class LocalOriginMiddleware:
         request = Request(scope, receive)
         origin = request.headers.get("origin")
         unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
-        foreign_origin = origin is not None and origin != str(request.base_url).rstrip("/")
+        expected_origin = str(request.base_url).rstrip("/")
+        if self.public_host and request.url.hostname == self.public_host:
+            # The authenticated Cloudflare HTTPS origin terminates TLS at the edge.
+            expected_origin = f"https://{self.public_host}"
+        foreign_origin = origin is not None and origin != expected_origin
         fetch_site = request.headers.get("sec-fetch-site")
         # Another port on localhost is same-site, but does not own this API.
         # Missing metadata preserves native clients; explicit invalid metadata
@@ -135,7 +141,7 @@ class LocalOriginMiddleware:
         # API namespaces grow as new workflows are added. Protect them by
         # default; only the public shell/assets and health probes are exempt.
         public_read = (request.url.path in ("/", "/health", "/ready", "/readiness",
-                                           "/favicon.ico", "/favicon.svg")
+                                           "/favicon.ico", "/favicon.svg", "/__deployment")
                        or request.url.path.startswith("/assets/"))
         if (foreign_origin or foreign_browser) and not public_read:
             response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
@@ -679,6 +685,15 @@ class SearchProfileInput(BaseModel):
 
 def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379/0", operation_mode="PERSONAL"):
     operation_mode = parse_operation_mode(operation_mode)
+    public_host = os.environ.get("MJOBS_PUBLIC_HOST", "").strip().lower()
+    if public_host and ("." not in public_host or not re.fullmatch(
+        r"(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*",
+        public_host,
+    )):
+        raise ValueError("MJOBS_PUBLIC_HOST_INVALID")
+    deploy_sha = os.environ.get("MJOBS_DEPLOY_SHA", "").strip().lower()
+    if deploy_sha and not re.fullmatch(r"[0-9a-f]{40}", deploy_sha):
+        raise ValueError("MJOBS_DEPLOY_SHA_INVALID")
     if operation_mode == "FIXTURE":
         guard = MockClient(mock_origin)
         guard.close()
@@ -762,8 +777,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_transient_retention_router(store=store))
     from apps.api.operation_progress import create_operation_progress_router
     app.include_router(create_operation_progress_router(store))
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
-    app.add_middleware(LocalOriginMiddleware)
+    hosts = ["127.0.0.1", "localhost", "api", "testserver"]
+    if public_host:
+        hosts.append(public_host)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
+    app.add_middleware(LocalOriginMiddleware, public_host=public_host)
 
     @app.exception_handler(Exception)
     async def unexpected_error(_, error):
@@ -884,6 +902,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             state = connection.execute(select(m.operations.c.state).where(
                 m.operations.c.id == operation_id)).scalar_one()
         return {"operation_id": operation_id, "state": state}
+
+    @app.get("/__deployment")
+    def deployment():
+        version = (Path(__file__).resolve().parents[2] / "VERSION").read_text(encoding="utf-8").strip()
+        return {"commit": deploy_sha or None, "version": version, "operation_mode": operation_mode}
 
     @app.get("/settings")
     def settings():
