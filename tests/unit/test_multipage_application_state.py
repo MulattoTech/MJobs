@@ -325,7 +325,7 @@ class MultipageApplicationStateTests(unittest.TestCase):
         state, observation = self.start_workday()
         before_count = self.store.count("audit_events")
         explicit_refresh = self.workday_transition(
-            state, observation, observation, "REFRESH", "wd-refresh-explicit")
+            state, None, observation, "REFRESH", "wd-refresh-explicit")
         self.assertEqual(explicit_refresh, {
             "decision": "REFRESH_AND_RECLASSIFY",
             "reason": "REFRESH_REQUIRES_NEW_OBSERVATION",

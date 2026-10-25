@@ -5,10 +5,10 @@ import re
 from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy.sql import Executable
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
-
 
 _PROFILE_EVENTS = {
     "PROFILE_SAVED": ("PROFILE_UPDATED", "Profile details updated"),
@@ -71,6 +71,7 @@ def record_mock_application_submitted(store, application_id: str) -> None:
                   "action": action, "payload": snapshot_application_audit_payload(
                       connection, application_id, action, {}), "timestamp": now()}
         dialect = connection.dialect.name
+        statement: Executable
         if dialect == "sqlite":
             statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
                 index_elements=[m.audit.c.id])
@@ -116,6 +117,7 @@ def record_application_preparation_event(connection, action: str, profile_id: st
                   {"job_id": job_id, "operation_id": operation_id, "attempt": attempt}),
               "timestamp": now()}
     dialect = connection.dialect.name
+    statement: Executable
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
             index_elements=[m.audit.c.id])
@@ -148,6 +150,7 @@ def _append_profile_event(connection, action: str, profile_id: str,
     values = {"id": event_id, "entity_id": profile_id, "action": action,
               "payload": _snapshot_payload(connection, action, payload), "timestamp": now()}
     dialect = connection.dialect.name
+    statement: Executable
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
             index_elements=[m.audit.c.id])
@@ -168,6 +171,7 @@ def _append_once(connection, profile_id: str, action: str, job_id: str,
     values = {"id": event_id, "entity_id": profile_id, "action": action,
               "payload": _snapshot_payload(connection, action, payload), "timestamp": now()}
     dialect = connection.dialect.name
+    statement: Executable
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
             index_elements=[m.audit.c.id])
@@ -187,7 +191,7 @@ def _snapshot_payload(connection, action: str, payload: dict) -> dict:
     if action in _COMPANY_EVENTS:
         subject = connection.execute(select(m.companies.c.name).where(
             m.companies.c.id == payload["company_id"])).scalar_one_or_none()
-        company = ""
+        company: str | None = ""
     elif action in {"JOB_DISCOVERED", "JOB_MERGED", "MATCH_SCORED",
                     *_APPLICATION_PREPARATION_EVENTS}:
         job = connection.execute(select(m.jobs.c.title, m.companies.c.name).select_from(
