@@ -85,7 +85,20 @@ async function test(){
  assert.match(cpuDegraded.resources.throttledReason,/CPU pressure/);
  assert.ok(cpuDegraded.selected.length<=1);
  snap.metrics.cpu=20;
- console.log('PASS Sustained mode: 19 checks, issue leasing, per-agent completion/quiet time, no duplicate sends, Chat/TUI delivery, RAM gate, persistence');
+ const diagnostic='FIXTURE_PRIVATE_COMMAND_AND_STACK';
+ restart.status.lastError=diagnostic;
+ restart.status.dispatches.push({at:iso(clockTime),error:diagnostic});
+ restart.latest.githubError=diagnostic;
+ assert.ok(!JSON.stringify(restart.summary()).includes(diagnostic),'Public summary sanitizes historical diagnostics');
+ assert.equal(restart.status.lastError,diagnostic,'Rendering preserves recovery evidence');
+ restart.failure(new Error(diagnostic));
+ assert.ok(fs.readFileSync(restart.eventsPath,'utf8').includes(diagnostic),'Operator detail remains in local log');
+ restart.getState=async()=>{throw new Error(diagnostic)};
+ await assert.rejects(()=>restart.tick({forced:true}),e=>e.message.includes('Sustained dispatch failed')&&!e.message.includes(diagnostic));
+ const {isUsageLimit}=require('./control-errors');
+ assert.equal(isUsageLimit(new Error('Command failed\nHTTP 429: usage limit reached')),true,'Private multiline provider classification remains functional');
+ assert.equal(isUsageLimit(new Error('Unrelated connection failure')),false);
+ console.log('PASS Sustain: ownership, no duplicate sends, Chat/TUI delivery, resource gates, persistence, provider backoff and private diagnostics');
  fs.rmSync(root,{recursive:true,force:true});
 }
 test().catch(e=>{console.error(e.stack);process.exitCode=1});

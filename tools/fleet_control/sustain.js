@@ -22,7 +22,8 @@ const DEF=Object.freeze({
 });
 const parse=x=>{const v=Date.parse(x||'');return Number.isFinite(v)?v:0};
 const clone=x=>JSON.parse(JSON.stringify(x));
-const short=e=>String(e?.message||e).slice(0,550);
+const {publicError,publicState,privateDiagnostic,isUsageLimit}=require('./control-errors');
+const short=()=>publicError('sustain');
 function atomic(p,x){const t=p+'.tmp';fs.writeFileSync(t,JSON.stringify(x,null,2),'utf8');fs.renameSync(t,p)}
 function read(p,x){try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch{return clone(x)}}
 function ensureInt(v,min,max,k){if(!Number.isInteger(v)||v<min||v>max)throw Error(k+' must be an integer from '+min+' to '+max)}
@@ -97,11 +98,11 @@ class Sustain {
   const recent=this.status.dispatches.filter(x=>this.clock()-parse(x.at)<3600000);
   return {
    enabled:this.config.enabled,running:this.running,config:clone(this.config),nextTick:this.nextTick,
-   lastTick:this.status.lastTick,lastSuccess:this.status.lastSuccess,lastError:this.status.lastError,
+   lastTick:this.status.lastTick,lastSuccess:this.status.lastSuccess,lastError:this.status.lastError?short():null,
    quotaPausedUntil:this.status.quotaPausedUntil,
    sentTotal:this.status.sentTotal||0,sentThisHour:recent.length,
    leases:Object.values(this.status.leases).map(l=>({issue:l.issue,session:l.session,scope:l.scope,state:l.state,at:l.at})),
-   activity:this.status.dispatches.slice(-12).reverse(),latest:this.latest
+   activity:publicState(this.status.dispatches.slice(-12).reverse(),'sustain'),latest:publicState(this.latest,'sustain')
   };
  }
  async defaultIssueRunner(n){
@@ -190,7 +191,7 @@ class Sustain {
     const collision=Object.values(this.status.leases).some(l=>l.issue!==task.issue&&l.state!=='complete'&&(l.scope||[]).some(p=>paths.includes(p)));
     if(collision)continue;
     return {task,issue};
-   }catch(e){this.log('issue_unavailable',{id:s.id,issue:task.issue,error:short(e)})}
+   }catch(e){this.log('issue_unavailable',{id:s.id,issue:task.issue,error:short(e),diagnostic:privateDiagnostic(e)})}
   }
   return null;
  }
@@ -352,10 +353,10 @@ class Sustain {
      if(action.issue&&this.status.leases[action.issue])this.status.leases[action.issue].state='delivery_uncertain';
      this.status.agents[action.id].backoffUntil=new Date(this.clock()+20*60000).toISOString();
      this.status.agents[action.id].backoffReason='dispatch_error';
-     if(/(?:rate.limit|usage.limit|quota|too many requests|429|exhausted)/i.test(message)){
+     if(isUsageLimit(e)){
       this.status.quotaPausedUntil=new Date(this.clock()+20*60000).toISOString();
-      this.log('provider_pause',{message,until:this.status.quotaPausedUntil});
-     }else this.log('uncertain',{id:action.id,message});
+      this.log('provider_pause',{message,diagnostic:privateDiagnostic(e),until:this.status.quotaPausedUntil});
+     }else this.log('uncertain',{id:action.id,message,diagnostic:privateDiagnostic(e)});
      this.status.lastError=message;
      this.save();
      break;
@@ -366,10 +367,10 @@ class Sustain {
    return {sent:selected,blocked:null,preview:this.latest};
   }catch(e){
    this.failure(e);
-   if(forced)throw e;
+   if(forced)throw new Error(short());
    return {sent:selected,error:short(e)};
   }finally{this.running=false}
  }
- failure(e){this.status.lastError=short(e);this.log('error',{message:this.status.lastError});this.save()}
+ failure(e){this.status.lastError=short(e);this.log('error',{message:this.status.lastError,diagnostic:privateDiagnostic(e)});this.save()}
 }
 module.exports={Sustain,DEF,verifySettings};

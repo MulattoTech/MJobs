@@ -33,7 +33,8 @@ function atomic(file,record){
 function load(file,fallback){
   try{return JSON.parse(fs.readFileSync(file,'utf8'))}catch{return clone(fallback)}
 }
-function errorText(e){return String(e&&e.message||e).slice(0,400)}
+const {publicError,publicState,privateDiagnostic}=require('./control-errors');
+function errorText(e){return publicError('turbo',e)}
 function parseTime(value){const x=Date.parse(value||'');return Number.isFinite(x)?x:0}
 function recent(time,withinMs,now){return now-parseTime(time)<withinMs}
 function asNumber(value,min,max,name){
@@ -122,11 +123,11 @@ class Turbo {
     running:this.running,
     lastCycle:this.session.lastCycle||null,
     lastSuccess:this.session.lastSuccess||null,
-    lastError:this.session.lastError||null,
-    lastPlan:clone(this.latest),
+    lastError:this.session.lastError?errorText({message:this.session.lastError}):null,
+    lastPlan:publicState(this.latest,'turbo'),
     sentThisHour:hours.length,
     sent24Hours:today.length,
-    activity:this.session.actions.slice(-15).reverse(),
+    activity:publicState(this.session.actions.slice(-15).reverse(),'turbo'),
     reviewsClaimed:Object.keys(this.session.reviewClaims).length
    };
  }
@@ -160,6 +161,7 @@ class Turbo {
     const x={...raw,at:new Date(this.clock()).toISOString(),fresh:true,error:null};
     this.githubCache=x;this.githubAt=this.clock();this.githubErrorAt=0;this.latest.githubError=null;return x;
    }catch(e){
+    this.log('github_error',{diagnostic:privateDiagnostic(e)});
     this.latest.githubError=errorText(e);this.githubErrorAt=this.clock();
     if(this.githubCache){this.githubCache={...this.githubCache,fresh:false,error:errorText(e)};return this.githubCache;}
     return null;
@@ -336,7 +338,7 @@ class Turbo {
       }catch(e){
        record.status='uncertain';
        record.error=errorText(e);
-       this.log('send_uncertain',{id:action.id,kind:action.kind,error:errorText(e)});
+       this.log('send_uncertain',{id:action.id,kind:action.kind,error:errorText(e),diagnostic:privateDiagnostic(e)});
        // Stop this cycle; a timeout may mean the message was accepted.
        this.session.lastError=errorText(e);
        this.save();
@@ -350,13 +352,13 @@ class Turbo {
     return {executed:sent,preview:this.latest,reason:null};
    }catch(e){
     this.error(e);
-    if(manual)throw e;
+    if(manual)throw new Error(errorText(e));
     return {error:errorText(e)};
    }finally{this.running=false}
  }
  error(e){
    this.session.lastError=errorText(e);
-   this.log('error',{message:this.session.lastError});
+   this.log('error',{message:this.session.lastError,diagnostic:privateDiagnostic(e)});
    this.save();
  }
 }
@@ -489,7 +491,7 @@ Turbo.prototype.allHands=async function(){
      return {id:agent.id,submitted:true,reason:agent.reason};
     }catch(e){
      rec.status='uncertain';rec.error=errorText(e);
-     this.log('allhands_uncertain',{id:agent.id,error:rec.error});
+     this.log('allhands_uncertain',{id:agent.id,error:rec.error,diagnostic:privateDiagnostic(e)});
      return {id:agent.id,uncertain:true,reason:rec.error};
     }finally{this.save()}
    }));
@@ -510,7 +512,7 @@ Turbo.prototype.allHands=async function(){
   this.session.lastSuccess=result.at;this.save();
   this.log('allhands_finished',this.session.lastAllHandsResult);
   return result;
- }catch(e){this.error(e);throw e}
+ }catch(e){this.error(e);throw new Error(errorText(e))}
  finally{this.running=false}
 };
 

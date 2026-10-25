@@ -106,7 +106,7 @@ const FleetQuotaUI=(()=>{
   const threshold=saved.thresholdPercent,remaining=current.selectedRemainingPercent;
   const immediate=remaining<=threshold;
   openModal('<h2>Arm automatic emergency stop?</h2>'+
-   '<p>The quota monitor checks in the background even with the browser closed. New assignments brake at <strong>'+(threshold+8)+'% remaining</strong>. At <strong>'+threshold+'% or below</strong>, the emergency stop terminates targeted agent runtimes and Orchestrator.inc. Passive desktop services are preserved.</p>'+
+   '<p>The quota monitor checks in the background even with the browser closed. New assignments brake at <strong>'+(threshold+8)+'% remaining</strong>. At <strong>'+threshold+'% or below</strong>, the emergency stop terminates targeted agent runtimes and Orchestrator.inc. Only the verified isolated quota monitor and Windows Codex Sandbox Service are preserved.</p>'+
    '<div class="emergency-warning"><strong>Current verified remaining: '+remaining+'%.</strong> '+(immediate?
     'This is ALREADY at or below your threshold and may trigger an immediate shutdown.':
     'Provider reporting is rounded and can lag actual usage, so stopping at the precise percentage cannot be guaranteed.')+
