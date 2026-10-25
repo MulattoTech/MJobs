@@ -5,7 +5,7 @@ import math
 import re
 import threading
 import time
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from bs4 import BeautifulSoup
 import httpx
@@ -51,6 +51,10 @@ def plain_text(value):
 class Greenhouse:
     def __init__(self, tenant, transport=None, check=None, request_timeout=10, rate_limit=60, concurrency=1):
         self.tenant = tenant_identifier(tenant)
+        # Direct adapter callers validate provider ownership strictly. The
+        # collection boundary may relax only its fresh, per-call adapter when
+        # the configured source has no authoritative company binding.
+        self._authoritative_tenant_binding = True
         if type(request_timeout) is not int or not 2 <= request_timeout <= 60:
             raise ValueError("SOURCE_INVALID_REQUEST_TIMEOUT")
         if type(rate_limit) is not int or not 1 <= rate_limit <= 600:
@@ -67,6 +71,11 @@ class Greenhouse:
         self._status_lock = threading.Lock()
         self._request_failed = False
         self.status = "NOT_CHECKED"
+
+    def set_authoritative_tenant_binding(self, authoritative):
+        if type(authoritative) is not bool:
+            raise ValueError("SOURCE_INVALID_TENANT_BINDING")
+        self._authoritative_tenant_binding = authoritative
 
     def capabilities(self):
         return SourceCapabilities(CollectionStrategy.API, frozenset({
@@ -238,6 +247,8 @@ class Greenhouse:
             raise SourceError("SOURCE_INVALID_FORMAT")
         if len(payload["jobs"]) > 1000:
             raise SourceError("SOURCE_JOB_LIMIT")
+        for raw in payload["jobs"]:
+            self._application_url(raw)
         company = SourceCompany(("greenhouse", self.tenant), plain_text(board.get("name") or self.tenant)[:200],
                                 "https://job-boards.greenhouse.io/" + self.tenant)
         meta = payload.get('meta')
@@ -262,6 +273,46 @@ class Greenhouse:
             raise SourceError("SOURCE_JOB_ID_MISMATCH")
         return raw
 
+    def _application_url(self, raw):
+        if not isinstance(raw, dict):
+            return ""
+        url = str(raw.get("absolute_url") or "")
+        if not url:
+            return ""
+        try:
+            parsed = urlsplit(url)
+            decoded_path = unquote(parsed.path)
+            path = decoded_path.split("/")
+            provider_host = parsed.hostname in (
+                "boards.greenhouse.io", "job-boards.greenhouse.io",
+            )
+            provider_shaped_path = (
+                len(path) >= 3
+                and path[2].casefold() == "jobs"
+            )
+            structurally_invalid = (
+                parsed.scheme != "https"
+                or parsed.username
+                or parsed.password
+                or parsed.port not in (None, 443)
+                or "\\" in decoded_path
+                or any(segment in (".", "..") for segment in path)
+            )
+            if not provider_host:
+                if self._authoritative_tenant_binding and provider_shaped_path:
+                    raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+                return ""
+            if (structurally_invalid
+                    or len(path) < 2 or path[1].casefold() != self.tenant):
+                if self._authoritative_tenant_binding:
+                    raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH")
+                return ""
+        except ValueError:
+            if self._authoritative_tenant_binding:
+                raise SourceError("COMPANY_ATS_JOB_TENANT_MISMATCH") from None
+            return ""
+        return url
+
     def normalize(self, raw):
         if not isinstance(raw, dict) or type(raw.get("id")) is not int or raw["id"] <= 0 or not isinstance(raw.get("title"), str) or not raw["title"].strip():
             raise SourceError("SOURCE_INVALID_JOB")
@@ -277,13 +328,7 @@ class Greenhouse:
         title_info = normalize_title(title)
         education = parse_education_requirement(description)
         skill_data = extract_skills(combined)
-        url = str(raw.get("absolute_url") or "")
-        try:
-            parsed = urlsplit(url)
-            if parsed.scheme != "https" or parsed.hostname not in ("boards.greenhouse.io", "job-boards.greenhouse.io") or parsed.username or parsed.password or parsed.port not in (None, 443):
-                url = ""
-        except ValueError:
-            url = ""
+        url = self._application_url(raw)
         ranges = []
         for row in (raw.get("pay_input_ranges") if isinstance(raw.get("pay_input_ranges"), list) else []):
             if not isinstance(row, dict):
