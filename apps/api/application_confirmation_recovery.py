@@ -21,11 +21,6 @@ def create_application_confirmation_recovery_router(store, mock_origin, operatio
         except ConfirmationConflict as error:
             raise HTTPException(409, {"code": str(error)}) from None
 
-    @router.get("/profiles/{profile_id}/applications/{application_id}/confirmation-check",
-                include_in_schema=False)
-    def reject_get_confirmation(profile_id: str, application_id: str):
-        raise HTTPException(405, {"code": "METHOD_NOT_ALLOWED"}, headers={"Allow": "POST"})
-
     @router.post("/profiles/{profile_id}/applications/{application_id}/confirmation-check")
     def check_confirmation(profile_id: str, application_id: str, payload: object = Body(...)):
         if not isinstance(payload, dict) or set(payload) != {"request_id"}:

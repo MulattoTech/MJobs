@@ -654,30 +654,14 @@ class DurableAIEvaluationTests(unittest.TestCase):
 
     def test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation(self):
         from concurrent.futures import ThreadPoolExecutor
-        import threading
         import time
         import httpx
         from services.ai.tasks import AITaskRouter
         from tests.unit.test_ai_header_deadline import HeaderServer, PROVIDERS
 
-        class TimedCloseEvent(threading.Event):
-            def __init__(self):
-                super().__init__()
-                self.closed_at = None
-                self._timestamp_lock = threading.Lock()
-
-            def set(self):
-                with self._timestamp_lock:
-                    if self.closed_at is None:
-                        self.closed_at = time.monotonic()
-                    super().set()
-
         for provider_type in PROVIDERS:
             for cancel in (False, True):
                 with self.subTest(provider=provider_type.name, cancel=cancel), HeaderServer(provider_type) as server:
-                    # HeaderServer's close signal is set by its handler on FIN/reset.
-                    # Preserve that event contract while recording the exact observation phase.
-                    server.closed = TimedCloseEvent()
                     budget = 4 if cancel else .3
                     server.client.timeout = httpx.Timeout(budget)
                     class BoundedProvider:
@@ -697,37 +681,17 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     with ThreadPoolExecutor(max_workers=1) as pool:
                         work = pool.submit(self.run_worker, operation_id)
                         self.assertTrue(server.started.wait(3), 'Pre-header provider boundary not reached')
-                        # Client setup stays outside this strict POST-entry through
-                        # durable worker-terminal timing contract.
                         start = time.monotonic()
-                        acknowledged_at = None
                         if cancel:
-                            acknowledged = self.client.post(path + '/cancel')
-                            acknowledged_at = time.monotonic()
+                            acknowledged = self.new_client().post(path + '/cancel')
                             self.assertEqual(acknowledged.status_code, 200, acknowledged.text)
                         result = work.result(timeout=3)
-                        # execute_operation returns only after the terminal-state
-                        # transaction commits; the reopened readback below verifies it.
-                        terminal_at = time.monotonic()
-                        response_closed = server.closed.wait(.4)
-                        response_closed_at = server.closed.closed_at
-                        elapsed = terminal_at - start
-                        ack_phase = ('n/a' if acknowledged_at is None else
-                                     f'{(acknowledged_at - start) * 1000:.1f}ms')
-                        close_phase = ('not observed' if response_closed_at is None else
-                                       f'{(response_closed_at - start) * 1000:.1f}ms')
-                        print(f'durable-ai-timing provider={provider_type.name} cancel={cancel}; '
-                              f'ack={ack_phase}; response_close={close_phase}; '
-                              f'worker_terminal={elapsed * 1000:.1f}ms')
-                        self.assertLess(elapsed, 1,
-                            f'provider={provider_type.name} cancel={cancel}; '
-                            f'ack={ack_phase}; response_close={close_phase}; '
-                            f'worker_terminal={elapsed * 1000:.1f}ms')
+                        self.assertLess(time.monotonic() - start, 1)
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)
                     if not cancel:
                         self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
-                    self.assertTrue(response_closed)
+                    self.assertTrue(server.closed.wait(.4))
                     self.assertEqual(server.calls, 1)
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
                     reopened = Store(self.url)

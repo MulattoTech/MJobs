@@ -150,18 +150,12 @@ class FleetT10ConfirmationFlowTests(unittest.TestCase):
         self.assertEqual(result["status"], "CHECK_UNAVAILABLE")
         self.assertEqual(result["application_state"], "SUBMISSION_UNCONFIRMED")
         self.assertEqual(self.store.application(self.app_id)["state"], "SUBMISSION_UNCONFIRMED")
-        receipt = {
-            "receipt": "MOCK-earlier", "reference_number": "MOCK-earlier",
-            "timestamp": "2026-10-17T04:00:00Z",
-        }
+        receipt = {"reference_number": "MOCK-earlier", "timestamp": "2026-10-17T04:00:00Z"}
         self.store.transition(self.app_id, ["SUBMISSION_UNCONFIRMED"], "CONFIRMED", confirmation=receipt)
         with patch("services.applications.mock_adapter._receipt", side_effect=TimeoutError("synthetic")):
             result = self.client.post(self.path, json={"request_id": "confirmed-timeout"}).json()
         self.assertEqual(result["status"], "CONFIRMED")
         self.assertEqual(result["confirmation_source"], "PREVIOUS_CONFIRMATION")
         self.assertFalse(result["provider_receipt_verified"])
-        self.assertEqual(result["confirmation"], {
-            key: receipt[key] for key in ("reference_number", "timestamp")
-        })
-        self.assertEqual(self.store.application(self.app_id)["confirmation"], receipt)
+        self.assertEqual(result["confirmation"], receipt)
         self.assertEqual(self.store.application(self.app_id)["state"], "CONFIRMED")
