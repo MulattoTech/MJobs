@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -11,7 +12,7 @@ from tools.agent_context import (
     bootstrap, checkpoint_path, load_checkpoint,
     normalize_intake, recover_session, relation, route_task,
     transfer_ownership, validate_checkpoint, validate_freshness,
-    write_checkpoint, ROUTING_STATES,
+    validate_implementation_state, write_checkpoint, ROUTING_STATES,
 )
 
 
@@ -63,6 +64,131 @@ class AgentContextTests(unittest.TestCase):
         self.assertEqual(value["checkpoint_relation"], "SAME_HEAD")
         self.assertEqual(value["routing_state"], "RESUME")
         self.assertIn("request cancellation", value["next_action"])
+
+    def test_implementation_state_cli_roundtrip_in_fresh_process_preserves_dirty_file(self):
+        state = {
+            "current_phase": "verification",
+            "completed_steps": ["add durable milestone fields"],
+            "files_added": ["new_module.py"],
+            "files_modified": ["tools/agent_context.py"],
+            "tests_completed": ["pytest tests/unit/test_agent_context.py"],
+            "tests_remaining": ["hosted CI: NOT_RUN"],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": ["full MJ-REQ-008 acceptance remains PARTIAL"],
+            "last_safe_checkpoint": "after local unit verification",
+        }
+        cli = [sys.executable, "-m", "tools.agent_context"]
+        repo = Path(__file__).resolve().parents[2]
+        write = subprocess.run(
+            cli + ["checkpoint", "--task", "MJ-REQ-004",
+                   "--objective", "Persist implementation milestones", "--owner", "Gemini",
+                   "--next-action", "Verify fresh-process recovery", "--implementation-state",
+                   json.dumps(state), "--root", str(self.root)],
+            cwd=repo, capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(write.returncode, 0, write.stderr)
+
+        dirty = self.root / "unfinished.txt"
+        dirty_bytes = b"preserve this in-flight work\n"
+        dirty.write_bytes(dirty_bytes)
+        boot = subprocess.run(
+            cli + ["bootstrap", "--task", "MJ-REQ-004", "--root", str(self.root)],
+            cwd=repo, capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(boot.returncode, 0, boot.stderr)
+        self.assertEqual(json.loads(boot.stdout)["implementation_state"], state)
+
+        recovered = subprocess.run(
+            cli + ["recover", "--task", "MJ-REQ-004", "--root", str(self.root)],
+            cwd=repo, capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(recovered.returncode, 0, recovered.stderr)
+        recovery = json.loads(recovered.stdout)
+        self.assertFalse(recovery["safe_to_resume_immediately"])
+        self.assertIn("?? unfinished.txt", recovery["uncommitted_changes"])
+        self.assertEqual(dirty.read_bytes(), dirty_bytes)
+
+    def test_checkpoint_update_without_implementation_state_preserves_journal(self):
+        state = {
+            "current_phase": "implementation",
+            "completed_steps": ["persist required milestone fields"],
+            "files_added": [],
+            "files_modified": ["tools/agent_context.py"],
+            "tests_completed": ["pytest tests/unit/test_agent_context.py"],
+            "tests_remaining": ["hosted CI"],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": ["full acceptance remains PARTIAL"],
+            "last_safe_checkpoint": "after focused tests",
+        }
+        write_checkpoint(
+            self.root, "MJ-REQ-004", "Persist milestone journal", "Gemini",
+            "Verify journal recovery", [], [], [], implementation_state=state,
+        )
+
+        write_checkpoint(
+            self.root, "MJ-REQ-004", "Persist milestone journal", "Gemini",
+            "Run ordinary checkpoint update", ["pytest tests/unit/test_agent_context.py"], [], [],
+        )
+
+        self.assertEqual(load_checkpoint(self.root, "MJ-REQ-004")["implementation_state"], state)
+
+    def test_implementation_state_requires_all_fields_and_valid_collections(self):
+        text_fields = ("current_phase", "last_safe_checkpoint")
+        list_fields = (
+            "completed_steps", "files_added", "files_modified", "tests_completed",
+            "tests_remaining", "migrations_applied", "live_integrations_tested",
+            "known_errors", "known_limitations",
+        )
+        state = {
+            "current_phase": "implementation",
+            "completed_steps": [], "files_added": [], "files_modified": [],
+            "tests_completed": [], "tests_remaining": [], "migrations_applied": [],
+            "live_integrations_tested": [], "known_errors": [],
+            "known_limitations": [], "last_safe_checkpoint": "after review",
+        }
+        self.assertEqual(validate_implementation_state(state), [])
+        for field in text_fields + list_fields:
+            with self.subTest(field=field):
+                missing = dict(state)
+                del missing[field]
+                self.assertIn(f"{field} is required", validate_implementation_state(missing))
+
+                wrong_type = dict(state)
+                wrong_type[field] = [] if field in text_fields else "not-a-list"
+                expected_type_error = (
+                    f"{field} must be nonempty text" if field in text_fields else
+                    f"{field} must be a list of nonempty strings"
+                )
+                self.assertIn(expected_type_error,
+                              validate_implementation_state(wrong_type))
+
+                blank = dict(state)
+                blank[field] = "  " if field in text_fields else ["  "]
+                self.assertIn(expected_type_error, validate_implementation_state(blank))
+        extra = dict(state, unexpected=True)
+        self.assertTrue(any("unexpected implementation state fields" in error
+                            for error in validate_implementation_state(extra)))
+
+    def test_checkpoint_rejection_preserves_preexisting_checkpoint(self):
+        path = self.checkpoint()
+        original = path.read_bytes()
+        state = {
+            "current_phase": "  ",
+            "completed_steps": [], "files_added": [], "files_modified": [],
+            "tests_completed": [], "tests_remaining": [], "migrations_applied": [],
+            "live_integrations_tested": [], "known_errors": [],
+            "known_limitations": [], "last_safe_checkpoint": "before commit",
+        }
+        with self.assertRaisesRegex(ValueError, "current_phase must be nonempty text"):
+            write_checkpoint(
+                self.root, "MJ-REQ-004", "Persist milestones", "Gemini",
+                "Read back after restart", [], [], [], implementation_state=state,
+            )
+        self.assertEqual(path.read_bytes(), original)
 
     def test_commit_advances_and_preserves_checkpoint(self):
         self.checkpoint()
