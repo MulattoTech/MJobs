@@ -78,6 +78,20 @@ class DedupeSignalTests(unittest.TestCase):
             {"APPLICATION_URL", "ATS_TENANT_REQUISITION", "EMPLOYER_REQUISITION", "SOURCE_JOB_RELATIONSHIP"},
         )
 
+    def test_ats_requisition_signal_is_independent_of_changed_route(self):
+        left = {
+            "application_url": "https://board-a.example/jobs/old",
+            "ats_tenant": "acme",
+            "requisition": "123",
+        }
+        right = {
+            "application_url": "https://board-b.example/jobs/new",
+            "ats_tenant": "ACME",
+            "requisition": "123",
+        }
+
+        self.assertEqual(strong_identity_signals(left, right), ["ATS_TENANT_REQUISITION"])
+
     def test_duplicate_candidate_requires_company_corroboration_for_strong_match(self):
         common = {
             "title": "Windows Sysadmin",
