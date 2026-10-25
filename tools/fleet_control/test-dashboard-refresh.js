@@ -32,6 +32,48 @@ function testPlans(){
  assert.equal(c.planChoices(worker).model.id,'gemini-3.8-flash-high');
  state.agentPlansFresh=false;c.showDrawer(worker.id,false);assert(/disabled/.test(button('apply-plan')));
  state.agentPlansFresh=true;state.providerCatalog.providers[0].models=[];c.showDrawer(worker.id,false);assert.equal(c.planChoices(worker).model.id,'gemini-3.8-flash-high');assert.equal(c.planChoices(worker).valid,false);assert(/disabled/.test(button('save-plan')));assert(/disabled/.test(button('apply-plan')));worker.busy=true;c.showDrawer(worker.id,false);assert(/disabled/.test(button('apply-plan')));
+ worker.prs=[{number:800,state:'merged',ci:'failing'},{number:801,state:'closed',ci:'unknown'},{number:802,state:'open',ci:'failed'}];
+ c.showDrawer(worker.id,false);const history=get('#drawerBody').innerHTML;
+ assert(history.includes('merged · historical CI: failing'));assert(history.includes('closed · historical CI: unknown'));assert(history.includes('open · failed'));assert(!history.includes('open · historical CI:'));
+ assert.equal(worker.prs[0].ci,'failing');assert.equal(worker.prs[1].ci,'unknown');
+}
+function testCompletedPRClassification(){
+ const serverSource=fs.readFileSync(path.join(__dirname,'server.js'),'utf8'),start=serverSource.indexOf('function getClass('),end=serverSource.indexOf('function emergencyOfflineSnapshot(',start);
+ assert(start>=0&&end>start,'Locate the real session transform without executing server startup');
+ const c=context();load(c,serverSource.slice(start,end),['transform']);
+ const {Turbo}=require('./turbo'),os=require('node:os'),root=fs.mkdtempSync(path.join(os.tmpdir(),'fleet-pr-history-'));
+ const ref=(state,ci,number=800)=>({number,url:'https://github.com/MulattoTech/MJobs/pull/'+number,state,ci,review:'unknown',mergeability:'unknown'});
+ const cases=[
+  {name:'merged failure with stale aggregate',prs:[ref('merged','failing')],status:'ci_failed',blocked:false,refill:true},
+  {name:'closed failure with stale aggregate',prs:[ref('closed','failed')],status:'ci_failed',blocked:false,refill:true},
+  {name:'terminal unknown CI preserved',prs:[ref('merged','unknown'),ref('CLOSED','failing',801)],status:'ci_failed',blocked:false,refill:true},
+  {name:'open failing CI',prs:[ref('open','failing')],status:'idle',blocked:true,refill:false},
+  {name:'draft failed CI',prs:[ref('draft','failed')],status:'idle',blocked:true,refill:false},
+  {name:'standalone reported failure',prs:[],status:'ci_failed',blocked:true,refill:false},
+  {name:'unknown reference retains aggregate failure',prs:[ref('unknown','unknown')],status:'ci_failed',blocked:true,refill:false},
+  {name:'missing reference state retains CI failure',prs:[ref(undefined,'failed')],status:'idle',blocked:true,refill:false},
+  {name:'completed plus unresolved retains aggregate',prs:[ref('merged','failing'),ref(undefined,'unknown',801)],status:'ci_failed',blocked:true,refill:false},
+  {name:'completed plus current PR retains aggregate',prs:[ref('closed','failed'),ref('open','passing',801)],status:'ci_failed',blocked:true,refill:false},
+  {name:'current passing PR still owns work',prs:[ref('merged','failing'),ref('open','passing',801)],status:'idle',blocked:false,refill:false},
+  {name:'exited worker never becomes dispatchable',prs:[ref('merged','failing')],status:'exited',activity:'exited',blocked:false,refill:false}
+ ];
+ try{
+  const turbo=new Turbo({root,autoSchedule:false,getState:async()=>{throw Error('Unexpected live read')},command:async()=>{throw Error('Native calls forbidden')},audit:()=>{}});
+  for(const item of cases){
+   const raw={id:'worker-history',displayName:'Historical PR worker',kind:'worker',mode:'tui',status:item.status,activity:{state:item.activity||'idle'},prs:item.prs};
+   const before=JSON.stringify(raw),worker=c.transform(raw,{pairs:[]});
+   assert.equal(worker.blocked,item.blocked,item.name);assert.equal(JSON.stringify(raw),before,'Do not mutate source '+item.name);
+   assert.deepEqual(JSON.parse(JSON.stringify(worker.prs)),JSON.parse(JSON.stringify(item.prs)),'Keep raw PR evidence '+item.name);
+   const primary=c.transform({id:'primary-history',kind:'orchestrator',mode:'tui',status:'idle',activity:{state:'idle'},prs:[]},{pairs:[]});
+   const snapshot={sessions:[primary,worker],summary:{working:0,idle:worker.isIdle?2:1}};
+   const gh={open:item.prs.filter(p=>['open','draft'].includes(p.state)).map(p=>({number:p.number,statusCheckRollup:[{conclusion:['failed','failing'].includes(p.ci)?'FAILURE':'SUCCESS'}]}))};
+   const plan=turbo.previewTextPlan(snapshot,gh,Date.now());
+   assert.equal(plan.plan.some(x=>x.id===worker.id&&x.kind==='refill'),item.refill,'Real Turbo availability: '+item.name);
+   if(item.activity==='exited'){assert.equal(worker.isIdle,false);assert.equal(worker.stateLabel,'Exited');assert.equal(plan.plan.some(x=>x.id===worker.id),false);}
+  }
+  assert.equal(turbo.timer,null,'No scheduler or live work started by regression');
+ }finally{fs.rmSync(root,{recursive:true,force:true})}
+ console.log('PASS 12 real transform + Turbo PR-history scenarios; raw CI evidence and exited-worker safety preserved');
 }
 async function testRefresh(){
  let resolveRoster,reads=0,renders=0;const roster={sessions:[],summary:{},metrics:{},timestamp:new Date().toISOString()},state={pending:true,data:null,refreshPromise:null,receivedAt:0,refreshError:null,firstLoad:true,drawerId:null},elements={},get=s=>elements[s]||(elements[s]=elem());
@@ -52,4 +94,4 @@ function testRealFreshnessDomContract(){
  c.markFreshness();assert(buttons.every(b=>b.disabled),'all matching buttons disabled');
  blocked=false;c.markFreshness();assert(buttons.every(b=>!b.disabled),'controls recover after fresh eligibility');
 }
-(async()=>{testRealFreshnessDomContract();await testApi();testDraft();testPlans();await testRefresh();console.log('PASS dashboard deadlines/no-retry, shared-port URLs, offline staging, draft preservation, replacement gates, refresh coalescing and stale-plan handling');})().catch(e=>{console.error(e);process.exitCode=1});
+(async()=>{testRealFreshnessDomContract();await testApi();testDraft();testPlans();testCompletedPRClassification();await testRefresh();console.log('PASS dashboard deadlines/no-retry, shared-port URLs, offline staging, draft preservation, replacement gates, refresh coalescing and stale-plan handling');})().catch(e=>{console.error(e);process.exitCode=1});

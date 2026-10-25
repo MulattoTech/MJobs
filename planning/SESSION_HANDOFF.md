@@ -1,3 +1,9 @@
+## 2026-10-25 follow-up: completed PR history
+
+- Startup/native launch repair merged as PR #810, main f955c0dc14043bd2eab677f78d7410975a6810f6; all 16 checks passed before merge.
+- Live paused roster exposed six historical CI false blockers on merged PRs. This follow-up excludes positively completed references from current blockers, labels historical CI, and removes the obsolete six-dirty-files prompt. Current/unknown failures remain blocked; stopped workers are not made runnable.
+- Validation: native dashboard regression including 12 real transform/Turbo scenarios, Sustain, Startup API/UI integration, and whitespace checks passed. No model prompts or fleet resumes submitted. Guard remains armed/acknowledged at 7%; quota freshly 100%.
+
 # Protected Startup maintenance checkpoint (2026-10-25 America/Chicago)
 
 - Integration owner: ChatGPT Web; branch `fix/startup-nonadmin-20261025`, based on merged main `cbf85b636c4abe6afc1d071710ee48d3603297c4`. Read exact final PR/head/gates from GitHub before starting new development.

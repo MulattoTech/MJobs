@@ -47,3 +47,7 @@ The full 29-session paid fleet startup was not run during maintenance. Native la
 The connected browser timed out, so there is no claim of a live visual browser click-through. API/proxy, DOM behavior, native Windows launch, cancellation and refresh checks were exercised separately.
 
 AGY quota remains unavailable until its native client emits a fresh observation; standalone Gemini CLI was not detected. Unknown usage is not represented as 0% or 100%. The Codex guard is not a verified Google quota cutoff.
+
+## Follow-up: current CI versus historical PR results
+
+A live paused-fleet check found six agents flagged for failing CI although all of their tracked PRs were already merged. Completed PRs now retain their recorded results as explicitly labeled historical CI, without blocking current worker availability. Unknown/current failures and standalone reported failures remain conservative, and exited workers remain ineligible for dispatch. Twelve added scenarios execute the actual session transform and Turbo planner; the native Windows dashboard, Sustain, and Startup API/UI suites passed. The old prompt claim about six modified main files was replaced by a general instruction to preserve user edits.
