@@ -1,0 +1,36 @@
+name: Fleet control - Windows
+on:
+  pull_request:
+    branches: [main]
+    paths: ['tools/fleet_control/**', '.github/workflows/fleet-control.yml']
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+    paths: ['tools/fleet_control/**', '.github/workflows/fleet-control.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fleet-control-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  regression:
+    name: Fleet / Windows control regressions
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+      - name: Test controls with isolated fixtures and no inference
+        run: node tools/fleet_control/check-fleet.js
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: fleet-control-regressions
+          path: tools/fleet_control/diagnostics/preflight-results.json
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,30 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {Sustain}=require('./sustain');
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'fleet-active-turn-'));
+let now=Date.now(),launches=0;
+const engine=new Sustain({root,autoSchedule:false,clock:()=>now,getState:async()=>({sessions:[]}),turbo:{},command:async()=>{launches++;},audit:()=>{}});
+const sent=new Date(now-240000).toISOString();
+const session={id:'worker-1',activity:'active',busy:true,lastActivity:new Date(Date.parse(sent)+50).toISOString(),prs:[],status:'working',branchState:{}};
+try{
+ engine.status.agents[session.id]={lastSent:sent,awaiting:true,lastFingerprint:'before'};
+ engine.observe([session],{open:[]});
+ assert.equal(engine.status.agents[session.id].awaiting,true);
+ assert.equal(engine.status.agents[session.id].backoffUntil,undefined);
+ assert.ok(engine.status.agents[session.id].observedActiveAt);
+ now+=1000;
+ engine.observe([{...session,busy:false,activity:'idle'}],{open:[]});
+ assert.equal(engine.status.agents[session.id].awaiting,false,'Observed active-to-idle transition completes the turn even with unchanged timestamp');
+ engine.status.agents[session.id]={lastSent:sent,awaiting:false,unverified:1,backoffUntil:new Date(now+720000).toISOString()};
+ engine.observe([session],{open:[]});
+ assert.equal(engine.status.agents[session.id].unverified,0);
+ assert.equal(engine.status.agents[session.id].backoffUntil,undefined,'Existing false unverified backoff is repaired when active');
+ engine.status.agents[session.id]={lastSent:sent,awaiting:true};
+ engine.observe([{...session,busy:false,activity:'idle',lastActivity:sent}],{open:[]});
+ assert.equal(engine.status.agents[session.id].backoffReason,'unverified_delivery','Truly unconfirmed idle delivery still backs off');
+ engine.status.agents[session.id]={lastSent:sent,awaiting:false,unverified:1,backoffReason:'dispatch_error',backoffUntil:new Date(now+720000).toISOString()};
+ engine.observe([session],{open:[]});
+ assert.equal(engine.status.agents[session.id].backoffReason,'dispatch_error','Explicit dispatch error is preserved');
+ assert.equal(launches,0);
+ console.log('PASS: long-running turns confirm delivery; idle transition recognized; old false delay cleared; real undelivered/error backoff retained. No live dispatch.');
+}finally{fs.rmSync(root,{recursive:true,force:true});}

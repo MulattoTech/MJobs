@@ -1,0 +1,23 @@
+'use strict';
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),assert=require('node:assert/strict');
+const {Turbo}=require('./turbo'),{Sustain}=require('./sustain');
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fleet-stale-test-'));
+let now=Date.now(),failed=false,sends=0;
+const sessions=[{id:'primary',kind:'orchestrator',role:'Orchestration',name:'Primary',isIdle:true,activity:'idle',busy:false,lastActivity:new Date(now-600000).toISOString(),prs:[],branchState:{}}];
+const snap={timestamp:new Date(now).toISOString(),sessions,metrics:{cpu:5,ramFree:16*1024**3},summary:{total:1,working:0,idle:1,idleFree:1}};
+const t=new Turbo({root:dir,getState:async()=>snap,command:async()=>{sends++},audit:()=>{},clock:()=>now,autoSchedule:false,githubRunner:async()=>{if(failed)throw Error('offline');return {open:[],merged:[]}}});
+(async()=>{
+ const first=await t.preview();assert.equal(first.preview.ready,true);
+ failed=true;now+=181000;assert.match((await t.preview()).preview.pausedReason,/GitHub.*stale/);
+ const s=new Sustain({root:dir,getState:async()=>snap,turbo:t,command:async()=>{sends++},audit:()=>{},clock:()=>now,autoSchedule:false});
+ assert.match((await s.preview()).blocked,/GitHub.*stale/);
+ failed=false;await t.github(true);snap.offline=true;
+ assert.match((await t.preview()).preview.pausedReason,/offline snapshot/);
+ assert.match((await s.preview()).blocked,/offline snapshot/);
+ snap.offline=false;sessions[0].activity='exited';sessions[0].isIdle=false;
+ assert.match((await t.preview()).preview.pausedReason,/No active primary/);
+ assert.match((await s.preview()).blocked,/No live primary/);
+ assert.equal(sends,0);
+ console.log('PASS: stale GitHub, offline roster, exited primary block both dispatchers; no live messages.');
+ fs.rmSync(dir,{recursive:true,force:true});
+})().catch(e=>{console.error(e);process.exitCode=1});
