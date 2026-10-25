@@ -15,7 +15,7 @@ const c=vm.createContext({require:nativeRequire,__dirname:root,process,Buffer,UR
  }
  return 'ok';
 }});
-vm.runInContext(source.slice(0,source.indexOf("if(!fs.existsSync(AO)){"))+'\nglobalThis.apply=applyAgentPlan;master={locked:()=>false,drainState:{enabled:false}};quota={dispatchBlockReason:()=>null};agentPlans=plans;state=async()=>snapshot;command=commandMock;audit=()=>{};',c);
+vm.runInContext(source.slice(0,source.indexOf("if(!fs.existsSync(AO)){"))+'\nglobalThis.apply=applyAgentPlan;startup={status:()=>({active:false,uncertain:false,phase:"idle"})};master={locked:()=>false,drainState:{enabled:false}};quota={dispatchBlockReason:()=>null};agentPlans=plans;state=async()=>snapshot;command=commandMock;audit=()=>{};',c);
 (async()=>{
  await plans.save(old,{model:'test-gemini'});
  old.busy=true;await assert.rejects(()=>c.apply({id:old.id,confirm:'APPLY AGENT PLAN'}),/idle or stopped/);assert.equal(calls.length,0);

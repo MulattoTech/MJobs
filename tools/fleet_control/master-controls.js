@@ -4,7 +4,7 @@ const path=require('node:path');
 const os=require('node:os');
 const {spawn}=require('node:child_process');
 const {randomUUID}=require('node:crypto');
-const {RestoreFleet}=require('./restore-fleet');
+const {RestoreFleet,unresolvedNativeReason}=require('./restore-fleet');
 
 const ROOT=__dirname;
 const INIT_DRAIN={enabled:false,phase:'idle',startedAt:null,completedAt:null,processed:{},errors:[],counts:null,lastCheck:null};
@@ -14,9 +14,10 @@ function write(file,value){
 }
 function error(e){return String(e?.message||e).slice(0,450)}
 class MasterControls{
- constructor({root=ROOT,sustain,turbo,command,audit,projectId='mjobs-luna',getState,getAllSessions=null,autoschedule=true}){
+ constructor({root=ROOT,sustain,turbo,command,audit,projectId='mjobs-luna',getState,getAllSessions=null,autoschedule=true,restoreOptions={},restoreCommand=null,startBlockReason=()=>null}){
   this.root=root;this.sustain=sustain;this.turbo=turbo;this.command=command;
   this.audit=audit;this.projectId=projectId;this.getState=getState;
+  this.startBlockReason=startBlockReason;
   this.latchPath=path.join(root,'emergency-latch.json');
   this.statusPath=path.join(root,'emergency-status.json');
   this.drainPath=path.join(root,'drain-state.json');
@@ -28,10 +29,10 @@ class MasterControls{
    const response=await fetch('http://127.0.0.1:3001/api/v1/sessions',{signal:AbortSignal.timeout(2000)});
    if(!response.ok)throw Error('AO HTTP '+response.status);
    const data=await response.json();return data.sessions||[];
-  }),locked:()=>this.locked(),startBlockReason:()=>this.quota?.dispatchBlockReason?.()||(!this.quota?'Quota guard has not initialized':null),dispatchOff:()=>this.disableAutomaticDispatch(),command,audit,autoSchedule:autoschedule,onComplete:async({autoDispatchAfter})=>{
-    if(autoDispatchAfter&&!this.locked()&&!this.drainState.enabled&&!this.quota?.dispatchBlockReason?.()){this.sustain.enable(true);this.audit('master_restore_dispatch_resumed',{})}
+  }),...restoreOptions,locked:()=>this.locked(),startBlockReason:()=>startBlockReason()||this.quota?.dispatchBlockReason?.()||(!this.quota?'Quota guard has not initialized':null),dispatchOff:()=>this.disableAutomaticDispatch(),command:restoreCommand||command,audit,autoSchedule:autoschedule,onComplete:async({autoDispatchAfter})=>{
+    if(autoDispatchAfter&&!startBlockReason()&&!this.locked()&&!this.drainState.enabled&&!this.quota?.dispatchBlockReason?.()){this.sustain.enable(true);this.audit('master_restore_dispatch_resumed',{})}
    }});
-  if(this.latch.enabled){
+  if(this.locked()){
    this.disableAutomaticDispatch();
    if(autoschedule)this.ensureWatchdog();
   }
@@ -224,7 +225,7 @@ class MasterControls{
   return true;
  }
  async emergency(){
-  if(this.latch.enabled){
+  if(this.locked()){
    this.ensureWatchdog();
    return this.status();
   }
@@ -256,6 +257,9 @@ class MasterControls{
  async restoreStart(options={}){
   if(this.locked())throw Error('Emergency stop is latched. Explicitly release the lockout after quota resets, then re-arm the 7% quota guard before restoring any agent.');
   if(this.restore.state.active)return this.status();
+  if(this.restore.running)throw Error('A previous restore tick is still running');
+  const previousNative=unresolvedNativeReason(this.restore.state);
+  if(previousNative)throw Error(previousNative);
   // A prior emergency trip sets autoKillArmed=false. Treat that as STOP,
   // never as permission to restore without monitoring.
   const quota=this.quota?.status();
@@ -271,7 +275,7 @@ class MasterControls{
   const before=await this.restore.preview();
   if(before.totalTargets===0)throw Error('No AO-managed Codex sessions are available in the saved recovery manifest. Restore canceled safely.');
   if(before.alreadyOnline===before.totalTargets&&before.willResume===0)throw Error('All preserved session runtimes are already online. Nothing needs restoring. No dispatch settings changed.');
-  const stopReason=this.quota?.dispatchBlockReason?.();
+  const stopReason=unresolvedNativeReason(this.restore.state)||this.startBlockReason()||this.quota?.dispatchBlockReason?.();
   if(this.locked()||stopReason)throw Error('Restore blocked by emergency/quota safety: '+(stopReason||'Emergency latch was reactivated'));
   this.disableAutomaticDispatch();
   const out=this.restore.start({autoDispatchAfter:options.autoDispatchAfter===true,fromEmergency:before.emergencyLatched});
@@ -284,8 +288,15 @@ class MasterControls{
   this.audit('master_restore_paused',{});
   return this.status();
  }
- rearm(){
-  if(!this.latch.enabled)return this.status();
+ rearm({expectedRevision=null}={}){
+  // Read the on-disk latch again immediately before a synchronous release.
+  // Startup may only release the exact stop that its user request inspected.
+  if(expectedRevision!==null){
+   const crypto=require('node:crypto');
+   let bytes;try{bytes=fs.readFileSync(this.latchPath)}catch{throw Error('Emergency latch changed or is unreadable; no release performed')}
+   if(crypto.createHash('sha256').update(bytes).digest('hex')!==expectedRevision)throw Error('A newer emergency stop superseded this release request');
+  }
+  if(!this.locked())return this.status();
   this.latch={enabled:false,rearmedAt:new Date().toISOString()};
   write(this.latchPath,this.latch);
   this.disableAutomaticDispatch();

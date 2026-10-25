@@ -54,7 +54,7 @@ async function main(){
  // AO temporarily offline after kill; must start only once (with cooldown).
  offline=true;
  const t0=await restore.tick();
- assert.equal(t0.waiting,'Starting Orchestrator.inc desktop app');
+ assert.equal(t0.waiting,'Starting Orchestrator.inc daemon');
  assert.equal(launches,1);
  // Start primary roots first, one current no process => native exit+resume.
  const t1=await restore.tick();

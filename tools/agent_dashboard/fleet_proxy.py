@@ -6,12 +6,12 @@ from fastapi.responses import RedirectResponse, Response
 
 ASSETS = {"", "index.html", "app.js", "turbo-ui.js", "sustain-ui.js", "master-ui.js",
           "restore-ui.js", "quota-ui.js", "find-work-ui.js", "style.css", "turbo.css",
-          "master.css", "restore.css", "quota.css", "find-work.css"}
+          "master.css", "restore.css", "quota.css", "find-work.css", "startup-ui.js", "startup.css"}
 READS = {"api/health", "api/state", "api/environment", "api/quota", "api/master",
          "api/preflight", "api/providers", "api/gemini-usage", "api/agent-plan",
          "api/turbo", "api/turbo/preview", "api/turbo/all-hands/preview",
          "api/sustain", "api/sustain/preview", "api/find-work/preview",
-         "api/find-work/status", "api/master/restore/preview"}
+         "api/find-work/status", "api/master/restore/preview", "api/startup"}
 WRITES = {"api/nudge", "api/replace", "api/retire", "api/agent-plan",
           "api/agent-plan/apply", "api/find-work", "api/find-work/all",
           "api/quota/config", "api/quota/arm", "api/quota/disarm",
@@ -19,7 +19,8 @@ WRITES = {"api/nudge", "api/replace", "api/retire", "api/agent-plan",
           "api/master/restore", "api/master/restore/pause", "api/master/emergency",
           "api/master/rearm", "api/sustain/toggle", "api/sustain/config",
           "api/sustain/tick", "api/turbo/toggle", "api/turbo/config",
-          "api/turbo/run", "api/turbo/all-hands"}
+          "api/turbo/run", "api/turbo/all-hands", "api/startup", "api/startup/cancel",
+          "api/startup/reconcile", "api/orchestrator/open"}
 
 
 async def _relay(method, tail, body, headers):

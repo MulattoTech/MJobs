@@ -3,6 +3,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const readline=require('node:readline');
 const {spawn,execFile}=require('node:child_process');
+const {createHash}=require('node:crypto');
 const ROOT=__dirname;
 const CONFIG=path.join(ROOT,'quota-guard-config.json');
 const STATUS=path.join(ROOT,'quota-guard-status.json');
@@ -27,6 +28,10 @@ function sane(raw){
  if(!Number.isInteger(c.thresholdPercent)||c.thresholdPercent<0||c.thresholdPercent>50)c.thresholdPercent=7;
  if(!['any','five-hour','weekly'].includes(c.window))c.window='any';
  return c;
+}
+function configRevision(raw){
+ const c=sane(raw);
+ return createHash('sha256').update(JSON.stringify({enabled:c.enabled,pollSeconds:c.pollSeconds,thresholdPercent:c.thresholdPercent,window:c.window,autoKillArmed:c.autoKillArmed,tripped:c.tripped,updatedAt:typeof c.updatedAt==='string'?c.updatedAt:null})).digest('hex');
 }
 function inspectLimits(value){
  const set=value?.rateLimitsByLimitId||null;
@@ -199,6 +204,7 @@ async function poll(){
   const label=selected.find(w=>w.remainingPercent===remain)?.label||null;
   lastSample=now;
   publish({status:emergency?'emergency_locked':selected.length?'fresh':'window_unavailable',error:null,
+   guardAck:{revision:configRevision(c),appliedAt:new Date(now).toISOString()},
    windows,polledAt:new Date().toISOString(),lastSuccessfulPoll:new Date().toISOString(),
    selectedRemainingPercent:remain,selectedWindow:label,
    source:'Codex App Server — account/rateLimits/read',precision:'whole percent',ordinaryUsageAllowed:result?.ordinaryUsageAllowed??null});
@@ -221,4 +227,4 @@ if(require.main===module){
  process.on('SIGINT',()=>{clearInterval(timer);stopRPC('stop');process.exit(0)});
  process.on('SIGTERM',()=>{clearInterval(timer);stopRPC('stop');process.exit(0)});
 }
-module.exports={inspectLimits,selectedWindows,sane,shouldKill,watchdogVerified,assertReadOnlyRPC,DEFAULT};
+module.exports={inspectLimits,selectedWindows,sane,shouldKill,watchdogVerified,assertReadOnlyRPC,configRevision,DEFAULT};

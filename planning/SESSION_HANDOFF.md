@@ -1,3 +1,13 @@
+# Protected Startup maintenance checkpoint (2026-10-25 America/Chicago)
+
+- Integration owner: ChatGPT Web; branch `fix/startup-nonadmin-20261025`, based on merged main `cbf85b636c4abe6afc1d071710ee48d3603297c4`. Read exact final PR/head/gates from GitHub before starting new development.
+- The user's allowance reset was verified at 100%. The live independent Codex monitor acknowledged the armed 7% guard; the new-assignment reserve is 15%. Turbo/Sustained remain off, and maintenance did not resume the saved fleet or submit model prompts.
+- Protected Startup is an explicit user action at `http://127.0.0.1:18729/fleet/`. It validates the preserved manifest, handles the exact emergency revision, waits for watchdog/guard acknowledgment, and restores primary controllers before workers. It leaves automatic dispatch paused.
+- Current controller health, durable no-retry records and explicit safe reconciliation replace historical completion assumptions. Do not erase uncertain submission records or blindly resend timed-out native operations.
+- Both user PowerShell profiles now import the common guarded Codex launcher. Actual non-admin PS5 launch reached Ready with one terminal window/tab; PS7 and the updated desktop shortcut were also checked. CLI stable version remains 0.164.0.
+- Validation and limits are recorded in `docs/FLEET_STARTUP_VERIFICATION_2026-10-25.md`. Whole-product acceptance is unchanged. Preserved recovery branches/worktrees remain intact; start fresh mixed-agent work from the verified final main using explicit non-overlapping ownership.
+- The preceding 2026-10-24 checkpoint below is historical. Its instruction to await the allowance reset has now been satisfied; it does not authorize automatic fleet resume.
+
 # Fleet recovery and mixed-agent integration checkpoint (2026-10-24 America/Chicago)
 
 - Integration owner: ChatGPT Web; branch `integration/clean-slate-20261024`, PR #809. PR #781 is merged at `4eb8a6e91fdab7e58890673919d6d554bb0285b7`. #809 preserves the original heads of #767, #772-775, #782, #784, #786, #795-796, #799-800, #804, #806-808; normal merge preserves their ancestry. Final hosted gates and merge status must be read from GitHub, not inferred from this checkpoint.

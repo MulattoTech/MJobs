@@ -2,7 +2,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {spawn}=require('node:child_process');
-const {DEFAULT,sane,selectedWindows}=require('./quota-guard');
+const {DEFAULT,sane,selectedWindows,configRevision}=require('./quota-guard');
 function load(file,fallback){try{return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''))}catch{return structuredClone(fallback)}}
 function persist(file,data){const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(data,null,2));fs.renameSync(tmp,file)}
 class QuotaControl{
@@ -30,8 +30,12 @@ class QuotaControl{
   const windows=Array.isArray(info.windows)?info.windows.filter(x=>Number.isFinite(x.remainingPercent)&&x.remainingPercent>=0&&x.remainingPercent<=100):[],
    selected=selectedWindows(windows,config.window).filter(x=>!x.resetsAt||(Number.isFinite(Date.parse(x.resetsAt))&&Date.parse(x.resetsAt)>now));
   const selectedRemaining=fresh&&selected.length?Math.min(...selected.map(x=>x.remainingPercent)):null;
+  const ackAt=Date.parse(info.guardAck?.appliedAt||'');
+  const guardAcknowledged=!!(fresh&&selected.length&&info.guardAck?.revision===configRevision(config)&&Number.isFinite(ackAt)&&ackAt<=success&&now-ackAt>=0&&now-ackAt<=Math.max(25,config.pollSeconds*3)*1000);
   return {
    config,
+   guardAcknowledged,
+   guardAck:info.guardAck?{revision:info.guardAck.revision,appliedAt:info.guardAck.appliedAt}:null,
    monitorOnline:alive,
    fresh:fresh&&selected.length>0,
    sampledAt:info.lastSuccessfulPoll||null,
@@ -49,7 +53,7 @@ class QuotaControl{
     remainingAtTrigger:config.triggerRemainingPercent??null,
     window:config.triggerWindow||null
    },
-   warning:!alive?'Quota monitor is offline':!fresh?'Usage snapshot unavailable or stale':selected.length===0?'Selected quota window unavailable':null
+   warning:!alive?'Quota monitor is offline':!fresh?'Usage snapshot unavailable or stale':selected.length===0?'Selected quota window unavailable':config.autoKillArmed&&!guardAcknowledged?'Waiting for the quota monitor to acknowledge the current guard settings':null
   };
  }
  dispatchBlockReason(){
@@ -64,6 +68,7 @@ class QuotaControl{
   // can consume quota after the last provider sample; the hard kill stays at 7%.
   const brake=Math.min(100,s.config.thresholdPercent+8);
   if(s.selectedRemainingPercent<=brake)return 'Quota safety brake: '+s.selectedRemainingPercent+'% remaining (new assignments paused at '+brake+'%, emergency at '+s.config.thresholdPercent+'%)';
+  if(!s.guardAcknowledged)return 'Quota guard settings are awaiting acknowledgment from the live monitor; new work is paused';
   return null;
  }
  validateUpdate(x){
