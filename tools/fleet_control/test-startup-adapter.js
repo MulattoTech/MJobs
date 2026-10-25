@@ -10,6 +10,7 @@ const { StartupAdapter } = require('./startup-adapter');
 const { StartupController } = require('./startup-control');
 const { configRevision } = require('./quota-guard');
 const { targetsFromSnapshot } = require('./restore-fleet');
+const { nativeSessionIdentity } = require('./windows-runtime-evidence');
 
 const clone = value => structuredClone(value);
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
@@ -23,7 +24,7 @@ function fixture(t) {
       { id: 'mjobs-codex-1', projectId: 'mjobs', kind: 'worker', harness: 'codex', activity: 'idle' },
       { id: 'mjobs-agy-1', projectId: 'mjobs', kind: 'worker', harness: 'agy', activity: 'idle' },
     ] },
-    sessions: [], counts: new Map(),
+    sessions: [], counts: new Map(), stoppedEvidence: new Map(),
     resources: { ramGiB: 30, diskGiB: 150, cpuPercent: 10 },
     quota: { fresh: true, selectedRemainingPercent: 100, ordinaryUsageAllowed: true },
     config: { enabled: true, pollSeconds: 5, thresholdPercent: 7, window: 'any', autoKillArmed: false, tripped: false, updatedAt: '2026-10-25T00:00:00.000Z' },
@@ -67,7 +68,10 @@ function fixture(t) {
       getSnapshot: () => clone(state.saved),
       targets: saved => targetsFromSnapshot(saved),
       resourceReader: async () => { state.reads.push('resources'); return clone(state.resources); },
-      runtimeInspector: async projects => { state.reads.push({ op: 'runtimes', projects }); return new Map(state.counts); },
+      runtimeInspector: async projects => {
+        state.reads.push({ op: 'runtimes', projects }); const counts = new Map(state.counts);
+        counts.stoppedEvidence = clone(state.stoppedEvidence); return counts;
+      },
       watchdogDisarmed: async explicit => { state.reads.push({ op: 'watchdog', explicit }); return true; },
       status: () => clone(master.restore.state),
       start: options => { state.effects.push({ op: 'restore.start', options: clone(options) }); master.restore.state.active = true; return clone(master.restore.state); },
@@ -94,6 +98,16 @@ function fixture(t) {
     state.counts = new Map(state.sessions.map(s => [s.id, 2]));
   };
   return { root, state, master, quota, launcher, providers, options, context, protect, healthy, writeLatch, revision, make: () => new StartupAdapter(options) };
+}
+function proveNativeAbsent(f) {
+  f.state.saved.sessions.forEach((s, i) => { s.mode = i === 0 ? 'chat' : 'tui'; });
+  f.state.sessions = f.state.saved.sessions.map(s => ({ ...s, activity: { state: 'exited' }, isTerminated: false,
+    statusReadiness: 'ready', createdAt: new Date(f.state.now - 60000).toISOString(), updatedAt: new Date(f.state.now).toISOString(),
+    terminalGeneration: 'fixture-generation', controllerState: 'stopped', controllerVerified: s.mode === 'chat' }));
+  f.state.counts = new Map(f.state.sessions.map(s => [s.id, null]));
+  f.state.stoppedEvidence = new Map(f.state.sessions.map(s => [s.id, { version: 1, type: 'native-runtime-absent', probeId: 'a'.repeat(32),
+    observedAt: new Date(f.state.now).toISOString(), identity: nativeSessionIdentity(s),
+    proof: { completeInventory: true, stableInventory: true, stableRegistry: true, instanceVerified: true, stableInstance: true, noMatchingHost: true, ownershipClear: true, noSessionOwnedProvider: true, registryAbsent: s.mode === 'tui', chatOwnershipClear: s.mode === 'chat' } }]));
 }
 
 test('bootstrap is read-only and validates the preserved mixed-provider manifest while AO is offline', async t => {
@@ -310,6 +324,107 @@ test('live readiness is re-evaluated after cache expiry and is immediately decor
   assert.equal((await adapter.readiness(f.context())).ready, false); assert.deepEqual(f.state.effects, []);
 });
 
+test('slow or stuck runtime inspection returns bounded pending UI responses with one shared inspector', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5;
+  const gate = deferred(); let inspections = 0;
+  f.master.restore.runtimeInspector = async () => { inspections++; await gate.promise; return new Map(f.state.counts); };
+  const adapter = f.make(), first = await adapter.readiness();
+  assert.equal(first.inspectionPending, true); assert.equal(first.ready, false); assert.equal(first.runtimesReady, false);
+  assert.equal(first.processCountsComplete, false); assert.equal(first.runningExpectedAgents, null); assert.equal(first.daemonOnline, null);
+  assert.deepEqual(first.healthyIds, []); assert.equal(inspections, 1); assert.equal(adapter.reading.waiters.size, 0);
+  const polls = await Promise.all(Array.from({ length: 8 }, () => adapter.readiness()));
+  assert.ok(polls.every(value => value.inspectionPending && value.ready === false));
+  assert.equal(inspections, 1); assert.equal(adapter.reading.waiters.size, 0);
+  gate.resolve(); const completed = await adapter.readiness();
+  assert.equal(completed.ready, true); assert.equal(completed.inspectionPending, false); assert.equal(inspections, 1);
+  assert.equal(adapter.reading, null); assert.deepEqual(f.state.effects, []);
+});
+
+test('stale or clock-reversed healthy cache is never returned as ready while a refresh is slow', { timeout: 1500 }, async t => {
+  for (const clockChange of [4000, -1000]) await t.test(String(clockChange), async st => {
+    const f = fixture(st); f.protect(); f.healthy(); f.options.readinessWaitMs = 5; const adapter = f.make();
+    const previous = await adapter.readiness(); assert.equal(previous.ready, true); f.state.now += clockChange;
+    f.state.sessions[0].controllerRunning = false;
+    const gate = deferred(); f.master.restore.runtimeInspector = async () => { await gate.promise; return new Map(f.state.counts); };
+    const pending = await adapter.readiness();
+    assert.equal(pending.ready, false); assert.equal(pending.stale, true); assert.equal(pending.inspectionPending, true);
+    assert.equal(pending.verified, 0); assert.deepEqual(pending.healthyIds, []); assert.equal(pending.lastObservedAt, previous.at);
+    gate.resolve(); assert.equal((await adapter.readiness()).ready, false); assert.deepEqual(f.state.effects, []);
+  });
+});
+
+test('manifest changes invalidate even a young readiness cache without exposing stale health', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5; const adapter = f.make();
+  assert.equal((await adapter.readiness()).ready, true);
+  f.state.saved.sessions[1].id = 'mjobs-new-worker'; f.healthy();
+  const gate = deferred(); f.master.restore.runtimeInspector = async () => { await gate.promise; return new Map(f.state.counts); };
+  const pending = await adapter.readiness(); assert.equal(pending.ready, false); assert.equal(pending.inspectionPending, true);
+  gate.resolve(); const current = await adapter.readiness(); assert.equal(current.ready, true);
+  assert.ok(current.healthyIds.includes('mjobs-new-worker')); assert.deepEqual(f.state.effects, []);
+});
+
+test('forced readiness waits for a post-request observation rather than an old background result', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5;
+  const oldGate = deferred(), newGate = deferred(), newEntered = deferred(); let inspections = 0, settled = false;
+  f.master.restore.runtimeInspector = async () => {
+    if (++inspections === 1) await oldGate.promise;
+    else { newEntered.resolve(); await newGate.promise; }
+    return new Map(f.state.counts);
+  };
+  const adapter = f.make(); assert.equal((await adapter.readiness()).inspectionPending, true);
+  const forced = adapter.readiness(f.context(), { force: true }).then(value => { settled = true; return value; });
+  oldGate.resolve(); await newEntered.promise;
+  assert.equal(settled, false); assert.equal(inspections, 2);
+  f.state.now += 4000; assert.equal((await adapter.readiness()).inspectionPending, true); assert.equal(inspections, 2);
+  newGate.resolve(); assert.equal((await forced).ready, true); assert.equal(inspections, 2); assert.deepEqual(f.state.effects, []);
+});
+
+test('aborting a forced waiter leaves the shared inspector intact and does not queue a later recovery action', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5;
+  f.master.restore.state.errors = { 'mjobs-primary': { uncertain: true, attempts: 2 } };
+  const before = clone(f.master.restore.state), gate = deferred(), abort = new AbortController(); let inspections = 0;
+  f.master.restore.runtimeInspector = async () => { inspections++; await gate.promise; return new Map(f.state.counts); };
+  const adapter = f.make(); await adapter.readiness();
+  const checking = adapter.reconcile({ ...inspectionContext(f, adapter), signal: abort.signal }); abort.abort();
+  await assert.rejects(checking, /cancelled/); assert.equal(inspections, 1); assert.equal(adapter.reading.waiters.size, 0);
+  assert.equal(f.state.reads.some(item => item?.op === 'launcher.reconcile'), false);
+  gate.resolve(); await adapter.readiness(); assert.equal(inspections, 1);
+  assert.deepEqual(f.master.restore.state, before); assert.deepEqual(f.state.effects, []);
+});
+
+test('a background inspection failure settles as unavailable without retry overlap or prior healthy fallback', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5; const adapter = f.make();
+  assert.equal((await adapter.readiness()).ready, true); f.state.now += 4000;
+  const gate = deferred(); let inspections = 0;
+  f.master.restore.runtimeInspector = async () => { inspections++; await gate.promise; throw Error('Synthetic private inspector detail'); };
+  assert.equal((await adapter.readiness()).inspectionPending, true); gate.resolve();
+  const failed = await adapter.readiness(); assert.equal(failed.ready, false); assert.equal(failed.daemonOnline, false);
+  assert.equal(failed.inspectionPending, false); assert.doesNotMatch(JSON.stringify(failed), /private inspector/);
+  assert.equal(inspections, 1); assert.equal(adapter.reading, null); assert.deepEqual(f.state.effects, []);
+});
+
+test('completed inspection uses controller state observed after a slow native probe, not a pre-probe healthy snapshot', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5;
+  const gate = deferred();
+  f.master.restore.runtimeInspector = async () => { await gate.promise; return new Map(f.state.counts); };
+  const adapter = f.make(); assert.equal((await adapter.readiness()).inspectionPending, true);
+  f.state.sessions[0].controllerRunning = false; gate.resolve();
+  const result = await adapter.readiness(); assert.equal(result.ready, false); assert.equal(result.runtimesReady, false);
+  assert.ok(result.missing.includes('mjobs-primary')); assert.deepEqual(f.state.effects, []);
+});
+
+test('a slow forced bootstrap cannot mistake a bounded UI pending result for passed safety validation', { timeout: 1500 }, async t => {
+  const f = fixture(t); f.protect(); f.healthy(); f.options.readinessWaitMs = 5;
+  f.state.sessions.push({ ...clone(f.state.sessions[0]), id: 'conflicting-primary' });
+  const gate = deferred(), entered = deferred(); let settled = false;
+  f.master.restore.runtimeInspector = async () => { entered.resolve(); await gate.promise; return new Map(f.state.counts); };
+  const adapter = f.make(), bootstrap = adapter.bootstrap(f.context()).then(value => { settled = true; return value; });
+  await entered.promise; const pending = await adapter.readiness(); assert.equal(pending.inspectionPending, true);
+  assert.equal(settled, false); assert.deepEqual(f.state.effects, []);
+  gate.resolve(); const result = await bootstrap; assert.equal(result.ok, false); assert.match(result.reason, /primary controller conflicts/);
+  assert.deepEqual(f.state.effects, []);
+});
+
 test('healthy already-online fleet is recognized without submitting a restore or launch', async t => {
   const f = fixture(t); f.protect(); f.healthy();
   const result = await f.make().bootstrap(f.context()); assert.equal(result.ok, true); assert.equal(result.alreadyOnline, true);
@@ -382,6 +497,70 @@ test('read-only reconciliation can prove idle only with explicit no-submission s
   const adapter = f.make(), proof = await adapter.reconcile(inspectionContext(f, adapter));
   assert.equal(proof.outcome, 'idle'); assert.equal(proof.submissionAuditComplete, true); assert.equal(proof.submittedResume, false);
   assert.equal(proof.runningExpectedAgents, 0); assert.deepEqual(f.state.effects, []);
+});
+
+test('complete native absence can prove never-submitted idle without faking counts or readiness', async t => {
+  const f = fixture(t); f.protect(); proveNativeAbsent(f); const adapter = f.make();
+  const live = await adapter.readiness(f.context(), { force: true });
+  assert.equal(live.processCountsComplete, false); assert.equal(live.runtimeAbsenceComplete, true);
+  assert.equal(live.verified, 0); assert.equal(live.runtimesReady, false); assert.equal(live.ready, false);
+  assert.deepEqual(live.nativeAbsentIds, f.state.saved.sessions.map(s => s.id));
+  assert.ok([...f.state.counts.values()].every(count => count === null));
+  const proof = await adapter.reconcile(inspectionContext(f, adapter));
+  assert.equal(proof.outcome, 'idle'); assert.equal(proof.submissionAuditComplete, true); assert.equal(proof.submittedResume, false);
+  assert.equal(proof.nativeRuntimeAbsenceVerified, true); assert.equal(proof.verifiedTargetCount, 0);
+  assert.equal(proof.allExpectedRuntimesHealthy, false); assert.deepEqual(f.state.effects, []);
+});
+
+test('partial, stale, mismatched or contradicted native absence cannot prove idle', async t => {
+  const cases = {
+    'no sidecar': f => { f.state.stoppedEvidence.clear(); },
+    'missing one target': f => { f.state.stoppedEvidence.delete('mjobs-codex-1'); },
+    'wrong evidence id': f => { f.state.stoppedEvidence.get('mjobs-codex-1').identity.id = 'different-worker'; },
+    'wrong evidence project': f => { f.state.stoppedEvidence.get('mjobs-codex-1').identity.projectId = 'different-project'; },
+    'wrong evidence mode': f => { f.state.stoppedEvidence.get('mjobs-codex-1').identity.mode = 'chat'; },
+    'wrong evidence harness': f => { f.state.stoppedEvidence.get('mjobs-codex-1').identity.harness = 'agy'; },
+    'wrong session creation': f => { f.state.sessions[1].createdAt = new Date(f.state.now - 1).toISOString(); },
+    'wrong terminal identity': f => { f.state.sessions[1].terminalGeneration = 'another-terminal'; },
+    'live changed mode': f => { f.state.sessions[1].mode = 'chat'; },
+    'live changed project': f => { f.state.sessions[1].projectId = 'different-project'; },
+    'duplicate session id': f => { f.state.sessions.push(clone(f.state.sessions[1])); },
+    'stale proof': f => { f.state.now += 10001; },
+    'future proof': f => { f.state.stoppedEvidence.get('mjobs-codex-1').observedAt = new Date(f.state.now + 1).toISOString(); },
+    'unstable registry': f => { f.state.stoppedEvidence.get('mjobs-codex-1').proof.stableRegistry = false; },
+    'registry target present': f => { f.state.stoppedEvidence.get('mjobs-codex-1').proof.registryAbsent = false; },
+    'provider still owned': f => { f.state.stoppedEvidence.get('mjobs-codex-1').proof.noSessionOwnedProvider = false; },
+    'positive count': f => { f.state.counts.set('mjobs-codex-1', 1); },
+    'invalid count': f => { f.state.counts.set('mjobs-codex-1', -1); },
+    'controller running': f => { f.state.sessions[0].controllerState = 'ready'; },
+    'activity running': f => { f.state.sessions[1].activity.state = 'idle'; },
+    'conflicting primary': f => { f.state.sessions.push({ ...clone(f.state.sessions[0]), id: 'conflicting-primary', activity: { state: 'idle' } }); },
+  };
+  for (const [name, alter] of Object.entries(cases)) await t.test(name, async st => {
+    const f = fixture(st); f.protect(); proveNativeAbsent(f); const adapter = f.make(), ctx = inspectionContext(f, adapter); alter(f);
+    const proof = await adapter.reconcile(ctx);
+    assert.equal(proof.outcome, 'unknown'); assert.equal(proof.allExpectedRuntimesHealthy, false); assert.deepEqual(f.state.effects, []);
+  });
+});
+
+test('complete native absence does not erase a possible submission or weaken the never-attempted audit', async t => {
+  const cases = {
+    'inflight target': (f, ctx) => { f.master.restore.state.inflight = { 'mjobs-primary': { command: 'resume-agent' } }; },
+    'uncertain target': (f, ctx) => { f.master.restore.state.errors = { 'mjobs-primary': { uncertain: true } }; },
+    'inflight old target': (f, ctx) => { f.master.restore.state.inflight = { 'outside-manifest': { command: 'resume-agent' } }; },
+    'attempted restore': (f, ctx) => { ctx.previousRun.restoreStartAttempted = true; },
+    'started restore': (f, ctx) => { ctx.previousRun.restoreStarted = true; },
+    'unknown attempted flag': (f, ctx) => { delete ctx.previousRun.restoreStartAttempted; },
+    'pending native action': (f, ctx) => { ctx.previousRun.actionPending = { name: 'restore' }; },
+    'unknown pending action': (f, ctx) => { delete ctx.previousRun.actionPending; },
+    'unreadable prior state': (f, ctx) => { ctx.previousRun.error = { code: 'STATE_UNREADABLE' }; },
+  };
+  for (const [name, alter] of Object.entries(cases)) await t.test(name, async st => {
+    const f = fixture(st); f.protect(); proveNativeAbsent(f); const adapter = f.make(), ctx = inspectionContext(f, adapter); alter(f, ctx);
+    const before = clone(f.master.restore.state), proof = await adapter.reconcile(ctx);
+    assert.equal(proof.outcome, 'unknown'); assert.deepEqual(f.master.restore.state, before); assert.deepEqual(f.state.effects, []);
+    assert.equal((await adapter.readiness(f.context(), { force: true })).ready, false);
+  });
 });
 
 test('unknown audit flags, invalid counts or possible submitted work cannot be reconciled to idle', async t => {

@@ -1,3 +1,13 @@
+## 2026-10-25 native runtime and refresh follow-up
+
+- Integration owner: ChatGPT Web; branch `fix/fleet-native-runtime-20261025`, based on merged main `1b9c91713f2fd50eac3a7324b05dfcf5f4cbec03`. Read exact final PR/head/gates before further integration.
+- Stopped native AO sessions return null process counts. Restore now uses separate fresh Windows ownership/identity evidence without fabricating zero or healthy state; uncertain submission ledgers remain durable.
+- Native Chat-to-TUI recovery of the existing primary completed with the original Codex thread/workspace/branch preserved and no prompt. The saved manifest mode was backed up and reconciled. That verified runtime was then exited through the native API; all 29 preserved targets remain stopped for user Startup.
+- Stale reused-PID ownership was reconciled offline with backup and unrelated processes preserved. Completed native reviewer surfaces were archived via the official API, preserving results/history.
+- Readiness GETs have a one-second wait budget and share a background inspector; forced Startup/Recheck retains fresh observation/deadline semantics. Never turn pending/unknown status into ready.
+- Native validation: all 32 Fleet test groups passed, including 94 runtime-reader tests/22 native PowerShell checks, 167 adapter tests, 85 restore-safety tests, 60 integration and 63 controller tests. Actual read-only inspection verified 29/29 absence identities in 2.23 seconds.
+- Details and limitations: `docs/FLEET_NATIVE_RUNTIME_VERIFICATION_2026-10-25.md`. Dispatch remains paused; no full paid fleet workload was run. Keep the acknowledged 7% guard and 15% assignment reserve. Whole-product acceptance is unchanged.
+
 ## 2026-10-25 follow-up: completed PR history
 
 - Startup/native launch repair merged as PR #810, main f955c0dc14043bd2eab677f78d7410975a6810f6; all 16 checks passed before merge.

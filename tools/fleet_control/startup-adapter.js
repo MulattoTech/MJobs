@@ -4,15 +4,17 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {createHash}=require('node:crypto');
 const {configRevision}=require('./quota-guard');
-const {unresolvedNativeOperations,unresolvedNativeReason}=require('./restore-fleet');
+const {unresolvedNativeOperations,unresolvedNativeReason,matchesRestoreTarget}=require('./restore-fleet');
+const {runtimeAbsentEvidence}=require('./windows-runtime-evidence');
 
 // This adapter joins existing safety and restoration controllers. It never
 // creates a second scheduler and never treats saved completion as live health.
 class StartupAdapter {
  constructor({root,master,quota,launcher,providers,verifyCodex,getSessions,
-  runtimeHealth,operationBusy=()=>false,now=Date.now}) {
+  runtimeHealth,operationBusy=()=>false,now=Date.now,readinessWaitMs=1000}) {
+  if(!Number.isFinite(readinessWaitMs)||readinessWaitMs<1||readinessWaitMs>5000)throw Error('Readiness response wait must be between 1 and 5000 ms');
   Object.assign(this,{root,master,quota,launcher,providers,verifyCodex,getSessions,runtimeHealth,operationBusy,now});
-  this.live=null;this.liveAt=0;this.reading=null;
+  this.live=null;this.liveAt=0;this.reading=null;this.inspectionSerial=0;this.readinessWaitMs=readinessWaitMs;
  }
  check(ctx){if(ctx?.signal?.aborted)throw Error('Startup operation was cancelled before the next action');}
  emergency(){
@@ -137,40 +139,93 @@ class StartupAdapter {
  }
  restoreStatus(ctx){this.check(ctx);return this.master.restore.status();}
  restorePause(ctx){this.check(ctx);return this.master.restore.pause();}
+ beginInspection(){
+  const reading={serial:++this.inspectionSerial,startedAt:this.now(),settled:false,value:null,waiters:new Set()};
+  this.reading=reading;
+  const finish=value=>{
+   reading.value={...value,inspectionPending:false,inspectionStartedAt:new Date(reading.startedAt).toISOString()};
+   reading.settled=true;this.live=reading.value;this.liveAt=this.now();
+   if(this.reading===reading)this.reading=null;
+   for(const waiter of [...reading.waiters])waiter(reading.value);
+   reading.waiters.clear();
+  };
+  // Keep one real inspector alive after a UI wait expires. Clearing its slot
+  // on the response deadline would allow every refresh to spawn another probe.
+  Promise.resolve().then(()=>this.readRuntimes()).then(finish,()=>finish({
+   at:new Date(this.now()).toISOString(),daemonOnline:false,runtimesReady:false,healthyIds:[],verified:0,conflicts:[],
+   processCountsComplete:false,runtimeAbsenceComplete:false,reason:'Current Orchestrator runtime health is unavailable'}));
+  return reading;
+ }
+ waitForInspection(reading,ctx,waitMs){
+  this.check(ctx);
+  if(reading.settled)return Promise.resolve(reading.value);
+  return new Promise((resolve,reject)=>{
+   let timer,done=false;
+   const finish=(value,error)=>{
+    if(done)return;done=true;clearTimeout(timer);reading.waiters.delete(onValue);
+    ctx?.signal?.removeEventListener('abort',onAbort);
+    if(error)reject(error);else resolve(value);
+   };
+   const onValue=value=>finish(value);
+   const onAbort=()=>finish(null,Error('Startup operation was cancelled before the next action'));
+   reading.waiters.add(onValue);ctx?.signal?.addEventListener('abort',onAbort,{once:true});
+   if(ctx?.signal?.aborted){onAbort();return;}
+   if(waitMs!==null)timer=setTimeout(()=>finish(null),waitMs);
+  });
+ }
+ pendingReadiness(reading){
+  return {at:new Date(this.now()).toISOString(),lastObservedAt:this.live?.at||null,
+   inspectionStartedAt:new Date(reading.startedAt).toISOString(),inspectionPending:true,stale:true,
+   daemonOnline:null,runtimesReady:false,healthyIds:[],nativeAbsentIds:[],verified:0,conflicts:[],
+   runningExpectedAgents:null,processCountsComplete:false,runtimeAbsenceComplete:false,
+   reason:'Current runtime inspection is still running; previous readiness is not current. No startup or recovery outcome was inferred.'};
+ }
  async readiness(ctx,{force=false}={}){
   this.check(ctx);
-  if(!force&&this.live&&this.now()-this.liveAt<3000)return this.decorate(this.live);
-  if(this.reading){
-   const value=await this.reading;this.check(ctx);
-   // Reconciliation must observe after its own inspection began, rather than
-   // adopting an earlier UI poll that happened to be in flight.
-   if(force)return this.readiness(ctx,{force:true});
+  const age=this.now()-this.liveAt;
+  let sameManifest=false;
+  if(this.live){try{sameManifest=this.live.manifestRevision===this.manifest().revision}catch{}}
+  if(!force&&this.live&&age>=0&&age<3000&&sameManifest)return this.decorate(this.live);
+  const requiredSerial=force?this.inspectionSerial+1:0;
+  for(;;){
+   this.check(ctx);
+   const reading=this.reading||this.beginInspection();
+   // UI GETs have a short response budget. Forced bootstrap/reconciliation
+   // retain their caller's cancellation/deadline and may not substitute pending
+   // or old observations for the mutation safety checks they previously awaited.
+   const value=await this.waitForInspection(reading,ctx,force?null:this.readinessWaitMs);
+   this.check(ctx);
+   if(value===null)return this.decorate(this.pendingReadiness(reading));
+   if(force&&reading.serial<requiredSerial)continue;
    return this.decorate(value);
   }
-  this.reading=this.readRuntimes();
-  try{this.live=await this.reading;this.liveAt=this.now();this.check(ctx);return this.decorate(this.live)}
-  finally{this.reading=null}
  }
  async readRuntimes(){
   const at=new Date(this.now()).toISOString();
   try{
    const {targets,revision}=this.manifest();
-   const sessions=await this.getSessions();
    const counts=await this.master.restore.runtimeInspector([...new Set(targets.map(s=>s.projectId))]);
-   const conflicts=[],missing=[];
+   // Controller state is read after the potentially slow native inspection so
+   // a completed background result does not revive an earlier ready snapshot.
+   const sessions=await this.getSessions();
+   const conflicts=[],missing=[],nativeAbsentIds=[];
    for(const target of targets){
-    const live=sessions.find(s=>s.id===target.id&&s.projectId===target.projectId);
+    const matches=sessions.filter(s=>s.id===target.id);
+    const live=matches.length===1&&matchesRestoreTarget(target,matches[0])?matches[0]:null;
     if(target.kind==='orchestrator'){
      const other=sessions.filter(s=>s.projectId===target.projectId&&s.kind==='orchestrator'&&s.id!==target.id&&!s.isTerminated&&s.activity?.state!=='exited');
      conflicts.push(...other.map(s=>s.id));
     }
     if(!live||!this.runtimeHealth(live,counts.get(target.id)))missing.push(target.id);
+    if(live&&runtimeAbsentEvidence(live,counts,this.now()))nativeAbsentIds.push(target.id);
    }
    const stable=this.manifest().revision===revision;
    const runtimesReady=stable&&missing.length===0&&conflicts.length===0;
    return {at:new Date(this.now()).toISOString(),manifestRevision:revision,targetIds:targets.map(s=>s.id),healthyIds:stable?targets.filter(s=>!missing.includes(s.id)).map(s=>s.id):[],daemonOnline:true,runtimesReady,total:targets.length,verified:targets.length-missing.length,
     runningExpectedAgents:targets.filter(s=>Number.isInteger(counts.get(s.id))&&counts.get(s.id)>0).length,
-    processCountsComplete:stable&&targets.every(s=>Number.isInteger(counts.get(s.id))&&counts.get(s.id)>=0),missing,conflicts,
+    processCountsComplete:stable&&targets.every(s=>Number.isInteger(counts.get(s.id))&&counts.get(s.id)>=0),
+    nativeAbsentIds:stable?nativeAbsentIds:[],
+    runtimeAbsenceComplete:stable&&conflicts.length===0&&targets.every(s=>counts.get(s.id)===0||nativeAbsentIds.includes(s.id)),missing,conflicts,
     reason:runtimesReady?'Preserved runtimes and primary controllers are currently healthy':conflicts.length?'Conflicting primary controllers require attention':missing.length+' preserved runtimes are not currently verified healthy'};
   }catch(error){return {at,daemonOnline:false,runtimesReady:false,reason:'Current Orchestrator runtime health is unavailable',verified:0,conflicts:[]}}
  }
@@ -211,8 +266,10 @@ class StartupAdapter {
   if(!operationInFlight&&dispatchPaused&&current.ready&&identitiesMatch)proof.outcome='ready_paused';
   // Only the complete local audit of a run that never attempted restore can
   // prove no resume was submitted. Absence of OS processes alone is not proof.
-  if(!operationInFlight&&submittedIds.length===0&&dispatchPaused&&identitiesMatch&&previous.restoreStartAttempted===false&&previous.restoreStarted===false&&previous.actionPending===null&&current.daemonOnline&&current.processCountsComplete&&current.runningExpectedAgents===0&&previous.error?.code!=='STATE_UNREADABLE'){
+  const knownAbsent=(current.processCountsComplete&&current.runningExpectedAgents===0)||current.runtimeAbsenceComplete===true;
+  if(!operationInFlight&&submittedIds.length===0&&dispatchPaused&&identitiesMatch&&previous.restoreStartAttempted===false&&previous.restoreStarted===false&&previous.actionPending===null&&current.daemonOnline&&current.conflicts?.length===0&&knownAbsent&&previous.error?.code!=='STATE_UNREADABLE'){
    proof.outcome='idle';proof.submissionAuditComplete=true;proof.submittedResume=false;proof.runningExpectedAgents=0;
+   proof.nativeRuntimeAbsenceVerified=current.runtimeAbsenceComplete===true;
   }
   this.check(ctx);return proof;
  }
