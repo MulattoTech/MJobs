@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { RestoreFleet, INITIAL_STATE } = require('./restore-fleet');
 const { addControllerHealth, runtimeHealthy, controllerStopped } = require('./runtime-health');
+const { nativeSessionIdentity } = require('./windows-runtime-evidence');
 
 const clone = value => structuredClone(value);
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
@@ -15,7 +16,8 @@ function fixture(t, { primaryMode = 'chat' } = {}) {
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const state = {
     clock: Date.now(), latched: false, block: null, commands: [], events: [], launches: 0, dispatchResumed: 0,
-    exitUnconfirmed: false, resumeTimeout: false, readCount: 0, onExit: null, onResume: null, onRead: null,
+    exitUnconfirmed: false, resumeTimeout: false, readCount: 0, inspectCount: 0, onExit: null, onResume: null, onRead: null, onInspect: null,
+    stoppedEvidence: new Map(),
     resources: { ramGiB: 30, diskGiB: 100, cpuPercent: 10 },
     live: [
       { id: 'mjobs-primary', projectId: 'mjobs-luna', kind: 'orchestrator', harness: 'codex', mode: primaryMode, model: 'test-model', activity: { state: 'idle' }, isTerminated: false },
@@ -40,7 +42,10 @@ function fixture(t, { primaryMode = 'chat' } = {}) {
   };
   const restore = new RestoreFleet({ root, autoSchedule: false, now: () => state.clock,
     locked: () => state.latched, startBlockReason: () => state.block,
-    getGlobalSessions, runtimeInspector: async () => new Map(state.counts),
+    getGlobalSessions, runtimeInspector: async () => {
+      state.inspectCount++; if (state.onInspect) await state.onInspect(state.inspectCount);
+      const counts = new Map(state.counts); counts.stoppedEvidence = clone(state.stoppedEvidence); return counts;
+    },
     runtimeHealth: runtimeHealthy, controllerStopped,
     resourceReader: async () => clone(state.resources),
     watchdogInspector: async () => ({ active: false, watchdogPids: [] }),
@@ -65,6 +70,15 @@ function fixture(t, { primaryMode = 'chat' } = {}) {
   const resumes = id => state.commands.filter(args => ['resume-agent', 'restore'].includes(args[1]) && (!id || args[2] === id));
   const readyPrimary = () => { state.live[0].activity.state = 'idle'; state.controllers.set('mjobs-primary', 'ready'); state.counts.set('mjobs-primary', 2); };
   return { root, state, restore, resumes, readyPrimary, getGlobalSessions };
+}
+async function proveNativeAbsent(f, id = 'mjobs-primary') {
+  const session = f.state.live.find(s => s.id === id);
+  Object.assign(session, { activity: { state: 'exited' }, statusReadiness: 'ready', createdAt: new Date(f.state.clock - 60000).toISOString(), updatedAt: new Date(f.state.clock).toISOString(), terminalGeneration: 'fixture-generation' });
+  f.state.controllers.set(id, 'stopped'); f.state.counts.set(id, null);
+  const current = (await f.getGlobalSessions()).find(s => s.id === id);
+  const evidence = { version: 1, type: 'native-runtime-absent', probeId: 'a'.repeat(32), observedAt: new Date(f.state.clock).toISOString(), identity: nativeSessionIdentity(current),
+    proof: { completeInventory: true, stableInventory: true, stableRegistry: true, instanceVerified: true, stableInstance: true, noMatchingHost: true, ownershipClear: true, noSessionOwnedProvider: true, registryAbsent: session.mode === 'tui', chatOwnershipClear: session.mode === 'chat' } };
+  f.state.stoppedEvidence.set(id, evidence); return evidence;
 }
 
 test('native conversation controller strings map to health without retaining conversation content', async () => {
@@ -149,7 +163,7 @@ test('unconfirmed original exit withholds resume and never repeats the uncertain
 });
 
 test('failed fresh post-exit inspection never falls through to resume', async t => {
-  const f = fixture(t); f.state.onRead = async count => { if (count === 2) throw Error('Fresh status unavailable after exit'); };
+  const f = fixture(t); f.state.onRead = async () => { if (f.state.commands.some(args => args[1] === 'exit-agent')) throw Error('Fresh status unavailable after exit'); };
   await f.restore.tick(); assert.deepEqual(f.state.commands.map(x => x[1]), ['exit-agent']);
   assert.equal(f.restore.state.errors['mjobs-primary'].uncertain, true); assert.equal(f.state.launches, 0);
 });
@@ -189,6 +203,128 @@ test('missing or invalid runtime count is unknown, never permission to resume a 
     if (count === undefined) f.state.counts.delete('mjobs-primary'); else f.state.counts.set('mjobs-primary', count);
     await f.restore.tick(); assert.deepEqual(f.state.commands, []); assert.equal(f.resumes().length, 0);
   });
+});
+
+test('fresh native absence permits one existing-identity resume without inventing a numeric count or healthy runtime', async t => {
+  for (const primaryMode of ['chat', 'tui']) await t.test(primaryMode, async st => {
+    const f = fixture(st, { primaryMode }); await proveNativeAbsent(f);
+    f.state.onResume = async () => { assert.equal(f.state.counts.get('mjobs-primary'), null); };
+    const result = await f.restore.tick();
+    assert.deepEqual(result.submitted, ['mjobs-primary']);
+    assert.deepEqual(f.state.commands.map(args => args[1]), ['resume-agent']);
+    assert.equal(f.restore.status().restoredCount, 0); assert.equal(f.resumes('mjobs-worker').length, 0);
+    await f.restore.tick(); assert.equal(f.resumes('mjobs-primary').length, 1);
+  });
+});
+
+test('native absence is rejected for wrong identity, expired proof, incomplete ownership or contradictory counts', async t => {
+  const cases = {
+    'wrong session id': (f, e) => { e.identity.id = 'different-session'; },
+    'wrong project': (f, e) => { e.identity.projectId = 'other-project'; },
+    'wrong mode': (f, e) => { e.identity.mode = 'tui'; },
+    'wrong harness': (f, e) => { e.identity.harness = 'agy'; },
+    'wrong creation identity': (f, e) => { e.identity.createdAt = new Date(f.state.clock - 1000).toISOString(); },
+    'updated session': (f, e) => { e.identity.updatedAt = new Date(f.state.clock - 1).toISOString(); },
+    'wrong terminal generation': (f, e) => { e.identity.terminalGeneration = 'other-generation'; },
+    'wrong activity': (f, e) => { e.identity.activity = 'idle'; },
+    'wrong termination state': (f, e) => { e.identity.isTerminated = true; },
+    'unready status': (f, e) => { e.identity.statusReadiness = 'unknown'; },
+    'unverified controller': (f, e) => { e.identity.controllerVerified = false; },
+    'running controller': (f, e) => { e.identity.controllerState = 'ready'; },
+    'stale evidence': (f, e) => { e.observedAt = new Date(f.state.clock - 10001).toISOString(); },
+    'future evidence': (f, e) => { e.observedAt = new Date(f.state.clock + 1).toISOString(); },
+    'incomplete inventory': (f, e) => { e.proof.completeInventory = false; },
+    'unowned processes': (f, e) => { e.proof.ownershipClear = false; },
+    'owned provider remains': (f, e) => { e.proof.noSessionOwnedProvider = false; },
+    'positive process count': f => { f.state.counts.set('mjobs-primary', 2); },
+    'invalid process count': f => { f.state.counts.set('mjobs-primary', -1); },
+    'fractional process count': f => { f.state.counts.set('mjobs-primary', 0.5); },
+  };
+  for (const [name, alter] of Object.entries(cases)) await t.test(name, async st => {
+    const f = fixture(st); const evidence = await proveNativeAbsent(f); alter(f, evidence);
+    await f.restore.tick(); assert.deepEqual(f.state.commands, []); assert.equal(f.restore.status().restoredCount, 0);
+  });
+});
+
+test('a valid native proof for a different preserved identity cannot authorize a restore', async t => {
+  for (const key of ['id', 'projectId', 'mode', 'harness']) await t.test(key, async st => {
+    const f = fixture(st); await proveNativeAbsent(f);
+    f.restore.state.source.targets[0][key] = key === 'mode' ? 'tui' : 'different-value';
+    await f.restore.tick(); assert.deepEqual(f.state.commands, []);
+  });
+});
+
+test('mutation-boundary inspection withholds resume if absence becomes unknown, running, stale or changes identity', async t => {
+  const changes = {
+    unknown: f => { f.state.stoppedEvidence.clear(); },
+    running: f => { f.readyPrimary(); },
+    stale: f => { f.state.clock += 10001; },
+    'changed project': f => { f.state.live[0].projectId = 'other-project'; },
+    'changed mode': f => { f.state.live[0].mode = 'tui'; },
+    'changed creation identity': f => { f.state.live[0].createdAt = new Date(f.state.clock - 1).toISOString(); },
+    'new primary': f => { f.state.live.push({ ...clone(f.state.live[0]), id: 'other-primary', activity: { state: 'idle' } }); },
+  };
+  for (const [name, alter] of Object.entries(changes)) await t.test(name, async st => {
+    const f = fixture(st); await proveNativeAbsent(f);
+    f.state.onInspect = async count => { if (count === 2) alter(f); };
+    await f.restore.tick(); assert.deepEqual(f.state.commands, []); assert.deepEqual(f.restore.state.inflight, {});
+    assert.notEqual(f.restore.state.errors['mjobs-primary']?.uncertain, true);
+  });
+});
+
+test('unknown or positive counts after a submitted exit retain an uncertain ledger and never fall through to resume', async t => {
+  for (const count of [null, undefined, 1]) await t.test(String(count), async st => {
+    const f = fixture(st);
+    f.state.onInspect = async number => { if (number === 3) f.state.counts.set('mjobs-primary', count); };
+    await f.restore.tick(); assert.deepEqual(f.state.commands.map(args => args[1]), ['exit-agent']);
+    assert.equal(f.restore.state.errors['mjobs-primary'].uncertain, true); assert.ok(f.restore.state.inflight['mjobs-primary']);
+    f.state.clock += 40000; await proveNativeAbsent(f); await f.restore.tick();
+    assert.deepEqual(f.state.commands.map(args => args[1]), ['exit-agent']); assert.ok(f.restore.state.inflight['mjobs-primary']);
+  });
+});
+
+test('a freshly regenerated proof cannot transfer a pending job to a changed native session', async t => {
+  for (const key of ['createdAt', 'updatedAt', 'terminalGeneration']) await t.test(key, async st => {
+    const f = fixture(st); await proveNativeAbsent(f);
+    f.state.onInspect = async number => {
+      if (number !== 2) return;
+      f.state.live[0][key] = key === 'terminalGeneration' ? 'new-generation' : new Date(f.state.clock - 1).toISOString();
+      const fresh = (await f.getGlobalSessions()).find(s => s.id === 'mjobs-primary');
+      f.state.stoppedEvidence.get('mjobs-primary').identity = nativeSessionIdentity(fresh);
+    };
+    await f.restore.tick(); assert.deepEqual(f.state.commands, []); assert.deepEqual(f.restore.state.inflight, {});
+  });
+});
+
+test('an exit followed by a different native creation identity cannot resume the replacement', async t => {
+  const f = fixture(t); f.state.live[0].createdAt = new Date(f.state.clock - 60000).toISOString();
+  f.state.onInspect = async number => { if (number === 3) f.state.live[0].createdAt = new Date(f.state.clock).toISOString(); };
+  await f.restore.tick(); assert.deepEqual(f.state.commands.map(args => args[1]), ['exit-agent']);
+  assert.equal(f.restore.state.errors['mjobs-primary'].uncertain, true); assert.ok(f.restore.state.inflight['mjobs-primary']);
+});
+
+test('fresh absence never clears uncertain or inflight outcomes across polling and restart', async t => {
+  for (const ledger of ['accepted resume', 'uncertain error']) await t.test(ledger, async st => {
+    const f = fixture(st); await proveNativeAbsent(f);
+    if (ledger === 'accepted resume') { await f.restore.tick(); f.state.clock += 40000; await proveNativeAbsent(f); }
+    else f.restore.state.errors['mjobs-primary'] = { attempts: 1, uncertain: true, message: 'Previous result unverified' };
+    f.restore.save(); const before = clone(f.restore.state.inflight), submitted = f.resumes('mjobs-primary').length;
+    const original = f.restore;
+    const restarted = new RestoreFleet({ root: f.root, autoSchedule: false, now: () => f.state.clock,
+      getGlobalSessions: f.getGlobalSessions, runtimeInspector: original.runtimeInspector, runtimeHealth: runtimeHealthy, controllerStopped,
+      command: original.command, audit: original.audit, resourceReader: original.resourceReader, watchdogInspector: original.watchdogInspector });
+    await restarted.tick(); await restarted.tick();
+    assert.equal(f.resumes('mjobs-primary').length, submitted); assert.deepEqual(restarted.state.inflight, before);
+    assert.equal(restarted.state.errors['mjobs-primary'].uncertain, true); assert.equal(restarted.status().restoredCount, 0);
+    restarted.pause(); assert.throws(() => restarted.start(), /unverified/);
+  });
+});
+
+test('a primary conflict preserves an existing uncertain submission flag', async t => {
+  const f = fixture(t); f.restore.state.errors['mjobs-primary'] = { attempts: 2, uncertain: true, message: 'Previous native outcome unknown' };
+  f.state.live.push({ ...clone(f.state.live[0]), id: 'conflicting-primary' });
+  await f.restore.tick(); assert.deepEqual(f.state.commands, []);
+  assert.equal(f.restore.state.errors['mjobs-primary'].uncertain, true); assert.equal(f.restore.state.errors['mjobs-primary'].attempts, 2);
 });
 
 test('a later restore tick also fails closed when resource evidence is unavailable', async t => {

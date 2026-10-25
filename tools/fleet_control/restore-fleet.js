@@ -4,6 +4,7 @@ const path=require('node:path');
 const os=require('node:os');
 const {execFile}=require('node:child_process');
 const {promisify}=require('node:util');
+const {attachWindowsStoppedEvidence,runtimeAbsentEvidence}=require('./windows-runtime-evidence');
 
 const execAsync=promisify(execFile);
 const GiB=1024**3;
@@ -41,6 +42,20 @@ function targetsFromSnapshot(snapshot){
 }
 function hasSameRoot(sessions,record){
  return sessions.some(s=>s.projectId===record.projectId && s.kind==='orchestrator' && s.id!==record.id && !s.isTerminated && (s.activity?.state||s.activity||s.status)!=='exited');
+}
+function matchesRestoreTarget(target,session){
+ return !!session&&session.id===target.id&&session.projectId===target.projectId&&
+  ['mode','harness','kind'].every(key=>!target[key]||session[key]===target[key]);
+}
+function findRestoreTarget(sessions,target){
+ const matches=sessions.filter(s=>s.id===target.id);
+ return matches.length===1&&matchesRestoreTarget(target,matches[0])?matches[0]:null;
+}
+function sameMutationIdentity(previous,current,allowExitTransition){
+ const keys=['id','projectId','mode','harness','kind','createdAt'];
+ if(!allowExitTransition)keys.push('updatedAt','terminalGeneration','isTerminated','statusReadiness','provisionState','hibernatedAt','controllerState','controllerVerified');
+ return keys.every(key=>(previous[key]??null)===(current[key]??null))&&
+  (allowExitTransition||(previous.activity?.state||previous.status)===(current.activity?.state||current.status));
 }
 function unresolvedNativeOperations(state){
  const ids=new Set(Object.keys(state?.inflight||{}));
@@ -121,13 +136,36 @@ class RestoreFleet {
     windowsHide:true,timeout:12000,maxBuffer:8*1024*1024
    });
    let data;try{data=JSON.parse(result.stdout)}catch{throw Error('Orchestrator top returned malformed JSON')}
-   const rows=data.data||[];
+   const rows=data.data;
    if(!Array.isArray(rows))throw Error('Orchestrator top did not return a session array');
    for(const row of rows){
-    if(row.id&&Number.isInteger(row.processCount))processes.set(row.id,row.processCount);
+    if(typeof row.id==='string'&&Object.hasOwn(row,'processCount')){
+     if(processes.has(row.id))throw Error('Orchestrator top returned a duplicate session identity');
+     // null, missing and malformed counts remain unknown. Native absence is a
+     // separate, short-lived sidecar; it must never manufacture processCount=0.
+     processes.set(row.id,row.processCount);
+    }
    }
   }
-  return processes;
+  const requested=new Set(projects);
+  const readSessions=async()=>(await this.getGlobalSessions()).filter(s=>requested.has(s.projectId));
+  return attachWindowsStoppedEvidence(processes,await readSessions(),{root:this.root,now:this.now,readSessions});
+ }
+ async inspectMutationTarget(source,{allowExit=false,expectedSession=null,allowExitTransition=false}={}){
+  const counts=await this.runtimeInspector([source.projectId]);
+  const live=await this.getGlobalSessions();
+  const current=findRestoreTarget(live,source);
+  if(!current)throw Error('The preserved session identity changed or is unavailable; native mutation was withheld');
+  if(expectedSession&&!sameMutationIdentity(expectedSession,current,allowExitTransition))throw Error('The native session changed during runtime verification; mutation was withheld');
+  if(source.kind==='orchestrator'&&hasSameRoot(live,source))throw Error('Another root is active; native mutation was withheld');
+  const count=counts.get(source.id),state=current.activity?.state||current.status||'unknown';
+  if(this.runtimeHealth(current,count))throw Error('The runtime is already healthy; no additional resume was submitted');
+  const absent=runtimeAbsentEvidence(current,counts,this.now());
+  const needsExit=!current.isTerminated&&state!=='exited'&&(count===0||(current.mode==='chat'&&this.controllerStopped(current)));
+  if(allowExit&&needsExit&&Number.isInteger(count)&&count>=0)return {current,needsExit:true};
+  if(!current.isTerminated&&state!=='exited')throw Error('The runtime is no longer verified stopped; resume was withheld');
+  if(count!==0&&!absent)throw Error('Fresh native runtime absence is unavailable or contradicted; resume was withheld');
+  return {current,needsExit:false};
  }
  async defaultResourceReader(){
   const avail=os.freemem()/GiB;
@@ -341,7 +379,6 @@ class RestoreFleet {
    const expected=(this.state.source?.targets||[]).filter(s=>!superseded.has(s.id));
    for(const s of (this.state.source?.targets||[])){if(superseded.has(s.id))this.state.skipped[s.id]={reason:'Preserved original has a verified replacement'};}
    if(!expected.length)throw Error('Recovery manifest has no sessions');
-   const map=new Map(live.map(s=>[s.id,s]));
    let processCounts;
    try{processCounts=await this.runtimeInspector([...new Set(expected.map(x=>x.projectId))])}
    catch(e){this.state.phase='partial';this.state.lastError='Cannot verify session process trees: '+detail(e);this.save();return {waiting:'Waiting for reliable AO runtime inspection'}}
@@ -351,15 +388,16 @@ class RestoreFleet {
    const readyNow=new Set();
    const tally={ready:0,waiting:0,missing:0,conflict:0,failed:0};
    for(const s of [...first,...second]){
-    const current=map.get(s.id);
+    const current=findRestoreTarget(live,s);
     if(!current){tally.missing++;continue}
     if(s.kind==='orchestrator'&&hasSameRoot(live,s)){
-      this.state.errors[s.id]={message:'Another root is already active for this project; duplicate root prevented',attempts:0};
+      this.state.errors[s.id]={...(this.state.errors[s.id]||{}),message:'Another root is already active for this project; duplicate root prevented'};
       tally.conflict++;continue;
     }
     const state=current.activity?.state||current.status||'unknown';
     const count=processCounts.get(s.id);
-    if(!Number.isInteger(count)||count<0){
+    const absent=runtimeAbsentEvidence(current,processCounts,this.now());
+    if((!Number.isInteger(count)||count<0)&&!absent){
      this.state.errors[s.id]={...(this.state.errors[s.id]||{}),message:'Runtime process evidence is unavailable; no resume was submitted',at:nowIso()};
      tally.waiting++;continue;
     }
@@ -434,30 +472,39 @@ class RestoreFleet {
     if(!this.state.active||this.locked())break;
     const blockedNow=this.startBlockReason();
     if(blockedNow){this.state.phase='paused_quota';this.state.lastError=blockedNow;this.save();break;}
-    const {source:s,current}=job;
-    const subcommand=current.isTerminated?'restore':'resume-agent';
-    const args=['session',subcommand,s.id,'--project',s.projectId];
-    if(subcommand==='resume-agent')args.push('--json');
-    const action={at:nowIso(),command:subcommand};
-    this.state.inflight[s.id]=action;this.save();
+    const {source:s}=job;
+    let nativeSubmitted=false;
     try{
-     if(job.needsExit){
+     // Poll-time absence is not a permit. Re-read counts, native ownership and
+     // exact session identity immediately before any native command. The native
+     // operation/host locks remain the final concurrency authority.
+     let boundary=await this.inspectMutationTarget(s,{allowExit:job.needsExit,expectedSession:job.current});
+     if(!this.state.active||this.locked()||this.startBlockReason())break;
+     if(this.state.inflight[s.id]||this.state.errors[s.id]?.uncertain)continue;
+     this.state.inflight[s.id]={at:nowIso(),command:boundary.current.isTerminated?'restore':'resume-agent'};this.save();
+     if(boundary.needsExit){
+      nativeSubmitted=true;
       await this.command(['session','exit-agent',s.id,'--project',s.projectId,'--json'],15000);
-      const exited=(await this.getGlobalSessions()).find(x=>x.id===s.id&&x.projectId===s.projectId);
-      if(!exited||(!exited.isTerminated&&(exited.activity?.state||exited.status)!=='exited'))throw Error('Original runtime exit was not confirmed; resume was withheld');
+      boundary=await this.inspectMutationTarget(s,{expectedSession:boundary.current,allowExitTransition:true});
      }
      if(!this.state.active||this.locked()||this.startBlockReason()){
       delete this.state.inflight[s.id];
       this.log('resume_withheld_after_exit',{id:s.id});
       this.save();break;
      }
+     const subcommand=boundary.current.isTerminated?'restore':'resume-agent';
+     const args=['session',subcommand,s.id,'--project',s.projectId];
+     if(subcommand==='resume-agent')args.push('--json');
+     this.state.inflight[s.id].command=subcommand;this.save();
+     nativeSubmitted=true;
      await this.command(args,25000);
      submitted.push(s.id);
      this.log('resume_submitted',{id:s.id,project:s.projectId,action:subcommand});
     }catch(e){
-     const attempts=(this.state.errors[s.id]?.attempts||0)+1;
-     this.state.errors[s.id]={attempts,uncertain:true,message:'Native command outcome is unverified; no automatic retry. '+detail(e),at:nowIso()};
-     this.log('resume_error',{id:s.id,attempts,message:detail(e)});
+     const previous=this.state.errors[s.id]||{};
+     const attempts=(previous.attempts||0)+(nativeSubmitted?1:0);
+     this.state.errors[s.id]={...previous,attempts,...(nativeSubmitted?{uncertain:true}:{}),message:(nativeSubmitted?'Native command outcome is unverified; no automatic retry. ':'Fresh runtime verification blocked native mutation; no resume was submitted. ')+detail(e),at:nowIso()};
+     this.log(nativeSubmitted?'resume_error':'resume_withheld',{id:s.id,attempts,message:detail(e)});
     }
     this.save();
    }
@@ -466,4 +513,4 @@ class RestoreFleet {
   finally{this.running=false}
  }
 }
-module.exports={RestoreFleet,INITIAL_STATE,PHASES,targetsFromSnapshot,validConfig,unresolvedNativeOperations,unresolvedNativeReason};
+module.exports={RestoreFleet,INITIAL_STATE,PHASES,targetsFromSnapshot,validConfig,unresolvedNativeOperations,unresolvedNativeReason,matchesRestoreTarget};
