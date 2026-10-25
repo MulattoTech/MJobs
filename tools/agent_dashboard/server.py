@@ -132,6 +132,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
             "python_environment_preflight": True,
             "accurate_partial_state": True,
             "readable_console_summary": True, "crlf_summary_fix": True,
+            "fleet_control_path": "/fleet/", "shared_quota_feed": True,
         }
 
     def deny_legacy_process_controls():
@@ -292,7 +293,9 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
         # The account quota belongs to the account, not a particular Codex agent.
         try:
             quota = supervisor._cached_telemetry(
-                "codex_usage", 30.0, read_codex_rate_limits,
+                "codex_usage", 5.0 if mission_instance else 30.0,
+                lambda: read_codex_rate_limits(prefer_fleet=True) if mission_instance
+                else read_codex_rate_limits(),
             )
         except (OSError, RuntimeError, ValueError):
             quota = {"available": False}
@@ -428,6 +431,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
     async def key_error(_, exc: KeyError):
         return JSONResponse({"detail": "Requested dashboard resource was not found."}, status_code=404)
 
+    from .fleet_proxy import install_fleet_proxy
+    install_fleet_proxy(app)
     return app
 
 

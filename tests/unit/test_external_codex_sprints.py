@@ -143,9 +143,15 @@ def test_mission_control_endpoint_reports_only_readonly_observer(fixture, monkey
         },
     )
     monkeypatch.setattr(dashboard_server, "windows_process_snapshot", lambda: [])
+    quota_preferences = []
+
+    def quota_reader(*, prefer_fleet: bool):
+        quota_preferences.append(prefer_fleet)
+        assert prefer_fleet is True
+        return {"available": True, "used_percent": 73, "remaining_percent": 27}
+
     monkeypatch.setattr(
-        dashboard_server, "read_codex_rate_limits",
-        lambda: {"available": True, "used_percent": 73, "remaining_percent": 27},
+        dashboard_server, "read_codex_rate_limits", quota_reader,
     )
     app = dashboard_server.create_app(repo, mission_instance=True)
     with TestClient(app) as client:
@@ -154,6 +160,7 @@ def test_mission_control_endpoint_reports_only_readonly_observer(fixture, monkey
         assert reply.json()["sessions"][0]["name"] == "Tesla"
         assert reply.json()["read_only"] is True
         assert reply.json()["quota"]["used_percent"] == 73
+        assert quota_preferences == [True]
         # Read-only discovery must not create stop/restart controls for external agents.
         assert client.get("/api/launcher/health").status_code == 200
         token = app.state.mission_control.token

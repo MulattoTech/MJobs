@@ -50,7 +50,7 @@ from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
 from services.tracking.applications import PIPELINE_STATUSES
 from services.documents.answers import (
     DEFAULT_ANSWER_CONFIDENCE_POLICY, get_answer_confidence_policy,
-    save_answer_confidence_policy,
+    save_answer_confidence_policy, validate_answer_export_application_id,
 )
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
 from services.dedupe.routes import (load_job_routes, list_route_choices, plan_application_routes,
@@ -2359,6 +2359,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/profiles/{profile_id}/applications/{application_id}/answers/export", status_code=201)
     def export_application_answers(profile_id: str, application_id: str, value: ApplicationAnswerExportInput):
+        validate_answer_export_application_id(application_id)
         from services.documents.answers import export_answers
         from services.documents.answer_story_citations import (
             AnswerStoryCitationError,

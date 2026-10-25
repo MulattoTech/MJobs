@@ -48,7 +48,10 @@ def machine_readable_job_endpoints(page_url, html):
         strategy = _FEED_TYPES.get(str(link.get("type") or "").split(";")[0].strip().casefold())
         if strategy is None:
             continue
-        target = urljoin(page_url, str(link["href"]).strip())
+        try:
+            target = urljoin(page_url, str(link["href"]).strip())
+        except ValueError:
+            continue
         target_origin = _origin(target)
         if target_origin is None:
             continue
@@ -56,7 +59,9 @@ def machine_readable_job_endpoints(page_url, html):
             None if value[2] == (80 if value[0] == "http" else 443) else value[2])
         if normalized_origin(target_origin) != normalized_origin(origin):
             continue
-        found.setdefault(target, {"url": target, "strategy": strategy})
+        existing = found.get(target)
+        if existing is None or _PREFERENCE[strategy] < _PREFERENCE[existing["strategy"]]:
+            found[target] = {"url": target, "strategy": strategy}
     return sorted(found.values(), key=lambda row: (_PREFERENCE[row["strategy"]], row["url"]))
 
 

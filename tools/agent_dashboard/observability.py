@@ -22,6 +22,7 @@ def _run(args: list[str], *, timeout: int = 10, cwd: Path | None = None) -> subp
         timeout=timeout,
         encoding="utf-8",
         errors="replace",
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         check=False,
     )
 
@@ -69,7 +70,12 @@ def _native_codex_exe() -> Path | None:
     return candidates[0] if candidates else None
 
 
-def read_codex_rate_limits(timeout: float = 12.0) -> dict[str, Any]:
+def read_codex_rate_limits(timeout: float = 12.0, *, prefer_fleet: bool = False) -> dict[str, Any]:
+    if prefer_fleet:
+        from .fleet_quota import read_fleet_quota
+        shared = read_fleet_quota()
+        if shared is not None:
+            return shared
     exe = _native_codex_exe()
     if not exe or not exe.exists():
         return {"available": False, "error": "native Codex executable not found"}
@@ -81,6 +87,7 @@ def read_codex_rate_limits(timeout: float = 12.0) -> dict[str, Any]:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except OSError:
         return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}

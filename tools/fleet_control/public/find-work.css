@@ -1,0 +1,16 @@
+/* Intentional, human-triggered workflow discovery */
+.find-work-row{background:#203c35!important;border-color:#377e69!important;color:#8af1c2!important;white-space:nowrap}
+.find-work-row:hover{background:#2e5b48!important;border-color:#57c296!important}
+.find-work-row:disabled{opacity:.38!important;color:#9bb3ad!important;cursor:not-allowed!important}
+.find-work-all-button{background:linear-gradient(135deg,#69dcae,#33a987);border:1px solid #82f1c6;color:#092b29;box-shadow:0 4px 21px #28b78329;border-radius:9px;font-size:11px;font-weight:850;padding:10px 14px;white-space:nowrap}
+.find-work-all-button:hover{filter:brightness(1.09)}
+.find-work-all-button:disabled{opacity:.43;cursor:not-allowed;filter:grayscale(.2)}
+.find-work-confirm{border:1px solid #93e5ba;background:#51b88e;color:#06302c;font-weight:850;font-size:11px;border-radius:8px;padding:10px 15px}
+.find-work-confirm:disabled{opacity:.4}
+.find-work-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.find-work-preview>div{border:1px solid #38655c;border-radius:9px;padding:14px 8px;text-align:center;background:#173c34}
+.find-work-preview strong{display:block;color:#9aebc5;font-size:23px}
+.find-work-preview small{display:block;color:#b1c7c0;font-size:10px;margin-top:5px}
+.find-work-breakdown{padding:9px 11px;background:#1a3336;border:1px solid #35575a;border-radius:8px;font-size:11px}
+.roster-section .row-actions{gap:5px;white-space:nowrap}
+@media(max-width:1000px){.roster-section .section-heading-actions{flex-wrap:wrap}.find-work-all-button{flex:1}}

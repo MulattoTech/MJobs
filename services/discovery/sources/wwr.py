@@ -192,7 +192,7 @@ class WeWorkRemotely:
             request_timeout = min(request_timeout, remaining_budget())
 
         with httpx.Client(transport=self.transport if self.transport is not None else SourceTransport(self.check), timeout=request_timeout,
-                          follow_redirects=True, trust_env=False,
+                          follow_redirects=False, trust_env=False,
                           headers={"User-Agent": "MJobs-Discovery/1.0",
                                    "Accept": "application/rss+xml, application/xml, text/xml"}) as client:
             stop_watcher = threading.Event()

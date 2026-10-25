@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const file=path.join(os.homedir(),'.gemini','antigravity-cli','settings.json');
+const source=fs.readFileSync(file,'utf8'),settings=JSON.parse(source);
+const command='"'+process.execPath+'" "'+path.join(__dirname,'gemini-usage.js')+'" --statusline';
+if(settings.statusLine?.command&&settings.statusLine.command!==command)throw Error('An existing custom status line is configured; preserved without changes');
+const backup=path.join(__dirname,'backups','agy-settings-before-quota-bridge.json');
+if(!fs.existsSync(backup))fs.writeFileSync(backup,source);
+settings.statusLine={...(settings.statusLine||{}),type:'command',command,enabled:true,stack_with_default:true};
+const tmp=file+'.fleet.tmp';fs.writeFileSync(tmp,JSON.stringify(settings,null,2));fs.renameSync(tmp,file);
+console.log('AGY native quota bridge configured; existing settings preserved. No agent launched.');

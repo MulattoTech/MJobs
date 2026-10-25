@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy.sql import Executable
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
@@ -48,14 +49,20 @@ def set_preferred_application_route(store, profile_id: str, company_id: str,
             "request_id": request_id,
         }
         event_id = identity("application-route-preference", profile_id, request_id)
-        insert = {"sqlite": sqlite_insert, "postgresql": postgres_insert}.get(
-            connection.dialect.name)
-        if insert is None:
+        statement: Executable
+        if connection.dialect.name == "sqlite":
+            statement = sqlite_insert(m.audit).values(
+                id=event_id, entity_id=profile_id, action=_ACTION,
+                payload=payload, timestamp=now(),
+            ).on_conflict_do_nothing(index_elements=[m.audit.c.id])
+        elif connection.dialect.name == "postgresql":
+            statement = postgres_insert(m.audit).values(
+                id=event_id, entity_id=profile_id, action=_ACTION,
+                payload=payload, timestamp=now(),
+            ).on_conflict_do_nothing(index_elements=[m.audit.c.id])
+        else:
             raise ValueError("APPLICATION_ROUTE_PERSISTENCE_UNSUPPORTED")
-        connection.execute(insert(m.audit).values(
-            id=event_id, entity_id=profile_id, action=_ACTION,
-            payload=payload, timestamp=now(),
-        ).on_conflict_do_nothing(index_elements=[m.audit.c.id]))
+        connection.execute(statement)
         stored = connection.execute(select(
             m.audit.c.payload, m.audit.c.timestamp,
         ).where(m.audit.c.id == event_id,

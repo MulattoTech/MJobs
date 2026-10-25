@@ -18,6 +18,7 @@ from services.dedupe.reviews import (
     record_review_decision,
     save_review_candidate,
 )
+from services.dedupe.signals import dedupe_title_key
 
 
 def job(**overrides):
@@ -35,18 +36,50 @@ def job(**overrides):
     base.update(overrides)
     return base
 
+
+def weak_identity_job(**overrides):
+    """Build a same-company posting pair without strong job identifiers."""
+    base = job(application_url="", ats_tenant="", requisition="")
+    base.update(overrides)
+    return base
+
+
 class DedupePolicyTests(unittest.TestCase):
+    def test_boilerplate_only_descriptions_never_auto_merge(self):
+        left = weak_identity_job(description=(
+            "We offer a competitive benefits package. Equal opportunity employer."
+        ))
+        right = weak_identity_job(description=(
+            "Benefits include medical and dental. EEO employer."
+        ))
+
+        self.assertEqual(reduce_boilerplate(left["description"])["comparison_text"], "")
+        self.assertEqual(reduce_boilerplate(right["description"])["comparison_text"], "")
+        result = duplicate_confidence(left, right)
+
+        # Without strong identity, boilerplate-only similarity can request review,
+        # but must never qualify for automatic merging.
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(result["reason"], "SAME_COMPANY_TITLE_EXACT_DESCRIPTION")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+        self.assertGreaterEqual(result["boilerplate"]["left_removed"], 1)
+        self.assertGreaterEqual(result["boilerplate"]["right_removed"], 1)
+
     def test_boilerplate_is_removed_before_similarity(self):
-        left = job(description=(
+        left = weak_identity_job(description=(
             "Manage Windows infrastructure and Active Directory. "
             "We offer a competitive benefits package. Equal opportunity employer."
         ))
-        right = job(description=(
+        right = weak_identity_job(description=(
             "Manage Windows infrastructure and Active Directory. "
             "Benefits include medical and dental. EEO employer."
         ))
         result = duplicate_confidence(left, right)
-        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(result["reason"], "SAME_COMPANY_TITLE_EXACT_DESCRIPTION")
+        self.assertEqual(result["signals"]["strong_signals"], [])
         self.assertGreaterEqual(result["boilerplate"]["left_removed"], 2)
         self.assertGreaterEqual(result["boilerplate"]["right_removed"], 2)
 
@@ -60,6 +93,8 @@ class DedupePolicyTests(unittest.TestCase):
         result = duplicate_confidence(left, right)
         self.assertEqual(result["confidence"], 1.0)
         self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+        self.assertIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
 
         no_req_left = job(requisition="", ats_tenant="")
         no_req_right = job(requisition="", ats_tenant="")
@@ -69,6 +104,287 @@ class DedupePolicyTests(unittest.TestCase):
         )
         self.assertEqual(review["confidence"], 0.97)
         self.assertEqual(review["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+
+    def test_same_ats_requisition_overrides_changed_route_and_title(self):
+        left = job(
+            application_url="https://board-a.example/posting/old",
+            title="Windows Sysadmin",
+        )
+        right = job(
+            application_url="https://board-b.example/posting/new",
+            title="Infrastructure Operations Lead",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+        self.assertEqual(result["signals"]["strong_signals"], ["ATS_TENANT_REQUISITION"])
+
+    def test_same_ats_requisition_does_not_override_mismatched_company(self):
+        left = job(
+            application_url="https://acme.example/jobs/123",
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers and Active Directory.",
+            company={"name": "Acme", "domains": ["acme.example"]},
+        )
+        right = job(
+            application_url="https://other.example/jobs/123",
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits.",
+            company={"name": "Other Company", "domains": ["other.example"]},
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["ats_tenant"], right["ats_tenant"])
+        self.assertEqual(left["requisition"], right["requisition"])
+        self.assertFalse(result["signals"]["company"]["same_company"])
+        self.assertFalse(result["signals"]["strong_match"])
+        self.assertIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+
+    def test_same_employer_requisition_does_not_override_mismatched_company(self):
+        left = weak_identity_job(
+            company={"name": "Acme", "domains": ["acme.example"]},
+            employer_requisition="REQ-123",
+        )
+        right = weak_identity_job(
+            company={"name": "Other Company", "domains": ["other.example"]},
+            employer_requisition="req-123",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertFalse(result["signals"]["company"]["same_company"])
+        self.assertFalse(result["signals"]["strong_match"])
+        self.assertEqual(result["signals"]["strong_signals"], ["EMPLOYER_REQUISITION"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+
+    def test_same_employer_requisition_with_company_corroboration_is_exact(self):
+        company = {"name": "Acme", "domains": ["acme.example"]}
+        left = weak_identity_job(company=company, employer_requisition="REQ-123")
+        right = weak_identity_job(company=company, employer_requisition="req-123")
+
+        result = duplicate_confidence(left, right)
+
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertTrue(result["signals"]["strong_match"])
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+
+    def test_same_source_job_id_does_not_override_mismatched_company(self):
+        left = weak_identity_job(
+            company={"name": "Acme", "domains": ["acme.example"]},
+            source_relationships=[{"source": "feed", "source_job_id": "REQ-123"}],
+        )
+        right = weak_identity_job(
+            company={"name": "Other Company", "domains": ["other.example"]},
+            source_relationships=[{"source": "FEED", "source_job_id": "req-123"}],
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertFalse(result["signals"]["company"]["same_company"])
+        self.assertFalse(result["signals"]["strong_match"])
+        self.assertEqual(result["signals"]["strong_signals"], ["SOURCE_JOB_RELATIONSHIP"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+
+    def test_same_source_job_id_with_company_corroboration_is_exact(self):
+        company = {"name": "Acme", "domains": ["acme.example"]}
+        relationship = [{"source": "feed", "source_job_id": "REQ-123"}]
+        left = weak_identity_job(company=company, source_relationships=relationship)
+        right = weak_identity_job(company=company, source_relationships=relationship)
+
+        result = duplicate_confidence(left, right)
+
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertTrue(result["signals"]["strong_match"])
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_SOURCE_RELATIONSHIP")
+
+    def test_abbreviation_equivalent_title_without_strong_id_requires_review(self):
+        left = weak_identity_job(title="Windows Sysadmin")
+        right = weak_identity_job(title="Windows Systems Administrator")
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(dedupe_title_key(left["title"]),
+                         dedupe_title_key(right["title"]))
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+        self.assertTrue(result["signals"]["title"]["equal"])
+
+    def test_genuine_title_key_drift_without_strong_id_is_not_merged(self):
+        left = weak_identity_job(title="Windows Systems Administrator")
+        right = weak_identity_job(title="Windows Systems Engineer")
+
+        self.assertNotEqual(dedupe_title_key(left["title"]),
+                            dedupe_title_key(right["title"]))
+        result = duplicate_confidence(left, right)
+
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+
+    def test_same_ats_requisition_with_changed_salary_remains_exact_duplicate(self):
+        left = job(
+            application_url="https://board-a.example/posting/one",
+            attributes={
+                "country": "US", "state": "TX", "city": "Dallas",
+                "salary_min": 100_000, "salary_max": 120_000,
+                "salary_currency": "USD", "salary_period": "YEAR",
+            },
+        )
+        right = job(
+            application_url="https://board-b.example/posting/two",
+            attributes={
+                "country": "US", "state": "TX", "city": "Dallas",
+                "salary_min": 130_000, "salary_max": 150_000,
+                "salary_currency": "USD", "salary_period": "YEAR",
+            },
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertNotEqual(left["attributes"]["salary_min"], right["attributes"]["salary_min"])
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertEqual(result["signals"]["strong_signals"], ["ATS_TENANT_REQUISITION"])
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+
+    def test_salary_only_change_without_strong_id_still_requires_review(self):
+        left = weak_identity_job(attributes={
+            "country": "US", "state": "TX", "city": "Dallas",
+            "salary_min": 100_000, "salary_max": 120_000,
+            "salary_currency": "USD", "salary_period": "YEAR",
+        })
+        right = weak_identity_job(attributes={
+            "country": "US", "state": "TX", "city": "Dallas",
+            "salary_min": 110_000, "salary_max": 130_000,
+            "salary_currency": "USD", "salary_period": "YEAR",
+        })
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["ats_tenant"], "")
+        self.assertEqual(right["ats_tenant"], "")
+        self.assertEqual(left["requisition"], "")
+        self.assertEqual(right["requisition"], "")
+        self.assertEqual(left.get("employer_requisition", ""), "")
+        self.assertEqual(right.get("employer_requisition", ""), "")
+        self.assertNotEqual(left["attributes"]["salary_min"], right["attributes"]["salary_min"])
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+
+    def test_different_requisition_title_and_description_stays_separate(self):
+        left = weak_identity_job(
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers, Active Directory, and PowerShell automation.",
+            requisition="REQ-A",
+        )
+        right = weak_identity_job(
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits administration.",
+            requisition="REQ-B",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+
+    def test_same_ats_tenant_with_distinct_requisitions_stays_separate(self):
+        left = job(
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers, Active Directory, and PowerShell automation.",
+            application_url="https://ats.example/jobs/req-a",
+            ats_tenant="acme-ats",
+            requisition="REQ-A",
+        )
+        right = job(
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits administration.",
+            application_url="https://ats.example/jobs/req-b",
+            ats_tenant="acme-ats",
+            requisition="REQ-B",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["company"], right["company"])
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertEqual(left["ats_tenant"], "acme-ats")
+        self.assertEqual(left["ats_tenant"], right["ats_tenant"])
+        self.assertTrue(left["requisition"] and right["requisition"])
+        self.assertNotEqual(left["requisition"], right["requisition"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertNotIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
+
+    def test_same_requisition_in_different_ats_tenants_stays_separate(self):
+        left = job(
+            title="Windows Systems Administrator",
+            description="Maintain Windows servers, Active Directory, and PowerShell automation.",
+            application_url="https://tenant-a.example/jobs/req-123",
+            ats_tenant="tenant-a",
+            requisition="REQ-123",
+        )
+        right = job(
+            title="Senior Payroll Analyst",
+            description="Reconcile payroll, tax filings, and employee benefits administration.",
+            application_url="https://tenant-b.example/jobs/req-123",
+            ats_tenant="tenant-b",
+            requisition="REQ-123",
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["company"], right["company"])
+        self.assertTrue(left["requisition"] and right["requisition"])
+        self.assertEqual(left["requisition"], right["requisition"])
+        self.assertNotEqual(left["ats_tenant"], right["ats_tenant"])
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertNotIn("ATS_TENANT_REQUISITION", result["signals"]["strong_signals"])
+
+    def test_same_title_and_description_in_different_city_requires_review(self):
+        left = weak_identity_job()
+        right = weak_identity_job(
+            location="Austin, TX",
+            attributes={"country": "US", "state": "TX", "city": "Austin"},
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["ats_tenant"], "")
+        self.assertEqual(right["ats_tenant"], "")
+        self.assertEqual(left["requisition"], "")
+        self.assertEqual(right["requisition"], "")
+        self.assertEqual(left.get("employer_requisition", ""), "")
+        self.assertEqual(right.get("employer_requisition", ""), "")
+        self.assertEqual(result["confidence"], 0.94)
+        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(result["signals"]["strong_signals"], [])
+        self.assertTrue(result["signals"]["description"]["exact"])
+        self.assertNotEqual(left["location"], right["location"])
 
     def test_first_party_precedence_preserves_conflicting_provenance(self):
         result = reconcile_authoritative_value([

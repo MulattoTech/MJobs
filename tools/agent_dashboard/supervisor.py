@@ -944,7 +944,11 @@ class AgentSupervisor:
     def telemetry_snapshot(self) -> dict[str, Any]:
         processes = self._cached_telemetry("processes", 2.5, windows_process_snapshot)
         gpu = self._cached_telemetry("gpu", 3.0, windows_gpu_snapshot)
-        codex_usage = self._cached_telemetry("codex_usage", 30.0, read_codex_rate_limits)
+        codex_usage = self._cached_telemetry(
+            "codex_usage", 5.0 if self.mission_instance else 30.0,
+            lambda: read_codex_rate_limits(prefer_fleet=True) if self.mission_instance
+            else read_codex_rate_limits(),
+        )
         ollama = (self._cached_telemetry("ollama_ps", 3.0, ollama_ps)
                   if shutil.which("ollama") else {"available": False, "models": []})
         return {
