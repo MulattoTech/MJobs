@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from packages.persistence import models as m
 from services.company_discovery.aliases import normalize_alias
 from services.company_discovery.resolution import resolve_company
+from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 
 
 class CompanyResolutionSustainTests(unittest.TestCase):
@@ -49,12 +50,17 @@ class CompanyResolutionSustainTests(unittest.TestCase):
         )
 
     def add_ats_source(self, company_id, tenant, *, provider="greenhouse"):
-        self.insert(
-            m.company_sources, id=f"ats-{company_id}-{provider}",
-            company_id=company_id, provider=provider, tenant=tenant,
-            endpoint=f"https://ats.example/{tenant}",
-            discovered_automatically=False,
-        )
+        domain = f"{company_id}.example"
+        self.add_domain(company_id, domain)
+        with self.engine.begin() as connection:
+            registered = register_ats_tenant(
+                connection, company_id, provider=provider, tenant_identifier=tenant,
+                confidence=.99, evidence=["Synthetic verified career page"])
+            upsert_company_job_source(
+                connection, company_id=company_id, provider=provider,
+                tenant_identifier=tenant, career_url=f"https://{domain}/careers",
+                collection_strategy="API", confidence=.99, enabled=True,
+                ats_tenant_id=registered["id"], last_validation="2026-10-24T00:00:00Z")
 
     def resolve(self, name="Unrelated Display Name", **evidence):
         return resolve_company(self.store, {"company_name": name, **evidence})
@@ -131,15 +137,21 @@ class CompanyResolutionSustainTests(unittest.TestCase):
         self.add_company("known", "Northstar Holdings")
         self.add_ats_source("known", "northstar")
 
-        self.assert_existing(self.resolve("Unrelated Display Name", ats_tenant=" NORTHSTAR "),
+        self.assert_existing(self.resolve("Unrelated Display Name", ats_tenant=" NORTHSTAR ", ats_provider="greenhouse"),
                              "known", .95, ["ATS_TENANT_MATCH"])
-        unknown = self.resolve("Unrelated Display Name", ats_tenant="northstar-other")
+        unknown = self.resolve("Unrelated Display Name", ats_tenant="northstar-other", ats_provider="greenhouse")
         self.assertTrue(unknown["is_new"])
         self.assertNotIn("ATS_TENANT_MATCH", unknown["evidence"])
 
+        for provider in (None, "unknown", "lever"):
+            with self.subTest(untrusted_provider=provider):
+                result = self.resolve("Provider mismatch", ats_tenant="northstar", ats_provider=provider)
+                self.assertTrue(result["is_new"])
+                self.assertNotIn("ATS_TENANT_MATCH", result["evidence"])
+
         self.add_company("other", "Different Employer")
-        self.add_ats_source("other", "northstar", provider="lever")
-        ambiguous = self.resolve("Unrelated Display Name", ats_tenant="northstar")
+        self.add_ats_source("other", "northstar", provider="greenhouse")
+        ambiguous = self.resolve("Unrelated Display Name", ats_tenant="northstar", ats_provider="greenhouse")
         self.assertTrue(ambiguous["is_new"])
         self.assertNotIn(ambiguous["company_id"], {"known", "other"})
         self.assertIn("AMBIGUOUS_COMPANY_MATCH", ambiguous["evidence"])
