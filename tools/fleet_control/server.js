@@ -143,7 +143,12 @@ function transform(s,replacements){
  const activity=controllerUnavailable?'exited':s.activity?.state || 'unknown';
  const busy=activity==='active'||activity==='working';
  const isIdle=activity==='idle';
- const blocked=prs.some(p=>p.ci==='failing'||p.ci==='failed') ||s.status==='ci_failed';
+ // Finished PRs retain their last recorded CI result as history, not a live
+ // assignment blocker. Ignore an aggregate ci_failed only when every tracked
+ // reference is positively completed; missing/unknown references stay cautious.
+ const currentPRs=prs.filter(p=>!['merged','closed'].includes(String(p.state||'').trim().toLowerCase()));
+ const allTrackedPRsCompleted=prs.length>0&&currentPRs.length===0;
+ const blocked=currentPRs.some(p=>p.ci==='failing'||p.ci==='failed') ||(s.status==='ci_failed'&&!allTrackedPRsCompleted);
  const replacementFor=replacements.pairs.find(p=>p.newId===s.id);
  const replacedBy=replacements.pairs.find(p=>p.oldId===s.id);
  return {
