@@ -23,7 +23,7 @@ function set(reason,lock=false,drain=false){
  context.fakeMaster={locked:()=>lock,drainState:{enabled:drain}};
  context.fakeSustain={running:false,config:{enabled:false},enable(x){this.config.enabled=x;return {enabled:x}}};
  context.fakeTurbo={running:false,config:{enabled:false},enable(x){this.config.enabled=x;return {enabled:x}}};
- vm.runInContext('quota=globalThis.fakeQuota;master=globalThis.fakeMaster;sustain=globalThis.fakeSustain;turbo=globalThis.fakeTurbo;audit=()=>{};',context);
+ vm.runInContext("quota=globalThis.fakeQuota;master=globalThis.fakeMaster;sustain=globalThis.fakeSustain;turbo=globalThis.fakeTurbo;startup={status:()=>({phase:'idle',active:false,reconciliationRequired:false})};findWork={running:false};audit=()=>{};",context);
 }
 async function post(url,data){
  let status,body;

@@ -42,6 +42,15 @@ function targetsFromSnapshot(snapshot){
 function hasSameRoot(sessions,record){
  return sessions.some(s=>s.projectId===record.projectId && s.kind==='orchestrator' && s.id!==record.id && !s.isTerminated && (s.activity?.state||s.activity||s.status)!=='exited');
 }
+function unresolvedNativeOperations(state){
+ const ids=new Set(Object.keys(state?.inflight||{}));
+ for(const [id,error] of Object.entries(state?.errors||{}))if(error?.uncertain===true)ids.add(id);
+ return [...ids];
+}
+function unresolvedNativeReason(state){
+ const ids=unresolvedNativeOperations(state);
+ return ids.length?'Previous native restore outcome is unverified for '+ids.slice(0,6).join(', ')+(ids.length>6?' and '+(ids.length-6)+' more':'')+'. Recheck Startup/current runtime health before any new restore; the previous submission ledger was preserved.':null;
+}
 function validConfig(c){
  for(const [k,min,max] of [['batchSize',1,5],['tickSeconds',8,60],['minFreeRamGiB',5,24],['minFreeDiskGiB',10,100],['maxCpuPercent',70,100],['maxAttempts',1,6]]){
   if(!Number.isInteger(c[k])||c[k]<min||c[k]>max)throw Error(k+' must be '+min+'–'+max);
@@ -51,7 +60,7 @@ function validConfig(c){
 class RestoreFleet {
  constructor({root,command,audit,locked=()=>false,dispatchOff=()=>{},
     getGlobalSessions=null,now=()=>Date.now(),launchAO=null,resourceReader=null,runtimeInspector=null,onComplete=null,snapshotFrozen=()=>false,watchdogInspector=null,
-    autoSchedule=true,startBlockReason=()=>null}){
+    autoSchedule=true,startBlockReason=()=>null,runtimeHealth=null,controllerStopped=()=>false}){
   this.root=root;this.command=command;this.audit=audit;this.startBlockReason=startBlockReason;
   this.locked=locked;this.dispatchOff=dispatchOff;this.now=now;
   this.snapshotPath=path.join(root,'restore-snapshot.json');
@@ -68,6 +77,8 @@ class RestoreFleet {
   this.launchAO=launchAO||this.defaultLaunchAO.bind(this);
   this.resourceReader=resourceReader||this.defaultResourceReader.bind(this);
   this.runtimeInspector=runtimeInspector||this.defaultRuntimeInspector.bind(this);
+  this.runtimeHealth=runtimeHealth||((s,count)=>!s.isTerminated&&['active','working','idle'].includes(s.activity?.state||s.status)&&count>0);
+  this.controllerStopped=controllerStopped;
   this.onComplete=onComplete||(()=>{});
   this.snapshotFrozen=snapshotFrozen;
   this.watchdogInspector=watchdogInspector||this.defaultWatchdogInspector.bind(this);
@@ -171,7 +182,7 @@ class RestoreFleet {
    else if(match.isTerminated){action='restore';}
    else if(activity==='exited'){action='resume';}
    else if(['active','working','idle'].includes(activity)){
-    action=processCounts?.has(s.id) ? (processCounts.get(s.id)>0?'already-online':'restart-runtime') : 'verify-runtime';
+    action=processCounts?.has(s.id) ? (this.runtimeHealth(match,processCounts.get(s.id))?'already-online':processCounts.get(s.id)===0?'restart-runtime':'inspect') : 'verify-runtime';
    }
    else{action='inspect';}
    if(s.kind==='orchestrator'&&hasSameRoot(live,s))action='root-conflict';
@@ -215,6 +226,9 @@ class RestoreFleet {
  }
  start({autoDispatchAfter=false,manifest=null,fromEmergency=false}={}){
   if(this.state.active)return this.status();
+  if(this.running)throw Error('A previous restore tick is still running; no new restore was submitted');
+  const previousNative=unresolvedNativeReason(this.state);
+  if(previousNative)throw Error(previousNative);
   if(this.locked())throw Error('Emergency lockout must be explicitly released before restoring');
   if(typeof autoDispatchAfter!=='boolean')throw Error('autoDispatchAfter must be boolean');
   const snap=manifest||this.getSnapshot();
@@ -268,15 +282,16 @@ class RestoreFleet {
  }
  async watchdogDisarmed(requireExplicit=false){
   const e=read(this.watchdogPath,{});
-  if(e.phase==='disarmed'&&e.active===false)return true;
   // The emergency latch is authoritative; never disarm an active emergency.
   if(this.locked())return false;
+  const confirmedAge=this.now()-parseTime(e.checkedAt);
+  if(e.phase==='disarmed'&&e.active===false&&!requireExplicit&&confirmedAge>=0&&confirmedAge<15000)return true;
   if(!requireExplicit&&(!e.startedAt&&!e.watchdogPid&&!e.phase))return true;
   if(!requireExplicit&&e.phase==='inactive')return true;
   // A reboot may leave "starting" in a persistent file after the process died.
   // Reconcile it only after confirming no emergency worker is alive.
   const age=this.now()-parseTime(e.checkedAt||e.startedAt);
-  if(!Number.isFinite(age)||age<15000)return false;
+  if(e.phase!=='disarmed'&&(!Number.isFinite(age)||age<15000))return false;
   try{
    const inspected=await this.watchdogInspector();
    if(inspected.active)return false;
@@ -320,7 +335,7 @@ class RestoreFleet {
      catch(e){this.state.lastError='Could not start Orchestrator.inc: '+detail(e);this.log('ao_start_failed',{message:detail(e)})}
     }
     this.save();
-    return {waiting:'Starting Orchestrator.inc desktop app'};
+    return {waiting:'Starting Orchestrator.inc daemon'};
    }
    const superseded=this.replacementIds();
    const expected=(this.state.source?.targets||[]).filter(s=>!superseded.has(s.id));
@@ -343,7 +358,12 @@ class RestoreFleet {
       tally.conflict++;continue;
     }
     const state=current.activity?.state||current.status||'unknown';
-    if(!current.isTerminated&&state!=='exited'&&(['active','working','idle'].includes(state)) && processCounts.get(s.id)>0){
+    const count=processCounts.get(s.id);
+    if(!Number.isInteger(count)||count<0){
+     this.state.errors[s.id]={...(this.state.errors[s.id]||{}),message:'Runtime process evidence is unavailable; no resume was submitted',at:nowIso()};
+     tally.waiting++;continue;
+    }
+    if(this.runtimeHealth(current,processCounts.get(s.id))){
      this.state.restored[s.id]={status:'ready',at:nowIso(),action:'already-online'};
      delete this.state.inflight[s.id];
      delete this.state.errors[s.id];
@@ -355,12 +375,17 @@ class RestoreFleet {
     if(this.state.inflight[s.id]){
       const age=this.now()-parseTime(this.state.inflight[s.id].at);
       if(age<35000){tally.waiting++;continue}
-      delete this.state.inflight[s.id];
-      attempts++;
-      this.state.errors[s.id]={attempts,message:'Resume result was not confirmed after 35 seconds',at:nowIso()};
-      if(attempts>=this.config.maxAttempts){tally.failed++;continue;}
+      // A submitted command may have succeeded despite a timeout. Keep its
+      // identity and verify on later ticks; never blindly submit it again.
+      this.state.errors[s.id]={attempts,uncertain:true,message:'Resume was submitted but a healthy runtime has not been confirmed. No duplicate resume was sent.',at:nowIso()};
+      tally.waiting++;continue;
     }
-    pending.push({source:s,current,needsExit:!current.isTerminated&&state!=='exited'&&processCounts.get(s.id)===0});
+    if(this.state.errors[s.id]?.uncertain){tally.waiting++;continue;}
+    if(processCounts.get(s.id)>0&&!current.isTerminated&&state!=='exited'&&!this.controllerStopped(current)){
+      this.state.errors[s.id]={attempts,uncertain:true,message:'A runtime exists but its controller is not healthy. Inspect it before resuming; no duplicate controller was started.',at:nowIso()};
+      tally.waiting++;continue;
+    }
+    pending.push({source:s,current,needsExit:!current.isTerminated&&state!=='exited'&&(processCounts.get(s.id)===0||this.controllerStopped(current))});
    }
    const rootsPending=pending.filter(x=>x.source.kind==='orchestrator');
    const unresolvedRoots=first.filter(s=>!readyNow.has(s.id));
@@ -394,14 +419,16 @@ class RestoreFleet {
    const resource=await this.resourceReader();
    this.state.stats={tally,resource};
    let guard=null;
-   if(resource.ramGiB<this.config.minFreeRamGiB)guard='RAM headroom is only '+resource.ramGiB+' GiB';
-   else if(resource.diskGiB!==null&&resource.diskGiB<this.config.minFreeDiskGiB)guard='Disk free is only '+resource.diskGiB+' GiB';
-   else if(Number.isFinite(resource.cpuPercent)&&resource.cpuPercent>=this.config.maxCpuPercent)guard='CPU load is '+resource.cpuPercent+'%';
+   if(!Number.isFinite(resource.ramGiB)||!Number.isFinite(resource.diskGiB)||!Number.isFinite(resource.cpuPercent))guard='Current RAM, disk and CPU measurements are required before restoring another runtime';
+   else if(resource.ramGiB<this.config.minFreeRamGiB)guard='RAM headroom is only '+resource.ramGiB+' GiB';
+   else if(resource.diskGiB<this.config.minFreeDiskGiB)guard='Disk free is only '+resource.diskGiB+' GiB';
+   else if(resource.cpuPercent>=this.config.maxCpuPercent)guard='CPU load is '+resource.cpuPercent+'%';
    if(guard){
     this.state.phase='paused_resources';this.state.lastError=guard;this.save();
     return {paused:guard};
    }
    const batch=(rootsPending.length?rootsPending:pending).slice(0,this.config.batchSize);
+   const submitted=[];
    // Process one by one to avoid competing worktree startups.
    for(const job of batch){
     if(!this.state.active||this.locked())break;
@@ -414,20 +441,29 @@ class RestoreFleet {
     const action={at:nowIso(),command:subcommand};
     this.state.inflight[s.id]=action;this.save();
     try{
-     if(job.needsExit)await this.command(['session','exit-agent',s.id,'--project',s.projectId,'--json'],15000);
+     if(job.needsExit){
+      await this.command(['session','exit-agent',s.id,'--project',s.projectId,'--json'],15000);
+      const exited=(await this.getGlobalSessions()).find(x=>x.id===s.id&&x.projectId===s.projectId);
+      if(!exited||(!exited.isTerminated&&(exited.activity?.state||exited.status)!=='exited'))throw Error('Original runtime exit was not confirmed; resume was withheld');
+     }
+     if(!this.state.active||this.locked()||this.startBlockReason()){
+      delete this.state.inflight[s.id];
+      this.log('resume_withheld_after_exit',{id:s.id});
+      this.save();break;
+     }
      await this.command(args,25000);
+     submitted.push(s.id);
      this.log('resume_submitted',{id:s.id,project:s.projectId,action:subcommand});
     }catch(e){
-     delete this.state.inflight[s.id];
      const attempts=(this.state.errors[s.id]?.attempts||0)+1;
-     this.state.errors[s.id]={attempts,message:detail(e),at:nowIso()};
+     this.state.errors[s.id]={attempts,uncertain:true,message:'Native command outcome is unverified; no automatic retry. '+detail(e),at:nowIso()};
      this.log('resume_error',{id:s.id,attempts,message:detail(e)});
     }
     this.save();
    }
-   return {submitted:batch.map(x=>x.source.id),phase:this.state.phase,tally};
+   return {submitted,phase:this.state.phase,tally};
   }catch(e){this.failure(e);return {error:detail(e)}}
   finally{this.running=false}
  }
 }
-module.exports={RestoreFleet,INITIAL_STATE,PHASES,targetsFromSnapshot,validConfig};
+module.exports={RestoreFleet,INITIAL_STATE,PHASES,targetsFromSnapshot,validConfig,unresolvedNativeOperations,unresolvedNativeReason};

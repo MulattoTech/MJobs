@@ -8,6 +8,10 @@ const { promisify } = require('node:util');
 const { Turbo } = require('./turbo');
 const { Sustain } = require('./sustain');
 const { MasterControls } = require('./master-controls');
+const { StartupController } = require('./startup-control');
+const { StartupAdapter } = require('./startup-adapter');
+const { OrchestratorLauncher } = require('./orchestrator-launcher');
+const { runtimeHealthy, addControllerHealth, controllerStopped } = require('./runtime-health');
 const { QuotaControl } = require('./quota-control');
 const { FindWork } = require('./find-work');
 const { DispatchLedger } = require('./dispatch-ledger');
@@ -52,6 +56,8 @@ let sustain=null;
 let master=null;
 let quota=null;
 let findWork=null;
+let startup=null, startupAdapter=null, orchestratorLauncher=null;
+let manualRestoreAuthorized=false;
 let cached={at:0, result:null};
 let cpuLast=os.cpus().map(c=>c.times);
 let cpuUsage=0;
@@ -79,20 +85,28 @@ function readReplacements(){
  catch(e){if(e.code==='ENOENT')return {pairs:[]};throw Error('Replacement ledger unreadable; refusing unsafe duplicate dispatch');}
 }
 function saveReplacements(x){const tmp=statePath+'.tmp';fs.writeFileSync(tmp,JSON.stringify(x,null,2));fs.renameSync(tmp,statePath);}
-function workBlockReason(){
+function startupBlockReason({allowRestore=false}={}){
+ const s=startup?.status();
+ if(!s)return 'Startup safety controller has not initialized';
+ if(s.reconciliationRequired||s.phase==='uncertain')return 'Interrupted Startup needs reconciliation before more work';
+ if(s.active&&!(allowRestore&&['starting_restore','restoring'].includes(s.phase)))return 'Protected Startup is running; wait for runtime verification';
+ return null;
+}
+function workBlockReason({allowStartupRestore=false}={}){
  if(master?.locked())return 'Emergency shutdown lockout is active';
  if(master?.drainState?.enabled)return 'Graceful wind-down is active';
- return quota?.dispatchBlockReason()||null;
+ return quota?.dispatchBlockReason()||startupBlockReason({allowRestore:allowStartupRestore})||null;
 }
-function assertCanStartWork(){
- const reason=workBlockReason();
+function assertCanStartWork(options){
+ const reason=workBlockReason(options);
  if(reason)throw Error(reason);
 }
-async function command(args,ms=30000,{windDown=false}={}){
+async function command(args,ms=30000,{windDown=false,startupRestore=false}={}){
  const startsWork=['send','spawn'].includes(args[0])||(args[0]==='review'&&args[1]==='trigger')||(args[0]==='session'&&['resume-agent','restore'].includes(args[1]));
  const message=args[args.indexOf('--message')+1]||'';
  const stopNotice=windDown&&args[0]==='send'&&master?.drainState?.enabled&&!master?.locked()&&message.startsWith('GRACEFUL WIND-DOWN ORDER FROM USER:');
- if(startsWork&&!stopNotice)assertCanStartWork();
+ const authorizedRestore=startupRestore&&args[0]==='session'&&['resume-agent','restore'].includes(args[1])&&master?.restore?.state.active;
+ if(startsWork&&!stopNotice)assertCanStartWork({allowStartupRestore:authorizedRestore});
  const id=args[args.indexOf('--session')+1];
  const reserved=args[0]==='send'&&!stopNotice&&dispatchLedger?dispatchLedger.reserve(id,message):null;
  try{
@@ -105,6 +119,11 @@ async function daemon(uri){
  const response=await fetch('http://127.0.0.1:3001'+uri,{signal:AbortSignal.timeout(5500)});
  if(!response.ok)throw Error('Orchestrator daemon HTTP '+response.status);
  return response.json();
+}
+async function getLiveSessions(){
+ const value=await daemon('/api/v1/sessions');
+ if(!Array.isArray(value.sessions))throw Error('Orchestrator session list is unavailable');
+ return addControllerHealth(value.sessions,id=>daemon('/api/v1/sessions/'+encodeURIComponent(id)+'/conversation?limit=1'));
 }
 function getClass(s){
  const n=s.displayName||'';
@@ -120,7 +139,8 @@ function getClass(s){
 function transform(s,replacements){
  const prs=(s.prs||[]).map(p=>({number:p.number,url:p.url,state:p.state,ci:p.ci,review:p.review,mergeability:p.mergeability}));
  const openPRs=prs.filter(p=>p.state==='open'||p.state==='draft');
- const activity=s.activity?.state || 'unknown';
+ const controllerUnavailable=s.mode==='chat'&&(s.controllerVerified!==true||!['ready','busy'].includes(s.controllerState));
+ const activity=controllerUnavailable?'exited':s.activity?.state || 'unknown';
  const busy=activity==='active'||activity==='working';
  const isIdle=activity==='idle';
  const blocked=prs.some(p=>p.ci==='failing'||p.ci==='failed') ||s.status==='ci_failed';
@@ -133,7 +153,8 @@ function transform(s,replacements){
   createdAt:s.createdAt||null,branch:s.branch||null,
   branchState:s.branchState||{},mode:s.mode||null,prs,openPRs:openPRs.length,
   busy,isIdle,blocked,isTerminated:!!s.isTerminated,
-  stateLabel:busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':'Idle · available'):(activity==='exited'?'Exited':activity),
+  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':'Idle · available'):(activity==='exited'?'Exited':activity),
+  controllerState:s.controllerState||null,controllerVerified:s.controllerVerified??null,
   replacementFor:replacementFor?.oldId||null,replacedBy:replacedBy?.newId||null,
   effortKnown:false
  };
@@ -167,7 +188,7 @@ async function state(force=false){
 async function loadState(force=false){
  if(!force && cached.result && Date.now()-cached.at<1800)return cached.result;
  let res;
- try{res=await daemon('/api/v1/sessions')}
+ try{res={sessions:await getLiveSessions()}}
  catch(e){
   const reason=master?.locked()?'Emergency stop is locked; Orchestrator.inc daemon is intentionally offline':'Orchestrator daemon unavailable; displaying preserved sessions, not live activity';
   const result=emergencyOfflineSnapshot(reason);
@@ -192,7 +213,10 @@ async function loadState(force=false){
 async function body(req){
  let parts=[],size=0;
  for await(const chunk of req){size+=chunk.length;if(size>20000)throw Error('Request too large');parts.push(chunk)}
- try{return JSON.parse(Buffer.concat(parts).toString('utf8')||'{}')}catch{throw Error('Invalid JSON')}
+ let value;try{value=JSON.parse(Buffer.concat(parts).toString('utf8')||'{}')}catch{throw Error('Invalid JSON')}
+ // A slow request body must not bypass a Startup that began after headers.
+ if(startup?.status().active&&!['/api/startup','/api/startup/cancel','/api/startup/reconcile','/api/master/emergency','/api/master/pause','/api/master/drain','/api/master/restore/pause','/api/quota/disarm','/api/agent-plan'].includes(req.url))throw Error('Protected Startup began while this request was being read; no competing action was submitted');
+ return value;
 }
 function checkWrite(req){
  const origin=req.headers.origin;
@@ -349,8 +373,32 @@ async function retire(x){
 }
 async function main(req,res){
  if(!['127.0.0.1:'+port,'localhost:'+port].includes(req.headers.host||''))return json(res,403,{error:'Local host only'});
- if(master?.locked()&&req.method==='POST'&&!['/api/master/emergency','/api/master/rearm','/api/master/restore','/api/agent-plan'].includes(req.url))return json(res,423,{error:'Emergency shutdown lockout is active; re-arm the system before restarting work'});
- if(master?.drainState.enabled&&req.method==='POST'&&req.url!=='/api/agent-plan'&&!req.url.startsWith('/api/master/'))return json(res,423,{error:'Graceful shutdown is draining sessions. New work is disabled'});
+ if(master?.locked()&&req.method==='POST'&&!['/api/master/emergency','/api/master/rearm','/api/master/restore','/api/master/pause','/api/agent-plan','/api/startup','/api/startup/cancel','/api/startup/reconcile'].includes(req.url))return json(res,423,{error:'Emergency shutdown lockout is active; use protected Startup after the allowance reset'});
+ if(master?.drainState.enabled&&req.method==='POST'&&req.url!=='/api/agent-plan'&&!req.url.startsWith('/api/master/')&&!req.url.startsWith('/api/startup'))return json(res,423,{error:'Graceful shutdown is draining sessions. New work is disabled'});
+ if(req.method==='GET'&&req.url==='/api/startup'){
+  const readiness=await startupAdapter.readiness();
+  let preview;try{const {targets}=startupAdapter.manifest();preview={targetCount:targets.length,primaryIds:targets.filter(s=>s.kind==='orchestrator').map(s=>s.id)};}catch(e){preview={targetCount:0,reason:e.message};}
+  return json(res,200,{run:startup.status(),readiness,preview,launcher:orchestratorLauncher.status()});
+ }
+ if(req.method==='POST'&&['/api/startup','/api/startup/cancel','/api/startup/reconcile','/api/orchestrator/open'].includes(req.url)){
+  let owns=false;
+  try{
+   checkWrite(req);const data=await body(req);
+   if(req.url==='/api/startup/cancel'){const r=startup.cancel(data);master.disableAutomaticDispatch();master.restore.pause();return json(res,r.statusCode,r);}
+   if(mutationLock||sustain.running||turbo.running||findWork.running)return json(res,409,{error:'Another control operation is running; Startup did not submit work'});
+   mutationLock=true;owns=true;
+   if(req.url==='/api/startup'){const r=startup.start(data);return json(res,r.statusCode,r);}
+   if(req.url==='/api/startup/reconcile'){const r=await startup.reconcile(data);return json(res,r.statusCode||200,r);}
+   assertCanStartWork();
+   const r=await orchestratorLauncher.launch('ui',{beforeTrigger:()=>assertCanStartWork()});
+   return json(res,200,{ok:true,launch:r,note:'Orchestrator is open in your standard user session. No fleet restore or prompt was submitted by this button.'});
+  }catch(e){audit('startup_control_error',{route:req.url,code:e.code||null,message:String(e.message).slice(0,450)});return json(res,409,{error:e.message,code:e.code||null});}
+  finally{if(owns)mutationLock=false;}
+ }
+ if(req.method==='POST'&&startup?.status().active){
+  const safe=['/api/master/emergency','/api/master/pause','/api/master/drain','/api/master/restore/pause','/api/quota/disarm','/api/agent-plan'];
+  if(!safe.includes(req.url))return json(res,409,{error:'Protected Startup is running. Agent changes and dispatch must wait until it completes.'});
+ }
  if(req.method==='GET'&&req.url==='/api/providers')return json(res,200,await providerRuntime.get());
  if(req.method==='GET'&&req.url==='/api/gemini-usage'){
   const catalog=await providerRuntime.get();return json(res,200,readGeminiUsage({agyAvailable:catalog.providers.some(p=>p.id==='agy'&&p.available),geminiAvailable:catalog.providers.some(p=>p.id==='gemini'&&p.installed)}));
@@ -405,15 +453,21 @@ async function main(req,res){
    return json(res,404,{error:'Unknown quota operation'});
   }catch(e){audit('quota_control_error',{route:req.url,message:e.message});return json(res,400,{error:e.message})}
  }
- if(req.method==='GET'&&req.url==='/api/master')return json(res,200,master.status());
+ if(req.method==='GET'&&req.url==='/api/master')return json(res,200,{...master.status(),startup:startup.status(),currentReadiness:await startupAdapter.readiness()});
  if(req.method==='GET'&&req.url==='/api/master/restore/preview'){
   try{return json(res,200,await master.restorePreview())}
   catch(e){return json(res,409,{error:e.message})}
  }
  if(req.method==='POST'&&req.url.startsWith('/api/master/')){
+  let ownsMasterLane=false;
   try{
    checkWrite(req);
    const data=await body(req);
+   if(['/api/master/pause','/api/master/drain','/api/master/restore/pause','/api/master/emergency'].includes(req.url)&&startup?.status().active){
+    if(req.url==='/api/master/drain'&&data.confirm!=='GRACEFUL STOP')throw Error('Graceful stop confirmation missing');
+    if(req.url==='/api/master/emergency'&&data.confirm!=='KILL ALL CODEX')throw Error('Explicit emergency confirmation missing');
+    startup.cancel({runId:startup.status().runId});master.disableAutomaticDispatch();master.restore.pause();
+   }
    if(req.url==='/api/master/pause')return json(res,200,master.pause());
    if(req.url==='/api/master/drain'){
     if(data.confirm!=='GRACEFUL STOP')throw Error('Graceful stop confirmation missing');
@@ -422,7 +476,14 @@ async function main(req,res){
    if(req.url==='/api/master/cancel-drain')return json(res,200,master.cancelDrain());
    if(req.url==='/api/master/restore'){
     if(data.confirm!=='RESTORE FLEET')throw Error('Exact fleet restoration confirmation required');
-    return json(res,202,await master.restoreStart({autoDispatchAfter:data.autoDispatchAfter===true}));
+    if(mutationLock||sustain.running||turbo.running||findWork.running)throw Error('Another control operation is running');
+    mutationLock=true;ownsMasterLane=true;
+    if(startupBlockReason())throw Error(startupBlockReason());
+    if(master.restore.state.active||master.restore.running)throw Error('A restore operation is already running');
+    if(Object.keys(master.restore.state.inflight||{}).length)throw Error('An earlier resume is unverified. Use Startup reconciliation before sending another restore.');
+    manualRestoreAuthorized=true;
+    const result=await master.restoreStart({autoDispatchAfter:data.autoDispatchAfter===true});
+    return json(res,202,result);
    }
    if(req.url==='/api/master/restore/pause')return json(res,200,master.restorePause());
    if(req.url==='/api/master/emergency'){
@@ -434,7 +495,8 @@ async function main(req,res){
     return json(res,200,master.rearm());
    }
    return json(res,404,{error:'Unknown master action'});
-  }catch(e){audit('master_action_error',{route:req.url,message:e.message});return json(res,400,{error:e.message})}
+  }catch(e){if(ownsMasterLane)manualRestoreAuthorized=false;audit('master_action_error',{route:req.url,message:e.message});return json(res,400,{error:e.message})}
+  finally{if(ownsMasterLane)mutationLock=false;}
  }
  if(req.method==='GET'&&req.url==='/api/environment'){
   try{return json(res,200,{codexExecutableReady:true,codexVersion:await verifyCodexExecutable(),replacementMethod:'preserved-original-new-session'})}
@@ -510,6 +572,7 @@ async function main(req,res){
  if(req.method!=='GET')return json(res,405,{error:'Method not allowed'});
  const item=(req.url||'/').split('?')[0];
  const assets={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/turbo-ui.js':'turbo-ui.js','/sustain-ui.js':'sustain-ui.js','/master-ui.js':'master-ui.js','/restore-ui.js':'restore-ui.js','/quota-ui.js':'quota-ui.js','/find-work-ui.js':'find-work-ui.js','/style.css':'style.css','/turbo.css':'turbo.css','/master.css':'master.css','/restore.css':'restore.css','/quota.css':'quota.css','/find-work.css':'find-work.css'};
+ Object.assign(assets,{'/startup-ui.js':'startup-ui.js','/startup.css':'startup.css'});
  const file=assets[item];
  if(!file)return json(res,404,{error:'Not found'});
  try{
@@ -521,18 +584,31 @@ async function main(req,res){
 }
 if(!fs.existsSync(AO)){console.error('Missing Orchestrator CLI at '+AO);process.exit(1)}
 dispatchLedger=new DispatchLedger({root});
+orchestratorLauncher=new OrchestratorLauncher({root});
 agentPlans=new AgentPlans({root,audit,validate:async x=>validateSelection(x,await providerRuntime.get())});
-turbo=new Turbo({root,getState:state,command,audit,isManualBusy:()=>mutationLock||!!sustain?.running||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason(),projectId});
-sustain=new Sustain({root,getState:state,turbo,command,audit,isManualBusy:()=>mutationLock||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason(),projectId});
+turbo=new Turbo({root,getState:state,command,audit,isManualBusy:()=>mutationLock||!!sustain?.running||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason()||!!startupBlockReason(),projectId});
+sustain=new Sustain({root,getState:state,turbo,command,audit,isManualBusy:()=>mutationLock||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason()||!!startupBlockReason(),projectId});
 turbo.sustain=sustain;
-master=new MasterControls({root,sustain,turbo,command,audit,getState:state,projectId});
+master=new MasterControls({root,sustain,turbo,command,audit,getState:state,getAllSessions:getLiveSessions,projectId,
+ restoreOptions:{launchAO:()=>orchestratorLauncher.launch('daemon',{beforeTrigger:()=>{
+  if(!master.restore.state.active||master.locked()||quota.dispatchBlockReason()||startupBlockReason({allowRestore:true}))throw Error('Restore was stopped before Orchestrator could launch');
+ }}),runtimeHealth:runtimeHealthy,controllerStopped},
+ restoreCommand:(args,ms)=>command(args,ms,{startupRestore:true}),
+ startBlockReason:()=>startupBlockReason({allowRestore:true})||(!startup?.status().active&&!manualRestoreAuthorized?'Restoration awaits an explicit Startup or Restore request after this dashboard launch':null)});
 quota=new QuotaControl({root,audit,locked:()=>master.locked()});
 master.quota=quota;
+startupAdapter=new StartupAdapter({root,master,quota,launcher:orchestratorLauncher,providers:providerRuntime,
+ verifyCodex:verifyCodexExecutable,getSessions:getLiveSessions,runtimeHealth:runtimeHealthy,
+ operationBusy:()=>mutationLock||sustain.running||turbo.running||!!findWork?.running});
+startup=new StartupController({root,deps:startupAdapter.deps(),audit,timeouts:{readMs:30000,actionMs:35000}});
+// A server restart never authorizes replay of a saved restore operation.
+if(master.restore.state.active)master.restore.pause();
+if(startupBlockReason())master.disableAutomaticDispatch();
 findWork=new FindWork({root,getState:state,command,audit,guard:()=>{
  if(master?.locked())return 'Emergency lockout is active';
  if(master?.drainState?.enabled)return 'Graceful wind-down is active';
  if(master?.restore?.state?.active)return 'Fleet restoration is active';
- return quota?.dispatchBlockReason()||null;
+ return quota?.dispatchBlockReason()||startupBlockReason()||null;
 }});
 const server=http.createServer((req,res)=>{main(req,res).catch(e=>json(res,500,{error:e.message}))});
 server.listen(port,listenHost,()=>console.log('MJobs Fleet Control listening on http://'+listenHost+':'+port));

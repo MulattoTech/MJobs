@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/turbo.css">
   <script defer src="/app.js"></script>
+  <script defer src="/startup-ui.js"></script>
+  <link rel="stylesheet" href="/startup.css">
   <script defer src="/turbo-ui.js"></script>
   <script defer src="/sustain-ui.js"></script>
   <script defer src="/master-ui.js"></script>
@@ -84,6 +86,7 @@
             </div>
           </div>
         </section>
+        <section id="startupSection" aria-label="Protected startup"></section>
         <section class="metrics-grid" aria-label="Fleet metrics">
           <article class="metric-card"><div class="metric-heading"><span>TRACKED SESSIONS</span><span class="metric-icon">▦</span></div><div class="metric-number" id="mTotal">—</div><div class="metric-footer">Across all model classes</div></article>
           <article class="metric-card"><div class="metric-heading"><span>WORKING NOW</span><span class="metric-icon cyan">↗</span></div><div class="metric-number" id="mWorking">—</div><div class="metric-footer"><span class="mini-dot cyan"></span> Executing an agent turn</div></article>

@@ -8,12 +8,14 @@ function preflight({quota,master,snapshot=null,providers=null,now=Date.now()}){
  if(!quota.fresh)issues.push({code:'QUOTA_STALE',message:'Wait for fresh Codex quota telemetry.'});
  else if(quota.selectedRemainingPercent<=quota.config.thresholdPercent+8)issues.push({code:'QUOTA_LOW',message:'Codex allowance must exceed '+(quota.config.thresholdPercent+8)+'% before a new sprint.'});
  if(!quota.config.autoKillArmed||quota.config.tripped)issues.push({code:'GUARD_UNARMED',message:'Explicitly arm the '+quota.config.thresholdPercent+'% emergency guard after the reset.'});
+ else if(!quota.guardAcknowledged)issues.push({code:'GUARD_ACK_PENDING',message:'Waiting for the live quota monitor to acknowledge the armed settings.'});
  if(e.latched&&!watchdogFresh)issues.push({code:'WATCHDOG_STALE',message:'Emergency watcher heartbeat is stale; do not resume work.'});
  if((e.remainingTotal||0)>0)issues.push({code:'RESIDUAL_PROCESSES',message:String(e.remainingTotal)+' target processes remain; resolve them before restoring.'});
  if(!snapshot||snapshot.offline)issues.push({code:'AO_OFFLINE',message:'Orchestrator is offline. Restore the preserved fleet only after quota checks pass.'});
  if(master.drain?.enabled)issues.push({code:'DRAINING',message:'Graceful wind-down is in progress.'});
  if(master.restore?.active)issues.push({code:'RESTORING',message:'Fleet restoration is in progress.'});
- return {at:new Date(now).toISOString(),ready:issues.length===0,issues,canSaveAgentPlans:true,
+ const startupBlockers=issues.filter(x=>!['EMERGENCY_LOCKED','GUARD_UNARMED','GUARD_ACK_PENDING','AO_OFFLINE'].includes(x.code));
+ return {at:new Date(now).toISOString(),ready:issues.length===0,bootstrapEligible:startupBlockers.length===0,startupBlockers,issues,canSaveAgentPlans:true,
   quota:{fresh:quota.fresh,remaining:quota.selectedRemainingPercent,stopAt:quota.config.thresholdPercent,brakeAt:quota.config.thresholdPercent+8,armed:quota.config.autoKillArmed},
   emergency:{latched:!!e.latched,watchdogFresh,remaining:e.remainingTotal??null},
   dispatch:master.dispatch,rosterSource:snapshot?.offline?'saved snapshot':snapshot?'live':'unavailable',

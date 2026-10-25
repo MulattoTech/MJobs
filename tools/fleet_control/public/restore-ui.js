@@ -4,18 +4,20 @@ const FleetRestoreUI=(()=>{
  let working=false,status=null,loading=false;
  const escV=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function phaseName(value){return ({idle:'Not restoring',preparing:'Preparing session manifest',waiting_watchdog:'Waiting for emergency watchdog',starting_ao:'Starting Orchestrator.inc',restoring_primary:'Restoring primary orchestrator',restoring_workers:'Restoring workers and reviewers',verifying:'Verifying runtime health',paused_resources:'Waiting for host resources',partial:'Partial recovery — checking blockers',complete:'Fleet restored',paused:'Recovery paused',failed:'Recovery needs attention',cancelled:'Recovery stopped'})[value]||value||'Unknown'}
- function draw(s){
+ function draw(s,currentReadiness=null){
   status=s;
   const progress=el('restoreProgress'),active=!!s.active;
   progress.hidden=!(active||['paused','complete','partial','paused_resources','failed'].includes(s.phase));
   const total=s.total||0,done=s.restoredCount||0;
   const pct=total?Math.round(done*100/total):0;
-  el('restorePhase').textContent=phaseName(s.phase);
+  const historical=s.phase==='complete'&&currentReadiness?.ready!==true;
+  el('restorePhase').textContent=historical?'Previous restore completed · current health unverified':phaseName(s.phase);
   el('restoreMeterFill').style.width=pct+'%';
-  el('restoreNumbers').textContent=done+' / '+total+' session runtimes verified ('+pct+'%)';
+  el('restoreNumbers').textContent=done+' / '+total+(historical?' runtimes recorded in the previous restore':' session runtimes verified')+' ('+pct+'%)';
   el('restoreCurrent').textContent=s.lastError?
    'Latest issue: '+String(s.lastError).slice(0,125):
-   s.phase==='complete'?'Session IDs preserved · dispatcher '+(s.autoDispatchAfter?'resumed':'paused'):
+   historical?(currentReadiness?.reason||'Use current Startup status to check the fleet now'):
+   s.phase==='complete'?'Session IDs preserved · current runtime health verified':
    'Checking every '+s.nextCheckSeconds+' seconds';
   el('masterRestore').disabled=working||active;
   el('topbarRestore').disabled=working||active;
@@ -35,7 +37,7 @@ const FleetRestoreUI=(()=>{
   loading=true;
   try{
    const data=await api('/api/master');
-   draw(data.restore||{});
+   draw(data.restore||{},data.currentReadiness);
   }catch(e){el('restorePhase').textContent='Restore controller unavailable'}
   finally{loading=false}
  }
@@ -49,7 +51,7 @@ const FleetRestoreUI=(()=>{
    const counts={all:data.totalTargets||0,online:data.alreadyOnline||0,toResume:data.willResume||0};
    const conflicts=data.rootConflicts||[];
    const locked=!!data.emergencyLatched;
-   let notes=locked?'The emergency shutdown lockout will be deliberately disengaged after you confirm. Restoration waits for the kill watchdog to stop before starting Codex again.':
+   let notes=locked?'The emergency stop is active. Use Startup above to verify the reset, release this stop, and arm 7% protection before restoration. This advanced Restore button does not release the stop.':
     'Preserved session IDs, branches and worktrees will be reused. No force-pushes, branch resets or duplicate project roots.';
    const emergencyClass=locked?' warn':'';
    if(!counts.all){toast('No recoverable AO session manifest is available. Live Codex sessions will not be duplicated.',true);return}
@@ -65,9 +67,9 @@ const FleetRestoreUI=(()=>{
     '<div class="modal-actions"><button class="ghost-button" data-modal="cancel">Cancel</button><button id="confirmRestore" class="primary-button" disabled>Begin graceful restore</button></div>'
    );
    const entry=el('restorePhrase'),confirm=el('confirmRestore');
-   entry.addEventListener('input',()=>confirm.disabled=entry.value.trim()!=='RESTORE FLEET');
+   entry.addEventListener('input',()=>confirm.disabled=locked||entry.value.trim()!=='RESTORE FLEET');
    confirm.addEventListener('click',async()=>{
-    if(working||entry.value.trim()!=='RESTORE FLEET')return;
+    if(working||locked||entry.value.trim()!=='RESTORE FLEET')return;
     working=true;confirm.disabled=true;
     try{
      const start=await api('/api/master/restore',{confirm:'RESTORE FLEET',autoDispatchAfter:!!el('restoreAutoDispatch').checked});

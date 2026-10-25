@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {inspectLimits,selectedWindows,shouldKill,sane}=require('./quota-guard');
+const {inspectLimits,selectedWindows,shouldKill,sane,configRevision}=require('./quota-guard');
 const {QuotaControl}=require('./quota-control');
 const root=path.join(__dirname,'test-quota-state');
 fs.rmSync(root,{recursive:true,force:true});fs.mkdirSync(root,{recursive:true});
@@ -52,6 +52,9 @@ assert.equal(ctrl.status().config.window,'weekly');
 assert.equal(ctrl.status().selectedRemainingPercent,33);
 const enabled=ctrl.arm();
 assert.equal(enabled.config.autoKillArmed,true);
+assert.match(ctrl.dispatchBlockReason(),/acknowledgment/);
+data.guardAck={revision:configRevision(ctrl.config()),appliedAt:data.lastSuccessfulPoll};
+fs.writeFileSync(statusFile,JSON.stringify(data));
 assert.equal(ctrl.dispatchBlockReason(),null);
 const nearCutoff={...data,windows:rows.map(r=>({...r,remainingPercent:r.label==='Weekly'?12:r.remainingPercent}))};
 fs.writeFileSync(statusFile,JSON.stringify(nearCutoff));
