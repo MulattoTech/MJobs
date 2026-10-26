@@ -187,6 +187,32 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
         self.assertEqual(evidence["pages_consumed"], 1)
         self.assertIsNone(evidence["collection_result"])
 
+    def test_page_budget_exhaustion_requires_review_without_poisoning_source_health(self):
+        self.state.update(pages=3)
+        operation_id = self._operation()
+        with self.store.engine.connect() as connection:
+            before = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one())
+
+        result = self._execute(operation_id)
+
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(result["error_category"], "REVIEW_REQUIRED", result)
+        operation, terminal, jobs = self._saved(operation_id)
+        self.assertEqual(operation["attempt_count"], 1)
+        self.assertEqual(operation["retry_count"], 0)
+        self.assertEqual(jobs, [])
+        evidence = terminal["payload"]["collection_budget"]
+        self.assertEqual(evidence["stop_reason"], "PAGE_BUDGET_EXHAUSTED")
+        self.assertEqual(evidence["max_pages"], 2)
+        self.assertEqual(evidence["pages_consumed"], 2)
+        self.assertIsNone(evidence["collection_result"])
+        with self.store.engine.connect() as connection:
+            after = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one())
+        for field in ("health_status", "consecutive_failures", "last_error", "backoff_until"):
+            self.assertEqual(after[field], before[field], field)
+
 
 if __name__ == "__main__":
     unittest.main()

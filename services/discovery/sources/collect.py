@@ -14,6 +14,7 @@ from packages.domain.operation_errors import source_collection_error_category
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.agents.acceptance import CollectionContract, validate_collection_output
+from services.agents.registry import AgentToolError
 from services.ai.prompt_provenance import capture_parser
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.company_discovery.quality import posting_metrics, record_observation
@@ -422,6 +423,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 } if collection_result is not None else None)}
     except Exception as failure:
         from workers.operations import OperationCancelled, OperationTimedOut
+        if isinstance(failure, AgentToolError) and failure.code == "PAGE_BUDGET_EXHAUSTED":
+            failure = SourceCollectionContractError(failure.code)
         if authority_rejected or isinstance(
                 failure, (OperationCancelled, OperationTimedOut, SourceCollectionContractError)):
             # A local authority revocation or budget stop is not a provider failure.
@@ -438,6 +441,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 category = source_collection_error_category(failure.code)
                 if category is not None:
                     failure.operation_error_category = category
+            if isinstance(failure, SourceCollectionContractError):
+                raise failure from None
             raise
         provider_boundary = available is None
         if provider_boundary:
