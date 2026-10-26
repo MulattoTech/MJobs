@@ -1,14 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MJobs accepted 122 of 366 requirements; 102 partial, 142 not run, 33.3% accepted; matrix as of 2026-10-26T02:50:14+00:00" viewBox="0 0 900 176" width="900" height="176">
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MJobs accepted 121 of 366 requirements; 103 partial, 142 not run, 33.1% accepted; matrix as of 2026-10-26T03:15:30+00:00" viewBox="0 0 900 176" width="900" height="176">
   <title>MJobs verified requirement acceptance</title>
   <rect x="0" y="0" width="900" height="176" rx="12" fill="#101113"/>
   <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif">
     <text x="30" y="35" font-size="16" font-weight="600" letter-spacing="0.5" fill="#AFB7C4">MJOBS — VERIFIED REQUIREMENT ACCEPTANCE</text>
-    <text x="30" y="77" font-size="31" font-weight="700" fill="#F7FAFD">122 / 366</text>
+    <text x="30" y="77" font-size="31" font-weight="700" fill="#F7FAFD">121 / 366</text>
     <text x="205" y="76" font-size="17" fill="#D0D5DD">original requirements fully accepted</text>
     <rect x="30" y="98" width="838" height="12" rx="6" fill="#303238"/>
-    <rect x="30" y="98" width="279.33" height="12" rx="6" fill="#27B56E"/>
-    <text x="30" y="139" font-size="15" fill="#CBD0D9">102 partial · 142 not yet validated</text>
-    <text x="868" y="139" text-anchor="end" font-size="16" font-weight="700" fill="#F3F5F8">33.3%</text>
-    <text x="30" y="162" font-size="11" fill="#939AA6">Canonical matrix checkpoint: 2026-10-26T02:50:14+00:00 · no inference from unmerged work</text>
+    <rect x="30" y="98" width="277.04" height="12" rx="6" fill="#27B56E"/>
+    <text x="30" y="139" font-size="15" fill="#CBD0D9">103 partial · 142 not yet validated</text>
+    <text x="868" y="139" text-anchor="end" font-size="16" font-weight="700" fill="#F3F5F8">33.1%</text>
+    <text x="30" y="162" font-size="11" fill="#939AA6">Canonical matrix checkpoint: 2026-10-26T03:15:30+00:00 · no inference from unmerged work</text>
   </g>
 </svg>
