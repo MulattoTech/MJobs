@@ -184,6 +184,67 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.assertEqual(item["tracking_status"], "APPLIED")
         self.assertEqual(item["tracking_attribution"], "USER_REPORTED_EMAIL")
 
+    def test_first_malformed_tracking_sequences_are_ignored(self):
+        invalid_sequences = (True, -1, 1.5, "1", None, "missing")
+        job_ids = []
+        for index, sequence in enumerate(invalid_sequences):
+            job = self.add_job(f"malformed-first-sequence-{index}", application=True)
+            job_ids.append(job["job_id"])
+            payload = {"status": "APPLIED", "attribution": "USER_REPORTED"}
+            if sequence != "missing":
+                payload["sequence"] = sequence
+            entity = identity("application-tracking", "fixture", job["application_id"])
+            with self.store.engine.begin() as connection:
+                connection.execute(m.audit.insert().values(
+                    id=f"malformed-first-event-{index}", entity_id=entity,
+                    action="APPLICATION_PIPELINE_STATUS", payload=payload,
+                    timestamp="2026-10-11T14:00:00Z"))
+
+        items = {item["job_id"]: item for item in self.read()["items"]}
+        for job_id in job_ids:
+            with self.subTest(job_id=job_id):
+                self.assertIsNone(items[job_id]["tracking_status"])
+                self.assertIsNone(items[job_id]["tracking_attribution"])
+
+    def test_subsequent_malformed_tracking_sequence_is_ignored_without_type_error(self):
+        job = self.add_job("malformed-followup-sequence", application=True)
+        entity = identity("application-tracking", "fixture", job["application_id"])
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert().values(
+                id="valid-first-sequence", entity_id=entity,
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": "APPLIED", "attribution": "USER_REPORTED", "sequence": 1},
+                timestamp="2026-10-11T14:00:00Z"))
+            connection.execute(m.audit.insert().values(
+                id="malformed-second-sequence", entity_id=entity,
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": "INTERVIEW", "attribution": "USER_REPORTED",
+                         "sequence": "2"},
+                timestamp="2026-10-11T14:01:00Z"))
+
+        item = self.read()["items"][0]
+        self.assertEqual(item["tracking_status"], "APPLIED")
+        self.assertEqual(item["tracking_attribution"], "USER_REPORTED")
+
+    def test_malformed_tracking_payload_fields_are_ignored(self):
+        job = self.add_job("malformed-tracking-fields", application=True)
+        entity = identity("application-tracking", "fixture", job["application_id"])
+        malformed_payloads = (
+            {"status": ["APPLIED"], "attribution": "USER_REPORTED", "sequence": 1},
+            {"status": "APPLIED", "attribution": {"source": "user"}, "sequence": 1},
+            ["not", "an", "object"],
+        )
+        with self.store.engine.begin() as connection:
+            for index, payload in enumerate(malformed_payloads):
+                connection.execute(m.audit.insert().values(
+                    id=f"malformed-tracking-payload-{index}", entity_id=entity,
+                    action="APPLICATION_PIPELINE_STATUS", payload=payload,
+                    timestamp=f"2026-10-11T14:0{index}:00Z"))
+
+        item = self.read()["items"][0]
+        self.assertIsNone(item["tracking_status"])
+        self.assertIsNone(item["tracking_attribution"])
+
     def test_active_prepare_operation_and_personal_mock_route_are_hard_blockers(self):
         self.add_job("active-job")
         with self.store.engine.begin() as connection:

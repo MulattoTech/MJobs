@@ -5,7 +5,6 @@ import hashlib
 import json
 import math
 import unicodedata
-from typing import cast
 
 from sqlalchemy import case, func, select
 
@@ -205,18 +204,22 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
     tracking_by_entity: dict[str, tuple[int, str, str]] = {}
     for row in audit_rows:
         entity = row["entity_id"]
-        payload = row.get("payload") or {}
+        payload = row.get("payload")
+        if not isinstance(payload, dict):
+            continue
         status = payload.get("status")
         attribution = payload.get("attribution")
-        if (status in PIPELINE_STATUSES
-                and attribution in {"USER_REPORTED", "EXTERNAL_USER_REPORTED",
-                                    "USER_REPORTED_EMAIL"}):
-            previous = tracking_by_entity.get(entity)
-            sequence = payload.get("sequence", 0)
-            if previous is None or sequence >= previous[0]:
-                tracking_by_entity[entity] = cast(
-                    tuple[int, str, str], (sequence, status, attribution),
-                )
+        sequence = payload.get("sequence")
+        if (not isinstance(status, str) or not isinstance(attribution, str)
+                or type(sequence) is not int or sequence < 0):
+            continue
+        if (status not in PIPELINE_STATUSES
+                or attribution not in {"USER_REPORTED", "EXTERNAL_USER_REPORTED",
+                                       "USER_REPORTED_EMAIL"}):
+            continue
+        previous = tracking_by_entity.get(entity)
+        if previous is None or sequence >= previous[0]:
+            tracking_by_entity[entity] = (sequence, status, attribution)
 
     profile_rescores = [dict(op) for op in operations if op["kind"] == "DISCOVER"
                         and (op["params"] or {}).get("rescore_only")
