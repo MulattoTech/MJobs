@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync(path.join(__dirname,'public','app.js'),'utf8');
 function section(start,end){const a=source.indexOf(start),b=source.indexOf(end,a+start.length);assert(a>=0&&b>a,'Missing section '+start);return source.slice(a,b);}
-function context(extra={}){return vm.createContext({console,AbortController,Date,setTimeout,clearTimeout,...extra});}
+function context(extra={}){return vm.createContext({console,AbortController,Date,setTimeout,clearTimeout,location:{hash:''},sustain:null,operationalDetails:require('./agent-observability').operationalDetails,...extra});}
 function load(c,code,names){vm.runInContext(code+'\n'+names.map(n=>'globalThis.'+n+'='+n+';').join('\n'),c);}
 function elem(){return {hidden:false,value:'',innerHTML:'',textContent:'',style:{},options:[],disabled:false,querySelectorAll:()=>[],contains:()=>false};}
 function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

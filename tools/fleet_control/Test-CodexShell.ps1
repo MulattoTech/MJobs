@@ -23,11 +23,15 @@ $cases = @(
     @{Args=@('-C','C:\Repository With Spaces'); Shared=$true; Unlocked=$true; Directory=$false},
     @{Args=@('--cd=C:\Repository'); Shared=$true; Unlocked=$true; Directory=$false},
     @{Args=@('-CC:\Repository'); Shared=$true; Unlocked=$true; Directory=$false},
-    @{Args=@('-c','model_reasoning_effort="high"'); Shared=$true; Unlocked=$true; Directory=$true},
+    @{Args=@('-c','model_reasoning_effort="high"'); Shared=$false; Unlocked=$true; Directory=$false},
     @{Args=@('--','--help'); Shared=$true; Unlocked=$true; Directory=$true},
-    @{Args=@('-c','--help'); Shared=$true; Unlocked=$true; Directory=$true},
+    @{Args=@('-c','--help'); Shared=$false; Unlocked=$true; Directory=$false},
     @{Args=@('login'); Shared=$false; Unlocked=$false; Directory=$false}
 )
+foreach ($arguments in @(@('--enable','some_feature'),@('--disable=some_feature'),@('--search'),@('resume','--last','-c','model_reasoning_effort=high'))) {
+    $overridePlan=Get-CodexLaunchPlan -Arguments $arguments -WorkingDirectory 'C:\Repository'
+    Check (-not $overridePlan.UseSharedServer -and $overridePlan.UseEmbeddedServer) 'Per-invocation overrides explicitly use embedded mode without changing values'
+}
 foreach ($case in $cases) {
     $plan = Get-CodexLaunchPlan -Arguments $case.Args -WorkingDirectory $directory
     Check ($plan.UseSharedServer -eq $case.Shared) ('Shared server plan: ' + ($case.Args -join '|'))

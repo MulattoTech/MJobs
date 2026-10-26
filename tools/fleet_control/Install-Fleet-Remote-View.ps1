@@ -9,7 +9,7 @@ $source=Join-Path $Root 'remote\public'
 $site=Join-Path $HubRoot 'site'
 $index=Join-Path $site 'index.html'
 $destination=Join-Path $site 'mission-control'
-$assets=@('index.html','app.js','style.css')
+$assets=@('index.html','app.js','style.css','agent-details.js','remote-controls.js')
 if(!(Test-Path -LiteralPath $index -PathType Leaf)){throw 'The existing M-TechLabs hub was not found.'}
 foreach($file in $assets){if(!(Test-Path -LiteralPath (Join-Path $source $file) -PathType Leaf)){throw "Remote view asset missing: $file"}}
 $cardPath=Join-Path $Root 'remote\hub-card.html'

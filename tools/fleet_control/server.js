@@ -16,6 +16,7 @@ const { runtimeHealthy, addControllerHealth, controllerStopped } = require('./ru
 const { QuotaControl } = require('./quota-control');
 const { FindWork } = require('./find-work');
 const { DispatchLedger } = require('./dispatch-ledger');
+const { operationalDetails } = require('./agent-observability');
 const { AgentPlans } = require('./agent-plans');
 const { preflight } = require('./preflight');
 const { createProviderRuntime, validateSelection } = require('./provider-catalog');
@@ -170,6 +171,7 @@ function transform(s,replacements){
   stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':activity==='waiting_input'?'Awaiting instruction':'Idle · available'):(activity==='exited'?'Exited':activity),
   controllerState:s.controllerState||null,controllerVerified:s.controllerVerified??null,
   replacementFor:replacementFor?.oldId||null,replacedBy:replacedBy?.newId||null,
+  ...operationalDetails(s,sustain),
   effortKnown:false
  };
 }

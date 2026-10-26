@@ -24,6 +24,7 @@ const parse=x=>{const v=Date.parse(x||'');return Number.isFinite(v)?v:0};
 const clone=x=>JSON.parse(JSON.stringify(x));
 const {publicError,publicState,privateDiagnostic,isUsageLimit}=require('./control-errors');
 const {canReceiveInstruction}=require('./runtime-health');
+const {checks,prSignal,graphSignal,DispatchSignals,REPORT_POLICY}=require('./dispatch-policy');
 const short=()=>publicError('sustain');
 function atomic(p,x){const t=p+'.tmp';fs.writeFileSync(t,JSON.stringify(x,null,2),'utf8');fs.renameSync(t,p)}
 function read(p,x){try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch{return clone(x)}}
@@ -45,7 +46,7 @@ const denyTaskWords=/\b(apply to actual jobs|real employer submission|force push
 class Sustain {
  constructor({root,getState,turbo,command,audit,isManualBusy=()=>false,clock=()=>Date.now(),
   issueRunner=null,autoSchedule=true}){
-  this.root=root;this.getState=getState;this.turbo=turbo;
+  this.root=root;this.getState=getState;this.turbo=turbo;this.signals=new DispatchSignals(root);
   this.command=command;this.audit=audit;this.isManualBusy=isManualBusy;this.clock=clock;
   this.configPath=path.join(root,'sustain-config.json');
   this.statePath=path.join(root,'sustain-state.json');
@@ -165,6 +166,8 @@ class Sustain {
   const quiet=this.config.minQuietSeconds*1000;
   if(now-parse(session.lastActivity)<quiet)return null;
   if(now-parse(data.lastSent)<quiet)return null;
+  if(this.signals.seen(key)||data.lastKey===key)return null;
+  if(type==='root'&&now-parse(data.lastSent)<this.config.rootCooldownMinutes*60000)return null;
   const same=data.lastKey===key;
   if(same){
    if(type==='root'&&now-parse(data.lastSent)<this.config.rootCooldownMinutes*60000)return null;
@@ -174,7 +177,8 @@ class Sustain {
   return {id:session.id,mode:session.mode,name:session.name,type,key,message,reason,priority:extra.priority??5,issue:extra.issue||null};
  }
  async taskFor(s,openPRs){
-  const entries=this.taskBank.filter(e=>e.session===s.id);
+  // Existing reservations are not recurring assignments. Completion/escalation is a coordinator decision.
+  const entries=this.taskBank.filter(e=>e.session===s.id&&!this.status.leases[e.issue]);
   for(const task of entries){
    if(openPRs.some(p=>RegExp('(?:#|mj.req.)'+task.issue+'(?:\\D|$)','i').test(p.title||'')))continue;
    const otherLease=Object.values(this.status.leases).find(l=>l.issue===task.issue&&l.session!==s.id&&l.state!=='complete');
@@ -215,7 +219,8 @@ class Sustain {
   const working=snap.sessions.filter(s=>s.busy).length;
   const waiting=snap.sessions.filter(s=>s.activity==='waiting_input').length;
   const overdueLeases=[];
-  const actions=[],seenPR=new Set();
+  const actions=[],seenPR=new Set(),held=[];
+  const graph=graphSignal(snap.sessions,prs);
   let blocked=resources.pausedReason||null;
   if(this.status.quotaPausedUntil&&parse(this.status.quotaPausedUntil)>now)blocked='Provider usage/rate limit pause until '+this.status.quotaPausedUntil;
   if(this.isManualBusy()||this.turbo.running)blocked='Another control operation is running';
@@ -228,25 +233,19 @@ class Sustain {
    const owned=(s.prs||[]).filter(p=>['open','draft'].includes(p.state)&&prs.some(g=>g.number===p.number));
    let message=null,reason='',type='',key='',priority=5,issueId=null;
    if(s.kind==='orchestrator'){
-    type='root';priority=0;key='root:'+prs.map(p=>p.number+':'+p.headRefOid).join(',');
+    type='root';priority=0;key='root:'+s.id+':'+graph;
     reason='Coordinate issue ownership and PR integration';
     message='SUSTAINED FLEET CHECKPOINT: The user-authorized Fleet Control scheduler reserves issues and files; treat these leases as exclusive: '+Object.values(this.status.leases).map(l=>'#'+l.issue+' to '+l.session+' files '+(l.scope||[]).join('+')).slice(0,18).join('; ')+'. You are the primary integration owner. Current live sessions: '+snap.summary.total+', actively working: '+working+', idle: '+snap.summary.idle+', open PRs: '+prs.map(p=>'#'+p.number).join(', ')+'. Reconcile the live ledger and assign actual exclusive P0/P1 issues and acceptance tests to idle agents. Workers should not simply request assignments repeatedly. Enforce CI and review before merges, keep no more than '+this.config.resourceHeavyTestLanes+' heavy local tests, preserve existing user edits and all isolated worktrees. Report bounded issue/file reservations and actual merged PRs; no new agents, force pushes or real application submissions.';
    }else if(owned.length){
-    const failing=owned.filter(p=>{
-     const g=prs.find(x=>x.number===p.number);
-     return p.ci==='failing'||(g?.statusCheckRollup||[]).some(c=>c.conclusion==='FAILURE'||c.conclusion==='TIMED_OUT');
-    });
-    const list=(failing.length?failing:owned);
-    const tags=list.map(p=>{
-     const g=prs.find(x=>x.number===p.number);
-     return '#'+p.number+'@'+String(g?.headRefOid||'').slice(0,12);
-    });
-    key=(failing.length?'ci:':'pr:')+tags.join(',');
-    type=failing.length?'ci':'pr';priority=failing.length?1:2;
-    reason=(failing.length?'Repair failing CI':'Advance existing PR')+' '+tags.join(', ');
-    message='SUSTAINED MJobs '+(failing.length?'CI REMEDIATION':'PR INTEGRATION')+': You own existing '+tags.join(', ')+'. Re-check its exact head and current checks. Fix specific proven defects within your owned file paths, run focused tests then publish normally without force-push; if passing, seek required review and merge via primary coordinator. Do not create duplicate PRs or touch dirty local main. Continue to actionable completion rather than sending status alone; report the blocker only if truly external.';
+    const options=owned.map(p=>({pr:prs.find(x=>x.number===p.number),signal:prSignal(prs.find(x=>x.number===p.number))})).filter(x=>x.signal);
+    options.sort((a,b)=>(a.signal.kind==='ci'?0:1)-(b.signal.kind==='ci'?0:1)||a.pr.number-b.pr.number);
+    const next=options.find(x=>!this.signals.seen(x.signal.key));
+    if(!next){held.push({id:s.id,reason:options.length?'Unchanged PR outcome already dispatched':'Hosted checks are still running; no repeat audit'});continue;}
+    const {pr,signal}=next;key=signal.key;type=signal.kind;priority=type==='ci'?1:2;
+    reason=(type==='ci'?'Repair failing CI':'Coordinate settled PR')+' #'+pr.number+'@'+pr.headRefOid.slice(0,12);
+    message='MJobs '+(type==='ci'?'CI REMEDIATION':'PR CHECKS SETTLED')+': existing PR #'+pr.number+' at '+pr.headRefOid+'. '+(type==='ci'?'Inspect the concrete failed check and fix a proven defect only within existing ownership.':'The reported checks have settled; this is NOT acceptance or merge approval. Resolve specific review findings or send the primary the exact next integration action.')+' Preserve existing work and branch protections. Do not add duplicate tests, invent a gap, force-push, create a duplicate PR or repeat a completed audit. A new assignment requires an actual unmet acceptance criterion, not an idle worker.';
    }else if(s.role?.toLowerCase().includes('review')){
-    const candidates=prs.filter(p=>p.headRefOid&&!seenPR.has(p.number)&&!this.status.reviewHeads[p.number+':'+p.headRefOid]);
+    const candidates=prs.filter(p=>p.headRefOid&&!seenPR.has(p.number)&&!this.status.reviewHeads[p.number+':'+p.headRefOid]&&!this.signals.seen('review:'+p.number+':'+p.headRefOid));
     candidates.sort((a,b)=>{
      const score=x=>(x.statusCheckRollup||[]).some(c=>c.conclusion==='FAILURE')?0:1;
      return score(a)-score(b)||b.number-a.number;
@@ -258,7 +257,7 @@ class Sustain {
      message='SUSTAINED INDEPENDENT REVIEW: Inspect MJobs PR #'+p.number+' at exact current SHA '+p.headRefOid+'. Analyze acceptance criteria, security, edge cases and negative tests. Record high-confidence blockers to primary '+(root?.id||'mjobs-luna-35')+'. Do not change files, approve/merge on behalf of user, or redo the same unchanged head. If PR has a failure, identify a concrete root cause and owner action.';
     }
    }else if(s.role==='Orchestration'){
-    type='coord';priority=4;key='coord:'+s.id;
+    type='coord';priority=4;key='coord:'+s.id+':'+graph;
     reason='Delegate disjoint P0/P1 workstream';
     message='SUSTAINED COORDINATION: In your '+s.name+' domain, propose 3 concrete open, unclaimed P0/P1 issues with exclusive files/acceptance to primary '+(root?.id||'mjobs-luna-35')+'. You may deliver explicit assignments only for already reserved issue/file scopes in the Fleet Control task ledger. Avoid duplicate claims; no new agents, no unreviewed merges.';
    }else {
@@ -267,16 +266,16 @@ class Sustain {
      const {task,issue}=found;issueId=task.issue;
      const paths=task.scope.join(', ');
      const lease=this.status.leases[task.issue];
-     type='issue';priority=4;key='issue:'+task.issue+':'+(lease?.state||'unassigned');
+     type='issue';priority=4;key='issue:'+task.issue;
      reason='Execute P1/P0 issue #'+task.issue+' '+issue.title;
      message='USER-AUTHORIZED SUSTAINED TASK ASSIGNMENT: MJobs GitHub issue #'+task.issue+' ('+issue.title+'). This Fleet Control dispatcher reserves EXCLUSIVE WRITE OWNERSHIP of only '+paths+' to you, '+s.id+'. Goal: '+task.focus+'. Read the full issue and relevant existing implementation, add meaningful regression evidence and implement a tested focused PR within ONLY those files. You may inspect production paths read-only; if a production change or another shared file is required, report that exact ownership escalation to primary '+(root?.id||'mjobs-luna-35')+' and DO NOT modify the unreserved path. All other workers must not write these paths. Work in your isolated AO worktree, never dirty local main. Include test results, exact-head CI evidence, PR and commit provenance; do not merge, force push, change protected settings or make real applications. Continue implementation directly instead of asking for the same issue assignment again.';
-    }else if(!this.status.agents[s.id]?.askedForTask){
+    }else if(!this.status.agents[s.id]?.askedForTask&&!Object.values(this.status.leases).some(lease=>lease.session===s.id&&lease.state!=='complete')){
      type='refill';priority=7;key='refill:'+s.id;reason='Request a new approved issue';
      message='SUSTAINED TASK REFILL: you have no currently assigned PR or reserved workstream. Propose exactly one concrete open P0/P1 issue with its acceptance and nonoverlapping file paths to primary '+(root?.id||'mjobs-luna-35')+'. Do not modify files until your issue and files are expressly reserved. Avoid repeated research or status-only output.';
     }
    }
    if(message){
-    const x=this.possibleDispatch(s,type,key,message,reason,now,{priority,issue:issueId});
+    const x=this.possibleDispatch(s,type,key,message+REPORT_POLICY,reason,now,{priority,issue:issueId});
     if(x)actions.push(x);
    }
   }
@@ -293,7 +292,7 @@ class Sustain {
   const capacity=Math.max(0,this.config.targetWorking-working);
   const selected=actions.slice(0,Math.min(capacity,resources.throttledReason?1:this.config.maxDispatchPerTick));
   return {
-   snapshot:snap,gh,resources,blocked,working,waiting,rootId:root?.id||null,
+   snapshot:snap,gh,resources,blocked,working,waiting,held,rootId:root?.id||null,
    proposed:actions.map(({id,type,priority,reason,issue})=>({id,type,priority,reason,issue})),
    selected,eligible:actions.length,leases:Object.keys(this.status.leases).length
   };
@@ -301,7 +300,7 @@ class Sustain {
  async preview(){
   if(this.running)throw Error('Sustained dispatch already running');
   const p=await this.buildPlan();
-  this.latest={at:new Date(this.clock()).toISOString(),enabled:this.config.enabled,blocked:p.blocked,working:p.working,waiting:p.waiting,rootId:p.rootId,resources:p.resources,eligible:p.eligible,proposed:p.proposed.slice(0,25),selected:p.selected.map(x=>({id:x.id,type:x.type,reason:x.reason,issue:x.issue})),leases:p.leases};
+  this.latest={at:new Date(this.clock()).toISOString(),enabled:this.config.enabled,blocked:p.blocked,working:p.working,waiting:p.waiting,rootId:p.rootId,resources:p.resources,eligible:p.eligible,proposed:p.proposed.slice(0,25),selected:p.selected.map(x=>({id:x.id,type:x.type,reason:x.reason,issue:x.issue})),leases:p.leases,held:p.held};
   return clone(this.latest);
  }
  async tick({forced=false,dryRun=false}={}){
@@ -312,7 +311,7 @@ class Sustain {
   const selected=[];
   try{
    const p=await this.buildPlan();
-   this.latest={at:new Date(now).toISOString(),enabled:this.config.enabled,blocked:p.blocked,working:p.working,waiting:p.waiting,rootId:p.rootId,resources:p.resources,eligible:p.eligible,proposed:p.proposed.slice(0,25),selected:p.selected.map(x=>({id:x.id,type:x.type,reason:x.reason,issue:x.issue})),leases:p.leases};
+   this.latest={at:new Date(now).toISOString(),enabled:this.config.enabled,blocked:p.blocked,working:p.working,waiting:p.waiting,rootId:p.rootId,resources:p.resources,eligible:p.eligible,proposed:p.proposed.slice(0,25),selected:p.selected.map(x=>({id:x.id,type:x.type,reason:x.reason,issue:x.issue})),leases:p.leases,held:p.held};
    this.status.lastTick=new Date(now).toISOString();this.status.ticks=(this.status.ticks||0)+1;
    if(p.blocked||dryRun){this.save();return {sent:[],blocked:p.blocked,preview:this.latest,dryRun}}
    for(const action of p.selected){
@@ -329,6 +328,7 @@ class Sustain {
      const k=action.key.slice('review:'.length);
      if(this.status.reviewHeads[k])continue;
     }
+    if(!this.signals.reserve(action.key,action.id,this.clock()))continue;
     if(action.type==='issue'){
      const task=this.taskBank.find(t=>t.issue===action.issue&&t.session===action.id);
      if(!task)continue;
@@ -343,12 +343,14 @@ class Sustain {
     if(current.mode==='chat')args.push('--steer','--client-message-id',randomUUID());
     try{
      await this.command(args,25000);
+     this.signals.finish(action.key,'submitted');
      if(action.type==='review')this.status.reviewHeads[action.key.slice('review:'.length)]={at:stamp,reviewer:action.id};
      const row={at:stamp,id:action.id,type:action.type,issue:action.issue,status:'submitted',reason:action.reason};
      this.status.dispatches.push(row);this.status.sentTotal=(this.status.sentTotal||0)+1;
-     this.log('sent',row);this.status.lastSuccess=stamp;
+     this.log('sent',row);this.status.lastSuccess=stamp;this.status.lastError=null;
      selected.push({id:action.id,type:action.type,reason:action.reason});
     }catch(e){
+     this.signals.finish(action.key,'uncertain');
      const message=short(e);
      this.status.agents[action.id].awaiting=false;
      if(action.issue&&this.status.leases[action.issue])this.status.leases[action.issue].state='delivery_uncertain';

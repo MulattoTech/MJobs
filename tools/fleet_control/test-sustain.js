@@ -73,9 +73,9 @@ async function test(){
  assert.ok(!shortRest.selected.some(x=>x.id==='mjobs-luna-9'));
  clockTime+=180000;
  const after=await sustain.tick();
- assert.ok(after.sent.some(x=>x.id==='mjobs-luna-9'),'should restart its reserved task after quiet period');
+ assert.ok(!after.sent.some(x=>x.id==='mjobs-luna-9'),'unchanged reserved work must not be resent merely because the worker is idle');
  assert.equal(sustain.status.leases[173].session,'mjobs-luna-9');
- assert.ok(sustain.status.dispatches.length>=6);
+ assert.equal(sustain.status.dispatches.length,5);
  snap.metrics.ramFree=4*1024**3;clockTime+=200000; const blocked=await sustain.tick();
  assert.ok(/RAM/i.test(blocked.blocked),'memory stops a cycle');
  const restart=new Sustain({root,getState:async()=>snap,turbo,command:async args=>sent.push(args),audit:()=>{},issueRunner:async()=>({state:'OPEN',title:'Mock issue',assignees:[]}),clock:()=>clockTime,autoSchedule:false});

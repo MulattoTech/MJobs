@@ -4,11 +4,11 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#09121d">
   <title>Mission Control · M-TechLabs</title>
-  <link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script>
+  <link rel="stylesheet" href="./style.css"><script src="./agent-details.js" defer></script><script src="./remote-controls.js" defer></script><script src="./app.js" defer></script>
 </head>
 <body>
 <div class="shell">
-  <header><a class="brand" href="/">M-TechLabs<span>.</span></a><span class="tag">Remote monitor · read only</span></header>
+  <header><a class="brand" href="/">M-TechLabs<span>.</span></a><span class="tag">Live fleet · status and details</span></header>
   <section class="hero"><div><p class="eyebrow">YOUR DEVELOPMENT FLEET</p><h1>Mission Control</h1><p>See the fleet, dispatch, and launch board from anywhere.</p></div><button id="refresh" type="button">Refresh status</button></section>
   <div id="freshness" class="notice pending" role="status" aria-live="polite">Connecting to the status feed…</div>
   <section class="metrics" aria-label="Fleet overview">
@@ -18,8 +18,9 @@
     <article class="metric"><span>Codex allowance</span><strong id="quota">—</strong><small id="quota-detail">Waiting for quota telemetry</small></article>
     <article class="metric"><span>Startup &amp; restoration</span><strong id="startup">Unknown</strong><small id="startup-detail">Waiting for local control plane</small></article>
   </section>
-  <section class="panel"><div class="section-head"><div><h2>Fleet agents</h2><p id="fleet-note">Observed worker and controller states</p></div><span id="fleet-count" class="tag">—</span></div><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Provider / model</th><th>Role</th><th>Observed status</th><th>Controller</th></tr></thead><tbody id="agents"></tbody></table></div></section>
-  <section class="panel"><div class="section-head"><div><h2>Mission Control launch board</h2><p>Launch lane status from your workstation.</p></div><span id="mission-status" class="tag">Unknown</span></div><div id="lanes" class="lanes"></div><p class="caption">Start, stop, restore, and agent changes remain in the local Mission Control dashboard on your PC. This remote page publishes status only.</p></section>
+  <section id="remote-controls" class="panel" aria-label="Protected fleet controls"></section>
+  <section class="panel"><div class="section-head"><div><h2>Fleet agents</h2><p id="fleet-note">Observed worker and controller states</p></div><span id="fleet-count" class="tag">—</span></div><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Provider / model</th><th>Role</th><th>Observed status</th><th>Runtime / controller</th></tr></thead><tbody id="agents"></tbody></table></div></section>
+  <section class="panel"><div class="section-head"><div><h2>Mission Control launch board</h2><p>AO-managed runtimes and independent launcher processes, shown separately.</p></div><span id="mission-status" class="tag">Unknown</span></div><div id="lanes" class="lanes"></div><p class="caption">Click any agent for operational details. Start, stop, restore and configuration controls remain in local Fleet Control; no remote command proxy is enabled.</p></section>
   <section class="panel"><div class="section-head"><div><h2>Workspace links</h2><p>Your protected services and source code.</p></div></div><nav class="links"><a href="https://mjobs.m-techlabs.com">Open MJobs <span>↗</span></a><a href="https://github.com/MulattoTech/MJobs/tree/main/tools/fleet_control" target="_blank" rel="noopener noreferrer">Fleet Control source <span>↗</span></a><a href="https://github.com/MulattoTech/MJobs/tree/main/tools/agent_dashboard" target="_blank" rel="noopener noreferrer">Mission Control source <span>↗</span></a><a href="/">All M-TechLabs services <span>↗</span></a></nav></section>
   <details class="panel diagnostics"><summary>Feed health</summary><div id="sources"></div><p class="caption">The monitor refreshes every 10 seconds. A feed older than 45 seconds is marked stale. A running monitor does not imply that an agent is working.</p></details>
   <footer><span id="updated">No snapshot received</span><span>MulattoTechBox must be on and connected.</span></footer>

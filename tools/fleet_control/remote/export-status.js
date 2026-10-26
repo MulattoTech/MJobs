@@ -5,6 +5,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const {projectAgent,providerOverview}=require('../agent-observability');
 const { setTimeout: delay } = require('node:timers/promises');
 
 const SOURCES = Object.freeze({
@@ -112,18 +113,9 @@ function projectSnapshot(results, now = Date.now()) {
   const quotaAge = now - Date.parse(quota.sampledAt || '');
   const quotaFresh = available('quota') && quota.fresh === true && quota.monitorOnline === true
     && Number.isFinite(quotaAge) && quotaAge >= -10000 && quotaAge <= STALE_AFTER_SECONDS * 1000;
-  const sessions = Array.isArray(fleet.sessions) ? fleet.sessions.slice(0,256).map(session => ({
-    id: text(session.id), name: text(session.name), role: text(session.role),
-    harness: text(session.harness), model: text(session.model),
-    activity: text(session.activity), status: text(session.status), stateLabel: text(session.stateLabel,160),
-    controllerState: runtimeAvailable ? text(session.controllerState) : null,
-    controllerVerified: runtimeAvailable ? bool(session.controllerVerified) : null,
-    busy: runtimeAvailable ? bool(session.busy) : false,
-    idle: runtimeAvailable ? bool(session.isIdle) : false,
-    openPRs: count(session.openPRs), lastActivity: timestamp(session.lastActivity),
-  })) : [];
+  const sessions = Array.isArray(fleet.sessions) ? fleet.sessions.slice(0,256).map(session => projectAgent(session,{live:runtimeAvailable,readiness:current,now})) : [];
   const summary = record(fleet.summary);
-  const lanes = Object.entries(record(mission.lanes)).slice(0,24).map(([id, lane]) => {
+  const independentLanes = Object.entries(record(mission.lanes)).slice(0,24).map(([id, lane]) => {
     const runtime = record(lane.runtime), cfg = record(lane.config), activity = record(lane.activity);
     return { id: text(id), model: text(cfg.model), effort: text(cfg.reasoning_effort || cfg.effort),
       status: text(runtime.status), activity: text(activity.state),
@@ -165,8 +157,8 @@ function projectSnapshot(results, now = Date.now()) {
       windows: quotaFresh && Array.isArray(quota.windows) ? quota.windows.slice(0,8).map(window => ({
         label: text(window.label), remainingPercent: percent(window.remainingPercent), resetsAt: timestamp(window.resetsAt),
       })) : [] },
-    missionControl: { available: available('missionHealth') && available('missionState'),
-      observedAt: timestamp(mission.time), lanes: available('missionState') ? lanes : [] },
+    missionControl: { available: runtimeAvailable || (available('missionHealth') && available('missionState')),
+      observedAt: timestamp(mission.time), lanes: providerOverview(sessions,independentLanes,{fleetAvailable:runtimeAvailable,missionAvailable:available('missionHealth')&&available('missionState')}) },
   };
 }
 

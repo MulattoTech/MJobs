@@ -31,13 +31,15 @@
       quotaDetail:!quotaFresh ? 'Quota telemetry unavailable or stale' : (s.quota.monitoredWindow || 'Selected window')+' remaining · guard '+(s.quota.armed === true ? (s.quota.guardAcknowledged === true ? 'armed and acknowledged' : 'awaiting acknowledgement') : 'not armed'),
       startup:s.startup?.available && s.startup?.phase ? s.startup.phase.replaceAll('_',' ') : 'Unknown',
       startupDetail:s.startup?.reconciliationRequired ? 'Reconciliation required on the PC' : s.startup?.errorCode || (s.startup?.restorePhase ? 'Restore: '+s.startup.restorePhase : 'No current restoration result'),
-      sessions:Array.isArray(s.fleet?.sessions) ? s.fleet.sessions : [],
+      sessions:Array.isArray(s.fleet?.sessions) ? s.fleet.sessions.map(agent=>agent.runtimeVerified&&!sourceFresh(agent.runtimeObservedAt)?{...agent,runtimeVerified:false,runtimeStatus:'Verification unavailable',controllerLabel:agent.mode==='tui'?'Terminal · verification unavailable':'Chat · '+(agent.controllerState||'not reported')}:agent) : [],
       lanes:s.missionControl?.available && Array.isArray(s.missionControl?.lanes) ? s.missionControl.lanes : [],
     };
   }
   function start(doc) {
     const $ = id => doc.getElementById(id);
     let last = null, failed = false, loading = false;
+    const control=globalThis.FleetRemoteControls?.start(doc,()=>last);
+    const detail=globalThis.FleetAgentDetails?.start(doc,()=>last,control);
     const set = (id,value) => {$(id).textContent=value ?? '—';};
     const create = (tag,text,className) => {const el=doc.createElement(tag);if(text !== undefined)el.textContent=text;if(className)el.className=className;return el;};
     const localTime = value => {const date=new Date(value);return Number.isFinite(date.getTime())?date.toLocaleString():'Unknown';};
@@ -53,11 +55,12 @@
       set('fleet-count',m.stale?'Unknown':m.sessions.length+' agents');
       set('fleet-note',m.stale?'Current activity is unknown while the feed is stale.':last?.fleet?.preservedSnapshot?'Preserved roster · these are not live agents.':'Observed worker and controller states');
       const rows=$('agents');rows.replaceChildren();
-      for(const agent of m.sessions){const row=create('tr');const name=create('td',agent.name || agent.id || 'Agent');if(agent.id && agent.id!==agent.name)name.append(create('span',agent.id,'secondary'));row.append(name);row.append(create('td',[agent.harness,agent.model].filter(Boolean).join(' / ') || 'Unknown'));row.append(create('td',agent.role || 'Unknown'));row.append(create('td',agent.stateLabel || agent.activity || agent.status || 'Unknown'));row.append(create('td',(agent.controllerState || 'Unknown')+(agent.controllerVerified===true?' · verified':'')));rows.append(row);}
+      for(const agent of m.sessions){const row=create('tr');const name=create('td');const agentButton=create('button',agent.name || agent.id || 'Agent','agent-link');agentButton.type='button';agentButton.dataset.agentDetails=agent.id;name.append(agentButton);if(agent.id && agent.id!==agent.name)name.append(create('span',agent.id,'secondary'));row.append(name);row.append(create('td',[agent.harness,agent.model].filter(Boolean).join(' / ') || 'Unknown'));row.append(create('td',agent.role || 'Unknown'));row.append(create('td',agent.stateLabel || agent.activity || agent.status || 'Unknown'));row.append(create('td',agent.controllerLabel || (agent.mode==='tui'?'Terminal · verification unavailable':agent.mode==='chat'?'Chat · '+(agent.controllerState||'not reported'):'Interface not reported')));rows.append(row);}
       if(!m.sessions.length){const row=create('tr'),cell=create('td',m.stale?'No fresh fleet observations available.':'No current roster available.','empty');cell.colSpan=5;row.append(cell);rows.append(row);}
       set('mission-status',!m.stale&&last?.missionControl?.available?'Current':'Unavailable');
-      const lanes=$('lanes');lanes.replaceChildren();for(const lane of m.lanes){const card=create('article',undefined,'lane');card.append(create('h3',lane.id || 'Launch lane'),create('p',lane.activity || lane.status || 'Unknown','state'),create('p',[lane.model,lane.effort].filter(Boolean).join(' · ') || 'Model unavailable'));lanes.append(card);}
+      const lanes=$('lanes');lanes.replaceChildren();for(const lane of m.lanes){const card=create('article',undefined,'lane');card.append(create('h3',lane.id || 'Launch lane'),create('p',lane.activity || lane.status || 'Unknown','state'),create('p',[lane.model,lane.effort].filter(Boolean).join(' · ') || 'No active model'),create('p',lane.detail || 'Independent launcher observation','caption'));lanes.append(card);}
       if(!m.lanes.length)lanes.append(create('p','Launch lane telemetry is currently unavailable.'));
+      detail?.refresh();control?.refresh();
       const sources=$('sources');sources.replaceChildren();for(const [name,source] of Object.entries(last?.sources || {})){const row=create('div',undefined,'source');row.append(create('span',labels[name]||name),create('span',m.stale?'Stale':source.available?'Available':source.error || 'Unavailable'));sources.append(row);}
     }
     async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;try{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);try{const response=await fetch('./status.json',{cache:'no-store',credentials:'same-origin',signal:controller.signal});if(!response.ok)throw Error('Feed unavailable');const next=await response.json();if(next.schemaVersion!==1||next.readOnly!==true)throw Error('Unknown feed');last=next;failed=false;}finally{clearTimeout(timer);}}catch{failed=true;}finally{loading=false;$('refresh').disabled=false;render();}}

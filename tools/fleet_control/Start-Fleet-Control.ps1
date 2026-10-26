@@ -33,7 +33,9 @@ try {
  if(!$mission -and !(Get-NetTCPConnection -LocalPort 18729 -State Listen -ErrorAction SilentlyContinue)){
   $python=Join-Path $repo '.venv\Scripts\python.exe'
   if(Test-Path $python){
-   $missionProcess=Start-Process -FilePath $python -ArgumentList @('-m','tools.agent_dashboard.server','--root',$repo,'--port','18729','--no-open','--mission-control') -WorkingDirectory $repo -RedirectStandardOutput (Join-Path $root 'mission-control.log') -RedirectStandardError (Join-Path $root 'mission-control-error.log') -WindowStyle Hidden -PassThru
+   $missionArgs=@('-m','tools.agent_dashboard.server','--root',$repo,'--port','18729','--no-open','--mission-control')
+   if((Test-Path (Join-Path $root 'Run-Mission-Control.py')) -and (Test-Path (Join-Path $root 'mission-runtime\source-manifest.json'))){$missionArgs=@((Join-Path $root 'Run-Mission-Control.py'),'--root',$repo,'--port','18729','--no-open','--mission-control')}
+   $missionProcess=Start-Process -FilePath $python -ArgumentList $missionArgs -WorkingDirectory $repo -RedirectStandardOutput (Join-Path $root 'mission-control.log') -RedirectStandardError (Join-Path $root 'mission-control-error.log') -WindowStyle Hidden -PassThru
    foreach($attempt in 1..18){
     Start-Sleep -Milliseconds 400
     $mission=Read-Health $missionHealth

@@ -35,6 +35,7 @@ function load(file,fallback){
 }
 const {publicError,publicState,privateDiagnostic}=require('./control-errors');
 const {canReceiveInstruction}=require('./runtime-health');
+const {checks,prSignal,graphSignal,DispatchSignals,REPORT_POLICY}=require('./dispatch-policy');
 function errorText(e){return publicError('turbo',e)}
 function parseTime(value){const x=Date.parse(value||'');return Number.isFinite(x)?x:0}
 function recent(time,withinMs,now){return now-parseTime(time)<withinMs}
@@ -77,7 +78,7 @@ class Turbo {
  constructor({root,getState,command,audit,isManualBusy,projectId='mjobs-luna',githubRunner=null,clock=()=>Date.now(),autoSchedule=true}){
    this.getState=getState;this.command=command;this.audit=audit;
    this.isManualBusy=isManualBusy||(()=>false);
-   this.projectId=projectId;
+   this.projectId=projectId;this.dispatchSignals=new DispatchSignals(root);
    this.clock=clock;
    this.configPath=path.join(root,'turbo-config.json');
    this.statePath=path.join(root,'turbo-state.json');
@@ -197,6 +198,7 @@ class Turbo {
    const sessions=snapshot.sessions||[];
    const root=sessions.find(x=>this.validRoot(x));
    const plan=[];
+   const graph=graphSignal(sessions,gh?.open||[]);
    const actions=[];
    const fromGH=new Map((gh?.open||[]).map(p=>[p.number,p]));
    const refs=extractRefs(snapshot);
@@ -204,8 +206,8 @@ class Turbo {
    const candidate=(priority,kind,session,message,reason,key)=>{
     if(!canReceiveInstruction(session))return;
     if(this.withinCooldown(session.id,kind==='primary'?'primary':kind,now))return;
-    if(!session.id||!message||!key)return;
-    actions.push({priority,kind,id:session.id,name:session.name,mode:session.mode,message:message.replaceAll('mjobs-luna-34',root?.id||'mjobs-luna-35'),reason,key});
+    if(!session.id||!message||!key||this.dispatchSignals.seen(key))return;
+    actions.push({priority,kind,id:session.id,name:session.name,mode:session.mode,message:(message+REPORT_POLICY).replaceAll('mjobs-luna-34',root?.id||'mjobs-luna-35'),reason,key});
    };
    if(!this.validRoot(root)){return {plan:[],blocked:'No active primary orchestrator',rootId:root?.id||null,openPRs:openPRs.length}}
    const available=sessions.filter(s=>canReceiveInstruction(s)&&!s.openPRs&&!s.blocked&&s.kind==='worker');
@@ -218,12 +220,12 @@ class Turbo {
    const idleNames=available.filter(s=>s.role!=='Orchestration'&&!s.role.toLowerCase().includes('review')).slice(0,12).map(s=>s.id);
    const rootMessage='TURBO DISPATCH CHECKPOINT: You are the only MJobs primary integration owner. Live fleet '+sessions.length+' sessions; '+snapshot.summary.working+' working, '+snapshot.summary.idle+' idle. Existing PRs '+openPRs.map(p=>'#'+p.number+'('+p.ci+', owner '+p.owner+')').slice(0,14).join(', ')+'. '+(fail.length?'Urgent failing CI: '+fail.map(p=>'#'+p.number).join(', ')+'. ':'')+'Available implementation agents: '+idleNames.join(', ')+'. Assign exclusive P0/P1 GitHub issues and file scopes to existing idle implementation workers, prioritizing accepted deliverables. Review, refresh, and integrate eligible passing PRs with exact-head CI, required review and branch protection. Never edit dirty main, force-push, duplicate file ownership or submit real applications. Restrict simultaneous heavy local tests to '+this.config.maxLocalHeavyTests+'. Keep no more than '+this.config.targetWorking+' executing turns. Delegate with plain ao send --session ID --message TEXT (no --steer for TUI). Do not spawn new sessions. Reply with a short dispatch ledger: ownership by issue/file, reviewer assignments and CI blockers.';
    if(canReceiveInstruction(root)&&(snapshot.summary.working<this.config.targetWorking||fail.length||openPRs.length))
-    candidate(0,'primary',root,rootMessage,'Wake primary to allocate idle fleet and clear PR queue','primary:'+root.id);
+    candidate(0,'primary',root,rootMessage,'Wake primary to allocate idle fleet and clear PR queue','root:'+root.id+':'+graph);
    for(const p of fail){
     const owner=sessions.find(s=>s.id===p.owner);
     if(!canReceiveInstruction(owner)||owner.kind==='orchestrator')continue;
     const msg='TURBO CI RECOVERY for your existing PR #'+p.number+'. Diagnose current exact-head failing checks without blind reruns. Use the existing PR and branch you own. Only modify your already-authorized files; coordinate any shared test or new file ownership with primary mjobs-luna-34. Fix proven failures, run focused checks, and publish an updated exact-head PR only when appropriate. Do not force-push, change dirty main, merge, or bypass CI. Report the root cause and CI evidence to the primary.';
-    candidate(1,'ci',owner,msg,'Repair failing CI on owned PR #'+p.number,'ci:'+p.number);
+    candidate(1,'ci',owner,msg,'Repair failing CI on owned PR #'+p.number,prSignal(fromGH.get(p.number))?.key);
    }
    const reviewers=sessions.filter(s=>canReceiveInstruction(s)&&s.role.toLowerCase().includes('review'));
    for(const p of openPRs){
@@ -244,7 +246,7 @@ class Turbo {
    const coordinators=sessions.filter(s=>canReceiveInstruction(s)&&s.role==='Orchestration'&&s.kind==='worker');
    for(const coordinator of coordinators){
     const msg='TURBO COORDINATION CHECKPOINT. Report a concise list of concrete unclaimed P0/P1 issues or failing PRs to primary mjobs-luna-34 in your assigned lane. Avoid duplicating coordinator reports. You may assign work only if the primary has explicitly delegated exclusive ownership. Do not independently spawn agents or merge.';
-    candidate(3,'coord',coordinator,msg,'Refresh '+coordinator.name+' lane plan','coord:'+coordinator.id);
+    candidate(3,'coord',coordinator,msg,'Refresh '+coordinator.name+' lane plan','coord:'+coordinator.id+':'+graph);
    }
    const workAvailable=available.filter(s=>s.role!=='Orchestration'&&!s.role.toLowerCase().includes('review'));
    for(const worker of workAvailable){
@@ -324,6 +326,7 @@ class Turbo {
       const resource=await this.signals(current);
       if(resource.pausedReason||current.summary.working>=this.config.targetWorking)break;
       // Persist reservation before sending. If the CLI times out, do not retry blindly.
+      if(!this.dispatchSignals.reserve(action.key,action.id,this.clock()))continue;
       const stamp=new Date(this.clock()).toISOString();
       this.session.actions.push({at:stamp,id:action.id,kind:action.kind,key:action.key,status:'reserved',reason:action.reason});
       this.save();
@@ -332,12 +335,12 @@ class Turbo {
        const args=['send','--session',action.id,'--message',action.message];
        if(action.mode==='chat')args.push('--steer','--client-message-id',randomUUID());
        await this.command(args,25000);
-       record.status='submitted';
+       record.status='submitted';this.dispatchSignals.finish(action.key,'submitted');
        sent.push({id:action.id,kind:action.kind,reason:action.reason});
        if(action.kind==='review')this.session.reviewClaims[action.key.slice(7)]={at:stamp,reviewer:action.id};
        this.log('sent',{id:action.id,kind:action.kind,reason:action.reason});
       }catch(e){
-       record.status='uncertain';
+       record.status='uncertain';this.dispatchSignals.finish(action.key,'uncertain');
        record.error=errorText(e);
        this.log('send_uncertain',{id:action.id,kind:action.kind,error:errorText(e),diagnostic:privateDiagnostic(e)});
        // Stop this cycle; a timeout may mean the message was accepted.
@@ -382,9 +385,10 @@ Turbo.prototype.makeAllHandsPlan=async function(){
  const sessionSent=(s)=>this.session.actions.some(a=>a.id===s.id&&a.kind==='allhands'&&recent(a.at,allHandsHoldMs,now));
  const lastAll=this.session.lastAllHands?parseTime(this.session.lastAllHands):0;
  const globalCooldown=Math.max(0,Math.ceil((allHandsHoldMs-(now-lastAll))/60000));
- const push=(s,reason,message)=>{
+ const push=(s,reason,message,signalKey=null)=>{
+  if(signalKey&&this.dispatchSignals.seen(signalKey)){skips.push({id:s.id,reason:'Exact-head action already delivered'});return;}
   if(sessionSent(s)){skips.push({id:s.id,reason:'All Hands already sent within 10 minutes'});return}
-  plans.push({id:s.id,name:s.name,model:s.model,kind:s.kind,mode:s.mode,role:s.role,reason,message:message.replaceAll('mjobs-luna-34',root?.id||'mjobs-luna-35')});
+  plans.push({id:s.id,name:s.name,model:s.model,kind:s.kind,mode:s.mode,role:s.role,reason,signalKey,message:(message+REPORT_POLICY).replaceAll('mjobs-luna-34',root?.id||'mjobs-luna-35')});
  };
  for(const s of people){
   if(s.id===root.id){
@@ -400,6 +404,7 @@ Turbo.prototype.makeAllHandsPlan=async function(){
     'ALL HANDS—existing PR ownership: investigate and fix the current-head failing checks for your PR(s) '+nums+'. Work only inside your already-owned branch/files, root-cause the failure, run focused tests, publish a normal non-force update only when verified, and notify mjobs-luna-34. Do not touch modified local main or merge yourself.');
    continue;
   }
+  if(prs.length&&prs.every(p=>!prSignal(ghMap.get(Number(p.number))))){skips.push({id:s.id,reason:'Hosted checks still running; no repeat audit'});continue;}
   if(prs.length){
    const nums=prs.map(x=>'#'+x.number).join(', ');
    push(s,'Advance existing PR(s) '+nums,
@@ -413,7 +418,7 @@ Turbo.prototype.makeAllHandsPlan=async function(){
    continue;
   }
   if(s.role.toLowerCase().includes('review')){
-   let candidates=open.filter(p=>p.headRefOid&&p.headRefOid.length>=35&&!assignedPR.has(p.number));
+   let candidates=open.filter(p=>p.headRefOid&&p.headRefOid.length>=35&&!assignedPR.has(p.number)&&!this.dispatchSignals.seen('review:'+p.number+':'+p.headRefOid)&&!this.session.reviewClaims[p.number+':'+p.headRefOid]&&!this.sustain?.status.reviewHeads[p.number+':'+p.headRefOid]);
    candidates.sort((a,b)=>{
     const fa=(a.statusCheckRollup||[]).some(c=>c.conclusion==='FAILURE')?0:1;
     const fb=(b.statusCheckRollup||[]).some(c=>c.conclusion==='FAILURE')?0:1;
@@ -423,7 +428,7 @@ Turbo.prototype.makeAllHandsPlan=async function(){
    if(p){
     assignedPR.add(p.number);
     push(s,'Independent PR #'+p.number+' review',
-      'ALL HANDS—read-only review: independently inspect MJobs PR #'+p.number+' at exact commit '+p.headRefOid+'. Focus on behavioral correctness, negative testing, security regressions and acceptance proof. Summarize blockers to mjobs-luna-34. Never merge, force-push, claim the author branch, edit source or rerun tests repeatedly. If head moved, validate the new head first.');
+      'ALL HANDS—read-only review: independently inspect MJobs PR #'+p.number+' at exact commit '+p.headRefOid+'. Focus on behavioral correctness, negative testing, security regressions and acceptance proof. Summarize blockers to mjobs-luna-34. Never merge, force-push, claim the author branch, edit source or rerun tests repeatedly. If head moved, validate the new head first.','review:'+p.number+':'+p.headRefOid);
    }else{
     push(s,'Independent acceptance audit',
       'ALL HANDS—read-only verification: inspect the currently unaccepted P0 requirements and propose concrete negative tests or missing evidence without editing any shared files. Send exact issue IDs and observations to mjobs-luna-34. Avoid duplicating a review already assigned elsewhere.');
@@ -482,16 +487,17 @@ Turbo.prototype.allHands=async function(){
     if(!canReceiveInstruction(live))return {id:agent.id,skipped:true,reason:'Agent began work, needs a decision, or is no longer available'};
     if(this.session.actions.some(a=>a.id===agent.id&&a.kind==='allhands'&&recent(a.at,allHandsHoldMs,this.clock())))
      return {id:agent.id,skipped:true,reason:'Already contacted in this burst'};
+    if(agent.signalKey&&!this.dispatchSignals.reserve(agent.signalKey,agent.id,this.clock()))return {id:agent.id,skipped:true,reason:'Exact-head action already reserved'};
     const rec={at:new Date(this.clock()).toISOString(),id:agent.id,kind:'allhands',key:'allhands:'+agent.id,status:'reserved',reason:agent.reason};
     this.session.actions.push(rec);this.save();
     try{
      const args=['send','--session',agent.id,'--message',agent.message];
      if(agent.mode==='chat')args.push('--steer','--client-message-id',randomUUID());
      await this.command(args,22000);
-     rec.status='submitted';this.log('allhands_sent',{id:agent.id,reason:agent.reason});
+     rec.status='submitted';if(agent.signalKey)this.dispatchSignals.finish(agent.signalKey,'submitted');this.log('allhands_sent',{id:agent.id,reason:agent.reason});
      return {id:agent.id,submitted:true,reason:agent.reason};
     }catch(e){
-     rec.status='uncertain';rec.error=errorText(e);
+     rec.status='uncertain';if(agent.signalKey)this.dispatchSignals.finish(agent.signalKey,'uncertain');rec.error=errorText(e);
      this.log('allhands_uncertain',{id:agent.id,error:rec.error,diagnostic:privateDiagnostic(e)});
      return {id:agent.id,uncertain:true,reason:rec.error};
     }finally{this.save()}

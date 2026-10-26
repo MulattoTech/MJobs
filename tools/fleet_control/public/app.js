@@ -107,7 +107,7 @@ function renderTable(){
   const badge=s.model?'<span class="model-chip '+className(s.model)+'">'+esc(modelName(s.model))+'</span>':'<span class="model-chip">Provisioning</span>';
   const prText=state.data?.offline?'<span class="pr-info">Not live · check GitHub</span>':s.prs.length?'<div class="pr-inline"><span class="'+(s.blocked?'mini-alert':'pr-info')+'">'+s.openPRs+' open</span> '+(s.blocked?'<span class="mini-alert">⚑ failing CI</span>':'<span class="pr-info">'+s.prs.length+' tracked</span>')+'</div>':'<span class="pr-info">—</span>';
   const sub=s.replacedBy?'<small>Replaced by '+esc(s.replacedBy)+'</small>':'<small>'+esc(s.id)+'</small>';
-  return '<tr><td><div class="agent-id"><span class="agent-glyph '+className(s.model)+'">'+(className(s.model)==='astra'?'A':className(s.model)==='sol'?'S':'L')+'</span><div title="'+esc(s.name)+'"><strong>'+esc(s.name)+'</strong>'+sub+'</div></div></td><td class="role-text">'+esc(s.role)+'</td><td>'+badge+'</td><td><span class="state-chip '+cs+'"><i class="state-dot"></i>'+esc(s.stateLabel)+'</span></td><td>'+prText+'</td><td>'+esc(relativeTime(s.lastActivity))+'</td><td class="right"><div class="row-actions"><button class="small-action find-work-row" data-action="find-work" data-id="'+esc(s.id)+'" '+(s.isIdle&&!s.replacedBy?'':'disabled title="Only idle agents can find work"')+'>Find Work</button><button class="small-action" data-action="configure" data-id="'+esc(s.id)+'">Change model</button><button class="small-action accent" data-action="view" data-id="'+esc(s.id)+'">Manage →</button></div></td></tr>';
+  return '<tr><td><div class="agent-id"><span class="agent-glyph '+className(s.model)+'">'+(className(s.model)==='astra'?'A':className(s.model)==='sol'?'S':'L')+'</span><div title="'+esc(s.name)+'"><button class="agent-name-link" data-action="view" data-id="'+esc(s.id)+'">'+esc(s.name)+'</button>'+sub+'</div></div></td><td class="role-text">'+esc(s.role)+'</td><td>'+badge+'</td><td><span class="state-chip '+cs+'"><i class="state-dot"></i>'+esc(s.stateLabel)+'</span></td><td>'+prText+'</td><td>'+esc(relativeTime(s.lastActivity))+'</td><td class="right"><div class="row-actions"><button class="small-action find-work-row" data-action="find-work" data-id="'+esc(s.id)+'" '+(s.isIdle&&!s.replacedBy?'':'disabled title="Only idle agents can find work"')+'>Find Work</button><button class="small-action" data-action="configure" data-id="'+esc(s.id)+'">Change model</button><button class="small-action accent" data-action="view" data-id="'+esc(s.id)+'">Manage →</button></div></td></tr>';
  }).join('');
  if(state.data?.offline)tbody.querySelectorAll('button[data-action="find-work"]').forEach(button=>{button.disabled=true;button.title='Agents are stopped. Configuration plans remain available through Manage.'});
  markFreshness();
@@ -134,6 +134,12 @@ function planChoices(s){
  const savedProvider=providers.find(p=>p.id===plan?.harness),savedModel=savedProvider?.models?.find(m=>m.id===plan?.model);
  const planValid=!!(savedProvider?.available&&savedModel?.efforts?.includes(plan?.effort)&&['tui','chat'].includes(plan?.mode));
  return {plan,draft,providers:knownProvider?providers:[provider,...providers],provider,models:model?.unavailable?[model,...models]:models,model,efforts,effort,mode,valid,planValid};
+}
+function operationalFacts(s){
+ const kind=s.mode==='tui'?'Terminal (TUI) - no Chat controller required':s.mode==='chat'?'Chat controller: '+(s.controllerState||'not reported'):'Interface not reported';
+ const assignments=(s.assignments||[]).map(x=>'<div class="pr-item"><strong>Issue #'+esc(x.issue)+' · '+esc(x.state)+'</strong><p class="helper">'+(x.scope||[]).map(esc).join('<br>')+'</p></div>').join('');
+ const events=(s.recentActions||[]).map(x=>'<p class="helper">'+esc(x.at?new Date(x.at).toLocaleString():'Time not reported')+' · '+esc(x.type)+' · '+esc(x.status)+(x.issue?' · #'+esc(x.issue):'')+'</p>').join('');
+ return '<section class="drawer-section"><h3>Runtime and recorded work</h3><p class="helper">'+esc(kind)+'</p><p class="helper">Created: '+esc(s.createdAt?new Date(s.createdAt).toLocaleString():'Not reported')+'</p><h4>Assigned issues</h4>'+(assignments||'<p class="helper">No dispatcher-owned issue recorded. A direct primary assignment is not inferred.</p>')+'<h4>Recent dispatches</h4>'+(events||'<p class="helper">No recent dispatcher activity recorded.</p>')+'</section>';
 }
 function showDrawer(id,preserve=true){
  if(preserve)captureDrawerDraft();
@@ -164,7 +170,7 @@ function showDrawer(id,preserve=true){
  '<button class="primary-button full" data-action="save-plan" data-id="'+esc(id)+'" '+(!canSave?'disabled':'')+'>Save settings for next launch</button><div class="drawer-action-note">'+esc(planStatus)+'</div>'+
  '<button class="ghost-button full" data-action="apply-plan" data-id="'+esc(id)+'" '+(!canApply?'disabled':'')+'>Apply saved plan…</button><div class="drawer-action-note">'+esc(reason)+'</div>'+
  (s.replacedBy?'<div class="replacement-banner">Replacement: '+esc(s.replacedBy)+'. Original preserved.</div><button class="danger-button full" data-action="retire" data-id="'+esc(id)+'" '+(offline||state.pending?'disabled':'')+'>Archive original session…</button>':'')+
- '</section><section class="drawer-section"><h3>Tracked pull requests</h3>'+prs+'</section>';
+ '</section>'+operationalFacts(s)+'<section class="drawer-section"><h3>Tracked pull requests</h3>'+prs+'</section>';
  $('#overlay').hidden=false;document.body.style.overflow='hidden';markFreshness();
 }
 function closeDrawer(){captureDrawerDraft();state.selected=null;state.drawerId=null;$('#overlay').hidden=true;document.body.style.overflow='';}
@@ -240,7 +246,7 @@ async function refresh(force=false){
    renderReadiness();
    if(roster.status!=='fulfilled')throw roster.reason;
    const data=roster.value;state.data=data;state.receivedAt=Date.now();state.refreshError=null;updateCounts(data);
-   if(state.firstLoad){state.firstLoad=false;updateFilters(data)}else{
+   if(state.firstLoad){state.firstLoad=false;updateFilters(data);const agentHash=location.hash.match(/^#agent=(mjobs-[a-z0-9-]+)$/);if(agentHash&&data.sessions.some(s=>s.id===agentHash[1]))showDrawer(agentHash[1]);}else{
     const oldRoles=[...$('#roleFilter').options].slice(1).map(o=>o.value),newRoles=[...new Set(data.sessions.map(s=>s.role))].sort();
     const oldModels=[...$('#modelFilter').options].slice(1).map(o=>o.value),newModels=[...new Set(data.sessions.map(s=>s.model).filter(Boolean))].sort();
     if(JSON.stringify(oldRoles)!==JSON.stringify(newRoles)||JSON.stringify(oldModels)!==JSON.stringify(newModels))updateFilters(data);

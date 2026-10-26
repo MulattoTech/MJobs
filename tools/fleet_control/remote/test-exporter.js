@@ -29,7 +29,9 @@ test('only operational allowlisted fields leave the local control planes',()=>{
   for(const forbidden of ['SECRET_','PRIVATE_OWNER','C:\\private','process_tree','log_tail','prompt_override','"token"','"pid"'])assert.equal(serialized.includes(forbidden),false,forbidden);
   assert.equal(snapshot.readOnly,true);assert.equal(snapshot.dispatch.state,'enabled');
   assert.equal(snapshot.fleet.summary.working,1);assert.equal(snapshot.quota.remainingPercent,88);
-  assert.equal(snapshot.missionControl.lanes[0].model,'gpt-6.1');
+  assert.equal(snapshot.missionControl.lanes[0].model,'gpt-6.1, gpt-6');
+  assert.equal(snapshot.missionControl.lanes[0].agents,2);
+  assert.equal(snapshot.missionControl.lanes[0].status,'WORKING');
   assert.equal(displayModel(snapshot,NOW).verified,'2 / 2');
 });
 

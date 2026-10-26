@@ -40,7 +40,7 @@ function runFixture(shell, file, suite) {
   assert.equal(result.RealProfilesChanged, 0);
   assert(Number.isInteger(result.Passed) && result.Passed > 0);
   if (suite === 'codex-shell-plan') {
-    assert.equal(result.Passed, 78);
+    assert.equal(result.Passed, 82);
     assert.equal(result.RemoteFilesChanged, 0);
   } else {
     assert.equal(result.FirstChanges, 2);

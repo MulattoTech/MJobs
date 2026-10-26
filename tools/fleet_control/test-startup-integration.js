@@ -105,6 +105,7 @@ function fixture() {
     './preflight': { preflight: () => ({ ready: false }) }, './runtime-health': { runtimeHealthy: () => false },
     './provider-catalog': { createProviderRuntime: () => ({ get: async () => ({ providers: [] }) }), validateSelection: x => x },
     './gemini-usage': { readGeminiUsage: () => ({ providers: [] }) },
+    './agent-observability': nativeRequire('./agent-observability'),
   };
   const context = vm.createContext({
     bridge: b,

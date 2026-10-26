@@ -28,10 +28,11 @@ function Get-CodexLaunchPlan {
         '--dangerously-bypass-approvals-and-sandbox','--yolo','--strict-config')
     $command = $null; $infoOnly = $false; $explicitConnection = $false
     $hasDirectory = $false; $localOnly = $false; $unknownOption = $false
-    $firstPositionalSeen = $false
+    $firstPositionalSeen = $false; $hasOverrides = $false
     for ($i=0; $i -lt $Arguments.Count; $i++) {
         $token = $Arguments[$i]
         if ($token -ceq '--') { break }
+        if ($token -cin @('-c','--config','--enable','--disable','--search') -or $token -cmatch '^--(config|enable|disable)=' -or $token -cmatch '^-c.+') { $hasOverrides=$true; $localOnly=$true }
         if ($token -cin @('--help','-h','--version','-V')) { $infoOnly=$true; continue }
         if ($token -ceq '--no-daemon') { $explicitConnection=$true; continue }
         if ($token -ceq '--worktree') { $localOnly=$true; continue }
@@ -55,6 +56,7 @@ function Get-CodexLaunchPlan {
         WorkingDirectory = $WorkingDirectory
         Command = $command
         UseSharedServer = [bool]$useShared
+        UseEmbeddedServer = [bool]($hasOverrides -and -not ($infoOnly -or $explicitConnection) -and ($null -eq $command -or $command -cin @('resume','fork')))
         RequireUnlocked = -not ($infoOnly -or $readOnlyCommand)
         AddDefaultDirectory = [bool]($useShared -and -not $hasDirectory)
     }
@@ -160,6 +162,7 @@ function Invoke-CodexShell {
             $effective.Add('--cd'); $effective.Add($WorkingDirectory)
         }
     }
+    if ($plan.UseEmbeddedServer) { $effective.Add('--no-daemon') }
     foreach ($argument in $Arguments) { $effective.Add($argument) }
     if ($plan.RequireUnlocked) { Assert-CodexShellUnlocked }
     # PowerShell 7 preserves empty arguments and embedded quotation marks for .exe.
