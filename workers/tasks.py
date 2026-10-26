@@ -309,12 +309,13 @@ def execute_operation(operation_id, *, registry_module=None,
                     collection_options = {}
                     if source_registry is not DEFAULT_SOURCE_ADAPTER_REGISTRY:
                         collection_options["registry"] = source_registry
+                    if collection_contract is not None:
+                        collection_options["collection_contract"] = collection_contract
                     collection_started_at = time.monotonic()
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
                         refresh_matches=search_profile is None,
-                        collection_contract=collection_contract,
                         **collection_options,
                     )
                     collection_validation = collection_result.get("collection_result")
