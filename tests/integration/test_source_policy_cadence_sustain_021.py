@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from urllib.parse import urlsplit
 
 import httpx
 from sqlalchemy import select, update
@@ -127,7 +128,10 @@ class SourcePolicyCadenceSustainTests(unittest.TestCase):
         )
         self.assertEqual(healthy_result["jobs_seen"], 0)
         self.assertEqual({kind for kind, _ in requested}, {"failing", "healthy"})
-        self.assertTrue(all("greenhouse.io" in url for _, url in requested))
+        self.assertEqual(
+            {urlsplit(url).hostname for _, url in requested},
+            {"boards-api.greenhouse.io"},
+        )
 
         self.store.engine.dispose()
         reopened = Store(self.store.url)
