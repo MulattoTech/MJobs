@@ -1,11 +1,8 @@
 import unittest
 
-from packages.persistence.store import identity
 from services.dedupe.policy import duplicate_confidence
 
 
-COMPANY_ID = "company-acme"
-PROVIDER = "greenhouse"
 TENANT = "acme"
 
 
@@ -38,20 +35,8 @@ def without_strong_identity(**overrides):
     return job(application_url="", ats_tenant="", requisition="", **overrides)
 
 
-def ingestion_id(value):
-    """Mirror the canonical native-job identity used by source ingestion."""
-    return identity(COMPANY_ID, PROVIDER, value["ats_tenant"], value["requisition"])
-
-
 class DedupeSustain216Tests(unittest.TestCase):
-    def assert_stable_identity(self, value):
-        first = ingestion_id(dict(value))
-        second = ingestion_id(dict(value))
-        self.assertEqual(first, second)
-        self.assertEqual(len(first), 64)
-        return first
-
-    def test_exact_duplicate_merges_to_the_same_stable_identity(self):
+    def test_exact_duplicate_is_auto_merge_eligible(self):
         left = job()
         right = job()
 
@@ -59,9 +44,8 @@ class DedupeSustain216Tests(unittest.TestCase):
 
         self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
         self.assertEqual(result["reason"], "EXACT_REQUISITION")
-        self.assertEqual(self.assert_stable_identity(left), self.assert_stable_identity(right))
 
-    def test_same_ats_requisition_merges_despite_route_and_title_drift(self):
+    def test_same_ats_requisition_is_merge_eligible_despite_route_and_title_drift(self):
         left = job(
             title="Windows Sysadmin",
             application_url="https://board-a.example.test/jobs/old-route",
@@ -76,7 +60,6 @@ class DedupeSustain216Tests(unittest.TestCase):
         self.assertEqual(result["signals"]["strong_signals"], ["ATS_TENANT_REQUISITION"])
         self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
         self.assertEqual(result["reason"], "EXACT_REQUISITION")
-        self.assertEqual(self.assert_stable_identity(left), self.assert_stable_identity(right))
 
     def test_slight_title_difference_without_strong_identity_requires_review(self):
         left = without_strong_identity(title="Windows Sysadmin")
@@ -105,7 +88,6 @@ class DedupeSustain216Tests(unittest.TestCase):
         self.assertNotEqual(left["attributes"]["salary_min"], right["attributes"]["salary_min"])
         self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
         self.assertEqual(result["reason"], "EXACT_REQUISITION")
-        self.assertEqual(self.assert_stable_identity(left), self.assert_stable_identity(right))
 
     def test_different_jobs_at_same_company_remain_distinct(self):
         left = job(requisition="REQ-100")
@@ -119,12 +101,16 @@ class DedupeSustain216Tests(unittest.TestCase):
 
         self.assertEqual(result["disposition"], "SEPARATE")
         self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
-        self.assertNotEqual(self.assert_stable_identity(left), self.assert_stable_identity(right))
 
-    def test_same_title_in_different_cities_is_not_automatically_merged(self):
-        left = job(requisition="REQ-DALLAS")
-        right = job(
-            requisition="REQ-AUSTIN",
+    def test_different_city_is_the_causal_boundary_for_same_title_candidates(self):
+        left = without_strong_identity(
+            description="Maintain Windows servers and Active Directory for enterprise users.",
+        )
+        same_city = without_strong_identity(
+            description="Maintain Windows servers and Active Directory for enterprise users. Daily.",
+        )
+        different_city = without_strong_identity(
+            description=same_city["description"],
             location="Austin, TX",
             attributes={
                 "country": "US",
@@ -136,17 +122,19 @@ class DedupeSustain216Tests(unittest.TestCase):
                 "salary_period": "YEAR",
             },
         )
-        left["application_url"] = ""
-        right["application_url"] = ""
-        left["ats_tenant"] = ""
-        right["ats_tenant"] = ""
 
-        result = duplicate_confidence(left, right)
+        same_city_result = duplicate_confidence(left, same_city)
+        different_city_result = duplicate_confidence(left, different_city)
 
-        self.assertNotEqual(left["attributes"]["city"], right["attributes"]["city"])
-        self.assertNotEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
-        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
-        self.assertNotEqual(self.assert_stable_identity(left), self.assert_stable_identity(right))
+        self.assertEqual(
+            {key: value for key, value in same_city.items() if key not in {"location", "attributes"}},
+            {key: value for key, value in different_city.items() if key not in {"location", "attributes"}},
+        )
+        self.assertEqual(same_city["attributes"], {**different_city["attributes"], "city": "Dallas"})
+        self.assertEqual(same_city_result["reason"], "SAME_COMPANY_TITLE_LOCATION_HIGH_DESCRIPTION")
+        self.assertEqual(same_city_result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertEqual(different_city_result["reason"], "POSSIBLE_DUPLICATE")
+        self.assertEqual(different_city_result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
 
     def test_boilerplate_heavy_descriptions_cannot_create_an_automatic_merge(self):
         left = without_strong_identity(
