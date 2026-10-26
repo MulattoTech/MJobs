@@ -1,8 +1,8 @@
-"""Offline regression checks for the repository Python quality contract.
+"""Offline oracle for configured Python quality gates and Python syntax.
 
-This module deliberately does not install tools or make network requests. A
-missing configured executable is reported as a test failure rather than being
-silently treated as an available quality gate.
+This module does not install tools, access the network, or execute Ruff/mypy;
+CI runs those configured commands separately. It verifies pytest availability,
+declared configuration, and in-memory compilation of the bounded typed modules.
 """
 from __future__ import annotations
 
@@ -23,11 +23,6 @@ PUBLIC_TYPED_MODULES = (
     "services/operations/pipeline_workbench.py",
     "services/operations/pipeline_actions.py",
 )
-
-
-def _available(command: str) -> bool:
-    """Check an already-installed command or importable ``python -m`` tool."""
-    return shutil.which(command) is not None or importlib.util.find_spec(command) is not None
 
 
 def _quality_configuration() -> tuple[str, str]:

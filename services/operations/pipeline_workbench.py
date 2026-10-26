@@ -209,7 +209,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
             continue
         status = payload.get("status")
         attribution = payload.get("attribution")
-        sequence = payload.get("sequence")
+        sequence = payload.get("sequence", 0)
         if (not isinstance(status, str) or not isinstance(attribution, str)
                 or type(sequence) is not int or sequence < 0):
             continue

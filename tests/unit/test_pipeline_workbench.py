@@ -1,7 +1,7 @@
-from copy import deepcopy
-from pathlib import Path
 import tempfile
 import unittest
+from copy import deepcopy
+from pathlib import Path
 
 from sqlalchemy import update
 
@@ -184,15 +184,13 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.assertEqual(item["tracking_status"], "APPLIED")
         self.assertEqual(item["tracking_attribution"], "USER_REPORTED_EMAIL")
 
-    def test_first_malformed_tracking_sequences_are_ignored(self):
-        invalid_sequences = (True, -1, 1.5, "1", None, "missing")
+    def test_first_present_malformed_tracking_sequences_are_ignored(self):
+        invalid_sequences = (True, -1, 1.5, "1", None)
         job_ids = []
         for index, sequence in enumerate(invalid_sequences):
             job = self.add_job(f"malformed-first-sequence-{index}", application=True)
             job_ids.append(job["job_id"])
-            payload = {"status": "APPLIED", "attribution": "USER_REPORTED"}
-            if sequence != "missing":
-                payload["sequence"] = sequence
+            payload = {"status": "APPLIED", "attribution": "USER_REPORTED", "sequence": sequence}
             entity = identity("application-tracking", "fixture", job["application_id"])
             with self.store.engine.begin() as connection:
                 connection.execute(m.audit.insert().values(
@@ -205,6 +203,34 @@ class PipelineWorkbenchTests(unittest.TestCase):
             with self.subTest(job_id=job_id):
                 self.assertIsNone(items[job_id]["tracking_status"])
                 self.assertIsNone(items[job_id]["tracking_attribution"])
+
+    def test_legacy_missing_tracking_sequence_defaults_to_zero_before_numbered_event(self):
+        job = self.add_job("legacy-missing-tracking-sequence", application=True)
+        entity = identity("application-tracking", "fixture", job["application_id"])
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert().values(
+                id="legacy-tracking-event", entity_id=entity,
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": "APPLIED", "attribution": "USER_REPORTED"},
+                timestamp="2026-10-11T14:00:00Z"))
+
+        legacy = self.read()["items"][0]
+        self.assertEqual(legacy["stage"], "TRACKING")
+        self.assertEqual(legacy["tracking_status"], "APPLIED")
+        self.assertEqual(legacy["tracking_attribution"], "USER_REPORTED")
+
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert().values(
+                id="numbered-tracking-event", entity_id=entity,
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": "INTERVIEW", "attribution": "EXTERNAL_USER_REPORTED",
+                         "sequence": 1},
+                timestamp="2026-10-11T14:01:00Z"))
+
+        numbered = self.read()["items"][0]
+        self.assertEqual(numbered["stage"], "TRACKING")
+        self.assertEqual(numbered["tracking_status"], "INTERVIEW")
+        self.assertEqual(numbered["tracking_attribution"], "EXTERNAL_USER_REPORTED")
 
     def test_subsequent_malformed_tracking_sequence_is_ignored_without_type_error(self):
         job = self.add_job("malformed-followup-sequence", application=True)
