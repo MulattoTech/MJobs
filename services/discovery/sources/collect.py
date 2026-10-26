@@ -13,6 +13,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from packages.domain.operation_errors import source_collection_error_category
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.agents.acceptance import CollectionContract, validate_collection_output
 from services.ai.prompt_provenance import capture_parser
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.company_discovery.quality import posting_metrics, record_observation
@@ -27,6 +28,15 @@ from services.discovery.search_semantics import normalize_reported_timestamp, pa
 
 class SourceCollectionBoundaryError(RuntimeError):
     """A collection failure whose private or unstable details were withheld."""
+
+
+class SourceCollectionContractError(SourceError):
+    """A bounded collection result needs review before it can be imported."""
+
+    def __init__(self, stop_reason, collection_result=None):
+        super().__init__("REVIEW_REQUIRED")
+        self.stop_reason = stop_reason
+        self.collection_result = collection_result
 
 
 _SAFE_LEGACY_SOURCE_CODES = frozenset({
@@ -152,7 +162,8 @@ def persist_posting(connection, data):
 
 
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
-                   *, refresh_matches=True, import_guard=None, registry=None):
+                   *, refresh_matches=True, import_guard=None, registry=None,
+                   collection_contract=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
@@ -186,9 +197,15 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
     enumerated = accepted = completeness_sum = salary_known = None
     authority_rejected = False
     try:
+        if source["strategy"] == "BROWSER":
+            if not callable(getattr(check, "consume_page", None)):
+                raise SourceCollectionContractError("PAGE_BUDGET_REQUIRED")
+            if not isinstance(collection_contract, CollectionContract):
+                raise SourceCollectionContractError("COLLECTION_CONTRACT_REQUIRED")
         batch = adapter.search()
         observed_endpoint = batch.endpoint
         available = True
+        collection_result = None
         enumerated = len(batch.items)
         normalized = []
         rejected = 0
@@ -201,6 +218,13 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 normalized.append((item, parsed))
             except SourceError:
                 rejected += 1
+        if collection_contract is not None:
+            collection_result = validate_collection_output({
+                "items": [item.raw for item, _ in normalized],
+                "count": len(normalized),
+            }, collection_contract)
+            if collection_result.code != "OUTPUT_VALID":
+                raise SourceCollectionContractError(collection_result.code, collection_result)
         if bound:
             for _, job in normalized:
                 url = job.get('application_url')
@@ -390,10 +414,16 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
                                           new_company_ids=new_companies)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
-                "strategy": strategy, "direct_application": direct_application}
+                "strategy": strategy, "direct_application": direct_application,
+                "collection_result": ({
+                    "code": collection_result.code,
+                    "observed_count": collection_result.observed_count,
+                    "tail_matches": collection_result.tail_matches,
+                } if collection_result is not None else None)}
     except Exception as failure:
         from workers.operations import OperationCancelled, OperationTimedOut
-        if authority_rejected or isinstance(failure, (OperationCancelled, OperationTimedOut)):
+        if authority_rejected or isinstance(
+                failure, (OperationCancelled, OperationTimedOut, SourceCollectionContractError)):
             # A local authority revocation or budget stop is not a provider failure.
             # Restore the last observed health and failure metadata instead of
             # poisoning source availability or imposing provider backoff.

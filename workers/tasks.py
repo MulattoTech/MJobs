@@ -16,6 +16,9 @@ from services.company_discovery.flywheel import discover_company_source
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 from services.company_discovery.requests import authorize_discovery_request
 from services.discovery.sources.collect import collect_source
+from services.discovery.sources.collect import SourceCollectionContractError
+from services.agents.acceptance import CollectionContract
+from services.agents.registry import PageBudget
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.sources.registry import (
     configured_source_registry,
@@ -82,6 +85,34 @@ def _history_source(store, params, operation_mode):
             return f"{row['provider']}:{row['tenant']}"
         return source_id
     return "mock-fixture" if operation_mode == "FIXTURE" else "UNKNOWN"
+
+
+def _collection_controls(params, check):
+    """Build host-owned browser limits from bounded, queue-safe parameters."""
+    if "max_pages" not in params and "collection_contract" not in params:
+        return None, None
+    maximum = params.get("max_pages")
+    raw = params.get("collection_contract")
+    if type(maximum) is not int or not 1 <= maximum <= 100 or not isinstance(raw, dict):
+        raise ValueError("DISCOVER_COLLECTION_CONTROL_INVALID")
+    allowed = {"expected_count", "tail_key", "expected_tail", "required_item_fields"}
+    fields = raw.get("required_item_fields", [])
+    if set(raw) - allowed or not isinstance(fields, list):
+        raise ValueError("DISCOVER_COLLECTION_CONTROL_INVALID")
+    try:
+        contract = CollectionContract(
+            items_key="items",
+            count_key="count",
+            expected_count=raw.get("expected_count"),
+            tail_key=raw.get("tail_key"),
+            expected_tail=raw.get("expected_tail"),
+            required_item_fields=tuple(fields),
+        )
+    except (TypeError, ValueError):
+        raise ValueError("DISCOVER_COLLECTION_CONTROL_INVALID") from None
+    budget = PageBudget(maximum)
+    check.consume_page = budget.consume
+    return budget, contract
 
 
 def _record_supported_collection_candidates(store, operation_id, source_id, profile_ids):
@@ -213,6 +244,11 @@ def execute_operation(operation_id, *, registry_module=None,
             before_job_ids = {}
             history_results = None
         retry_failure = None
+        collection_budget = None
+        collection_contract = None
+        collection_started_at = None
+        collection_stop_reason = None
+        collection_validation = None
         durable_resume_result = None
         durable_comparison_result = None
         durable_ai_result = None
@@ -253,6 +289,7 @@ def execute_operation(operation_id, *, registry_module=None,
             if operation["kind"] == "DISCOVER":
                 params = operation["params"]
                 if params.get("source_id"):
+                    collection_budget, collection_contract = _collection_controls(params, check)
                     profile_ids = params.get("profile_ids") or [operation["entity_id"]]
                     if not isinstance(profile_ids, list) or not profile_ids or any(
                             not isinstance(profile_id, str) or not profile_id for profile_id in profile_ids):
@@ -272,12 +309,17 @@ def execute_operation(operation_id, *, registry_module=None,
                     collection_options = {}
                     if source_registry is not DEFAULT_SOURCE_ADAPTER_REGISTRY:
                         collection_options["registry"] = source_registry
+                    collection_started_at = time.monotonic()
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
                         refresh_matches=search_profile is None,
+                        collection_contract=collection_contract,
                         **collection_options,
                     )
+                    collection_validation = collection_result.get("collection_result")
+                    if collection_validation is not None:
+                        collection_stop_reason = "SUCCESS_ARTIFACT_VERIFIED"
                     history_results = collection_result.get("jobs_seen")
                     _record_supported_collection_candidates(
                         store, operation_id, params["source_id"], profile_ids)
@@ -448,8 +490,12 @@ def execute_operation(operation_id, *, registry_module=None,
             state, error = "BLOCKED", failure.code
         except OperationTimedOut:
             state, error = "FAILED", "OPERATION_TIMEOUT"
+            if collection_budget is not None:
+                collection_stop_reason = error
         except OperationCancelled:
             state, error = "CANCELLED", "CANCEL_REQUESTED"
+            if collection_budget is not None:
+                collection_stop_reason = error
         except DurableExtractionError as failure:
             state, error = "BLOCKED", failure.code
         except DurableComparisonError as failure:
@@ -465,11 +511,22 @@ def execute_operation(operation_id, *, registry_module=None,
             state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
         except FixtureSearchUnavailable as failure:
             state, error = "BLOCKED", failure.code
+        except SourceCollectionContractError as failure:
+            state, error = "BLOCKED", failure.code
+            collection_stop_reason = failure.stop_reason
+            result = failure.collection_result
+            collection_validation = ({
+                "code": result.code,
+                "observed_count": result.observed_count,
+                "tail_matches": result.tail_matches,
+            } if result is not None else None)
         except Exception as failure:
             retry_failure = failure
             state, error = "FAILED", failure.code if isinstance(
                 failure, (SourceError, PreparationError, FormReviewError)
             ) else _classify_unexpected_failure(failure)
+            if collection_budget is not None:
+                collection_stop_reason = error
             history_counts = {}
         with store.engine.begin() as connection:
             if connection.dialect.name == "sqlite":
@@ -482,6 +539,8 @@ def execute_operation(operation_id, *, registry_module=None,
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
             if current["cancel_requested"] and operation["kind"] != "APPLY_MOCK":
                 state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
+                if collection_budget is not None:
+                    collection_stop_reason = error
             # A receipt transaction already committed its complete result.
             # This follows the state/attempt fence above: a stale worker may
             # never acknowledge a newer owner, even when a receipt exists.
@@ -537,11 +596,21 @@ def execute_operation(operation_id, *, registry_module=None,
                 if durable_ai_result is None:
                     raise RuntimeError('Completed AI evaluation has no result')
                 complete_evaluation(store, connection, operation, durable_ai_result)
+            terminal_payload = {"state": state, "error": error,
+                                "attempt_count": int(operation["attempt_count"])}
+            if collection_budget is not None and collection_started_at is not None:
+                terminal_payload["collection_budget"] = {
+                    "stop_reason": collection_stop_reason or state,
+                    "budget_consumed_ms": max(
+                        0, int(round((time.monotonic() - collection_started_at) * 1000))),
+                    "max_pages": collection_budget.maximum,
+                    "pages_consumed": collection_budget.consumed,
+                    "collection_result": collection_validation,
+                }
             store._audit(connection, operation_id,
                          "OPERATION_RETRY_SCHEDULED" if retry else
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",
-                         {"state": state, "error": error,
-                          "attempt_count": int(operation["attempt_count"])})
+                         terminal_payload)
             if records_search:
                 for profile_id in history_profiles:
                     new_count, duplicate_count = history_counts.get(
