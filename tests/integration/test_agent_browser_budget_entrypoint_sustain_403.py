@@ -288,6 +288,69 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
         for field in ("health_status", "consecutive_failures", "last_error", "backoff_until"):
             self.assertEqual(after[field], before[field], field)
 
+    def test_rejected_actual_tail_cannot_make_an_earlier_matching_tail_pass(self):
+        rejected_tail = SourceItem({
+            "id": 40303,
+            "position": " ",
+            "company": "Example Company",
+            "location": "Remote",
+            "description": "Missing title makes this raw tail fail normalization.",
+            "url": "https://fixture.invalid/jobs/40303",
+        }, self.items[0].company)
+        self.state.update(items=self.items + (rejected_tail,), pages=1, complete_inventory=False)
+        operation_id = self._operation(expected_count=None, expected_tail=40302)
+        with self.store.engine.connect() as connection:
+            before = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one())
+
+        result = self._execute(operation_id)
+
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(result["error_category"], "REVIEW_REQUIRED", result)
+        operation, terminal, jobs = self._saved(operation_id)
+        self.assertEqual(operation["attempt_count"], 1)
+        self.assertEqual(operation["retry_count"], 0)
+        self.assertEqual(jobs, [])
+        evidence = terminal["payload"]["collection_budget"]
+        self.assertEqual(evidence["stop_reason"], "TAIL_MISMATCH")
+        self.assertEqual(evidence["collection_result"], {
+            "code": "TAIL_MISMATCH",
+            "observed_count": 3,
+            "tail_matches": False,
+        })
+        with self.store.engine.connect() as connection:
+            after = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one())
+        for field in ("health_status", "consecutive_failures", "last_error", "backoff_until"):
+            self.assertEqual(after[field], before[field], field)
+
+    def test_rejected_matching_actual_tail_still_fails_closed(self):
+        rejected_tail = SourceItem({
+            "id": 40303,
+            "position": " ",
+            "company": "Example Company",
+            "location": "Remote",
+            "description": "Matching raw tail must not hide normalization rejection.",
+            "url": "https://fixture.invalid/jobs/40303",
+        }, self.items[0].company)
+        self.state.update(items=self.items + (rejected_tail,), pages=1, complete_inventory=False)
+        operation_id = self._operation(expected_count=None, expected_tail=40303)
+
+        result = self._execute(operation_id)
+
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(result["error_category"], "REVIEW_REQUIRED", result)
+        operation, terminal, jobs = self._saved(operation_id)
+        self.assertEqual(operation["retry_count"], 0)
+        self.assertEqual(jobs, [])
+        evidence = terminal["payload"]["collection_budget"]
+        self.assertEqual(evidence["stop_reason"], "STRUCTURE_INVALID")
+        self.assertEqual(evidence["collection_result"], {
+            "code": "STRUCTURE_INVALID",
+            "observed_count": 3,
+            "tail_matches": None,
+        })
+
     def test_public_discover_rejects_unbounded_or_malformed_collection_controls(self):
         valid = {
             "profile_id": "fixture",

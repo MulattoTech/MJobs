@@ -13,7 +13,9 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from packages.domain.operation_errors import source_collection_error_category
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
-from services.agents.acceptance import CollectionContract, validate_collection_output
+from services.agents.acceptance import (
+    CollectionContract, CollectionValidation, validate_collection_output,
+)
 from services.agents.registry import AgentToolError
 from services.ai.prompt_provenance import capture_parser
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
@@ -221,7 +223,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 rejected += 1
         if collection_contract is not None:
             collection_output = {
-                "items": [item.raw for item, _ in normalized],
+                # Completeness anchors describe the provider batch, not only
+                # the subset that survived local normalization.
+                "items": [item.raw for item in batch.items],
             }
             if collection_contract.count_key is not None and batch.complete_inventory:
                 # A declared complete inventory makes the enumerated batch size
@@ -229,6 +233,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 # the subset that happened to normalize successfully.
                 collection_output[collection_contract.count_key] = len(batch.items)
             collection_result = validate_collection_output(collection_output, collection_contract)
+            if collection_result.code == "OUTPUT_VALID" and rejected:
+                collection_result = CollectionValidation(
+                    "STRUCTURE_INVALID", len(batch.items), None,
+                )
             if collection_result.code != "OUTPUT_VALID":
                 raise SourceCollectionContractError(collection_result.code, collection_result)
         if bound:
