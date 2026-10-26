@@ -1,4 +1,5 @@
 """Public worker startup accepts an ordinary environment log-level setting."""
+import logging
 import os
 import unittest
 from unittest.mock import Mock, patch
