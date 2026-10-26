@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from apps.api.application_answer_matching import (
     create_application_answer_matching_router,
 )
+from services.answers.review import assess_answer_review
 from services.documents.tailor import target_fingerprint
 
 
@@ -92,10 +93,6 @@ class AnswerMatchingApiSustain220Tests(unittest.TestCase):
                 return_value=POLICY,
             ),
             patch(
-                "apps.api.application_answer_matching.assess_answer_review",
-                side_effect=self._assess,
-            ),
-            patch(
                 "apps.api.application_answer_matching.list_stories",
                 return_value=[],
             ),
@@ -107,31 +104,6 @@ class AnswerMatchingApiSustain220Tests(unittest.TestCase):
         for mocked in reversed(self.patches):
             mocked.stop()
         self.client.close()
-
-    def _assess(self, question, answers, policy, expected_fingerprint=None):
-        from services.documents.answers import match_answer_question
-
-        matches = []
-        for answer in answers:
-            match = match_answer_question(
-                question,
-                answer.get("question", ""),
-                minimum_confidence=policy["minimum_question_match_confidence"],
-            )
-            if match:
-                matches.append({"answer_id": answer["id"], **match})
-        distinct = {answer["text"].strip() for answer in answers
-                    if any(item["answer_id"] == answer["id"] for item in matches)}
-        reason = "CONFLICTING_ANSWERS" if len(distinct) > 1 else None
-        fingerprint = "a" * 64
-        if expected_fingerprint is not None and expected_fingerprint != fingerprint:
-            reason = "CHANGED_ANSWER"
-        return {
-            "matches": matches,
-            "review_required": reason is not None,
-            "reason": reason,
-            "fingerprint": fingerprint,
-        }
 
     def test_exact_normalized_fuzzy_and_semantic_methods_use_real_route(self):
         cases = (
@@ -185,6 +157,40 @@ class AnswerMatchingApiSustain220Tests(unittest.TestCase):
         self.assertEqual(body["candidates"], [])
         self.assertNotIn("shared synthetic experience answer", response.text)
         self.assertNotIn("different synthetic experience answer", response.text)
+
+    def test_real_review_gate_rejects_duplicate_ids_and_stale_fingerprint(self):
+        question = "How many years of professional experience have you had?"
+        duplicate_ids = [
+            approved_answer("duplicate", question, "One synthetic value"),
+            approved_answer("duplicate", question, "Another synthetic value"),
+        ]
+        duplicate_review = assess_answer_review(question, duplicate_ids, POLICY)
+        self.assertTrue(duplicate_review["review_required"])
+        self.assertEqual(duplicate_review["reason"], "CONFLICTING_ANSWERS")
+        self.assertEqual(duplicate_review["matches"], [])
+
+        self.store.answers = [approved_answer("stable", question)]
+        initial = self.client.post(self.url, json={"question": question})
+        self.assertEqual(initial.status_code, 200, initial.text)
+        fingerprint = initial.json()["review_gate"]["fingerprint"]
+        self.assertRegex(fingerprint, r"^[0-9a-f]{64}$")
+
+        stale = self.client.post(self.url, json={
+            "question": question,
+            "expected_fingerprint": "0" * 64,
+        })
+        self.assertEqual(stale.status_code, 200, stale.text)
+        self.assertTrue(stale.json()["review_gate"]["review_required"])
+        self.assertEqual(stale.json()["review_gate"]["reason"], "CHANGED_ANSWER")
+        self.assertEqual(stale.json()["candidates"], [])
+
+        fresh = self.client.post(self.url, json={
+            "question": question,
+            "expected_fingerprint": fingerprint,
+        })
+        self.assertEqual(fresh.status_code, 200, fresh.text)
+        self.assertFalse(fresh.json()["review_gate"]["review_required"])
+        self.assertEqual([item["answer_id"] for item in fresh.json()["candidates"]], ["stable"])
 
     def test_sensitive_prompt_is_rejected_without_echoing_saved_sensitive_answer(self):
         response = self.client.post(self.url, json={
