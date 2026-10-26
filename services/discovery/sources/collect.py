@@ -220,10 +220,15 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             except SourceError:
                 rejected += 1
         if collection_contract is not None:
-            collection_result = validate_collection_output({
+            collection_output = {
                 "items": [item.raw for item, _ in normalized],
-                "count": len(normalized),
-            }, collection_contract)
+            }
+            if collection_contract.count_key is not None and batch.complete_inventory:
+                # A declared complete inventory makes the enumerated batch size
+                # authoritative. Never synthesize provider count evidence from
+                # the subset that happened to normalize successfully.
+                collection_output[collection_contract.count_key] = len(batch.items)
+            collection_result = validate_collection_output(collection_output, collection_contract)
             if collection_result.code != "OUTPUT_VALID":
                 raise SourceCollectionContractError(collection_result.code, collection_result)
         if bound:

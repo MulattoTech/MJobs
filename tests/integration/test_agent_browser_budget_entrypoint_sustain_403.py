@@ -48,7 +48,7 @@ class _BudgetedFixtureAdapter(RemoteOK):
         return SearchBatch(
             endpoint="https://fixture.invalid/jobs",
             items=tuple(items),
-            complete_inventory=True,
+            complete_inventory=self.state.get("complete_inventory", True),
         )
 
 
@@ -169,6 +169,37 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
         })
         self.assertNotIn("description", repr(evidence))
 
+    def test_explicit_count_and_tail_anchor_an_incomplete_batch(self):
+        self.state.update(complete_inventory=False)
+        operation_id = self._operation()
+
+        result = self._execute(operation_id)
+
+        self.assertEqual(result["status"], "COMPLETED", result)
+        operation, terminal, jobs = self._saved(operation_id)
+        self.assertEqual(operation["state"], "COMPLETED")
+        self.assertEqual(len(jobs), 2)
+        self.assertEqual(terminal["payload"]["collection_budget"]["collection_result"], {
+            "code": "OUTPUT_VALID",
+            "observed_count": 2,
+            "tail_matches": True,
+        })
+
+    def test_complete_inventory_supplies_authoritative_count_anchor(self):
+        operation_id = self._operation(expected_count=None, expected_tail=None)
+
+        result = self._execute(operation_id)
+
+        self.assertEqual(result["status"], "COMPLETED", result)
+        operation, terminal, jobs = self._saved(operation_id)
+        self.assertEqual(operation["state"], "COMPLETED")
+        self.assertEqual(len(jobs), 2)
+        self.assertEqual(terminal["payload"]["collection_budget"]["collection_result"], {
+            "code": "OUTPUT_VALID",
+            "observed_count": 2,
+            "tail_matches": None,
+        })
+
     def test_early_truncation_stops_for_review_before_any_job_is_persisted(self):
         self.state.update(items=self.items[:1], pages=1)
         operation_id = self._operation()
@@ -222,6 +253,35 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
         self.assertEqual(evidence["max_pages"], 2)
         self.assertEqual(evidence["pages_consumed"], 2)
         self.assertIsNone(evidence["collection_result"])
+        with self.store.engine.connect() as connection:
+            after = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one())
+        for field in ("health_status", "consecutive_failures", "last_error", "backoff_until"):
+            self.assertEqual(after[field], before[field], field)
+
+    def test_nonempty_unknown_inventory_requires_review_without_import_or_health_mutation(self):
+        self.state.update(items=self.items[:1], pages=1, complete_inventory=False)
+        operation_id = self._operation(expected_count=None, expected_tail=None)
+        with self.store.engine.connect() as connection:
+            before = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one())
+
+        result = self._execute(operation_id)
+
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(result["error_category"], "REVIEW_REQUIRED", result)
+        operation, terminal, jobs = self._saved(operation_id)
+        self.assertEqual(operation["attempt_count"], 1)
+        self.assertEqual(operation["retry_count"], 0)
+        self.assertEqual(jobs, [])
+        evidence = terminal["payload"]["collection_budget"]
+        self.assertEqual(evidence["stop_reason"], "COUNT_UNKNOWN")
+        self.assertEqual(evidence["pages_consumed"], 1)
+        self.assertEqual(evidence["collection_result"], {
+            "code": "COUNT_UNKNOWN",
+            "observed_count": None,
+            "tail_matches": None,
+        })
         with self.store.engine.connect() as connection:
             after = dict(connection.execute(select(m.job_sources).where(
                 m.job_sources.c.id == self.source_id)).mappings().one())

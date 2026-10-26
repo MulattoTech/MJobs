@@ -99,10 +99,15 @@ def _collection_controls(params, check):
     fields = raw.get("required_item_fields", [])
     if set(raw) - allowed or not isinstance(fields, list):
         raise ValueError("DISCOVER_COLLECTION_CONTROL_INVALID")
+    has_explicit_completeness_anchor = (
+        raw.get("expected_count") is not None or raw.get("expected_tail") is not None
+    )
     try:
         contract = CollectionContract(
             items_key="items",
-            count_key="count",
+            # Without an explicit expected count or tail, the collector must
+            # supply an authoritative count from a complete SearchBatch.
+            count_key=None if has_explicit_completeness_anchor else "count",
             expected_count=raw.get("expected_count"),
             tail_key=raw.get("tail_key"),
             expected_tail=raw.get("expected_tail"),
