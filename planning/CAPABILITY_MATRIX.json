@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-26T03:15:30+00:00",
+  "timestamp": "2026-10-26T03:22:16+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2636,13 +2636,12 @@
     },
     {
       "requirement_id": "MJ-REQ-218",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "Exact main 3dde716311194f6f1fa9c892816818796d7652b2: tests/unit/test_matching_requirements_sustain_219.py blob a07a37ffcad1d8e650f8c4f824443385bbea18df; services/matching/components.py blob 8246237c4ba8506441a1fe1c54fc8d5e9637a4a5.",
-        "Prior hosted exact-head CI run 40239444112, job 121307888408 (Python / unit and integrity), passed 9 JUnit cases, but its remote-mismatch fixture used noncanonical remote_type ON_SITE and is not accepted as evidence for that criterion.",
-        "Corrected candidate test blob 693992bf701b711c2456b74bcd613c316a7afb4f uses canonical ONSITE against profile REMOTE; the focused 9-case file passes locally. Exact-head hosted validation for this corrected blob is NOT_RUN."
+        "Corrected PR candidate head a46454d223167329287e6d74f4fc7d810dd2742e on base 3dde716311194f6f1fa9c892816818796d7652b2: tests/unit/test_matching_requirements_sustain_219.py blob 693992bf701b711c2456b74bcd613c316a7afb4f uses canonical ONSITE against profile REMOTE; services/matching/components.py blob 8246237c4ba8506441a1fe1c54fc8d5e9637a4a5.",
+        "Hosted exact-head CI run 40263302872, job 121380111200 (Python / unit and integrity): PASS; JUnit artifact confirms 9 target cases, 0 failures/errors/skips. Full unit job: 2919 passed, 51 skipped, 3376 subtests passed."
       ],
-      "note": "PARTIAL: required/preferred/missing skills, salary mismatch, title-seniority mismatch, and preferred-versus-required education remain supported by the exact-base implementation and prior hosted unit run. The remote mismatch fixture is corrected in this candidate and passes locally but awaits exact-head hosted validation; do not promote MJ-REQ-218 to PASS until that corrected test blob is hosted-green. No broader matcher, degree, currency, API, UI, or provider behavior is claimed.",
+      "note": "PASS is limited to the enumerated MJ-REQ-218 matching unit cases: required/preferred/missing skills, canonical ONSITE versus REMOTE mismatch, salary mismatch, title-seniority mismatch, preferred-versus-required education, and incomplete preferred-degree controls. Evidence is bound to the corrected test blob and exact-head hosted unit run above; no broader matcher, degree, currency, API, UI, or provider behavior is claimed.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
