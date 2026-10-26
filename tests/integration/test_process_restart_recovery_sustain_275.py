@@ -11,7 +11,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select, update
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -79,11 +79,20 @@ class ProcessRestartRecoverySustain275Tests(unittest.TestCase):
 
     def _durable_effects(self, store, profile_id):
         with store.engine.connect() as connection:
-            jobs = connection.execute(select(func.count()).select_from(m.matches).where(
-                m.matches.c.profile_id == profile_id)).scalar_one()
-            discoveries = connection.execute(select(func.count()).select_from(m.audit).where(
-                m.audit.c.action == "JOB_DISCOVERED")).scalar_one()
-        return jobs, discoveries
+            matches = [dict(row) for row in connection.execute(select(
+                m.matches.c.job_id, m.matches.c.profile_id,
+                m.matches.c.profile_version, m.matches.c.score,
+                m.matches.c.missing, m.matches.c.components,
+            ).where(
+                m.matches.c.profile_id == profile_id,
+            ).order_by(m.matches.c.job_id)).mappings()]
+            discoveries = [dict(row) for row in connection.execute(select(
+                m.audit.c.id, m.audit.c.entity_id, m.audit.c.action,
+                m.audit.c.payload, m.audit.c.timestamp,
+            ).where(
+                m.audit.c.action == "JOB_DISCOVERED",
+            ).order_by(m.audit.c.id)).mappings()]
+        return {"matches": matches, "job_discovered_events": discoveries}
 
     def test_crash_after_discovery_recovers_once_and_replay_does_not_add_attempt(self):
         with fixture_server() as origin:
@@ -120,8 +129,10 @@ class ProcessRestartRecoverySustain275Tests(unittest.TestCase):
                             m.operations.c.id == operation_id)).mappings().one()
                     self.assertEqual((interrupted["state"], interrupted["attempt_count"]), ("RUNNING", 1))
                     effects_before_retry = self._durable_effects(reopened, profile["id"])
-                    self.assertGreater(effects_before_retry[0], 0, "crashed worker must have persisted discovery results")
-                    self.assertGreater(effects_before_retry[1], 0, "crashed worker must have persisted discovery audit events")
+                    self.assertGreater(len(effects_before_retry["matches"]), 0,
+                                       "crashed worker must have persisted discovery results")
+                    self.assertGreater(len(effects_before_retry["job_discovered_events"]), 0,
+                                       "crashed worker must have persisted discovery audit events")
 
                     # Advancing only the durable lease models the passage of
                     # the normal lease interval; recovery itself remains the
