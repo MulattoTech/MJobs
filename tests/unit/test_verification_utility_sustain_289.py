@@ -124,6 +124,10 @@ def duplicate_receipt_evidence(tmp_path, submission_count):
         profile_id="verification-current-invocation",
         canonical_jobs=2,
         submission_count=submission_count,
+        confirmation_operation_id="operation-original",
+        duplicate_retry_operation_id="operation-original",
+        duplicate_retry_confirmation_matches=True,
+        duplicate_retry_submission_count=1,
     )
     return expected, report
 
@@ -149,3 +153,42 @@ def test_duplicate_protection_pass_requires_durable_receipt_and_prerequisites(
     else:
         with pytest.raises(ValueError):
             validate_report(report, expected, pid=123)
+
+
+@pytest.mark.parametrize(
+    "missing_evidence",
+    [
+        "confirmation_operation_id",
+        "duplicate_retry_operation_id",
+        "duplicate_retry_confirmation_matches",
+        "duplicate_retry_submission_count",
+    ],
+)
+def test_duplicate_protection_pass_requires_observed_retry_proof(
+    tmp_path, missing_evidence
+):
+    expected, report = duplicate_receipt_evidence(tmp_path, submission_count=1)
+    del report["observations"][missing_evidence]
+
+    with pytest.raises(ValueError, match="duplicate replay evidence missing"):
+        validate_report(report, expected, pid=123)
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [
+        ("duplicate_retry_operation_id", "different-operation"),
+        ("duplicate_retry_confirmation_matches", False),
+        ("duplicate_retry_submission_count", 0),
+        ("duplicate_retry_submission_count", 2),
+        ("duplicate_retry_submission_count", True),
+    ],
+)
+def test_duplicate_protection_pass_rejects_invalid_retry_proof(
+    tmp_path, field, invalid_value
+):
+    expected, report = duplicate_receipt_evidence(tmp_path, submission_count=1)
+    report["observations"][field] = invalid_value
+
+    with pytest.raises(ValueError, match="duplicate replay evidence missing"):
+        validate_report(report, expected, pid=123)
