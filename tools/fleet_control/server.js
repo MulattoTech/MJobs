@@ -245,9 +245,22 @@ function assertSession(active,id){
  const s=active.find(x=>x.id===id);if(!s)throw Error('Session not found');return s;
 }
 function isCleanCandidate(s){
- return s.kind==='worker' && s.isIdle && !s.openPRs && !s.blocked &&
+ return s.kind==='worker' && s.isIdle && !s.busy && !s.isTerminated && !s.openPRs && !s.blocked &&
   Number(s.branchState?.commits||0)===0 && Number(s.branchState?.unpushed||0)===0 &&
   !s.replacedBy;
+}
+function isRetirementCandidate(s,pair){
+ return s?.kind==='worker'&&s.isIdle&&!s.busy&&!s.isTerminated&&!s.openPRs&&!s.blocked&&
+  Number(s.branchState?.commits||0)===0&&Number(s.branchState?.unpushed||0)===0&&
+  s.replacedBy===pair?.newId;
+}
+function sameMutationCandidate(before,current,eligible){
+ if(!before||!current||!eligible(current))return false;
+ const keys=['id','createdAt','branch','kind','model','harness','mode','activity','status','isIdle','busy','isTerminated','openPRs','blocked','replacedBy'];
+ return keys.every(key=>(before[key]??null)===(current[key]??null))&&
+  Number(before.branchState?.commits||0)===Number(current.branchState?.commits||0)&&
+  Number(before.branchState?.unpushed||0)===Number(current.branchState?.unpushed||0)&&
+  JSON.stringify(before.prs||[])===JSON.stringify(current.prs||[]);
 }
 async function assertWorktreeClean(s){
  if(!s.branch)throw Error('Cannot identify the original branch; stopping safely.');
@@ -295,8 +308,10 @@ async function replace(x){
  if(old.kind==='orchestrator')throw Error('Use a separate controlled handoff for the primary orchestrator');
  await verifyCodexExecutable();
  await assertWorktreeClean(old);
+ const recheck=await state(true),current=recheck.sessions.find(s=>s.id===old.id);
+ if(!sameMutationCandidate(old,current,isCleanCandidate))throw Error('Original session state changed during replacement validation. No replacement was launched.');
  const name=old.name.replace(/^↪ /,'').slice(0,71)+' / '+newModel.name.slice(0,21);
- const primary=snap.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited')?.id||'the primary orchestrator';
+ const primary=recheck.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited')?.id||'the primary orchestrator';
  const prompt='You are a replacement for session '+old.id+' ('+old.name+'). Your class is '+old.role+'. Preserve all existing branches, PRs and user changes; do not edit main, force-push, or auto-merge. First read the existing session history with ao session history '+old.id+' --limit 8 and report to primary orchestrator '+primary+' for a specifically assigned, nonoverlapping issue and file scope. Do NOT take over old PRs or start implementing until delegated.';
  let output;
  try{
@@ -374,7 +389,7 @@ async function retire(x){
  const records=readReplacements(),pair=records.pairs.find(p=>p.oldId===x.id&&!p.retired);
  if(!pair)throw Error('No verified replacement record for that agent.');
  if(!x.confirm||x.confirm!==original.id)throw Error('Type the exact original session ID to confirm retirement.');
- if(!original.isIdle||original.openPRs||original.blocked||Number(original.branchState?.commits||0)!==0||Number(original.branchState?.unpushed||0)!==0)throw Error('Original has activity/PRs/commits. Cannot retire automatically.');
+ if(!isRetirementCandidate(original,pair))throw Error('Original has activity/PRs/commits or is no longer the verified replaced worker. Cannot retire automatically.');
  const fresh=assertSession(snap.sessions,pair.newId);
  if(fresh.model!==pair.model)throw Error('Replacement verification mismatch');
  await assertWorktreeClean(original);
@@ -382,6 +397,8 @@ async function retire(x){
  const stamp=Date.now();
  const output=await command(['session','history',original.id,'--limit','50'],15000);
  fs.writeFileSync(path.join(directory,'history-'+original.id+'-'+stamp+'.txt'),output);
+ const recheck=await state(true),current=recheck.sessions.find(s=>s.id===original.id);
+ if(!sameMutationCandidate(original,current,s=>isRetirementCandidate(s,pair)))throw Error('Original session state changed during retirement validation. No session was killed.');
  const kill=await command(['session','kill',original.id,'--project',projectId],20000);
  pair.retired=true;pair.retiredAt=new Date().toISOString();saveReplacements(records);
  audit('retired',{oldId:original.id,newId:fresh.id,result:kill.slice(0,400)});cached.at=0;
