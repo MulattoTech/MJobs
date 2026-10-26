@@ -49,7 +49,7 @@ async function main(){
   const name=url.pathname==='/'?'index.html':url.pathname.slice(1);
   if(!/^[A-Za-z0-9_.-]+$/.test(name)||!fs.existsSync(path.join(assets,name))){res.writeHead(404);res.end();return;}
   res.writeHead(200,{'content-type':name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html','cache-control':'no-store'});res.end(fs.readFileSync(path.join(assets,name)));
- }catch(e){res.writeHead(500);res.end(JSON.stringify({error:e.message}));}});
+ }catch{res.writeHead(500,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify({error:'FIXTURE_REQUEST_FAILED'}));}});
  await new Promise(ok=>server.listen(0,'127.0.0.1',ok));const port=server.address().port;
  profile=fs.mkdtempSync(path.join(os.tmpdir(),'fleet-isolated-browser-'));
  child=spawn(edge,['--headless=new','--disable-gpu','--no-first-run','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{windowsHide:true,stdio:'ignore'});
@@ -67,19 +67,29 @@ async function main(){
  };
  await call('Runtime.enable');await call('Page.enable');await call('Fetch.enable',{patterns:[{urlPattern:'*'}]});
  const evaluate=async(expression)=>{const r=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
+ const pageFunctions=Object.freeze({
+  selectable:'function(selector,enabled){const element=document.querySelector(selector);return !!element&&(!enabled||!element.disabled)}',
+  click:'function(selector){document.querySelector(selector).click()}',
+  input:"function(selector,value){const element=document.querySelector(selector);element.value=value;element.dispatchEvent(new Event('input',{bubbles:true}))}",
+  sentinel:'function(){return globalThis.__fleetHarnessInjected===true}',
+ });
+ const invoke=async(operation,...values)=>{const functionDeclaration=pageFunctions[operation];assert(functionDeclaration);const globalResult=await call('Runtime.evaluate',{expression:'globalThis'}),objectId=globalResult.result.objectId;assert(objectId);const r=await call('Runtime.callFunctionOn',{objectId,functionDeclaration,arguments:values.map(value=>({value})),awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error('Browser fixture function failed');return r.result.value;};
  const wait=async(expression)=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await sleep(40);}throw Error('Browser condition failed: '+expression);};
- const click=async(selector)=>{await wait('!!document.querySelector('+JSON.stringify(selector)+')&&!document.querySelector('+JSON.stringify(selector)+').disabled');await evaluate('document.querySelector('+JSON.stringify(selector)+').click()');};
- const input=async(selector,value)=>{await wait('!!document.querySelector('+JSON.stringify(selector)+')');await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('input',{bubbles:true}));})()`);};
+ const waitForSelector=async(selector,enabled=false)=>{for(let i=0;i<100;i++){if(await invoke('selectable',selector,enabled))return;await sleep(40);}throw Error('Browser fixture selector unavailable');};
+ const click=async(selector)=>{await waitForSelector(selector,true);await invoke('click',selector);};
+ const input=async(selector,value)=>{await waitForSelector(selector);await invoke('input',selector,value);};
  const load=async(value='healthy')=>{scenario=value;await call('Page.navigate',{url:'http://127.0.0.1:'+port+'/?scenario='+value});await wait('document.querySelectorAll("#tableRows tr").length===2&&document.querySelector("#quotaLive")?.textContent.startsWith("LIVE")&&typeof FleetStartupUI!=="undefined"&&FleetStartupUI.status().fresh');await sleep(100);};
- async function check(name,{state='healthy',button,confirm,phrase,route,body,prepare}={}){
+ async function check(name,{state='healthy',button,confirm,phrase,route,body,prepare,verify}={}){
   await load(state);if(prepare)await prepare();const count=posts.length;
   await click(button);if(confirm){await wait('!!document.querySelector('+JSON.stringify(confirm)+')');assert.equal(posts.length,count,name+' must not act before confirmation');if(phrase){assert(await evaluate('document.querySelector('+JSON.stringify(confirm)+').disabled'),name+' missing phrase gate');await input(phrase[0],phrase[1]);}await click(confirm);}
   for(let i=0;i<100&&posts.length===count;i++)await sleep(30);
   if(name==='All Hands burst')await wait('document.querySelector("#modalBody").textContent.includes("All Hands dispatched")');
   assert.equal(posts.length,count+1,name+' must send one request');const sent=posts.at(-1);assert.equal(sent.route,route,name);
   for(const [key,value] of Object.entries(body||{}))assert.deepEqual(sent.body[key],value,name+' '+key);
+  if(verify)await verify();
   rows.push({name,status:'PASS',route,scenario:state});
  }
+ const inertPayload="\"'`<script>globalThis.__fleetHarnessInjected=true</script>";
  const cases=[
   ['Startup',{button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP'}}],
   ['Continue Startup',{state:'resumable',button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP'}}],
@@ -110,7 +120,7 @@ async function main(){
   ['Find Work instruction-waiting worker',{state:'waiting',button:'[data-action="find-work"][data-id="mjobs-worker"]',route:'/api/find-work',body:{id:'mjobs-worker'}}],
   ['Find Work All',{button:'#findWorkAll',confirm:'#confirmFindWorkAll',route:'/api/find-work/all',body:{confirm:'FIND WORK ALL'}}],
   ['Ask agent status',{prepare:()=>click('[data-action="view"][data-id="mjobs-worker"]'),button:'[data-action="nudge"][data-type="progress"]',route:'/api/nudge',body:{id:'mjobs-worker',type:'progress'}}],
-  ['Send custom instruction',{prepare:async()=>{await click('[data-action="view"][data-id="mjobs-worker"]');await input('#customMessage','Synthetic test instruction only');},button:'[data-action="nudge"][data-type="custom"]',route:'/api/nudge',body:{message:'Synthetic test instruction only'}}],
+  ['Send custom instruction',{prepare:async()=>{await click('[data-action="view"][data-id="mjobs-worker"]');await input('#customMessage',inertPayload);},button:'[data-action="nudge"][data-type="custom"]',route:'/api/nudge',body:{message:inertPayload},verify:async()=>{assert.equal(await invoke('sentinel'),false);}}],
   ['Save worker plan',{prepare:()=>click('[data-action="view"][data-id="mjobs-worker"]'),button:'[data-action="save-plan"]',route:'/api/agent-plan',body:{id:'mjobs-worker',harness:'codex',model:'fixture-model',effort:'medium'}}],
   ['Apply saved worker plan',{state:'planned',prepare:()=>click('[data-action="view"][data-id="mjobs-worker"]'),button:'[data-action="apply-plan"]',confirm:'#confirmApplyPlan',route:'/api/agent-plan/apply',body:{confirm:'APPLY AGENT PLAN'}}],
   ['Archive replaced original',{state:'replaced',prepare:()=>click('[data-action="view"][data-id="mjobs-worker"]'),button:'[data-action="retire"]',confirm:'#confirmRetire',phrase:['#retireConfirm','mjobs-worker'],route:'/api/retire',body:{id:'mjobs-worker',confirm:'mjobs-worker'}}],

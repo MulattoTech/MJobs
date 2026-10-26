@@ -55,6 +55,19 @@ test('legacy preserved targets bind a creation predating the snapshot; new targe
  const h=archivedFixture();h.current.createdAt='2026-10-22T10:00:01Z';h.state.after=clone(h.current);
  await h.run();assert.equal(h.state.requests.length,0,'A recorded creation is exact even when both values predate the snapshot');
 });
+test('legacy restoration rejects missing, invalid and non-finite live creation timestamps before probing',async t=>{
+ const cases=[['missing',undefined],['invalid','not-a-date'],['non-finite',Infinity]];
+ for(const [name,value] of cases)await t.test(name,async()=>{
+  const f=archivedFixture({legacy:true});
+  if(value===undefined)delete f.current.createdAt;else f.current.createdAt=value;
+  f.state.after=clone(f.current);await f.run();
+  assert.equal(f.state.requests.length,0,'Invalid live identity must not reach the native probe');
+  assert.equal(f.state.reads,0,'Invalid live identity must not reach post-probe evidence collection');
+  assert.equal(f.counts.stoppedEvidence.size,0,'Invalid live identity must not acquire restoration evidence');
+  assert.equal(runtimeAbsentEvidence(f.current,f.counts,NOW,f.scope()),null);
+  assert.deepEqual(f.counts.evidenceDiagnostics,[{id:f.current.id,reason:'INCOMPLETE_NATIVE_SESSION_IDENTITY'}]);
+ });
+});
 test('historical archives and archived Chat remain outside the scoped TUI recovery exception',async()=>{
  const f=archivedFixture();const retired={...clone(f.current),id:'unrelated-retired-worker'};
  f.options.readSessions=async()=>[clone(f.current),retired];

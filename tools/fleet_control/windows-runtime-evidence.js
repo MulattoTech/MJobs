@@ -83,6 +83,7 @@ function createRestorationScope(snapshot,targets){
 }
 function scopedRestorationTarget(identity,scope,now){
  if(!identity||!scope||scope.version!==1||scope.type!==RESTORATION_SCOPE_TYPE||!Number.isFinite(now)||
+  typeof identity.createdAt!=='string'||!Number.isFinite(Date.parse(identity.createdAt))||
   !Number.isFinite(Date.parse(scope.snapshotAt))||Date.parse(scope.snapshotAt)>now)return null;
  const verified=createRestorationScope({at:scope.snapshotAt,sessions:scope.targets},scope.targets);
  if(!verified||scope.fingerprint!==verified.fingerprint)return null;
