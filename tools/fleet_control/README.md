@@ -24,6 +24,8 @@ Startup can resume saved agent work and consume allowance. Dashboard launch and 
 
 Startup requests have stable IDs and durable ownership. Double clicks and response retries recover the same operation. Cancel remains available; any possibly submitted native operation must be reconciled before another launch. **Recheck safely** reads current guard, manifest and runtime evidence and never submits work. Unknown results remain explicit. Restarting the dashboard pauses saved restoration instead of replaying it automatically.
 
+After an interrupted partial restore, Recheck may report **resumable** when every preserved target is either healthy or positively stopped, the exact saved identities still match, and no native submission is unresolved. **Continue Startup…** then resumes the existing recovery path under a new explicit request. Recheck preserves the original restore ledger and does not launch agents. See the [recovery diagnosis and runbook](../../docs/fleet-recovery-20261026.md).
+
 The advanced **REARM**, **Arm auto-stop**, and **Restore Fleet** controls remain available for individual operations. Advanced Restore does not release an emergency latch. A past completed restore is labelled historical until current health is confirmed.
 
 The saved emergency latch remains authoritative across dashboard restarts. A restored allowance alone does not start work. Stale, unavailable, malformed, expired or future-dated telemetry blocks new dispatch. Resetting a displayed timer is not proof of a provider allowance reset.
@@ -91,6 +93,21 @@ The installed AGY statusline hook copies only native quota fields into a local s
 The roster refreshes independently of pending writes. Concurrent refresh requests coalesce, GETs have deadlines and failed reads retain a clearly labelled stale snapshot. Writes have bounded waits and are never automatically retried. Offline PR/CI data is not labelled live. Configuration can be staged offline; execution needs fresh preflight.
 
 ## Source, tests and deployment
+
+### Remote status and quiet startup
+
+The read-only remote board is at **https://m-techlabs.com/mission-control/** under the existing M-TechLabs hub's Cloudflare Access protection. It shows current runtime verification, actual activity, dispatch, allowance, and Mission Control launch lanes. Its ten-second publisher exports only allowlisted status; stale observations become unavailable. Local control APIs remain on loopback. See [remote deployment and verification](remote/README.md).
+
+Install the hidden, standard-user dashboard task and the remote status view from the installed source:
+
+```powershell
+pwsh -NoProfile -File C:\Tools\AO-Fleet-Control\Install-Fleet-Dashboard-Task.ps1 -RunNow
+pwsh -NoProfile -File C:\Tools\AO-Fleet-Control\Install-Fleet-Remote-View.ps1 -InstallTask -RunNow
+```
+
+The dashboard task starts the local boards at sign-in. The separate remote task keeps publishing status even when a board is unavailable. Neither task starts agents or enables dispatch. The remote view installer backs up the previous hub page and remote assets before adding its service card.
+
+### Local source and regression evidence
 
 The reviewed source is tracked in the MJobs repository under `tools/fleet_control`. The installed runtime directory is `C:\Tools\AO-Fleet-Control`.
 

@@ -21,6 +21,8 @@ const sessions=[
  agent('mjobs-luna-9','Fast implementation'),
  agent('mjobs-luna-10','Fast implementation')
 ];
+sessions[3].activity='waiting_input';
+sessions.push({...agent('mjobs-blocked','Critical review'),activity:'blocked'});
 const snap={timestamp:iso(clockTime),metrics:{ramFree:18*1024**3,cpu:15},summary:{total:5,working:0,idle:5,idleFree:4},sessions};
 const gh={open:[
  {number:772,headRefOid:'1'.repeat(40),statusCheckRollup:[{conclusion:'FAILURE'}],isDraft:true,reviewDecision:''},
@@ -50,6 +52,8 @@ async function test(){
  const first=await sustain.tick();
  assert.equal(first.sent.length,5);
  assert.equal(sent.length,5);
+ assert.ok(sent.some(args=>args.includes('mjobs-luna-9')),'An instruction-waiting worker receives its assigned work');
+ assert.ok(!sent.some(args=>args.includes('mjobs-blocked')),'A pending decision never receives an automatic instruction despite a stale isIdle flag');
  assert.equal(sent.find(x=>x.includes('mjobs-luna-35')).includes('--steer'),true);
  assert.equal(new Set(sent.map(x=>x[2])).size,5);
  assert.ok(sustain.status.leases[173]);
@@ -98,7 +102,19 @@ async function test(){
  const {isUsageLimit}=require('./control-errors');
  assert.equal(isUsageLimit(new Error('Command failed\nHTTP 429: usage limit reached')),true,'Private multiline provider classification remains functional');
  assert.equal(isUsageLimit(new Error('Unrelated connection failure')),false);
- console.log('PASS Sustain: ownership, no duplicate sends, Chat/TUI delivery, resource gates, persistence, provider backoff and private diagnostics');
+ // A decision dialog appearing after selection must still stop delivery.
+ const raceRoot=path.join(root,'decision-race');fs.mkdirSync(raceRoot);
+ const raceSent=[];let raceReads=0;
+ const raceAgent={...agent('race-primary','Orchestration',[],'orchestrator'),mode:'tui',activity:'waiting_input'};
+ const race=new Sustain({root:raceRoot,autoSchedule:false,clock:()=>clockTime,turbo,
+  getState:async()=>({...snap,sessions:[{...raceAgent,activity:++raceReads===1?'waiting_input':'blocked'}]}),
+  command:async args=>raceSent.push(args),audit:()=>{}});
+ race.enable(true);
+ const raceResult=await race.tick();race.enable(false);
+ assert.ok(raceReads>=2,'The instruction-ready candidate was selected and rechecked');
+ assert.ok(race.latest.selected.some(x=>x.id==='race-primary'));
+ assert.equal(raceResult.sent.length,0);assert.deepEqual(raceSent,[],'A newly blocked native activity wins over isIdle');
+ console.log('PASS Sustain: ownership, duplicate protection, instruction-waiting delivery, decision-race rejection, resource gates, persistence and private diagnostics');
  fs.rmSync(root,{recursive:true,force:true});
 }
 test().catch(e=>{console.error(e.stack);process.exitCode=1});

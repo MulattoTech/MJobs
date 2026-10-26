@@ -2,9 +2,18 @@
 // Deliberately excludes browser tests that might click live action buttons.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
 const exec=promisify(execFile);
-const testFiles=['test-dispatch-safety.js','test-dispatch-ledger.js','test-control-concurrency.js','test-stale-dispatch.js','test-quota.js','test-quota-freshness.js','test-recovery-7pct.js','test-turbo.js','test-all-hands.js','test-sustain.js','test-active-turn-observation.js','test-find-work.js','test-master.js','test-restore.js','test-restore-replacements.js','test-paused-manifest.js','test-stale-watchdog.js','test-agent-plans.js','test-agent-plan-apply.js','test-provider-catalog.js','test-preflight.js','test-monitor-identity.js','test-gemini-usage.js','test-dashboard-refresh.js','test-startup.js','test-startup-adapter.js','test-startup-integration.js','test-orchestrator-launcher.js','test-runtime-health.js','test-restore-startup-safety.js','test-windows-runtime-evidence.js','test-codex-shell.js'];
+const testFiles=['test-dispatch-safety.js','test-dispatch-ledger.js','test-control-concurrency.js','test-stale-dispatch.js','test-quota.js','test-quota-freshness.js','test-recovery-7pct.js','test-turbo.js','test-all-hands.js','test-sustain.js','test-active-turn-observation.js','test-find-work.js','test-master.js','test-restore.js','test-restore-replacements.js','test-paused-manifest.js','test-stale-watchdog.js','test-agent-plans.js','test-agent-plan-apply.js','test-provider-catalog.js','test-preflight.js','test-monitor-identity.js','test-gemini-usage.js','test-dashboard-refresh.js','test-startup.js','test-startup-adapter.js','test-startup-integration.js','test-orchestrator-launcher.js','test-runtime-health.js','test-restore-startup-safety.js','test-windows-runtime-evidence.js','test-codex-shell.js','test-branch-workspace-evidence.js','test-branch-adoptions.js','test-post-submission-review.js','test-post-review-native-runtime.js','remote/test-exporter.js'];
 function sourceFingerprint(root){
- const files=[...fs.readdirSync(root).filter(f=>/\.(js|ps1|psm1|vbs|cs)$/i.test(f)),...fs.readdirSync(path.join(root,'public')).filter(f=>/\.(js|css|html)$/.test(f)).map(f=>'public/'+f)].sort();
+ const files=fs.readdirSync(root).filter(f=>/\.(js|ps1|psm1|vbs|cs)$/i.test(f));
+ function assets(directory){
+  const location=path.join(root,directory);if(!fs.existsSync(location))return;
+  for(const entry of fs.readdirSync(location,{withFileTypes:true})){
+   const relative=directory+'/'+entry.name;
+   if(entry.isDirectory())assets(relative);
+   else if(entry.isFile()&&/\.(js|css|html)$/.test(entry.name))files.push(relative);
+  }
+ }
+ assets('public');assets('remote');files.sort();
  const hash=crypto.createHash('sha256');for(const file of files){hash.update(file+'\0');hash.update(fs.readFileSync(path.join(root,file)));}return hash.digest('hex');
 }
 async function run(root=__dirname){

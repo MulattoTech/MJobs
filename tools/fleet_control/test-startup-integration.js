@@ -25,7 +25,7 @@ function fixture() {
     run: { runId: 'startup-run-001', phase: 'idle', active: false, reconciliationRequired: false },
     snapshot: { sessions: [{ id: 'worker-001', kind: 'worker', activity: 'idle' }], offline: false },
     startupCount: 0, readiness: { ready: false, reason: 'Daemon offline' },
-    onRestore: null, onLaunch: null, onReconcile: null,
+    onRestore: null, onLaunch: null, onReconcile: null, onReviewedCompletion: null,
   };
   const makeMode = name => ({
     running: false, config: { enabled: false },
@@ -95,6 +95,11 @@ function fixture() {
   const modules = {
     './turbo': { Turbo: dummy }, './sustain': { Sustain: dummy }, './master-controls': { MasterControls: dummy },
     './startup-control': { StartupController: dummy }, './startup-adapter': { StartupAdapter: dummy },
+    './post-review-control': { completeReviewedRestore: async data => {
+      if(data.confirm!=='COMPLETE REVIEWED RESTORE')throw Error('Explicit reviewed completion required');
+      if(b.onReviewedCompletion)await b.onReviewedCompletion();
+      b.effects.push({op:'reviewed-completion'});return {phase:'complete',reviewCompleted:true};
+    } },
     './orchestrator-launcher': { OrchestratorLauncher: dummy }, './quota-control': { QuotaControl: dummy },
     './find-work': { FindWork: dummy }, './dispatch-ledger': { DispatchLedger: dummy }, './agent-plans': { AgentPlans: dummy },
     './preflight': { preflight: () => ({ ready: false }) }, './runtime-health': { runtimeHealthy: () => false },
@@ -139,6 +144,18 @@ function fixture() {
   return { b, context, post, get, subject: context.subject, setLock: value => vm.runInContext('mutationLock=' + !!value, context), locked: () => vm.runInContext('mutationLock', context) };
 }
 
+test('reviewed completion route holds the existing mutation lane and cannot submit native work',async()=>{
+ const f=fixture(),entered=deferred(),gate=deferred();
+ f.b.run.phase='uncertain';f.b.run.reconciliationRequired=true;
+ f.b.onReviewedCompletion=async()=>{entered.resolve();await gate.promise;};
+ const pending=f.post('/api/master/restore/complete-reviewed',{confirm:'COMPLETE REVIEWED RESTORE',runId:f.b.run.runId,reviewRevision:'a'.repeat(64)});
+ await entered.promise;assert.equal(f.locked(),true);
+ const competing=await f.post('/api/startup',{confirm:'STARTUP',requestId:'competing-start-001'});
+ assert.equal(competing.status,409);assert.equal(f.locked(),true);assert.deepEqual(f.b.native,[]);
+ gate.resolve();const result=await pending;assert.equal(result.status,200);assert.equal(result.body.reviewCompleted,true);assert.equal(f.locked(),false);
+ assert.deepEqual(f.b.effects,[{op:'reviewed-completion'}]);assert.deepEqual(f.b.native,[]);
+});
+
 test('Startup route is explicit, local-only, available under emergency lock, and returns asynchronous accepted state', async t => {
   for (const kind of ['bad host', 'bad origin', 'bad action header', 'no confirmation', 'accepted']) await t.test(kind, async () => {
     const f = fixture(); f.b.locked = true; const headers = {};
@@ -161,7 +178,7 @@ test('rejected Startup and recheck requests never release a different operation 
 });
 
 test('protected Startup blocks all manual dispatch, agent replacement and safety reconfiguration routes', async t => {
-  for (const route of ['/api/nudge', '/api/replace', '/api/retire', '/api/agent-plan/apply', '/api/find-work', '/api/find-work/all', '/api/turbo/all-hands', '/api/turbo/toggle', '/api/sustain/toggle', '/api/quota/config', '/api/quota/arm', '/api/master/rearm', '/api/master/restore']) await t.test(route, async () => {
+  for (const route of ['/api/nudge', '/api/replace', '/api/retire', '/api/agent-plan/apply', '/api/find-work', '/api/find-work/all', '/api/turbo/all-hands', '/api/turbo/toggle', '/api/sustain/toggle', '/api/quota/config', '/api/quota/arm', '/api/master/rearm', '/api/master/restore', '/api/master/restore/complete-reviewed']) await t.test(route, async () => {
     const f = fixture(); f.b.run.active = true; f.b.run.phase = 'waiting_guard_ack';
     const result = await f.post(route, { id: 'worker-001', enabled: true });
     assert.equal(result.status, 409); assert.deepEqual(f.b.effects, []); assert.deepEqual(f.b.native, []);
@@ -218,6 +235,24 @@ test('reconciliation holds the manual lane until its read-only proof finishes', 
   const checking = f.post('/api/startup/reconcile', { confirm: 'RECHECK STARTUP', runId: f.b.run.runId }); await entered.promise;
   assert.equal(f.locked(), true); assert.equal((await f.post('/api/nudge', { id: 'worker-001' })).status, 409); assert.equal(f.locked(), true);
   gate.resolve(); assert.equal((await checking).status, 200); assert.equal(f.locked(), false); assert.deepEqual(f.b.effects, []);
+});
+
+test('partial Recheck reports resumable state without native effects and needs a separate explicit Startup request', async () => {
+  const f = fixture();
+  f.b.run = { ...f.b.run, phase: 'uncertain', reconciliationRequired: true };
+  f.b.onReconcile = async () => {
+    f.b.run = { ...f.b.run, phase: 'resumable', reconciliationRequired: false,
+      reconciliation: { outcome: 'resumable', healthyTargetIds: ['mjobs-primary'], stoppedTargetIds: ['worker-001'] } };
+  };
+  const checked = await f.post('/api/startup/reconcile', { confirm: 'RECHECK STARTUP', runId: f.b.run.runId });
+  assert.equal(checked.status, 200); assert.equal(checked.body.run.phase, 'resumable');
+  assert.equal(f.b.startupCount, 0); assert.deepEqual(f.b.native, []); assert.deepEqual(f.b.effects, []);
+  const status = await f.get('/api/startup');
+  assert.equal(status.body.run.phase, 'resumable'); assert.equal(status.body.readiness.ready, false);
+  assert.equal(f.b.startupCount, 0); assert.deepEqual(f.b.native, []);
+  const continued = await f.post('/api/startup', { confirm: 'STARTUP', requestId: 'explicit-partial-continuation-002' });
+  assert.equal(continued.status, 202); assert.equal(continued.body.run.phase, 'validating');
+  assert.equal(f.b.startupCount, 1); assert.deepEqual(f.b.native, []);
 });
 
 test('advanced Restore owns the mutation lane across async preview, preventing a racing protected Startup', async () => {

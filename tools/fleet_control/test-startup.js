@@ -283,6 +283,85 @@ function readyProof(ctx) {
 }
 const recheck = { confirm: 'RECHECK STARTUP', runId: 'prior-run-01' };
 
+function resumableFixture(t) {
+  const f = uncertainFixture(t), file = path.join(f.root, 'startup-state.json');
+  const saved = JSON.parse(fs.readFileSync(file, 'utf8')), now = Date.now(), at = delta => new Date(now + delta).toISOString();
+  saved.startedAt = at(-10000); saved.finishedAt = at(-1000); saved.restoreStarted = true; saved.actionPending = null;
+  saved.events = [{ phase: 'starting_restore', at: at(-9000) }, { phase: 'restoring', at: at(-7000) }];
+  saved.restoreReceipt = { startedAt: at(-8000), total: 3 };
+  Object.assign(saved.bootstrap, { targetIds: ['mjobs-primary', 'mjobs-worker-1', 'mjobs-worker-2'], manifestRevision: 'partial-manifest-1' });
+  fs.writeFileSync(file, JSON.stringify(saved)); return f;
+}
+function resumableProof(ctx) {
+  const original = ctx.previousRun, ids = [...original.bootstrap.targetIds], proof = readyProof(ctx);
+  delete proof.submissionAuditComplete; delete proof.submittedResume; delete proof.runningExpectedAgents;
+  return { ...proof, outcome: 'resumable', resumeAuditComplete: true, allExpectedTargetsAccounted: true,
+    allExpectedControllersHealthy: false, allExpectedRuntimesHealthy: false,
+    manifestRevision: original.bootstrap.manifestRevision, expectedTargetIds: ids,
+    healthyTargetIds: [ids[0]], stoppedTargetIds: ids.slice(1), verifiedTargetCount: 1, verifiedStoppedCount: 2,
+    durableSubmittedIds: [], unresolvedSubmittedIds: [], guard: { ...proof.guard, monitorEnabled: true },
+    restoreBinding: { verified: true, runId: ctx.runId, phase: 'paused', startedAt: original.restoreReceipt.startedAt,
+      stateFingerprint: 'a'.repeat(64), manifestRevision: original.bootstrap.manifestRevision,
+      targetIds: [...ids], sourceTargetIds: [...ids], desiredIds: [...ids] } };
+}
+
+test('partial reconciliation records a resumable outcome without claiming completion or no prior work', async t => {
+  const f = resumableFixture(t); f.deps.reconcile = async ctx => resumableProof(ctx);
+  const controller = f.make(), result = await controller.reconcile(recheck);
+  assert.equal(result.run.phase, 'resumable'); assert.equal(result.run.reconciliationRequired, false);
+  assert.equal(result.run.restoreStartAttempted, true); assert.equal(result.run.restoreStarted, true);
+  assert.equal(result.run.restore.restoredCount, 1); assert.equal(result.run.restore.verifiedStoppedCount, 2);
+  assert.deepEqual(result.run.reconciliation.healthyTargetIds, ['mjobs-primary']);
+  assert.deepEqual(result.run.reconciliation.stoppedTargetIds, ['mjobs-worker-1', 'mjobs-worker-2']);
+  assert.match(result.note, /new explicit Startup/); assert.deepEqual(f.events, []);
+  assert.equal(controller.start(request('prior-request-01')).idempotent, true); assert.deepEqual(f.events, []);
+  controller.start(request('continue-partial-002')); await controller.waitForIdle();
+  assert.equal(controller.status().phase, 'ready_paused'); assert.equal(f.events.filter(x => x === 'restore-start').length, 1);
+});
+
+test('malformed or incompletely bound partial proof never clears Startup uncertainty', async t => {
+  const cases = {
+    'missing stopped list': p => { delete p.stoppedTargetIds; },
+    'duplicate target': p => { p.stoppedTargetIds[1] = p.stoppedTargetIds[0]; },
+    'overlapping healthy and stopped': p => { p.stoppedTargetIds[0] = p.healthyTargetIds[0]; },
+    'unknown extra target': p => { p.stoppedTargetIds[1] = 'unknown-worker'; },
+    'missing target': p => { p.stoppedTargetIds.pop(); p.verifiedStoppedCount = 1; },
+    'wrong healthy count': p => { p.verifiedTargetCount = 2; },
+    'wrong stopped count': p => { p.verifiedStoppedCount = 1; },
+    'wrong expected count': p => { p.expectedTargetCount = 4; },
+    'different expected IDs': p => { p.expectedTargetIds[0] = 'other-primary'; },
+    'different source IDs': p => { p.restoreBinding.sourceTargetIds[1] = 'other-worker'; },
+    'different desired IDs': p => { p.restoreBinding.desiredIds[1] = 'other-worker'; },
+    'missing source binding': p => { delete p.restoreBinding; },
+    'binding not verified': p => { p.restoreBinding.verified = false; },
+    'invalid fingerprint': p => { p.restoreBinding.stateFingerprint = 'unverified'; },
+    'different bound run': p => { p.restoreBinding.runId = 'other-run'; },
+    'unrecognized restore phase': p => { p.restoreBinding.phase = 'idle'; },
+    'restore before run': p => { p.restoreBinding.startedAt = '2001-01-01T00:00:00.000Z'; },
+    'different manifest': p => { p.manifestRevision = 'different'; },
+    'different bound manifest': p => { p.restoreBinding.manifestRevision = 'different'; },
+    'unresolved healthy submission': p => { p.durableSubmittedIds = ['mjobs-primary']; },
+    'unresolved stopped submission': p => { p.unresolvedSubmittedIds = ['mjobs-worker-1']; },
+    'missing durable ledger proof': p => { delete p.durableSubmittedIds; },
+    'audit incomplete': p => { p.resumeAuditComplete = false; },
+    'coverage incomplete': p => { p.allExpectedTargetsAccounted = false; },
+    'dispatch not held': p => { p.dispatchPaused = false; },
+    'restore active': p => { p.restoreActive = true; },
+    'launch active': p => { p.launchActive = true; },
+    'guard unacknowledged': p => { p.guard.acknowledgedRevision = 'old'; },
+    'guard stale': p => { p.guard.fresh = false; },
+    'guard disabled': p => { p.guard.monitorEnabled = false; },
+    'quota low': p => { p.guard.remainingPercent = 15; },
+    'emergency latched': p => { p.emergencyLatched = true; },
+  };
+  for (const [name, alter] of Object.entries(cases)) await t.test(name, async st => {
+    const f = resumableFixture(st); f.deps.reconcile = async ctx => { const proof = resumableProof(ctx); alter(proof); return proof; };
+    const controller = f.make(), before = controller.status(), result = await controller.reconcile(recheck);
+    assert.equal(result.reconciled, false); assert.equal(result.run.phase, 'uncertain');
+    assert.equal(result.run.revision, before.revision); assert.deepEqual(f.events, []);
+  });
+});
+
 test('reconcile requires exact confirmation and target run', async t => {
   const f = uncertainFixture(t); f.deps.reconcile = async ctx => stoppedProof(ctx);
   const controller = f.make();

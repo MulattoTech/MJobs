@@ -83,7 +83,7 @@ class StartupController {
       options: { openUi, autoDispatchAfter: false }, policy: { ...POLICY },
       recentRequests: [...this.state.recentRequests, { requestId, runId }].slice(-32),
       dispatchHeld: false, latchReleased: false, initialEmergencyRevision: null,
-      guardReceipt: null, guardAcknowledged: false, restoreStartAttempted: false, restoreStarted: false,
+      guardReceipt: null, guardAcknowledged: false, restoreStartAttempted: false, restoreStarted: false, restoreReceipt: null,
       actionPending: null, restore: null, cleanup: null, error: null,
     };
     this._persist(false);
@@ -219,7 +219,8 @@ class StartupController {
     await this._checkSafety({ allowLatched: true, baseline: true });
     const boot = await this._call('bootstrap validation', this.deps.bootstrap);
     if (Number.isInteger(boot?.targetCount) && boot.targetCount > 0) {
-      this.state.bootstrap = { targetCount: boot.targetCount, alreadyOnline: boot.alreadyOnline === true, primaryIds: Array.isArray(boot.primaryIds) ? boot.primaryIds.map(String) : [], targetIds: Array.isArray(boot.targetIds) ? boot.targetIds.map(String) : [], manifestRevision: boot.manifestRevision || null }; this._persist();
+      if (boot.branchAdoptionsRevision != null && (typeof boot.branchAdoptionsRevision !== 'string' || !/^[a-f0-9]{64}$/.test(boot.branchAdoptionsRevision))) throw new StartupError('BOOTSTRAP_BLOCKED', 'Reviewed workspace branch mapping returned an invalid revision');
+      this.state.bootstrap = { targetCount: boot.targetCount, alreadyOnline: boot.alreadyOnline === true, primaryIds: Array.isArray(boot.primaryIds) ? boot.primaryIds.map(String) : [], targetIds: Array.isArray(boot.targetIds) ? boot.targetIds.map(String) : [], manifestRevision: boot.manifestRevision || null, ...(Object.hasOwn(boot,'branchAdoptionsRevision')?{branchAdoptionsRevision:boot.branchAdoptionsRevision??null}:{}) }; this._persist();
     }
     if (boot?.ok !== true || !Number.isInteger(boot.targetCount) || boot.targetCount < 1) throw new StartupError('BOOTSTRAP_BLOCKED', String(boot?.reason || 'Manifest, resources, binaries and primary controllers must pass bootstrap validation'), boot?.reconciliationRequired === true);
     await this._checkSafety({ allowLatched: true });
@@ -246,7 +247,8 @@ class StartupController {
     if (!boot.alreadyOnline) {
       this._transition('starting_restore');
       this.state.restoreStartAttempted = true; this._persist();
-      await this._call('start existing RestoreFleet', ctx => this.deps.restore.start(ctx), { mutates: true, timeoutMs: this.timeouts.actionMs });
+      const receipt = await this._call('start existing RestoreFleet', ctx => this.deps.restore.start(ctx), { mutates: true, timeoutMs: this.timeouts.actionMs });
+      if (typeof receipt?.startedAt === 'string' && Number.isFinite(Date.parse(receipt.startedAt)) && receipt.total === boot.targetCount) this.state.restoreReceipt = { startedAt: receipt.startedAt, total: receipt.total };
       this.state.restoreStarted = true; this._persist();
       await this._wait('fleet restoration', 'restoring', this.timeouts.restoreMs, async ctx => {
         const status = await this.deps.restore.status(ctx);
@@ -354,12 +356,28 @@ class StartupController {
         if (proof.noOperationInFlight !== true || proof.dispatchPaused !== true || proof.restoreActive !== false || proof.launchActive !== false) return pending(proof.reason || 'No-operation-in-flight and paused-dispatch evidence is incomplete. Nothing was cleared.');
         let outcome = null;
         const guard = proof.guard;
+        const validGuard = guard?.fresh === true && guard.armed === true && guard.tripped === false && Number.isFinite(guard.remainingPercent) && guard.remainingPercent > POLICY.brakePercent && guard.remainingPercent <= 100 && guard.ordinaryUsageAllowed !== false && guard.thresholdPercent === POLICY.thresholdPercent && guard.pollSeconds === POLICY.pollSeconds && guard.window === POLICY.window && typeof guard.revision === 'string' && guard.revision.length > 0 && guard.acknowledgedRevision === guard.revision;
         if (proof.outcome === 'ready_paused') {
           const expected = original.bootstrap?.targetCount;
           const count = proof.expectedTargetCount;
-          const validGuard = guard?.fresh === true && guard.armed === true && guard.tripped === false && Number.isFinite(guard.remainingPercent) && guard.remainingPercent > POLICY.brakePercent && guard.remainingPercent <= 100 && guard.ordinaryUsageAllowed !== false && guard.thresholdPercent === POLICY.thresholdPercent && guard.pollSeconds === POLICY.pollSeconds && guard.window === POLICY.window && typeof guard.revision === 'string' && guard.revision.length > 0 && guard.acknowledgedRevision === guard.revision;
           if (proof.emergencyLatched !== false || !validGuard || proof.expectedTargetsMatch !== true || proof.allExpectedControllersHealthy !== true || proof.allExpectedRuntimesHealthy !== true || !Number.isInteger(count) || count <= 0 || (Number.isInteger(expected) && count !== expected) || proof.verifiedTargetCount !== count) return pending(proof.reason || 'Current guard acknowledgment and every expected controller/runtime have not all been positively verified. Nothing was cleared.');
           outcome = 'ready_paused';
+        } else if (proof.outcome === 'resumable') {
+          const expected = original.bootstrap?.targetIds, healthy = proof.healthyTargetIds, stopped = proof.stoppedTargetIds, binding = proof.restoreBinding;
+          const sameIds = (left, right) => Array.isArray(left) && Array.isArray(right) && left.every(id => typeof id === 'string') && right.every(id => typeof id === 'string') && new Set(left).size === left.length && new Set(right).size === right.length && JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
+          const events = Array.isArray(original.events) ? original.events : [];
+          const stage = events.filter(event => event?.phase === 'starting_restore');
+          const waiting = events.filter(event => event?.phase === 'restoring');
+          const uncommitted = binding?.kind === 'uncommitted-start';
+          const times = (uncommitted ? [binding?.startedAt, original.startedAt, stage[0]?.at, original.actionPending?.startedAt, original.finishedAt] : [original.startedAt, stage[0]?.at, binding?.startedAt, waiting[0]?.at, original.finishedAt]).map(value => Date.parse(value || ''));
+          const ordered = times.every(Number.isFinite) && times.every((time, index) => index === 0 || time >= times[index - 1]) && times[4] <= this.now() + 1000;
+          const priorOwner = (binding?.legacyPriorOwner === true && binding.priorRunId === null) || (binding?.legacyPriorOwner === false && typeof binding.priorRunId === 'string' && binding.priorRunId.length > 0 && binding.priorRunId !== runId);
+          const operationBound = uncommitted ? ordered && times[0] < times[1] && waiting.length === 0 && events.at(-1)?.phase === 'starting_restore' && original.restoreStarted === false && original.restoreReceipt === null && original.actionPending?.name === 'start existing RestoreFleet' && priorOwner && binding.startNotCommitted === true && binding.durableStateVerified === true && binding.durableStateFingerprint === binding.stateFingerprint && /^[a-f0-9]{64}$/.test(binding.durableBytesFingerprint || '') : (!binding?.kind || binding.kind === 'committed-restore') && ordered && waiting.length === 1 && original.restoreStarted === true && original.actionPending === null && (!original.restoreReceipt || original.restoreReceipt.startedAt === binding.startedAt && original.restoreReceipt.total === original.bootstrap?.targetCount);
+          const bound = binding?.verified === true && binding.runId === runId && ['paused', 'partial', 'failed'].includes(binding.phase) && typeof binding.stateFingerprint === 'string' && /^[a-f0-9]{64}$/.test(binding.stateFingerprint) && stage.length === 1 && operationBound;
+          const targetsValid = sameIds(expected, proof.expectedTargetIds) && sameIds(expected, binding?.targetIds) && sameIds(expected, binding?.sourceTargetIds) && sameIds(expected, binding?.desiredIds) && Array.isArray(healthy) && Array.isArray(stopped) && stopped.length > 0 && sameIds(expected, [...healthy, ...stopped]) && proof.expectedTargetCount === expected.length && original.bootstrap.targetCount === expected.length && proof.verifiedTargetCount === healthy.length && proof.verifiedStoppedCount === stopped.length;
+          const noUnresolved = Array.isArray(proof.durableSubmittedIds) && proof.durableSubmittedIds.length === 0 && Array.isArray(proof.unresolvedSubmittedIds) && proof.unresolvedSubmittedIds.length === 0;
+          if (!bound || !targetsValid || !noUnresolved || original.restoreStartAttempted !== true || proof.emergencyLatched !== false || !validGuard || guard.monitorEnabled !== true || proof.expectedTargetsMatch !== true || proof.resumeAuditComplete !== true || proof.allExpectedTargetsAccounted !== true || !original.bootstrap?.manifestRevision || proof.manifestRevision !== original.bootstrap.manifestRevision || binding.manifestRevision !== original.bootstrap.manifestRevision) return pending('The partial restore is not fully accounted for by fresh protected runtime evidence and the exact saved operation. No state was cleared.');
+          outcome = 'resumable';
         } else if (proof.outcome === 'idle') {
           if (proof.submissionAuditComplete !== true || proof.submittedResume !== false || proof.runningExpectedAgents !== 0) return pending(proof.reason || 'A submitted resume or running agent cannot be ruled out. Unknown work is not cleared for a retry.');
           outcome = 'idle';
@@ -378,13 +396,18 @@ class StartupController {
           this.state.dispatchHeld = true; this.state.guardAcknowledged = true;
           this.state.guardReceipt = { token: guard.revision, armedAt: guard.armedAt || proof.observedAt };
           this.state.restore = { phase: 'complete', active: false, total: proof.expectedTargetCount, restoredCount: proof.verifiedTargetCount, verifiedAt: proof.observedAt };
+        } else if (outcome === 'resumable') {
+          this.state.dispatchHeld = true; this.state.guardAcknowledged = true;
+          this.state.guardReceipt = { token: guard.revision, armedAt: guard.armedAt || proof.observedAt };
+          this.state.restore = { phase: proof.restoreBinding.phase, active: false, total: proof.expectedTargetCount, restoredCount: proof.verifiedTargetCount, verifiedStoppedCount: proof.verifiedStoppedCount, verifiedAt: proof.observedAt };
+          Object.assign(this.state.reconciliation, { manifestRevision: proof.manifestRevision, healthyTargetIds: [...proof.healthyTargetIds], stoppedTargetIds: [...proof.stoppedTargetIds], restoreBinding: clone(proof.restoreBinding) });
         } else {
           this.state.guardAcknowledged = false;
           this.state.restore = null;
         }
         this._persist(false);
         this._log('reconciled', { runId, outcome, inspectedRevision: expectedStateRevision });
-        return { statusCode: 200, reconciled: true, pending: false, note: outcome === 'ready_paused' ? 'Current protected runtimes verified. Automatic dispatch remains paused; no agents were launched by this recheck.' : 'No pending launch, running expected agent or submitted resume was found. A new explicit Startup request is allowed; no agents were launched by this recheck.', run: this.status() };
+        return { statusCode: 200, reconciled: true, pending: false, note: outcome === 'ready_paused' ? 'Current protected runtimes verified. Automatic dispatch remains paused; no agents were launched by this recheck.' : outcome === 'resumable' ? 'The partial fleet is accounted for: every preserved target is healthy or verified stopped, with no unresolved native submission. Use a new explicit Startup to continue. Recheck launched no agents and preserved the restore ledger.' : 'No pending launch, running expected agent or submitted resume was found. A new explicit Startup request is allowed; no agents were launched by this recheck.', run: this.status() };
       } finally { clearTimeout(timer); controller.abort(); }
     };
     this.reconcileTask = inspect().finally(() => { this.reconcileTask = null; });

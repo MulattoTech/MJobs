@@ -34,6 +34,7 @@ function load(file,fallback){
   try{return JSON.parse(fs.readFileSync(file,'utf8'))}catch{return clone(fallback)}
 }
 const {publicError,publicState,privateDiagnostic}=require('./control-errors');
+const {canReceiveInstruction}=require('./runtime-health');
 function errorText(e){return publicError('turbo',e)}
 function parseTime(value){const x=Date.parse(value||'');return Number.isFinite(x)?x:0}
 function recent(time,withinMs,now){return now-parseTime(time)<withinMs}
@@ -201,13 +202,13 @@ class Turbo {
    const refs=extractRefs(snapshot);
    const openPRs=gh?refs.filter(p=>fromGH.has(p.number)):refs;
    const candidate=(priority,kind,session,message,reason,key)=>{
-    if(!session?.isIdle||session.replacedBy)return;
+    if(!canReceiveInstruction(session))return;
     if(this.withinCooldown(session.id,kind==='primary'?'primary':kind,now))return;
     if(!session.id||!message||!key)return;
     actions.push({priority,kind,id:session.id,name:session.name,mode:session.mode,message:message.replaceAll('mjobs-luna-34',root?.id||'mjobs-luna-35'),reason,key});
    };
    if(!this.validRoot(root)){return {plan:[],blocked:'No active primary orchestrator',rootId:root?.id||null,openPRs:openPRs.length}}
-   const available=sessions.filter(s=>s.isIdle&&!s.openPRs&&!s.blocked&&s.kind==='worker'&&!s.replacedBy);
+   const available=sessions.filter(s=>canReceiveInstruction(s)&&!s.openPRs&&!s.blocked&&s.kind==='worker');
    const fail=openPRs.filter(p=>{
     const full=fromGH.get(p.number);
     if(gh&&full)return (full.statusCheckRollup||[]).some(x=>x.conclusion==='FAILURE'||x.conclusion==='TIMED_OUT');
@@ -216,15 +217,15 @@ class Turbo {
    const pending=openPRs.filter(p=>p.ci==='pending'||p.ci==='queued');
    const idleNames=available.filter(s=>s.role!=='Orchestration'&&!s.role.toLowerCase().includes('review')).slice(0,12).map(s=>s.id);
    const rootMessage='TURBO DISPATCH CHECKPOINT: You are the only MJobs primary integration owner. Live fleet '+sessions.length+' sessions; '+snapshot.summary.working+' working, '+snapshot.summary.idle+' idle. Existing PRs '+openPRs.map(p=>'#'+p.number+'('+p.ci+', owner '+p.owner+')').slice(0,14).join(', ')+'. '+(fail.length?'Urgent failing CI: '+fail.map(p=>'#'+p.number).join(', ')+'. ':'')+'Available implementation agents: '+idleNames.join(', ')+'. Assign exclusive P0/P1 GitHub issues and file scopes to existing idle implementation workers, prioritizing accepted deliverables. Review, refresh, and integrate eligible passing PRs with exact-head CI, required review and branch protection. Never edit dirty main, force-push, duplicate file ownership or submit real applications. Restrict simultaneous heavy local tests to '+this.config.maxLocalHeavyTests+'. Keep no more than '+this.config.targetWorking+' executing turns. Delegate with plain ao send --session ID --message TEXT (no --steer for TUI). Do not spawn new sessions. Reply with a short dispatch ledger: ownership by issue/file, reviewer assignments and CI blockers.';
-   if(root.isIdle&&(snapshot.summary.working<this.config.targetWorking||fail.length||openPRs.length))
+   if(canReceiveInstruction(root)&&(snapshot.summary.working<this.config.targetWorking||fail.length||openPRs.length))
     candidate(0,'primary',root,rootMessage,'Wake primary to allocate idle fleet and clear PR queue','primary:'+root.id);
    for(const p of fail){
     const owner=sessions.find(s=>s.id===p.owner);
-    if(!owner||!owner.isIdle||owner.kind==='orchestrator')continue;
+    if(!canReceiveInstruction(owner)||owner.kind==='orchestrator')continue;
     const msg='TURBO CI RECOVERY for your existing PR #'+p.number+'. Diagnose current exact-head failing checks without blind reruns. Use the existing PR and branch you own. Only modify your already-authorized files; coordinate any shared test or new file ownership with primary mjobs-luna-34. Fix proven failures, run focused checks, and publish an updated exact-head PR only when appropriate. Do not force-push, change dirty main, merge, or bypass CI. Report the root cause and CI evidence to the primary.';
     candidate(1,'ci',owner,msg,'Repair failing CI on owned PR #'+p.number,'ci:'+p.number);
    }
-   const reviewers=sessions.filter(s=>s.isIdle&&s.role.toLowerCase().includes('review')&&!s.replacedBy);
+   const reviewers=sessions.filter(s=>canReceiveInstruction(s)&&s.role.toLowerCase().includes('review'));
    for(const p of openPRs){
     const full=fromGH.get(p.number);
     if(!full?.headRefOid||full.headRefOid.length<35)continue;
@@ -240,7 +241,7 @@ class Turbo {
     const msg='TURBO READ-ONLY REVIEW: Inspect MJobs PR #'+p.number+' at exact GitHub head '+full.headRefOid+' independently. Review the diff, negative tests, boundaries and acceptance evidence. Do not edit files, trigger additional agents, merge, or claim ownership. Send actionable blocker/high-confidence findings and current-head verification to primary mjobs-luna-34, and report any outdated head. No duplicate review of unchanged head.';
     candidate(2,'review',reviewer,msg,'Review PR #'+p.number+' @ '+hash,'review:'+claimKey);
    }
-   const coordinators=sessions.filter(s=>s.isIdle&&s.role==='Orchestration'&&s.kind==='worker');
+   const coordinators=sessions.filter(s=>canReceiveInstruction(s)&&s.role==='Orchestration'&&s.kind==='worker');
    for(const coordinator of coordinators){
     const msg='TURBO COORDINATION CHECKPOINT. Report a concise list of concrete unclaimed P0/P1 issues or failing PRs to primary mjobs-luna-34 in your assigned lane. Avoid duplicating coordinator reports. You may assign work only if the primary has explicitly delegated exclusive ownership. Do not independently spawn agents or merge.';
     candidate(3,'coord',coordinator,msg,'Refresh '+coordinator.name+' lane plan','coord:'+coordinator.id);
@@ -319,7 +320,7 @@ class Turbo {
       if(this.isManualBusy())break;
       const current=await this.getState(true);
       const live=current.sessions.find(s=>s.id===action.id);
-      if(current.offline||!live?.isIdle||live.busy||live.replacedBy||live.isTerminated)continue;
+       if(current.offline||!canReceiveInstruction(live))continue;
       const resource=await this.signals(current);
       if(resource.pausedReason||current.summary.working>=this.config.targetWorking)break;
       // Persist reservation before sending. If the CLI times out, do not retry blindly.
@@ -375,7 +376,7 @@ Turbo.prototype.makeAllHandsPlan=async function(){
  const root=snap.sessions.find(s=>this.validRoot(s));
  if(!root)throw Error('Primary orchestrator missing. No All Hands dispatch permitted.');
  const now=this.clock();
- const people=(snap.sessions||[]).filter(s=>s.isIdle&&!s.replacedBy&&s.activity==='idle');
+ const people=(snap.sessions||[]).filter(canReceiveInstruction);
  const working=(snap.sessions||[]).filter(s=>s.busy);
  const plans=[],skips=[],assignedPR=new Set();
  const sessionSent=(s)=>this.session.actions.some(a=>a.id===s.id&&a.kind==='allhands'&&recent(a.at,allHandsHoldMs,now));
@@ -478,7 +479,7 @@ Turbo.prototype.allHands=async function(){
    if(current.offline||(await this.signals(current)).pausedReason)break;
    const results=await Promise.all(batch.map(async agent=>{
     const live=current.sessions.find(s=>s.id===agent.id);
-    if(!live||!live.isIdle||live.replacedBy)return {id:agent.id,skipped:true,reason:'Agent began work or is no longer available'};
+    if(!canReceiveInstruction(live))return {id:agent.id,skipped:true,reason:'Agent began work, needs a decision, or is no longer available'};
     if(this.session.actions.some(a=>a.id===agent.id&&a.kind==='allhands'&&recent(a.at,allHandsHoldMs,this.clock())))
      return {id:agent.id,skipped:true,reason:'Already contacted in this burst'};
     const rec={at:new Date(this.clock()).toISOString(),id:agent.id,kind:'allhands',key:'allhands:'+agent.id,status:'reserved',reason:agent.reason};

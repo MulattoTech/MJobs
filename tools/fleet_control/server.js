@@ -10,6 +10,7 @@ const { Sustain } = require('./sustain');
 const { MasterControls } = require('./master-controls');
 const { StartupController } = require('./startup-control');
 const { StartupAdapter } = require('./startup-adapter');
+const { completeReviewedRestore } = require('./post-review-control');
 const { OrchestratorLauncher } = require('./orchestrator-launcher');
 const { runtimeHealthy, addControllerHealth, controllerStopped } = require('./runtime-health');
 const { QuotaControl } = require('./quota-control');
@@ -89,6 +90,7 @@ function startupBlockReason({allowRestore=false}={}){
  const s=startup?.status();
  if(!s)return 'Startup safety controller has not initialized';
  if(s.reconciliationRequired||s.phase==='uncertain')return 'Interrupted Startup needs reconciliation before more work';
+ if(s.phase==='resumable')return 'Interrupted Startup is verified resumable; run Startup to finish restoring the fleet before dispatch';
  if(s.active&&!(allowRestore&&['starting_restore','restoring'].includes(s.phase)))return 'Protected Startup is running; wait for runtime verification';
  return null;
 }
@@ -96,6 +98,13 @@ function workBlockReason({allowStartupRestore=false}={}){
  if(master?.locked())return 'Emergency shutdown lockout is active';
  if(master?.drainState?.enabled)return 'Graceful wind-down is active';
  return quota?.dispatchBlockReason()||startupBlockReason({allowRestore:allowStartupRestore})||null;
+}
+function dispatchHealthBlockReason(){
+ // Report the enabled scheduler's observed hold as well as the control gates.
+ // This projection is display-only; starting work keeps its existing guards.
+ return workBlockReason()||
+  (sustain?.config.enabled&&typeof sustain.latest?.blocked==='string'?sustain.latest.blocked:null)||
+  (turbo?.config.enabled&&typeof turbo.latest?.pausedReason==='string'?turbo.latest.pausedReason:null)||null;
 }
 function assertCanStartWork(options){
  const reason=workBlockReason(options);
@@ -142,7 +151,7 @@ function transform(s,replacements){
  const controllerUnavailable=s.mode==='chat'&&(s.controllerVerified!==true||!['ready','busy'].includes(s.controllerState));
  const activity=controllerUnavailable?'exited':s.activity?.state || 'unknown';
  const busy=activity==='active'||activity==='working';
- const isIdle=activity==='idle';
+ const isIdle=activity==='idle'||activity==='waiting_input';
  // Finished PRs retain their last recorded CI result as history, not a live
  // assignment blocker. Ignore an aggregate ci_failed only when every tracked
  // reference is positively completed; missing/unknown references stay cautious.
@@ -158,7 +167,7 @@ function transform(s,replacements){
   createdAt:s.createdAt||null,branch:s.branch||null,
   branchState:s.branchState||{},mode:s.mode||null,prs,openPRs:openPRs.length,
   busy,isIdle,blocked,isTerminated:!!s.isTerminated,
-  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':'Idle · available'):(activity==='exited'?'Exited':activity),
+  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':activity==='waiting_input'?'Awaiting instruction':'Idle · available'):(activity==='exited'?'Exited':activity),
   controllerState:s.controllerState||null,controllerVerified:s.controllerVerified??null,
   replacementFor:replacementFor?.oldId||null,replacedBy:replacedBy?.newId||null,
   effortKnown:false
@@ -490,6 +499,12 @@ async function main(req,res){
     const result=await master.restoreStart({autoDispatchAfter:data.autoDispatchAfter===true});
     return json(res,202,result);
    }
+   if(req.url==='/api/master/restore/complete-reviewed'){
+    if(mutationLock||sustain.running||turbo.running||findWork.running)throw Error('Another control operation is running');
+    mutationLock=true;ownsMasterLane=true;
+    const result=await completeReviewedRestore(data,{master,startup,quota,launcher:orchestratorLauncher,adapter:startupAdapter,sustain,turbo,findWork});
+    return json(res,200,result);
+   }
    if(req.url==='/api/master/restore/pause')return json(res,200,master.restorePause());
    if(req.url==='/api/master/emergency'){
     if(data.confirm!=='KILL ALL CODEX')throw Error('Explicit emergency confirmation missing');
@@ -508,7 +523,7 @@ async function main(req,res){
   catch(e){return json(res,503,{codexExecutableReady:false,error:e.message})}
  }
  if(req.method==='GET'&&req.url==='/api/state'){try{return json(res,200,await state(true))}catch(e){return json(res,503,{error:String(e.message)})}}
- if(req.method==='GET'&&req.url==='/api/health'){return json(res,200,{ok:true,port,host:listenHost,turboEnabled:turbo?.configuration().enabled,sustainedEnabled:sustain?.config.enabled,dispatchBlockedReason:workBlockReason()})}
+ if(req.method==='GET'&&req.url==='/api/health'){return json(res,200,{ok:true,port,host:listenHost,turboEnabled:turbo?.configuration().enabled,sustainedEnabled:sustain?.config.enabled,dispatchBlockedReason:dispatchHealthBlockReason()})}
  if(req.method==='GET'&&req.url==='/api/sustain')return json(res,200,sustain.summary());
  if(req.method==='GET'&&req.url==='/api/sustain/preview'){
   try{return json(res,200,await sustain.preview())}catch(e){return json(res,409,{error:e.message})}
@@ -595,7 +610,8 @@ turbo=new Turbo({root,getState:state,command,audit,isManualBusy:()=>mutationLock
 sustain=new Sustain({root,getState:state,turbo,command,audit,isManualBusy:()=>mutationLock||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason()||!!startupBlockReason(),projectId});
 turbo.sustain=sustain;
 master=new MasterControls({root,sustain,turbo,command,audit,getState:state,getAllSessions:getLiveSessions,projectId,
- restoreOptions:{launchAO:()=>orchestratorLauncher.launch('daemon',{beforeTrigger:()=>{
+ restoreOptions:{snapshotFrozen:()=>!!startup?.status().active||!!startup?.status().reconciliationRequired,
+ launchAO:()=>orchestratorLauncher.launch('daemon',{beforeTrigger:()=>{
   if(!master.restore.state.active||master.locked()||quota.dispatchBlockReason()||startupBlockReason({allowRestore:true}))throw Error('Restore was stopped before Orchestrator could launch');
  }}),runtimeHealth:runtimeHealthy,controllerStopped},
  restoreCommand:(args,ms)=>command(args,ms,{startupRestore:true}),

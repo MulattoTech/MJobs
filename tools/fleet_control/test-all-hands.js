@@ -29,6 +29,9 @@ const github={open:[
  {number:772,headRefOid:'b'.repeat(40),statusCheckRollup:[{conclusion:'FAILURE'}]},
  {number:761,headRefOid:'c'.repeat(40),statusCheckRollup:[{conclusion:'SUCCESS'}]}
 ],merged:[],at:new Date(timestamp).toISOString()};
+base.sessions[0].activity='waiting_input';
+base.sessions[6].activity='waiting_input';
+base.sessions.push({...idle('mjobs-blocked','Fast implementation'),activity:'blocked'});
 async function test(){
  const sent=[],logs=[];
  const turbo=new Turbo({root:loc,getState:async()=>base,command:async a=>{sent.push(a);return'ok'},
@@ -50,6 +53,8 @@ async function test(){
  assert.equal(result.uncertain,0);
  assert.equal(result.skipped,0);
  assert.equal(sent.length,7);
+ assert.ok(sent.some(args=>args.includes('mjobs-luna-34'))&&sent.some(args=>args.includes('mjobs-luna-9')),'All Hands includes instruction-waiting agents');
+ assert.ok(!sent.some(args=>args.includes('mjobs-blocked')),'All Hands never answers a pending decision');
  assert.equal(new Set(sent.map(x=>x[2])).size,7);
  assert.ok(sent.every(a=>!a.includes('--steer')),'TUI messages must omit --steer');
  const again=await turbo.previewAllHands();
@@ -70,7 +75,17 @@ async function test(){
  base.metrics.ramFree=2*1024**3;
  await assert.rejects(()=>reboot.allHands(),/resource safety/);
  assert.equal(sent.length,7);
- console.log('PASS All Hands manual dispatch: 18 checks, 7 unique recipients, budget override, cooldown, no duplicate PR ownership, memory stop, persistent state.');
+ base.metrics.ramFree=20*1024**3;
+ const raceRoot=path.join(loc,'decision-race');fs.mkdirSync(raceRoot);
+ const raceSent=[];let raceReads=0;
+ const raceAgent={...idle('race-primary','Orchestration',[],'orchestrator'),activity:'waiting_input'};
+ const race=new Turbo({root:raceRoot,autoSchedule:false,clock,githubRunner:async()=>github,
+  getState:async()=>({...base,sessions:[{...raceAgent,activity:++raceReads===1?'waiting_input':'blocked'}]}),
+  command:async args=>raceSent.push(args),audit:()=>{}});
+ const raceResult=await race.allHands();
+ assert.ok(raceReads>=2);assert.equal(raceResult.submitted,0);assert.equal(raceResult.skipped,1);
+ assert.deepEqual(raceSent,[],'A fresh blocked activity prevents an All Hands send after selection');
+ console.log('PASS All Hands: 7 unique recipients including instruction-waiting agents, decision-race rejection, budgets, cooldown, ownership, resource gates and persistence');
  fs.rmSync(loc,{recursive:true,force:true});
 }
 test().catch(e=>{console.error(e.stack);process.exitCode=1});

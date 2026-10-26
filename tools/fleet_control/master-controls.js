@@ -29,7 +29,8 @@ class MasterControls{
    const response=await fetch('http://127.0.0.1:3001/api/v1/sessions',{signal:AbortSignal.timeout(2000)});
    if(!response.ok)throw Error('AO HTTP '+response.status);
    const data=await response.json();return data.sessions||[];
-  }),...restoreOptions,locked:()=>this.locked(),startBlockReason:()=>startBlockReason()||this.quota?.dispatchBlockReason?.()||(!this.quota?'Quota guard has not initialized':null),dispatchOff:()=>this.disableAutomaticDispatch(),command:restoreCommand||command,audit,autoSchedule:autoschedule,onComplete:async({autoDispatchAfter})=>{
+  }),...restoreOptions,snapshotFrozen:()=>this.drainState.enabled||['completed','paused','interrupted_by_emergency'].includes(this.drainState.phase)||restoreOptions.snapshotFrozen?.()===true,
+   locked:()=>this.locked(),startBlockReason:()=>startBlockReason()||this.quota?.dispatchBlockReason?.()||(!this.quota?'Quota guard has not initialized':null),dispatchOff:()=>this.disableAutomaticDispatch(),command:restoreCommand||command,audit,autoSchedule:autoschedule,onComplete:async({autoDispatchAfter})=>{
     if(autoDispatchAfter&&!startBlockReason()&&!this.locked()&&!this.drainState.enabled&&!this.quota?.dispatchBlockReason?.()){this.sustain.enable(true);this.audit('master_restore_dispatch_resumed',{})}
    }});
   if(this.locked()){

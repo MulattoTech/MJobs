@@ -32,6 +32,8 @@ const github={
  ],
  merged:[{number:100,mergedAt:new Date(t0-100000).toISOString()}]
 };
+snapshot.sessions[0].activity='waiting_input';
+snapshot.sessions.push({...idle('mjobs-blocked','Critical review'),activity:'blocked'});
 const run=async()=>{
  const control=new Turbo({root:temp,getState:async()=>snapshot,command:async args=>{actions.push(args);return 'ok'},audit:()=>{},isManualBusy:()=>false,clock:()=>now,githubRunner:async()=>github,autoSchedule:false});
  assert.equal(control.configuration().enabled,false);
@@ -44,6 +46,8 @@ const run=async()=>{
  const first=await control.cycle();
  assert.equal(first.executed.length,3,'Three dispatches per cycle');
  assert.deepEqual(first.executed.map(x=>x.id),['mjobs-luna-34','mjobs-luna-21','mjobs-luna-31']);
+ assert.ok(actions.some(args=>args.includes('mjobs-luna-34')),'A primary at its instruction prompt can coordinate work');
+ assert.ok(!actions.some(args=>args.includes('mjobs-blocked')),'A pending decision is never an eligible recipient despite isIdle');
  assert.equal(control.summary().sentThisHour,3);
  const duplicate=await control.cycle();
  assert.equal(duplicate.executed.length,2,'Remaining agents get assignments, originals are on cooldown');
@@ -80,7 +84,16 @@ const run=async()=>{
  reboot.getState=async()=>{throw new Error(diagnostic)};
  await assert.rejects(()=>reboot.cycle({manual:true}),e=>e.message.includes('Turbo operation failed')&&!e.message.includes(diagnostic),'Manual failure returns safe summary');
  assert.ok(!JSON.stringify(reboot.summary()).includes(diagnostic));
- console.log('PASS Turbo: dispatch budgets, cooldowns, ownership, resource gates, persistence, and private error diagnostics');
+ const raceRoot=path.join(temp,'decision-race');fs.mkdirSync(raceRoot);
+ const raceSent=[];let raceReads=0;
+ const raceAgent={...idle('race-primary','primary'),mode:'tui',activity:'waiting_input'};
+ const race=new Turbo({root:raceRoot,autoSchedule:false,clock:()=>now,githubRunner:async()=>github,
+  getState:async()=>({...snapshot,sessions:[{...raceAgent,activity:++raceReads===1?'waiting_input':'blocked'}]}),
+  command:async args=>raceSent.push(args),audit:()=>{}});
+ const raceResult=await race.cycle({manual:true});
+ assert.ok(raceReads>=2,'The instruction-ready primary was selected and rechecked');
+ assert.equal(raceResult.executed.length,0);assert.deepEqual(raceSent,[],'A decision appearing before delivery blocks the send');
+ console.log('PASS Turbo: budgets, cooldowns, instruction-waiting primary, decision-race rejection, resource gates, persistence and private diagnostics');
  fs.rmSync(temp,{recursive:true,force:true});
 };
 run().catch(e=>{console.error(e.stack);process.exitCode=1});

@@ -22,6 +22,7 @@ const FleetStartupUI = (() => {
     failed: ['Startup blocked', 'Resolve the reported prerequisite or verification failure before trying again.', 0],
     cancelled: ['Startup cancelled', 'No further startup steps will be submitted. Already restored runtimes are not claimed to be stopped.', 0],
     uncertain: ['Startup needs reconciliation', 'A prior launch or restore needs verification. Recheck safely can recognize verified completion; it never resends a launch or restores agents.', 0],
+    resumable: ['Interrupted startup can continue', 'Existing runtimes and stopped sessions were verified. Run Startup to restore the remaining sessions; healthy agents will be preserved.', 0],
   };
   const stepLabels = ['Validate', 'Stop watcher', 'Arm 7%', 'Start restore', 'Restore fleet', 'Verify now', 'Ready / UI'];
   let run = null, readiness = null, preview = null, lastSuccess = 0, readError = null;
@@ -82,7 +83,7 @@ const FleetStartupUI = (() => {
   function render() {
     const [label, description, step] = phaseInfo();
     const stale = !fresh();
-    let badge = run?.active ? 'STARTING' : uncertain() ? 'RECHECK REQUIRED' : 'PAUSED';
+    let badge = run?.active ? 'STARTING' : uncertain() ? 'RECHECK REQUIRED' : run?.phase === 'resumable' ? 'CONTINUE STARTUP' : 'PAUSED';
     let title = label, detail = description;
     if (run?.phase === 'ready_paused') {
       if (stale || readiness?.ready !== true) {
@@ -105,19 +106,24 @@ const FleetStartupUI = (() => {
       if (run?.active && step === index) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
     }
     const restore = run?.restore;
-    const hasProgress = !!run?.active && Number.isInteger(restore?.total) && restore.total > 0 && Number.isInteger(restore.restoredCount);
+    const liveTotal = readiness?.total;
+    const liveVerified = readiness?.verified;
+    const liveProgress = !stale && readiness?.inspectionPending !== true && Number.isInteger(liveTotal) && liveTotal > 0 && Number.isInteger(liveVerified);
+    const progressTotal = liveProgress ? liveTotal : restore?.total;
+    const progressVerified = liveProgress ? liveVerified : restore?.restoredCount;
+    const hasProgress = liveProgress || (!!run?.active && Number.isInteger(progressTotal) && progressTotal > 0 && Number.isInteger(progressVerified));
     byId('startupRestoreProgress').hidden = !hasProgress;
     if (hasProgress) {
-      byId('startupRestoreMeter').max = restore.total; byId('startupRestoreMeter').value = Math.max(0, Math.min(restore.total, restore.restoredCount));
-      setText('startupRestoreLabel', restore.restoredCount + ' / ' + restore.total + ' runtimes verified');
-      setText('startupRestoreDetail', restore.lastError || 'Final current-controller readiness is checked separately before Startup completes.');
+      byId('startupRestoreMeter').max = progressTotal; byId('startupRestoreMeter').value = Math.max(0, Math.min(progressTotal, progressVerified));
+      setText('startupRestoreLabel', progressVerified + ' / ' + progressTotal + (liveProgress ? ' runtimes verified now' : ' runtimes verified during this restore'));
+      setText('startupRestoreDetail', restore?.lastError || (liveProgress ? 'Usage remaining and an armed stop guard do not mean the fleet is running. ' + (readiness.dispatchPaused ? 'Automatic dispatch is paused.' : 'Automatic dispatch is enabled.') : 'Final current-controller readiness is checked separately before Startup completes.'));
     }
     const problem = readError ? 'Refresh failed: ' + readError + '. The last displayed state is not current.' : run?.error?.message || (uncertain() ? 'Recheck the guard and runtime outcome before retrying. Recheck does not launch agents.' : '');
     byId('startupIssue').hidden = !problem; setText('startupIssue', problem);
     setText('startupFreshness', lastSuccess ? 'Status received ' + relativeTime(new Date(lastSuccess).toISOString()) + (run?.runId ? ' · Run ' + run.runId.slice(0, 8) : '') : 'Waiting for a status response.');
     byId('startupStart').disabled = actionBusy || stale || !!run?.active || uncertain();
-    byId('startupStart').textContent = pendingRequest?.uncertain ? 'Retry original Startup…' : 'Startup…';
-    byId('startupOpenUi').disabled = actionBusy || stale || !!run?.active || uncertain();
+    byId('startupStart').textContent = pendingRequest?.uncertain ? 'Retry original Startup…' : run?.phase === 'resumable' ? 'Continue Startup…' : 'Startup…';
+    byId('startupOpenUi').disabled = actionBusy || stale || !!run?.active || uncertain() || run?.phase === 'resumable';
     byId('startupCancel').hidden = !run?.active; byId('startupCancel').disabled = actionBusy || !run?.runId;
     byId('startupRecheck').hidden = !uncertain(); byId('startupRecheck').disabled = actionBusy || !run?.runId;
     byId('startupRefresh').disabled = !!readPromise;
@@ -147,7 +153,7 @@ const FleetStartupUI = (() => {
     render(); return readPromise;
   }
   function previewStartup() {
-    if (actionBusy || !fresh() || run?.active || uncertain()) return;
+    if (actionBusy || !fresh() || run?.active || uncertain() || run?.phase === 'resumable') return;
     const retry = !!pendingRequest?.uncertain;
     const count = Number.isInteger(preview?.totalTargets) ? preview.totalTargets : Number.isInteger(preview?.targetCount) ? preview.targetCount : null;
     const quota = readiness?.quota || preview?.quota;

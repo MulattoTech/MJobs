@@ -28,6 +28,36 @@ namespace FleetRuntimeEvidenceV1 {
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
   static extern uint GetFinalPathNameByHandleW(IntPtr handle,StringBuilder buffer,uint size,uint flags);
   [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr OpenProcess(uint access,bool inherit,uint pid);
+  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool QueryFullProcessImageNameW(IntPtr handle,uint flags,StringBuilder buffer,ref uint size);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetProcessTimes(IntPtr handle,out long creation,out long exit,out long kernel,out long user);
+  [DllImport("ntdll.dll")] static extern int NtQueryInformationProcess(IntPtr handle,int information,IntPtr buffer,uint size,out uint returned);
+  public sealed class ProcessIdentity {public string ExecutablePath;public string CommandLine;public DateTimeOffset CreatedAt;}
+  // Read-only optional fallback for metadata that CIM withholds across integrity
+  // levels. No VM read, debug privilege, elevation, or access-right modification.
+  public static ProcessIdentity LimitedProcessIdentity(uint pid) {
+   var handle=OpenProcess(0x1000,false,pid);
+   if(handle==IntPtr.Zero)throw new Win32Exception(Marshal.GetLastWin32Error());
+   try {
+    uint size=32768;var image=new StringBuilder((int)size);
+    if(!QueryFullProcessImageNameW(handle,0,image,ref size))throw new Win32Exception(Marshal.GetLastWin32Error());
+    long created,exited,kernel,user;
+    if(!GetProcessTimes(handle,out created,out exited,out kernel,out user))throw new Win32Exception(Marshal.GetLastWin32Error());
+    uint required;int status=NtQueryInformationProcess(handle,60,IntPtr.Zero,0,out required);
+    if(status!=unchecked((int)0xC0000004)||required<16||required>131072)throw new InvalidOperationException("PROCESS_IDENTITY_UNREADABLE");
+    var memory=Marshal.AllocHGlobal((int)required);
+    try {
+     uint returned;status=NtQueryInformationProcess(handle,60,memory,required,out returned);
+     if(status<0||returned<16||returned>required)throw new InvalidOperationException("PROCESS_IDENTITY_UNREADABLE");
+     ushort length=unchecked((ushort)Marshal.ReadInt16(memory));
+     var buffer=Marshal.ReadIntPtr(memory,IntPtr.Size==8?8:4);long offset=buffer.ToInt64()-memory.ToInt64();
+     if(length==0||length%2!=0||offset<(IntPtr.Size==8?16:8)||offset+length>returned)throw new InvalidOperationException("PROCESS_IDENTITY_UNREADABLE");
+     string command=Marshal.PtrToStringUni(buffer,length/2);
+     if(String.IsNullOrWhiteSpace(command)||command.IndexOf('\0')>=0)throw new InvalidOperationException("PROCESS_IDENTITY_UNREADABLE");
+     return new ProcessIdentity {ExecutablePath=image.ToString(),CommandLine=command,CreatedAt=new DateTimeOffset(DateTime.FromFileTimeUtc(created))};
+    } finally {Marshal.FreeHGlobal(memory);}
+   } finally {CloseHandle(handle);}
+  }
   public static string[] Argv(string command) {
    if(String.IsNullOrWhiteSpace(command))throw new ArgumentException("COMMAND_LINE_UNREADABLE");
    int count; IntPtr memory=CommandLineToArgvW(command,out count);
@@ -162,21 +192,113 @@ function Get-FleetHostArguments([string[]]$Arguments){
         $index=2
         while($index -lt $Arguments.Count -and $Arguments[$index] -cin @('--start=attach','--surface=lazy')){$index++}
         if($Arguments.Count -lt $index+3 -or $Arguments[$index] -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$'){throw 'AO_HOST_ARGUMENTS_UNREADABLE'}
-        return [pscustomobject]@{kind='tui';sessionId=$Arguments[$index];dataDir=$null}
+        # shellterm.Service uses this exact option order for its auxiliary
+        # terminals. This marker alone does not exempt registry ownership:
+        # Get-FleetAuxiliaryShellIdentity also binds the live daemon and PID.
+        $shellIndex=2
+        if($Arguments[$shellIndex] -ceq '--start=attach'){$shellIndex++}
+        $auxiliaryShell=$Arguments.Count -ge ($shellIndex+4) -and
+            $Arguments[$shellIndex] -ceq '--surface=lazy' -and
+            $Arguments[$shellIndex+1] -cmatch '^shellterm-[0-9a-f]{16}$' -and
+            -not [string]::IsNullOrWhiteSpace($Arguments[$shellIndex+2]) -and
+            -not [string]::IsNullOrWhiteSpace($Arguments[$shellIndex+3])
+        return [pscustomobject]@{kind='tui';sessionId=$Arguments[$index];dataDir=$null;auxiliaryShell=$auxiliaryShell}
     }
     return [pscustomobject]@{kind='other';sessionId=$null;dataDir=$null}
+}
+function Read-FleetLimitedProcessIdentity([uint32]$ProcessId){
+    return [FleetRuntimeEvidenceV1.Native]::LimitedProcessIdentity($ProcessId)
+}
+function Get-FleetServiceAnchors([hashtable]$ByPid){
+    # Only SCM-attested, currently running LocalSystem services in the genuine
+    # Windows svchost binary qualify. A process name alone never qualifies.
+    $expected=[FleetRuntimeEvidenceV1.Native]::CanonicalPath((Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::System)) 'svchost.exe'))
+    $services=@(Get-CimInstance -ClassName Win32_Service -Property Name,State,ProcessId,StartName,PathName -OperationTimeoutSec 2 -ErrorAction Stop)
+    $anchors=@{}
+    foreach($service in $services){
+        if($service.State -cne 'Running' -or $service.StartName -cne 'LocalSystem' -or $service.ProcessId -le 0 -or
+            -not $service.Name -or -not $service.PathName){continue}
+        $serviceProcess=$ByPid[[long]$service.ProcessId]
+        if(-not $serviceProcess -or $serviceProcess.Name -ine 'svchost.exe' -or -not $serviceProcess.CreationDate){continue}
+        $argv=[FleetRuntimeEvidenceV1.Native]::Argv([Environment]::ExpandEnvironmentVariables([string]$service.PathName))
+        if($argv.Count -lt 1 -or -not [IO.Path]::IsPathFullyQualified($argv[0]) -or
+            [FleetRuntimeEvidenceV1.Native]::CanonicalPath($argv[0]) -cne $expected){continue}
+        if($serviceProcess.ExecutablePath -and [FleetRuntimeEvidenceV1.Native]::CanonicalPath($serviceProcess.ExecutablePath) -cne $expected){continue}
+        $created=([DateTimeOffset]$serviceProcess.CreationDate).ToUniversalTime()
+        if($created -gt [DateTimeOffset]::UtcNow.AddSeconds(1)){throw 'PROCESS_CREATION_TIME_INVALID'}
+        $key=[long]$service.ProcessId
+        if(-not $anchors.ContainsKey($key)){
+            $anchors[$key]=[pscustomobject]@{pid=$key;name='svchost.exe';executable=$expected;creationKey=$created.UtcTicks.ToString([Globalization.CultureInfo]::InvariantCulture);services=@()}
+        }
+        $anchors[$key].services+=,[pscustomobject]@{name=$service.Name;state=$service.State;account=$service.StartName;argvHash=(Get-FleetTextHash ($argv|ConvertTo-Json -Compress))}
+    }
+    foreach($anchor in $anchors.Values){$anchor.services=@($anchor.services|Sort-Object name)}
+    return $anchors
+}
+function Get-FleetServiceAncestry($Record,[hashtable]$ByPid,[hashtable]$Anchors,[string]$AoFileName){
+    $chain=@();$seen=[Collections.Generic.HashSet[long]]::new();$current=$Record
+    for($depth=0;$depth -lt 64;$depth++){
+        if(-not $current -or -not $current.Name -or $null -eq $current.ProcessId -or $null -eq $current.ParentProcessId -or
+            -not $current.CreationDate -or -not $seen.Add([long]$current.ProcessId)){return $null}
+        if($current.Name -ieq 'ao.exe' -or $current.Name -ieq $AoFileName){return $null}
+        $created=([DateTimeOffset]$current.CreationDate).ToUniversalTime()
+        if($created -gt [DateTimeOffset]::UtcNow.AddSeconds(1)){return $null}
+        $creationKey=$created.UtcTicks.ToString([Globalization.CultureInfo]::InvariantCulture)
+        $chain+=,[pscustomobject]@{pid=[long]$current.ProcessId;parentPid=[long]$current.ParentProcessId;name=$current.Name;creationKey=$creationKey}
+        $anchor=$Anchors[[long]$current.ProcessId]
+        if($anchor){
+            if($current.Name -ine 'svchost.exe' -or $anchor.name -cne 'svchost.exe' -or
+                $anchor.creationKey -cne $creationKey -or -not $anchor.executable -or @($anchor.services).Count -lt 1){return $null}
+            return [pscustomobject]@{signature=(Get-FleetTextHash ([ordered]@{chain=$chain;anchor=$anchor}|ConvertTo-Json -Compress -Depth 8));anchorPid=$anchor.pid}
+        }
+        $parent=$ByPid[[long]$current.ParentProcessId]
+        if(-not $parent -or -not $parent.CreationDate -or ([DateTimeOffset]$parent.CreationDate).ToUniversalTime() -gt $created){return $null}
+        $current=$parent
+    }
+    return $null
 }
 function Get-FleetProcessInventory([string]$ExpectedExecutable,[object[]]$Targets){
     $all=@(Get-CimInstance -ClassName Win32_Process -Property Name,ProcessId,ParentProcessId,ExecutablePath,CommandLine,CreationDate -OperationTimeoutSec 2 -ErrorAction Stop)
     if($all.Count -eq 0){throw 'PROCESS_INVENTORY_EMPTY'}
-    $byPid=@{};$candidates=@();$hosts=@();$ownedProviders=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $byPid=@{};$candidates=@();$hosts=@();$ownedProviders=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal);$serviceAnchors=$null
     foreach($record in $all){
         if($null -eq $record.ProcessId -or -not $record.Name -or $byPid.ContainsKey([long]$record.ProcessId)){throw 'PROCESS_INVENTORY_INCOMPLETE'}
         $byPid[[long]$record.ProcessId]=$record
+    }
+    foreach($record in $all){
         $isAo=$record.Name -ieq 'ao.exe' -or $record.Name -ieq ([IO.Path]::GetFileName($ExpectedExecutable))
         $isProvider=$record.Name -iin @('codex.exe','agy.exe','gemini.exe','node.exe','nodew.exe')
         if(-not $isAo -and -not $isProvider){continue}
-        if(-not $record.ExecutablePath -or -not $record.CommandLine -or -not $record.CreationDate){throw 'PROCESS_IDENTITY_UNREADABLE'}
+        if(-not $record.CreationDate){throw 'PROCESS_IDENTITY_UNREADABLE'}
+        if(-not $record.ExecutablePath -or -not $record.CommandLine){
+            $nativeIdentity=$null
+            try{$nativeIdentity=Read-FleetLimitedProcessIdentity ([uint32]$record.ProcessId)}catch{}
+            if($nativeIdentity){
+                # WMI timestamps have microsecond precision. The native handle
+                # must still name that same creation, never a recycled PID.
+                $cimTicks=([DateTimeOffset]$record.CreationDate).ToUniversalTime().UtcTicks
+                if([Math]::Abs($nativeIdentity.CreatedAt.UtcTicks-$cimTicks) -ge 10){throw 'PROCESS_CREATION_IDENTITY_CHANGED'}
+                if(($record.ExecutablePath -and [FleetRuntimeEvidenceV1.Native]::CanonicalPath($record.ExecutablePath) -cne [FleetRuntimeEvidenceV1.Native]::CanonicalPath($nativeIdentity.ExecutablePath)) -or
+                    ($record.CommandLine -and $record.CommandLine -cne $nativeIdentity.CommandLine)){throw 'PROCESS_CREATION_IDENTITY_CHANGED'}
+                $record=[pscustomobject]@{Name=$record.Name;ProcessId=$record.ProcessId;ParentProcessId=$record.ParentProcessId;
+                    CreationDate=$record.CreationDate;ExecutablePath=$nativeIdentity.ExecutablePath;CommandLine=$nativeIdentity.CommandLine}
+                $byPid[[long]$record.ProcessId]=$record
+            }else{
+                if($isAo){throw 'PROCESS_IDENTITY_UNREADABLE'}
+                if($null -eq $serviceAnchors){$serviceAnchors=Get-FleetServiceAnchors $byPid}
+                $serviceScope=Get-FleetServiceAncestry $record $byPid $serviceAnchors ([IO.Path]::GetFileName($ExpectedExecutable))
+                if(-not $serviceScope){throw 'PROCESS_IDENTITY_UNREADABLE'}
+                # This provider belongs to an independently attested Windows
+                # service tree, not a native AO host. This does not assert the
+                # provider is dead or inspect/authorize that service's work.
+                # The full ancestry+SCM identity is included in both snapshots.
+                $candidates+=,[pscustomobject]@{pid=[long]$record.ProcessId;parentPid=[long]$record.ParentProcessId;
+                    executable='scm-service-provider:'+ $record.Name;
+                    creationKey=([DateTimeOffset]$record.CreationDate).ToUniversalTime().UtcTicks.ToString([Globalization.CultureInfo]::InvariantCulture);
+                    argvHash=$serviceScope.signature}
+                continue
+            }
+        }
         $executable=[FleetRuntimeEvidenceV1.Native]::CanonicalPath($record.ExecutablePath)
         $arguments=[FleetRuntimeEvidenceV1.Native]::Argv($record.CommandLine)
         if($arguments.Count -lt 1){throw 'PROCESS_EXECUTABLE_ARGV_MISMATCH'}
@@ -198,7 +320,7 @@ function Get-FleetProcessInventory([string]$ExpectedExecutable,[object[]]$Target
             if($parsed.kind -ne 'other'){
                 if($parsed.kind -eq 'chat'){$parsed.dataDir=[FleetRuntimeEvidenceV1.Native]::CanonicalPath($parsed.dataDir)}
                 $hosts+=,[pscustomobject]@{pid=$candidate.pid;creationKey=$creationKey;createdAt=$created;
-                    kind=$parsed.kind;sessionId=$parsed.sessionId;dataDir=$parsed.dataDir;executable=$executable}
+                    kind=$parsed.kind;sessionId=$parsed.sessionId;dataDir=$parsed.dataDir;executable=$executable;auxiliaryShell=($parsed.auxiliaryShell -eq $true)}
             }
         }
         # Additional conservative rejection for explicit session-owned provider
@@ -214,6 +336,34 @@ function Get-FleetProcessInventory([string]$ExpectedExecutable,[object[]]$Target
     }
     $signature=Get-FleetTextHash (($candidates|Sort-Object pid|Select-Object pid,parentPid,executable,creationKey,argvHash|ConvertTo-Json -Compress -Depth 5))
     return [pscustomobject]@{byPid=$byPid;hosts=$hosts;ownedProviders=$ownedProviders;signature=$signature;complete=$true}
+}
+function Get-FleetAuxiliaryShellIdentity($Entry,$RuntimeHost,$Inventory,$Instance,[string]$Executable){
+    # AO e424538 shellterm.Service creates a separate non-agent runtime with
+    # an eight-byte random hex ID and no AO_RUNTIME_LAUNCH_ID. Do not ignore it:
+    # validate its exact native registry shape, argv, image, creation and direct
+    # daemon parent. Unknown/malformed entries remain a global evidence blocker.
+    $keys=@($Entry.PSObject.Properties.Name)
+    $expectedKeys=@('sessionId','ptyHostPid','pipePath','registeredAt')
+    if($keys.Count -ne $expectedKeys.Count -or @($keys|Where-Object {$_ -cnotin $expectedKeys}).Count -ne 0 -or
+        $Entry.sessionId -cnotmatch '^shellterm-[0-9a-f]{16}$' -or
+        -not ($Entry.registeredAt -is [string]) -or $Entry.registeredAt -cnotmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$' -or
+        $RuntimeHost.kind -cne 'tui' -or $RuntimeHost.sessionId -cne $Entry.sessionId -or
+        $RuntimeHost.pid -ne $Entry.ptyHostPid -or $RuntimeHost.auxiliaryShell -ne $true -or
+        $RuntimeHost.executable -cne $Executable){return $false}
+    $address=[regex]::Match([string]$Entry.pipePath,'^127\.0\.0\.1:([1-9][0-9]{0,4})$')
+    if(-not $address.Success -or [int]$address.Groups[1].Value -gt 65535){return $false}
+    $record=$Inventory.byPid[[long]$Entry.ptyHostPid]
+    $daemonRecord=$Inventory.byPid[[long]$Instance.pid]
+    if(-not $record -or -not $daemonRecord -or -not $record.CreationDate -or -not $daemonRecord.CreationDate -or
+        $record.ParentProcessId -ne $Instance.pid -or $record.ProcessId -ne $Entry.ptyHostPid){return $false}
+    $created=([DateTimeOffset]$record.CreationDate).ToUniversalTime()
+    $daemonCreated=([DateTimeOffset]$daemonRecord.CreationDate).ToUniversalTime()
+    $registered=[DateTimeOffset]::MinValue
+    if(-not [DateTimeOffset]::TryParse([string]$Entry.registeredAt,[ref]$registered) -or
+        $created -ne $RuntimeHost.createdAt -or $created -lt $daemonCreated -or
+        $registered -lt $daemonCreated.AddSeconds(-1) -or $registered -gt [DateTimeOffset]::UtcNow.AddSeconds(1) -or
+        $created -gt $registered.AddSeconds(2)){return $false}
+    return $true
 }
 function Get-FleetObservation($Request,[string]$Executable,[string]$DataDir){
     $instance=Read-FleetInstanceOwnership $Request $DataDir
@@ -233,11 +383,14 @@ function Get-FleetObservation($Request,[string]$Executable,[string]$DataDir){
     foreach($entry in $registry.entries){
         if($entry.ptyHostPid -eq 0 -or $entry.pipePath -eq 'ao-conpty://startup-unresolved'){$registryReason='REGISTRY_UNRESOLVED_OWNERSHIP';break}
         if(-not $inventory.byPid.ContainsKey([long]$entry.ptyHostPid)){continue}
-        $host=@($inventory.hosts|Where-Object {$_.pid -eq $entry.ptyHostPid -and $_.kind -eq 'tui' -and $_.sessionId -ceq $entry.sessionId})
-        if($host.Count -ne 1){$registryReason='REGISTRY_PID_IDENTITY_MISMATCH';break}
+        $runtimeHostMatches=@($inventory.hosts|Where-Object {$_.pid -eq $entry.ptyHostPid -and $_.kind -eq 'tui' -and $_.sessionId -ceq $entry.sessionId})
+        if($runtimeHostMatches.Count -ne 1){$registryReason='REGISTRY_PID_IDENTITY_MISMATCH';break}
         $registered=[DateTimeOffset]::MinValue
         if(-not [DateTimeOffset]::TryParse([string]$entry.registeredAt,[ref]$registered) -or
-            $host[0].createdAt -gt $registered.AddSeconds(2) -or -not $entry.launchId){
+            $runtimeHostMatches[0].createdAt -gt $registered.AddSeconds(2)){
+            $registryReason='REGISTRY_CREATION_IDENTITY_UNVERIFIED';break
+        }
+        if(-not $entry.launchId -and -not (Get-FleetAuxiliaryShellIdentity $entry $runtimeHostMatches[0] $inventory $instance $Executable)){
             $registryReason='REGISTRY_CREATION_IDENTITY_UNVERIFIED';break
         }
     }
@@ -363,6 +516,166 @@ function Invoke-FleetRuntimeEvidenceSelfTest {
     Assert-FleetEvidence ($paths.descriptorPath -ceq 'C:\Users\Dylan\.ao\data\chat-hosts\mjobs-primary\host.json') 'Chat descriptor uses data root, not registry root'
     $rejected=$false;try{ConvertFrom-FleetStrictJson '{"sessionId":"one","sessionId":"two"}'|Out-Null}catch{$rejected=$true}
     Assert-FleetEvidence $rejected 'Duplicate JSON properties reject'
+    # Exercise the production observation's live-registry branch. Empty-registry
+    # fixtures never reached it and missed an assignment to PowerShell's $Host
+    # constant after the first TUI had resumed. Only dependency reads are mocked;
+    # Get-FleetObservation and its creation/ownership validation run unchanged.
+    & {
+        $fixtureNow=[DateTimeOffset]::UtcNow
+        $fixtureExecutable=[FleetRuntimeEvidenceV1.Native]::CanonicalPath((Join-Path $PSHOME 'pwsh.exe'))
+        $fixtureInstance=[pscustomobject]@{pid=[long]90101;startedAt=$fixtureNow.AddMinutes(-3);
+            lockWrittenAt=$fixtureNow.AddMinutes(-3);signature='fixture-instance';verified=$false}
+        $fixtureEntry=[pscustomobject]@{sessionId='mjobs-running-primary';ptyHostPid=[long]90102;
+            pipePath='fixture-pipe';registeredAt=$fixtureNow.AddMinutes(-1).ToString('o');launchId='fixture-launch'}
+        $fixtureHost=[pscustomobject]@{pid=[long]90102;kind='tui';sessionId='mjobs-running-primary';
+            createdAt=$fixtureNow.AddMinutes(-1)}
+        $fixtureRegistry=[pscustomobject]@{hash='fixture-registry';entries=@($fixtureEntry)}
+        $fixtureInventory=[pscustomobject]@{complete=$true;signature='fixture-processes';
+            byPid=@{([long]90101)=[pscustomobject]@{ExecutablePath=$fixtureExecutable;CreationDate=$fixtureNow.AddMinutes(-4)};
+                    ([long]90102)=[pscustomobject]@{Name='ao.exe'}};
+            hosts=@($fixtureHost);ownedProviders=[Collections.Generic.HashSet[string]]::new()}
+        function Read-FleetInstanceOwnership { return $fixtureInstance }
+        function Read-FleetRegistry { return $fixtureRegistry }
+        function Get-FleetProcessInventory { return $fixtureInventory }
+        $fixtureWorker=[pscustomobject]@{id='mjobs-stopped-worker';mode='tui'}
+        $fixtureRequest=[pscustomobject]@{registryPath='fixture-registry';targets=@($fixtureWorker)}
+        $observation=Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data'
+        Assert-FleetEvidence ($observation.instance.verified -and -not $observation.registryReason) 'Production observation accepts a verified live TUI registry entry'
+        Assert-FleetEvidence ((Test-FleetTargetAbsence $fixtureWorker $observation $observation 'fixture-data').absent) 'A valid running primary does not prevent absence proof for a stopped worker'
+        $fixtureHost.sessionId='different-session'
+        Assert-FleetEvidence ((Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data').registryReason -eq 'REGISTRY_PID_IDENTITY_MISMATCH') 'Production registry loop rejects a reused PID with another session identity'
+        $fixtureHost.sessionId='mjobs-running-primary';$fixtureHost.createdAt=$fixtureNow
+        Assert-FleetEvidence ((Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data').registryReason -eq 'REGISTRY_CREATION_IDENTITY_UNVERIFIED') 'Production registry loop rejects a host created after the registered launch'
+        $fixtureHost.createdAt=$fixtureNow.AddMinutes(-1);$fixtureEntry.launchId=$null
+        Assert-FleetEvidence ((Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data').registryReason -eq 'REGISTRY_CREATION_IDENTITY_UNVERIFIED') 'Production registry loop rejects a missing launch identity'
+        $fixtureEntry.launchId='fixture-launch';$fixtureEntry.ptyHostPid=[long]0;$fixtureEntry.pipePath='ao-conpty://startup-unresolved'
+        Assert-FleetEvidence ((Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data').registryReason -eq 'REGISTRY_UNRESOLVED_OWNERSHIP') 'Production registry loop preserves unresolved-start protection'
+    }
+    & {
+        $fixtureNow=[DateTimeOffset]::UtcNow
+        $fixtureExecutable=[FleetRuntimeEvidenceV1.Native]::CanonicalPath((Join-Path $PSHOME 'pwsh.exe'))
+        $fixtureAuxiliarySessionId='shellterm-f20175ce27993693'
+        $shellArgs=@('ao.exe','pty-host','--surface=lazy',$fixtureAuxiliarySessionId,'C:\work','gh.exe','status')
+        Assert-FleetEvidence ((Get-FleetHostArguments $shellArgs).auxiliaryShell -eq $true) 'Auxiliary shell argv uses the exact native lazy-surface contract'
+        Assert-FleetEvidence ((Get-FleetHostArguments @('ao.exe','pty-host','--start=attach','--surface=lazy',$fixtureAuxiliarySessionId,'C:\work','gh.exe')).auxiliaryShell -eq $true) 'Deferred auxiliary shell argv follows the same native contract'
+        $noncanonicalArgs=[ordered]@{
+            'No lazy surface'=@('ao.exe','pty-host',$fixtureAuxiliarySessionId,'C:\work','gh.exe')
+            'Options in another order'=@('ao.exe','pty-host','--surface=lazy','--start=attach',$fixtureAuxiliarySessionId,'C:\work','gh.exe')
+            'Duplicate surface option'=@('ao.exe','pty-host','--surface=lazy','--surface=lazy',$fixtureAuxiliarySessionId,'C:\work','gh.exe')
+            'Uppercase random ID'=@('ao.exe','pty-host','--surface=lazy','shellterm-F20175CE27993693','C:\work','gh.exe')
+            'Wrong random ID length'=@('ao.exe','pty-host','--surface=lazy','shellterm-short','C:\work','gh.exe')
+        }
+        foreach($invalidArgs in $noncanonicalArgs.Values){
+            Assert-FleetEvidence (-not (Get-FleetHostArguments $invalidArgs).auxiliaryShell) 'Noncanonical auxiliary shell argv never qualifies'
+        }
+        function New-AuxiliaryShellFixture {
+            # Native registry RFC3339 is second precision; host creation retains
+            # a subsecond fraction. Both identify the same currently live PID.
+            $registered=[DateTimeOffset]::Parse($fixtureNow.AddMinutes(-1).ToString('yyyy-MM-ddTHH:mm:ssZ'))
+            $created=$registered.AddMilliseconds(331)
+            $entry=[pscustomobject]@{sessionId=$fixtureAuxiliarySessionId;ptyHostPid=[long]90202;
+                pipePath='127.0.0.1:54321';registeredAt=$registered.ToString('yyyy-MM-ddTHH:mm:ssZ')}
+            $runtime=[pscustomobject]@{pid=[long]90202;kind='tui';sessionId=$fixtureAuxiliarySessionId;createdAt=$created;
+                executable=$fixtureExecutable;auxiliaryShell=(Get-FleetHostArguments $shellArgs).auxiliaryShell}
+            return [pscustomobject]@{
+                instance=[pscustomobject]@{pid=[long]90201;startedAt=$fixtureNow.AddMinutes(-3);
+                    lockWrittenAt=$fixtureNow.AddMinutes(-3);signature='auxiliary-instance';verified=$false};
+                registry=[pscustomobject]@{hash='auxiliary-registry';entries=@($entry)};
+                inventory=[pscustomobject]@{complete=$true;signature='auxiliary-processes';
+                    byPid=@{([long]90201)=[pscustomobject]@{ExecutablePath=$fixtureExecutable;CreationDate=$fixtureNow.AddMinutes(-4)};
+                        ([long]90202)=[pscustomobject]@{Name='ao.exe';ProcessId=[long]90202;ParentProcessId=[long]90201;CreationDate=$created}};
+                    hosts=@($runtime);ownedProviders=[Collections.Generic.HashSet[string]]::new()}}
+        }
+        function Read-FleetInstanceOwnership { return $fixtureAux.instance }
+        function Read-FleetRegistry { return $fixtureAux.registry }
+        function Get-FleetProcessInventory { return $fixtureAux.inventory }
+        $fixtureWorker=[pscustomobject]@{id='mjobs-stopped-worker';mode='tui'}
+        $fixtureRequest=[pscustomobject]@{registryPath='fixture-registry';targets=@($fixtureWorker)}
+        $fixtureAux=New-AuxiliaryShellFixture
+        $observation=Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data'
+        Assert-FleetEvidence (-not $observation.registryReason) 'Production registry validation recognizes a live daemon-owned auxiliary shell without a launchId'
+        Assert-FleetEvidence ((Test-FleetTargetAbsence $fixtureWorker $observation $observation 'fixture-data').absent) 'Validated auxiliary shell does not block a different stopped agent'
+        $shellTarget=[pscustomobject]@{id=$fixtureAuxiliarySessionId;mode='tui'}
+        Assert-FleetEvidence (-not (Test-FleetTargetAbsence $shellTarget $observation $observation 'fixture-data').absent) 'An exact matching auxiliary target remains present, never absent'
+        $invalidShells=[ordered]@{
+            'Unfenced ordinary agent'={param($x)$x.registry.entries[0].sessionId='mjobs-agent';$x.inventory.hosts[0].sessionId='mjobs-agent'}
+            'Unrecognized shell ID'={param($x)$x.registry.entries[0].sessionId='shellterm-invalid';$x.inventory.hosts[0].sessionId='shellterm-invalid'}
+            'Changed argv mode'={param($x)$x.inventory.hosts[0].auxiliaryShell=$false}
+            'Different executable'={param($x)$x.inventory.hosts[0].executable='different-executable'}
+            'Not a direct daemon child'={param($x)$x.inventory.byPid[[long]90202].ParentProcessId=[long]91999}
+            'Missing parent metadata'={param($x)$x.inventory.byPid[[long]90202].PSObject.Properties.Remove('ParentProcessId')}
+            'Missing host creation'={param($x)$x.inventory.byPid[[long]90202].CreationDate=$null}
+            'Reused host creation'={param($x)$x.inventory.byPid[[long]90202].CreationDate=$fixtureNow}
+            'Host predates daemon'={param($x)$x.inventory.hosts[0].createdAt=$fixtureNow.AddMinutes(-5);$x.inventory.byPid[[long]90202].CreationDate=$fixtureNow.AddMinutes(-5)}
+            'Wrong process record identity'={param($x)$x.inventory.byPid[[long]90202].ProcessId=[long]91999}
+            'Explicit null launch ID'={param($x)$x.registry.entries[0]|Add-Member -NotePropertyName launchId -NotePropertyValue $null}
+            'Unrecognized registry property'={param($x)$x.registry.entries[0]|Add-Member -NotePropertyName unknownField -NotePropertyValue 'unverified'}
+            'Nonloopback control address'={param($x)$x.registry.entries[0].pipePath='192.0.2.1:54321'}
+            'Hostname control address'={param($x)$x.registry.entries[0].pipePath='localhost:54321'}
+            'Invalid control port'={param($x)$x.registry.entries[0].pipePath='127.0.0.1:65536'}
+            'Missing control port'={param($x)$x.registry.entries[0].pipePath='127.0.0.1:0'}
+            'Unexpected address suffix'={param($x)$x.registry.entries[0].pipePath='127.0.0.1:54321/extra'}
+            'Future registry time'={param($x)$x.registry.entries[0].registeredAt=$fixtureNow.AddMinutes(1).ToString('yyyy-MM-ddTHH:mm:ssZ')}
+            'Missing registry time'={param($x)$x.registry.entries[0].registeredAt=$null}
+            'Non-native time zone format'={param($x)$x.registry.entries[0].registeredAt=$fixtureNow.AddMinutes(-1).ToString('yyyy-MM-ddTHH:mm:ss+00:00')}
+            'Non-native fractional time format'={param($x)$x.registry.entries[0].registeredAt=$fixtureNow.AddMinutes(-1).ToString('o')}
+            'Registry before host birth'={param($x)$x.registry.entries[0].registeredAt=$fixtureNow.AddMinutes(-2).ToString('yyyy-MM-ddTHH:mm:ssZ')}
+            'Reused host PID'={param($x)$x.inventory.hosts[0].sessionId='other-session'}
+            'Pending native reservation'={param($x)$x.registry.entries[0].ptyHostPid=[long]0;$x.registry.entries[0].pipePath='ao-conpty://startup-unresolved'}
+        }
+        foreach($invalidCase in $invalidShells.GetEnumerator()){
+            $fixtureAux=New-AuxiliaryShellFixture
+            & $invalidCase.Value $fixtureAux
+            $rejectedObservation=Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data'
+            Assert-FleetEvidence ([bool]$rejectedObservation.registryReason) ($invalidCase.Key+' remains an unknown registry owner')
+            Assert-FleetEvidence (-not (Test-FleetTargetAbsence $fixtureWorker $rejectedObservation $rejectedObservation 'fixture-data').absent) ($invalidCase.Key+' cannot prove agent absence')
+        }
+        $fixtureAux=New-AuxiliaryShellFixture
+        $after=Get-FleetObservation $fixtureRequest $fixtureExecutable 'fixture-data'
+        $after.inventory.signature='changed-auxiliary-host'
+        Assert-FleetEvidence (-not (Test-FleetTargetAbsence $fixtureWorker $observation $after 'fixture-data').absent) 'An auxiliary host changed between inventories still invalidates absence'
+    }
+    & {
+        $fixtureNow=[DateTimeOffset]::UtcNow
+        $provider=[pscustomobject]@{Name='node.exe';ProcessId=[long]91003;ParentProcessId=[long]91002;CreationDate=$fixtureNow.AddMinutes(-1)}
+        $wrapper=[pscustomobject]@{Name='agy.exe';ProcessId=[long]91002;ParentProcessId=[long]91001;CreationDate=$fixtureNow.AddMinutes(-2)}
+        $serviceProcess=[pscustomobject]@{Name='svchost.exe';ProcessId=[long]91001;ParentProcessId=[long]99999;CreationDate=$fixtureNow.AddMinutes(-3)}
+        $records=@{([long]91003)=$provider;([long]91002)=$wrapper;([long]91001)=$serviceProcess}
+        $anchor=[pscustomobject]@{pid=[long]91001;name='svchost.exe';executable='verified-windows-svchost';
+            creationKey=$fixtureNow.AddMinutes(-3).UtcTicks.ToString([Globalization.CultureInfo]::InvariantCulture);
+            services=@([pscustomobject]@{name='Schedule';state='Running';account='LocalSystem';argvHash='verified-service-command'})}
+        $anchors=@{([long]91001)=$anchor}
+        $scope=Get-FleetServiceAncestry $provider $records $anchors 'ao.exe'
+        Assert-FleetEvidence ([bool]$scope) 'Opaque provider can be scoped to an attested live Windows service without relying on exited wininit parent'
+        $anchor.services[0].argvHash='changed-service-command'
+        Assert-FleetEvidence ((Get-FleetServiceAncestry $provider $records $anchors 'ao.exe').signature -cne $scope.signature) 'SCM changes invalidate the two-snapshot identity'
+        $wrapper.Name='ao.exe'
+        Assert-FleetEvidence (-not (Get-FleetServiceAncestry $provider $records $anchors 'ao.exe')) 'AO ancestry never qualifies as an unrelated service provider'
+        $wrapper.Name='agy.exe';$wrapper.CreationDate=$fixtureNow
+        Assert-FleetEvidence (-not (Get-FleetServiceAncestry $provider $records $anchors 'ao.exe')) 'Reused parent PID created after the child remains unknown'
+        $wrapper.CreationDate=$fixtureNow.AddMinutes(-2);$wrapper.ParentProcessId=[long]91999
+        Assert-FleetEvidence (-not (Get-FleetServiceAncestry $provider $records $anchors 'ao.exe')) 'Missing intermediary parent remains unknown'
+        $wrapper.ParentProcessId=[long]91003
+        Assert-FleetEvidence (-not (Get-FleetServiceAncestry $provider $records $anchors 'ao.exe')) 'Cyclic ancestry remains unknown'
+        $wrapper.ParentProcessId=[long]91001;$anchor.creationKey='reused-service-pid'
+        Assert-FleetEvidence (-not (Get-FleetServiceAncestry $provider $records $anchors 'ao.exe')) 'Service anchor creation must match the process inventory'
+        $anchor.creationKey=$fixtureNow.AddMinutes(-3).UtcTicks.ToString([Globalization.CultureInfo]::InvariantCulture)
+        Assert-FleetEvidence (-not (Get-FleetServiceAncestry $provider $records @{} 'ao.exe')) 'No SCM anchor is not an unrelated-provider proof'
+        $nativeIdentity=Read-FleetLimitedProcessIdentity ([uint32]$PID)
+        Assert-FleetEvidence ($nativeIdentity.ExecutablePath -and $nativeIdentity.CommandLine -and $nativeIdentity.CreatedAt -le $fixtureNow) 'Read-only limited native identity works for the test process'
+        & {
+            $fixtureService=[pscustomobject]@{Name='Schedule';State='Running';ProcessId=[long]91001;StartName='LocalSystem';
+                PathName=('"'+(Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::System)) 'svchost.exe')+'" -k netsvcs -p')}
+            function Get-CimInstance { return $fixtureService }
+            Assert-FleetEvidence ((Get-FleetServiceAnchors $records).Count -eq 1) 'Production SCM reader accepts the running Windows service identity'
+            $fixtureService.PathName='"'+(Join-Path $PSHOME 'pwsh.exe')+'"'
+            Assert-FleetEvidence ((Get-FleetServiceAnchors $records).Count -eq 0) 'Production SCM reader rejects service executables outside Windows svchost'
+            $fixtureService.PathName='"'+(Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::System)) 'svchost.exe')+'"';$fixtureService.StartName='OtherAccount'
+            Assert-FleetEvidence ((Get-FleetServiceAnchors $records).Count -eq 0) 'Production SCM reader rejects a different service account'
+            $fixtureService.StartName='LocalSystem';$fixtureService.State='Stopped'
+            Assert-FleetEvidence ((Get-FleetServiceAnchors $records).Count -eq 0) 'Production SCM reader requires current running status'
+        }
+    }
     return @{ok=$true;checks=$script:checks;processMutations=0;ownershipWrites=0}
 }
 if($LoadFunctionsOnly){return}

@@ -55,6 +55,8 @@ function testCompletedPRClassification(){
   {name:'completed plus unresolved retains aggregate',prs:[ref('merged','failing'),ref(undefined,'unknown',801)],status:'ci_failed',blocked:true,refill:false},
   {name:'completed plus current PR retains aggregate',prs:[ref('closed','failed'),ref('open','passing',801)],status:'ci_failed',blocked:true,refill:false},
   {name:'current passing PR still owns work',prs:[ref('merged','failing'),ref('open','passing',801)],status:'idle',blocked:false,refill:false},
+  {name:'waiting instruction becomes dispatchable',prs:[],status:'idle',activity:'waiting_input',blocked:false,refill:true},
+  {name:'approval decision stays undispatchable',prs:[],status:'idle',activity:'blocked',blocked:false,refill:false},
   {name:'exited worker never becomes dispatchable',prs:[ref('merged','failing')],status:'exited',activity:'exited',blocked:false,refill:false}
  ];
  try{
@@ -69,11 +71,13 @@ function testCompletedPRClassification(){
    const gh={open:item.prs.filter(p=>['open','draft'].includes(p.state)).map(p=>({number:p.number,statusCheckRollup:[{conclusion:['failed','failing'].includes(p.ci)?'FAILURE':'SUCCESS'}]}))};
    const plan=turbo.previewTextPlan(snapshot,gh,Date.now());
    assert.equal(plan.plan.some(x=>x.id===worker.id&&x.kind==='refill'),item.refill,'Real Turbo availability: '+item.name);
+   if(item.activity==='waiting_input'){assert.equal(worker.isIdle,true);assert.equal(worker.stateLabel,'Awaiting instruction');}
+   if(item.activity==='blocked'){assert.equal(worker.isIdle,false);assert.equal(plan.plan.some(x=>x.id===worker.id),false);}
    if(item.activity==='exited'){assert.equal(worker.isIdle,false);assert.equal(worker.stateLabel,'Exited');assert.equal(plan.plan.some(x=>x.id===worker.id),false);}
   }
   assert.equal(turbo.timer,null,'No scheduler or live work started by regression');
  }finally{fs.rmSync(root,{recursive:true,force:true})}
- console.log('PASS 12 real transform + Turbo PR-history scenarios; raw CI evidence and exited-worker safety preserved');
+ console.log('PASS 14 real transform + Turbo PR-history scenarios; raw CI evidence and exited-worker safety preserved');
 }
 async function testRefresh(){
  let resolveRoster,reads=0,renders=0;const roster={sessions:[],summary:{},metrics:{},timestamp:new Date().toISOString()},state={pending:true,data:null,refreshPromise:null,receivedAt:0,refreshError:null,firstLoad:true,drawerId:null},elements={},get=s=>elements[s]||(elements[s]=elem());

@@ -15,11 +15,18 @@ async function addControllerHealth(sessions,readConversation){
 }
 function runtimeHealthy(session,count){
  if(!session||session.isTerminated||!Number.isInteger(count)||count<=0)return false;
- if(!['active','working','idle'].includes(session.activity?.state||session.status))return false;
+ if(!['active','working','idle','waiting_input'].includes(session.activity?.state||session.status))return false;
  if(session.mode==='chat')return session.controllerVerified===true&&['ready','busy'].includes(session.controllerState);
  return session.mode==='tui';
 }
 function controllerStopped(session){
  return session?.mode==='chat'&&session.controllerVerified===true&&session.controllerState==='stopped';
 }
-module.exports={addControllerHealth,runtimeHealthy,controllerStopped};
+// AO waiting_input is an empty instruction prompt. A blocked activity is a
+// pending decision/permission dialog and must never receive an automatic send,
+// even when an older snapshot's convenience flags still say isIdle.
+function canReceiveInstruction(session){
+ return !!session&&session.isIdle===true&&!session.busy&&!session.isTerminated&&!session.replacedBy&&
+  ['idle','waiting_input'].includes(session.activity);
+}
+module.exports={addControllerHealth,runtimeHealthy,controllerStopped,canReceiveInstruction};

@@ -23,6 +23,7 @@ const DEF=Object.freeze({
 const parse=x=>{const v=Date.parse(x||'');return Number.isFinite(v)?v:0};
 const clone=x=>JSON.parse(JSON.stringify(x));
 const {publicError,publicState,privateDiagnostic,isUsageLimit}=require('./control-errors');
+const {canReceiveInstruction}=require('./runtime-health');
 const short=()=>publicError('sustain');
 function atomic(p,x){const t=p+'.tmp';fs.writeFileSync(t,JSON.stringify(x,null,2),'utf8');fs.renameSync(t,p)}
 function read(p,x){try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch{return clone(x)}}
@@ -157,7 +158,7 @@ class Sustain {
   }
  }
  possibleDispatch(session,type,key,message,reason,now,extra={}){
-  if(!session?.isIdle||session.replacedBy||session.activity==='waiting_input')return null;
+  if(!canReceiveInstruction(session))return null;
   const data=this.status.agents[session.id]||{};
   if(data.awaiting)return null;
   if(parse(data.backoffUntil)>now)return null;
@@ -223,7 +224,7 @@ class Sustain {
   if(snap.offline)blocked='Orchestrator roster is an offline snapshot';
   if(!gh||gh.fresh===false)blocked='GitHub snapshot unavailable or stale; no automatic assignments';
   for(const s of snap.sessions){
-   if(!s.isIdle||s.replacedBy)continue;
+   if(!canReceiveInstruction(s))continue;
    const owned=(s.prs||[]).filter(p=>['open','draft'].includes(p.state)&&prs.some(g=>g.number===p.number));
    let message=null,reason='',type='',key='',priority=5,issueId=null;
    if(s.kind==='orchestrator'){
@@ -321,7 +322,7 @@ class Sustain {
     const resources=await this.turbo.signals(live);
     if(resources.freeRamGiB<this.config.minFreeRamGiB||(resources.freeDiskGiB!==null&&resources.freeDiskGiB<this.config.minFreeDiskGiB))break;
     const current=live.sessions.find(s=>s.id===action.id);
-    if(!current?.isIdle||current.replacedBy)continue;
+    if(!canReceiveInstruction(current))continue;
     const a=this.status.agents[action.id]||{};
     if(a.awaiting&&parse(a.lastSent)>0)continue;
     if(action.type==='review'){

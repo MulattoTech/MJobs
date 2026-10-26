@@ -3,7 +3,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const {execFileSync}=require('node:child_process');
-const {attachWindowsStoppedEvidence,runtimeAbsentEvidence,nativeRuntimePaths,nativeSessionIdentity,MAX_AGE_MS}=require('./windows-runtime-evidence');
+const {attachWindowsStoppedEvidence,runtimeAbsentEvidence,nativeRuntimePaths,nativeSessionIdentity,MAX_AGE_MS,createRestorationScope}=require('./windows-runtime-evidence');
 const NOW=Date.parse('2026-10-25T20:00:00.000Z');
 const clone=value=>JSON.parse(JSON.stringify(value));
 function session(patch={}){
@@ -28,6 +28,75 @@ function fixture(patch={}){
   runProbe:async request=>{state.requests.push(request);return response(request)}};
  return {current,counts,state,options,run:()=>attachWindowsStoppedEvidence(counts,[current],options)};
 }
+function archivedFixture({legacy=false}={}){
+ const f=fixture({mode:'tui',kind:'worker',model:'preserved-model',branch:'worker/preserved',isTerminated:true});
+ const target={...clone(f.current),isTerminated:false,activity:'waiting_input'};
+ if(legacy)delete target.createdAt;
+ const saved={at:new Date(NOW-3600000).toISOString(),sessions:[target]};
+ f.options.restorationScope=createRestorationScope(saved,saved.sessions);
+ f.counts.delete(f.current.id);
+ return {...f,saved,target,scope:()=>({restorationScope:f.options.restorationScope})};
+}
+test('only explicit preserved-target scope can prove an archived TUI absent, without manufacturing its omitted count',async()=>{
+ const f=archivedFixture();await f.run();
+ assert.equal(f.state.requests.length,1);assert.equal(f.state.requests[0].targets[0].isTerminated,true);
+ assert.equal(f.counts.has(f.current.id),false);assert.equal(f.counts.stoppedEvidence.size,1);
+ assert.equal(runtimeAbsentEvidence(f.current,f.counts,NOW),null,'Generic consumers still reject archives');
+ const evidence=runtimeAbsentEvidence(f.current,f.counts,NOW,f.scope());assert.ok(evidence);
+ assert.equal(evidence.restorationTarget.target.id,f.current.id);
+ assert.equal(evidence.restorationTarget.snapshotAt,f.saved.at);
+ delete f.options.restorationScope;await f.run();
+ assert.equal(f.state.requests.length,1);assert.equal(f.counts.stoppedEvidence.size,0,'Generic readers cannot refresh an archive proof');
+});
+test('legacy preserved targets bind a creation predating the snapshot; new targets pin creation exactly',async()=>{
+ const f=archivedFixture({legacy:true});await f.run();assert.ok(runtimeAbsentEvidence(f.current,f.counts,NOW,f.scope()));
+ const g=archivedFixture({legacy:true});g.current.createdAt=new Date(NOW-1000).toISOString();g.state.after=clone(g.current);
+ await g.run();assert.equal(g.state.requests.length,0,'A recreated identity after the snapshot cannot be adopted');
+ const h=archivedFixture();h.current.createdAt='2026-10-22T10:00:01Z';h.state.after=clone(h.current);
+ await h.run();assert.equal(h.state.requests.length,0,'A recorded creation is exact even when both values predate the snapshot');
+});
+test('historical archives and archived Chat remain outside the scoped TUI recovery exception',async()=>{
+ const f=archivedFixture();const retired={...clone(f.current),id:'unrelated-retired-worker'};
+ f.options.readSessions=async()=>[clone(f.current),retired];
+ await attachWindowsStoppedEvidence(f.counts,[f.current,retired],f.options);
+ assert.deepEqual(f.state.requests[0].targets.map(s=>s.id),[f.current.id]);assert.equal(f.counts.stoppedEvidence.has(retired.id),false);
+ const chat=archivedFixture();chat.current.mode='chat';chat.state.after=clone(chat.current);chat.target.mode='chat';
+ chat.options.restorationScope=createRestorationScope(chat.saved,chat.saved.sessions);await chat.run();
+ assert.equal(chat.state.requests.length,0,'Archived Chat needs its own verified controller lifecycle');
+});
+test('archived proof rejects changed saved/live identity, ineligible manifests and a future snapshot',async t=>{
+ for(const field of ['id','projectId','kind','harness','model','mode','branch','createdAt'])await t.test(field,async()=>{
+  const f=archivedFixture();const values={id:'other-id',projectId:'other-project',kind:'orchestrator',harness:'agy',model:'other-model',mode:'chat',branch:'other/branch',createdAt:'2026-10-21T10:00:00Z'};
+  f.current[field]=values[field];f.state.after=clone(f.current);await f.run();assert.equal(f.state.requests.length,0);
+ });
+ for(const change of ['terminated','exited','missing model','missing branch','duplicate','future'])await t.test(change,async()=>{
+  const f=archivedFixture();
+  if(change==='terminated')f.target.isTerminated=true;
+  if(change==='exited')f.target.activity='exited';
+  if(change==='missing model')delete f.target.model;
+  if(change==='missing branch')delete f.target.branch;
+  if(change==='duplicate')f.saved.sessions.push(clone(f.target));
+  if(change==='future')f.saved.at=new Date(NOW+1).toISOString();
+  f.options.restorationScope=createRestorationScope(f.saved,f.saved.sessions);await f.run();assert.equal(f.state.requests.length,0);
+ });
+});
+test('archived evidence is bound to one unchanged scope and every native stop check',async t=>{
+ const changes={
+  'scope fingerprint':f=>{f.options.restorationScope={...f.options.restorationScope,fingerprint:'f'.repeat(64)};},
+  'scope changed during probe':f=>{f.options.runProbe=async request=>{f.saved.at=new Date(NOW-2000000).toISOString();f.options.restorationScope=createRestorationScope(f.saved,f.saved.sessions);return response(request);};},
+  'live branch changed during probe':f=>{f.state.after.branch='changed/branch';},
+  'live model changed during probe':f=>{f.state.after.model='changed-model';},
+  'positive count':f=>{f.counts.set(f.current.id,1);},
+  'blocked status':f=>{f.current.activity.state='blocked';f.state.after=clone(f.current);},
+  'unknown ownership':f=>{f.options.runProbe=async request=>response(request,{results:[{id:f.current.id,absent:false,reason:'MATCHING_NATIVE_HOST_PRESENT',proof:proof()}]});},
+ };
+ for(const [name,change] of Object.entries(changes))await t.test(name,async()=>{const f=archivedFixture();change(f);await f.run();assert.equal(f.counts.stoppedEvidence.size,0);});
+ const f=archivedFixture();await f.run();const original=f.options.restorationScope;
+ f.saved.at=new Date(NOW-2000000).toISOString();f.options.restorationScope=createRestorationScope(f.saved,f.saved.sessions);
+ assert.equal(runtimeAbsentEvidence(f.current,f.counts,NOW,f.scope()),null);
+ assert.ok(runtimeAbsentEvidence(f.current,f.counts,NOW,{restorationScope:original}));
+ assert.equal(runtimeAbsentEvidence(f.current,f.counts,NOW+MAX_AGE_MS+1,{restorationScope:original}),null);
+});
 test('verified chat absence is a typed sidecar, never a fabricated zero or global provider-death claim',async()=>{
  const f=fixture();const original=f.counts;await f.run();
  assert.equal(f.counts,original);assert.equal(f.counts.get(f.current.id),null);assert.equal(f.counts.get('unrelated'),7);
@@ -200,6 +269,6 @@ test('Windows native argument parser and native policy fixture', {skip:process.p
   '-NoLogo','-NoProfile','-NonInteractive','-File',path.join(__dirname,'Get-AoRuntimeEvidence.ps1'),'-SelfTest'
  ],{encoding:'utf8',windowsHide:true,timeout:12000,maxBuffer:1024*1024});
  const result=JSON.parse(text.replace(/^\uFEFF/,''));
- assert.equal(result.ok,true,JSON.stringify(result));assert.ok(result.checks>=22);
+ assert.equal(result.ok,true,JSON.stringify(result));assert.ok(result.checks>=100);
  assert.equal(result.processMutations,0);assert.equal(result.ownershipWrites,0);
 });

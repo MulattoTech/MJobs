@@ -52,7 +52,7 @@ const FleetQuotaUI=(()=>{
   const top=el('quotaTopbar');
   if(top){
    top.textContent=tripped?(data.fresh&&data.selectedRemainingPercent!==null?'Codex '+data.selectedRemainingPercent+'% left · STOP TRIPPED':'CODEX STOP TRIPPED · USAGE STALE'):data.fresh&&data.selectedRemainingPercent!==null?
-    'Codex '+data.selectedRemainingPercent+'% left'+(armed?' · ARMED':''):
+    'Usage '+data.selectedRemainingPercent+'% remaining'+(armed?' · STOP GUARD ARMED':''):
     'Codex usage: —';
    top.className='quota-topbar'+(armed?' armed':'');
   }

@@ -5,9 +5,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const { RestoreFleet, INITIAL_STATE } = require('./restore-fleet');
+const { StartupAdapter } = require('./startup-adapter');
 const { addControllerHealth, runtimeHealthy, controllerStopped } = require('./runtime-health');
-const { nativeSessionIdentity } = require('./windows-runtime-evidence');
+const { nativeSessionIdentity, attachWindowsStoppedEvidence } = require('./windows-runtime-evidence');
 
 const clone = value => structuredClone(value);
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
@@ -80,6 +82,200 @@ async function proveNativeAbsent(f, id = 'mjobs-primary') {
     proof: { completeInventory: true, stableInventory: true, stableRegistry: true, instanceVerified: true, stableInstance: true, noMatchingHost: true, ownershipClear: true, noSessionOwnedProvider: true, registryAbsent: session.mode === 'tui', chatOwnershipClear: session.mode === 'chat' } };
   f.state.stoppedEvidence.set(id, evidence); return evidence;
 }
+function scopedArchivedRecovery(t) {
+  const f = fixture(t, { primaryMode: 'tui' }); f.readyPrimary();
+  for (const session of f.state.live) Object.assign(session, {
+    createdAt: new Date(f.state.clock - 120000).toISOString(), updatedAt: new Date(f.state.clock - 1000).toISOString(),
+    branch: 'preserved/' + session.id, provisionState: 'ready', statusReadiness: 'ready', terminalGeneration: 'known-generation',
+  });
+  const snapshot = { at: new Date(f.state.clock - 60000).toISOString(),
+    sessions: f.state.live.map(s => ({ ...clone(s), activity: 'idle', isTerminated: false })) };
+  // Exercise the deployed legacy format: source omitted branch and creation,
+  // but the preserved snapshot still carries branch; old snapshots omit birth.
+  for (const target of snapshot.sessions) delete target.createdAt;
+  fs.writeFileSync(f.restore.snapshotPath, JSON.stringify(snapshot));
+  f.restore.state.source = { snapshotAt: snapshot.at, targets: snapshot.sessions.map(s => ({ id: s.id, projectId: s.projectId,
+    kind: s.kind, harness: s.harness, model: s.model, mode: s.mode })) };
+  f.state.live[1].isTerminated = true; f.state.counts.delete('mjobs-worker');
+  f.state.probes = []; f.state.scopes = [];
+  f.restore.runtimeInspector = async (projects, { restorationScope } = {}) => {
+    f.state.inspectCount++; if (f.state.onInspect) await f.state.onInspect(f.state.inspectCount);
+    f.state.scopes.push(restorationScope);
+    return attachWindowsStoppedEvidence(new Map(f.state.counts), await f.getGlobalSessions(), {
+      platform: 'win32', now: () => f.state.clock, restorationScope, readSessions: f.getGlobalSessions,
+      runProbe: async request => {
+        f.state.probes.push(clone(request));
+        return { version: 1, probeId: request.probeId, complete: true, observedAt: new Date(f.state.clock).toISOString(),
+          results: request.targets.map(s => ({ id: s.id, absent: true, proof: {
+            completeInventory: true, stableInventory: true, stableRegistry: true, instanceVerified: true, stableInstance: true,
+            noMatchingHost: true, ownershipClear: true, noSessionOwnedProvider: true, registryAbsent: true, chatOwnershipClear: true,
+          } })) };
+      },
+    });
+  };
+  f.restore.save();
+  return f;
+}
+function approvedBranchRecovery(t) {
+  const f=scopedArchivedRecovery(t),snapshot=f.restore.getSnapshot(),current=f.state.live[1];
+  const target=snapshot.sessions[1];
+  const entry={id:target.id,projectId:target.projectId,kind:target.kind,harness:target.harness,model:target.model,mode:target.mode,
+    branch:target.branch,createdAt:current.createdAt,expectedBranch:'preserved/existing-dirty-work',workspacePath:'C:\\Worktrees\\preserved',workspaceRepoPath:'C:\\Repos\\MJobs'};
+  const record={schemaVersion:1,kind:'preserved-worktree-branch-adoptions',snapshotAt:snapshot.at,
+    snapshotSha256:createHash('sha256').update(fs.readFileSync(f.restore.snapshotPath)).digest('hex'),
+    reviewedAt:new Date(f.state.clock-5000).toISOString(),reviewReference:'Fixture: exact registered worktree reviewed',entries:[entry]};
+  const approvalFile=path.join(f.root,'restore-branch-adoptions.json');fs.writeFileSync(approvalFile,JSON.stringify(record));
+  const approval=f.restore.branchApproval();
+  f.restore.state.source.targets=snapshot.sessions.map(s=>({id:s.id,projectId:s.projectId,kind:s.kind,harness:s.harness,model:s.model,mode:s.mode,branch:s.branch}));
+  Object.assign(f.restore.state.source,{startupRunId:'reviewed-startup-run-001',branchAdoptions:{revision:approval.revision,snapshotSha256:approval.snapshotSha256}});
+  f.state.workspaceChecks=[];f.state.onWorkspace=null;
+  f.restore.workspaceVerifier=async supplied=>{
+    f.state.workspaceChecks.push(clone(supplied));if(f.state.onWorkspace)await f.state.onWorkspace(f.state.workspaceChecks.length);
+    return {verified:true,observedAt:new Date(f.state.clock).toISOString(),workspacePath:supplied.workspacePath,workspaceRepoPath:supplied.workspaceRepoPath,branch:supplied.expectedBranch};
+  };
+  f.state.onResume=()=>{f.state.live[1].branch=entry.expectedBranch;};f.restore.save();
+  return {...f,entry,approval,approvalFile,record};
+}
+
+test('reviewed existing branch is accepted only after fenced native restore and positive runtime health, without changing the manifest',async t=>{
+  const f=approvedBranchRecovery(t),manifest=fs.readFileSync(f.restore.snapshotPath);
+  f.state.onResume=()=>{
+    const disk=JSON.parse(fs.readFileSync(f.restore.statePath,'utf8'));
+    assert.equal(disk.branchAdoptionReceipts['mjobs-worker'].status,'submitted');
+    assert.equal(disk.inflight['mjobs-worker'].branchAdoptionReceiptId,disk.branchAdoptionReceipts['mjobs-worker'].receiptId);
+    assert.equal(disk.branchAdoptionReceipts['mjobs-worker'].nativeBefore.branch,f.entry.branch);
+    f.state.live[1].branch=f.entry.expectedBranch;
+  };
+  await f.restore.tick();assert.equal(f.resumes().length,1);assert.equal(f.resumes()[0][1],'restore');
+  assert.equal(f.state.workspaceChecks.length,2,'Existing workspace is verified before and after native restore');
+  assert.equal(f.state.probes.length,3,'Native absence is refreshed after the asynchronous workspace preflight');
+  assert.equal(f.restore.state.branchAdoptionReceipts['mjobs-worker'].status,'command_succeeded');
+  await f.restore.tick();assert.equal(f.restore.state.phase,'complete');assert.deepEqual(f.restore.state.inflight,{});
+  assert.equal(f.restore.state.branchAdoptionReceipts['mjobs-worker'].status,'verified');
+  assert.deepEqual(fs.readFileSync(f.restore.snapshotPath),manifest,'No approved-map path rewrites the frozen manifest');
+  const adapter=new StartupAdapter({root:f.root,master:{restore:f.restore},getSessions:f.getGlobalSessions,runtimeHealth:runtimeHealthy});
+  const live=await adapter.readRuntimes();assert.equal(live.runtimesReady,true);assert.equal(live.verified,2);
+  assert.deepEqual(live.branchAdoptionIds,['mjobs-worker']);assert.equal(live.branchAdoptionsRevision,f.approval.revision);
+});
+
+test('review file alone cannot adopt a healthy different branch or authorize its archived mutation',async t=>{
+  const f=approvedBranchRecovery(t),target=f.restore.state.source.targets[1];
+  f.state.live[1].branch=f.entry.expectedBranch;f.state.live[1].isTerminated=false;f.state.live[1].activity.state='idle';f.state.counts.set('mjobs-worker',2);
+  assert.equal((await f.restore.runtimeTarget(target,f.state.live[1],2)).matches,false);
+  f.state.live[1].isTerminated=true;f.state.live[1].activity.state='exited';f.state.counts.delete('mjobs-worker');
+  await f.restore.tick();assert.deepEqual(f.resumes(),[]);assert.deepEqual(f.restore.state.inflight,{});
+});
+
+test('workspace or approval changes before native submission leave no false submission receipt',async t=>{
+  for(const changed of ['workspace','approval','native identity'])await t.test(changed,async st=>{
+    const f=approvedBranchRecovery(st);
+    if(changed==='workspace')f.restore.workspaceVerifier=async()=>{throw Error('BRANCH_WORKSPACE_CHANGED');};
+    if(changed==='approval')f.state.onWorkspace=()=>fs.appendFileSync(f.approvalFile,' ');
+    if(changed==='native identity')f.state.onWorkspace=()=>{f.state.live[1].createdAt=new Date(f.state.clock-110000).toISOString();};
+    await f.restore.tick();assert.deepEqual(f.resumes(),[]);assert.deepEqual(f.restore.state.inflight,{});assert.deepEqual(f.restore.state.branchAdoptionReceipts,{});
+  });
+});
+
+test('an uncertain branch restore retains its durable fence and can be verified without another native submission',async t=>{
+  const f=approvedBranchRecovery(t);f.state.resumeTimeout=true;
+  await f.restore.tick();assert.equal(f.resumes().length,1);assert.equal(f.restore.state.branchAdoptionReceipts['mjobs-worker'].status,'submitted');
+  assert.equal(f.restore.state.errors['mjobs-worker'].uncertain,true);
+  f.state.live[1].isTerminated=false;f.state.live[1].activity.state='idle';f.state.counts.set('mjobs-worker',2);
+  const ledger=clone(f.restore.state),match=await f.restore.runtimeTarget(f.restore.state.source.targets[1],f.state.live[1],2);
+  assert.equal(match.matches,true);assert.deepEqual(f.restore.state,ledger,'Read-only identity verification preserves every ledger byte');
+  await f.restore.tick();assert.equal(f.resumes().length,1);assert.equal(f.restore.state.phase,'complete');
+  assert.equal(f.restore.state.branchAdoptionReceipts['mjobs-worker'].status,'verified');
+});
+
+test('adoption cannot survive changed native birth, branch, approval or ledger during an asynchronous workspace read',async t=>{
+  for(const changed of ['birth','branch','approval','receipt','fence','coordinated receipt and fence'])await t.test(changed,async st=>{
+    const f=approvedBranchRecovery(st);f.state.resumeTimeout=true;await f.restore.tick();
+    f.state.live[1].isTerminated=false;f.state.live[1].activity.state='idle';f.state.counts.set('mjobs-worker',2);
+    f.state.onWorkspace=()=>{
+      if(changed==='birth')f.state.live[1].createdAt=new Date(f.state.clock-110000).toISOString();
+      if(changed==='branch')f.state.live[1].branch='unreviewed/branch';
+      if(changed==='approval')fs.appendFileSync(f.approvalFile,' ');
+      if(changed==='receipt')f.restore.state.branchAdoptionReceipts['mjobs-worker'].receiptId='changed-receipt';
+      if(changed==='fence')delete f.restore.state.inflight['mjobs-worker'];
+      if(changed==='coordinated receipt and fence'){f.restore.state.branchAdoptionReceipts['mjobs-worker'].receiptId='changed-pair';f.restore.state.inflight['mjobs-worker'].branchAdoptionReceiptId='changed-pair';}
+    };
+    assert.equal((await f.restore.runtimeTarget(f.restore.state.source.targets[1],clone(f.state.live[1]),2)).matches,false);
+    assert.equal(f.resumes().length,1);
+  });
+});
+
+test('a later explicit Startup can carry only an already verified same-map receipt, while preserving its original native provenance',async t=>{
+  const f=approvedBranchRecovery(t);await f.restore.tick();await f.restore.tick();
+  const receipt=clone(f.restore.state.branchAdoptionReceipts['mjobs-worker']);
+  f.restore.schedule=()=>{};
+  const snapshot=f.restore.getSnapshot();
+  assert.throws(()=>f.restore.start({manifest:snapshot}),/protected Startup binding/);
+  f.restore.start({manifest:snapshot,startupRunId:'later-startup-run-002',branchAdoptionsRevision:f.approval.revision});f.restore.pause();
+  assert.deepEqual(f.restore.state.branchAdoptionReceipts['mjobs-worker'],receipt);
+  assert.equal((await f.restore.runtimeTarget(f.restore.state.source.targets[1],f.state.live[1],2)).matches,true);
+  f.restore.state.branchAdoptionReceipts['mjobs-worker'].verifiedAt=new Date(f.state.clock+1).toISOString();
+  assert.equal((await f.restore.runtimeTarget(f.restore.state.source.targets[1],f.state.live[1],2)).matches,false,'Carried receipt is immutable');
+});
+
+test('preserved TUI archived by AO reaches native restore with exact scoped proof and no manufactured count', async t => {
+  const f = scopedArchivedRecovery(t);
+  f.state.live.push({ ...clone(f.state.live[1]), id: 'historical-retired-worker' });
+  f.state.onResume = () => {
+    assert.equal(f.restore.state.inflight['mjobs-worker'].command, 'restore', 'Submission is durably fenced before the native call');
+    assert.equal(f.state.counts.has('mjobs-worker'), false, 'Absent top row remains absent');
+  };
+  const first = await f.restore.tick(); assert.deepEqual(first.submitted, ['mjobs-worker']);
+  assert.deepEqual(f.resumes(), [['session', 'restore', 'mjobs-worker', '--project', 'mjobs-luna']]);
+  assert.equal(f.state.probes.length, 2, 'Both poll and mutation boundary use native absence');
+  for (const request of f.state.probes) assert.deepEqual(request.targets.map(s => s.id), ['mjobs-worker']);
+  assert.ok(f.state.scopes.every(scope => scope?.targets.length === 2));
+  assert.equal(f.restore.state.inflight['mjobs-worker'].command, 'restore');
+  await f.restore.tick(); assert.equal(f.restore.state.phase, 'complete');
+  assert.equal(f.resumes().length, 1); assert.deepEqual(f.restore.state.inflight, {});
+});
+
+test('archived restore does not replay an uncertain native submission even after new absence proof', async t => {
+  const f = scopedArchivedRecovery(t); f.state.resumeTimeout = true;
+  await f.restore.tick(); assert.equal(f.resumes().length, 1); assert.equal(f.restore.state.errors['mjobs-worker'].uncertain, true);
+  const ledger = clone(f.restore.state.inflight); f.state.clock += 40000;
+  await f.restore.tick(); assert.equal(f.resumes().length, 1); assert.deepEqual(f.restore.state.inflight, ledger);
+  f.restore.pause();
+  assert.throws(() => f.restore.start(), /unverified/);
+});
+
+test('archived restoration rejects unrelated history, changed source and measured zero without scoped proof', async t => {
+  const cases = {
+    'changed source model': f => { f.restore.state.source.targets[1].model = 'other-model'; },
+    'changed source branch': f => { f.restore.state.source.targets[1].branch = 'other/branch'; },
+    'changed source snapshot': f => { f.restore.state.source.snapshotAt = new Date(f.state.clock - 50000).toISOString(); },
+    'changed desired IDs': f => { f.restore.state.desiredIds.push('historical-retired-worker'); },
+    'current branch changed': f => { f.state.live[1].branch = 'different/branch'; },
+    'current model changed': f => { f.state.live[1].model = 'different-model'; },
+    'current identity newer than snapshot': f => { f.state.live[1].createdAt = new Date(f.state.clock - 1000).toISOString(); },
+    'archive was already retired in snapshot': f => { const saved=f.restore.getSnapshot();saved.sessions[1].isTerminated=true;fs.writeFileSync(f.restore.snapshotPath,JSON.stringify(saved)); },
+    'zero only without proof': f => { f.state.counts.set('mjobs-worker',0); f.restore.runtimeInspector=async()=>new Map(f.state.counts); },
+    'archive moved to Chat': f => { f.state.live[1].mode='chat'; },
+  };
+  for (const [name, change] of Object.entries(cases)) await t.test(name, async st => {
+    const f=scopedArchivedRecovery(st);change(f);await f.restore.tick();
+    assert.deepEqual(f.resumes(),[]);assert.deepEqual(f.restore.state.inflight,{});
+  });
+});
+
+test('archived mutation boundary rechecks the exact manifest, live branch and durable submission fence', async t => {
+  for(const change of ['manifest','branch','submission'])await t.test(change,async st=>{
+    const f=scopedArchivedRecovery(st);
+    f.state.onInspect=count=>{
+      if(count!==2)return;
+      if(change==='manifest'){const saved=f.restore.getSnapshot();saved.at=new Date(f.state.clock-50000).toISOString();fs.writeFileSync(f.restore.snapshotPath,JSON.stringify(saved));}
+      if(change==='branch')f.state.live[1].branch='changed/during-inspection';
+      if(change==='submission')f.restore.state.inflight['mjobs-worker']={command:'restore',at:new Date(f.state.clock).toISOString()};
+    };
+    await f.restore.tick();assert.deepEqual(f.resumes(),[]);
+    if(change==='submission')assert.equal(f.restore.state.inflight['mjobs-worker'].command,'restore');
+    else assert.deepEqual(f.restore.state.inflight,{});
+  });
+});
 
 test('native conversation controller strings map to health without retaining conversation content', async () => {
   const sessions = [
