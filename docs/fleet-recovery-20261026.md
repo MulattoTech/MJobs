@@ -1,6 +1,27 @@
 # Fleet recovery and remote status: 26 October 2026
 
-## Delivery checkpoint
+## Resumed publication checkpoint
+
+The desktop GitHub authentication blocker described below **has cleared**.
+During the resumed publication session, `gh auth status --hostname github.com`
+reported a valid active account and `gh api user --jq .login` returned the
+expected repository owner. No new sign-in was initiated by this publication step.
+
+The status feed generated at **2026-10-26T03:01:30.166Z** showed **31/31 current
+runtimes verified**, Sustained dispatch enabled, five agents working and twenty-six
+idle. The original recovery baseline was 29 targets; this later live roster is
+reported as observed, not as additional agents launched by the publication step.
+A subsequent dispatcher observation showed a successful tick at
+**2026-10-26T03:02:28.490Z**, 40 submissions in the current hour, no current planner
+hold and submitted reviews of PRs #823 and #824. A retained `lastError` string
+was historical; it did not override the newer successful tick and live activity.
+
+The earlier authentication-hold checkpoints remain below as incident history,
+not the current outcome. Publication resumed from local recovery commit
+`199b4729ceeb89d5810d427f73d867e04ac830e7` without restarting or interrupting the
+working fleet. Authenticated external browser login remains unexercised.
+
+## Earlier delivery checkpoint
 
 The canonical source is [MulattoTech/MJobs](https://github.com/MulattoTech/MJobs).
 Fleet Control and Mission Control were already tracked under
