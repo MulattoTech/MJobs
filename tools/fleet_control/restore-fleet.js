@@ -2,6 +2,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
+const {retainStoppedTargets}=require('./snapshot-retention');
 const {execFile}=require('node:child_process');
 const {promisify,isDeepStrictEqual}=require('node:util');
 const {attachWindowsStoppedEvidence,runtimeAbsentEvidence,createRestorationScope}=require('./windows-runtime-evidence');
@@ -349,11 +350,20 @@ class RestoreFleet {
   const pendingRecovery=Array.isArray(this.state.desiredIds)&&this.state.desiredIds.length>0 &&
    ['paused','preparing','waiting_watchdog','starting_ao','restoring_primary','restoring_workers',
     'verifying','paused_resources','paused_quota','partial','failed','cancelled'].includes(this.state.phase);
-  if(this.state.active||this.reviewCompleting||this.locked()||(!force&&(this.snapshotFrozen()||pendingRecovery)))return null;
+  const blocked=()=>this.state.active||this.reviewCompleting||this.locked()||(!force&&(this.snapshotFrozen()||pendingRecovery));
+  if(blocked())return null;
+  const previous=this.getSnapshot(),beforeState=digest(this.state),beforeSnapshot=digest(previous);
   let entries;
   try{entries=await this.getGlobalSessions()}catch{return null}
-  if(!entries?.length)return null;
-  const sessions=entries.map(normalizeRecord);
+  if(!entries?.length||blocked()||digest(this.state)!==beforeState||digest(this.getSnapshot())!==beforeSnapshot)return null;
+  const observedAt=nowIso(),oldTargets=this.targets(previous);
+  const sessions=retainStoppedTargets(oldTargets,entries.map(normalizeRecord),observedAt);
+  const nextTargets=this.targets({sessions});
+  // Never replace a primary-bearing recovery roster with orphaned workers.
+  for(const primary of oldTargets.filter(s=>s.kind==='orchestrator')){
+   const group=nextTargets.filter(s=>s.projectId===primary.projectId);
+   if(group.length&&group.filter(s=>s.kind==='orchestrator').length!==1)return null;
+  }
   const snapshot={at:nowIso(),kind:'AO-preserved-session-manifest-v1',scope:'AO-managed-Codex-AGY-Gemini-sessions',
     sessions,restorableCount:this.targets({sessions}).length};
   if(snapshot.restorableCount===0)return null;

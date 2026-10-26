@@ -212,9 +212,10 @@ async function takeAction(action,id,type){
   });
  }
  if(action==='retire'){
-  openModal('<h2>Archive original session?</h2><p>Only archive after verifying the replacement is ready. The original agent history will be backed up and the AO session terminated. Branches and worktrees are not cleaned up.</p><div class="form-field"><label>Type <strong>'+esc(id)+'</strong> to confirm</label><input id="retireConfirm" autocomplete="off" placeholder="'+esc(id)+'"></div><div class="modal-actions"><button class="ghost-button" data-modal="cancel">Cancel</button><button class="danger-button" id="confirmRetire">Archive old agent</button></div>');
+  openModal('<h2>Archive original session?</h2><p>Only archive after verifying the replacement is ready. The original agent history will be backed up and the AO session terminated. Branches and worktrees are not cleaned up.</p><div class="form-field"><label>Type <strong>'+esc(id)+'</strong> to confirm</label><input id="retireConfirm" autocomplete="off" placeholder="'+esc(id)+'"></div><div class="modal-actions"><button class="ghost-button" data-modal="cancel">Cancel</button><button class="danger-button" id="confirmRetire" disabled>Archive old agent</button></div>');
+  $('#retireConfirm').addEventListener('input',()=>{$('#confirmRetire').disabled=$('#retireConfirm').value.trim()!==id;});
   $('#confirmRetire').addEventListener('click',async()=>{
-   if(state.pending)return;state.pending=true;$('#confirmRetire').disabled=true;
+   if(state.pending||$('#retireConfirm').value.trim()!==id)return;state.pending=true;$('#confirmRetire').disabled=true;
    try{const confirm=$('#retireConfirm').value;const r=await api('/api/retire',{id,confirm});closeModal();closeDrawer();toast(id+' archived. Replacement remains live.');await refresh(true)}
    catch(e){toast(e.message,true);$('#confirmRetire').disabled=false}finally{state.pending=false}
   });

@@ -217,13 +217,17 @@ class StartupAdapter {
  }
  async readRuntimes(){
   const at=new Date(this.now()).toISOString();
+  let stage='manifest';
   try{
    const {saved,targets,revision}=this.manifest();
+   stage='native';
    const restorationScope=createRestorationScope(saved,targets);
    const counts=await this.master.restore.runtimeInspector([...new Set(targets.map(s=>s.projectId))],{restorationScope});
    // Controller state is read after the potentially slow native inspection so
    // a completed background result does not revive an earlier ready snapshot.
+   stage='sessions';
    const sessions=await this.getSessions();
+   stage='identity';
    const conflicts=[],missing=[],nativeAbsentIds=[],stoppedIds=[],recoveryIdentityMismatches=[],branchAdoptionIds=[],postReviewIds=[],postReviewRevisions=new Set();
    const bindings=()=>stateFingerprint({source:this.master.restore.state.source,startedAt:this.master.restore.state.startedAt,inflight:this.master.restore.state.inflight,
     branchAdoptionReceipts:this.master.restore.state.branchAdoptionReceipts,postRestoreReviewReceipts:this.master.restore.state.postRestoreReviewReceipts});
@@ -260,7 +264,9 @@ class StartupAdapter {
     recoveryIdentitiesMatch:stable&&recoveryIdentityMismatches.length===0,
     runtimeAbsenceComplete:stable&&conflicts.length===0&&targets.every(s=>counts.get(s.id)===0||nativeAbsentIds.includes(s.id)),missing,conflicts,
     reason:!stable?'The preserved manifest or restore bindings changed during inspection; a new observation is required':runtimesReady?'Preserved runtimes and primary controllers are currently healthy':conflicts.length?'Conflicting primary controllers require attention':missing.length+' preserved runtimes are not currently verified healthy'};
-  }catch(error){return {at,daemonOnline:false,runtimesReady:false,reason:'Current Orchestrator runtime health is unavailable',verified:0,conflicts:[]}}
+  }catch(error){return {at,daemonOnline:stage==='sessions'?false:stage==='identity'?true:null,runtimesReady:false,
+   errorCode:stage==='manifest'?'RECOVERY_MANIFEST_INVALID':stage==='sessions'?'DAEMON_SESSION_READ_FAILED':'RUNTIME_INSPECTION_FAILED',
+   reason:stage==='manifest'?'Preserved fleet manifest is invalid or has no eligible primary; Startup is blocked until the recovery roster is repaired.':'Current Orchestrator runtime health is unavailable',verified:0,conflicts:[]}}
  }
  decorate(value){
   const healthyIds=new Set(value.healthyIds||[]),unresolvedIds=unresolvedNativeOperations(this.master.restore.state).filter(id=>!healthyIds.has(id));

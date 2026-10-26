@@ -29,7 +29,7 @@ window.FleetSustainUI=(()=>{
     const p=await api('/api/sustain/preview');
     draw({...data,latest:p});
    }
-  }catch(e){$s('sustainFeedback').textContent='Controller unavailable: '+e.message}
+  }catch(e){$s('sustainBadge').textContent='UNKNOWN';$s('sustainBadge').className='sustain-badge paused';$s('sustainFeedback').textContent='Controller unavailable: '+e.message}
   finally{inFlight=false}
  }
  async function toggle(){

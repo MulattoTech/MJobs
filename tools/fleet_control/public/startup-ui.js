@@ -153,7 +153,7 @@ const FleetStartupUI = (() => {
     render(); return readPromise;
   }
   function previewStartup() {
-    if (actionBusy || !fresh() || run?.active || uncertain() || run?.phase === 'resumable') return;
+    if (actionBusy || !fresh() || run?.active || uncertain()) return;
     const retry = !!pendingRequest?.uncertain;
     const count = Number.isInteger(preview?.totalTargets) ? preview.totalTargets : Number.isInteger(preview?.targetCount) ? preview.targetCount : null;
     const quota = readiness?.quota || preview?.quota;

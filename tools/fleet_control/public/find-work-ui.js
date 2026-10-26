@@ -7,7 +7,7 @@ const FleetFindWorkUI=(()=>{
   const b=el('findWorkAll');
   if(!b)return;
   const sessions=data?.sessions||[];
-  const count=sessions.filter(s=>s.isIdle&&s.activity==='idle'&&!s.replacedBy).length;
+  const count=sessions.filter(s=>s.isIdle&&['idle','waiting_input'].includes(s.activity)&&!s.replacedBy).length;
   b.textContent='⚡ Find Work · '+count+' Idle';
   b.disabled=busy||count===0||executionUnavailable();
   b.title=count>0?'Ask all currently idle agents to finish their PRs or find scoped work':'No idle agents available';
@@ -17,7 +17,7 @@ const FleetFindWorkUI=(()=>{
   if(executionUnavailable()){toast('Fresh roster and ready safety preflight are required before dispatch.',true);return}
   const s=state.data?.sessions.find(x=>x.id===id);
   if(!s){toast('Agent disappeared from the live fleet; refresh and try again.',true);return}
-  if(!s.isIdle||s.activity!=='idle'||s.replacedBy){toast('This agent is not currently eligible; it must be idle and not superseded.',true);return}
+  if(!s.isIdle||!['idle','waiting_input'].includes(s.activity)||s.replacedBy){toast('This agent is not currently eligible; it must be idle and not superseded.',true);return}
   busy=true;
   const control=document.querySelector('[data-action="find-work"][data-id="'+id+'"]');
   if(control){control.disabled=true;control.textContent='Sending…'}

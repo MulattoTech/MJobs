@@ -104,6 +104,7 @@ function projectSnapshot(results, now = Date.now()) {
         : quota.fresh === false ? 'Quota reading is unavailable or stale'
         : quota.guardAcknowledged === false ? 'Waiting for quota guard acknowledgement'
         : startup.reconciliationRequired === true ? 'Startup requires reconciliation'
+        : health.dispatchBlockedReason === 'No live primary orchestrator' ? 'Primary orchestrator is stopped; use protected Startup locally'
         : health.dispatchBlockedReason === 'GitHub snapshot unavailable or stale; no automatic assignments' ? 'GitHub repository inventory is unavailable or stale'
         : 'Local control plane reports a dispatch hold';
     } else if (!runtimeAvailable) { dispatchState = 'unknown'; dispatchReason = 'Live fleet runtime is unavailable'; }

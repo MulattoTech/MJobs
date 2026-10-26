@@ -36,7 +36,14 @@ const FleetMasterUI=(()=>{
    byId('masterPause').disabled=false;byId('masterDrain').disabled=true;
    byId('masterCancelDrain').hidden=true;byId('masterRearm').hidden=true;
    panel.classList.remove('emergency-latched');
-  }else if(data.restore?.phase==='complete'&&data.currentReadiness?.ready===true){
+  }else if(!paused&&!drain.enabled&&(data.dispatch?.blockedReason||data.currentReadiness?.ready===false)){
+   status='DISPATCH HELD';variant='paused';
+   detail=data.dispatch.blockedReason||data.currentReadiness.reason||'Current runtime readiness is not verified.';
+   extra='Scheduler enabled, but no new work is being dispatched. Use protected Startup for stopped runtimes.';
+   byId('masterPause').disabled=false;byId('masterDrain').disabled=false;
+   byId('masterCancelDrain').hidden=true;byId('masterRearm').hidden=true;
+   panel.classList.remove('emergency-latched');
+  }else if(!drain.enabled&&data.restore?.phase==='complete'&&data.currentReadiness?.ready===true){
    status='FLEET RESTORED';variant='stopped';
    detail='Current session runtimes and primary controllers are verified. Automatic dispatch is '+(paused?'paused.':'enabled.');
    extra=(data.restore.restoredCount||0)+' restored sessions';
@@ -85,6 +92,7 @@ const FleetMasterUI=(()=>{
   fetching=true;
   try{const data=await api('/api/master');current=data;masterState(data)}
   catch(e){
+   byId('masterState').textContent='CONTROL STATUS UNAVAILABLE';byId('masterState').className='master-status-badge paused';
    byId('masterText').textContent='Shutdown controls temporarily unavailable: '+e.message;
    if(force)toast(e.message,true);
   }finally{fetching=false}

@@ -17,7 +17,8 @@
  const $=id=>document.getElementById(id);
  function render(){
   const live=provider('codex').available;
-  const currentReadiness=readiness&&Date.now()-Date.parse(readiness.at||'')<25000&&!readiness.inspectionPending&&!readiness.stale;
+  const proofAge=Date.now()-Date.parse(readiness?.at||'');
+  const currentReadiness=readiness&&Number.isFinite(proofAge)&&proofAge>=0&&proofAge<25000&&!readiness.inspectionPending&&!readiness.stale&&Number.isInteger(readiness.total)&&Number.isInteger(readiness.verified);
   $('live-fleet-summary').textContent=!live?'Fleet observation unavailable or stale. Independent launcher status does not describe the AO fleet.':snapshot.summary.total+' runtimes observed · '+snapshot.summary.working+' working · '+(currentReadiness?readiness.verified+' / '+readiness.total+' verified':'runtime verification pending');
   const holder=$('live-provider-cards');holder.replaceChildren();
   for(const [id,label]of Object.entries({codex:'Codex',antigravity:'Antigravity / Gemini',ollama:'Ollama',claude:'Claude'})){
@@ -25,7 +26,9 @@
    for(const session of data.sessions){const a=el('a',session.name||session.id);a.href='/fleet/#agent='+encodeURIComponent(session.id);a.className='live-agent-link';card.append(a);}
    holder.append(card);
   }
-  for(const id of ['fleet-resume','fleet-save-target'])$(id).disabled=pending||!live;
+  $('fleet-resume').disabled=pending||!live||!currentReadiness||readiness.ready!==true;
+  $('fleet-resume').title=$('fleet-resume').disabled?'Protected Startup must verify the fleet before enabling new work.':'';
+  $('fleet-save-target').disabled=pending||!!error||!snapshot||Date.now()-receivedAt>=25000;
   $('fleet-pause').disabled=pending;
  }
  async function read(route){const r=await fetch('/fleet'+route,{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('Fleet service unavailable');return r.json();}

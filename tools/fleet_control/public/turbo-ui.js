@@ -63,7 +63,7 @@ const FleetTurboUI=(()=>{
   try{
    const data=await api('/api/turbo');draw(data);
    if(!previewed){previewed=true;await preview(false);}
-  }catch(e){el('turboGuard').textContent='Unavailable';el('turboGuard').classList.add('warning');el('turboHint').textContent=e.message}
+  }catch(e){el('turboStatus').textContent='UNKNOWN';el('turboStatus').className='turbo-status paused';el('turboGuard').textContent='Unavailable';el('turboGuard').classList.add('warning');el('turboHint').textContent=e.message}
   finally{refreshInFlight=false}
  }
  async function preview(notify=true){

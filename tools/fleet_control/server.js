@@ -421,7 +421,7 @@ async function main(req,res){
  }
  if(req.method==='GET'&&req.url==='/api/preflight'){
   let snapshot=null;try{snapshot=await state(true)}catch{}
-  const report=preflight({quota:quota.status(),master:master.status(),snapshot});
+  const report=preflight({quota:quota.status(),master:master.status(),snapshot,controlBlockReason:startupBlockReason(),runtimeReadiness:await startupAdapter.readiness()});
   try{const v=JSON.parse(fs.readFileSync(path.join(root,'diagnostics','preflight-results.json'),'utf8'));report.verification={at:v.at,passed:v.passed,failed:v.failed,notRun:v.notRun,sourceStable:v.sourceStable,currentSourcesMatch:v.sourceFingerprint===require('./check-fleet').sourceFingerprint(root)};}catch{report.verification={status:'NOT_RUN'};}
   return json(res,200,report);
  }
@@ -469,7 +469,7 @@ async function main(req,res){
    return json(res,404,{error:'Unknown quota operation'});
   }catch(e){audit('quota_control_error',{route:req.url,message:e.message});return json(res,400,{error:e.message})}
  }
- if(req.method==='GET'&&req.url==='/api/master')return json(res,200,{...master.status(),startup:startup.status(),currentReadiness:await startupAdapter.readiness()});
+ if(req.method==='GET'&&req.url==='/api/master')return json(res,200,{...master.status(),dispatch:{...master.status().dispatch,blockedReason:dispatchHealthBlockReason()},startup:startup.status(),currentReadiness:await startupAdapter.readiness()});
  if(req.method==='GET'&&req.url==='/api/master/restore/preview'){
   try{return json(res,200,await master.restorePreview())}
   catch(e){return json(res,409,{error:e.message})}

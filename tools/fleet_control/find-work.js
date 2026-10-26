@@ -72,7 +72,7 @@ class FindWork {
  eligibility(s){
   if(!s)return 'Session not found';
   if(s.isTerminated||s.activity==='exited')return 'Agent is intentionally exited; restore it separately before assigning work';
-  if(!s.isIdle||s.activity!=='idle')return 'Agent has an active turn or is not ready';
+  if(!s.isIdle||!['idle','waiting_input'].includes(s.activity))return 'Agent has an active turn or is not ready';
   if(s.replacedBy)return 'Agent has a replacement session; nudge the replacement instead';
   const prior=this.state.sent[s.id];
   const remaining=WAIT_MS-ageMs(prior?.at,this.now());
@@ -82,6 +82,7 @@ class FindWork {
  async preview(){
   const hold=this.guard();if(hold)throw Error(hold);
   const snapshot=await this.getState(true);
+  if(snapshot.offline)throw Error('Orchestrator is offline; no work was submitted');
   const eligible=[],skipped=[];
   for(const session of snapshot.sessions||[]){
    const reason=this.eligibility(session);
@@ -109,6 +110,8 @@ class FindWork {
  async dispatchOne(id){
   if(this.guard())throw Error(this.guard());
   const snap=await this.getState(true);
+  const afterReadHold=this.guard();if(afterReadHold)throw Error(afterReadHold);
+  if(snap.offline)throw Error('Orchestrator is offline; no work was submitted');
   const session=(snap.sessions||[]).find(s=>s.id===id);
   const reason=this.eligibility(session);
   if(reason)throw Error(reason);
@@ -139,7 +142,7 @@ class FindWork {
   if(this.guard())throw Error(this.guard());
   const p=await this.preview();
   if(p.bulkCooldownSeconds>0)throw Error('A fleet-wide Find Work request ran recently; retry in '+p.bulkCooldownSeconds+' seconds.');
-  if(!p.eligibleCount)return {sent:[],skipped:p.skipped,uncertain:[],note:'No eligible idle agents'};
+  if(!p.eligibleCount)return {sent:[],skipped:p.skipped,uncertain:[],submittedCount:0,skippedCount:p.skipped.length,uncertainCount:0,note:'No eligible idle agents'};
   this.running=true;
   this.state.lastBulk=new Date(this.now()).toISOString();this.save();
   const sent=[],skipped=[...p.skipped],uncertain=[];

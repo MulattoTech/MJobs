@@ -1,5 +1,5 @@
 'use strict';
-function preflight({quota,master,snapshot=null,providers=null,now=Date.now()}){
+function preflight({quota,master,snapshot=null,providers=null,controlBlockReason=null,runtimeReadiness=undefined,now=Date.now()}){
  const e=master.emergency||{},issues=[];
  const stamp=Date.parse(e.checkedAt||''),watchdogFresh=Number.isFinite(stamp)&&now-stamp>=0&&now-stamp<35000;
  if(e.latched)issues.push({code:'EMERGENCY_LOCKED',message:'Emergency lock is still engaged. Release it explicitly after verifying the allowance reset.'});
@@ -14,7 +14,9 @@ function preflight({quota,master,snapshot=null,providers=null,now=Date.now()}){
  if(!snapshot||snapshot.offline)issues.push({code:'AO_OFFLINE',message:'Orchestrator is offline. Restore the preserved fleet only after quota checks pass.'});
  if(master.drain?.enabled)issues.push({code:'DRAINING',message:'Graceful wind-down is in progress.'});
  if(master.restore?.active)issues.push({code:'RESTORING',message:'Fleet restoration is in progress.'});
- const startupBlockers=issues.filter(x=>!['EMERGENCY_LOCKED','GUARD_UNARMED','GUARD_ACK_PENDING','AO_OFFLINE'].includes(x.code));
+ if(controlBlockReason)issues.push({code:'CONTROL_HOLD',message:controlBlockReason});
+ if(runtimeReadiness!==undefined&&runtimeReadiness?.ready!==true)issues.push({code:'RUNTIME_NOT_READY',message:'Current fleet readiness is not verified. Use protected Startup to recover stopped runtimes before assigning work.'});
+ const startupBlockers=issues.filter(x=>!['EMERGENCY_LOCKED','GUARD_UNARMED','GUARD_ACK_PENDING','AO_OFFLINE','RUNTIME_NOT_READY'].includes(x.code));
  return {at:new Date(now).toISOString(),ready:issues.length===0,bootstrapEligible:startupBlockers.length===0,startupBlockers,issues,canSaveAgentPlans:true,
   quota:{fresh:quota.fresh,remaining:quota.selectedRemainingPercent,stopAt:quota.config.thresholdPercent,brakeAt:quota.config.thresholdPercent+8,armed:quota.config.autoKillArmed},
   emergency:{latched:!!e.latched,watchdogFresh,remaining:e.remainingTotal??null},

@@ -448,7 +448,8 @@ test('a background inspection failure settles as unavailable without retry overl
   const gate = deferred(); let inspections = 0;
   f.master.restore.runtimeInspector = async () => { inspections++; await gate.promise; throw Error('Synthetic private inspector detail'); };
   assert.equal((await adapter.readiness()).inspectionPending, true); gate.resolve();
-  const failed = await adapter.readiness(); assert.equal(failed.ready, false); assert.equal(failed.daemonOnline, false);
+  const failed = await adapter.readiness(); assert.equal(failed.ready, false); assert.equal(failed.daemonOnline, null);
+  assert.equal(failed.errorCode, 'RUNTIME_INSPECTION_FAILED', 'An unreadable native inventory does not establish daemon failure');
   assert.equal(failed.inspectionPending, false); assert.doesNotMatch(JSON.stringify(failed), /private inspector/);
   assert.equal(inspections, 1); assert.equal(adapter.reading, null); assert.deepEqual(f.state.effects, []);
 });
