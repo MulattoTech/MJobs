@@ -248,7 +248,10 @@ QUERY_CASES = {
         "SELECT id FROM company_job_sources WHERE company_id = :company_id "
         "ORDER BY provider, tenant, id",
         {"company_id": TARGET_COMPANY},
-        True,
+        # The existing uniqueness index supplies the company/provider/tenant
+        # search prefix. Eliminating this presentation sort is not one of the
+        # evidence-backed indexes authorized by the production query audit.
+        False,
     ),
     "enabled source scheduling": (
         "company_job_sources",
