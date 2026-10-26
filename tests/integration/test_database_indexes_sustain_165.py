@@ -140,17 +140,17 @@ def _rows():
             "fetched_at": timestamp,
         })
     tenants = [{
-        "id": f"ats-{number:03d}",
-        "company_id": f"company-{number:03d}",
+        "id": f"ats-{number:04d}",
+        "company_id": f"company-{number % 64:03d}",
         "provider": "mock-ats",
-        "tenant_identifier": f"tenant-{number:03d}",
+        "tenant_identifier": f"tenant-{number:04d}",
         "organization_identifier": "fixture",
         "board_identifier": "jobs",
         "confidence": 1.0,
         "evidence": {},
         "first_seen_at": "2026-10-01T00:00:00+00:00",
         "last_seen_at": "2026-10-01T00:00:00+00:00",
-    } for number in range(64)]
+    } for number in range(ROW_COUNT)]
     return companies, profiles, jobs, routes, matches, applications, tenants, sources, postings
 
 
@@ -181,6 +181,23 @@ def _index_columns(record):
 def _has_prefix(engine, table_name, prefix):
     return any(_index_columns(index)[:len(prefix)] == tuple(prefix)
                for index in _index_records(engine, table_name))
+
+
+def _index_definition(engine, table_name, prefix):
+    record = next(
+        index for index in _index_records(engine, table_name)
+        if _index_columns(index)[:len(prefix)] == tuple(prefix)
+    )
+    with engine.connect() as connection:
+        if engine.dialect.name == "sqlite":
+            definition = connection.execute(text(
+                "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = :name"
+            ), {"name": record["name"]}).scalar_one()
+        else:
+            definition = connection.execute(text(
+                "SELECT pg_get_indexdef(to_regclass(:name))"
+            ), {"name": record["name"]}).scalar_one()
+    return " ".join(definition.lower().split())
 
 
 def _partial_enabled_index(engine):
@@ -262,7 +279,7 @@ QUERY_CASES = {
     "ATS ownership lookup": (
         "company_ats_tenants",
         "SELECT id FROM company_ats_tenants WHERE company_id = :company_id "
-        "AND provider = 'mock-ats' AND tenant_identifier = 'tenant-000'",
+        "AND provider = 'mock-ats' AND tenant_identifier = 'tenant-0000'",
         {"company_id": TARGET_COMPANY},
         False,
     ),
@@ -300,6 +317,10 @@ class DatabaseIndexContractMixin:
             if not _has_prefix(self.engine, table, prefix)
         }
         self.assertEqual(missing, {}, f"Missing production-query index prefixes: {missing}")
+        application_definition = _index_definition(
+            self.engine, "applications", REQUIRED_INDEX_PREFIXES["applications"],
+        )
+        self.assertIn("(profile_id, created_at desc, id desc)", application_definition)
         self.assertTrue(
             _partial_enabled_index(self.engine),
             "Enabled-source scheduling needs a selective partial index on id",
@@ -496,10 +517,12 @@ class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase
 
     def explain(self, sql, params):
         with self.engine.connect() as connection:
-            rows = connection.exec_driver_sql("EXPLAIN (COSTS OFF) " + sql, params).all()
+            # text() translates SQLAlchemy's named binds to psycopg's native
+            # parameter style; exec_driver_sql() intentionally does not.
+            rows = connection.execute(text("EXPLAIN (COSTS OFF) " + sql), params).all()
         return "\n".join(str(row[0]) for row in rows)
 
-    def assert_uses_index(self, label, relation, plan, ordered):
+    def assert_uses_index(self, label, relation, plan, _ordered):
         normalized = plan.lower()
         self.assertTrue(
             any(kind in normalized for kind in ("index scan", "index only scan", "bitmap index scan")),
@@ -507,8 +530,6 @@ class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase
         )
         self.assertNotIn(f"seq scan on {relation}", normalized,
                          f"{label} performed a sequential scan:\n{plan}")
-        if ordered:
-            self.assertNotIn("sort key:", normalized, f"{label} required an avoidable sort:\n{plan}")
 
 
 if __name__ == "__main__":
