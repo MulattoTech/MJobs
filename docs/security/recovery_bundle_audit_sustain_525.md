@@ -3,7 +3,7 @@
 ## Disposition and scope
 
 **PARTIAL — not security-ready certification and not issue closure.**
-Audit date: 2026-10-25 UTC. Source baseline:
+Audit date: 2026-10-26 UTC (2026-10-25 local). Source baseline:
 `3dde716311194f6f1fa9c892816818796d7652b2`.
 Exclusive change: this document. Production, scanner policy, ignore fingerprints,
 Git history, public refs and private recovery copies were not modified.
