@@ -163,7 +163,7 @@ def test_ai_execution_caps_two_hundred_candidates_to_three_fake_calls() -> None:
     {"max_ai_candidates": -1},
     {"max_ai_candidates": 1, "max_document_candidates": 2},
 ])
-def test_public_ai_policy_rejects_invalid_or_oversized_limits(overrides) -> None:
+def test_ai_cost_policy_model_rejects_invalid_or_oversized_limits(overrides) -> None:
     values = {
         "minimum_score": 75,
         "max_input_candidates": 5_000,
