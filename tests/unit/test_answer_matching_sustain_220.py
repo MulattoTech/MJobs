@@ -38,6 +38,8 @@ class MemoryStore:
         }
 
     def profile(self, profile_id):
+        if profile_id == "other-profile":
+            return {"id": profile_id, "version": 1, "answers": []}
         if profile_id != "profile-synthetic":
             from sqlalchemy.exc import NoResultFound
             raise NoResultFound()
@@ -207,11 +209,12 @@ class AnswerMatchingApiSustain220Tests(unittest.TestCase):
         invalid = self.client.post(self.url, json={"question": " "})
         self.assertEqual(invalid.status_code, 422, invalid.text)
         cross_profile = self.client.post(
-            self.url.replace("profile-synthetic", "other-profile"),
+            "/profiles/other-profile/applications/application-synthetic/answers/match",
             json={"question": "How many years of experience?"},
         )
         self.assertEqual(cross_profile.status_code, 404, cross_profile.text)
-        self.assertNotIn("exact", cross_profile.text)
+        self.assertNotIn("Synthetic approved answer", cross_profile.text)
+        self.assertNotIn('"exact"', cross_profile.text)
 
 
 if __name__ == "__main__":
