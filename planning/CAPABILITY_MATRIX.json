@@ -2636,9 +2636,12 @@
     },
     {
       "requirement_id": "MJ-REQ-218",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "Exact main 3dde716311194f6f1fa9c892816818796d7652b2: tests/unit/test_matching_requirements_sustain_219.py blob a07a37ffcad1d8e650f8c4f824443385bbea18df; services/matching/components.py blob 8246237c4ba8506441a1fe1c54fc8d5e9637a4a5.",
+        "Hosted exact-head CI run 40239444112, job 121307888408 (Python / unit and integrity): PASS; 9 JUnit cases in the target file passed."
+      ],
+      "note": "PASS is limited to the enumerated MJ-REQ-218 matching unit cases: required/preferred/missing skills, remote and salary mismatch, title-seniority mismatch, and preferred-versus-required education. Evidence is bound to exact main and CI above; no broader matcher, degree, currency, API, UI, or provider behavior is claimed.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
