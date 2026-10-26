@@ -52,7 +52,8 @@ class MemoryStore:
         return dict(self.application_row)
 
     def job(self, job_id, profile_id):
-        if job_id != self.job_row["id"] or profile_id != "profile-synthetic":
+        if (job_id != self.job_row["id"]
+                or profile_id not in {"profile-synthetic", "other-profile"}):
             from sqlalchemy.exc import NoResultFound
             raise NoResultFound()
         return dict(self.job_row)
