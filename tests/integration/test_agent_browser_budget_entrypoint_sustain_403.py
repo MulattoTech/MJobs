@@ -6,8 +6,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.sources.collect import configure_source
@@ -23,7 +25,6 @@ from services.discovery.sources.errors import SourceError
 from services.discovery.sources.registry import SourceAdapterRegistry
 from services.discovery.sources.remoteok import RemoteOK
 from tests.integration.test_spine import PROFILE
-from workers.dispatch import enqueue_operation
 from workers.tasks import execute_operation
 
 
@@ -107,7 +108,8 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
         self.temp.cleanup()
 
     def _operation(self, *, expected_count=2, expected_tail=40302):
-        return enqueue_operation(self.store, "DISCOVER", "fixture", {
+        request = {
+            "profile_id": "fixture",
             "source_id": self.source_id,
             "max_pages": 2,
             "collection_contract": {
@@ -116,7 +118,20 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
                 "expected_tail": expected_tail,
                 "required_item_fields": ["id", "position", "company"],
             },
-        })
+        }
+        with TestClient(create_app(
+                self.store, "http://127.0.0.1:1", self.root,
+                operation_mode="FIXTURE", source_registry=self.registry)) as client:
+            response = client.post("/discovery", json=request)
+        self.assertEqual(response.status_code, 202, response.text)
+        operation_id = response.json()["operation_id"]
+        with self.store.engine.connect() as connection:
+            params = connection.execute(select(m.operations.c.params).where(
+                m.operations.c.id == operation_id)).scalar_one()
+        self.assertEqual(params["source_id"], self.source_id)
+        self.assertEqual(params["max_pages"], 2)
+        self.assertEqual(params["collection_contract"], request["collection_contract"])
+        return operation_id
 
     def _execute(self, operation_id):
         with patch.dict(os.environ, self.environment):
@@ -212,6 +227,40 @@ class AgentBrowserBudgetEntrypointSustain403Tests(unittest.TestCase):
                 m.job_sources.c.id == self.source_id)).mappings().one())
         for field in ("health_status", "consecutive_failures", "last_error", "backoff_until"):
             self.assertEqual(after[field], before[field], field)
+
+    def test_public_discover_rejects_unbounded_or_malformed_collection_controls(self):
+        valid = {
+            "profile_id": "fixture",
+            "source_id": self.source_id,
+            "max_pages": 2,
+            "collection_contract": {
+                "expected_count": 2,
+                "tail_key": "id",
+                "expected_tail": 40302,
+                "required_item_fields": ["id", "position", "company"],
+            },
+        }
+        invalid = (
+            {**valid, "max_pages": 0},
+            {**valid, "max_pages": 101},
+            {**valid, "max_pages": 2.5},
+            {key: value for key, value in valid.items() if key != "source_id"},
+            {key: value for key, value in valid.items() if key != "max_pages"},
+            {key: value for key, value in valid.items() if key != "collection_contract"},
+            {**valid, "query": "must not be silently ignored"},
+            {**valid, "collection_contract": {
+                **valid["collection_contract"], "unexpected": "escape"}},
+            {**valid, "collection_contract": {
+                **valid["collection_contract"], "required_item_fields": ["id", 7]}},
+        )
+        with TestClient(create_app(
+                self.store, "http://127.0.0.1:1", self.root,
+                operation_mode="FIXTURE", source_registry=self.registry)) as client:
+            for request in invalid:
+                with self.subTest(request=request):
+                    response = client.post("/discovery", json=request)
+                    self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(self.store.count("worker_operations"), 0)
 
 
 if __name__ == "__main__":
