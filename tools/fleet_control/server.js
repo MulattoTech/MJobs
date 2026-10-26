@@ -399,6 +399,8 @@ async function retire(x){
  fs.writeFileSync(path.join(directory,'history-'+original.id+'-'+stamp+'.txt'),output);
  const recheck=await state(true),current=recheck.sessions.find(s=>s.id===original.id);
  if(!sameMutationCandidate(original,current,s=>isRetirementCandidate(s,pair)))throw Error('Original session state changed during retirement validation. No session was killed.');
+ const currentReplacement=recheck.sessions.find(s=>s.id===pair.newId);
+ if(!currentReplacement||currentReplacement.isTerminated||currentReplacement.model!==pair.model||currentReplacement.createdAt!==fresh.createdAt)throw Error('Replacement state changed during retirement validation. No session was killed.');
  const kill=await command(['session','kill',original.id,'--project',projectId],20000);
  pair.retired=true;pair.retiredAt=new Date().toISOString();saveReplacements(records);
  audit('retired',{oldId:original.id,newId:fresh.id,result:kill.slice(0,400)});cached.at=0;

@@ -46,5 +46,10 @@ function lifecycleHarness(states,records={pairs:[]}){
  await assert.rejects(()=>ctx.f.retire({id:original.id,confirm:original.id}),/state changed/i);
  assert.equal(race.commands.filter(args=>args[0]==='session'&&args[1]==='kill').length,0,'retirement must revalidate before kill');
  assert.equal(race.saved.length,0,'failed retirement revalidation must not mark the record retired');
+ const changedReplacement=worker({...replacement,model:'gpt-6-sol'});
+ race=lifecycleHarness([{offline:false,sessions:[original,replacement]},{offline:false,sessions:[original,changedReplacement]}],{pairs:[{oldId:original.id,newId:replacement.id,model:replacement.model,effort:'high',retired:false}]});
+ await assert.rejects(()=>ctx.f.retire({id:original.id,confirm:original.id}),/replacement state changed/i);
+ assert.equal(race.commands.filter(args=>args[0]==='session'&&args[1]==='kill').length,0,'retirement must revalidate the replacement before kill');
+ assert.equal(race.saved.length,0,'changed replacement must not mark the original retired');
  console.log('PASS: rejected concurrent requests cannot release owned lock; only stop notice can pass graceful-drain guard; emergency lock wins.');
 })().catch(e=>{console.error(e);process.exitCode=1});
