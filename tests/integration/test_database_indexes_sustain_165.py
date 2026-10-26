@@ -432,15 +432,44 @@ class DatabaseIndexSQLiteMigrationTests(unittest.TestCase):
 POSTGRES_URL = os.environ.get("MJOBS_TEST_POSTGRES_URL")
 
 
+def _disposable_postgres_url(value):
+    url = make_url(value)
+    if (not url.drivername.startswith("postgresql")
+            or url.host not in ("localhost", "127.0.0.1", "::1")
+            or not url.database
+            or not (url.database == "mjobs_test" or url.database.startswith("mjobs_test_"))):
+        raise RuntimeError("PostgreSQL index evidence requires loopback mjobs_test[_*] database")
+    return url
+
+
+class DatabaseIndexPostgreSQLGuardTests(unittest.TestCase):
+    def test_standard_ci_fixture_name_is_admitted_without_weakening_boundary(self):
+        self.assertEqual(
+            _disposable_postgres_url(
+                "postgresql://fixture:fixture@127.0.0.1:5432/mjobs_test"
+            ).database,
+            "mjobs_test",
+        )
+        self.assertEqual(
+            _disposable_postgres_url(
+                "postgresql://fixture:fixture@localhost:5432/mjobs_test_indexes"
+            ).database,
+            "mjobs_test_indexes",
+        )
+        for unsafe in (
+            "postgresql://fixture:fixture@database.example/mjobs_test",
+            "postgresql://fixture:fixture@127.0.0.1/production",
+            "sqlite:///mjobs_test",
+        ):
+            with self.subTest(url=unsafe), self.assertRaisesRegex(RuntimeError, "loopback"):
+                _disposable_postgres_url(unsafe)
+
+
 @unittest.skipUnless(POSTGRES_URL, "Requires isolated disposable PostgreSQL")
 class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        url = make_url(POSTGRES_URL)
-        if (not url.drivername.startswith("postgresql")
-                or url.host not in ("localhost", "127.0.0.1", "::1")
-                or not url.database or not url.database.startswith("mjobs_test_")):
-            raise RuntimeError("PostgreSQL index evidence requires loopback mjobs_test_* database")
+        url = _disposable_postgres_url(POSTGRES_URL)
         cls.schema = "database_indexes_" + uuid4().hex
         cls.admin = create_engine(url)
         with cls.admin.begin() as connection:
