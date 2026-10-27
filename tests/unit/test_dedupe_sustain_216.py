@@ -102,7 +102,7 @@ class DedupeSustain216Tests(unittest.TestCase):
         self.assertEqual(result["disposition"], "SEPARATE")
         self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
 
-    def test_same_title_in_different_city_with_distinct_duties_stays_separate(self):
+    def test_different_city_changes_reason_when_other_dedupe_inputs_match(self):
         left = without_strong_identity(
             description="Maintain Windows servers and Active Directory for enterprise users.",
         )
@@ -110,7 +110,7 @@ class DedupeSustain216Tests(unittest.TestCase):
             description="Maintain Windows servers and Active Directory for enterprise users. Daily.",
         )
         different_city = without_strong_identity(
-            description="Administer Linux clusters, Kubernetes workloads, and cloud networking.",
+            description=same_city["description"],
             location="Austin, TX",
             attributes={
                 "country": "US",
@@ -126,13 +126,16 @@ class DedupeSustain216Tests(unittest.TestCase):
         same_city_result = duplicate_confidence(left, same_city)
         different_city_result = duplicate_confidence(left, different_city)
 
-        self.assertTrue(different_city_result["signals"]["title"]["equal"])
-        self.assertEqual(different_city_result["signals"]["strong_signals"], [])
-        self.assertNotEqual(left["attributes"]["city"], different_city["attributes"]["city"])
+        self.assertEqual(
+            {key: value for key, value in same_city.items() if key not in {"location", "attributes"}},
+            {key: value for key, value in different_city.items() if key not in {"location", "attributes"}},
+        )
+        self.assertEqual(same_city["attributes"], {**different_city["attributes"], "city": "Dallas"})
         self.assertEqual(same_city_result["reason"], "SAME_COMPANY_TITLE_LOCATION_HIGH_DESCRIPTION")
         self.assertEqual(same_city_result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
-        self.assertEqual(different_city_result["reason"], "INSUFFICIENT_EVIDENCE")
-        self.assertEqual(different_city_result["disposition"], "SEPARATE")
+        self.assertEqual(different_city_result["reason"], "POSSIBLE_DUPLICATE")
+        self.assertEqual(different_city_result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
+        self.assertNotEqual(different_city_result["confidence"], same_city_result["confidence"])
 
     def test_boilerplate_heavy_descriptions_cannot_create_an_automatic_merge(self):
         left = without_strong_identity(
