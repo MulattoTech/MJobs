@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sqlite3
 from pathlib import Path
 
@@ -22,6 +23,30 @@ def test_native_timestamp_formats_and_invalid_values():
     assert module.epoch(None) is None
     assert module.number(True) is None
     assert module.number(float("nan")) is None
+
+
+def test_atomic_json_never_follows_predictable_temp_symlink(tmp_path):
+    publish = tmp_path / "analytics.json"
+    canary = tmp_path / "canary.txt"
+    canary.write_text("DO NOT CHANGE", encoding="utf-8")
+    predictable = publish.with_suffix(publish.suffix + ".tmp")
+    try:
+        predictable.symlink_to(canary)
+        symlink_created = True
+    except OSError as error:
+        if os.name != "nt" or getattr(error, "winerror", None) != 1314:
+            raise
+        os.link(canary, predictable)
+        symlink_created = False
+
+    module.atomic_json(publish, {"safe": True})
+
+    assert canary.read_text(encoding="utf-8") == "DO NOT CHANGE"
+    assert predictable.is_symlink() if symlink_created else predictable.samefile(canary)
+    assert json.loads(publish.read_text(encoding="utf-8")) == {"safe": True}
+    assert sorted(path.name for path in tmp_path.iterdir()) == [
+        "analytics.json", "analytics.json.tmp", "canary.txt",
+    ]
 
 
 def test_historical_occupancy_uses_completed_union_not_open_waits():

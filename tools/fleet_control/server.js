@@ -201,6 +201,12 @@ async function state(force=false){
  stateInFlight=loadState(force);
  try{return await stateInFlight}finally{stateInFlight=null}
 }
+async function freshMutationState(){
+ let result;
+ try{result=await loadState(true)}catch{throw Error('Fresh live session state unavailable. No lifecycle mutation was submitted.')}
+ if(!result||result.offline||!Array.isArray(result.sessions))throw Error('Fresh live session state unavailable. No lifecycle mutation was submitted.');
+ return result;
+}
 async function loadState(force=false){
  if(!force && cached.result && Date.now()-cached.at<1800)return cached.result;
  let res;
@@ -308,7 +314,7 @@ async function replace(x){
  if(old.kind==='orchestrator')throw Error('Use a separate controlled handoff for the primary orchestrator');
  await verifyCodexExecutable();
  await assertWorktreeClean(old);
- const recheck=await state(true),current=recheck.sessions.find(s=>s.id===old.id);
+ const recheck=await freshMutationState(),current=recheck.sessions.find(s=>s.id===old.id);
  if(!sameMutationCandidate(old,current,isCleanCandidate))throw Error('Original session state changed during replacement validation. No replacement was launched.');
  const name=old.name.replace(/^↪ /,'').slice(0,71)+' / '+newModel.name.slice(0,21);
  const primary=recheck.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited')?.id||'the primary orchestrator';
@@ -397,7 +403,7 @@ async function retire(x){
  const stamp=Date.now();
  const output=await command(['session','history',original.id,'--limit','50'],15000);
  fs.writeFileSync(path.join(directory,'history-'+original.id+'-'+stamp+'.txt'),output);
- const recheck=await state(true),current=recheck.sessions.find(s=>s.id===original.id);
+ const recheck=await freshMutationState(),current=recheck.sessions.find(s=>s.id===original.id);
  if(!sameMutationCandidate(original,current,s=>isRetirementCandidate(s,pair)))throw Error('Original session state changed during retirement validation. No session was killed.');
  const currentReplacement=recheck.sessions.find(s=>s.id===pair.newId);
  if(!currentReplacement||currentReplacement.isTerminated||currentReplacement.model!==pair.model||currentReplacement.createdAt!==fresh.createdAt)throw Error('Replacement state changed during retirement validation. No session was killed.');

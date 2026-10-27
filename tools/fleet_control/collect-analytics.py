@@ -9,6 +9,7 @@ import math
 import os
 import re
 import sqlite3
+import tempfile
 import time
 import urllib.request
 from pathlib import Path
@@ -75,11 +76,26 @@ def get(route):
 
 def atomic_json(file, value):
     file.parent.mkdir(parents=True, exist_ok=True)
-    temp = file.with_suffix(file.suffix + ".tmp")
-    temp.write_text(
-        json.dumps(value, separators=(",", ":"), ensure_ascii=False), encoding="utf-8"
-    )
-    os.replace(temp, file)
+    descriptor = None
+    temp = None
+    try:
+        descriptor, raw_temp = tempfile.mkstemp(
+            dir=file.parent, prefix=f".{file.name}.", suffix=".tmp"
+        )
+        temp = Path(raw_temp)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            descriptor = None
+            stream.write(json.dumps(value, separators=(",", ":"), ensure_ascii=False))
+        os.replace(temp, file)
+        temp = None
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        if temp is not None:
+            try:
+                temp.unlink()
+            except FileNotFoundError:
+                pass
 
 
 def initialize(cache):
