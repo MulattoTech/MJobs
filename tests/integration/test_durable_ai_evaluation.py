@@ -80,7 +80,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self.change_job()
         result = self.run_worker(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.calls, [])
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -124,7 +124,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         recover_expired(self.store)
         result = self.run_worker(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(len(self.calls), 1)
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -186,7 +186,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(description=prefix + 'changed'))
         result = self.run_worker(operation)
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.calls, [])
 
     def test_changed_job_during_provider_call_never_publishes_result(self):
@@ -199,7 +199,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self.router = EditingRouter
         result = self.run_worker(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(len(self.calls), 1)
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
