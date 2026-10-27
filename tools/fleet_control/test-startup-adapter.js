@@ -1065,3 +1065,40 @@ test('real startup readiness must remain healthy for fifteen seconds, resetting 
  f.state.now+=15001;assert.equal((await adapter.stableReadiness(ctx)).ready,true);
  assert.equal((await adapter.stableReadiness({...ctx,runId:'new-explicit-start'})).ready,false);
 });
+
+function completedThenStoppedRecovery(f){
+ const {adapter,ctx}=partialRecovery(f),at=delta=>new Date(f.state.now+delta).toISOString();
+ const state=f.master.restore.state;state.phase='complete';state.completedAt=at(-4000);state.errors={};state.source.startupRunId=ctx.runId;
+ state.restored=Object.fromEntries(state.desiredIds.map(id=>[id,{status:'ready',at:state.completedAt,action:'already-online'}]));
+ ctx.previousRun.events.push({phase:'verifying',at:at(-3500)});
+ ctx.previousRun.restoreReceipt={startedAt:state.startedAt,total:state.desiredIds.length};
+ ctx.previousRun.restore={phase:'complete',active:false,total:state.desiredIds.length,restoredCount:state.desiredIds.length};
+ const file=path.join(f.root,'restore-state.json');f.master.restore.statePath=file;
+ state.source=JSON.parse(JSON.stringify(state.source));
+ const persist=()=>fs.writeFileSync(file,JSON.stringify(state));persist();
+ return {adapter,ctx,persist,file};
+}
+test('completed restore followed by a positively stopped runtime can reconcile without launching or discarding its ledger',async t=>{
+ const f=fixture(t),x=completedThenStoppedRecovery(f),bytes=fs.readFileSync(x.file),ledger=clone(f.master.restore.state);
+ const proof=await x.adapter.reconcile(x.ctx);assert.equal(proof.outcome,'resumable',JSON.stringify({proof,binding:x.adapter.recoveryBinding(x.ctx.previousRun,x.adapter.manifest(),{durableBefore:x.adapter.durableRestoreState()}),durable:x.adapter.durableRestoreState()}));assert.equal(proof.restoreBinding.kind,'completed-restore');assert.equal(proof.verifiedTargetCount,1);assert.equal(proof.verifiedStoppedCount,2);assert.equal(proof.restoreBinding.completedAt,ledger.completedAt);assert.deepEqual(f.master.restore.state,ledger);assert.deepEqual(fs.readFileSync(x.file),bytes);assert.deepEqual(f.state.effects,[]);
+ const previous={...x.ctx.previousRun,schemaVersion:1,revision:'completed-run-revision',ownerId:'prior-owner',active:false,reconciliationRequired:true,recentRequests:[],cleanup:{active:false}};
+ fs.writeFileSync(path.join(f.root,'startup-state.json'),JSON.stringify(previous));
+ const controller=new StartupController({root:f.root,deps:x.adapter.deps(),now:()=>f.state.now});
+ const result=await controller.reconcile({confirm:'RECHECK STARTUP',runId:previous.runId});
+ assert.equal(result.reconciled,true);assert.equal(result.run.phase,'resumable');assert.equal(result.run.reconciliationRequired,false);assert.deepEqual(f.master.restore.state,ledger);assert.deepEqual(fs.readFileSync(x.file),bytes);assert.deepEqual(f.state.effects,[]);
+});
+test('completed-operation recovery still requires exact durable completion, current absence, guard and identity',async t=>{
+ const cases={
+  'wrong owner':f=>{f.master.restore.state.source.startupRunId='other-run';},
+  'missing completed time':f=>{delete f.master.restore.state.completedAt;},
+  'future completion':f=>{f.master.restore.state.completedAt=new Date(f.state.now+1000).toISOString();},
+  'missing ready receipt':f=>{delete f.master.restore.state.restored['mjobs-codex-1'];},
+  'wrong ready receipt':f=>{f.master.restore.state.restored['mjobs-codex-1'].status='submitted';},
+  'pending native submit':f=>{f.master.restore.state.inflight['mjobs-codex-1']={command:'resume-agent',at:new Date(f.state.now-5000).toISOString()};},
+  'unverified native outcome':f=>{f.master.restore.state.errors['mjobs-codex-1']={uncertain:true};},
+  'guard disarmed':f=>{f.state.config.autoKillArmed=false;},
+  'unknown stopped process':f=>{f.state.stoppedEvidence.delete('mjobs-codex-1');},
+ };
+ for(const [name,change]of Object.entries(cases))await t.test(name,async t=>{const f=fixture(t),x=completedThenStoppedRecovery(f);change(f);x.persist();const proof=await x.adapter.reconcile(x.ctx);assert.notEqual(proof.outcome,'resumable');assert.deepEqual(f.state.effects,[]);});
+ await t.test('disk differs from memory',async t=>{const f=fixture(t),x=completedThenStoppedRecovery(f);fs.writeFileSync(x.file,JSON.stringify({...f.master.restore.state,completedAt:null}));const proof=await x.adapter.reconcile(x.ctx);assert.notEqual(proof.outcome,'resumable');});
+});

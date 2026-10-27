@@ -43,7 +43,7 @@ const FleetMasterUI=(()=>{
    byId('masterPause').disabled=false;byId('masterDrain').disabled=false;
    byId('masterCancelDrain').hidden=true;byId('masterRearm').hidden=true;
    panel.classList.remove('emergency-latched');
-  }else if(!drain.enabled&&data.restore?.phase==='complete'&&data.currentReadiness?.ready===true){
+  }else if(paused&&!drain.enabled&&data.restore?.phase==='complete'&&data.currentReadiness?.ready===true){
    status='FLEET RESTORED';variant='stopped';
    detail='Current session runtimes and primary controllers are verified. Automatic dispatch is '+(paused?'paused.':'enabled.');
    extra=(data.restore.restoredCount||0)+' restored sessions';

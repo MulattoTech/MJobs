@@ -45,3 +45,12 @@ test('master badge never calls a held scheduler production active',()=>{
  assert.equal(byId('masterState').textContent,'DISPATCH HELD');assert.match(byId('masterText').textContent,/primary/);
  c.masterState({dispatch:{sustainedEnabled:false,turboEnabled:false},emergency:{latched:false}});assert.equal(byId('masterState').textContent,'DISPATCH PAUSED');
 });
+
+test('verified current dispatch takes precedence over a historical completed restore badge',()=>{
+ const elements=new Map(),byId=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};const c=vm.createContext({byId,busy:false,Date,dateTime:()=>''});
+ vm.runInContext(sourcePart('master-ui.js',' function masterState(',' async function refresh('),c);
+ const data={dispatch:{sustainedEnabled:true,turboEnabled:false,blockedReason:null},emergency:{latched:false},restore:{phase:'complete',active:false,restoredCount:31,total:31},currentReadiness:{ready:true}};
+ c.masterState(data);assert.equal(byId('masterState').textContent,'PRODUCTION ACTIVE');assert.match(byId('masterState').className,/on/);
+ c.masterState({...data,dispatch:{sustainedEnabled:false,turboEnabled:false}});assert.equal(byId('masterState').textContent,'FLEET RESTORED');assert.match(byId('masterText').textContent,/paused/);
+ c.masterState({...data,currentReadiness:{ready:false,reason:'Primary stopped'}});assert.equal(byId('masterState').textContent,'DISPATCH HELD');
+});

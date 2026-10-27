@@ -309,16 +309,21 @@ class StartupAdapter {
   const ledgerReadable=state.inflight&&typeof state.inflight==='object'&&!Array.isArray(state.inflight)&&state.errors&&typeof state.errors==='object'&&!Array.isArray(state.errors);
   const legacyPriorOwner=!!source&&!Object.hasOwn(source,'startupRunId'),priorRunId=legacyPriorOwner?null:source?.startupRunId;
   const priorOwner=legacyPriorOwner||(typeof priorRunId==='string'&&!!priorRunId&&priorRunId!==previous.runId);
-  const durableAfter=uncommitted?this.durableRestoreState():null;
+  const completed=!uncommitted&&state.phase==='complete';
+  const durableAfter=(uncommitted||completed)?this.durableRestoreState():null;
   const durableStateVerified=!!durableBefore&&!!durableAfter&&durableBefore.stateFingerprint===durableAfter.stateFingerprint&&durableBefore.bytesFingerprint===durableAfter.bytesFingerprint;
   const startNotCommitted=uncommitted&&previous.restoreStarted===false&&previous.restoreReceipt===null&&previous.actionPending?.name==='start existing RestoreFleet'&&windowMatches&&priorOwner&&durableStateVerified;
   const operationMatches=uncommitted?startNotCommitted:previous.restoreStarted===true&&previous.actionPending===null&&receiptMatches&&(!source?.startupRunId||source.startupRunId===previous.runId)&&(!source?.branchAdoptions||source.branchAdoptions.revision===previous.bootstrap?.branchAdoptionsRevision);
-  return {kind:uncommitted?'uncommitted-start':'committed-restore',runId:previous.runId,phase:state.phase,startedAt:state.startedAt||null,manifestRevision:manifest.revision,
+  const verifying=events.filter(event=>event?.phase==='verifying');
+  const completionTimes=[state.startedAt,waiting[0]?.at,state.completedAt,verifying[0]?.at,previous.finishedAt].map(value=>Date.parse(value||''));
+  const completedBound=completed&&source?.startupRunId===previous.runId&&durableStateVerified&&verifying.length===1&&completionTimes.every(Number.isFinite)&&completionTimes.every((time,index)=>index===0||time>=completionTimes[index-1])&&ids.every(id=>state.restored?.[id]?.status==='ready'&&Number.isFinite(Date.parse(state.restored[id].at||''))&&Date.parse(state.restored[id].at)<=Date.parse(state.completedAt));
+  return {kind:uncommitted?'uncommitted-start':completed?'completed-restore':'committed-restore',runId:previous.runId,phase:state.phase,startedAt:state.startedAt||null,manifestRevision:manifest.revision,
+   ...(completed?{completedAt:state.completedAt,durableStateVerified,durableStateFingerprint:durableAfter?.stateFingerprint||null,durableBytesFingerprint:durableAfter?.bytesFingerprint||null,completedTargetIds:ids.filter(id=>state.restored?.[id]?.status==='ready')}:{}),
    ...(uncommitted?{priorRunId,legacyPriorOwner,startNotCommitted,durableStateVerified,durableStateFingerprint:durableAfter?.stateFingerprint||null,durableBytesFingerprint:durableAfter?.bytesFingerprint||null}:{}),
    targetIds:ids,sourceTargetIds:Array.isArray(source?.targets)?source.targets.map(s=>s?.id):[],
    desiredIds:Array.isArray(state.desiredIds)?[...state.desiredIds]:[],stateFingerprint:stateFingerprint(state),
    verified:previous.restoreStartAttempted===true&&operationMatches&&state.active===false&&!this.master.restore.running&&
-    ['paused','partial','failed'].includes(state.phase)&&windowMatches&&sourceMatches&&ledgerReadable&&exactIds(state.desiredIds,ids)};
+    (['paused','partial','failed'].includes(state.phase)||completedBound)&&windowMatches&&sourceMatches&&ledgerReadable&&exactIds(state.desiredIds,ids)};
  }
  async reconcile(ctx){
   this.check(ctx);
