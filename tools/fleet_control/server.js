@@ -22,6 +22,7 @@ const { preflight } = require('./preflight');
 const { createProviderRuntime, validateSelection } = require('./provider-catalog');
 const { readGeminiUsage } = require('./gemini-usage');
 const { randomUUID } = require('node:crypto');
+const {completeKnownPaste}=require('./terminal-delivery');
 const exec = promisify(execFile);
 const root = __dirname;
 const publicRoot = path.join(root, 'public');
@@ -120,7 +121,16 @@ async function command(args,ms=30000,{windDown=false,startupRestore=false}={}){
  const id=args[args.indexOf('--session')+1];
  const reserved=args[0]==='send'&&!stopNotice&&dispatchLedger?dispatchLedger.reserve(id,message):null;
  try{
+  const before=args[0]==='send'&&!stopNotice&&!args.includes('--steer')?(await daemon('/api/v1/sessions')).sessions.find(s=>s.id===id):null;
+  if(before){assertCanStartWork();if(before.isTerminated||before.mode!=='tui'||!['idle','waiting_input'].includes(before.activity?.state))throw Error('Target changed before terminal delivery');}
+  const sentAt=Date.now();
   const x=await exec(AO,args,{windowsHide:true,timeout:ms,maxBuffer:1024*1024,cwd:root});
+  if(before?.mode==='tui'&&before.harness==='codex'){
+   const delivery=await completeKnownPaste({root,id,generation:before.terminalGeneration,message,sentAt,
+    getSession:async()=> (await daemon('/api/v1/sessions')).sessions.find(s=>s.id===id),guard:()=>assertCanStartWork()});
+   audit('terminal_delivery_checked',{id,state:delivery.state,extraEnter:delivery.extraEnter});
+   if(['enter-outcome-pending','decision-or-unavailable','already-attempted'].includes(delivery.state))throw Error('Terminal delivery remains unverified; inspect before retrying');
+  }
   if(reserved)dispatchLedger.finish(id,reserved.id,'submitted');
   return String(x.stdout||'').trim();
  }catch(e){if(reserved)dispatchLedger.finish(id,reserved.id,'uncertain');throw e}

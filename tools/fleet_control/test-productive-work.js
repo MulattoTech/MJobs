@@ -10,3 +10,19 @@ test('busy, blocked, archived and explicitly reserved reviewers receive no maint
 test('corrupt records and artifact path traversal fail closed without reading outside the scope',t=>{const f=fixture(t);assert(!safePath('../private.py'));assert(!safePath('tools/../private.py'));const task=f.work.candidates(f.sessions).tasks[0];f.work.reserve(task);const data=JSON.parse(fs.readFileSync(f.work.file));data.tasks[task.key].resultPath=path.join(f.root,'private.json');fs.writeFileSync(f.work.file,JSON.stringify(data));assert.equal(f.work.candidates(f.sessions).tasks.length,0);assert.equal(f.work.summary().available,false);});
 test('uncertain native delivery is retained and never automatically replayed',t=>{const f=fixture(t),task=f.work.candidates(f.sessions).tasks[0];f.work.reserve(task);f.work.finish(task.key,'uncertain');assert.equal(f.work.candidates(f.sessions).tasks.some(x=>x.agentId===task.agentId),false);assert.equal(f.work.summary().tasks[0].state,'uncertain');});
 test('durable shared dispatcher signals prevent a second maintenance assignment',t=>{const f=fixture(t);const p=f.work.candidates(f.sessions,{signals:{seen:()=>true}});assert.equal(p.tasks.length,0);});
+
+test('exact full-blob draft names are recognized without rewriting worker files',t=>{
+ const f=fixture(t),task=f.work.candidates(f.sessions).tasks[0];f.work.reserve(task);f.work.finish(task.key,'submitted');const dir=path.dirname(task.artifactPath),artifact=path.join(dir,task.blob+'.md'),result=path.join(dir,task.blob+'.result.json');
+ fs.writeFileSync(artifact,task.sourcePath+'\n'+task.blob+'\n'+'Actual cited contract. '.repeat(30));fs.writeFileSync(result,JSON.stringify({sourceCommit:task.ref,sourceBlob:task.blob,sourcePath:task.sourcePath,outcome:'documented',references:['services/example/module.py:1-20']}));
+ const original=fs.readFileSync(artifact);f.work.observe();const record=f.work.load().tasks[task.key];assert.equal(record.state,'artifact_ready');assert.equal(record.acceptance,'unreviewed');assert.equal(record.receiptNameForm,'exact-full-hash');assert.equal(record.observedArtifactPath,artifact);assert.deepEqual(fs.readFileSync(artifact),original);assert(!fs.existsSync(task.artifactPath));
+});
+test('different full-hash outcomes cannot override an assigned-name receipt',t=>{
+ const f=fixture(t),task=f.work.candidates(f.sessions).tasks[0];f.work.reserve(task);f.work.finish(task.key,'submitted');const full=path.join(path.dirname(task.resultPath),task.blob+'.result.json');
+ fs.writeFileSync(task.resultPath,JSON.stringify({sourceBlob:task.blob,sourcePath:task.sourcePath,outcome:'no_new_gap',references:['docs/old.md:1-4']}));fs.writeFileSync(full,JSON.stringify({sourceBlob:task.blob,sourcePath:task.sourcePath,outcome:'documented',references:['services/example/module.py:1-4']}));
+ assert.throws(()=>f.work.observe(),/Conflicting/);assert.equal(f.work.load().tasks[task.key].state,'submitted');
+});
+test('unrelated names and a wrong source commit cannot become receipt evidence',t=>{
+ const f=fixture(t),task=f.work.candidates(f.sessions).tasks[0];f.work.reserve(task);f.work.finish(task.key,'submitted');const dir=path.dirname(task.resultPath),record={sourceBlob:task.blob,sourcePath:task.sourcePath,outcome:'no_new_gap',references:['docs/old.md:1-4']};
+ fs.writeFileSync(path.join(dir,'something.result.json'),JSON.stringify(record));f.work.observe();assert.equal(f.work.summary().noNewGap,0);
+ fs.writeFileSync(path.join(dir,task.blob+'.result.json'),JSON.stringify({...record,sourceCommit:'d'.repeat(40)}));f.work.observe();assert.equal(f.work.summary().noNewGap,0);
+});

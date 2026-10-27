@@ -106,6 +106,7 @@ function fixture() {
     './provider-catalog': { createProviderRuntime: () => ({ get: async () => ({ providers: [] }) }), validateSelection: x => x },
     './gemini-usage': { readGeminiUsage: () => ({ providers: [] }) },
     './agent-observability': nativeRequire('./agent-observability'),
+    './terminal-delivery': {completeKnownPaste:async()=>{throw Error('Unexpected terminal operation in Startup fixtures');}},
   };
   const context = vm.createContext({
     bridge: b,

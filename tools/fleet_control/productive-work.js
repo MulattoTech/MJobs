@@ -5,6 +5,23 @@ const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node
 const ID=/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/,SHA=/^[a-f0-9]{40}$/;
 const safePath=v=>typeof v==='string'&&/^(services|apps|tools|tests)\/[A-Za-z0-9_./-]+\.(py|js|ts|tsx)$/.test(v)&&!v.split('/').includes('..');
 function read(file,fallback){try{const stat=fs.statSync(file);if(stat.size>4*1024*1024)throw Error('oversized');return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));}catch(e){if(e.code==='ENOENT')return fallback;throw Error('Productive-work evidence is unreadable');}}
+function confinedFile(root,file){
+ const parent=path.relative(root,path.dirname(file)).split(path.sep);let current=root;
+ if(parent.some(part=>part==='..'))throw Error('Receipt outside task root');
+ for(const part of parent){current=path.join(current,part);try{if(fs.lstatSync(current).isSymbolicLink())throw Error('Receipt directory is redirected');}catch(e){if(e.code==='ENOENT')return false;throw e;}}
+ try{const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||!fs.realpathSync(file).startsWith(fs.realpathSync(root)+path.sep))throw Error('Receipt is redirected');return true;}catch(e){if(e.code==='ENOENT')return false;throw e;}
+}
+function receiptFiles(root,task){
+ const directory=path.dirname(task.resultPath),candidates=[{artifact:task.artifactPath,result:task.resultPath,form:'assigned-short-hash'},
+  {artifact:path.join(directory,task.blob+'.md'),result:path.join(directory,task.blob+'.result.json'),form:'exact-full-hash'}];
+ const present=candidates.filter(x=>confinedFile(root,x.result));
+ if(present.length>1){
+  if(!fs.readFileSync(present[0].result).equals(fs.readFileSync(present[1].result)))throw Error('Conflicting task receipt aliases');
+  const docs=present.filter(x=>confinedFile(root,x.artifact));
+  if(docs.length===2&&!fs.readFileSync(docs[0].artifact).equals(fs.readFileSync(docs[1].artifact)))throw Error('Conflicting draft aliases');
+ }
+ return present[0]||null;
+}
 class ProductiveWork{
  constructor(root){this.root=root;this.file=path.join(root,'productive-work-state.json');this.catalogFile=path.join(root,'productive-catalog.json');this.error=null;}
  load(){const value=read(this.file,{version:1,tasks:{}});if(value.version!==1||!value.tasks||Array.isArray(value.tasks)||Object.keys(value.tasks).length>2000)throw Error('Invalid productive-work ledger');
@@ -20,13 +37,15 @@ class ProductiveWork{
  observe(){const data=this.load();let changed=false;
   for(const task of Object.values(data.tasks)){
    if(!['submitted','reserved'].includes(task.state))continue;
-   const result=read(task.resultPath,null);if(!result)continue;
+   const evidence=receiptFiles(this.root,task);if(!evidence)continue;
+   const result=read(evidence.result,null);if(!result)continue;
+   if(result.sourceCommit!==undefined&&result.sourceCommit!==task.ref)continue;
    if(result.sourceBlob!==task.blob||result.sourcePath!==task.sourcePath||!['documented','no_new_gap'].includes(result.outcome)||!Array.isArray(result.references)||result.references.length<1||result.references.length>30)continue;
    if(result.outcome==='documented'){
-    let stat;try{stat=fs.statSync(task.artifactPath);}catch{continue;}if(!stat.isFile()||stat.size<300||stat.size>200000)continue;
-    const text=fs.readFileSync(task.artifactPath,'utf8');if(!text.includes(task.sourcePath)||!text.includes(task.blob))continue;
+    let stat;try{if(!confinedFile(this.root,evidence.artifact))continue;stat=fs.statSync(evidence.artifact);}catch{continue;}if(!stat.isFile()||stat.size<300||stat.size>200000)continue;
+    const text=fs.readFileSync(evidence.artifact,'utf8');if(!text.includes(task.sourcePath)||!text.includes(task.blob))continue;
    }
-   task.state=result.outcome==='documented'?'artifact_ready':'no_new_gap';task.completedAt=new Date().toISOString();task.acceptance='unreviewed';changed=true;
+   task.state=result.outcome==='documented'?'artifact_ready':'no_new_gap';task.completedAt=new Date().toISOString();task.acceptance='unreviewed';task.receiptNameForm=evidence.form;task.observedResultPath=evidence.result;task.observedArtifactPath=result.outcome==='documented'?evidence.artifact:null;changed=true;
   }if(changed)this.save(data);return data;
  }
  candidates(sessions,{signals,now=Date.now(),reserveWorkers=0}={}){
@@ -56,4 +75,4 @@ class ProductiveWork{
  finish(key,state){if(!['submitted','uncertain'].includes(state))throw Error('Invalid task result');const data=this.load();if(!data.tasks[key])throw Error('Unreserved task');data.tasks[key].state=state;this.save(data);}
  summary(){try{const data=this.load(),tasks=Object.values(data.tasks);return {available:!this.error,error:this.error,catalogCount:this.catalog().length,assigned:tasks.filter(t=>['reserved','submitted'].includes(t.state)).length,artifactsReady:tasks.filter(t=>t.state==='artifact_ready').length,noNewGap:tasks.filter(t=>t.state==='no_new_gap').length,tasks:tasks.map(t=>({id:t.key,agentId:t.agentId,sourcePath:t.sourcePath,sourceCommit:t.ref,sourceBlob:t.blob,state:t.state,assignedAt:t.assignedAt,completedAt:t.completedAt||null,acceptance:t.acceptance||'not_reviewed'}))};}catch{return {available:false,error:'Productive-work ledger unavailable',tasks:[]};}}
 }
-module.exports={ProductiveWork,safePath};
+module.exports={ProductiveWork,safePath,receiptFiles};
