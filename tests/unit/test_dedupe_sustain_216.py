@@ -137,6 +137,34 @@ class DedupeSustain216Tests(unittest.TestCase):
         self.assertEqual(different_city_result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
         self.assertNotEqual(different_city_result["confidence"], same_city_result["confidence"])
 
+    def test_same_title_different_city_and_duties_stay_separate_without_identity(self):
+        left = without_strong_identity(
+            description="Maintain Windows servers and Active Directory for enterprise users.",
+        )
+        right = without_strong_identity(
+            description="Administer Linux clusters, Kubernetes workloads, and cloud networking.",
+            location="Austin, TX",
+            attributes={
+                "country": "US",
+                "state": "TX",
+                "city": "Austin",
+                "salary_min": 100_000,
+                "salary_max": 120_000,
+                "salary_currency": "USD",
+                "salary_period": "YEAR",
+            },
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertEqual(left["title"], right["title"])
+        self.assertNotEqual(left["attributes"]["city"], right["attributes"]["city"])
+        self.assertEqual((left["ats_tenant"], right["ats_tenant"]), ("", ""))
+        self.assertEqual((left["requisition"], right["requisition"]), ("", ""))
+        self.assertEqual(result["signals"]["strong_signals"], [])
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
+        self.assertEqual(result["disposition"], "SEPARATE")
+
     def test_boilerplate_heavy_descriptions_cannot_create_an_automatic_merge(self):
         left = without_strong_identity(
             description="We offer a competitive benefits package. Equal opportunity employer.",
