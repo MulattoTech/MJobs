@@ -1,0 +1,1645 @@
+{
+  "uid": "fleet-atlas",
+  "title": "Fleet Atlas \u00b7 Operations Intelligence",
+  "tags": [
+    "fleet",
+    "native-telemetry",
+    "read-only"
+  ],
+  "schemaVersion": 40,
+  "version": 1,
+  "editable": false,
+  "style": "dark",
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "graphTooltip": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "agent",
+        "label": "Inspect agent",
+        "type": "custom",
+        "query": "mjobs-luna-3,mjobs-luna-4,mjobs-luna-5,mjobs-luna-6,mjobs-luna-7,mjobs-luna-8,mjobs-luna-9,mjobs-luna-10,mjobs-luna-11,mjobs-luna-12,mjobs-luna-17,mjobs-luna-18,mjobs-luna-19,mjobs-luna-20,mjobs-luna-21,mjobs-luna-22,mjobs-luna-23,mjobs-luna-24,mjobs-luna-25,mjobs-luna-26,mjobs-luna-27,mjobs-luna-28,mjobs-luna-29,mjobs-luna-30,mjobs-luna-31,mjobs-luna-32,mjobs-luna-33,mjobs-luna-36,mjobs-luna-37,mjobs-luna-38,mjobs-luna-39",
+        "options": [
+          {
+            "text": "mjobs-luna-3",
+            "value": "mjobs-luna-3",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-4",
+            "value": "mjobs-luna-4",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-5",
+            "value": "mjobs-luna-5",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-6",
+            "value": "mjobs-luna-6",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-7",
+            "value": "mjobs-luna-7",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-8",
+            "value": "mjobs-luna-8",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-9",
+            "value": "mjobs-luna-9",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-10",
+            "value": "mjobs-luna-10",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-11",
+            "value": "mjobs-luna-11",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-12",
+            "value": "mjobs-luna-12",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-17",
+            "value": "mjobs-luna-17",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-18",
+            "value": "mjobs-luna-18",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-19",
+            "value": "mjobs-luna-19",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-20",
+            "value": "mjobs-luna-20",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-21",
+            "value": "mjobs-luna-21",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-22",
+            "value": "mjobs-luna-22",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-23",
+            "value": "mjobs-luna-23",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-24",
+            "value": "mjobs-luna-24",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-25",
+            "value": "mjobs-luna-25",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-26",
+            "value": "mjobs-luna-26",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-27",
+            "value": "mjobs-luna-27",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-28",
+            "value": "mjobs-luna-28",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-29",
+            "value": "mjobs-luna-29",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-30",
+            "value": "mjobs-luna-30",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-31",
+            "value": "mjobs-luna-31",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-32",
+            "value": "mjobs-luna-32",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-33",
+            "value": "mjobs-luna-33",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-36",
+            "value": "mjobs-luna-36",
+            "selected": true
+          },
+          {
+            "text": "mjobs-luna-37",
+            "value": "mjobs-luna-37",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-38",
+            "value": "mjobs-luna-38",
+            "selected": false
+          },
+          {
+            "text": "mjobs-luna-39",
+            "value": "mjobs-luna-39",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": "mjobs-luna-36",
+          "value": "mjobs-luna-36"
+        },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "FLEET ATLAS \u00b7 Native telemetry, not simulated productivity",
+      "description": "",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Work, not waiting.\n[Open the visual Fleet Atlas](/mission-control/analytics/) \u00b7 [Mission Control](/mission-control/)\n\n**Executing** means a native active turn. Reserved agents are **on-call**, not busy. ETA values are conditional. Token use is not acceptance. Missing per-turn attribution remains unavailable."
+      }
+    },
+    {
+      "id": 2,
+      "title": "Executing now",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([summary]) : [])",
+          "columns": [
+            {
+              "selector": "executing",
+              "text": "Executing now",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Queued",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([summary]) : [])",
+          "columns": [
+            {
+              "selector": "queued",
+              "text": "Queued",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 4,
+      "title": "On-call reserve",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([summary]) : [])",
+          "columns": [
+            {
+              "selector": "reserved",
+              "text": "On-call reserve",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 5,
+      "title": "Completed turns \u00b7 24h",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([summary]) : [])",
+          "columns": [
+            {
+              "selector": "completedTurns",
+              "text": "Completed turns \u00b7 24h",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 6,
+      "title": "Output-token flow \u00b7 15-minute buckets",
+      "description": "Native reported usage. The underlying feed is a rolling 24-hour window.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 16,
+        "h": 8
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (tokenSeries) : [])",
+          "columns": [
+            {
+              "selector": "at",
+              "text": "Time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "output",
+              "text": "Output tokens",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "axisPlacement": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Models by observed output tokens",
+      "description": "Observed usage models, not just the configured launch model.",
+      "type": "barchart",
+      "gridPos": {
+        "x": 16,
+        "y": 7,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (models) : [])",
+          "columns": [
+            {
+              "selector": "model",
+              "text": "Model",
+              "type": "string"
+            },
+            {
+              "selector": "output",
+              "text": "Output tokens",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Input tokens \u00b7 24h",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([summary]) : [])",
+          "columns": [
+            {
+              "selector": "inputTokens",
+              "text": "Input tokens \u00b7 24h",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 9,
+      "title": "Cache hits \u00b7 24h",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 15,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([summary]) : [])",
+          "columns": [
+            {
+              "selector": "cachedInputTokens",
+              "text": "Cache hits \u00b7 24h",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 10,
+      "title": "Documentation drafts ready",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([productivity]) : [])",
+          "columns": [
+            {
+              "selector": "artifactsReady",
+              "text": "Documentation drafts ready",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 11,
+      "title": "Quota remaining",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 15,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? ([quota]) : [])",
+          "columns": [
+            {
+              "selector": "remainingPercent",
+              "text": "Quota remaining",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 12,
+      "title": "Dispatch flight board",
+      "description": "An ETA is not a promise. CI waits, reserves, resource holds and paused dispatch remain distinct.",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents) : [])",
+          "columns": [
+            {
+              "selector": "name",
+              "text": "Agent",
+              "type": "string"
+            },
+            {
+              "selector": "work.label",
+              "text": "Workflow state",
+              "type": "string"
+            },
+            {
+              "selector": "work.assignedTask",
+              "text": "Assigned / planned task",
+              "type": "string"
+            },
+            {
+              "selector": "work.queuePosition",
+              "text": "Queue position",
+              "type": "number"
+            },
+            {
+              "selector": "work.estimatedStartAt",
+              "text": "Conditional start estimate",
+              "type": "timestamp"
+            },
+            {
+              "selector": "work.nextEvaluationAt",
+              "text": "Next dispatcher check",
+              "type": "timestamp"
+            },
+            {
+              "selector": "turnsCompleted",
+              "text": "Completed turns",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      }
+    },
+    {
+      "id": 13,
+      "title": "Selected agent \u00b7 completed turns",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents[id='${agent}']) : [])",
+          "columns": [
+            {
+              "selector": "turnsCompleted",
+              "text": "Selected agent \u00b7 completed turns",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 14,
+      "title": "Median turn wall time",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 29,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents[id='${agent}']) : [])",
+          "columns": [
+            {
+              "selector": "medianTurnSeconds",
+              "text": "Median turn wall time",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 15,
+      "title": "95th percentile turn",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents[id='${agent}']) : [])",
+          "columns": [
+            {
+              "selector": "p95TurnSeconds",
+              "text": "95th percentile turn",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 16,
+      "title": "Selected output tokens",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 29,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents[id='${agent}']) : [])",
+          "columns": [
+            {
+              "selector": "usage.output",
+              "text": "Selected output tokens",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 17,
+      "title": "Selected agent \u00b7 recorded workflow states",
+      "description": "State observation begins when this collector was installed; no historical state is fabricated.",
+      "type": "state-timeline",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 7
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents[id='${agent}'].transitions) : [])",
+          "columns": [
+            {
+              "selector": "at",
+              "text": "Time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "state",
+              "text": "Workflow",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 18,
+      "title": "Selected agent \u00b7 latest 30 turns",
+      "description": "Per-turn usage requires a unique native-conversation and time-window match. Missing values are not zero; wall time includes tools and waiting.",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "($age := $millis() - $toMillis(generatedAt); $age >= -10000 and $age <= 90000 ? (agents[id='${agent}'].latestTurns) : [])",
+          "columns": [
+            {
+              "selector": "startedAt",
+              "text": "Started",
+              "type": "timestamp"
+            },
+            {
+              "selector": "endedAt",
+              "text": "Ended",
+              "type": "timestamp"
+            },
+            {
+              "selector": "durationSeconds",
+              "text": "Wall seconds",
+              "type": "number"
+            },
+            {
+              "selector": "state",
+              "text": "State",
+              "type": "string"
+            },
+            {
+              "selector": "inputTokens",
+              "text": "Input tokens",
+              "type": "number"
+            },
+            {
+              "selector": "cachedInputTokens",
+              "text": "Cached tokens",
+              "type": "number"
+            },
+            {
+              "selector": "outputTokens",
+              "text": "Output tokens",
+              "type": "number"
+            },
+            {
+              "selector": "usageAttribution",
+              "text": "Attribution basis",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      }
+    },
+    {
+      "id": 19,
+      "title": "Freshness receipt",
+      "description": "Do not infer current activity when the feed timestamp is over 90 seconds old. Fleet Atlas marks stale data explicitly.",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 50,
+        "w": 24,
+        "h": 5
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "fleet-native"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "fleet-native"
+          },
+          "type": "json",
+          "source": "url",
+          "url": "http://fleet-analytics-data:8080/analytics.json",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "$",
+          "columns": [
+            {
+              "selector": "generatedAt",
+              "text": "Feed generated",
+              "type": "timestamp"
+            },
+            {
+              "selector": "source.observedAt",
+              "text": "Native source observed",
+              "type": "timestamp"
+            },
+            {
+              "selector": "source.usageWindowComplete",
+              "text": "Usage import complete",
+              "type": "boolean"
+            },
+            {
+              "selector": "dispatch.lastSuccess",
+              "text": "Last dispatch",
+              "type": "timestamp"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      }
+    }
+  ]
+}

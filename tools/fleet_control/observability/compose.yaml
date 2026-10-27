@@ -1,0 +1,55 @@
+name: mjobs-fleet-observability
+services:
+  fleet-analytics-data:
+    image: nginx@sha256:df221db836e1754089190208cee7eeda94f233197056426eda74a43ab1abeac2
+    container_name: mjobs-fleet-analytics-data
+    restart: unless-stopped
+    user: "101:101"
+    entrypoint: ["nginx", "-g", "daemon off;"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    cpus: 0.25
+    tmpfs: [/tmp:size=16m, /var/cache/nginx:size=16m]
+    volumes:
+      - ./data-nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${FLEET_PUBLIC_ANALYTICS:?Set the sanitized analytics directory}:/usr/share/nginx/html:ro
+    networks: [hub]
+  fleet-grafana:
+    image: grafana/grafana@sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
+    container_name: mjobs-fleet-grafana
+    restart: unless-stopped
+    mem_limit: 768m
+    cpus: 1.0
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports: ["127.0.0.1:18731:3000"]
+    environment:
+      GF_SERVER_ROOT_URL: https://m-techlabs.com/mission-control/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SECURITY_ADMIN_USER: dylan
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_VIEWERS_CAN_EDIT: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_PLUGINS_PREINSTALL_SYNC: yesoreyeram-infinity-datasource@4.1.3
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/fleet-atlas.json
+      GF_LOG_LEVEL: warn
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/etc/grafana/dashboards:ro
+      - ./secrets/grafana_admin_password:/run/secrets/grafana_admin_password:ro
+    networks: [hub]
+    depends_on: [fleet-analytics-data]
+networks:
+  hub:
+    external: true
+    name: mtechlabs-hub
+volumes:
+  grafana-data: {}

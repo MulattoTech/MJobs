@@ -2,6 +2,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
+const {attachExitedHostEvidence,runtimeExitedHostEvidence}=require('./exited-host-evidence');
 const {retainStoppedTargets}=require('./snapshot-retention');
 const {execFile}=require('node:child_process');
 const {promisify,isDeepStrictEqual}=require('node:util');
@@ -306,7 +307,8 @@ class RestoreFleet {
   }
   const requested=new Set(projects);
   const readSessions=async()=>(await this.getGlobalSessions()).filter(s=>requested.has(s.projectId));
-  return attachWindowsStoppedEvidence(processes,await readSessions(),{root:this.root,now:this.now,readSessions,restorationScope});
+  await attachWindowsStoppedEvidence(processes,await readSessions(),{root:this.root,now:this.now,readSessions,restorationScope});
+  return attachExitedHostEvidence(processes,await readSessions(),{root:this.root,now:this.now,readSessions});
  }
  async inspectMutationTarget(source,{allowExit=false,expectedSession=null,allowExitTransition=false}={}){
   const restorationScope=this.restorationScope();
@@ -324,7 +326,8 @@ class RestoreFleet {
   const needsExit=!current.isTerminated&&state!=='exited'&&(count===0||(current.mode==='chat'&&this.controllerStopped(current)));
   if(allowExit&&needsExit&&Number.isInteger(count)&&count>=0)return {current,needsExit:true};
   if(!current.isTerminated&&state!=='exited')throw Error('The runtime is no longer verified stopped; resume was withheld');
-  if(count!==0&&!absent)throw Error('Fresh native runtime absence is unavailable or contradicted; resume was withheld');
+  const exitedHost=runtimeExitedHostEvidence(current,counts,this.now());
+  if(count!==0&&!absent&&!exitedHost)throw Error('Fresh native runtime absence or exact hosted-child exit is unverified; resume was withheld');
   return {current,needsExit:false};
  }
  async defaultResourceReader(){

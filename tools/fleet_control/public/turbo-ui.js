@@ -146,11 +146,11 @@ const FleetTurboUI=(()=>{
    if(p.globalCooldownMinutes>0)toast('The prior one-time burst is cooling down. Sustained Mode can start immediately and refill tasks automatically.');
    if(!count){toast('No eligible idle agents to activate. '+working+' already working.');return}
    openModal(
-    '<h2>⚡ All Hands — activate '+count+' idle agents?</h2>'+
+    '<h2>âš¡ All Hands — activate '+count+' idle agents?</h2>'+
     '<p>This sends one bounded burst to eligible idle agents. Turbo and Sustained Mode settings stay unchanged; enable a continuous mode separately if desired.</p>'+
     '<div class="allhands-preview"><div><strong>'+count+'</strong><small>Will contact</small></div><div><strong>'+working+'</strong><small>Already working</small></div><div><strong>'+skipped+'</strong><small>Cooldown skips</small></div></div>'+
     '<div class="allhands-warning">This manual burst has its own cooldown. Provider quota, resource and file ownership guards still apply. Agents will use their existing PRs or ask the primary for nonoverlapping assignments; active worktrees and branch protections are preserved.</div>'+
-    '<div class="modal-actions"><button class="ghost-button" data-modal="cancel">Cancel</button><button class="all-hands-button" id="confirmAllHands">⚡ ACTIVATE ALL IDLE</button></div>'
+    '<div class="modal-actions"><button class="ghost-button" data-modal="cancel">Cancel</button><button class="all-hands-button" id="confirmAllHands">âš¡ ACTIVATE ALL IDLE</button></div>'
    );
    el('confirmAllHands').addEventListener('click',async()=>{
     if(busy)return;
@@ -174,7 +174,7 @@ const FleetTurboUI=(()=>{
     finally{busy=false}
    });
   }catch(e){toast(e.message,true)}
-  finally{busy=false;button.disabled=false;button.innerHTML='<span class="all-hands-icon">⚡</span> ALL HANDS · START IDLE AGENTS'}
+  finally{busy=false;button.disabled=false;button.innerHTML='<span class="all-hands-icon">âš¡</span> ALL HANDS · START IDLE AGENTS'}
  }
  function bind(){
   ['tTarget','tActions','tRam','tCooldown','tPoll','tHourly'].forEach(id=>el(id).addEventListener('input',()=>{settingsDirty=true}));

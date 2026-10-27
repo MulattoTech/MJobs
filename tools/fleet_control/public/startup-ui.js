@@ -18,6 +18,8 @@ const FleetStartupUI = (() => {
     restoring: ['Restoring the preserved fleet', 'Primary controllers are verified before workers are restored in bounded batches.', 5],
     verifying: ['Checking current runtime readiness', 'Historical completion alone is not sufficient; current runtime and controller checks must pass.', 6],
     opening_ui: ['Opening Orchestrator', 'Opening the desktop UI without starting a duplicate restore operation.', 7],
+    starting_dispatch: ['Starting verified work dispatch', 'Enabling Sustained only after all preserved runtimes and quota protection are verified.', 7],
+    ready_dispatching: ['Startup completed with dispatch enabled', 'Sustained dispatch is enabled. Current agent activity is reported separately.', 7],
     ready_paused: ['Startup completed', 'The startup sequence completed. Automatic dispatch remains paused.', 7],
     failed: ['Startup blocked', 'Resolve the reported prerequisite or verification failure before trying again.', 0],
     cancelled: ['Startup cancelled', 'No further startup steps will be submitted. Already restored runtimes are not claimed to be stopped.', 0],
@@ -41,7 +43,7 @@ const FleetStartupUI = (() => {
     '<div id="startupIssue" class="startup-issue" role="alert" hidden></div>' +
     '<p id="startupFreshness" class="startup-freshness">Waiting for a status response.</p>' +
     '<div class="startup-actions"><button id="startupStart" type="button" class="primary-button" disabled>Startup…</button><button id="startupOpenUi" type="button" class="ghost-button" disabled>Open Orchestrator</button><button id="startupRecheck" type="button" class="ghost-button" hidden>Recheck safely</button><button id="startupCancel" type="button" class="danger-button" hidden>Cancel startup</button><button id="startupRefresh" type="button" class="ghost-button">Refresh status</button></div>' +
-    '<p class="startup-footnote">Startup can resume agent work and consume usage. Automatic task dispatch stays paused; enable Sustained or Turbo separately when you are ready. The 7% cutoff cannot eliminate provider-metering delay.</p>';
+    '<p class="startup-footnote">Startup can resume agent work and consume usage. Select Start working after verification to enable Sustained automatically; uncheck it for restore-only. The 7% cutoff cannot eliminate provider-metering delay.</p>';
 
   function setText(id, text) { const el = byId(id); if (el && el.textContent !== text) el.textContent = text; }
   function fresh() { return !!run && !readError && Date.now() - lastSuccess < 12000; }
@@ -85,24 +87,24 @@ const FleetStartupUI = (() => {
     const stale = !fresh();
     let badge = run?.active ? 'STARTING' : uncertain() ? 'RECHECK REQUIRED' : run?.phase === 'resumable' ? 'CONTINUE STARTUP' : 'PAUSED';
     let title = label, detail = description;
-    if (run?.phase === 'ready_paused') {
+    if (['ready_paused','ready_dispatching'].includes(run?.phase)) {
       if (stale || readiness?.ready !== true) {
         badge = stale ? 'STATUS STALE' : readiness?.ready === false ? 'NOT READY NOW' : 'VERIFY CURRENT STATE';
         title = 'Earlier startup completed · current readiness ' + (readiness?.ready === false && !stale ? 'blocked' : 'not verified');
         detail = 'Last completion: ' + (run.finishedAt ? new Date(run.finishedAt).toLocaleString() : 'time unavailable') + '. ' + (issuesText() || 'Current live readiness must be checked before assuming the fleet is available.');
       } else {
         badge = readiness.dispatchPaused === false ? 'READY · DISPATCH ON' : 'READY · DISPATCH PAUSED';
-        detail = readiness.dispatchPaused === false ? 'Current runtime readiness is verified. Automatic dispatch was enabled separately after Startup.' : 'Current readiness is verified. Preserved runtimes are restored; automatic task dispatch remains paused. Use Sustained or Turbo explicitly to begin new automatic assignments.';
+        detail = readiness.dispatchPaused === false ? 'Current runtime readiness is verified. Sustained or Turbo dispatch is enabled. Agent activity below confirms whether work is actually underway.' : 'Current readiness is verified. Preserved runtimes are restored; automatic task dispatch remains paused. Use Sustained or Turbo explicitly to begin new automatic assignments.';
       }
     }
-    if (stale && run?.phase !== 'ready_paused') badge = 'STATUS STALE';
+    if (stale && !['ready_paused','ready_dispatching'].includes(run?.phase)) badge = 'STATUS STALE';
     if (!run) { title = 'Startup status unavailable'; detail = 'Waiting for a valid server response. No startup request has been sent.'; }
     setText('startupBadge', badge); setText('startupPhase', title); setText('startupDetail', detail);
-    byId('startupBadge').className = 'startup-badge' + (stale || uncertain() || run?.phase === 'failed' ? ' startup-badge-warning' : run?.active ? ' startup-badge-active' : readiness?.ready === true && run?.phase === 'ready_paused' ? ' startup-badge-ready' : '');
+    byId('startupBadge').className = 'startup-badge' + (stale || uncertain() || run?.phase === 'failed' ? ' startup-badge-warning' : run?.active ? ' startup-badge-active' : readiness?.ready === true && ['ready_paused','ready_dispatching'].includes(run?.phase) ? ' startup-badge-ready' : '');
     for (const el of root.querySelectorAll('[data-startup-step]')) {
       const index = Number(el.dataset.startupStep);
       el.classList.toggle('is-current', !!run?.active && step === index);
-      el.classList.toggle('is-done', (!!run?.active && step > index) || (run?.phase === 'ready_paused' && !stale && readiness?.ready === true));
+      el.classList.toggle('is-done', (!!run?.active && step > index) || (['ready_paused','ready_dispatching'].includes(run?.phase) && !stale && readiness?.ready === true));
       if (run?.active && step === index) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
     }
     const restore = run?.restore;
@@ -159,9 +161,10 @@ const FleetStartupUI = (() => {
     const quota = readiness?.quota || preview?.quota;
     const remaining = quota?.remainingPercent ?? quota?.remaining;
     const quotaText = Number.isFinite(remaining) && quota?.fresh === true ? remaining + '% currently reported remaining.' : 'Fresh allowance is verified again by the server before launch.';
-    openModal('<h2>Start the preserved fleet?</h2><p>This explicitly authorizes releasing the current emergency lock, arming the <strong>7% emergency stop</strong>, and restoring the saved primary and workers. Restored agents may resume work and consume usage. Automatic dispatch remains paused.</p>' +
+    openModal('<h2>Start the preserved fleet?</h2><p>This explicitly authorizes releasing the current emergency lock, arming the <strong>7% emergency stop</strong>, and restoring the saved primary and workers. Restored agents may resume work and consume usage. Choose whether to start automatic work after every runtime is verified. No duplicate fleet is created.</p>' +
       '<div class="startup-modal-note"><strong>' + escape(quotaText) + '</strong><p>' + (count === null ? 'The server validates the saved recovery manifest before starting.' : escape(count) + ' preserved session targets reported by the preview.') + '</p><p>No worker restoration is allowed before the stop watcher is disarmed and the quota monitor acknowledges the guard.</p></div>' +
       (retry ? '<p class="startup-modal-warning">The previous request has an unconfirmed response. Retrying reuses its original request ID and options; it does not authorize a duplicate startup.</p>' : '') +
+      '<label class="startup-check"><input id="startupWorkOption" type="checkbox" ' + ((retry ? pendingRequest.startWorkAfter === true : true) ? 'checked' : '') + (retry ? ' disabled' : '') + '> Start working after verification (enable Sustained at the saved target)</label>' +
       '<label class="startup-check"><input id="startupOpenUiOption" type="checkbox" ' + ((retry ? pendingRequest.openUi : true) ? 'checked' : '') + (retry ? ' disabled' : '') + '> Open the Orchestrator desktop UI after verification</label>' +
       '<div class="form-field"><label for="startupConfirmText">Type <strong>STARTUP</strong> to confirm</label><input id="startupConfirmText" autocomplete="off" spellcheck="false" placeholder="STARTUP"></div><p id="startupModalStatus" class="startup-modal-status"></p>' +
       '<div class="modal-actions"><button type="button" class="ghost-button" data-modal="cancel">Cancel</button><button type="button" id="startupConfirmButton" class="primary-button" disabled>Start with 7% protection</button></div>');
@@ -172,15 +175,15 @@ const FleetStartupUI = (() => {
   }
   async function submitStartup() {
     if (actionBusy || !fresh() || run?.active || uncertain() || byId('startupConfirmText')?.value.trim() !== 'STARTUP') return;
-    if (!pendingRequest?.uncertain) pendingRequest = { requestId: requestId(), openUi: !!byId('startupOpenUiOption').checked, uncertain: false, acknowledged: false };
+    if (!pendingRequest?.uncertain) pendingRequest = { requestId: requestId(), openUi: !!byId('startupOpenUiOption').checked, startWorkAfter: !!byId('startupWorkOption')?.checked, uncertain: false, acknowledged: false };
     pendingRequest.uncertain = true; savePending();
     actionBusy = true; mutationEpoch++; render();
     setText('startupConfirmButton', 'Submitting protected startup…');
     try {
-      const response = await api('/api/startup', { confirm: 'STARTUP', requestId: pendingRequest.requestId, openUi: pendingRequest.openUi });
+      const response = await api('/api/startup', { confirm: 'STARTUP', requestId: pendingRequest.requestId, openUi: pendingRequest.openUi, startWorkAfter: pendingRequest.startWorkAfter === true });
       accept(response, false); pendingRequest.uncertain = false; pendingRequest.acknowledged = true; savePending();
       closeModal(); modalOpen = false;
-      notify(response.idempotent ? 'Existing Startup request recovered. No duplicate launch was requested.' : 'Protected Startup accepted. Follow its progress here; automatic dispatch remains paused.');
+      notify(response.idempotent ? 'Existing Startup request recovered. No duplicate launch was requested.' : (pendingRequest.startWorkAfter ? 'Protected Startup accepted. Sustained will start only after all runtimes are verified.' : 'Restore-only Startup accepted. Automatic dispatch will remain paused.'));
     } catch (error) {
       closeModal(); modalOpen = false;
       notify('Startup response unconfirmed: ' + String(error.message || error) + '. Refresh status; any retry will reuse the original request ID.', true);

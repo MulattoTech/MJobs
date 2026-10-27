@@ -6,7 +6,7 @@ const { randomUUID, createHash } = require('node:crypto');
 
 const POLICY = Object.freeze({ thresholdPercent: 7, pollSeconds: 5, window: 'any', enabled: true, brakePercent: 15 });
 const DEFAULT_TIMEOUTS = Object.freeze({ readMs: 10000, actionMs: 15000, watchdogMs: 45000, guardAckMs: 25000, restoreMs: 600000, readinessMs: 30000, totalMs: 900000 });
-const ACTIVE_PHASES = new Set(['validating', 'holding_dispatch', 'unlocking', 'waiting_watchdog', 'arming_guard', 'waiting_guard_ack', 'starting_restore', 'restoring', 'verifying', 'opening_ui']);
+const ACTIVE_PHASES = new Set(['validating', 'holding_dispatch', 'unlocking', 'waiting_watchdog', 'arming_guard', 'waiting_guard_ack', 'starting_restore', 'restoring', 'verifying', 'opening_ui', 'starting_dispatch']);
 
 class StartupError extends Error {
   constructor(code, message, uncertain = false) { super(message); this.name = 'StartupError'; this.code = code; this.uncertain = uncertain; }
@@ -64,9 +64,11 @@ class StartupController {
   _log(event, details = {}) { try { this.audit('startup_' + event, details); } catch {} }
   status() { return clone(this.state); }
 
-  start({ confirm, requestId, openUi = false } = {}) {
+  start({ confirm, requestId, openUi = false, startWorkAfter = false } = {}) {
     if (confirm !== 'STARTUP') throw new StartupError('CONFIRMATION_REQUIRED', 'Exact STARTUP confirmation is required');
     if (typeof requestId !== 'string' || !/^[A-Za-z0-9._:-]{8,128}$/.test(requestId)) throw new StartupError('REQUEST_ID_REQUIRED', 'Provide a stable 8–128 character Startup request ID');
+    if (typeof startWorkAfter !== 'boolean') throw new StartupError('INVALID_OPTION', 'startWorkAfter must be boolean');
+    if (startWorkAfter && typeof this.deps.startDispatch !== 'function') throw new StartupError('DISPATCH_UNAVAILABLE', 'Protected start-work integration is unavailable');
     if (typeof openUi !== 'boolean') throw new StartupError('INVALID_OPTION', 'openUi must be boolean');
     if (openUi && typeof this.deps.openUi !== 'function') throw new StartupError('UI_UNAVAILABLE', 'The Orchestrator desktop opener is unavailable');
     if (!this.task && !this.readError) this.state = this._load();
@@ -80,7 +82,7 @@ class StartupController {
     this.state = {
       ...this._initial(), runId, requestId, ownerId: this.ownerId, ownerPid: process.pid, phase: 'validating', active: true,
       startedAt: this._iso(), deadlineAt: new Date(this.now() + this.timeouts.totalMs).toISOString(), finishedAt: null,
-      options: { openUi, autoDispatchAfter: false }, policy: { ...POLICY },
+      options: { openUi, autoDispatchAfter: false, startWorkAfter }, policy: { ...POLICY },
       recentRequests: [...this.state.recentRequests, { requestId, runId }].slice(-32),
       dispatchHeld: false, latchReleased: false, initialEmergencyRevision: null,
       guardReceipt: null, guardAcknowledged: false, restoreStartAttempted: false, restoreStarted: false, restoreReceipt: null,
@@ -135,7 +137,7 @@ class StartupController {
     this._persist(); this._log('phase', { runId: this.state.runId, phase });
   }
   _ctx(signal) {
-    return { runId: this.state.runId, requestId: this.state.requestId, signal, policy: { ...POLICY }, expectedEmergencyRevision: this.state.initialEmergencyRevision, guardReceipt: clone(this.state.guardReceipt), bootstrap: clone(this.state.bootstrap), autoDispatchAfter: false };
+    return { runId: this.state.runId, requestId: this.state.requestId, signal, policy: { ...POLICY }, expectedEmergencyRevision: this.state.initialEmergencyRevision, guardReceipt: clone(this.state.guardReceipt), bootstrap: clone(this.state.bootstrap), autoDispatchAfter: false, startWorkAfter: this.state.options?.startWorkAfter === true };
   }
   _trackMutation(name, operation) {
     const id = randomUUID();
@@ -265,8 +267,15 @@ class StartupController {
       await this._call('open Orchestrator UI', this.deps.openUi, { mutates: true, timeoutMs: this.timeouts.actionMs });
     }
     await this._checkSafety({ requireGuard: true });
-    this.state.active = false; this.state.phase = 'ready_paused'; this.state.finishedAt = this._iso(); this.state.stageDeadlineAt = null;
-    this.state.error = null; this._persist(); this._log('ready_paused', { runId: this.state.runId });
+    if (this.state.options.startWorkAfter) {
+      this._transition('starting_dispatch');
+      const receipt = await this._call('enable verified Sustained dispatch', this.deps.startDispatch, { mutates: true, timeoutMs: this.timeouts.readMs });
+      if (receipt?.enabled !== true || receipt.mode !== 'sustained') throw new StartupError('DISPATCH_UNVERIFIED', 'Sustained dispatch did not confirm enablement', true);
+      this.state.dispatchHeld = false; this.state.dispatchReceipt = receipt; this._persist();
+      await this._checkSafety({ requireGuard: true });
+    }
+    this.state.active = false; this.state.phase = this.state.options.startWorkAfter ? 'ready_dispatching' : 'ready_paused'; this.state.finishedAt = this._iso(); this.state.stageDeadlineAt = null;
+    this.state.error = null; this._persist(); this._log(this.state.phase, { runId: this.state.runId });
   }
 
   async _cleanup() {
@@ -307,7 +316,7 @@ class StartupController {
     if (!wasCancelled) this.state.error = { code: error.code || 'STARTUP_FAILED', message: shortError(error) };
     this._persist();
     // Read-only validation failures before dispatch-hold must not mutate anything.
-    if (this.state.dispatchHeld || this.state.actionPending || this.state.restoreStartAttempted) await this._cleanup();
+    if (this.state.dispatchHeld || this.state.dispatchReceipt || this.state.actionPending || this.state.restoreStartAttempted) await this._cleanup();
     if (this.pendingMutations.size || this.state.cleanup?.outcomes?.some(outcome => !outcome.ok)) {
       this.state.phase = 'uncertain'; this.state.reconciliationRequired = true;
     }

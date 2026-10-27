@@ -11,3 +11,7 @@
 /.test*/
 /test-*/
 /testdata/
+/telemetry/
+/artifacts/
+/observability/.env
+/observability/secrets/

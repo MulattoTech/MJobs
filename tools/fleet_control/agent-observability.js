@@ -1,16 +1,18 @@
 'use strict';
 // Operational projection only: never export prompts, command lines, private paths,
 // provider conversation IDs, tokens, raw errors or terminal/history contents.
+const {classify}=require('./work-state');
 const clean=(v,n=180)=>typeof v==='string'?v.replace(/[\x00-\x1f\x7f]/g,'').slice(0,n):null;
 const iso=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))?new Date(v).toISOString():null;
 const count=v=>Number.isSafeInteger(v)&&v>=0?v:null;
 const positive=v=>Number.isSafeInteger(v)&&v>0;
 const fresh=(v,now)=>Number.isFinite(Date.parse(v||''))&&now-Date.parse(v)>=-10000&&now-Date.parse(v)<=45000;
 const relativePath=v=>typeof v==='string'&&/^(tests|docs|apps|services|packages|tools|planning)\/[a-zA-Z0-9_./-]{1,240}$/.test(v)&&!v.split('/').includes('..')?v:null;
-const knownAction=new Set(['issue','review','pr','ci','root','coord','refill','nudge','status','find-work']);
+const knownAction=new Set(['issue','review','pr','ci','root','coord','refill','nudge','status','find-work','productive']);
 function operationalDetails(session,sustain){
  const state=sustain?.status||{},agent=state.agents?.[session.id]||{};
  return {
+  workState:classify(session,{config:sustain?.config,status:sustain?.status,latest:sustain?.latest,nextTick:sustain?.nextTick,productiveTasks:sustain?.latestProductiveTasks}),
   assignments:Object.values(state.leases||{}).filter(x=>x.session===session.id).slice(0,12).map(x=>({issue:positive(x.issue)?x.issue:null,state:clean(x.state,40),at:iso(x.at),scope:(Array.isArray(x.scope)?x.scope:[]).map(relativePath).filter(Boolean).slice(0,12)})),
   recentActions:(Array.isArray(state.dispatches)?state.dispatches:[]).filter(x=>x.id===session.id).slice(-8).reverse().map(x=>({at:iso(x.at),type:knownAction.has(x.type)?x.type:'instruction',status:['submitted','uncertain','reserved'].includes(x.status)?x.status:'recorded',issue:positive(x.issue)?x.issue:null})),
   dispatchObservation:{lastSent:iso(agent.lastSent),completedAt:iso(agent.completedAt),awaiting:agent.awaiting===true,noProgressCount:count(agent.noProgress)||0},
@@ -28,6 +30,7 @@ function projectAgent(s,{live=false,readiness={},now=Date.now()}={}){
  return {
   id:clean(s.id,128),name:clean(s.name),role:clean(s.role),harness:clean(s.harness,60),model:clean(s.model,120),mode,
   activity:clean(s.activity,50),status:clean(s.status,60),stateLabel:clean(s.stateLabel,160),
+  workState:live&&s.workState?{state:clean(s.workState.state,40),label:clean(s.workState.label,80),reason:clean(s.workState.reason,220),executing:observed&&s.busy===true,queuePosition:count(s.workState.queuePosition),estimatedStartAt:iso(s.workState.estimatedStartAt),etaKind:clean(s.workState.etaKind,50),nextEvaluationAt:iso(s.workState.nextEvaluationAt),assignedTask:clean(s.workState.assignedTask,180)}:null,
   controllerState,controllerVerified:mode==='chat'&&live?typeof s.controllerVerified==='boolean'?s.controllerVerified:null:null,
   controllerLabel,controlKind:kind,runtimeVerified,runtimeStatus,runtimeObservedAt:readinessFresh?iso(readiness.at):null,
   busy:observed&&s.busy===true,idle:observed&&(s.isIdle===true||s.idle===true),openPRs:count(s.openPRs),lastActivity:iso(s.lastActivity),createdAt:iso(s.createdAt),

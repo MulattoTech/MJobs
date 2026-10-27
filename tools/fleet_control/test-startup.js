@@ -520,3 +520,31 @@ test('an in-memory unresolved mutation cannot be bypassed by externally clearing
   assert.equal(calls, 1); assert.equal(f.events.includes('restore-start'), false);
   gate.resolve({ armed: true, token: 'late' }); await new Promise(resolve => setImmediate(resolve));
 });
+
+test('explicit start-work enables Sustained only after runtime verification and persists the outcome',async t=>{
+ const f=fixture(t);f.deps.startDispatch=async ctx=>{assert.equal(ctx.startWorkAfter,true);assert.equal(ctx.autoDispatchAfter,false);assert(f.events.includes('current-readiness'));assert.equal(f.live.dispatchPaused,true);f.events.push('dispatch');f.live.dispatchPaused=false;return {enabled:true,mode:'sustained',targetWorking:12};};
+ const c=f.make();c.start(request('start-work-01',{startWorkAfter:true}));const result=await c.waitForIdle();
+ assert.equal(result.phase,'ready_dispatching');assert.equal(result.options.startWorkAfter,true);assert.equal(result.dispatchHeld,false);assert.equal(result.dispatchReceipt.targetWorking,12);assert.equal(f.events.at(-1),'dispatch');
+ const prior=f.events.length;c.start(request('start-work-01',{startWorkAfter:false}));assert.equal(f.events.length,prior);assert.equal(c.status().options.startWorkAfter,true);
+});
+test('restore-only never invokes the dispatch dependency',async t=>{
+ const f=fixture(t);f.deps.startDispatch=async()=>{throw Error('must not execute');};const c=f.make();c.start(request('restore-only-01'));assert.equal((await c.waitForIdle()).phase,'ready_paused');assert.equal(f.live.dispatchPaused,true);
+});
+test('failed start-work acknowledgment leaves dispatch held and requires reconciliation',async t=>{
+ const f=fixture(t);f.deps.startDispatch=async()=>{f.live.dispatchPaused=false;throw Error('dispatch acknowledgment lost');};const c=f.make();c.start(request('start-work-fail',{startWorkAfter:true}));const result=await c.waitForIdle();assert.equal(result.phase,'uncertain');assert.equal(f.live.dispatchPaused,true);assert.equal(result.reconciliationRequired,true);
+});
+test('emergency or cancellation during start-work verification cannot finish ready',async t=>{
+ for(const mode of ['emergency','cancel'])await t.test(mode,async t=>{
+  const f=fixture(t),gate=deferred(),entered=deferred();f.deps.startDispatch=async ctx=>{entered.resolve();await gate.promise;if(ctx.signal.aborted)throw Error('cancelled');if(f.live.emergency.latched)throw Error('emergency');f.live.dispatchPaused=false;return {enabled:true,mode:'sustained'};};
+  const c=f.make();c.start(request('start-work-'+mode,{startWorkAfter:true}));await entered.promise;
+  if(mode==='cancel')c.cancel({runId:c.status().runId});else f.live.emergency.latched=true;gate.resolve();const result=await c.waitForIdle();assert.notEqual(result.phase,'ready_dispatching');assert.equal(f.live.dispatchPaused,true);
+ });
+});
+test('start-work is type-checked and unavailable integration cannot silently ignore it',t=>{const f=fixture(t),c=f.make();assert.throws(()=>c.start(request('bad-work-option',{startWorkAfter:'yes'})),/boolean/);assert.throws(()=>c.start(request('missing-dispatch',{startWorkAfter:true})),/unavailable/);assert.equal(f.events.length,0);});
+
+test('already-online start-work still pauses dispatch if final safety verification fails',async t=>{
+ const f=fixture(t);f.deps.bootstrap=async()=>({ok:true,targetCount:3,primaryIds:['mjobs-primary'],alreadyOnline:true});
+ f.deps.startDispatch=async()=>{f.live.dispatchPaused=false;f.live.quota.remainingPercent=7;return {enabled:true,mode:'sustained'};};
+ const c=f.make();c.start(request('online-final-safety',{startWorkAfter:true}));const result=await c.waitForIdle();
+ assert.notEqual(result.phase,'ready_dispatching');assert.equal(f.live.dispatchPaused,true);assert.equal(result.restoreStartAttempted,false);assert.ok(result.cleanup.outcomes.some(x=>x.name==='hold dispatch'&&x.ok));
+});

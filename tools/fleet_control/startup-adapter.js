@@ -1,6 +1,7 @@
 'use strict';
 
 const fs=require('node:fs');
+const {runtimeExitedHostEvidence}=require('./exited-host-evidence');
 const path=require('node:path');
 const {isDeepStrictEqual}=require('node:util');
 const {createHash}=require('node:crypto');
@@ -11,7 +12,7 @@ const {runtimeAbsentEvidence,nativeSessionIdentity,createRestorationScope}=requi
 const exactIds=(left,right)=>Array.isArray(left)&&Array.isArray(right)&&left.every(id=>typeof id==='string')&&right.every(id=>typeof id==='string')&&new Set(left).size===left.length&&new Set(right).size===right.length&&JSON.stringify([...left].sort())===JSON.stringify([...right].sort());
 const stateFingerprint=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function verifiedStopped(session,counts,now,restorationScope){
- if(runtimeAbsentEvidence(session,counts,now,{restorationScope}))return true;
+ if(runtimeAbsentEvidence(session,counts,now,{restorationScope})||runtimeExitedHostEvidence(session,counts,now))return true;
  const identity=nativeSessionIdentity(session);
  return counts.get(session?.id)===0&&!!identity&&!identity.isTerminated&&!identity.hibernatedAt&&identity.provisionState==='ready'&&identity.statusReadiness==='ready'&&identity.activity==='exited'&&
   (identity.mode==='tui'||identity.controllerVerified&&identity.controllerState==='stopped');
@@ -21,9 +22,10 @@ function verifiedStopped(session,counts,now,restorationScope){
 // creates a second scheduler and never treats saved completion as live health.
 class StartupAdapter {
  constructor({root,master,quota,launcher,providers,verifyCodex,getSessions,
-  runtimeHealth,operationBusy=()=>false,now=Date.now,readinessWaitMs=1000}) {
+  runtimeHealth,operationBusy=()=>false,now=Date.now,readinessWaitMs=1000,stabilityMs=15000}) {
   if(!Number.isFinite(readinessWaitMs)||readinessWaitMs<1||readinessWaitMs>5000)throw Error('Readiness response wait must be between 1 and 5000 ms');
-  Object.assign(this,{root,master,quota,launcher,providers,verifyCodex,getSessions,runtimeHealth,operationBusy,now});
+  if(!Number.isInteger(stabilityMs)||stabilityMs<0||stabilityMs>60000)throw Error('Invalid runtime stability interval');
+  Object.assign(this,{root,master,quota,launcher,providers,verifyCodex,getSessions,runtimeHealth,operationBusy,now,stabilityMs});
   this.live=null;this.liveAt=0;this.reading=null;this.inspectionSerial=0;this.readinessWaitMs=readinessWaitMs;
  }
  check(ctx){if(ctx?.signal?.aborted)throw Error('Startup operation was cancelled before the next action');}
@@ -376,8 +378,32 @@ class StartupAdapter {
   }
   this.check(ctx);return proof;
  }
+ async stableReadiness(ctx){
+  const result=await this.readiness(ctx,{force:true});this.check(ctx);
+  if(!ctx?.runId||result.ready!==true||result.inspectionPending||result.stale){this.stableStartup=null;return result;}
+  const signature=JSON.stringify([result.manifestRevision,result.healthyIds?.slice().sort()]);
+  if(!this.stableStartup||this.stableStartup.runId!==ctx.runId||this.stableStartup.signature!==signature)this.stableStartup={runId:ctx.runId,signature,since:this.now()};
+  const elapsed=this.now()-this.stableStartup.since;
+  return elapsed>=this.stabilityMs?result:{...result,ready:false,reason:'Confirming stable runtimes before dispatch ('+Math.max(0,Math.floor(elapsed/1000))+' / 15 seconds)'};
+ }
+ async startDispatch(ctx){
+  if(ctx.startWorkAfter!==true)throw Error('Explicit start-work option is required');
+  this.safeForMutation(ctx,{requireGuard:true});
+  const initial=this.manifest();
+  if(initial.revision!==ctx.bootstrap?.manifestRevision)throw Error('Recovery targets changed before dispatch');
+  const readiness=await this.readRuntimes();
+  this.safeForMutation(ctx,{requireGuard:true});
+  if(this.master.restore.state.active||this.master.restore.running||unresolvedNativeReason(this.master.restore.state)||this.master.drainState.enabled)
+   throw Error('Recovery or wind-down is not settled');
+  if(this.manifest().revision!==initial.revision||readiness.runtimesReady!==true||readiness.recoveryIdentitiesMatch!==true||readiness.conflicts?.length||
+   !exactIds(readiness.healthyIds,initial.targets.map(s=>s.id))||!this.guardAck(ctx))throw Error('Every preserved runtime and the exact stop guard must be verified before dispatch');
+  this.check(ctx);
+  const result=this.master.sustain.enable(true);
+  if(this.master.turbo.config.enabled||this.master.sustain.config.enabled!==true)throw Error('Sustained dispatch was not exclusively enabled');
+  return {enabled:true,mode:'sustained',targetWorking:result.config?.targetWorking??this.master.sustain.config.targetWorking};
+ }
  deps(){
-  return Object.fromEntries(['safety','bootstrap','holdDispatch','unlock','watchdogDisarmed','arm','guardAck','readiness','openUi','reconcile'].map(k=>[k,this[k].bind(this)]).concat([['restore',{start:this.restoreStart.bind(this),status:this.restoreStatus.bind(this),pause:this.restorePause.bind(this)}]]));
+  return Object.fromEntries(['safety','bootstrap','holdDispatch','unlock','watchdogDisarmed','arm','guardAck','readiness','openUi','reconcile','startDispatch'].map(k=>[k,this[k].bind(this)]).concat([['readiness',this.stableReadiness.bind(this)],['restore',{start:this.restoreStart.bind(this),status:this.restoreStatus.bind(this),pause:this.restorePause.bind(this)}]]));
  }
 }
 

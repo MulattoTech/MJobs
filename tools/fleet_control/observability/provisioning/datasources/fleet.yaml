@@ -1,0 +1,12 @@
+apiVersion: 1
+datasources:
+  - name: Fleet Native Telemetry
+    uid: fleet-native
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      allowedHosts:
+        - http://fleet-analytics-data:8080
+      auth_method: none

@@ -85,7 +85,7 @@ function fixture(t) {
   };
   const providers = { get: async () => { state.reads.push('providers'); return clone(state.catalog); } };
   const options = {
-    root, master, quota, launcher, providers, now: () => state.now,
+    root, master, quota, launcher, providers, now: () => state.now, stabilityMs: 0,
     verifyCodex: async () => { state.reads.push('verify-codex'); },
     getSessions: async () => { state.reads.push('sessions'); return clone(state.sessions); },
     runtimeHealth: (session, count) => !session.isTerminated && session.controllerRunning === true && session.activity?.state !== 'exited' && Number.isInteger(count) && count > 0,
@@ -1053,4 +1053,15 @@ test('a previous manual Restore can reach explicit healthy adoption through Star
   const result = await controller.reconcile({ confirm: 'RECHECK STARTUP', runId: blocked.runId });
   assert.equal(result.reconciled, true); assert.equal(result.run.phase, 'ready_paused');
   assert.deepEqual(f.master.restore.state, previous); assert.deepEqual(f.state.effects, []);
+});
+
+test('real startup readiness must remain healthy for fifteen seconds, resetting after a runtime loss',async t=>{
+ const f=fixture(t);f.protect();f.healthy();f.options.stabilityMs=15000;const adapter=f.make(),ctx=f.context();
+ assert.equal((await adapter.stableReadiness(ctx)).ready,false);
+ f.state.now+=14000;assert.equal((await adapter.stableReadiness(ctx)).ready,false);
+ f.state.now+=1001;assert.equal((await adapter.stableReadiness(ctx)).ready,true);
+ f.state.sessions[0].activity.state='exited';f.state.now+=1;assert.equal((await adapter.stableReadiness(ctx)).ready,false);
+ f.healthy();f.state.now+=1;assert.equal((await adapter.stableReadiness(ctx)).ready,false);
+ f.state.now+=15001;assert.equal((await adapter.stableReadiness(ctx)).ready,true);
+ assert.equal((await adapter.stableReadiness({...ctx,runId:'new-explicit-start'})).ready,false);
 });

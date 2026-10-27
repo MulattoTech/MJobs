@@ -79,9 +79,9 @@ async function main(){
  const click=async(selector)=>{await waitForSelector(selector,true);await invoke('click',selector);};
  const input=async(selector,value)=>{await waitForSelector(selector);await invoke('input',selector,value);};
  const load=async(value='healthy')=>{scenario=value;await call('Page.navigate',{url:'http://127.0.0.1:'+port+'/?scenario='+value});await wait('document.querySelectorAll("#tableRows tr").length===2&&document.querySelector("#quotaLive")?.textContent.startsWith("LIVE")&&typeof FleetStartupUI!=="undefined"&&FleetStartupUI.status().fresh');await sleep(100);};
- async function check(name,{state='healthy',button,confirm,phrase,route,body,prepare,verify}={}){
+ async function check(name,{state='healthy',button,confirm,phrase,route,body,prepare,verify,afterOpen}={}){
   await load(state);if(prepare)await prepare();const count=posts.length;
-  await click(button);if(confirm){await wait('!!document.querySelector('+JSON.stringify(confirm)+')');assert.equal(posts.length,count,name+' must not act before confirmation');if(phrase){assert(await evaluate('document.querySelector('+JSON.stringify(confirm)+').disabled'),name+' missing phrase gate');await input(phrase[0],phrase[1]);}await click(confirm);}
+  await click(button);if(confirm){await wait('!!document.querySelector('+JSON.stringify(confirm)+')');assert.equal(posts.length,count,name+' must not act before confirmation');if(afterOpen)await afterOpen();if(phrase){assert(await evaluate('document.querySelector('+JSON.stringify(confirm)+').disabled'),name+' missing phrase gate');await input(phrase[0],phrase[1]);}await click(confirm);}
   for(let i=0;i<100&&posts.length===count;i++)await sleep(30);
   if(name==='All Hands burst')await wait('document.querySelector("#modalBody").textContent.includes("All Hands dispatched")');
   assert.equal(posts.length,count+1,name+' must send one request');const sent=posts.at(-1);assert.equal(sent.route,route,name);
@@ -91,8 +91,9 @@ async function main(){
  }
  const inertPayload="\"'`<script>globalThis.__fleetHarnessInjected=true</script>";
  const cases=[
-  ['Startup',{button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP'}}],
-  ['Continue Startup',{state:'resumable',button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP'}}],
+  ['Startup',{button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:true}}],
+  ['Continue Startup',{state:'resumable',button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:true}}],
+  ['Restore only',{button:'#startupStart',afterOpen:()=>click('#startupWorkOption'),confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:false}}],
   ['Recheck safely',{state:'uncertain',button:'#startupRecheck',route:'/api/startup/reconcile',body:{confirm:'RECHECK STARTUP'}}],
   ['Cancel Startup',{state:'restoring',button:'#startupCancel',route:'/api/startup/cancel',body:{runId:'fixture-run-0001'}}],
   ['Open Orchestrator',{button:'#startupOpenUi',route:'/api/orchestrator/open'}],
@@ -113,6 +114,7 @@ async function main(){
   ['Save Turbo settings',{button:'#turboSave',route:'/api/turbo/config',body:{targetWorking:12}}],
   ['Enable Sustained',{button:'#sustainToggle',confirm:'#confirmSustain',route:'/api/sustain/toggle',body:{enabled:true}}],
   ['Pause Sustained',{state:'sustain-on',button:'#sustainToggle',route:'/api/sustain/toggle',body:{enabled:false}}],
+  ['Save productive capacity policy',{prepare:async()=>{await click('#productiveEnabled');await input('#productiveTarget','31');await input('#productiveReserves','0');},button:'#productiveSave',route:'/api/sustain/config',body:{productiveWork:true,targetWorking:31,reserveWorkers:0}}],
   ['Save quota settings',{button:'#quotaSave',route:'/api/quota/config',body:{thresholdPercent:7}}],
   ['Arm quota protection',{state:'unarmed',button:'#quotaArm',confirm:'#quotaArmConfirm',phrase:['#quotaArmPhrase','ARM AUTO STOP'],route:'/api/quota/arm',body:{confirm:'ARM AUTO STOP'}}],
   ['Disarm quota protection',{button:'#quotaArm',route:'/api/quota/disarm'}],
