@@ -217,13 +217,41 @@ class AIEvaluationRequest(BaseModel):
     preview_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
-class DiscoveryInput(BaseModel):
+class DiscoveryBaseInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     profile_id: str = Field(min_length=1, max_length=128)
     request_id: str | None = Field(default=None, min_length=1, max_length=64)
     search_profile_id: str | None = Field(default=None, min_length=1, max_length=128)
     query: str | None = Field(default=None, max_length=2000)
     filters: dict[str, object] | None = Field(default=None, max_length=50)
+
+
+class CollectionContractInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    expected_count: int | None = Field(default=None, strict=True, ge=0, le=100_000)
+    tail_key: str | None = Field(default=None, strict=True, min_length=1, max_length=128)
+    expected_tail: str | int | None = None
+    required_item_fields: list[Annotated[
+        str, Field(strict=True, min_length=1, max_length=128)
+    ]] = Field(default_factory=list, max_length=100)
+
+    @model_validator(mode="after")
+    def expected_tail_requires_tail_key(self):
+        if self.expected_tail is not None and self.tail_key is None:
+            raise ValueError("An expected tail requires a tail key")
+        return self
+
+
+class DiscoveryInput(DiscoveryBaseInput):
+    source_id: str | None = Field(default=None, strict=True, min_length=1, max_length=128)
+    max_pages: int | None = Field(default=None, strict=True, ge=1, le=100)
+    collection_contract: CollectionContractInput | None = None
+
+    @model_validator(mode="after")
+    def collection_controls_are_atomic(self):
+        if (self.max_pages is None) != (self.collection_contract is None):
+            raise ValueError("Collection budget and contract must be supplied together")
+        return self
 
 
 class ResumeFactRewriteInput(BaseModel):
@@ -238,7 +266,7 @@ class ResumeExtractionQueueInput(BaseModel):
     request_id: str = Field(min_length=16, max_length=128)
 
 
-class ApplicationInput(DiscoveryInput):
+class ApplicationInput(DiscoveryBaseInput):
     job_id: str = Field(min_length=64, max_length=64)
     route_mode: Literal["DEFAULT", "THIS_ROUTE", "EMPLOYER_SITE", "ALL_DISTINCT"] = "DEFAULT"
     route_id: str | None = Field(default=None, min_length=1, max_length=128)
@@ -1362,6 +1390,22 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, "Fictional discovery is available only in verification mode")
         profile = store.profile(value.profile_id)
         params = {"profile_version": profile["version"], "request_id": value.request_id}
+        bounded_collection = value.max_pages is not None
+        if bounded_collection != (value.source_id is not None):
+            raise HTTPException(422, "A source and bounded collection controls must be supplied together")
+        if bounded_collection and (value.query is not None or value.filters is not None):
+            raise HTTPException(422, "Source collection cannot ignore query or filter descriptors")
+        if value.source_id is not None:
+            with store.engine.connect() as connection:
+                source_exists = connection.execute(select(m.job_sources.c.id).where(
+                    m.job_sources.c.id == value.source_id)).scalar_one_or_none()
+            if source_exists is None:
+                raise HTTPException(404, "Source not found")
+            params.update({
+                "source_id": value.source_id,
+                "max_pages": value.max_pages,
+                "collection_contract": value.collection_contract.model_dump(mode="json"),
+            })
         if value.search_profile_id:
             try:
                 get_fixture_search_profile(store, value.search_profile_id, value.profile_id)
@@ -1377,7 +1421,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return queued("DISCOVER", value.profile_id, params)
 
     @app.post("/matches", status_code=202)
-    def matches(value: DiscoveryInput):
+    def matches(value: DiscoveryBaseInput):
         # Share the profile lock with Pipeline PREPARE admission. Replay an
         # acknowledged or lost request without resetting its durable state,
         # even when the profile has subsequently changed.
@@ -1599,7 +1643,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         )}
 
     @app.post("/sources/{source_id}/collect", status_code=202)
-    def source_collect(source_id: str, value: DiscoveryInput):
+    def source_collect(source_id: str, value: DiscoveryBaseInput):
         profile = store.profile(value.profile_id)
         with store.engine.connect() as connection:
             connection.execute(select(m.job_sources.c.id).where(m.job_sources.c.id == source_id)).one()
