@@ -354,7 +354,10 @@ def test_collect_migrates_matching_legacy_identity_before_publish(tmp_path, monk
     ]["usageEvents"] == 1
 
 
-@pytest.mark.parametrize("identity_kind", ["wrong_path", "stable_mismatch", "malformed"])
+@pytest.mark.parametrize(
+    "identity_kind",
+    ["wrong_path", "legacy_timestamp_mismatch", "stable_mismatch", "malformed"],
+)
 def test_collect_rejects_untrusted_identity_without_partial_publish(
     tmp_path, monkeypatch, identity_kind
 ):
@@ -364,6 +367,9 @@ def test_collect_rejects_untrusted_identity_without_partial_publish(
     source_stat = database.stat()
     identities = {
         "wrong_path": f"{tmp_path / 'other.db'}:{source_stat.st_ctime_ns}",
+        "legacy_timestamp_mismatch": (
+            f"{database.resolve()}:{source_stat.st_ctime_ns + 1}"
+        ),
         "stable_mismatch": f"{database.resolve()}:{source_stat.st_dev}:{source_stat.st_ino + 1}",
         "malformed": f"{database.resolve()}:not-a-timestamp",
     }

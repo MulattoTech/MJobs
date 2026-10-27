@@ -108,11 +108,15 @@ def initialize(cache):
     """)
 
 
-def _legacy_source_identity(value, path):
+def _legacy_source_identity(value, path, source_stat):
     prefix = str(path.resolve()) + ":"
-    return isinstance(value, str) and value.startswith(prefix) and re.fullmatch(
-        r"[0-9]+", value[len(prefix) :]
-    ) is not None
+    if not isinstance(value, str) or not value.startswith(prefix):
+        return False
+    timestamp = value[len(prefix) :]
+    return (
+        re.fullmatch(r"[0-9]+", timestamp) is not None
+        and timestamp == str(source_stat.st_ctime_ns)
+    )
 
 
 def import_native(cache, ids, now, home):
@@ -123,7 +127,7 @@ def import_native(cache, ids, now, home):
     )
     old = cache.execute("SELECT v FROM meta WHERE k='source_identity'").fetchone()
     if old and old[0] != identity:
-        if _legacy_source_identity(old[0], path):
+        if _legacy_source_identity(old[0], path, source_stat):
             migration = cache.execute(
                 "UPDATE meta SET v=? WHERE k='source_identity' AND v=?",
                 (identity, old[0]),
