@@ -71,6 +71,13 @@ async function post(url,data){
  assert.equal(terminalCalls.length,agyTerminalCalls,'Antigravity send does not use the Codex terminal verifier');
  assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,agySubmitted+1,'Successful Antigravity send is submitted');
  const launches=calls.length,submittedAfterTerminal=ledgerFinishes.filter(entry=>entry.state==='submitted').length;
+ for(const harness of [undefined,'unknown']){
+  daemonSessions=[{...daemonSession,harness,terminalGeneration:undefined}];
+  await assert.rejects(()=>f.command(['send','--session','worker-1','--message','invalid harness']),/Target changed/);
+  assert.equal(calls.length,launches,'Missing or unknown harness must not launch AO');
+  assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,submittedAfterTerminal,'Invalid harness cannot become submitted');
+  assert.equal(ledgerFinishes.at(-1).state,'uncertain','Invalid harness reservation remains uncertain');
+ }
  daemonSessions=[];
  await assert.rejects(()=>f.command(['send','--session','worker-1','--message','missing target']),/Target changed/);
  assert.equal(calls.length,launches,'Missing pre-send target must not launch AO');

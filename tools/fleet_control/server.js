@@ -127,8 +127,9 @@ async function command(args,ms=30000,{windDown=false,startupRestore=false}={}){
    const matches=Array.isArray(sessions)?sessions.filter(s=>s?.id===id):[];
    if(matches.length!==1)throw Error('Target changed before terminal delivery');
    before=matches[0];assertCanStartWork();
+   const supportedHarness=['codex','agy'].includes(before.harness);
    const needsTerminalVerification=before.harness==='codex';
-   if(before.isTerminated||before.mode!=='tui'||!['idle','waiting_input'].includes(before.activity?.state)||(needsTerminalVerification&&(typeof before.terminalGeneration!=='string'||!before.terminalGeneration)))throw Error('Target changed before terminal delivery');
+   if(before.isTerminated||before.mode!=='tui'||!supportedHarness||!['idle','waiting_input'].includes(before.activity?.state)||(needsTerminalVerification&&(typeof before.terminalGeneration!=='string'||!before.terminalGeneration)))throw Error('Target changed before terminal delivery');
   }
   const sentAt=Date.now();
   const x=await exec(AO,args,{windowsHide:true,timeout:ms,maxBuffer:1024*1024,cwd:root});
