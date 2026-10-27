@@ -1,5 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {spawn}=require('node:child_process'),{once}=require('node:events'),readline=require('node:readline');
 const {composerMatches,completeKnownPaste,verifyOwner}=require('./terminal-delivery');
 const message='USER-AUTHORIZED PRODUCTIVE MAINTENANCE: Read exact source services/example.py and produce a cited private draft. Do not change code or security.';
 function surface(body){return 'Historical completed work\n  Set up security for Daybreak mode\n  You can keep using Codex while you finish setup.\n  Press a number to choose · esc to dismiss · type to continue\n› '+body+'\n  GPT-5.6-Sol medium · workspace';}
@@ -52,5 +53,23 @@ test('listener process launch is bound to the exact session id and generation',a
  for(const [name,change] of Object.entries({id:{argv:observed.argv.map(x=>x==='worker-1'?'worker-2':x)},generation:{argv:observed.argv.map(x=>x==='generation-1'?'generation-2':x)}}))await t.test(name,async()=>{
   const f=fixture(t);f.confirm();f.options.bindingReader=()=>binding;f.options.ownerCheck=value=>verifyOwner(value,async()=>({stdout:JSON.stringify({...observed,...change})}),'C:\\Users\\Fixture');
   await assert.rejects(()=>completeKnownPaste(f.options),/ownership not verified/);assert.equal(f.counts().enters,0);assert.equal(f.counts().reads,0);
+ });
+});
+
+test('Windows owner probe binds the real process argv before terminal delivery',async t=>{
+ if(process.platform!=='win32'){t.skip('Windows process ownership probe');return;}
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'terminal-owner-')),home=path.join(root,'home'),daemon=path.join(home,'AppData','Local','Programs','agent-orchestrator','resources','daemon');
+ fs.mkdirSync(daemon,{recursive:true});const executable=path.join(daemon,'ao.exe');fs.copyFileSync(process.execPath,executable);
+ fs.writeFileSync(path.join(root,'pty-host'),"const net=require('node:net');const server=net.createServer();server.listen(0,'127.0.0.1',()=>process.stdout.write(JSON.stringify({port:server.address().port})+'\\n'));setInterval(()=>{},1000);");
+ const child=spawn(executable,['pty-host','worker-1',root,executable,'agent-process','supervise','--session','worker-1','--launch','generation-1'],{cwd:root,stdio:['ignore','pipe','pipe'],windowsHide:true});
+ t.after(async()=>{if(child.exitCode===null){child.kill();await once(child,'exit').catch(()=>{});}fs.rmSync(root,{recursive:true,force:true});});
+ const lines=readline.createInterface({input:child.stdout});let timer;
+ const output=await Promise.race([once(lines,'line').then(([line])=>line),once(child,'error').then(([error])=>Promise.reject(error)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Fixture listener timeout')),5000);})]).finally(()=>{clearTimeout(timer);lines.close();});
+ const port=JSON.parse(output.trim()).port,registeredAt=new Date().toISOString(),binding={id:'worker-1',generation:'generation-1',pid:child.pid,port,registeredAt};
+ const exact=fixture(t);exact.confirm();exact.options.bindingReader=()=>binding;exact.options.ownerCheck=value=>verifyOwner(value,undefined,home);
+ assert.equal((await completeKnownPaste(exact.options)).extraEnter,true);assert.equal(exact.counts().enters,1);
+ for(const [name,change] of Object.entries({id:{id:'worker-2'},generation:{generation:'generation-2'}}))await t.test(name,async()=>{
+  const f=fixture(t);f.confirm();const mismatched={...binding,...change};f.options.id=mismatched.id;f.options.generation=mismatched.generation;f.setSession({terminalGeneration:mismatched.generation});f.options.bindingReader=()=>mismatched;f.options.ownerCheck=value=>verifyOwner(value,undefined,home);
+  await assert.rejects(()=>completeKnownPaste(f.options),/ownership not verified/);assert.equal(f.counts().reads,0);assert.equal(f.counts().enters,0);
  });
 });
