@@ -18,6 +18,7 @@ from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
 from services.documents.generate import prepare
+from services.documents.reviewed_cover_letter import materialize_reviewed_preview
 from services.applications.upload_integrity import snapshot_prepared
 from tests.integration.test_spine import PROFILE
 
@@ -205,6 +206,41 @@ class CoverLetterUploadCriterion42Tests(unittest.TestCase):
             json=body,
         )
         self.assertEqual(foreign.status_code, 404, foreign.text)
+
+    def _assert_approval_drift_rejected(self, name, table, predicate, values):
+        def drift_then_materialize(*args, **kwargs):
+            with self.store.engine.begin() as connection:
+                connection.execute(update(table).where(predicate).values(**values))
+            return materialize_reviewed_preview(*args, **kwargs)
+
+        with patch(
+            "apps.api.cover_letter_preview.materialize_reviewed_preview",
+            side_effect=drift_then_materialize,
+        ):
+            response, base, _profile = self._approve(
+                request_id=f"criterion42-{name}-drift",
+            )
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"],
+                         "COVER_LETTER_REVIEW_CONTEXT_STALE")
+        with self.store.engine.connect() as connection:
+            future = list(connection.execute(select(m.documents).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.version == base["document_version"] + 1,
+            )).mappings())
+        self.assertEqual(future, [])
+
+    def test_profile_drift_during_approval_fails_before_insert(self):
+        self._assert_approval_drift_rejected(
+            "profile", m.profiles, m.profiles.c.id == "fixture",
+            {"version": "f" * 64},
+        )
+
+    def test_job_drift_during_approval_fails_before_insert(self):
+        self._assert_approval_drift_rejected(
+            "job", m.jobs, m.jobs.c.id == self.job["id"],
+            {"title": "Changed during approval"},
+        )
 
     def test_unreviewed_foreign_or_changed_artifact_fails_closed(self):
         approved, base, profile = self._approve()

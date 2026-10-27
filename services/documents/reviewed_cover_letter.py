@@ -131,6 +131,21 @@ def materialize_reviewed_preview(
                 raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SCOPE_MISMATCH")
             if locked["document_version"] != expected_base_document_version:
                 raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_BASE_STALE")
+            current_profile_version = connection.execute(
+                select(m.profiles.c.version).where(
+                    m.profiles.c.id == profile["id"],
+                ).with_for_update(),
+            ).scalar_one_or_none()
+            current_job = connection.execute(
+                select(m.jobs, m.companies.c.name.label("company")).select_from(
+                    m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id)
+                ).where(m.jobs.c.id == job["id"]).with_for_update(),
+            ).mappings().one_or_none()
+            if (current_profile_version != profile["version"]
+                    or current_job is None
+                    or cover_letter_preview_fingerprint(dict(current_job))
+                    != preview["job_fingerprint"]):
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_CONTEXT_STALE")
             existing = list(connection.execute(select(m.documents).where(
                 m.documents.c.application_id == application_id,
                 m.documents.c.version == target_version,
