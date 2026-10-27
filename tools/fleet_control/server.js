@@ -129,7 +129,7 @@ async function command(args,ms=30000,{windDown=false,startupRestore=false}={}){
    const delivery=await completeKnownPaste({root,id,generation:before.terminalGeneration,message,sentAt,
     getSession:async()=> (await daemon('/api/v1/sessions')).sessions.find(s=>s.id===id),guard:()=>assertCanStartWork()});
    audit('terminal_delivery_checked',{id,state:delivery.state,extraEnter:delivery.extraEnter});
-   if(['enter-outcome-pending','decision-or-unavailable','already-attempted'].includes(delivery.state))throw Error('Terminal delivery remains unverified; inspect before retrying');
+   if(delivery.state!=='native-observed')throw Error('Terminal delivery remains unverified; inspect before retrying');
   }
   if(reserved)dispatchLedger.finish(id,reserved.id,'submitted');
   return String(x.stdout||'').trim();

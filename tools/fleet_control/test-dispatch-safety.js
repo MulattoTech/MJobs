@@ -7,12 +7,12 @@ const nativeRequire=createRequire(serverPath);
 const source=fs.readFileSync(serverPath,'utf8');
 const marker="if(!fs.existsSync(AO)){";
 assert.ok(source.includes(marker),'server bootstrap marker exists');
-const calls=[],terminalCalls=[],daemonCalls=[];
+const calls=[],terminalCalls=[],daemonCalls=[],ledgerFinishes=[];let terminalState='native-observed',reservation=0;
 const daemonSession={id:'worker-1',mode:'tui',harness:'codex',isTerminated:false,terminalGeneration:'generation-1',activity:{state:'idle'}};
 const context=vm.createContext({
  require(id){
   if(id==='node:child_process')return {execFile(file,args,options,callback){calls.push(args);callback(null,{stdout:'ok'});}};
-  if(id==='./terminal-delivery')return {completeKnownPaste:async options=>{terminalCalls.push(options);await options.guard();assert.equal((await options.getSession()).id,'worker-1');return {state:'native-observed',extraEnter:false};}};
+  if(id==='./terminal-delivery')return {completeKnownPaste:async options=>{terminalCalls.push(options);await options.guard();assert.equal((await options.getSession()).id,'worker-1');return {state:terminalState,extraEnter:false};}};
   return nativeRequire(id);
  },
  fixtureDaemon:async uri=>{daemonCalls.push(uri);return {sessions:[structuredClone(daemonSession)]};},
@@ -26,7 +26,8 @@ function set(reason,lock=false,drain=false){
  context.fakeMaster={locked:()=>lock,drainState:{enabled:drain}};
  context.fakeSustain={running:false,config:{enabled:false},enable(x){this.config.enabled=x;return {enabled:x}}};
  context.fakeTurbo={running:false,config:{enabled:false},enable(x){this.config.enabled=x;return {enabled:x}}};
- vm.runInContext("quota=globalThis.fakeQuota;master=globalThis.fakeMaster;sustain=globalThis.fakeSustain;turbo=globalThis.fakeTurbo;startup={status:()=>({phase:'idle',active:false,reconciliationRequired:false})};findWork={running:false};audit=()=>{};",context);
+ context.fakeLedger={reserve:()=>({id:'reservation-'+(++reservation)}),finish:(id,reservedId,state)=>ledgerFinishes.push({id,reservedId,state})};
+ vm.runInContext("quota=globalThis.fakeQuota;master=globalThis.fakeMaster;sustain=globalThis.fakeSustain;turbo=globalThis.fakeTurbo;dispatchLedger=globalThis.fakeLedger;startup={status:()=>({phase:'idle',active:false,reconciliationRequired:false})};findWork={running:false};audit=()=>{};",context);
 }
 async function post(url,data){
  let status,body;
@@ -57,6 +58,11 @@ async function post(url,data){
  assert.equal(calls.length,3,'Healthy quota permits one launch');
  assert.equal(terminalCalls.length,1,'Healthy TUI send verifies terminal completion');
  assert.deepEqual(daemonCalls,['/api/v1/sessions','/api/v1/sessions'],'Terminal verification uses only the synthetic daemon fixture');
+ const submitted=ledgerFinishes.filter(entry=>entry.state==='submitted').length;
+ terminalState='no-matching-pending-composer';
+ await assert.rejects(()=>f.command(['send','--session','worker-1','--message','fixture task']),/unverified/);
+ assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,submitted,'Absent composer cannot become a submitted task');
+ assert.equal(ledgerFinishes.at(-1).state,'uncertain','Unverified terminal delivery remains uncertain');
  assert.equal((await post('/api/sustain/toggle',{enabled:true})).status,200);
  console.log('PASS: stale/7%-threshold/tripped state blocks send, spawn, resume, restore, review, and dispatch enable; pause, stop, and reads remain available. No real process launched.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
