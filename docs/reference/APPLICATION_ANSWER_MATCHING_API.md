@@ -38,7 +38,7 @@ A candidate is emitted only when its saved answer has a nonblank id, question, a
 
 Story references are independently filtered to current, APPROVED, reusable stories that explicitly allow APPLICATION_ANSWER and carry valid fact IDs/fingerprints. The endpoint returns reference text and fact provenance, not a new generated answer (`apps/api/application_answer_matching.py:89–150`).
 
-Before returning, it rereads profile/application/job state; a missing row, changed profile version, changed application-job binding, or changed target-job fingerprint returns 409 ANSWER_MATCH_CONTEXT_STALE (`apps/api/application_answer_matching.py:224–241`). It then reruns the answer review with the original fingerprint; the stale-answer branch is specifically `current_answer_review["reason"] == "CHANGED_ANSWER"`, which returns the same 409 (`apps/api/application_answer_matching.py:242–252`).
+Before returning, it rereads profile/application/job state; a missing row, changed profile version, changed application-job binding, or changed target-job fingerprint returns 409 ANSWER_MATCH_CONTEXT_STALE (`apps/api/application_answer_matching.py:224–241`). It then reruns the answer review with the original fingerprint; the stale-answer branch is specifically `current_answer_review["reason"] == "CHANGED_ANSWER"`, which returns the same 409 (`apps/api/application_answer_matching.py:242–252`). It also rereads story references before return and returns the same 409 if their `(story_id, revision)` binding changed (the handler’s story-revision check in `apps/api/application_answer_matching.py`).
 
 ## Response shape
 
@@ -53,7 +53,7 @@ The code fixes the corresponding explanation strings (`apps/api/application_answ
 
 - 422 ANSWER_MATCH_INVALID_REQUEST, ANSWER_MATCH_INVALID_REVIEW_FINGERPRINT, or ANSWER_MATCH_SENSITIVE_QUESTION for request validation/gating (`apps/api/application_answer_matching.py:168–186`).
 - 404 ANSWER_MATCH_PROFILE_NOT_FOUND, ANSWER_MATCH_APPLICATION_NOT_FOUND, or ANSWER_MATCH_JOB_NOT_FOUND for missing or cross-profile context (`apps/api/application_answer_matching.py:188–207, 79–87`).
-- 409 ANSWER_MATCH_CONTEXT_STALE for detected profile/application/job context drift or a `CHANGED_ANSWER` review (`apps/api/application_answer_matching.py:224–252`).
+- 409 ANSWER_MATCH_CONTEXT_STALE for detected profile/application/job context drift or a `CHANGED_ANSWER` review (`apps/api/application_answer_matching.py:224–252`). The handler also returns this status when the story-revision binding changes before return (story-revision check in `apps/api/application_answer_matching.py`).
 - 503 ANSWER_MATCH_STORY_REFERENCES_UNAVAILABLE when story-bank lookup raises StoryBankError (`apps/api/application_answer_matching.py:89–96`).
 - Other store/service errors are not all converted by this router; the listed statuses are the explicit mappings in this source.
 
