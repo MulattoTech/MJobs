@@ -121,8 +121,14 @@ async function command(args,ms=30000,{windDown=false,startupRestore=false}={}){
  const id=args[args.indexOf('--session')+1];
  const reserved=args[0]==='send'&&!stopNotice&&dispatchLedger?dispatchLedger.reserve(id,message):null;
  try{
-  const before=args[0]==='send'&&!stopNotice&&!args.includes('--steer')?(await daemon('/api/v1/sessions')).sessions.find(s=>s.id===id):null;
-  if(before){assertCanStartWork();if(before.isTerminated||before.mode!=='tui'||!['idle','waiting_input'].includes(before.activity?.state))throw Error('Target changed before terminal delivery');}
+  let before=null;
+  if(args[0]==='send'&&!stopNotice&&!args.includes('--steer')){
+   const sessions=(await daemon('/api/v1/sessions')).sessions;
+   const matches=Array.isArray(sessions)?sessions.filter(s=>s?.id===id):[];
+   if(matches.length!==1)throw Error('Target changed before terminal delivery');
+   before=matches[0];assertCanStartWork();
+   if(before.isTerminated||before.mode!=='tui'||before.harness!=='codex'||!['idle','waiting_input'].includes(before.activity?.state)||typeof before.terminalGeneration!=='string'||!before.terminalGeneration)throw Error('Target changed before terminal delivery');
+  }
   const sentAt=Date.now();
   const x=await exec(AO,args,{windowsHide:true,timeout:ms,maxBuffer:1024*1024,cwd:root});
   if(before?.mode==='tui'&&before.harness==='codex'){

@@ -9,13 +9,14 @@ const marker="if(!fs.existsSync(AO)){";
 assert.ok(source.includes(marker),'server bootstrap marker exists');
 const calls=[],terminalCalls=[],daemonCalls=[],ledgerFinishes=[];let terminalState='native-observed',reservation=0;
 const daemonSession={id:'worker-1',mode:'tui',harness:'codex',isTerminated:false,terminalGeneration:'generation-1',activity:{state:'idle'}};
+let daemonSessions=[daemonSession];
 const context=vm.createContext({
  require(id){
   if(id==='node:child_process')return {execFile(file,args,options,callback){calls.push(args);callback(null,{stdout:'ok'});}};
   if(id==='./terminal-delivery')return {completeKnownPaste:async options=>{terminalCalls.push(options);await options.guard();assert.equal((await options.getSession()).id,'worker-1');return {state:terminalState,extraEnter:false};}};
   return nativeRequire(id);
  },
- fixtureDaemon:async uri=>{daemonCalls.push(uri);return {sessions:[structuredClone(daemonSession)]};},
+ fixtureDaemon:async uri=>{daemonCalls.push(uri);return {sessions:daemonSessions.map(value=>structuredClone(value))};},
  __dirname,process,Buffer,URL,console,fetch,setTimeout,clearTimeout,structuredClone,AbortSignal
 });
 const definitions=source.slice(0,source.indexOf(marker));
@@ -63,6 +64,17 @@ async function post(url,data){
  await assert.rejects(()=>f.command(['send','--session','worker-1','--message','fixture task']),/unverified/);
  assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,submitted,'Absent composer cannot become a submitted task');
  assert.equal(ledgerFinishes.at(-1).state,'uncertain','Unverified terminal delivery remains uncertain');
+ const launches=calls.length,submittedAfterTerminal=ledgerFinishes.filter(entry=>entry.state==='submitted').length;
+ daemonSessions=[];
+ await assert.rejects(()=>f.command(['send','--session','worker-1','--message','missing target']),/Target changed/);
+ assert.equal(calls.length,launches,'Missing pre-send target must not launch AO');
+ assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,submittedAfterTerminal,'Missing target cannot become submitted');
+ assert.equal(ledgerFinishes.at(-1).state,'uncertain','Missing target reservation remains uncertain');
+ daemonSessions=[daemonSession,structuredClone(daemonSession)];
+ await assert.rejects(()=>f.command(['send','--session','worker-1','--message','ambiguous target']),/Target changed/);
+ assert.equal(calls.length,launches,'Duplicate pre-send targets must not launch AO');
+ assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,submittedAfterTerminal,'Ambiguous target cannot become submitted');
+ assert.equal(ledgerFinishes.at(-1).state,'uncertain','Ambiguous target reservation remains uncertain');
  assert.equal((await post('/api/sustain/toggle',{enabled:true})).status,200);
  console.log('PASS: stale/7%-threshold/tripped state blocks send, spawn, resume, restore, review, and dispatch enable; pause, stop, and reads remain available. No real process launched.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
