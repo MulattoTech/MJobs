@@ -117,7 +117,8 @@ def test_generated_temporary_symlink_and_target_are_preserved_without_elevation(
 
     result = run_with_config(_config(root, dry_run=False, prune_enabled=True), now=NOW)
 
-    assert result["status"] == "OK"
+    assert result["status"] == "BLOCKED"
+    assert result["errors"] == ["UNSAFE_PATH"]
     assert result["candidate_count"] == 0
     assert result["removed_count"] == 0
     assert link.is_symlink()
