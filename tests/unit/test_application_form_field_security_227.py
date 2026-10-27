@@ -27,6 +27,41 @@ SPECIAL_VALUES = [
 ]
 
 
+def _process_launch_apis():
+    subprocess_names = (
+        "Popen", "run", "call", "check_call", "check_output", "getoutput",
+        "getstatusoutput",
+    )
+    apis = [
+        (subprocess, name) for name in subprocess_names
+        if callable(getattr(subprocess, name, None))
+    ]
+    os_names = {"system", "popen", "startfile", "fork", "forkpty"}
+    os_names.update(
+        name for name in dir(os)
+        if name.startswith(("spawn", "exec", "posix_spawn"))
+        and callable(getattr(os, name, None))
+    )
+    apis.extend(
+        (os, name) for name in sorted(os_names)
+        if callable(getattr(os, name, None))
+    )
+    return tuple(apis)
+
+
+def _install_process_launch_sentinels(monkeypatch):
+    attempts = []
+
+    def forbidden_process(*args, **kwargs):
+        attempts.append((args, kwargs))
+        raise AssertionError("application input reached a process API")
+
+    apis = _process_launch_apis()
+    for module, name in apis:
+        monkeypatch.setattr(module, name, forbidden_process)
+    return apis, attempts, forbidden_process
+
+
 class _Route:
     def __init__(self, page, url):
         self.request = SimpleNamespace(
@@ -219,6 +254,20 @@ def _current(value):
             "fields": fields}
 
 
+def test_process_launch_sentinels_block_all_available_apis_without_child_start(monkeypatch):
+    apis, attempts, forbidden_process = _install_process_launch_sentinels(monkeypatch)
+    os_names = {name for module, name in apis if module is os}
+    assert "system" in os_names
+    assert "popen" in os_names
+    assert any(name.startswith(("spawn", "exec", "posix_spawn")) for name in os_names)
+
+    for module, name in apis:
+        assert getattr(module, name) is forbidden_process
+        with pytest.raises(AssertionError, match="application input reached a process API"):
+            getattr(module, name)(SPECIAL_VALUES[-1])
+    assert len(attempts) == len(apis)
+
+
 @pytest.mark.parametrize("value", SPECIAL_VALUES)
 def test_special_application_values_remain_literal_field_data(value, monkeypatch):
     current = _current(value)
@@ -230,17 +279,11 @@ def test_special_application_values_remain_literal_field_data(value, monkeypatch
     monkeypatch.setitem(sys.modules, "playwright", package)
     monkeypatch.setitem(sys.modules, "playwright.sync_api", sync_api)
 
-    # If application input ever reaches a process/command API, fail rather than
-    # launch anything. The negative control below demonstrates the unsafe parse.
-    def forbidden_process(*_args, **_kwargs):
-        raise AssertionError("application input reached a process API")
-
-    monkeypatch.setattr(subprocess, "Popen", forbidden_process)
-    monkeypatch.setattr(subprocess, "run", forbidden_process)
-    monkeypatch.setattr(subprocess, "call", forbidden_process)
-    monkeypatch.setattr(os, "system", forbidden_process)
+    # Fail closed on process APIs, including the OS-level exec/spawn wrappers.
+    _, process_attempts, _ = _install_process_launch_sentinels(monkeypatch)
 
     result = controlled_dry_run.run_browser(current, [], [], check=lambda: None)
+    assert process_attempts == []
 
     page = playwright.browser.context.pages[0]
     assert ("full_name", value) in page.filled
