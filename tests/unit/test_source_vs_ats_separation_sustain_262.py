@@ -1,19 +1,23 @@
 """Sustain distinct discovery-source and ATS/application provenance."""
 
 from copy import deepcopy
+import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import select
+from fastapi.testclient import TestClient
+from sqlalchemy import select, update
 
+from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.company_discovery.sources import (
     register_ats_tenant,
     upsert_company_job_source,
 )
+from services.discovery.sources.collect import configure_source
 from services.operations.source_relationship_graph import read_source_relationship_graph
 from tests.integration.test_spine import PROFILE
 
@@ -22,7 +26,8 @@ class SourceVsAtsSeparationSustainTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         path = Path(self.temp.name) / "source-vs-ats.db"
-        self.store = Store(f"sqlite:///{path.as_posix()}")
+        self.database_url = f"sqlite:///{path.as_posix()}"
+        self.store = Store(self.database_url)
         self.store.migrate()
         self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(deepcopy(PROFILE))
@@ -210,6 +215,141 @@ class SourceVsAtsSeparationSustainTests(unittest.TestCase):
         self.assertEqual(after_sources, before_sources)
         self.assertEqual(after_tenants, before_tenants)
         self.assertEqual(after_audit, before_audit)
+
+    def test_public_filters_and_graph_keep_direct_employer_distinct_after_sqlite_reopen(self):
+        # Public source filtering uses the collector source ID on the job;
+        # ATS filtering requires exact company/provider/tenant evidence.
+        verified_source_id = configure_source(
+            self.store, "synthetic-catalog", provider="remoteok")
+        direct_source_id = configure_source(
+            self.store, "direct-employer-catalog", provider="remoteok")
+        direct_company_source = upsert_company_job_source(
+            self.store,
+            company_id="other",
+            provider="company-careers",
+            tenant_identifier="direct-careers",
+            career_url="https://other.example.test/careers?credential=private-source-key",
+            collection_strategy="HTML",
+            discovered_automatically=False,
+            ats_tenant_id=None,
+            profile_id="fixture",
+        )
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-acme").values(
+                attributes={"source_id": verified_source_id}))
+            connection.execute(m.jobs.insert().values(
+                id="job-direct", company_id="other", requisition="REQ-DIRECT",
+                title="Direct employer role", description="Synthetic direct-employer fixture",
+                skills=[], location="Remote", remote_type="REMOTE",
+                attributes={"source_id": direct_source_id},
+            ))
+            connection.execute(m.matches.insert().values(
+                id="match-direct", job_id="job-direct", profile_id="fixture",
+                profile_version="v1", score=80, missing=[], components={},
+            ))
+            # The tenant name is verified for Acme only. Matching provider and
+            # tenant text on another company must not inherit that identity.
+            connection.execute(m.routes.insert().values(
+                id="route-direct", job_id="job-direct", company_id="other",
+                provider="greenhouse", tenant="acme-board", requisition="REQ-DIRECT",
+                url="https://boards.greenhouse.io/acme-board/jobs/REQ-DIRECT?token=route-secret",
+            ))
+            connection.execute(m.postings.insert().values(
+                id="posting-direct", job_id="job-direct", source="company-careers",
+                source_job_id="direct-REQ-DIRECT",
+                source_url="https://other.example.test/careers/REQ-DIRECT?key=posting-secret",
+                application_url="https://boards.greenhouse.io/acme-board/jobs/REQ-DIRECT",
+                raw={"private": "raw-posting-secret"}, fetched_at="2026-10-24T12:00:00Z",
+            ))
+            connection.execute(m.posting_snapshots.insert().values(
+                id="snapshot-direct", posting_id="posting-direct",
+                raw={"private": "snapshot-secret"}, sha256="d" * 64,
+                retrieved_at="2026-10-24T12:00:00Z",
+            ))
+            connection.execute(m.source_quality_observations.insert().values(
+                id="quality-direct", company_source_id=direct_company_source["id"],
+                source_endpoint=direct_company_source["endpoint"],
+                observed_at="2026-10-24T12:00:00Z", succeeded=True,
+                available=True, enumerated=1, accepted=1,
+            ))
+            connection.execute(m.posting_value_candidates.insert().values(
+                id="candidate-direct", posting_id="posting-direct",
+                posting_snapshot_id="snapshot-direct",
+                company_source_id=direct_company_source["id"],
+                quality_observation_id="quality-direct",
+                observed_at="2026-10-24T12:00:00Z", normalized={},
+                application_url="https://boards.greenhouse.io/acme-board/jobs/REQ-DIRECT",
+            ))
+
+        # Reopen the real SQLite file before exercising public serialization and
+        # filters; no in-memory fixture state may be required for provenance.
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        client = TestClient(create_app(
+            self.store, "http://127.0.0.1:1", Path(self.temp.name),
+            "redis://127.0.0.1:1/0", operation_mode="FIXTURE",
+        ))
+        try:
+            verified_source = client.get("/jobs", params={
+                "job_source_id": verified_source_id,
+            })
+            self.assertEqual(verified_source.status_code, 200, verified_source.text)
+            self.assertEqual([row["id"] for row in verified_source.json()["jobs"]], ["job-acme"])
+
+            source_only = client.get("/jobs", params={"job_source_id": direct_source_id})
+            self.assertEqual(source_only.status_code, 200, source_only.text)
+            self.assertEqual([row["id"] for row in source_only.json()["jobs"]], ["job-direct"])
+
+            route_provider = client.get("/jobs", params={"provider": "greenhouse"})
+            self.assertEqual(route_provider.status_code, 200, route_provider.text)
+            self.assertEqual({row["id"] for row in route_provider.json()["jobs"]},
+                             {"job-acme", "job-direct"})
+
+            verified_ats = client.get("/jobs", params={"ats_provider": "greenhouse"})
+            self.assertEqual(verified_ats.status_code, 200, verified_ats.text)
+            self.assertEqual([row["id"] for row in verified_ats.json()["jobs"]], ["job-acme"])
+            source_without_ats = client.get("/jobs", params={
+                "job_source_id": direct_source_id, "ats_provider": "greenhouse",
+            })
+            self.assertEqual(source_without_ats.status_code, 200, source_without_ats.text)
+            self.assertEqual(source_without_ats.json()["jobs"], [])
+
+            first_response = client.get("/profiles/fixture/source-relationship-graph")
+            second_response = client.get("/profiles/fixture/source-relationship-graph")
+            self.assertEqual(first_response.status_code, 200, first_response.text)
+            self.assertEqual(first_response.content, second_response.content)
+            graph = first_response.json()
+            nodes = {node["id"]: node for node in graph["nodes"]}
+            direct_source_node = nodes[f"company_job_source:{direct_company_source['id']}"]
+            direct_route_node = nodes["application_route:route-direct"]
+            direct_posting_node = nodes["job_posting:posting-direct"]
+            self.assertEqual(direct_source_node["metadata"]["provider"], "company-careers")
+            self.assertEqual(direct_source_node["metadata"]["origin"], "USER_WATCHED")
+            self.assertEqual(direct_route_node["metadata"]["provider"], "greenhouse")
+            self.assertEqual(direct_route_node["metadata"]["tenant"], "acme-board")
+            self.assertEqual(direct_posting_node["metadata"]["source"], "company-careers")
+            with self.store.engine.connect() as connection:
+                direct_source_row = connection.execute(select(m.company_sources).where(
+                    m.company_sources.c.id == direct_company_source["id"]
+                )).mappings().one()
+            self.assertIsNone(direct_source_row["ats_tenant_id"])
+            edges = {(edge["type"], edge["source"], edge["target"])
+                     for edge in graph["edges"]}
+            self.assertIn(("source_posting", direct_source_node["id"], direct_posting_node["id"]), edges)
+            self.assertIn(("job_route", "canonical_job:job-direct", direct_route_node["id"]), edges)
+            self.assertFalse(any(
+                source == direct_source_node["id"] and target == direct_route_node["id"]
+                for _, source, target in edges
+            ))
+            self.assertEqual(len({node["id"] for node in graph["nodes"]}), len(graph["nodes"]))
+            self.assertEqual(len({edge["id"] for edge in graph["edges"]}), len(graph["edges"]))
+            serialized = json.dumps(graph, sort_keys=True)
+            for private_value in (
+                    "private-source-key", "route-secret", "posting-secret",
+                    "raw-posting-secret", "snapshot-secret"):
+                self.assertNotIn(private_value, serialized)
+        finally:
+            client.close()
 
 
 if __name__ == "__main__":
