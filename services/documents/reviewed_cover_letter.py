@@ -124,13 +124,8 @@ def materialize_reviewed_preview(
         with store.engine.begin() as connection:
             if connection.dialect.name == "sqlite":
                 connection.exec_driver_sql("BEGIN IMMEDIATE")
-            locked = dict(connection.execute(select(m.applications).where(
-                m.applications.c.id == application_id,
-            ).with_for_update()).mappings().one())
-            if (locked["profile_id"] != profile["id"] or locked["job_id"] != job["id"]):
-                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SCOPE_MISMATCH")
-            if locked["document_version"] != expected_base_document_version:
-                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_BASE_STALE")
+            # Match prepare(): profile, job, then application. Opposite row-lock
+            # order would deadlock if approval overlaps a reprepare transaction.
             current_profile_version = connection.execute(
                 select(m.profiles.c.version).where(
                     m.profiles.c.id == profile["id"],
@@ -141,6 +136,13 @@ def materialize_reviewed_preview(
                     m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id)
                 ).where(m.jobs.c.id == job["id"]).with_for_update(),
             ).mappings().one_or_none()
+            locked = dict(connection.execute(select(m.applications).where(
+                m.applications.c.id == application_id,
+            ).with_for_update()).mappings().one())
+            if (locked["profile_id"] != profile["id"] or locked["job_id"] != job["id"]):
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SCOPE_MISMATCH")
+            if locked["document_version"] != expected_base_document_version:
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_BASE_STALE")
             if (current_profile_version != profile["version"]
                     or current_job is None
                     or cover_letter_preview_fingerprint(dict(current_job))

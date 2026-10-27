@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 from pathlib import Path
 import tempfile
+from threading import Barrier
 import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select, update
+from sqlalchemy import event, select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -241,6 +243,69 @@ class CoverLetterUploadCriterion42Tests(unittest.TestCase):
             "job", m.jobs, m.jobs.c.id == self.job["id"],
             {"title": "Changed during approval"},
         )
+
+    def test_approval_uses_prepare_lock_order(self):
+        locked_tables = []
+
+        def observe_lock(_connection, clause, _multiparams, _params, _options):
+            if getattr(clause, "_for_update_arg", None) is None:
+                return
+            statement = str(clause)
+            for name in ("career_profiles", "canonical_jobs", "applications"):
+                if name in statement:
+                    locked_tables.append(name)
+                    break
+
+        event.listen(self.store.engine, "before_execute", observe_lock)
+        try:
+            approved, _base, _profile = self._approve()
+        finally:
+            event.remove(self.store.engine, "before_execute", observe_lock)
+        self.assertEqual(approved.status_code, 201, approved.text)
+        self.assertEqual(locked_tables[-3:], [
+            "career_profiles", "canonical_jobs", "applications",
+        ])
+
+    def test_concurrent_approval_replay_and_reprepare_complete_without_deadlock(self):
+        approved, base, profile = self._approve()
+        self.assertEqual(approved.status_code, 201, approved.text)
+        reviewed = approved.json()
+        barrier = Barrier(2)
+        approval_body = {
+            "expected_profile_version": profile["version"],
+            "expected_job_fingerprint": cover_letter_preview_fingerprint(self.job),
+            "expected_base_document_version": base["document_version"],
+            "style": "warm",
+            "length": "concise",
+            "preview_sha256": reviewed["preview_sha256"],
+            "request_id": "criterion42-review-1",
+        }
+
+        def replay():
+            barrier.wait(timeout=5)
+            return self.client.post(
+                f"/profiles/fixture/applications/{self.application_id}/cover-letter-reviews",
+                json=approval_body,
+            )
+
+        def reprepare():
+            barrier.wait(timeout=5)
+            return self._reprepare(reviewed, base, profile)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            replay_future = executor.submit(replay)
+            reprepare_future = executor.submit(reprepare)
+            replay_response = replay_future.result(timeout=10)
+            reprepare_response = reprepare_future.result(timeout=10)
+        self.assertIn(replay_response.status_code, (201, 409), replay_response.text)
+        self.assertEqual(reprepare_response.status_code, 200, reprepare_response.text)
+        with self.store.engine.connect() as connection:
+            promoted = list(connection.execute(select(m.documents).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.version == reviewed["version"],
+            )).mappings())
+        self.assertEqual(sorted(row["kind"] for row in promoted),
+                         ["cover-letter", "resume"])
 
     def test_unreviewed_foreign_or_changed_artifact_fails_closed(self):
         approved, base, profile = self._approve()
