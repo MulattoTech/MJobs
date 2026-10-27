@@ -202,14 +202,19 @@ def _index_definition(engine, table_name, prefix):
 
 def _partial_enabled_index(engine):
     for index in _index_records(engine, "company_job_sources"):
+        if index.get("name") != "ix_company_job_sources_enabled_id":
+            continue
         if _index_columns(index)[:1] != ("id",):
             continue
         options = index.get("dialect_options") or {}
-        clause = options.get("sqlite_where")
-        if clause is None:
-            clause = options.get("postgresql_where")
-        predicate = str(clause or "").lower() if clause is None else str(clause).lower()
-        if "enabled" in predicate:
+        dialect = engine.dialect.name
+        clause = options.get(f"{dialect}_where")
+        predicate = "".join(
+            character for character in str(clause if clause is not None else "").lower()
+            if not character.isspace() and character not in '\"()'
+        )
+        expected = "enabledis1" if dialect == "sqlite" else "enabledistrue"
+        if predicate == expected:
             return True
     return False
 
@@ -358,6 +363,21 @@ class DatabaseIndexSQLiteTests(DatabaseIndexContractMixin, unittest.TestCase):
 
     def assert_uses_index(self, label, relation, plan, ordered):
         _assert_sqlite_plan(self, label, relation, plan, ordered)
+
+    def test_partial_enabled_index_rejects_disabled_predicate(self):
+        engine = create_engine("sqlite://")
+        try:
+            with engine.begin() as connection:
+                connection.exec_driver_sql(
+                    "CREATE TABLE company_job_sources (id TEXT, enabled INTEGER NOT NULL)"
+                )
+                connection.exec_driver_sql(
+                    "CREATE INDEX ix_company_job_sources_enabled_id "
+                    "ON company_job_sources (id) WHERE enabled IS 0"
+                )
+            self.assertFalse(_partial_enabled_index(engine))
+        finally:
+            engine.dispose()
 
 
 class DatabaseIndexSQLiteMigrationTests(unittest.TestCase):
@@ -522,7 +542,7 @@ class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase
             rows = connection.execute(text("EXPLAIN (COSTS OFF) " + sql), params).all()
         return "\n".join(str(row[0]) for row in rows)
 
-    def assert_uses_index(self, label, relation, plan, _ordered):
+    def assert_uses_index(self, label, relation, plan, ordered):
         normalized = plan.lower()
         self.assertTrue(
             any(kind in normalized for kind in ("index scan", "index only scan", "bitmap index scan")),
@@ -530,6 +550,12 @@ class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase
         )
         self.assertNotIn(f"seq scan on {relation}", normalized,
                          f"{label} performed a sequential scan:\n{plan}")
+        if label == "enabled source scheduling":
+            self.assertIn("ix_company_job_sources_enabled_id", normalized,
+                          f"{label} used the wrong index:\n{plan}")
+        if ordered:
+            self.assertNotIn("sort", normalized,
+                             f"{label} required an avoidable sort:\n{plan}")
 
 
 if __name__ == "__main__":
