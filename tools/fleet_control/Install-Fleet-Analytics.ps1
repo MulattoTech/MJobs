@@ -2,11 +2,11 @@ $ErrorActionPreference='Stop'
 $source=$PSScriptRoot
 $root='C:\Tools\AO-Fleet-Control';$publish='C:\Tools\Dev\MTechLabs-Hub\site\mission-control\analytics'
 New-Item -ItemType Directory -Force -Path "$root\telemetry",$publish|Out-Null
-foreach($name in @('collect-analytics.py','Start-Fleet-Analytics.ps1')){if([IO.Path]::GetFullPath((Join-Path $source $name)) -ine [IO.Path]::GetFullPath((Join-Path $root $name))){Copy-Item (Join-Path $source $name) $root -Force}}
+foreach($name in @('collect-analytics.py','Start-Fleet-Analytics.ps1','Start-Fleet-Analytics.vbs')){if([IO.Path]::GetFullPath((Join-Path $source $name)) -ine [IO.Path]::GetFullPath((Join-Path $root $name))){Copy-Item (Join-Path $source $name) $root -Force}}
 Get-ChildItem "$source\remote\public\analytics" -File|ForEach-Object{Copy-Item $_.FullName (Join-Path $publish $_.Name) -Force}
 $existing=Get-ScheduledTask -TaskName 'MJobs Fleet - Dashboards Standard'
 $account=$existing.Principal.UserId
-$action=New-ScheduledTaskAction -Execute 'C:\Program Files\PowerShell\7\pwsh.exe' -Argument '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -File "C:\Tools\AO-Fleet-Control\Start-Fleet-Analytics.ps1"' -WorkingDirectory $root
+$action=New-ScheduledTaskAction -Execute (Join-Path $env:SystemRoot 'System32\wscript.exe') -Argument '//B //NoLogo "C:\Tools\AO-Fleet-Control\Start-Fleet-Analytics.vbs"' -WorkingDirectory $root
 $principal=New-ScheduledTaskPrincipal -UserId $account -LogonType Interactive -RunLevel Limited
 $settings=New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -StartWhenAvailable -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 $trigger=New-ScheduledTaskTrigger -AtLogOn -User $account

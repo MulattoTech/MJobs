@@ -16,7 +16,7 @@ function sourcePart(file,start,end){const s=fs.readFileSync(path.join(__dirname,
 function element(){return {value:'',textContent:'',disabled:false,hidden:false,className:'',classList:{add(){},remove(){},toggle(){}},addEventListener(){},focus(){}};}
 function startupUi(){
  const elements=new Map(),calls=[],modals=[];const byId=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
- const c=vm.createContext({run:{phase:'resumable',active:false},readiness:{quota:{fresh:true,remainingPercent:97}},preview:{targetCount:3},actionBusy:false,pendingRequest:null,modalOpen:false,mutationEpoch:0,byId,fresh:()=>true,uncertain:()=>false,escape:String,openModal:html=>modals.push(html),closeModal(){},render(){},savePending(){},setText(){},notify(){},refresh(){},requestId:()=> 'test-startup-id-001',api:async(route,data)=>{calls.push({route,data});return {run:{phase:'validating',active:true}};},accept(){}});
+ const c=vm.createContext({run:{phase:'resumable',active:false},readiness:{quota:{fresh:true,remainingPercent:97}},preview:{targetCount:3},actionBusy:false,pendingRequest:null,modalOpen:false,mutationEpoch:0,byId,fresh:()=>true,uncertain:()=>false,alreadyStarted:()=>false,escape:String,openModal:html=>modals.push(html),closeModal(){},render(){},savePending(){},setText(){},notify(){},refresh(){},requestId:()=> 'test-startup-id-001',api:async(route,data)=>{calls.push({route,data});return {run:{phase:'validating',active:true}};},accept(){}});
  vm.runInContext(sourcePart('startup-ui.js','  function updateModal()','  async function refresh(')+sourcePart('startup-ui.js','  function previewStartup()','  async function openOrchestrator()'),c);
  return {c,calls,modals,byId};
 }
@@ -54,3 +54,5 @@ test('verified current dispatch takes precedence over a historical completed res
  c.masterState({...data,dispatch:{sustainedEnabled:false,turboEnabled:false}});assert.equal(byId('masterState').textContent,'FLEET RESTORED');assert.match(byId('masterText').textContent,/paused/);
  c.masterState({...data,currentReadiness:{ready:false,reason:'Primary stopped'}});assert.equal(byId('masterState').textContent,'DISPATCH HELD');
 });
+
+test('completed healthy Startup is disabled at preview and submission, not only visually',async()=>{const f=startupUi();f.c.alreadyStarted=()=>true;f.c.previewStartup();assert.equal(f.modals.length,0);f.byId('startupConfirmText').value='STARTUP';await f.c.submitStartup();assert.equal(f.calls.length,0);});

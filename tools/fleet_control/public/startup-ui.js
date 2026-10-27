@@ -27,7 +27,7 @@ const FleetStartupUI = (() => {
     resumable: ['Interrupted startup can continue', 'Existing runtimes and stopped sessions were verified. Run Startup to restore the remaining sessions; healthy agents will be preserved.', 0],
   };
   const stepLabels = ['Validate', 'Stop watcher', 'Arm 7%', 'Start restore', 'Restore fleet', 'Verify now', 'Ready / UI'];
-  let run = null, readiness = null, preview = null, lastSuccess = 0, readError = null;
+  let run = null, readiness = null, preview = null, lastSuccess = 0, readError = null, lastProgress = null;
   let readPromise = null, refreshQueued = false, mutationEpoch = 0, actionBusy = false, modalOpen = false;
   let pendingRequest = null;
   try {
@@ -46,7 +46,8 @@ const FleetStartupUI = (() => {
     '<p class="startup-footnote">Startup can resume agent work and consume usage. Select Start working after verification to enable Sustained automatically; uncheck it for restore-only. The 7% cutoff cannot eliminate provider-metering delay.</p>';
 
   function setText(id, text) { const el = byId(id); if (el && el.textContent !== text) el.textContent = text; }
-  function fresh() { return !!run && !readError && Date.now() - lastSuccess < 12000; }
+  function fresh() { return !!run && !readError && Date.now() - lastSuccess < 20000; }
+  function alreadyStarted() { return ['ready_paused','ready_dispatching'].includes(run?.phase) && (readiness?.ready === true || readiness?.inspectionPending === true); }
   function uncertain() { return !!run && (run.phase === 'uncertain' || run.reconciliationRequired === true); }
   function relativeTime(value) {
     const age = Date.now() - Date.parse(value || '');
@@ -88,11 +89,15 @@ const FleetStartupUI = (() => {
     let badge = run?.active ? 'STARTING' : uncertain() ? 'RECHECK REQUIRED' : run?.phase === 'resumable' ? 'CONTINUE STARTUP' : 'PAUSED';
     let title = label, detail = description;
     if (['ready_paused','ready_dispatching'].includes(run?.phase)) {
-      if (stale || readiness?.ready !== true) {
+      if (!stale && readiness?.inspectionPending === true) {
+        badge = 'CHECKING HEALTH'; title = 'Fleet is started';
+        detail = 'Checking current runtime health without restarting anything. The last completed count remains visible below; new work still requires current verification.';
+      } else if (stale || readiness?.ready !== true) {
         badge = stale ? 'STATUS STALE' : readiness?.ready === false ? 'NOT READY NOW' : 'VERIFY CURRENT STATE';
         title = 'Earlier startup completed · current readiness ' + (readiness?.ready === false && !stale ? 'blocked' : 'not verified');
         detail = 'Last completion: ' + (run.finishedAt ? new Date(run.finishedAt).toLocaleString() : 'time unavailable') + '. ' + (issuesText() || 'Current live readiness must be checked before assuming the fleet is available.');
       } else {
+        title = 'Fleet is started';
         badge = readiness.dispatchPaused === false ? 'READY · DISPATCH ON' : 'READY · DISPATCH PAUSED';
         detail = readiness.dispatchPaused === false ? 'Current runtime readiness is verified. Sustained or Turbo dispatch is enabled. Agent activity below confirms whether work is actually underway.' : 'Current readiness is verified. Preserved runtimes are restored; automatic task dispatch remains paused. Use Sustained or Turbo explicitly to begin new automatic assignments.';
       }
@@ -108,33 +113,35 @@ const FleetStartupUI = (() => {
       if (run?.active && step === index) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
     }
     const restore = run?.restore;
+    if (!stale && !readiness?.inspectionPending && Number.isInteger(readiness?.total) && Number.isInteger(readiness?.verified)) lastProgress = { total:readiness.total,verified:readiness.verified,at:readiness.at };
     const liveTotal = readiness?.total;
     const liveVerified = readiness?.verified;
     const liveProgress = !stale && readiness?.inspectionPending !== true && Number.isInteger(liveTotal) && liveTotal > 0 && Number.isInteger(liveVerified);
-    const progressTotal = liveProgress ? liveTotal : restore?.total;
-    const progressVerified = liveProgress ? liveVerified : restore?.restoredCount;
-    const hasProgress = liveProgress || (!!run?.active && Number.isInteger(progressTotal) && progressTotal > 0 && Number.isInteger(progressVerified));
+    const progressTotal = liveProgress ? liveTotal : lastProgress?.total ?? restore?.total;
+    const progressVerified = liveProgress ? liveVerified : lastProgress?.verified ?? restore?.restoredCount;
+    const hasProgress = liveProgress || !!lastProgress || (!!run?.active && Number.isInteger(progressTotal) && progressTotal > 0 && Number.isInteger(progressVerified));
     byId('startupRestoreProgress').hidden = !hasProgress;
     if (hasProgress) {
       byId('startupRestoreMeter').max = progressTotal; byId('startupRestoreMeter').value = Math.max(0, Math.min(progressTotal, progressVerified));
-      setText('startupRestoreLabel', progressVerified + ' / ' + progressTotal + (liveProgress ? ' runtimes verified now' : ' runtimes verified during this restore'));
+      setText('startupRestoreLabel', progressVerified + ' / ' + progressTotal + (liveProgress ? ' runtimes verified' : ' runtimes at last completed check; checking current health'));
       setText('startupRestoreDetail', restore?.lastError || (liveProgress ? 'Usage remaining and an armed stop guard do not mean the fleet is running. ' + (readiness.dispatchPaused ? 'Automatic dispatch is paused.' : 'Automatic dispatch is enabled.') : 'Final current-controller readiness is checked separately before Startup completes.'));
     }
     const problem = readError ? 'Refresh failed: ' + readError + '. The last displayed state is not current.' : run?.error?.message || (uncertain() ? 'Recheck the guard and runtime outcome before retrying. Recheck does not launch agents.' : '');
     byId('startupIssue').hidden = !problem; setText('startupIssue', problem);
-    setText('startupFreshness', lastSuccess ? 'Status received ' + relativeTime(new Date(lastSuccess).toISOString()) + (run?.runId ? ' · Run ' + run.runId.slice(0, 8) : '') : 'Waiting for a status response.');
-    byId('startupStart').disabled = actionBusy || stale || !!run?.active || uncertain();
-    byId('startupStart').textContent = pendingRequest?.uncertain ? 'Retry original Startup…' : run?.phase === 'resumable' ? 'Continue Startup…' : 'Startup…';
+    setText('startupFreshness', lastSuccess ? 'Last successful check: ' + new Date(lastSuccess).toLocaleTimeString() + (run?.runId ? ' · Run ' + run.runId.slice(0, 8) : '') : 'Waiting for a status response.');
+    byId('startupStart').disabled = actionBusy || stale || !!run?.active || uncertain() || alreadyStarted();
+    setText('startupStart', alreadyStarted() ? 'Already started' : pendingRequest?.uncertain ? 'Retry original Startup…' : run?.phase === 'resumable' ? 'Continue Startup…' : 'Startup…');
+    byId('startupStart').title = alreadyStarted() ? 'The fleet is already restored. Use Pause/Resume Sustained to control assignments; do not start another restore.' : '';
     byId('startupOpenUi').disabled = actionBusy || stale || !!run?.active || uncertain() || run?.phase === 'resumable';
     byId('startupCancel').hidden = !run?.active; byId('startupCancel').disabled = actionBusy || !run?.runId;
     byId('startupRecheck').hidden = !uncertain(); byId('startupRecheck').disabled = actionBusy || !run?.runId;
-    byId('startupRefresh').disabled = !!readPromise;
+    byId('startupRefresh').disabled = actionBusy;
     updateModal();
   }
   function updateModal() {
     if (!modalOpen || !byId('startupConfirmText')) { modalOpen = false; return; }
     const confirm = byId('startupConfirmButton');
-    confirm.disabled = actionBusy || !fresh() || !!run?.active || uncertain() || byId('startupConfirmText').value.trim() !== 'STARTUP';
+    confirm.disabled = actionBusy || !fresh() || !!run?.active || uncertain() || alreadyStarted() || byId('startupConfirmText').value.trim() !== 'STARTUP';
     const message = !fresh() ? 'Live status is stale. Wait for a successful refresh.' : run?.active ? 'Another Startup is already running. No duplicate request will be submitted.' : uncertain() ? 'Reconciliation is required before Startup can run.' : 'The server revalidates quota, guard, watcher and runtime state at each step.';
     setText('startupModalStatus', message);
   }
@@ -155,7 +162,7 @@ const FleetStartupUI = (() => {
     render(); return readPromise;
   }
   function previewStartup() {
-    if (actionBusy || !fresh() || run?.active || uncertain()) return;
+    if (actionBusy || !fresh() || run?.active || uncertain() || alreadyStarted()) return;
     const retry = !!pendingRequest?.uncertain;
     const count = Number.isInteger(preview?.totalTargets) ? preview.totalTargets : Number.isInteger(preview?.targetCount) ? preview.targetCount : null;
     const quota = readiness?.quota || preview?.quota;
@@ -174,7 +181,7 @@ const FleetStartupUI = (() => {
     updateModal(); byId('startupConfirmText').focus();
   }
   async function submitStartup() {
-    if (actionBusy || !fresh() || run?.active || uncertain() || byId('startupConfirmText')?.value.trim() !== 'STARTUP') return;
+    if (actionBusy || !fresh() || run?.active || uncertain() || alreadyStarted() || byId('startupConfirmText')?.value.trim() !== 'STARTUP') return;
     if (!pendingRequest?.uncertain) pendingRequest = { requestId: requestId(), openUi: !!byId('startupOpenUiOption').checked, startWorkAfter: !!byId('startupWorkOption')?.checked, uncertain: false, acknowledged: false };
     pendingRequest.uncertain = true; savePending();
     actionBusy = true; mutationEpoch++; render();
@@ -225,7 +232,7 @@ const FleetStartupUI = (() => {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); refresh(true); } });
   window.addEventListener('focus', () => { render(); refresh(); });
   refresh();
-  const pollTimer = setInterval(() => { if (!document.hidden || run?.active) refresh(); }, 2000);
+  let pollTimer; const poll = async () => { if (!document.hidden || run?.active) await refresh(); pollTimer = setTimeout(poll, run?.active ? 2000 : 8000); }; pollTimer = setTimeout(poll, 8000);
   const freshnessTimer = setInterval(render, 1000);
-  return { refresh, status: () => ({ run: run && structuredClone(run), fresh: fresh(), readError }), dispose: () => { clearInterval(pollTimer); clearInterval(freshnessTimer); } };
+  return { refresh, status: () => ({ run: run && structuredClone(run), fresh: fresh(), readError }), dispose: () => { clearTimeout(pollTimer); clearInterval(freshnessTimer); } };
 })();

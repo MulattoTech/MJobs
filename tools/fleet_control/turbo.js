@@ -386,6 +386,7 @@ Turbo.prototype.makeAllHandsPlan=async function(){
  const lastAll=this.session.lastAllHands?parseTime(this.session.lastAllHands):0;
  const globalCooldown=Math.max(0,Math.ceil((allHandsHoldMs-(now-lastAll))/60000));
  const push=(s,reason,message,signalKey=null)=>{
+  const deliveryHold=this.deliveryLedger?.holdFor(s.id,now);if(deliveryHold){skips.push({id:s.id,reason:deliveryHold.reason});return;}
   if(signalKey&&this.dispatchSignals.seen(signalKey)){skips.push({id:s.id,reason:'Exact-head action already delivered'});return;}
   if(sessionSent(s)){skips.push({id:s.id,reason:'All Hands already sent within 10 minutes'});return}
   plans.push({id:s.id,name:s.name,model:s.model,kind:s.kind,mode:s.mode,role:s.role,reason,signalKey,message:(message+REPORT_POLICY).replaceAll('mjobs-luna-34',root?.id||'mjobs-luna-35')});

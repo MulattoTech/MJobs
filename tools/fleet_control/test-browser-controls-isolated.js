@@ -83,7 +83,7 @@ async function main(){
   await load(state);if(prepare)await prepare();const count=posts.length;
   await click(button);if(confirm){await wait('!!document.querySelector('+JSON.stringify(confirm)+')');assert.equal(posts.length,count,name+' must not act before confirmation');if(afterOpen)await afterOpen();if(phrase){assert(await evaluate('document.querySelector('+JSON.stringify(confirm)+').disabled'),name+' missing phrase gate');await input(phrase[0],phrase[1]);}await click(confirm);}
   for(let i=0;i<100&&posts.length===count;i++)await sleep(30);
-  if(name==='All Hands burst')await wait('document.querySelector("#modalBody").textContent.includes("All Hands dispatched")');
+  if(name==='All Hands burst')await wait('document.querySelector("#modalBody").textContent.includes("All Hands: 1 verified submissions")');
   assert.equal(posts.length,count+1,name+' must send one request');const sent=posts.at(-1);assert.equal(sent.route,route,name);
   for(const [key,value] of Object.entries(body||{}))assert.deepEqual(sent.body[key],value,name+' '+key);
   if(verify)await verify();
@@ -91,9 +91,9 @@ async function main(){
  }
  const inertPayload="\"'`<script>globalThis.__fleetHarnessInjected=true</script>";
  const cases=[
-  ['Startup',{button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:true}}],
+  ['Startup',{state:'stopped',button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:true}}],
   ['Continue Startup',{state:'resumable',button:'#startupStart',confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:true}}],
-  ['Restore only',{button:'#startupStart',afterOpen:()=>click('#startupWorkOption'),confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:false}}],
+  ['Restore only',{state:'stopped',button:'#startupStart',afterOpen:()=>click('#startupWorkOption'),confirm:'#startupConfirmButton',phrase:['#startupConfirmText','STARTUP'],route:'/api/startup',body:{confirm:'STARTUP',startWorkAfter:false}}],
   ['Recheck safely',{state:'uncertain',button:'#startupRecheck',route:'/api/startup/reconcile',body:{confirm:'RECHECK STARTUP'}}],
   ['Cancel Startup',{state:'restoring',button:'#startupCancel',route:'/api/startup/cancel',body:{runId:'fixture-run-0001'}}],
   ['Open Orchestrator',{button:'#startupOpenUi',route:'/api/orchestrator/open'}],
@@ -131,6 +131,7 @@ async function main(){
  await load('offline');assert(await evaluate('document.querySelector("#findWorkAll").disabled'));await click('[data-action="view"][data-id="mjobs-worker"]');assert(await evaluate('document.querySelector("[data-action=save-plan]").disabled===false&&document.querySelector("[data-action=apply-plan]").disabled'));rows.push({name:'Offline configuration remains usable, execution blocked',status:'PASS'});
  await load('blocked');assert(await evaluate('document.querySelector("[data-action=find-work][data-id=mjobs-worker]").disabled'));rows.push({name:'Approval decision cannot be nudged as an idle prompt',status:'PASS'});
  await load();const count=posts.length;await click('#masterKill');await click('[data-modal="cancel"]');assert.equal(posts.length,count);rows.push({name:'Cancel destructive confirmation performs no request',status:'PASS'});
+ await load('healthy');const duplicatePosts=posts.length;assert(await evaluate('document.querySelector("#startupStart").disabled&&document.querySelector("#startupStart").textContent==="Already started"'));await evaluate('document.querySelector("#startupStart").click()');assert.equal(posts.length,duplicatePosts);rows.push({name:'Healthy fleet cannot submit duplicate Startup',status:'PASS'});
  assert.equal(exceptions.length,0,'JavaScript exceptions: '+exceptions.join('\n'));assert.equal(blockedRequests.length,0,'Unexpected non-fixture network request');
  const report={at:iso(),ok:rows.every(x=>x.status==='PASS'),passed:rows.filter(x=>x.status==='PASS').length,failed:rows.filter(x=>x.status==='FAIL').length,rows,fixturePosts:posts.length,productionRequests:0,nativeAgentCommands:0,javascriptErrors:exceptions};
  const destination=process.argv[2];if(destination)fs.writeFileSync(destination,JSON.stringify(report,null,2));console.log(JSON.stringify({...report,rows:undefined}));if(!report.ok)process.exitCode=1;try{await call('Browser.close');}catch{}

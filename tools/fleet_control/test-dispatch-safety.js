@@ -12,6 +12,7 @@ const daemonSession={id:'worker-1',mode:'tui',harness:'codex',isTerminated:false
 let daemonSessions=[daemonSession];
 const context=vm.createContext({
  require(id){
+  if(id==='./native-delivery-receipts')return {NativeDeliveryReceipts:class{capture(){return {version:1};}inspect(){return null;}}};
   if(id==='node:child_process')return {execFile(file,args,options,callback){calls.push(args);callback(null,{stdout:'ok'});}};
   if(id==='./terminal-delivery')return {completeKnownPaste:async options=>{terminalCalls.push(options);await options.guard();assert.equal((await options.getSession()).id,'worker-1');return {state:terminalState,extraEnter:false};}};
   return nativeRequire(id);
@@ -27,7 +28,7 @@ function set(reason,lock=false,drain=false){
  context.fakeMaster={locked:()=>lock,drainState:{enabled:drain}};
  context.fakeSustain={running:false,config:{enabled:false},enable(x){this.config.enabled=x;return {enabled:x}}};
  context.fakeTurbo={running:false,config:{enabled:false},enable(x){this.config.enabled=x;return {enabled:x}}};
- context.fakeLedger={reserve:()=>({id:'reservation-'+(++reservation)}),finish:(id,reservedId,state)=>ledgerFinishes.push({id,reservedId,state})};
+ context.fakeLedger={attach:()=>{},reserve:()=>({id:'reservation-'+(++reservation)}),finish:(id,reservedId,state)=>ledgerFinishes.push({id,reservedId,state})};
  vm.runInContext("quota=globalThis.fakeQuota;master=globalThis.fakeMaster;sustain=globalThis.fakeSustain;turbo=globalThis.fakeTurbo;dispatchLedger=globalThis.fakeLedger;startup={status:()=>({phase:'idle',active:false,reconciliationRequired:false})};findWork={running:false};audit=()=>{};",context);
 }
 async function post(url,data){

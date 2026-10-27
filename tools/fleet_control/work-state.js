@@ -22,6 +22,8 @@ function classify(session,controller={},now=Date.now()){
   return result('control_wait','Dispatch held','The dispatcher reports a prerequisite or control-operation hold');
  }
  if(!latest||!validTime(latest.at,now)||parse(latest.at)>now+1000||now-parse(latest.at)>Math.max(90000,(config.intervalSeconds||60)*3000))return result('unknown','Awaiting dispatcher check','A fresh task plan is not available');
+ const deliveryHold=latest.held?.find(x=>x.id===session.id&&['delivery_cooldown','delivery_unverified'].includes(x.kind));
+ if(deliveryHold)return result(deliveryHold.kind,deliveryHold.kind==='delivery_cooldown'?'Dispatch-ready soon':'Verifying delivery',deliveryHold.reason,{nextEvaluationAt:deliveryHold.readyAt||check,estimatedStartAt:null});
  if(agent.awaiting===true)return result('dispatching','Assignment submitted','Delivery was submitted; a new active turn is not yet confirmed');
  const queued=latest.proposed?.find(x=>x.id===session.id);
  if(queued){const seconds=queued.etaSeconds,at=Number.isFinite(seconds)&&seconds>=0?parse(latest.at)+seconds*1000:null;

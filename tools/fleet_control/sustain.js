@@ -51,7 +51,7 @@ const denyTaskWords=/\b(apply to actual jobs|real employer submission|force push
 class Sustain {
  constructor({root,getState,turbo,command,audit,isManualBusy=()=>false,clock=()=>Date.now(),
   issueRunner=null,autoSchedule=true}){
-  this.root=root;this.getState=getState;this.turbo=turbo;this.signals=new DispatchSignals(root);this.productivity=new ProductiveWork(root);
+  this.root=root;this.getState=getState;this.turbo=turbo;this.signals=new DispatchSignals(root);this.productivity=new ProductiveWork(root);this.artifactReviews=new (require('./artifact-review').ArtifactReviews)(root);
   this.command=command;this.audit=audit;this.isManualBusy=isManualBusy;this.clock=clock;
   this.configPath=path.join(root,'sustain-config.json');
   this.statePath=path.join(root,'sustain-state.json');
@@ -108,7 +108,7 @@ class Sustain {
    lastTick:this.status.lastTick,lastSuccess:this.status.lastSuccess,lastError:this.status.lastError?short():null,
    quotaPausedUntil:this.status.quotaPausedUntil,
    sentTotal:this.status.sentTotal||0,sentThisHour:recent.length,
-   productivity:this.productivity.summary(),
+   productivity:this.productivity.summary(),artifactReviews:this.artifactReviews.summary(),deliveryReconciliation:this.deliveryReconciliation||null,
    leases:Object.values(this.status.leases).map(l=>({issue:l.issue,session:l.session,scope:l.scope,state:l.state,at:l.at})),
    activity:publicState(this.status.dispatches.slice(-12).reverse(),'sustain'),latest:publicState(this.latest,'sustain')
   };
@@ -148,7 +148,7 @@ class Sustain {
    }
    // A source-bound completed artifact proves a short maintenance turn was
    // delivered even if the native activity sampler missed its active interval.
-   const receipt=a.lastType==='productive'&&(this.latestProductiveTasks||[]).find(t=>t.id===a.lastKey&&t.agentId===s.id&&['artifact_ready','no_new_gap'].includes(t.state));
+   const receipt=['productive','artifact_review'].includes(a.lastType)&&(this.latestProductiveTasks||[]).find(t=>t.id===a.lastKey&&t.agentId===s.id&&['artifact_ready','no_new_gap','review_ready'].includes(t.state));
    if(receipt&&a.lastSent&&canReceiveInstruction(s)&&parse(receipt.completedAt)>=parse(a.lastSent)&&parse(receipt.completedAt)<=now+1000){
     a.awaiting=false;a.completedAt=receipt.completedAt;a.productiveReceiptKey=receipt.id;
     a.noProgress=0;a.unverified=0;a.lastFingerprint=fingerprint;
@@ -174,7 +174,7 @@ class Sustain {
   }
  }
  possibleDispatch(session,type,key,message,reason,now,extra={}){
-  if(!canReceiveInstruction(session))return null;
+  if(!canReceiveInstruction(session)||this.deliveryLedger?.holdFor(session.id,now))return null;
   const data=this.status.agents[session.id]||{};
   if(data.awaiting)return null;
   if(parse(data.backoffUntil)>now)return null;
@@ -229,7 +229,9 @@ class Sustain {
   const gh=await this.turbo.github();
   const now=this.clock();
   try{this.productivity.observe();}catch{this.productivity.error='Productive-work receipt inspection is unavailable';}
-  const productiveSummary=this.productivity.summary();this.latestProductiveTasks=productiveSummary.available?productiveSummary.tasks:[];
+  try{this.artifactReviews.observe();}catch(e){this.log('review_receipts_unavailable',{reason:String(e.message).slice(0,180)});}
+  const reviewSummary=this.artifactReviews.summary();
+  const productiveSummary=this.productivity.summary();this.latestProductiveTasks=(productiveSummary.available?productiveSummary.tasks:[]).concat(reviewSummary.tasks||[]);
   this.observe(snap.sessions,gh);
   const prs=(gh?.open||[]).filter(p=>p.number>0);
   const liveRoot=snap.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited');
@@ -239,7 +241,7 @@ class Sustain {
   const overdueLeases=[];
   const actions=[],seenPR=new Set(),held=[];
   const completedArtifacts=(productiveSummary.tasks||[]).filter(t=>t.state==='artifact_ready');
-  const graph=graphSignal(snap.sessions,prs)+':'+createHash('sha256').update(JSON.stringify(completedArtifacts.map(t=>t.id).sort())).digest('hex');
+  const graph=graphSignal(snap.sessions,prs)+':'+createHash('sha256').update(JSON.stringify([completedArtifacts.map(t=>t.id).sort(),(reviewSummary.tasks||[]).filter(t=>t.state==='review_ready').map(t=>[t.id,t.outcome]).sort()])).digest('hex');
   let blocked=resources.pausedReason||null;
   if(this.status.quotaPausedUntil&&parse(this.status.quotaPausedUntil)>now)blocked='Provider usage/rate limit pause until '+this.status.quotaPausedUntil;
   if(this.isManualBusy()||this.turbo.running)blocked='Another control operation is running';
@@ -249,6 +251,7 @@ class Sustain {
   if(!gh||gh.fresh===false)blocked='GitHub snapshot unavailable or stale; no automatic assignments';
   for(const s of snap.sessions){
    if(!canReceiveInstruction(s))continue;
+   const deliveryHold=this.deliveryLedger?.holdFor(s.id,now);if(deliveryHold){held.push({id:s.id,...deliveryHold});continue;}
    const owned=(s.prs||[]).filter(p=>['open','draft'].includes(p.state)&&prs.some(g=>g.number===p.number));
    let message=null,reason='',type='',key='',priority=5,issueId=null;
    if(s.kind==='orchestrator'){
@@ -295,6 +298,7 @@ class Sustain {
    }
    if(message){
     if(s.kind==='orchestrator'&&completedArtifacts.length)message+=' Productive maintenance drafts now await your review: '+completedArtifacts.slice(-20).map(t=>t.agentId+' '+t.sourcePath+' blob '+t.sourceBlob).join('; ')+'. Drafts and result records are under '+path.join(this.root,'artifacts','productive-work')+'. Inspect their exact-source citations and usefulness. Integrate only useful reviewed documentation through the normal protected PR path; do not count drafts as accepted work.';
+    if(s.kind==='orchestrator'&&reviewSummary.ready)message+=' Independent review receipts: '+reviewSummary.ready+' completed reviews under '+path.join(this.root,'artifacts','independent-review')+'. Read changed review results; prioritize genuinely useful, source-verified drafts for a small documentation integration PR only after reserving nonoverlapping paths. Do not count reviews as feature acceptance or merge approval. Keep implementation/CI work first; report the actual commit or the specific remaining integration blocker.';
     const x=this.possibleDispatch(s,type,key,message+REPORT_POLICY,reason,now,{priority,issue:issueId});
     if(x)actions.push(x);
    }
@@ -308,6 +312,14 @@ class Sustain {
     const action=this.possibleDispatch(s,'productive',task.key,task.message,'Document verified module contracts: '+task.sourcePath,now,{priority:6});
     if(!action)continue;
     if(existing)actions.splice(actions.indexOf(existing),1);actions.push({...action,productiveTask:task});
+   }
+  }
+  if(this.config.productiveWork){
+   for(const task of this.artifactReviews.candidates(snap.sessions,this.productivity,{signals:this.signals,now})){
+    const s=snap.sessions.find(x=>x.id===task.agentId),existing=actions.find(x=>x.id===task.agentId);
+    if(existing&&!['refill','productive'].includes(existing.type))continue;
+    const action=this.possibleDispatch(s,'artifact_review',task.key,task.message,'Independently review existing draft: '+task.sourcePath,now,{priority:5});
+    if(!action)continue;if(existing)actions.splice(actions.indexOf(existing),1);actions.push({...action,reviewTask:task});
    }
   }
   const fairScore=a=>{
@@ -364,7 +376,9 @@ class Sustain {
      const k=action.key.slice('review:'.length);
      if(this.status.reviewHeads[k])continue;
     }
+    if(this.deliveryLedger?.holdFor(action.id,this.clock()))continue;
     if(action.type==='productive'&&!this.productivity.reserve(action.productiveTask,this.clock()))continue;
+    if(action.type==='artifact_review'&&!this.artifactReviews.reserve(action.reviewTask))continue;
     if(!this.signals.reserve(action.key,action.id,this.clock()))continue;
     if(action.type==='issue'){
      const task=this.taskBank.find(t=>t.issue===action.issue&&t.session===action.id);
@@ -382,6 +396,7 @@ class Sustain {
      await this.command(args,25000);
      this.signals.finish(action.key,'submitted');
      if(action.type==='productive')this.productivity.finish(action.key,'submitted');
+     if(action.type==='artifact_review')this.artifactReviews.finish(action.key,'submitted');
      if(action.type==='review')this.status.reviewHeads[action.key.slice('review:'.length)]={at:stamp,reviewer:action.id};
      const row={at:stamp,id:action.id,type:action.type,issue:action.issue,status:'submitted',reason:action.reason};
      this.status.dispatches.push(row);this.status.sentTotal=(this.status.sentTotal||0)+1;
@@ -390,6 +405,7 @@ class Sustain {
     }catch(e){
      this.signals.finish(action.key,'uncertain');
      if(action.type==='productive')this.productivity.finish(action.key,'uncertain');
+     if(action.type==='artifact_review')this.artifactReviews.finish(action.key,'uncertain');
      const message=short(e);
      this.status.agents[action.id].awaiting=false;
      if(action.issue&&this.status.leases[action.issue])this.status.leases[action.issue].state='delivery_uncertain';

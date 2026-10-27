@@ -106,6 +106,8 @@ function fixture() {
     './provider-catalog': { createProviderRuntime: () => ({ get: async () => ({ providers: [] }) }), validateSelection: x => x },
     './gemini-usage': { readGeminiUsage: () => ({ providers: [] }) },
     './agent-observability': nativeRequire('./agent-observability'),
+    './native-delivery-receipts': {NativeDeliveryReceipts:class{}},
+    './delivery-reconciliation': {DeliveryReconciliation:class{}},
     './terminal-delivery': {completeKnownPaste:async()=>{throw Error('Unexpected terminal operation in Startup fixtures');}},
   };
   const context = vm.createContext({
@@ -388,7 +390,7 @@ test('real Startup UI exposes explicit Recheck for a blocked prior operation wit
   elements.set('startupSection', element('startupSection'));
   let payload = { run: { runId: 'blocked-prior-restore', phase: 'uncertain', active: false, reconciliationRequired: true, error: { code: 'BOOTSTRAP_BLOCKED', message: 'A prior manual restore is unverified' } }, readiness: { ready: false } };
   const ctx = vm.createContext({
-    Date, structuredClone, console, setInterval: () => 1, clearInterval() {},
+    Date, structuredClone, console, setTimeout:()=>0,clearTimeout:()=>{},setInterval: () => 1, clearInterval() {},
     document: { hidden: false, getElementById: id => elements.get(id) || null, addEventListener() {} },
     window: { addEventListener() {} }, sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} }, toast() {},
     api: async (url, data) => {

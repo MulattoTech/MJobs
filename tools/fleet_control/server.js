@@ -23,6 +23,10 @@ const { createProviderRuntime, validateSelection } = require('./provider-catalog
 const { readGeminiUsage } = require('./gemini-usage');
 const { randomUUID } = require('node:crypto');
 const {completeKnownPaste}=require('./terminal-delivery');
+const {NativeDeliveryReceipts}=require('./native-delivery-receipts');
+const deliveryReceipts=new NativeDeliveryReceipts();
+const {DeliveryReconciliation}=require('./delivery-reconciliation');
+const receiptReconciliation=new DeliveryReconciliation(__dirname);
 const exec = promisify(execFile);
 const root = __dirname;
 const publicRoot = path.join(root, 'public');
@@ -131,11 +135,14 @@ async function command(args,ms=30000,{windDown=false,startupRestore=false}={}){
    const needsTerminalVerification=before.harness==='codex';
    if(before.isTerminated||before.mode!=='tui'||!supportedHarness||!['idle','waiting_input'].includes(before.activity?.state)||(needsTerminalVerification&&(typeof before.terminalGeneration!=='string'||!before.terminalGeneration)))throw Error('Target changed before terminal delivery');
   }
+  const deliveryBaseline=before?.mode==='tui'&&before.harness==='codex'?deliveryReceipts.capture({id,generation:before.terminalGeneration,createdAt:before.createdAt}):null;
+  if(reserved&&deliveryBaseline)dispatchLedger.attach(id,reserved.id,{baseline:deliveryBaseline,normalizedHash:require('node:crypto').createHash('sha256').update(message.replace(/\r\n/g,'\n').trimEnd()).digest('hex')});
   const sentAt=Date.now();
   const x=await exec(AO,args,{windowsHide:true,timeout:ms,maxBuffer:1024*1024,cwd:root});
   if(before?.mode==='tui'&&before.harness==='codex'){
    const delivery=await completeKnownPaste({root,id,generation:before.terminalGeneration,message,sentAt,
-    getSession:async()=> (await daemon('/api/v1/sessions')).sessions.find(s=>s.id===id),guard:()=>assertCanStartWork()});
+    getSession:async()=> (await daemon('/api/v1/sessions')).sessions.find(s=>s.id===id),guard:()=>assertCanStartWork(),
+    receipt:()=>deliveryReceipts.inspect({id,messageHash:require('node:crypto').createHash('sha256').update(message).digest('hex'),normalizedHash:require('node:crypto').createHash('sha256').update(message.replace(/\r\n/g,'\n').trimEnd()).digest('hex'),sentAt,baseline:deliveryBaseline})});
    audit('terminal_delivery_checked',{id,state:delivery.state,extraEnter:delivery.extraEnter});
    if(delivery.state!=='native-observed')throw Error('Terminal delivery remains unverified; inspect before retrying');
   }
@@ -186,7 +193,7 @@ function transform(s,replacements){
   createdAt:s.createdAt||null,branch:s.branch||null,
   branchState:s.branchState||{},mode:s.mode||null,prs,openPRs:openPRs.length,
   busy,isIdle,blocked,isTerminated:!!s.isTerminated,
-  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':activity==='waiting_input'?'Awaiting instruction':'Idle · available'):(activity==='exited'?'Exited':activity),
+  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle Â· CI attention':openPRs.length?'Idle Â· PR pending':activity==='waiting_input'?'Awaiting instruction':'Idle Â· available'):(activity==='exited'?'Exited':activity),
   controllerState:s.controllerState||null,controllerVerified:s.controllerVerified??null,
   replacementFor:replacementFor?.oldId||null,replacedBy:replacedBy?.newId||null,
   ...operationalDetails(s,sustain),
@@ -201,7 +208,7 @@ function emergencyOfflineSnapshot(reason='Emergency stop is locked; Orchestrator
  const replacements=readReplacements();
  const sessions=manifest.sessions.filter(s=>s.projectId===projectId&&!s.isTerminated).map(s=>({
   ...transform(s,replacements),busy:false,isIdle:false,blocked:false,openPRs:0,prs:[],
-  activity:'exited',status:'emergency_stopped',stateLabel:'Stopped · preserved snapshot',
+  activity:'exited',status:'emergency_stopped',stateLabel:'Stopped Â· preserved snapshot',
   lastActivity:s.observedAt||manifest.at||null
  }));
  const metrics={cpu:calculateCPU(),ramTotal:os.totalmem(),ramFree:os.freemem(),logicalCores:os.cpus().length,uptime:os.uptime()};
@@ -314,7 +321,7 @@ async function nudge(x){
  }else if(type==='next'){
   message='You appear idle. Review your previous assignment and any owned PRs first. If your work is complete, request a new nonoverlapping P0/P1 task from the primary orchestrator '+primary+'; do not independently claim files, duplicate an existing worker, or begin a new implementation without explicit ownership.';
  }else if(type==='custom'){
-  if(typeof x.message!=='string'||x.message.trim().length<10||x.message.length>2400)throw Error('Custom message must contain 10–2400 characters');
+  if(typeof x.message!=='string'||x.message.trim().length<10||x.message.length>2400)throw Error('Custom message must contain 10â€“2400 characters');
   message=x.message.trim();
  }else throw Error('Unknown nudge mode');
  const args=['send','--session',s.id,'--message',message];
@@ -334,7 +341,7 @@ async function replace(x){
  await assertWorktreeClean(old);
  const recheck=await freshMutationState(),current=recheck.sessions.find(s=>s.id===old.id);
  if(!sameMutationCandidate(old,current,isCleanCandidate))throw Error('Original session state changed during replacement validation. No replacement was launched.');
- const name=old.name.replace(/^↪ /,'').slice(0,71)+' / '+newModel.name.slice(0,21);
+ const name=old.name.replace(/^â†ª /,'').slice(0,71)+' / '+newModel.name.slice(0,21);
  const primary=recheck.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited')?.id||'the primary orchestrator';
  const prompt='You are a replacement for session '+old.id+' ('+old.name+'). Your class is '+old.role+'. Preserve all existing branches, PRs and user changes; do not edit main, force-push, or auto-merge. First read the existing session history with ao session history '+old.id+' --limit 8 and report to primary orchestrator '+primary+' for a specifically assigned, nonoverlapping issue and file scope. Do NOT take over old PRs or start implementing until delegated.';
  let output;
@@ -649,11 +656,12 @@ async function main(req,res){
 }
 if(!fs.existsSync(AO)){console.error('Missing Orchestrator CLI at '+AO);process.exit(1)}
 dispatchLedger=new DispatchLedger({root});
+setInterval(()=>{if(mutationLock||sustain?.running||turbo?.running||startup?.status()?.active||master?.restore?.state?.active)return;try{receiptReconciliation.run(dispatchLedger,sustain);}catch(e){audit('delivery_reconcile_unavailable',{reason:String(e.message).slice(0,180)});}},15000);
 orchestratorLauncher=new OrchestratorLauncher({root});
 agentPlans=new AgentPlans({root,audit,validate:async x=>validateSelection(x,await providerRuntime.get())});
 turbo=new Turbo({root,getState:state,command,audit,isManualBusy:()=>mutationLock||!!sustain?.running||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason()||!!startupBlockReason(),projectId});
 sustain=new Sustain({root,getState:state,turbo,command,audit,isManualBusy:()=>mutationLock||!!master?.locked()||!!master?.drainState.enabled||!!master?.restore.state.active||!!quota?.dispatchBlockReason()||!!startupBlockReason(),projectId});
-turbo.sustain=sustain;
+turbo.sustain=sustain;sustain.deliveryLedger=dispatchLedger;turbo.deliveryLedger=dispatchLedger;
 master=new MasterControls({root,sustain,turbo,command,audit,getState:state,getAllSessions:getLiveSessions,projectId,
  restoreOptions:{snapshotFrozen:()=>!!startup?.status().active||!!startup?.status().reconciliationRequired,
  launchAO:()=>orchestratorLauncher.launch('daemon',{beforeTrigger:()=>{

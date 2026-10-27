@@ -69,11 +69,13 @@ async function verifyOwner(binding,run=exec,home=os.homedir()){
  if(v.owners?.length!==1||v.owners[0]!==binding.pid||String(v.image).toLowerCase()!==expected.toLowerCase()||!Number.isFinite(Date.parse(v.createdAt||''))||Math.abs(Date.parse(v.createdAt)-Date.parse(binding.registeredAt))>15000||argv[1]!=='pty-host'||argv[hostIndex]!==binding.id||values('--session').length!==1||values('--session')[0]!==binding.id||values('--launch').length!==1||values('--launch')[0]!==binding.generation)throw Error('Terminal listener ownership not verified');
 }
 const isIdle=s=>s&&!s.isTerminated&&s.mode==='tui'&&s.harness==='codex'&&['idle','waiting_input'].includes(s.activity?.state);
-async function completeKnownPaste({root,id,generation,message,sentAt,getSession,guard,transport=terminalTransport,bindingReader=registryBinding,ownerCheck=verifyOwner,wait=sleep}){
+async function completeKnownPaste({root,id,generation,message,sentAt,getSession,guard,transport=terminalTransport,bindingReader=registryBinding,ownerCheck=verifyOwner,wait=sleep,receipt=null}){
  if(!Number.isFinite(sentAt)||sentAt>Date.now()+1000||typeof guard!=='function'||typeof getSession!=='function')throw Error('Invalid delivery verification');
  let channel;
+ const confirmed=async()=>{if(typeof receipt!=='function')return null;const proof=await receipt();return proof?.verified===true&&proof.sessionId===id&&proof.messageHash===crypto.createHash('sha256').update(message).digest('hex')?proof:null;};
  try{
   await wait(1100);await guard();let s=await getSession();if(s?.isTerminated||s?.terminalGeneration!==generation)throw Error('Native generation changed after send');
+  if(typeof receipt==='function'){for(let i=0;i<8;i++){const proof=await confirmed();if(proof)return {state:'native-observed',extraEnter:false,receipt:proof};await wait(350);await guard();s=await getSession();if(s?.isTerminated||s?.terminalGeneration!==generation)throw Error('Native identity changed while reading receipt');}}
   if(s.activity?.state==='active'||Date.parse(s.activity?.lastActivityAt||'')>sentAt+100)return {state:'decision-or-unavailable',extraEnter:false};
   if(!isIdle(s))return {state:'decision-or-unavailable',extraEnter:false};
   const binding=bindingReader(id,generation);await ownerCheck(binding);channel=await transport(binding.port);
@@ -86,7 +88,7 @@ async function completeKnownPaste({root,id,generation,message,sentAt,getSession,
   const record={at:new Date().toISOString(),id,generation,sentAt,messageSha256:crypto.createHash('sha256').update(message).digest('hex'),action:'one-enter-only',state:'reserved'};
   try{fs.writeFileSync(file,JSON.stringify(record),{flag:'wx'});}catch(e){if(e.code==='EEXIST')return {state:'already-attempted',extraEnter:false};throw e;}
   await guard();channel.enter();record.state='sent-awaiting-native';fs.writeFileSync(file,JSON.stringify(record));
-  for(let i=0;i<12;i++){await wait(200);const current=await getSession();if(current?.isTerminated||current?.terminalGeneration!==generation)throw Error('Native generation changed after Enter');if(current.activity?.state==='active'||Date.parse(current.activity?.lastActivityAt||'')>sentAt+100){record.state='native-observed';record.observedAt=new Date().toISOString();fs.writeFileSync(file,JSON.stringify(record));return {state:'native-observed',extraEnter:true};}}
+  for(let i=0;i<16;i++){await wait(250);const current=await getSession();if(current?.isTerminated||current?.terminalGeneration!==generation)throw Error('Native generation changed after Enter');const proof=await confirmed();if(proof){record.state='native-observed';record.observedAt=new Date().toISOString();record.receipt=proof;fs.writeFileSync(file,JSON.stringify(record));return {state:'native-observed',extraEnter:true,receipt:proof};}}
   return {state:'enter-outcome-pending',extraEnter:true};
  }finally{channel?.close();}
 }

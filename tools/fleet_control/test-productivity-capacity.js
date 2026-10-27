@@ -56,3 +56,5 @@ test('unrelated, uncertain, stale-generation and future receipts never clear a d
   assert.equal(f.sent.length,0);
  });
 });
+
+test('shared delivery cooldown is planned as a wait, never reserved as an uncertain new task',async t=>{const f=fixture(t);const {DispatchLedger}=require('./dispatch-ledger');const ledger=new DispatchLedger({root:f.root,now:f.now});f.engine.deliveryLedger=ledger;const id=f.sessions[1].id,entry=ledger.reserve(id,'previous task');ledger.finish(id,entry.id,'submitted');f.advance(70000);const p=await f.engine.preview();assert(!p.proposed.some(x=>x.id===id));assert(p.held.some(x=>x.id===id&&x.kind==='delivery_cooldown'));assert.equal(f.engine.possibleDispatch(f.sessions[1],'productive','new-key','test','scope',f.now()),null);f.advance(51000);assert(f.engine.possibleDispatch(f.sessions[1],'productive','new-key','test','scope',f.now()));});

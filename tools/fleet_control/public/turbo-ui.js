@@ -161,10 +161,10 @@ const FleetTurboUI=(()=>{
      const r=await api('/api/turbo/all-hands',{confirm:'ALL HANDS'});
      closeModal();
      openModal(
-      '<h2>All Hands dispatched</h2>'+
+      '<h2>'+(r.submitted>0?'All Hands: '+esc(r.submitted)+' verified submissions':r.uncertain>0?'Delivery verification pending — do not retry':'No new work submitted')+'</h2>'+
       '<div class="allhands-preview"><div><strong>'+esc(r.submitted)+'</strong><small>Submitted</small></div><div><strong>'+esc(r.skipped)+'</strong><small>Skipped</small></div><div><strong>'+esc(r.uncertain)+'</strong><small>Uncertain</small></div></div>'+
       '<p>'+esc(r.note||'Messages submitted to the fleet.')+'</p>'+
-      '<p>Agents may return to idle after their turns. The live roster shows which are actually executing.</p>'+
+      '<p>Confirmed delivery is not task completion. Uncertain sends are checked against native message receipts; they are not blindly repeated. The roster shows actual execution.</p>'+
       '<div class="modal-actions"><button class="primary-button" data-modal="cancel">Return to fleet</button></div>'
      );
      toast(r.submitted+' agent instructions submitted. Automatic mode settings were unchanged.');
