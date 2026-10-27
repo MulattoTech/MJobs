@@ -6,6 +6,8 @@ import os
 import sqlite3
 from pathlib import Path
 
+import pytest
+
 SOURCE = (
     Path(__file__).resolve().parents[2] / "tools/fleet_control/collect-analytics.py"
 )
@@ -250,3 +252,138 @@ def test_import_native_includes_offset_day_boundary_without_reading_transcripts(
         "SELECT v FROM meta WHERE k='source_identity'"
     ).fetchone()[0] == expected_identity
     cache.close()
+
+
+def _native_database(home):
+    database = home / ".ao" / "data" / "ao.db"
+    database.parent.mkdir(parents=True)
+    with sqlite3.connect(database) as native:
+        native.executescript("""
+        CREATE TABLE usage_bindings(id INTEGER PRIMARY KEY, session_id TEXT);
+        CREATE TABLE usage_sources(id INTEGER PRIMARY KEY, native_session_id TEXT);
+        CREATE TABLE model_usage_events(id INTEGER PRIMARY KEY,binding_id INTEGER,
+          usage_source_id INTEGER,created_at TEXT,model_id TEXT,usage_measurement_kind TEXT,
+          input_tokens INTEGER,cached_input_tokens INTEGER,output_tokens INTEGER,estimated_cost_nanos INTEGER);
+        CREATE TABLE session_terminal_turns(id TEXT PRIMARY KEY,session_id TEXT,
+          native_session_id TEXT,requested_at TEXT,responded_at TEXT,
+          user_request TEXT,agent_response TEXT);
+        CREATE TABLE conversation_turns(id TEXT PRIMARY KEY,handled_by_session_id TEXT,
+          requested_at TEXT,started_at TEXT,completed_at TEXT,state TEXT);
+        """)
+    return database
+
+
+def _seed_analytics_cache(root, identity, now):
+    directory = root / "telemetry"
+    directory.mkdir(parents=True)
+    cache_path = directory / "analytics.sqlite"
+    with sqlite3.connect(cache_path) as cache:
+        module.initialize(cache)
+        cache.execute("INSERT INTO meta VALUES('source_identity',?)", (identity,))
+        cache.execute(
+            "INSERT INTO usage VALUES(?,?,?,?,?,?,?,?,?,?)",
+            (
+                901,
+                "agent-1",
+                now - 60,
+                "native-1",
+                "model",
+                "native_reported",
+                8,
+                3,
+                2,
+                None,
+            ),
+        )
+    return cache_path
+
+
+def _stub_live_analytics(monkeypatch, now):
+    payloads = {
+        "state": {
+            "timestamp": module.iso(now),
+            "sessions": [
+                {
+                    "id": "agent-1",
+                    "name": "Agent One",
+                    "role": "Implementation",
+                    "model": "model",
+                    "kind": "worker",
+                    "harness": "codex",
+                    "activity": "idle",
+                    "busy": False,
+                    "prs": [],
+                }
+            ],
+            "metrics": {},
+        },
+        "sustain": {},
+        "master": {},
+        "quota": {},
+    }
+    monkeypatch.setattr(module.time, "time", lambda: now)
+    monkeypatch.setattr(module, "get", payloads.__getitem__)
+
+
+def test_collect_migrates_matching_legacy_identity_before_publish(tmp_path, monkeypatch):
+    now = module.epoch("2026-10-27T01:00:00Z")
+    root, publish, home = tmp_path / "root", tmp_path / "publish", tmp_path / "home"
+    database = _native_database(home)
+    legacy_identity = f"{database.resolve()}:{database.stat().st_ctime_ns}"
+    cache_path = _seed_analytics_cache(root, legacy_identity, now)
+    _stub_live_analytics(monkeypatch, now)
+
+    result = module.collect(root, publish, home)
+
+    source_stat = database.stat()
+    stable_identity = ":".join(
+        (str(database.resolve()), str(source_stat.st_dev), str(source_stat.st_ino))
+    )
+    with sqlite3.connect(cache_path) as cache:
+        assert cache.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        assert cache.execute("SELECT COUNT(*) FROM usage WHERE id=901").fetchone()[0] == 1
+        assert cache.execute(
+            "SELECT v FROM meta WHERE k='source_identity'"
+        ).fetchone()[0] == stable_identity
+    assert result["events"] == 1
+    assert json.loads((root / "telemetry" / "analytics.json").read_text("utf-8"))[
+        "summary"
+    ]["usageEvents"] == 1
+    assert json.loads((publish / "analytics.json").read_text("utf-8"))[
+        "summary"
+    ]["usageEvents"] == 1
+
+
+@pytest.mark.parametrize("identity_kind", ["wrong_path", "stable_mismatch", "malformed"])
+def test_collect_rejects_untrusted_identity_without_partial_publish(
+    tmp_path, monkeypatch, identity_kind
+):
+    now = module.epoch("2026-10-27T01:00:00Z")
+    root, publish, home = tmp_path / "root", tmp_path / "publish", tmp_path / "home"
+    database = _native_database(home)
+    source_stat = database.stat()
+    identities = {
+        "wrong_path": f"{tmp_path / 'other.db'}:{source_stat.st_ctime_ns}",
+        "stable_mismatch": f"{database.resolve()}:{source_stat.st_dev}:{source_stat.st_ino + 1}",
+        "malformed": f"{database.resolve()}:not-a-timestamp",
+    }
+    identity = identities[identity_kind]
+    cache_path = _seed_analytics_cache(root, identity, now)
+    publish.mkdir(parents=True)
+    private_json = root / "telemetry" / "analytics.json"
+    public_json = publish / "analytics.json"
+    private_json.write_text('{"sentinel":"private"}', encoding="utf-8")
+    public_json.write_text('{"sentinel":"public"}', encoding="utf-8")
+    _stub_live_analytics(monkeypatch, now)
+
+    with pytest.raises(ValueError, match="identity changed"):
+        module.collect(root, publish, home)
+
+    assert private_json.read_text("utf-8") == '{"sentinel":"private"}'
+    assert public_json.read_text("utf-8") == '{"sentinel":"public"}'
+    with sqlite3.connect(cache_path) as cache:
+        assert cache.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        assert cache.execute("SELECT COUNT(*) FROM usage WHERE id=901").fetchone()[0] == 1
+        assert cache.execute(
+            "SELECT v FROM meta WHERE k='source_identity'"
+        ).fetchone()[0] == identity

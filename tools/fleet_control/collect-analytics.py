@@ -108,6 +108,13 @@ def initialize(cache):
     """)
 
 
+def _legacy_source_identity(value, path):
+    prefix = str(path.resolve()) + ":"
+    return isinstance(value, str) and value.startswith(prefix) and re.fullmatch(
+        r"[0-9]+", value[len(prefix) :]
+    ) is not None
+
+
 def import_native(cache, ids, now, home):
     path = home / ".ao/data/ao.db"
     source_stat = path.stat()
@@ -116,9 +123,19 @@ def import_native(cache, ids, now, home):
     )
     old = cache.execute("SELECT v FROM meta WHERE k='source_identity'").fetchone()
     if old and old[0] != identity:
-        raise ValueError(
-            "Native database identity changed; historical telemetry needs reconciliation"
-        )
+        if _legacy_source_identity(old[0], path):
+            migration = cache.execute(
+                "UPDATE meta SET v=? WHERE k='source_identity' AND v=?",
+                (identity, old[0]),
+            )
+            if migration.rowcount != 1:
+                raise ValueError(
+                    "Native database identity changed during reconciliation"
+                )
+        else:
+            raise ValueError(
+                "Native database identity changed; historical telemetry needs reconciliation"
+            )
     cache.execute("INSERT OR IGNORE INTO meta VALUES('source_identity',?)", (identity,))
     cursor = cache.execute("SELECT v FROM meta WHERE k='cursor'").fetchone()
     cursor = int(cursor[0]) if cursor else 0
