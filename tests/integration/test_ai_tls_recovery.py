@@ -167,37 +167,50 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                     self.assertEqual(admitted.status_code, 202, admitted.text)
                     operation_id = admitted.json()['operation_id']
                     path = '/profiles/fixture/ai-cost-plan/operations/' + operation_id
-                    with ThreadPoolExecutor(max_workers=1) as pool:
-                        work = pool.submit(self.run_worker, operation_id)
-                        self.assertTrue(started.wait(3), 'TLS ClientHello never reached the peer')
-                        before = time.monotonic()
-                        acknowledged_at = None
-                        if cancel:
-                            response = self.new_client().post(path + '/cancel')
-                            acknowledged_at = time.monotonic()
-                            self.assertEqual(response.status_code, 200, response.text)
-                        result = work.result(timeout=3)
-                        terminal_at = time.monotonic()
-                        self.assertFalse(any(t.name == 'mjobs-request-deadline'
-                                             for t in threading.enumerate()),
-                                         'durable terminal state preceded watcher cleanup')
-                        self.assertTrue(client.is_closed,
-                                        'durable terminal state preceded client cleanup')
-                        self.assertEqual(len(duplicates), 1)
-                        self.assertEqual(duplicates[0].fileno(), -1,
-                                         'durable terminal state retained interruption socket')
-                        response_closed = closed.wait(.4)
-                        response_closed_at = closed.closed_at
-                        elapsed = terminal_at - before
-                        ack_phase = ('n/a' if acknowledged_at is None else
-                                     f'{(acknowledged_at - before) * 1000:.1f}ms')
-                        close_phase = ('not observed' if response_closed_at is None else
-                                       f'{(response_closed_at - before) * 1000:.1f}ms')
-                        phase_details = (f'provider={provider_type.name} cancel={cancel}; '
-                                         f'ack={ack_phase}; socket_close={close_phase}; '
-                                         f'worker_terminal={elapsed * 1000:.1f}ms')
-                        print('durable-ai-tls-timing ' + phase_details)
-                        self.assertLess(elapsed, .9, phase_details)
+                    cancel_client = None
+                    cancel_client_setup_ms = None
+                    if cancel:
+                        setup_started = time.monotonic()
+                        cancel_client = self.new_client()
+                        cancel_client_setup_ms = (time.monotonic() - setup_started) * 1000
+                    try:
+                        with ThreadPoolExecutor(max_workers=1) as pool:
+                            work = pool.submit(self.run_worker, operation_id)
+                            self.assertTrue(started.wait(3), 'TLS ClientHello never reached the peer')
+                            before = time.monotonic()
+                            acknowledged_at = None
+                            if cancel:
+                                response = cancel_client.post(path + '/cancel')
+                                acknowledged_at = time.monotonic()
+                                self.assertEqual(response.status_code, 200, response.text)
+                            result = work.result(timeout=3)
+                            terminal_at = time.monotonic()
+                            self.assertFalse(any(t.name == 'mjobs-request-deadline'
+                                                 for t in threading.enumerate()),
+                                             'durable terminal state preceded watcher cleanup')
+                            self.assertTrue(client.is_closed,
+                                            'durable terminal state preceded client cleanup')
+                            self.assertEqual(len(duplicates), 1)
+                            self.assertEqual(duplicates[0].fileno(), -1,
+                                             'durable terminal state retained interruption socket')
+                            response_closed = closed.wait(.4)
+                            response_closed_at = closed.closed_at
+                            elapsed = terminal_at - before
+                            setup_phase = ('n/a' if cancel_client_setup_ms is None else
+                                           f'{cancel_client_setup_ms:.1f}ms (excluded)')
+                            ack_phase = ('n/a' if acknowledged_at is None else
+                                         f'{(acknowledged_at - before) * 1000:.1f}ms')
+                            close_phase = ('not observed' if response_closed_at is None else
+                                           f'{(response_closed_at - before) * 1000:.1f}ms')
+                            phase_details = (f'provider={provider_type.name} cancel={cancel}; '
+                                             f'client_setup={setup_phase}; ack={ack_phase}; '
+                                             f'socket_close={close_phase}; '
+                                             f'worker_terminal={elapsed * 1000:.1f}ms')
+                            print('durable-ai-tls-timing ' + phase_details)
+                            self.assertLess(elapsed, .9, phase_details)
+                    finally:
+                        if cancel_client is not None:
+                            cancel_client.close()
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)
                     if not cancel:
