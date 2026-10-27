@@ -45,7 +45,7 @@ Source: `services/discovery/matching.py:454-533`.
 Both arguments are mapping-like objects read with `.get`:
 
 - `job`: uses `attributes`, `title`, and `remote_type` directly; helper logic also interprets salary metadata and remote regions.
-- `profile`: uses `preferences` and contact country/state through helper logic (`services/discovery/matching.py:454-533`; `80-167`).
+- `profile`: uses `preferences` and contact country/state through helper logic (`services/discovery/matching.py:454-533`; `services/discovery/matching.py:80-167`).
 
 Falsy/missing `attributes` or `preferences` become empty dictionaries. Truthy non-mapping values can fail with ordinary attribute/type errors because this function does not validate the outer schemas.
 
@@ -122,7 +122,7 @@ A skill receives coverage only when its canonical/label evidence is in the appro
 - `EXPLICIT_NEGATIVE_OR_UNCERTAIN_EVIDENCE`
 - `NO_APPROVED_EVIDENCE`
 
-and never turns missing evidence into a claim that the person lacks the skill (`services/discovery/matching.py:579-604`). Pinned unit tests cover negative, aspirational, conflicting, unapproved, invalid-confidence, custom-skill, and private-text boundaries (`tests/unit/test_positive_skill_evidence.py:22-95`). They were inspected, not run.
+and never turns missing evidence into a claim that the person lacks the skill (`services/discovery/matching.py:579-604`). Pinned unit tests cover negative and aspirational mentions, conflicting approved facts, and unapproved negative evidence (`tests/unit/test_positive_skill_evidence.py:22-76`). They were inspected, not run.
 
 ### Score
 
@@ -310,7 +310,7 @@ This does not contact providers, but it is not read-only. Do not use a productio
 
 - Baseline score is approved positive skill-evidence coverage, not qualification probability, hiring likelihood, or application authority (`services/discovery/matching.py:544-629`; `docs/ARCHITECTURE.md:180-188`).
 - Preference, certification, education, remote-location, and relevant-experience fit factors are informational and score-neutral in this baseline (`services/discovery/matching.py:454-541`).
-- Missing or conflicting profile evidence must not be rewritten as a negative biographical claim (`services/discovery/matching.py:579-604`, `627`).
+- Missing or conflicting profile evidence must not be rewritten as a negative biographical claim (`services/discovery/matching.py:579-604, 627`).
 - Scoped recalculation preserves unselected match history; do not add cleanup/deletion based only on `candidate_job_ids` (the scoped `recalculate` behavior in `services/discovery/matching.py`).
 - Profile/search changes require fresh scoring. Do not present older versioned rows as current (`docs/ARCHITECTURE.md:180-188`).
 - `recalculate` is transactional and durable even though scoring itself is local; cancellation or failure must propagate so the transaction can roll back (the `recalculate` definition in `services/discovery/matching.py`).

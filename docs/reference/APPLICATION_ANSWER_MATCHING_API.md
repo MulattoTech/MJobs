@@ -38,7 +38,7 @@ A candidate is emitted only when its saved answer has a nonblank id, question, a
 
 Story references are independently filtered to current, APPROVED, reusable stories that explicitly allow APPLICATION_ANSWER and carry valid fact IDs/fingerprints. The endpoint returns reference text and fact provenance, not a new generated answer (`apps/api/application_answer_matching.py:89–150`).
 
-Before returning, it rereads profile/application/job state; a missing row, changed profile version, changed application-job binding, or changed target-job fingerprint returns 409 ANSWER_MATCH_CONTEXT_STALE (`apps/api/application_answer_matching.py:224–241`). It then reruns the answer review with the original fingerprint; the stale-answer branch is specifically `current_answer_review["reason"] == "CHANGED_ANSWER"`, which returns the same 409 (`apps/api/application_answer_matching.py:242–252`). Separately, a changed story-revision binding returns 409 (`apps/api/application_answer_matching.py:254–264`).
+Before returning, it rereads profile/application/job state; a missing row, changed profile version, changed application-job binding, or changed target-job fingerprint returns 409 ANSWER_MATCH_CONTEXT_STALE (`apps/api/application_answer_matching.py:224–241`). It then reruns the answer review with the original fingerprint; the stale-answer branch is specifically `current_answer_review["reason"] == "CHANGED_ANSWER"`, which returns the same 409 (`apps/api/application_answer_matching.py:242–252`).
 
 ## Response shape
 
@@ -47,13 +47,13 @@ A successful response has profile_id, application_id, the stripped question, can
 - CURATED_SEMANTIC: curated ordinary paraphrase match.
 - FUZZY: wording meets configured high-confidence threshold.
 
-The code fixes the corresponding explanation strings (`apps/api/application_answer_matching.py:22–27, 63–76`). The review_gate contains review_required, reason, and fingerprint. Story references contain story_id/revision/current_revision/is_current/title/text/allowed_use/fact_provenance/review_status (`apps/api/application_answer_matching.py:266–277, 139–149`). A synthetic test demonstrates exact and fuzzy candidates, advisory review metadata, and the absence of selection/approval/export fields (`tests/integration/test_application_answer_matching_api.py:110–170`).
+The code fixes the corresponding explanation strings (`apps/api/application_answer_matching.py:22–27, 63–76`). The review_gate contains review_required, reason, and fingerprint. The response also includes story references, filtered as described above. A synthetic test demonstrates exact and fuzzy candidates, advisory review metadata, and the absence of selection/approval/export fields (`tests/integration/test_application_answer_matching_api.py:110–170`).
 
 ## Error behavior and dependencies
 
 - 422 ANSWER_MATCH_INVALID_REQUEST, ANSWER_MATCH_INVALID_REVIEW_FINGERPRINT, or ANSWER_MATCH_SENSITIVE_QUESTION for request validation/gating (`apps/api/application_answer_matching.py:168–186`).
 - 404 ANSWER_MATCH_PROFILE_NOT_FOUND, ANSWER_MATCH_APPLICATION_NOT_FOUND, or ANSWER_MATCH_JOB_NOT_FOUND for missing or cross-profile context (`apps/api/application_answer_matching.py:188–207, 79–87`).
-- 409 ANSWER_MATCH_CONTEXT_STALE for detected context/review/story revision drift (`apps/api/application_answer_matching.py:224–264`).
+- 409 ANSWER_MATCH_CONTEXT_STALE for detected profile/application/job context drift or a `CHANGED_ANSWER` review (`apps/api/application_answer_matching.py:224–252`).
 - 503 ANSWER_MATCH_STORY_REFERENCES_UNAVAILABLE when story-bank lookup raises StoryBankError (`apps/api/application_answer_matching.py:89–96`).
 - Other store/service errors are not all converted by this router; the listed statuses are the explicit mappings in this source.
 
@@ -65,7 +65,7 @@ The API area guide does not list this endpoint (`apps/api/AREA.md:1–37`). The 
 
 ## Evidence index
 
-- API source: `apps/api/application_answer_matching.py:1–27, 30–76, 79–150, 161–279`.
+- API source: `apps/api/application_answer_matching.py:1–27, 30–76, 79–150, 161–252`.
 - Router mount: `apps/api/main.py:816–817`.
 - Integration tests: `tests/integration/test_application_answer_matching_api.py:19–108, 110–170, 217–289`.
 - API area documentation check: `apps/api/AREA.md:1–37`.
