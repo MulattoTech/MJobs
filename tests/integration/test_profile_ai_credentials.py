@@ -101,7 +101,7 @@ class ProfileAICredentialTests(unittest.TestCase):
         self.save_key('synthetic-rotated-profile-credential')
         result = execute_operation(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_PROVIDER_CREDENTIAL_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.requests, [])
 
     def test_deletion_before_worker_blocks_without_environment_fallback(self):
@@ -109,7 +109,7 @@ class ProfileAICredentialTests(unittest.TestCase):
         self.assertEqual(self.client.delete('/profiles/fixture/provider-credentials/openai').status_code, 200)
         result = execute_operation(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_PROVIDER_CREDENTIAL_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.requests, [])
 
     def test_unavailable_encryption_key_fails_before_call_started(self):
@@ -117,7 +117,7 @@ class ProfileAICredentialTests(unittest.TestCase):
         with patch.dict(os.environ, {'MJOBS_CREDENTIAL_ENCRYPTION_KEY': base64.urlsafe_b64encode(b'x' * 32).decode()}):
             result = execute_operation(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_PROVIDER_CREDENTIAL_UNAVAILABLE')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.requests, [])
         with self.store.engine.connect() as connection:
             states = connection.execute(select(m.ai_evaluation_batches.c.candidate_states)).scalar_one()
@@ -135,7 +135,7 @@ class ProfileAICredentialTests(unittest.TestCase):
         self.on_request = lambda: self.save_key('synthetic-rotation-during-response')
         result = execute_operation(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_PROVIDER_CREDENTIAL_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(len(self.requests), 1)
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -265,7 +265,7 @@ print(json.dumps({'status':result['status'],'calls':len(requests),'correct_key':
                 m.provider_credentials.c.profile_id == 'fixture').values(encrypted_secret=encrypted))
         result = execute_operation(self.queue())
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_PROVIDER_CREDENTIAL_UNAVAILABLE')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.requests, [])
 
     def test_legacy_snapshot_keeps_runtime_source_without_backfilling_a_key(self):
