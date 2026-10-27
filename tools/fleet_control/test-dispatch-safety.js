@@ -7,16 +7,19 @@ const nativeRequire=createRequire(serverPath);
 const source=fs.readFileSync(serverPath,'utf8');
 const marker="if(!fs.existsSync(AO)){";
 assert.ok(source.includes(marker),'server bootstrap marker exists');
-const calls=[];
+const calls=[],terminalCalls=[],daemonCalls=[];
+const daemonSession={id:'worker-1',mode:'tui',harness:'codex',isTerminated:false,terminalGeneration:'generation-1',activity:{state:'idle'}};
 const context=vm.createContext({
  require(id){
   if(id==='node:child_process')return {execFile(file,args,options,callback){calls.push(args);callback(null,{stdout:'ok'});}};
+  if(id==='./terminal-delivery')return {completeKnownPaste:async options=>{terminalCalls.push(options);await options.guard();assert.equal((await options.getSession()).id,'worker-1');return {state:'native-observed',extraEnter:false};}};
   return nativeRequire(id);
  },
+ fixtureDaemon:async uri=>{daemonCalls.push(uri);return {sessions:[structuredClone(daemonSession)]};},
  __dirname,process,Buffer,URL,console,fetch,setTimeout,clearTimeout,structuredClone,AbortSignal
 });
 const definitions=source.slice(0,source.indexOf(marker));
-vm.runInContext(definitions+'\nglobalThis.fixture={command,main};',context,{filename:serverPath});
+vm.runInContext(definitions+'\ndaemon=globalThis.fixtureDaemon;globalThis.fixture={command,main};',context,{filename:serverPath});
 const f=context.fixture;
 function set(reason,lock=false,drain=false){
  context.fakeQuota={dispatchBlockReason:()=>reason};
@@ -52,6 +55,8 @@ async function post(url,data){
  set(null);
  await f.command(['send','--session','worker-1']);
  assert.equal(calls.length,3,'Healthy quota permits one launch');
+ assert.equal(terminalCalls.length,1,'Healthy TUI send verifies terminal completion');
+ assert.deepEqual(daemonCalls,['/api/v1/sessions','/api/v1/sessions'],'Terminal verification uses only the synthetic daemon fixture');
  assert.equal((await post('/api/sustain/toggle',{enabled:true})).status,200);
  console.log('PASS: stale/7%-threshold/tripped state blocks send, spawn, resume, restore, review, and dispatch enable; pause, stop, and reads remain available. No real process launched.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
