@@ -518,7 +518,7 @@ class RestoreFleet {
    throw Error('Invalid watchdog process-inspection result');
   return data;
  }
- async watchdogDisarmed(requireExplicit=false){
+ async watchdogDisarmed(requireExplicit=false,operationCurrent=()=>true){
   const e=read(this.watchdogPath,{});
   // The emergency latch is authoritative; never disarm an active emergency.
   if(this.locked())return false;
@@ -532,6 +532,7 @@ class RestoreFleet {
   if(e.phase!=='disarmed'&&(!Number.isFinite(age)||age<15000))return false;
   try{
    const inspected=await this.watchdogInspector();
+   if(!operationCurrent())return false;
    if(inspected.active)return false;
    if(this.locked())return false;
    const updated={...e,phase:'disarmed',active:false,watchdogPid:null,
@@ -540,6 +541,7 @@ class RestoreFleet {
    this.log('stale_watchdog_reconciled',{previousPhase:e.phase||'unknown'});
    return true;
   }catch(e){
+   if(!operationCurrent())return false;
    this.state.lastError='Emergency watchdog could not be verified: '+detail(e);
    this.save();
    return false;
@@ -559,7 +561,7 @@ class RestoreFleet {
    }
    const startBlocked=this.startBlockReason();
    if(startBlocked){this.state.phase='paused_quota';this.state.lastError=startBlocked;this.save();return {paused:startBlocked};}
-   const watchdogReady=await this.watchdogDisarmed(this.state.fromEmergency===true);
+   const watchdogReady=await this.watchdogDisarmed(this.state.fromEmergency===true,operationCurrent);
    if(!operationCurrent())return interrupted();
    if(!watchdogReady){
     this.state.phase='waiting_watchdog';
@@ -575,7 +577,14 @@ class RestoreFleet {
      this.state.aoStartLastAttempt=nowIso();
      this.state.aoLaunches++;
      this.save();
-     try{await this.launchAO();if(!operationCurrent())return interrupted();this.state.startedAO=true;this.log('ao_started',{attempt:this.state.aoLaunches})}
+     try{
+       await this.launchAO();
+       if(this.state!==operation)return interrupted();
+       // The launch is an external side effect. If a pause won while it was
+       // pending, preserve that phase but durably acknowledge confirmed success.
+       this.state.startedAO=true;this.save();this.log('ao_started',{attempt:this.state.aoLaunches});
+       if(!operationCurrent())return interrupted();
+     }
      catch(e){if(!operationCurrent())return interrupted();this.state.lastError='Could not start Orchestrator.inc: '+detail(e);this.log('ao_start_failed',{message:detail(e)})}
     }
     this.save();
