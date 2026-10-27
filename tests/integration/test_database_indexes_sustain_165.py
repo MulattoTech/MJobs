@@ -166,8 +166,14 @@ def _seed(engine):
         connection.execute(m.company_ats_tenants.insert(), tenants)
         connection.execute(m.company_sources.insert(), sources)
         connection.execute(m.postings.insert(), postings)
-    with engine.begin() as connection:
-        connection.exec_driver_sql("ANALYZE")
+    if engine.dialect.name == "postgresql":
+        # Fresh fixture rows are not all-visible until vacuumed.  Establish a
+        # deterministic covering-index plan without forcing planner settings.
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
+            connection.exec_driver_sql("VACUUM ANALYZE")
+    else:
+        with engine.begin() as connection:
+            connection.exec_driver_sql("ANALYZE")
 
 
 def _index_records(engine, table_name):
@@ -553,9 +559,9 @@ class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase
         if label == "enabled source scheduling":
             self.assertIn("ix_company_job_sources_enabled_id", normalized,
                           f"{label} used the wrong index:\n{plan}")
-            if ordered:
-                self.assertNotIn("sort", normalized,
-                                 f"{label} required an avoidable sort:\n{plan}")
+        if ordered:
+            self.assertNotIn("sort", normalized,
+                             f"{label} required an avoidable sort:\n{plan}")
 
 
 if __name__ == "__main__":
