@@ -18,7 +18,20 @@ from services.discovery.sources.registry import (
 )
 
 
+_WORKER_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
+
+
+def _worker_log_level():
+    """Return a validated RQ console log level without changing audit logging."""
+    configured = os.environ.get("MJOBS_WORKER_LOG_LEVEL", "WARNING")
+    level = configured.strip().upper()
+    if level not in _WORKER_LOG_LEVELS:
+        raise ValueError("Unsupported worker log level")
+    return level
+
+
 def main():
+    log_level = _worker_log_level()
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     try:
@@ -59,7 +72,7 @@ def main():
     thread.start()
     redis = Redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=10)
     try:
-        Worker([queue], connection=redis).work(logging_level="WARNING")
+        Worker([queue], connection=redis).work(logging_level=log_level)
     finally:
         stopped.set()
         thread.join(timeout=5)
