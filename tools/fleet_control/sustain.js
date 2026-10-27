@@ -146,6 +146,15 @@ class Sustain {
     a.unverified=0;
     continue;
    }
+   // A source-bound completed artifact proves a short maintenance turn was
+   // delivered even if the native activity sampler missed its active interval.
+   const receipt=a.lastType==='productive'&&(this.latestProductiveTasks||[]).find(t=>t.id===a.lastKey&&t.agentId===s.id&&['artifact_ready','no_new_gap'].includes(t.state));
+   if(receipt&&a.lastSent&&canReceiveInstruction(s)&&parse(receipt.completedAt)>=parse(a.lastSent)&&parse(receipt.completedAt)<=now+1000){
+    a.awaiting=false;a.completedAt=receipt.completedAt;a.productiveReceiptKey=receipt.id;
+    a.noProgress=0;a.unverified=0;a.lastFingerprint=fingerprint;
+    if(a.backoffReason==='unverified_delivery'){delete a.backoffUntil;delete a.backoffReason;}
+    continue;
+   }
    if(a.lastSent && a.awaiting){
     const sent=parse(a.lastSent);
     const activity=parse(s.lastActivity);
@@ -219,6 +228,8 @@ class Sustain {
    resources.throttledReason='CPU pressure ('+resources.cpuPercent+'%): using one lightweight dispatch per cycle while RAM is safe';
   const gh=await this.turbo.github();
   const now=this.clock();
+  try{this.productivity.observe();}catch{this.productivity.error='Productive-work receipt inspection is unavailable';}
+  const productiveSummary=this.productivity.summary();this.latestProductiveTasks=productiveSummary.available?productiveSummary.tasks:[];
   this.observe(snap.sessions,gh);
   const prs=(gh?.open||[]).filter(p=>p.number>0);
   const liveRoot=snap.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited');
@@ -227,7 +238,6 @@ class Sustain {
   const pending=snap.sessions.filter(s=>!s.busy&&!s.isTerminated&&!s.replacedBy&&this.status.agents[s.id]?.awaiting===true).length;
   const overdueLeases=[];
   const actions=[],seenPR=new Set(),held=[];
-  const productiveSummary=this.productivity.summary();this.latestProductiveTasks=productiveSummary.tasks;
   const completedArtifacts=(productiveSummary.tasks||[]).filter(t=>t.state==='artifact_ready');
   const graph=graphSignal(snap.sessions,prs)+':'+createHash('sha256').update(JSON.stringify(completedArtifacts.map(t=>t.id).sort())).digest('hex');
   let blocked=resources.pausedReason||null;

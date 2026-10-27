@@ -7,6 +7,7 @@ import datetime as dt
 import json
 import math
 import os
+import re
 import sqlite3
 import time
 import urllib.request
@@ -19,9 +20,13 @@ def epoch(value):
     if not isinstance(value, str) or not value:
         return None
     try:
-        value = (
-            value.split(" m=")[0].replace(" +0000 UTC", "+00:00").replace("Z", "+00:00")
+        # Go native timestamps retain an explicit numeric offset and zone name.
+        # Trust the numeric offset, never guess a DST abbreviation or host zone.
+        value = value.split(" m=")[0]
+        value = re.sub(
+            r"\s+([+-]\d{2})(\d{2})\s+[A-Za-z][A-Za-z0-9_+/-]*$", r"\1:\2", value
         )
+        value = value.replace("Z", "+00:00")
         parsed = dt.datetime.fromisoformat(value)
         return (
             parsed.replace(tzinfo=UTC).timestamp()
@@ -101,7 +106,12 @@ def import_native(cache, ids, now, home):
     known = cache.execute("SELECT v FROM meta WHERE k='agents'").fetchone()
     known = set(json.loads(known[0])) if known else set()
     fresh = [x for x in ids if x not in known]
-    cutoff = dt.datetime.fromtimestamp(now - 86400, UTC).strftime("%Y-%m-%d %H:%M:%S")
+    # SQLite stores mixed-offset wall-clock strings. Widen the indexed prefilter
+    # by the maximum civil UTC offset; apply the actual UTC window in Python.
+    cutoff = dt.datetime.fromtimestamp(now - 86400 - 14 * 3600, UTC).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    window_start = now - 86400
     deadline = time.monotonic() + 10
     slots = ",".join("?" for _ in ids)
     with sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=1) as native:
@@ -150,12 +160,23 @@ def import_native(cache, ids, now, home):
                 "INSERT OR REPLACE INTO meta VALUES('agents',?)", (json.dumps(ids),)
             )
         turns = []
+        terminal_count = 0
+        invalid_turns = 0
         for row in native.execute(
             f"SELECT id,session_id,native_session_id,requested_at,responded_at FROM session_terminal_turns WHERE session_id IN ({slots}) AND requested_at>=? ORDER BY id DESC LIMIT 10001",
             (*ids, cutoff),
         ):
+            terminal_count += 1
             start, end = epoch(row["requested_at"]), epoch(row["responded_at"])
             if start is None or start > now + 10:
+                invalid_turns += 1
+                continue
+            if row["responded_at"] is not None and (
+                end is None or end < start or end > now + 10
+            ):
+                invalid_turns += 1
+                end = None
+            if start < window_start and (end is None or end < window_start):
                 continue
             turns.append(
                 {
@@ -170,7 +191,7 @@ def import_native(cache, ids, now, home):
                     "interface": "terminal",
                 }
             )
-        terminal_complete = len(turns) < 10001
+        terminal_complete = terminal_count < 10001
         chat_count = 0
         for row in native.execute(
             f"SELECT id,handled_by_session_id,requested_at,started_at,completed_at,state FROM conversation_turns WHERE handled_by_session_id IN ({slots}) AND requested_at>=? ORDER BY requested_at DESC LIMIT 1001",
@@ -182,6 +203,14 @@ def import_native(cache, ids, now, home):
                 epoch(row["completed_at"]),
             )
             if start is None or start > now + 10:
+                invalid_turns += 1
+                continue
+            if row["completed_at"] is not None and (
+                end is None or end < start or end > now + 10
+            ):
+                invalid_turns += 1
+                end = None
+            if start < window_start and (end is None or end < window_start):
                 continue
             turns.append(
                 {
@@ -200,7 +229,10 @@ def import_native(cache, ids, now, home):
     return turns, {
         "available": True,
         "usageWindowComplete": complete,
-        "turnWindowComplete": terminal_complete and chat_count < 1001,
+        "turnWindowComplete": terminal_complete
+        and chat_count < 1001
+        and invalid_turns == 0,
+        "unreadableTurnRecords": invalid_turns,
         "importedUsageEvents": len(usage),
         "observedAt": iso(now),
     }

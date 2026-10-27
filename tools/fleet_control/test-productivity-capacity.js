@@ -32,3 +32,27 @@ test('productive policy attaches to a real existing UI region and stages all-wor
  const html=fs.readFileSync(path.join(__dirname,'public/index.html'),'utf8'),ui=fs.readFileSync(path.join(__dirname,'public/sustain-ui.js'),'utf8');assert(html.includes('id="turboSection"'));assert(ui.includes("getElementById('turboSection')"));assert(!ui.includes("getElementById('sustainSection')"));
  assert(ui.includes('productiveAll'));assert(ui.includes('Nothing has started yet.'));
 });
+
+test('completed maintenance receipts release only their matching delivery backoff',async t=>{
+ for(const outcome of ['artifact_ready','no_new_gap'])await t.test(outcome,t=>{
+  const f=fixture(t),s=f.sessions[1],sent=new Date(f.now()-300000).toISOString(),key='productive:reference-v1:'+('a'.repeat(40));
+  f.engine.status.agents[s.id]={lastType:'productive',lastKey:key,lastSent:sent,awaiting:false,unverified:2,backoffReason:'unverified_delivery',backoffUntil:new Date(f.now()+720000).toISOString()};
+  f.engine.latestProductiveTasks=[{id:key,agentId:s.id,state:outcome,completedAt:new Date(f.now()-10000).toISOString()}];
+  f.engine.observe(f.sessions,{open:[]});const a=f.engine.status.agents[s.id];assert.equal(a.awaiting,false);assert.equal(a.unverified,0);assert.equal(a.backoffUntil,undefined);assert.equal(a.productiveReceiptKey,key);assert.equal(f.sent.length,0);
+ });
+});
+test('unrelated, uncertain, stale-generation and future receipts never clear a delivery hold',async t=>{
+ for(const kind of ['wrong-agent','wrong-key','uncertain','before-send','future','non-maintenance','busy','decision','other-hold'])await t.test(kind,t=>{
+  const f=fixture(t),s=f.sessions[1],key='productive:reference-v1:'+('a'.repeat(40)),until=new Date(f.now()+720000).toISOString();
+  const a=f.engine.status.agents[s.id]={lastType:'productive',lastKey:key,lastSent:new Date(f.now()-300000).toISOString(),awaiting:false,unverified:2,backoffReason:'unverified_delivery',backoffUntil:until};
+  const r={id:key,agentId:s.id,state:'artifact_ready',completedAt:new Date(f.now()-10000).toISOString()};
+  if(kind==='wrong-agent')r.agentId='someone-else';if(kind==='wrong-key')r.id+='other';if(kind==='uncertain')r.state='uncertain';if(kind==='before-send')r.completedAt=new Date(f.now()-600000).toISOString();if(kind==='future')r.completedAt=new Date(f.now()+10000).toISOString();if(kind==='non-maintenance')a.lastType='ci';
+  if(kind==='busy'){s.busy=true;s.activity='active';s.isIdle=false;}
+  if(kind==='decision'){s.activity='blocked';s.isIdle=false;}
+  if(kind==='other-hold')a.backoffReason='operator_hold';
+  f.engine.latestProductiveTasks=[r];f.engine.observe(f.sessions,{open:[]});
+  if(kind==='busy'){assert.equal(a.awaiting,true);assert.equal(a.productiveReceiptKey,undefined,'Native execution, not a receipt, owns this active turn');}
+  else assert.equal(a.backoffUntil,until);
+  assert.equal(f.sent.length,0);
+ });
+});
