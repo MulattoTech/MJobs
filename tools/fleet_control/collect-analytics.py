@@ -110,7 +110,10 @@ def initialize(cache):
 
 def import_native(cache, ids, now, home):
     path = home / ".ao/data/ao.db"
-    identity = str(path.resolve()) + ":" + str(path.stat().st_ctime_ns)
+    source_stat = path.stat()
+    identity = ":".join(
+        (str(path.resolve()), str(source_stat.st_dev), str(source_stat.st_ino))
+    )
     old = cache.execute("SELECT v FROM meta WHERE k='source_identity'").fetchone()
     if old and old[0] != identity:
         raise ValueError(

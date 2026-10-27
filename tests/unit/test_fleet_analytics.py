@@ -242,4 +242,11 @@ def test_import_native_includes_offset_day_boundary_without_reading_transcripts(
     _, source = module.import_native(cache, ["agent-1"], now, home)
     assert source["turnWindowComplete"] is False
     assert source["unreadableTurnRecords"] == 1
+    source_stat = database.stat()
+    expected_identity = ":".join(
+        (str(database.resolve()), str(source_stat.st_dev), str(source_stat.st_ino))
+    )
+    assert cache.execute(
+        "SELECT v FROM meta WHERE k='source_identity'"
+    ).fetchone()[0] == expected_identity
     cache.close()
