@@ -12,7 +12,12 @@ test('normal and split/full collapsed known composers match; notice menus and un
  for(const body of ['Ask Codex to do anything','1. Set up security','Approve execution?','unrelated user draft','[Pasted Content 10 chars]wrong','[Pasted Content 99999 chars]'])assert.equal(composerMatches(surface(body),message),false,body);
  assert.equal(composerMatches(surface(message),'bad\x1bmessage'),false);
 });
-test('already active/recorded native turn never receives a new Enter',async t=>{const f=fixture(t);f.setSession({activity:{state:'active',lastActivityAt:new Date().toISOString()}});const r=await completeKnownPaste(f.options);assert.equal(r.extraEnter,false);assert.equal(f.counts().enters,0);assert.equal(f.counts().reads,0);});
+test('stale or unrelated active sessions remain unverified and never receive Enter',async t=>{
+ for(const lastActivityAt of [new Date(0).toISOString(),new Date().toISOString()])await t.test(lastActivityAt,async t=>{
+  const f=fixture(t);f.setSession({activity:{state:'active',lastActivityAt}});const r=await completeKnownPaste(f.options);
+  assert.deepEqual(r,{state:'decision-or-unavailable',extraEnter:false});assert.equal(f.counts().enters,0);assert.equal(f.counts().reads,0);
+ });
+});
 test('verified pending paste receives one Enter and is observed natively; text is never resent',async t=>{const f=fixture(t);f.confirm();const r=await completeKnownPaste(f.options);assert.deepEqual(r,{state:'native-observed',extraEnter:true});assert.equal(f.counts().enters,1);assert.equal(f.counts().reads,2);assert.equal(f.counts().closed,1);const files=fs.readdirSync(path.join(f.options.root,'diagnostics','terminal-deliveries'));assert.equal(files.length,1);const record=JSON.parse(fs.readFileSync(path.join(f.options.root,'diagnostics','terminal-deliveries',files[0])));assert.equal(record.state,'native-observed');assert.equal(JSON.stringify(record).includes(message),false);});
 test('unknown result is durably fenced and never auto-entered twice',async t=>{const f=fixture(t);const first=await completeKnownPaste(f.options);assert.equal(first.state,'enter-outcome-pending');const second=await completeKnownPaste(f.options);assert.equal(second.state,'already-attempted');assert.equal(f.counts().enters,1);});
 test('blocked decision, changed generation, foreign listener, changed composer and stop guard prevent input',async t=>{

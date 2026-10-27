@@ -74,7 +74,7 @@ async function completeKnownPaste({root,id,generation,message,sentAt,getSession,
  let channel;
  try{
   await wait(1100);await guard();let s=await getSession();if(s?.isTerminated||s?.terminalGeneration!==generation)throw Error('Native generation changed after send');
-  if(s.activity?.state==='active'||Date.parse(s.activity?.lastActivityAt||'')>sentAt+100)return {state:'native-observed',extraEnter:false};
+  if(s.activity?.state==='active'||Date.parse(s.activity?.lastActivityAt||'')>sentAt+100)return {state:'decision-or-unavailable',extraEnter:false};
   if(!isIdle(s))return {state:'decision-or-unavailable',extraEnter:false};
   const binding=bindingReader(id,generation);await ownerCheck(binding);channel=await transport(binding.port);
   const before=await channel.capture();if(!composerMatches(before,message))return {state:'no-matching-pending-composer',extraEnter:false};
