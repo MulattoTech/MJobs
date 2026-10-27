@@ -64,6 +64,12 @@ async function post(url,data){
  await assert.rejects(()=>f.command(['send','--session','worker-1','--message','fixture task']),/unverified/);
  assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,submitted,'Absent composer cannot become a submitted task');
  assert.equal(ledgerFinishes.at(-1).state,'uncertain','Unverified terminal delivery remains uncertain');
+ const agyLaunches=calls.length,agyTerminalCalls=terminalCalls.length,agySubmitted=ledgerFinishes.filter(entry=>entry.state==='submitted').length;
+ daemonSessions=[{...daemonSession,harness:'agy',terminalGeneration:undefined}];
+ await f.command(['send','--session','worker-1','--message','agy task']);
+ assert.equal(calls.length,agyLaunches+1,'Eligible Antigravity TUI target uses native AO send');
+ assert.equal(terminalCalls.length,agyTerminalCalls,'Antigravity send does not use the Codex terminal verifier');
+ assert.equal(ledgerFinishes.filter(entry=>entry.state==='submitted').length,agySubmitted+1,'Successful Antigravity send is submitted');
  const launches=calls.length,submittedAfterTerminal=ledgerFinishes.filter(entry=>entry.state==='submitted').length;
  daemonSessions=[];
  await assert.rejects(()=>f.command(['send','--session','worker-1','--message','missing target']),/Target changed/);
