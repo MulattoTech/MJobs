@@ -170,7 +170,19 @@ def _seed(engine):
         # Fresh fixture rows are not all-visible until vacuumed.  Establish a
         # deterministic covering-index plan without forcing planner settings.
         with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
-            connection.exec_driver_sql("VACUUM ANALYZE")
+            schema = connection.execute(text("SELECT current_schema()")).scalar_one()
+            suffix = schema.removeprefix("database_indexes_")
+            if (not suffix or len(suffix) != 32
+                    or any(character not in "0123456789abcdef" for character in suffix)):
+                raise RuntimeError("PostgreSQL index fixture requires isolated schema")
+            quote = engine.dialect.identifier_preparer.quote
+            for fixture_table in (
+                m.companies, m.profiles, m.jobs, m.routes, m.matches,
+                m.applications, m.company_ats_tenants, m.company_sources, m.postings,
+            ):
+                connection.exec_driver_sql(
+                    f"VACUUM ANALYZE {quote(schema)}.{quote(fixture_table.name)}"
+                )
     else:
         with engine.begin() as connection:
             connection.exec_driver_sql("ANALYZE")
