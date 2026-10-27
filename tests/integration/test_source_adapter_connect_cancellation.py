@@ -134,39 +134,93 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             collection_ready = threading.Event()
             collection_release = threading.Event()
             deadline_started_at = []
+            transport_entered = threading.Event()
+            transport_completed = threading.Event()
+            phases = {}
             cancel_calls = []
             worker_finished_at = []
             worker = None
+
+            def phase_diagnostic():
+                deadline_start = deadline_started_at[0] if deadline_started_at else None
+                timestamp_keys = (
+                    "worker_ready_at", "worker_release_signaled_at", "worker_released_at",
+                    "operation_deadline_started_at",
+                    "collector_entered_at", "transport_call_entered_at",
+                    "transport_call_completed_at", "worker_outcome_at", "worker_error_at",
+                    "worker_finished_at", "terminal_readback_at",
+                )
+                timestamps = {}
+                for key in timestamp_keys:
+                    value = phases.get(key)
+                    if isinstance(value, (int, float)):
+                        timestamps[key] = value
+                if deadline_start is not None:
+                    relative_ms = {
+                        key: round((value - deadline_start) * 1000, 1)
+                        for key, value in timestamps.items()
+                    }
+                else:
+                    relative_ms = {}
+                connection = state.get("connecting_socket")
+                return (f"phase_ms_from_deadline={relative_ms}; phases={phases!r}; "
+                        f"worker_errors={errors!r}; outcomes={len(outcome)}; "
+                        f"connects={state.get('connects', 0)}; requests={state.get('requests', 0)}; "
+                        f"socket_fd={connection.fileno() if connection is not None else None}")
 
             def observe_collect_source(*args, **kwargs):
                 # This is a sticky, non-blocking observation after the production
                 # deadline has started. Never wait here: scheduler delay belongs
                 # to the test coordinator, not the production worker's deadline.
                 state["collection_entered_at"] = time.monotonic()
+                phases["collector_entered_at"] = state["collection_entered_at"]
                 collection_ready.set()
                 return original_collect_source(*args, **kwargs)
 
-            def observe_connect(connection, address):
+            def mark_transport_entry(connection, address, operation):
                 if mode != "positive" and address[:2] == state["address"]:
                     state["connects"] += 1
                     state["connecting_socket"] = connection
-                    state["connect_entered_at"] = time.monotonic()
-                    engaged.set()
-                return original_connect(connection, address)
+                    phases["transport_call"] = operation
+                    phases["transport_call_entered_at"] = time.monotonic()
+                    state["connect_entered_at"] = phases["transport_call_entered_at"]
+                    transport_entered.set()
+                    return True
+                return False
+
+            def observe_connect(connection, address):
+                owned = mark_transport_entry(connection, address, "connect")
+                try:
+                    return original_connect(connection, address)
+                finally:
+                    if owned:
+                        phases["transport_call_completed_at"] = time.monotonic()
+                        transport_completed.set()
+                        engaged.set()
 
             def observe_connect_ex(connection, address):
-                status = original_connect_ex(connection, address)
-                if mode != "positive" and address[:2] == state["address"]:
-                    state["connects"] += 1
-                    state["connecting_socket"] = connection
-                    state["connect_entered_at"] = time.monotonic()
-                    engaged.set()
-                return status
+                owned = mark_transport_entry(connection, address, "connect_ex")
+                try:
+                    status = original_connect_ex(connection, address)
+                    if owned:
+                        phases["connect_ex_status"] = status
+                    return status
+                except BaseException as error:
+                    if owned:
+                        phases["transport_call_error"] = f"{type(error).__name__}: {error}"
+                    raise
+                finally:
+                    if owned:
+                        phases["transport_call_completed_at"] = time.monotonic()
+                        transport_completed.set()
+                        engaged.set()
 
             def record_timeout():
                 # workers.tasks immediately adds this duration to monotonic time
                 # to construct its operation deadline.
-                deadline_started_at.append(time.monotonic())
+                started_at = time.monotonic()
+                deadline_started_at.append(started_at)
+                phases["operation_deadline_started_at"] = started_at
                 return .8 if mode == "deadline" else 30
 
             original_request_cancel = api_main.request_cancel
@@ -218,15 +272,26 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         try:
                             # This gate is deliberately before execute_operation,
                             # where workers.tasks creates its deadline.
-                            worker_ready_at.append(time.monotonic())
+                            ready_at = time.monotonic()
+                            worker_ready_at.append(ready_at)
+                            phases["worker_ready_at"] = ready_at
                             worker_ready.set()
                             if not collection_release.wait(5):
                                 raise AssertionError("Test did not release worker before operation entry")
-                            outcome.append(execute_operation(identifier))
+                            phases["worker_released_at"] = time.monotonic()
+                            result = execute_operation(identifier)
+                            outcome.append(result)
+                            phases["worker_result_status"] = (result.get("status")
+                                                               if isinstance(result, dict)
+                                                               else type(result).__name__)
+                            phases["worker_outcome_at"] = time.monotonic()
                         except BaseException as error:
-                            errors.append(type(error).__name__)
+                            errors.append(f"{type(error).__name__}: {error}")
+                            phases["worker_error_at"] = time.monotonic()
                         finally:
-                            worker_finished_at.append(time.monotonic())
+                            finished_at = time.monotonic()
+                            worker_finished_at.append(finished_at)
+                            phases["worker_finished_at"] = finished_at
 
                     worker = threading.Thread(target=execute, name="mjobs-owned-adapter-worker", daemon=True)
                     started = time.monotonic()
@@ -234,15 +299,45 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     try:
                         self.assertTrue(worker_ready.wait(3),
                             f"{provider} worker never reached pre-deadline gate; "
-                            f"errors={errors}; outcomes={len(outcome)}")
+                            f"{phase_diagnostic()}")
                         if coordinator_delay:
                             time.sleep(coordinator_delay)
+                        phases["worker_release_signaled_at"] = time.monotonic()
                         collection_release.set()
                         self.assertTrue(collection_ready.wait(3),
                             f"{provider} worker never reached source collection; "
-                            f"errors={errors}; outcomes={len(outcome)}")
-                        if mode != "positive":
-                            self.assertTrue(engaged.wait(1), f"{provider} never reached owned TCP boundary")
+                            f"{phase_diagnostic()}")
+                        if mode == "deadline":
+                            self.assertEqual(len(deadline_started_at), 1,
+                                f"{provider} source collector entered without one recorded operation deadline; "
+                                f"{phase_diagnostic()}")
+                            self.assertLessEqual(deadline_started_at[0], phases["collector_entered_at"],
+                                f"{provider} source collector entry preceded operation-deadline construction; "
+                                f"{phase_diagnostic()}")
+                            connect_window_end = deadline_started_at[0] + 1.0
+                            entry_wait = max(0, connect_window_end - time.monotonic())
+                            entry_observed = transport_entered.wait(entry_wait)
+                            self.assertTrue(entry_observed,
+                                f"{provider} reached the collector but no owned transport connect call was entered "
+                                f"within 1s of the operation-deadline start; {phase_diagnostic()}")
+                            self.assertLessEqual(phases["transport_call_entered_at"] - deadline_started_at[0], 1.0,
+                                f"{provider} transport connect entry exceeded the 1s operation-start window; "
+                                f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["collector_entered_at"],
+                                                 phases["transport_call_entered_at"],
+                                f"{provider} transport connect entry preceded source-collector readiness; "
+                                f"{phase_diagnostic()}")
+                            completion_wait = max(0, connect_window_end - time.monotonic())
+                            completion_observed = transport_completed.wait(completion_wait)
+                            self.assertTrue(completion_observed,
+                                f"{provider} entered the transport connect call but it did not return within "
+                                f"the same 1s window; {phase_diagnostic()}")
+                            self.assertLessEqual(phases["transport_call_completed_at"] - deadline_started_at[0], 1.0,
+                                f"{provider} transport connect call completed after the 1s operation-start window; "
+                                f"{phase_diagnostic()}")
+                        elif mode != "positive":
+                            self.assertTrue(engaged.wait(1),
+                                f"{provider} did not reach an owned TCP boundary; {phase_diagnostic()}")
                         if coordinator_delay:
                             self.assertGreater(coordinator_delay, .8)
                             self.assertEqual(len(deadline_started_at), 1)
@@ -296,6 +391,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             with TestClient(create_app(reopened, "http://127.0.0.1:1", root,
                                     "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as fresh:
                                 saved = fresh.get(f"/operations/{identifier}").json()
+                                phases["terminal_readback_at"] = time.monotonic()
+                                phases["terminal_state"] = saved.get("state")
                                 self.assertEqual(saved["state"], expected, saved)
                                 self.assertEqual(saved["attempt_count"], 1)
                                 if mode != "positive":
