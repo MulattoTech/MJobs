@@ -59,11 +59,14 @@ function registryBinding(id,generation,home=os.homedir()){
  const found=registry.filter(x=>x.sessionId===id);if(found.length!==1)throw Error('Terminal ownership ambiguous');const e=found[0];
  if(e.launchId!==generation||!Number.isInteger(e.ptyHostPid)||e.ptyHostPid<=0||!/^127\.0\.0\.1:\d{1,5}$/.test(e.pipePath))throw Error('Terminal ownership changed');const port=Number(e.pipePath.split(':')[1]);if(port<1||port>65535)throw Error('Terminal port invalid');if(!Number.isFinite(Date.parse(e.registeredAt||''))||Date.parse(e.registeredAt)>Date.now()+1000)throw Error('Terminal registration time invalid');return {id,generation,pid:e.ptyHostPid,port,registeredAt:e.registeredAt};
 }
-async function verifyOwner(binding){
- const command=`$ErrorActionPreference='Stop';$p=Get-CimInstance Win32_Process -Filter 'ProcessId = ${binding.pid}';$c=@(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort ${binding.port} -State Listen);[ordered]@{image=$p.ExecutablePath;createdAt=([DateTimeOffset]$p.CreationDate).ToUniversalTime().ToString('o');owners=@($c.OwningProcess)}|ConvertTo-Json -Compress`;
- const x=await exec('C:\\Program Files\\PowerShell\\7\\pwsh.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{windowsHide:true,shell:false,timeout:8000,maxBuffer:16000});const v=JSON.parse(x.stdout);
- const expected=path.join(os.homedir(),'AppData','Local','Programs','agent-orchestrator','resources','daemon','ao.exe');
- if(v.owners?.length!==1||v.owners[0]!==binding.pid||String(v.image).toLowerCase()!==expected.toLowerCase()||!Number.isFinite(Date.parse(v.createdAt||''))||Math.abs(Date.parse(v.createdAt)-Date.parse(binding.registeredAt))>15000)throw Error('Terminal listener ownership not verified');
+async function verifyOwner(binding,run=exec,home=os.homedir()){
+ const native=`using System;using System.Runtime.InteropServices;public static class AOOwnerIdentityV1{[DllImport("shell32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern IntPtr CommandLineToArgvW(string value,out int count);[DllImport("kernel32.dll")]static extern IntPtr LocalFree(IntPtr value);public static string[] Parse(string value){int count;var memory=CommandLineToArgvW(value,out count);if(memory==IntPtr.Zero)throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());try{var result=new string[count];for(var i=0;i<count;i++)result[i]=Marshal.PtrToStringUni(Marshal.ReadIntPtr(memory,i*IntPtr.Size));return result;}finally{LocalFree(memory);}}}`;
+ const command=`$ErrorActionPreference='Stop';Add-Type -TypeDefinition '${native}';$p=Get-CimInstance Win32_Process -Filter 'ProcessId = ${binding.pid}';$c=@(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort ${binding.port} -State Listen);[ordered]@{image=$p.ExecutablePath;createdAt=([DateTimeOffset]$p.CreationDate).ToUniversalTime().ToString('o');owners=@($c.OwningProcess);argv=@([AOOwnerIdentityV1]::Parse($p.CommandLine))}|ConvertTo-Json -Compress`;
+ const x=await run('C:\\Program Files\\PowerShell\\7\\pwsh.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{windowsHide:true,shell:false,timeout:8000,maxBuffer:32000});const v=JSON.parse(x.stdout);
+ const expected=path.join(home,'AppData','Local','Programs','agent-orchestrator','resources','daemon','ao.exe'),argv=Array.isArray(v.argv)?v.argv:[];
+ let hostIndex=2;while(['--start=attach','--surface=lazy'].includes(argv[hostIndex]))hostIndex++;
+ const values=flag=>argv.flatMap((value,index)=>value===flag&&index+1<argv.length?[argv[index+1]]:[]);
+ if(v.owners?.length!==1||v.owners[0]!==binding.pid||String(v.image).toLowerCase()!==expected.toLowerCase()||!Number.isFinite(Date.parse(v.createdAt||''))||Math.abs(Date.parse(v.createdAt)-Date.parse(binding.registeredAt))>15000||argv[1]!=='pty-host'||argv[hostIndex]!==binding.id||values('--session').length!==1||values('--session')[0]!==binding.id||values('--launch').length!==1||values('--launch')[0]!==binding.generation)throw Error('Terminal listener ownership not verified');
 }
 const isIdle=s=>s&&!s.isTerminated&&s.mode==='tui'&&s.harness==='codex'&&['idle','waiting_input'].includes(s.activity?.state);
 async function completeKnownPaste({root,id,generation,message,sentAt,getSession,guard,transport=terminalTransport,bindingReader=registryBinding,ownerCheck=verifyOwner,wait=sleep}){
@@ -87,4 +90,4 @@ async function completeKnownPaste({root,id,generation,message,sentAt,getSession,
   return {state:'enter-outcome-pending',extraEnter:true};
  }finally{channel?.close();}
 }
-module.exports={composerMatches,completeKnownPaste,registryBinding,terminalTransport};
+module.exports={composerMatches,completeKnownPaste,registryBinding,terminalTransport,verifyOwner};

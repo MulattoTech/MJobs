@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
-const {composerMatches,completeKnownPaste}=require('./terminal-delivery');
+const {composerMatches,completeKnownPaste,verifyOwner}=require('./terminal-delivery');
 const message='USER-AUTHORIZED PRODUCTIVE MAINTENANCE: Read exact source services/example.py and produce a cited private draft. Do not change code or security.';
 function surface(body){return 'Historical completed work\n  Set up security for Daybreak mode\n  You can keep using Codex while you finish setup.\n  Press a number to choose · esc to dismiss · type to continue\n› '+body+'\n  GPT-5.6-Sol medium · workspace';}
 function fixture(t){const root=fs.mkdtempSync(path.join(os.tmpdir(),'terminal-delivery-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const sentAt=Date.now()-10000;let enters=0,closed=0,guards=0,reads=0,ready=false,text=surface(message);let session={id:'worker-1',mode:'tui',harness:'codex',isTerminated:false,terminalGeneration:'generation-1',activity:{state:'idle',lastActivityAt:new Date(sentAt-10000).toISOString()}};
@@ -42,4 +42,15 @@ test('terminal registry binds one generation and a local listener, never an arbi
  const write=rows=>fs.writeFileSync(file,JSON.stringify(rows));write([entry]);assert.equal(registryBinding('worker-1','generation-1',home).port,4567);
  for(const change of [{launchId:'other'},{pipePath:'public.example:4567'},{pipePath:'127.0.0.1:0'},{ptyHostPid:0},{registeredAt:'invalid'},{registeredAt:'2099-01-01T00:00:00Z'}]){write([{...entry,...change}]);assert.throws(()=>registryBinding('worker-1','generation-1',home));}
  write([entry,entry]);assert.throws(()=>registryBinding('worker-1','generation-1',home),/ambiguous/);
+});
+
+test('listener process launch is bound to the exact session id and generation',async t=>{
+ const binding={id:'worker-1',generation:'generation-1',pid:123,port:4567,registeredAt:'2026-10-27T01:00:00.000Z'};
+ const observed={image:'C:\\Users\\Fixture\\AppData\\Local\\Programs\\agent-orchestrator\\resources\\daemon\\ao.exe',createdAt:'2026-10-27T01:00:01.000Z',owners:[123],argv:['ao.exe','pty-host','worker-1','C:\\Work','ao.exe','agent-process','supervise','--session','worker-1','--launch','generation-1','codex.exe']};
+ const exact=fixture(t);exact.confirm();exact.options.bindingReader=()=>binding;exact.options.ownerCheck=value=>verifyOwner(value,async()=>({stdout:JSON.stringify(observed)}),'C:\\Users\\Fixture');
+ assert.equal((await completeKnownPaste(exact.options)).extraEnter,true);assert.equal(exact.counts().enters,1);
+ for(const [name,change] of Object.entries({id:{argv:observed.argv.map(x=>x==='worker-1'?'worker-2':x)},generation:{argv:observed.argv.map(x=>x==='generation-1'?'generation-2':x)}}))await t.test(name,async()=>{
+  const f=fixture(t);f.confirm();f.options.bindingReader=()=>binding;f.options.ownerCheck=value=>verifyOwner(value,async()=>({stdout:JSON.stringify({...observed,...change})}),'C:\\Users\\Fixture');
+  await assert.rejects(()=>completeKnownPaste(f.options),/ownership not verified/);assert.equal(f.counts().enters,0);assert.equal(f.counts().reads,0);
+ });
 });
