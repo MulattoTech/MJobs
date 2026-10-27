@@ -548,3 +548,50 @@ test('already-online start-work still pauses dispatch if final safety verificati
  const c=f.make();c.start(request('online-final-safety',{startWorkAfter:true}));const result=await c.waitForIdle();
  assert.notEqual(result.phase,'ready_dispatching');assert.equal(f.live.dispatchPaused,true);assert.equal(result.restoreStartAttempted,false);assert.ok(result.cleanup.outcomes.some(x=>x.name==='hold dispatch'&&x.ok));
 });
+
+
+test('polling timer jitter within the stage budget does not strand a partial restore', async t => {
+  let clock = Date.now(), reads = 0;
+  const f = fixture(t, { now: () => clock, pollMs: 10,
+    timeouts: { readMs: 2000, actionMs: 2000, watchdogMs: 2000, guardAckMs: 2000, restoreMs: 5000, readinessMs: 2000, totalMs: 15000 } });
+  f.deps.restore.status = async () => {
+    if (++reads === 1) {
+      setTimeout(() => { clock += 500; }, 0);
+      return { active: true, phase: 'restoring_primary', total: 3, restoredCount: 2 };
+    }
+    return { active: false, phase: 'complete', total: 3, restoredCount: 3 };
+  };
+  const controller = f.make(); controller.start(request('poll-jitter-recovery'));
+  const result = await controller.waitForIdle();
+  assert.equal(result.phase, 'ready_paused', JSON.stringify(result.error));
+  assert.equal(result.reconciliationRequired, false);
+  assert.equal(f.events.filter(event => event === 'restore-start').length, 1);
+});
+
+test('a poll wake after the actual restoration deadline remains blocked', async t => {
+  let clock = Date.now(), reads = 0;
+  const f = fixture(t, { now: () => clock, pollMs: 10,
+    timeouts: { readMs: 2000, actionMs: 2000, watchdogMs: 2000, guardAckMs: 2000, restoreMs: 300, readinessMs: 2000, totalMs: 15000 } });
+  f.deps.restore.status = async () => {
+    reads++; setTimeout(() => { clock += 500; }, 0);
+    return { active: true, phase: 'restoring_primary', total: 3, restoredCount: 2 };
+  };
+  const controller = f.make(); controller.start(request('poll-actual-deadline'));
+  const result = await controller.waitForIdle();
+  assert.equal(result.phase, 'uncertain'); assert.equal(result.error.code, 'STAGE_TIMEOUT');
+  assert.equal(reads, 1); assert.equal(f.events.includes('current-readiness'), false);
+  assert.equal(f.events.includes('restore-pause'), true);
+});
+
+test('cancellation interrupts a poll pause without another readiness read or launch', async t => {
+  const f = fixture(t, { pollMs: 100 }); let controller, reads = 0;
+  f.deps.restore.status = async () => {
+    reads++; setTimeout(() => controller.cancel({ runId: controller.status().runId }), 5);
+    return { active: true, phase: 'restoring_primary', total: 3, restoredCount: 2 };
+  };
+  controller = f.make(); controller.start(request('cancel-poll-pause'));
+  const result = await controller.waitForIdle();
+  assert.equal(result.error.code, 'CANCELLED'); assert.equal(reads, 1);
+  assert.equal(f.events.includes('current-readiness'), false);
+  assert.equal(f.events.filter(event => event === 'restore-start').length, 1);
+});

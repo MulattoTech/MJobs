@@ -5,7 +5,7 @@ const path = require('node:path');
 const { randomUUID, createHash } = require('node:crypto');
 
 const POLICY = Object.freeze({ thresholdPercent: 7, pollSeconds: 5, window: 'any', enabled: true, brakePercent: 15 });
-const DEFAULT_TIMEOUTS = Object.freeze({ readMs: 10000, actionMs: 15000, watchdogMs: 45000, guardAckMs: 25000, restoreMs: 600000, readinessMs: 30000, totalMs: 900000 });
+const DEFAULT_TIMEOUTS = Object.freeze({ readMs: 30000, actionMs: 15000, watchdogMs: 45000, guardAckMs: 25000, restoreMs: 600000, readinessMs: 90000, totalMs: 900000 });
 const ACTIVE_PHASES = new Set(['validating', 'holding_dispatch', 'unlocking', 'waiting_watchdog', 'arming_guard', 'waiting_guard_ack', 'starting_restore', 'restoring', 'verifying', 'opening_ui', 'starting_dispatch']);
 
 class StartupError extends Error {
@@ -200,6 +200,24 @@ class StartupController {
     if (requireGuard && ((q.monitorEnabled !== undefined && q.monitorEnabled !== true) || (q.pollSeconds !== undefined && q.pollSeconds !== POLICY.pollSeconds) || (q.window !== undefined && q.window !== POLICY.window))) throw new StartupError('GUARD_CONFIG_CHANGED', 'Quota guard settings changed during Startup');
     return value;
   }
+  async _pollPause(name, deadline) {
+    // Sleeping is not an external operation. Timer scheduling jitter must not
+    // manufacture an uncertain native submission. The stage/overall deadlines,
+    // cancellation and ownership remain authoritative before the next probe.
+    this._assertCurrent();
+    if (this.now() >= deadline) throw new StartupError('STAGE_TIMEOUT', name + ' did not become ready before its deadline', this.state.restoreStartAttempted);
+    const signal = this.abort.signal;
+    await new Promise((resolve, reject) => {
+      let timer;
+      const finish = error => { clearTimeout(timer); signal.removeEventListener('abort', cancel); error ? reject(error) : resolve(); };
+      const cancel = () => finish(new StartupError('CANCELLED', 'Polling aborted', this.state.restoreStartAttempted));
+      signal.addEventListener('abort', cancel, { once: true });
+      if (signal.aborted) { cancel(); return; }
+      timer = setTimeout(() => finish(), Math.min(this.pollMs, Math.max(1, deadline - this.now())));
+    });
+    this._assertCurrent();
+    if (this.now() >= deadline) throw new StartupError('STAGE_TIMEOUT', name + ' did not become ready before its deadline', this.state.restoreStartAttempted);
+  }
   async _wait(name, phase, timeoutMs, probe, { requireGuard = false } = {}) {
     this._transition(phase, { stageDeadlineAt: new Date(this.now() + timeoutMs).toISOString() });
     const deadline = this.now() + timeoutMs;
@@ -210,10 +228,7 @@ class StartupController {
       if (result === true || result?.ready === true) return result;
       if (result?.failed) throw new StartupError('STAGE_FAILED', name + ': ' + String(result.reason || 'verification failed'), this.state.restoreStartAttempted);
       if (this.now() >= deadline) throw new StartupError('STAGE_TIMEOUT', name + ' did not become ready before its deadline', this.state.restoreStartAttempted);
-      await this._call(name + ' poll interval', ctx => new Promise((resolve, reject) => {
-        const timer = setTimeout(resolve, Math.min(this.pollMs, Math.max(1, deadline - this.now())));
-        ctx.signal.addEventListener('abort', () => { clearTimeout(timer); reject(new StartupError('CANCELLED', 'Polling aborted')); }, { once: true });
-      }), { timeoutMs: Math.min(this.pollMs, Math.max(1, deadline - this.now())) + 100 });
+      await this._pollPause(name, deadline);
     }
   }
 

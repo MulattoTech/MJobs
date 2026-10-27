@@ -548,6 +548,9 @@ class RestoreFleet {
  async tick(){
   if(!this.state.active||this.running)return {skipped:'inactive or busy'};
   this.running=true;
+  const operation=this.state;
+  const operationCurrent=()=>this.state===operation&&this.state.active===true;
+  const interrupted=()=>({skipped:'restore paused or superseded during inspection'});
   try{
    this.state.lastTick=nowIso();
    if(this.locked()){
@@ -556,25 +559,29 @@ class RestoreFleet {
    }
    const startBlocked=this.startBlockReason();
    if(startBlocked){this.state.phase='paused_quota';this.state.lastError=startBlocked;this.save();return {paused:startBlocked};}
-   if(!(await this.watchdogDisarmed(this.state.fromEmergency===true))){
+   const watchdogReady=await this.watchdogDisarmed(this.state.fromEmergency===true);
+   if(!operationCurrent())return interrupted();
+   if(!watchdogReady){
     this.state.phase='waiting_watchdog';
     this.save();return {paused:'Waiting for emergency watchdog to disarm'};
    }
    let live;
    try{live=await this.getGlobalSessions()}
    catch{
+    if(!operationCurrent())return interrupted();
     this.state.phase='starting_ao';
     const now=this.now();
     if(now-parseTime(this.state.aoStartLastAttempt)>90000||!this.state.aoStartLastAttempt){
      this.state.aoStartLastAttempt=nowIso();
      this.state.aoLaunches++;
      this.save();
-     try{await this.launchAO();this.state.startedAO=true;this.log('ao_started',{attempt:this.state.aoLaunches})}
-     catch(e){this.state.lastError='Could not start Orchestrator.inc: '+detail(e);this.log('ao_start_failed',{message:detail(e)})}
+     try{await this.launchAO();if(!operationCurrent())return interrupted();this.state.startedAO=true;this.log('ao_started',{attempt:this.state.aoLaunches})}
+     catch(e){if(!operationCurrent())return interrupted();this.state.lastError='Could not start Orchestrator.inc: '+detail(e);this.log('ao_start_failed',{message:detail(e)})}
     }
     this.save();
     return {waiting:'Starting Orchestrator.inc daemon'};
    }
+   if(!operationCurrent())return interrupted();
    const superseded=this.replacementIds();
    const expected=(this.state.source?.targets||[]).filter(s=>!superseded.has(s.id));
    for(const s of (this.state.source?.targets||[])){if(superseded.has(s.id))this.state.skipped[s.id]={reason:'Preserved original has a verified replacement'};}
@@ -582,7 +589,8 @@ class RestoreFleet {
    let processCounts;
    const restorationScope=this.restorationScope();
    try{processCounts=await this.runtimeInspector([...new Set(expected.map(x=>x.projectId))],{restorationScope})}
-   catch(e){this.state.phase='partial';this.state.lastError='Cannot verify session process trees: '+detail(e);this.save();return {waiting:'Waiting for reliable AO runtime inspection'}}
+   catch(e){if(!operationCurrent())return interrupted();this.state.phase='partial';this.state.lastError='Cannot verify session process trees: '+detail(e);this.save();return {waiting:'Waiting for reliable AO runtime inspection'}}
+   if(!operationCurrent())return interrupted();
    const first=expected.filter(s=>s.kind==='orchestrator').sort((a,b)=>(a.projectId==='mjobs-luna'?0:1)-(b.projectId==='mjobs-luna'?0:1));
    const second=expected.filter(s=>s.kind!=='orchestrator');
    const pending=[];
@@ -591,6 +599,7 @@ class RestoreFleet {
    for(const s of [...first,...second]){
     const sameId=live.filter(session=>session.id===s.id),candidate=sameId.length===1?sameId[0]:null;
     const match=await this.runtimeTarget(s,candidate,processCounts.get(s.id));
+    if(!operationCurrent())return interrupted();
     const current=match.matches?candidate:null;
     if(!current){tally.missing++;continue}
     if(s.kind==='orchestrator'&&hasSameRoot(live,s)){
@@ -667,6 +676,7 @@ class RestoreFleet {
     return {waiting:true,tally};
    }
    const resource=await this.resourceReader();
+   if(!operationCurrent())return interrupted();
    this.state.stats={tally,resource};
    let guard=null;
    if(!Number.isFinite(resource.ramGiB)||!Number.isFinite(resource.diskGiB)||!Number.isFinite(resource.cpuPercent))guard='Current RAM, disk and CPU measurements are required before restoring another runtime';
@@ -736,7 +746,7 @@ class RestoreFleet {
     this.save();
    }
    return {submitted,phase:this.state.phase,tally};
-  }catch(e){this.failure(e);return {error:detail(e)}}
+  }catch(e){if(!operationCurrent())return interrupted();this.failure(e);return {error:detail(e)}}
   finally{this.running=false}
  }
 }
