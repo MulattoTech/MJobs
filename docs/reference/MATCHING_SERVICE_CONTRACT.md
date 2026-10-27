@@ -12,7 +12,7 @@ The exact pinned source exposes three public functions:
 
 1. `build_preference_fit_factors(job, profile)` (`services/discovery/matching.py:454-533`)
 2. `build_explanation(job, profile)` (`services/discovery/matching.py:544-629`)
-3. `recalculate(store, profile_id, profile_version=None, check=None, *, candidate_job_ids=None, scoring_criteria=None)` (`services/discovery/matching.py:659-698`)
+3. `recalculate(store, profile_id, profile_version=None, check=None, *, candidate_job_ids=None, scoring_criteria=None)` (the `recalculate` definition in `services/discovery/matching.py`)
 
 The first two already have function docstrings. The deterministic inventory’s single undocumented public definition corresponds to `recalculate`, which has no docstring. Existing architecture says explanations connect matching results to ingestion and that scores express suitability rather than invented qualifications or application authority (`docs/ARCHITECTURE.md:180-188`). The matching specification defines required/preferred/nice-to-have/unknown strength categories (`docs/spec/areas/matching_ai.md:162-173`). Neither describes the concrete builder outputs or transactional recalculation contract below.
 
@@ -28,7 +28,7 @@ The module performs deterministic local scoring against stored job/profile evide
 - positive approved skill-evidence collection;
 - job/match audit-history writers;
 - company-discovery request recording;
-- optionally, selected-search scoring composition during recalculation (`services/discovery/matching.py:2-14`, `675-686`).
+- optionally, selected-search scoring composition during recalculation (the `recalculate` definition in `services/discovery/matching.py`).
 
 The pure builders do not receive a store. `recalculate` is the durable write boundary.
 
@@ -198,17 +198,17 @@ recalculate(
 ) -> None
 ```
 
-Source: `services/discovery/matching.py:659-698`. The function has no explicit return, so successful completion returns `None`.
+Source: the `recalculate` definition in `services/discovery/matching.py`. The function has no explicit return, so successful completion returns `None`.
 
 ### Inputs
 
 #### `store`, `profile_id`, `profile_version`
 
-`store` supplies the transactional engine, profile snapshot, audit helper, and persisted tables. `profile_id` selects the profile and match ownership. Optional `profile_version` pins the profile snapshot; `store.profile(profile_id, profile_version, connection=...)` validates it inside the transaction (`services/discovery/matching.py:663-670`). A stale/nonexistent pinned version propagates the store’s lookup error; a pinned test expects `NoResultFound` and no match write (`tests/unit/test_matching_candidate_scope.py:80-87`).
+`store` supplies the transactional engine, profile snapshot, audit helper, and persisted tables. `profile_id` selects the profile and match ownership. Optional `profile_version` pins the profile snapshot; `store.profile(profile_id, profile_version, connection=...)` validates it inside the transaction (the `recalculate` definition in `services/discovery/matching.py`). A stale/nonexistent pinned version propagates the store’s lookup error; a pinned test expects `NoResultFound` (`tests/unit/test_matching_candidate_scope.py:80-81`).
 
 #### `check`
 
-Optional zero-argument cancellation/authorization callback; defaults to a no-op. It is called once immediately before scoring each selected job (`services/discovery/matching.py:661-674`). Exceptions propagate and abort the surrounding transaction. If the candidate set is empty, this function does not call `check` because the call is inside the job loop.
+Optional zero-argument cancellation/authorization callback; defaults to a no-op. It is called once immediately before scoring each selected job (the `recalculate` definition in `services/discovery/matching.py`). Exceptions propagate and abort the surrounding transaction. If the candidate set is empty, this function does not call `check` because the call is inside the job loop.
 
 Worker callers pass their operation lifecycle check for collection, rescore-only, and selected-search workflows (`workers/tasks.py:320-369`).
 
@@ -220,26 +220,26 @@ Optional bounded scope:
 - otherwise must be a `list` or `tuple` of at most 10,000 entries;
 - each entry must be a nonempty string no longer than 128 characters;
 - values are deduplicated and sorted;
-- database queries use chunks of 500, then results are sorted by job ID (`services/discovery/matching.py:632-656`).
+- database queries use chunks of 500, then results are sorted by job ID (the `recalculate` implementation in `services/discovery/matching.py`).
 
-Unknown IDs simply yield no row. An empty list performs no per-job scoring but still reaches downstream request recording and recalculation audit. Pinned tests assert deduplicated sorted scoring, preservation of unselected match history, legacy full-rescore behavior when omitted, version guarding, and invalid-scope rejection (`tests/unit/test_matching_candidate_scope.py:51-93`).
+Unknown IDs simply yield no row. An empty list performs no per-job scoring but still reaches downstream request recording and recalculation audit. Pinned tests assert deduplicated sorted scoring, preservation of unselected match history, legacy full-rescore behavior when omitted, and version guarding (`tests/unit/test_matching_candidate_scope.py:51-81`).
 
 #### `scoring_criteria`
 
-Optional selected-search criteria. When present, the function imports `compose_selected_search_match`, composes a selected-search score from the job, baseline score, criteria, and profile, replaces the persisted top-level score, and adds `scoring_profile` plus `scoring_contributions` to components (`services/discovery/matching.py:675-686`). The baseline requirements/fit explanation remains present.
+Optional selected-search criteria. When present, the function imports `compose_selected_search_match`, composes a selected-search score from the job, baseline score, criteria, and profile, replaces the persisted top-level score, and adds `scoring_profile` plus `scoring_contributions` to components (the `recalculate` definition in `services/discovery/matching.py`). The baseline requirements/fit explanation remains present.
 
 ### Transaction and locking
 
-All work occurs in one `store.engine.begin()` transaction (`services/discovery/matching.py:663-698`).
+All work occurs in one `store.engine.begin()` transaction (the `recalculate` definition in `services/discovery/matching.py`).
 
-- SQLite explicitly executes `BEGIN IMMEDIATE` (`services/discovery/matching.py:664-665`).
-- Other dialects select the profile ID `FOR UPDATE` and require exactly one row (`services/discovery/matching.py:666-669`).
+- SQLite explicitly executes `BEGIN IMMEDIATE` (the `recalculate` definition in `services/discovery/matching.py`).
+- Other dialects select the profile ID `FOR UPDATE` and require exactly one row (the `recalculate` definition in `services/discovery/matching.py`).
 
 Any uncaught exception—including cancellation, missing profile/version, scoring failure, audit failure, or persistence failure—escapes the function and causes normal transaction rollback. The function contains no retry or partial-commit logic.
 
 ### Per-job effects
 
-For each selected stored job, in deterministic ID order (`services/discovery/matching.py:648-656`, `672-696`):
+For each selected stored job, in deterministic ID order (the `recalculate` implementation in `services/discovery/matching.py`):
 
 1. call `check`;
 2. build the baseline explanation;
@@ -249,18 +249,18 @@ For each selected stored job, in deterministic ID order (`services/discovery/mat
 6. record `MATCH_SCORED` for the active profile version;
 7. upsert/replace a match keyed by stable identity of job ID, profile ID, and profile version, storing the explanation.
 
-After all jobs, it records company-discovery requests for the processed job IDs/profile and writes a `MATCHES_RECALCULATED` audit event with the actual profile version (`services/discovery/matching.py:687-698`).
+After all jobs, it records company-discovery requests for the processed job IDs/profile and writes a `MATCHES_RECALCULATED` audit event with the actual profile version (the `recalculate` definition in `services/discovery/matching.py`).
 
 The function does not delete matches outside `candidate_job_ids`; scoped recalculation intentionally preserves unrelated history. The pinned candidate-scope test verifies that behavior (`tests/unit/test_matching_candidate_scope.py:51-78`).
 
 ### Errors
 
-Explicit candidate-scope validation raises `ValueError` with one of two messages:
+The `candidate_job_ids` validation in `services/discovery/matching.py` raises `ValueError` with one of two messages:
 
 - `Candidate job IDs must be a bounded list of IDs`
 - `Candidate job IDs must contain non-empty IDs up to 128 characters`
 
-Source: `services/discovery/matching.py:637-645`.
+Source: the `candidate_job_ids` validation in `services/discovery/matching.py`.
 
 All other errors from profile lookup/locking, job reads, callbacks, explanation/scoring composition, audit writers, request recording, and upsert propagate unchanged. There is no error translation in this module.
 
@@ -311,6 +311,6 @@ This does not contact providers, but it is not read-only. Do not use a productio
 - Baseline score is approved positive skill-evidence coverage, not qualification probability, hiring likelihood, or application authority (`services/discovery/matching.py:544-629`; `docs/ARCHITECTURE.md:180-188`).
 - Preference, certification, education, remote-location, and relevant-experience fit factors are informational and score-neutral in this baseline (`services/discovery/matching.py:454-541`).
 - Missing or conflicting profile evidence must not be rewritten as a negative biographical claim (`services/discovery/matching.py:579-604`, `627`).
-- Scoped recalculation preserves unselected match history; do not add cleanup/deletion based only on `candidate_job_ids` (`services/discovery/matching.py:637-698`).
+- Scoped recalculation preserves unselected match history; do not add cleanup/deletion based only on `candidate_job_ids` (the scoped `recalculate` behavior in `services/discovery/matching.py`).
 - Profile/search changes require fresh scoring. Do not present older versioned rows as current (`docs/ARCHITECTURE.md:180-188`).
-- `recalculate` is transactional and durable even though scoring itself is local; cancellation or failure must propagate so the transaction can roll back (`services/discovery/matching.py:659-698`).
+- `recalculate` is transactional and durable even though scoring itself is local; cancellation or failure must propagate so the transaction can roll back (the `recalculate` definition in `services/discovery/matching.py`).
