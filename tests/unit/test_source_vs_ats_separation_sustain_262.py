@@ -153,15 +153,87 @@ class SourceVsAtsSeparationSustainTests(unittest.TestCase):
             self.assertEqual(source_node["metadata"]["tenant"], "acme-board")
 
     def test_repeats_are_stable_and_profile_scope_prevents_cross_company_edges(self):
+        other_profile_source = upsert_company_job_source(
+            self.store,
+            company_id="other",
+            provider="company-careers",
+            tenant_identifier="other-profile-careers",
+            career_url="https://other.example.test/careers",
+            collection_strategy="HTML",
+            discovered_automatically=False,
+            ats_tenant_id=None,
+            profile_id="other-profile",
+        )
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.insert().values(
+                id="job-other-profile", company_id="other", requisition="REQ-OTHER",
+                title="Other profile role", description="Synthetic other-profile fixture",
+                skills=[], location="Remote", remote_type="REMOTE", attributes={},
+            ))
+            connection.execute(m.matches.insert().values(
+                id="match-other-profile", job_id="job-other-profile",
+                profile_id="other-profile", profile_version="v1", score=70,
+                missing=[], components={},
+            ))
+            connection.execute(m.postings.insert().values(
+                id="posting-other-profile", job_id="job-other-profile",
+                source="company-careers", source_job_id="other-profile-REQ-OTHER",
+                source_url="https://other.example.test/careers/REQ-OTHER",
+                application_url="https://other.example.test/careers/REQ-OTHER",
+                raw={"fixture": True}, fetched_at="2026-10-24T12:00:00Z",
+            ))
+            connection.execute(m.posting_snapshots.insert().values(
+                id="snapshot-other-profile", posting_id="posting-other-profile",
+                raw={"fixture": True}, sha256="e" * 64,
+                retrieved_at="2026-10-24T12:00:00Z",
+            ))
+            connection.execute(m.source_quality_observations.insert().values(
+                id="quality-other-profile",
+                company_source_id=other_profile_source["id"],
+                source_endpoint=other_profile_source["endpoint"],
+                observed_at="2026-10-24T12:00:00Z", succeeded=True,
+                available=True, enumerated=1, accepted=1,
+            ))
+            connection.execute(m.posting_value_candidates.insert().values(
+                id="candidate-other-profile", posting_id="posting-other-profile",
+                posting_snapshot_id="snapshot-other-profile",
+                company_source_id=other_profile_source["id"],
+                quality_observation_id="quality-other-profile",
+                observed_at="2026-10-24T12:00:00Z", normalized={},
+                application_url="https://other.example.test/careers/REQ-OTHER",
+            ))
+
         first = read_source_relationship_graph(self.store, "fixture")
         self.assertEqual(first, read_source_relationship_graph(self.store, "fixture"))
         fixture_ids = {node["id"] for node in first["nodes"]}
         self.assertNotIn("company:other", fixture_ids)
-        self.assertNotIn(f"company_job_source:{self.other_ats['id']}", fixture_ids)
-        self.assertEqual(
-            read_source_relationship_graph(self.store, "other-profile"),
-            {"nodes": [], "edges": []},
+        other_source_node = f"company_job_source:{other_profile_source['id']}"
+        other_posting_node = "job_posting:posting-other-profile"
+        fixture_edges = {
+            (edge["type"], edge["source"], edge["target"])
+            for edge in first["edges"]
+        }
+        self.assertNotIn(other_source_node, fixture_ids)
+        self.assertFalse(any(
+            source == other_source_node or target == other_source_node
+            for _, source, target in fixture_edges
+        ))
+
+        other_graph = read_source_relationship_graph(self.store, "other-profile")
+        other_ids = {node["id"] for node in other_graph["nodes"]}
+        other_edges = {
+            (edge["type"], edge["source"], edge["target"])
+            for edge in other_graph["edges"]
+        }
+        self.assertIn(other_source_node, other_ids)
+        self.assertIn("canonical_job:job-other-profile", other_ids)
+        self.assertIn(other_posting_node, other_ids)
+        self.assertIn(("company_source", "company:other", other_source_node), other_edges)
+        self.assertIn(
+            ("job_posting", "canonical_job:job-other-profile", other_posting_node),
+            other_edges,
         )
+        self.assertIn(("source_posting", other_source_node, other_posting_node), other_edges)
 
     def test_missing_or_cross_company_ats_bindings_fail_without_writes(self):
         with self.store.engine.connect() as connection:
