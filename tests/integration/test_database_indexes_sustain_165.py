@@ -553,9 +553,9 @@ class DatabaseIndexPostgreSQLTests(DatabaseIndexContractMixin, unittest.TestCase
         if label == "enabled source scheduling":
             self.assertIn("ix_company_job_sources_enabled_id", normalized,
                           f"{label} used the wrong index:\n{plan}")
-        if ordered:
-            self.assertNotIn("sort", normalized,
-                             f"{label} required an avoidable sort:\n{plan}")
+            if ordered:
+                self.assertNotIn("sort", normalized,
+                                 f"{label} required an avoidable sort:\n{plan}")
 
 
 if __name__ == "__main__":
