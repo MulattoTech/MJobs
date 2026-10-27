@@ -53,9 +53,18 @@ def test_two_browser_reservations_bound_hundreds_of_synthetic_attempts(
     browser_launch.assert_not_called()
 
 
-@pytest.mark.parametrize("configured", ["0", "3", "200", "many", ""])
-def test_invalid_or_oversized_browser_worker_limit_fails_before_worker_start(
-    configured: str, monkeypatch: pytest.MonkeyPatch,
+@pytest.mark.parametrize(("environment", "configured"), [
+    pytest.param("MJOBS_SOURCE_COLLECTION_CONCURRENCY", "200", id="source-collection"),
+    pytest.param("MJOBS_COMPANY_DISCOVERY_CONCURRENCY", "3", id="company-discovery"),
+    pytest.param("MJOBS_AI_CONCURRENCY", "3", id="ai"),
+    pytest.param("MJOBS_DOCUMENT_GENERATION_CONCURRENCY", "3", id="document-generation"),
+    pytest.param("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "3", id="application-automation"),
+    pytest.param("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "0", id="zero"),
+    pytest.param("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "many", id="malformed"),
+    pytest.param("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", "", id="empty"),
+])
+def test_invalid_or_oversized_worker_category_fails_before_worker_start(
+    environment: str, configured: str, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Worker startup validates every category before RQ can consume work."""
 
@@ -71,7 +80,7 @@ def test_invalid_or_oversized_browser_worker_limit_fails_before_worker_start(
     monkeypatch.setenv("MJOBS_DATABASE_URL", "synthetic://not-opened")
     monkeypatch.setenv("MJOBS_REDIS_URL", "redis://synthetic.invalid/0")
     monkeypatch.setenv("MJOBS_OPERATION_MODE", "PERSONAL")
-    monkeypatch.setenv("MJOBS_APPLICATION_AUTOMATION_CONCURRENCY", configured)
+    monkeypatch.setenv(environment, configured)
 
     with pytest.raises(ValueError, match="Operation concurrency outside conservative bounds"):
         worker_main.main()
