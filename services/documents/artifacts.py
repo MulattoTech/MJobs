@@ -143,14 +143,20 @@ def _only_generated_files(path: Path) -> bool:
     return True
 
 
+def _reviewed_revision_layout(parts: tuple[str, ...]) -> bool:
+    """Recognize the reserved directory shape without trusting its contents."""
+    return (len(parts) == 3
+            and _REVIEW_ID.fullmatch(parts[0]) is not None
+            and _REVIEW_ID.fullmatch(parts[1]) is not None
+            and _REVIEWED_REVISION.fullmatch(parts[2]) is not None)
+
+
 def _managed_reviewed_revision(path: Path, parts: tuple[str, ...]) -> bool:
     """Recognize only exact, integrity-bound reviewed cover-letter revisions."""
-    if len(parts) != 3:
+    if not _reviewed_revision_layout(parts):
         return False
     match = _REVIEWED_REVISION.fullmatch(parts[2])
-    if (match is None or _REVIEW_ID.fullmatch(parts[0]) is None
-            or _REVIEW_ID.fullmatch(parts[1]) is None):
-        return False
+    assert match is not None
     expected_names = {
         "cover-letter.docx", "cover-letter.pdf", "cover-letter.txt",
         REVIEWED_COVER_LETTER_MARKER,
@@ -216,8 +222,10 @@ def _classification(path: Path, root: Path, referenced: set[str]) -> tuple[str, 
         if any(item.is_file() and item.suffix.casefold() in {".pdf", ".docx", ".txt"}
                for item in path.iterdir()) and _only_generated_files(path):
             return "ORPHAN_GENERATED_REVISION", True
-    if path.is_dir() and _managed_reviewed_revision(path, parts):
-        return "ORPHAN_REVIEWED_REVISION", True
+    if path.is_dir() and _reviewed_revision_layout(parts):
+        if _managed_reviewed_revision(path, parts):
+            return "ORPHAN_REVIEWED_REVISION", True
+        return "INVALID_REVIEWED_REVISION_PROTECTED", False
     if path.is_file() and len(parts) >= 4 and path.name.endswith(".tmp"):
         return "INCOMPLETE_TEMPORARY_FILE", True
     if path.is_file() and len(parts) >= 4 and path.suffix.casefold() in {".pdf", ".docx", ".txt"}:
@@ -263,6 +271,10 @@ def _scan_with_connection(connection, root: Path, now: datetime,
         modified = datetime.fromtimestamp(stat.st_mtime, timezone.utc)
         age = now - modified
         eligible = eligible_class and age >= minimum_age and not path.is_symlink()
+        if path.is_dir() and classification == "INVALID_REVIEWED_REVISION_PROTECTED":
+            results.append({"path": _relative(root, path), "classification": classification,
+                            "eligible": False})
+            return
         if path.is_dir() and eligible_class:
             try:
                 digest, size = _artifact_digest(path)
