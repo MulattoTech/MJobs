@@ -193,7 +193,7 @@ function transform(s,replacements){
   createdAt:s.createdAt||null,branch:s.branch||null,
   branchState:s.branchState||{},mode:s.mode||null,prs,openPRs:openPRs.length,
   busy,isIdle,blocked,isTerminated:!!s.isTerminated,
-  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle Â· CI attention':openPRs.length?'Idle Â· PR pending':activity==='waiting_input'?'Awaiting instruction':'Idle Â· available'):(activity==='exited'?'Exited':activity),
+  stateLabel:controllerUnavailable?'Controller '+(s.controllerState||'unverified'):busy?'Working':isIdle?(blocked?'Idle · CI attention':openPRs.length?'Idle · PR pending':activity==='waiting_input'?'Awaiting instruction':'Idle · available'):(activity==='exited'?'Exited':activity),
   controllerState:s.controllerState||null,controllerVerified:s.controllerVerified??null,
   replacementFor:replacementFor?.oldId||null,replacedBy:replacedBy?.newId||null,
   ...operationalDetails(s,sustain),
@@ -208,7 +208,7 @@ function emergencyOfflineSnapshot(reason='Emergency stop is locked; Orchestrator
  const replacements=readReplacements();
  const sessions=manifest.sessions.filter(s=>s.projectId===projectId&&!s.isTerminated).map(s=>({
   ...transform(s,replacements),busy:false,isIdle:false,blocked:false,openPRs:0,prs:[],
-  activity:'exited',status:'emergency_stopped',stateLabel:'Stopped Â· preserved snapshot',
+  activity:'exited',status:'emergency_stopped',stateLabel:'Stopped · preserved snapshot',
   lastActivity:s.observedAt||manifest.at||null
  }));
  const metrics={cpu:calculateCPU(),ramTotal:os.totalmem(),ramFree:os.freemem(),logicalCores:os.cpus().length,uptime:os.uptime()};
@@ -321,7 +321,7 @@ async function nudge(x){
  }else if(type==='next'){
   message='You appear idle. Review your previous assignment and any owned PRs first. If your work is complete, request a new nonoverlapping P0/P1 task from the primary orchestrator '+primary+'; do not independently claim files, duplicate an existing worker, or begin a new implementation without explicit ownership.';
  }else if(type==='custom'){
-  if(typeof x.message!=='string'||x.message.trim().length<10||x.message.length>2400)throw Error('Custom message must contain 10â€“2400 characters');
+  if(typeof x.message!=='string'||x.message.trim().length<10||x.message.length>2400)throw Error('Custom message must contain 10–2400 characters');
   message=x.message.trim();
  }else throw Error('Unknown nudge mode');
  const args=['send','--session',s.id,'--message',message];
@@ -341,7 +341,7 @@ async function replace(x){
  await assertWorktreeClean(old);
  const recheck=await freshMutationState(),current=recheck.sessions.find(s=>s.id===old.id);
  if(!sameMutationCandidate(old,current,isCleanCandidate))throw Error('Original session state changed during replacement validation. No replacement was launched.');
- const name=old.name.replace(/^â†ª /,'').slice(0,71)+' / '+newModel.name.slice(0,21);
+ const name=old.name.replace(/^↪ /,'').slice(0,71)+' / '+newModel.name.slice(0,21);
  const primary=recheck.sessions.find(s=>s.kind==='orchestrator'&&!s.isTerminated&&!s.replacedBy&&s.activity!=='exited')?.id||'the primary orchestrator';
  const prompt='You are a replacement for session '+old.id+' ('+old.name+'). Your class is '+old.role+'. Preserve all existing branches, PRs and user changes; do not edit main, force-push, or auto-merge. First read the existing session history with ao session history '+old.id+' --limit 8 and report to primary orchestrator '+primary+' for a specifically assigned, nonoverlapping issue and file scope. Do NOT take over old PRs or start implementing until delegated.';
  let output;

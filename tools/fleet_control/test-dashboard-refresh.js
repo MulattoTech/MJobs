@@ -79,6 +79,11 @@ function testCompletedPRClassification(){
  }finally{fs.rmSync(root,{recursive:true,force:true})}
  console.log('PASS 14 real transform + Turbo PR-history scenarios; raw CI evidence and exited-worker safety preserved');
 }
+function testServerUnicodeIntegrity(){
+ const serverSource=fs.readFileSync(path.join(__dirname,'server.js'),'utf8');
+ for(const expected of ['Idle · CI attention','Stopped · preserved snapshot','10–2400 characters','/^↪ /'])assert(serverSource.includes(expected),'Preserve server Unicode literal: '+expected);
+ assert(!/[Ââ][·€“†ª]/u.test(serverSource),'Reject mojibake in Fleet server literals');
+}
 async function testRefresh(){
  let resolveRoster,reads=0,renders=0;const roster={sessions:[],summary:{},metrics:{},timestamp:new Date().toISOString()},state={pending:true,data:null,refreshPromise:null,receivedAt:0,refreshError:null,firstLoad:true,drawerId:null},elements={},get=s=>elements[s]||(elements[s]=elem());
  const c=context({state,$:get,esc,count:()=>{},toast:()=>{},renderReadiness:()=>{},updateCounts:()=>{},updateFilters:()=>{},renderTable:()=>renders++,showDrawer:()=>{},markFreshness:()=>{},api:route=>{
@@ -98,4 +103,4 @@ function testRealFreshnessDomContract(){
  c.markFreshness();assert(buttons.every(b=>b.disabled),'all matching buttons disabled');
  blocked=false;c.markFreshness();assert(buttons.every(b=>!b.disabled),'controls recover after fresh eligibility');
 }
-(async()=>{testRealFreshnessDomContract();await testApi();testDraft();testPlans();testCompletedPRClassification();await testRefresh();console.log('PASS dashboard deadlines/no-retry, shared-port URLs, offline staging, draft preservation, replacement gates, refresh coalescing and stale-plan handling');})().catch(e=>{console.error(e);process.exitCode=1});
+(async()=>{testRealFreshnessDomContract();await testApi();testDraft();testPlans();testCompletedPRClassification();testServerUnicodeIntegrity();await testRefresh();console.log('PASS dashboard deadlines/no-retry, shared-port URLs, offline staging, draft preservation, replacement gates, Unicode integrity, refresh coalescing and stale-plan handling');})().catch(e=>{console.error(e);process.exitCode=1});
