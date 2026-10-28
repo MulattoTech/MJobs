@@ -251,6 +251,35 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
         )
         self.assertTrue(protected.is_dir())
 
+    def test_reviewed_restore_rejects_manifest_path_not_bound_to_payload_marker(self):
+        now = datetime.now(timezone.utc)
+        application_id = "d" * 64
+        document_id = "a" * 64
+        reviewed = self._old_reviewed_orphan(
+            application_id, document_id, now=now,
+        )
+        candidate = next(
+            item for item in scan_artifacts(self.store, self.root, now=now)
+            if item.get("path") == reviewed.relative_to(self.root).as_posix()
+        )
+        record = quarantine_artifact(
+            self.store, self.root, candidate["artifact_id"], now=now,
+        )
+        quarantine_id = record["quarantine_id"]
+        manifest_path = self.root / ".quarantine" / f"{quarantine_id}.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        redirected = (
+            f"{'e' * 64}/{'1' * 64}/reviewed-{document_id}"
+        )
+        manifest["original_path"] = redirected
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+        payload = self.root / ".quarantine" / quarantine_id / "artifact"
+        with self.assertRaisesRegex(ValueError, "reviewed identity"):
+            restore_quarantined(self.store, self.root, quarantine_id, now=now)
+        self.assertTrue(payload.is_dir())
+        self.assertFalse((self.root / redirected).exists())
+
     def test_invalid_reviewed_layout_is_atomic_and_cannot_quarantine_a_child(self):
         now = datetime.now(timezone.utc)
         cases = []

@@ -508,6 +508,14 @@ def restore_quarantined(store, output_dir: str | Path, quarantine_id: str, *,
                 "ORPHAN_GENERATED_REVISION", "ORPHAN_REVIEWED_REVISION"},
             classification=manifest.get("classification")):
         raise ValueError("Quarantine manifest does not identify a managed generated artifact")
+    if manifest.get("classification") == "ORPHAN_REVIEWED_REVISION":
+        parts = Path(manifest["original_path"]).parts
+        reviewed = payload if payload.exists() else destination
+        if (not _reviewed_revision_layout(parts)
+                or (reviewed.exists()
+                    and (reviewed.is_symlink() or not reviewed.is_dir()
+                         or not _managed_reviewed_revision(reviewed, parts)))):
+            raise ValueError("Quarantine reviewed identity does not match its payload marker")
     if destination.exists() and not payload.exists():
         digest, size = _artifact_digest(destination)
         if digest == manifest.get("sha256") and size == manifest.get("size_bytes"):
