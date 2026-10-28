@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import event, select, update
+from sqlalchemy.engine import Connection
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -94,6 +95,22 @@ class CoverLetterUploadCriterion42Tests(unittest.TestCase):
                 "reviewed_cover_letter_sha256": reviewed["preview_sha256"],
             },
         )
+
+    def _crash_after_review_directory_publish(self):
+        class SimulatedProcessCrash(BaseException):
+            pass
+
+        original_execute = Connection.execute
+
+        def crash_on_document_insert(connection, statement, *args, **kwargs):
+            if (getattr(statement, "is_insert", False)
+                    and getattr(statement, "table", None) is m.documents):
+                raise SimulatedProcessCrash("after directory publication")
+            return original_execute(connection, statement, *args, **kwargs)
+
+        with patch.object(Connection, "execute", new=crash_on_document_insert):
+            with self.assertRaises(SimulatedProcessCrash):
+                self._approve(request_id="criterion42-crash-window")
 
     def test_review_approval_materializes_one_future_revision_without_promoting_it(self):
         approved, base, _profile = self._approve()
@@ -382,6 +399,54 @@ class CoverLetterUploadCriterion42Tests(unittest.TestCase):
             )).mappings())
         self.assertEqual(sorted(row["kind"] for row in promoted),
                          ["cover-letter", "resume"])
+
+    def test_crash_after_review_publish_reconciles_matching_orphan_on_retry(self):
+        self._crash_after_review_directory_publish()
+        application = self.store.application(self.application_id)
+        with self.store.engine.connect() as connection:
+            future = list(connection.execute(select(m.documents).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.version == application["document_version"] + 1,
+            )).mappings())
+        self.assertEqual(future, [])
+        review_root = self.output / self.application_id / application["profile_version"]
+        orphan_directories = list(review_root.glob("reviewed-*"))
+        self.assertEqual(len(orphan_directories), 1)
+
+        retry, _base, _profile = self._approve(
+            request_id="criterion42-crash-window",
+        )
+        self.assertEqual(retry.status_code, 201, retry.text)
+        with self.store.engine.connect() as connection:
+            recovered = list(connection.execute(select(m.documents).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.version == application["document_version"] + 1,
+                m.documents.c.kind == "cover-letter",
+            )).mappings())
+        self.assertEqual(len(recovered), 1)
+        self.assertEqual(recovered[0]["id"], retry.json()["document_id"])
+        self.assertEqual(list(review_root.glob("reviewed-*")), orphan_directories)
+
+    def test_crash_orphan_with_changed_bytes_fails_closed(self):
+        self._crash_after_review_directory_publish()
+        application = self.store.application(self.application_id)
+        review_root = self.output / self.application_id / application["profile_version"]
+        orphan = next(review_root.glob("reviewed-*"))
+        pdf = orphan / "cover-letter.pdf"
+        pdf.write_bytes(pdf.read_bytes() + b"changed after crash")
+
+        retry, _base, _profile = self._approve(
+            request_id="criterion42-crash-window",
+        )
+        self.assertEqual(retry.status_code, 422, retry.text)
+        self.assertEqual(retry.json()["detail"]["code"],
+                         "COVER_LETTER_REVIEW_ORPHAN_MISMATCH")
+        with self.store.engine.connect() as connection:
+            future = list(connection.execute(select(m.documents).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.version == application["document_version"] + 1,
+            )).mappings())
+        self.assertEqual(future, [])
 
 
 if __name__ == "__main__":

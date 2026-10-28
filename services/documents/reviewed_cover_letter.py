@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 import shutil
 from uuid import uuid4
@@ -24,6 +25,80 @@ class ReviewedCoverLetterError(ValueError):
     def __init__(self, code: str):
         self.code = code
         super().__init__(code)
+
+
+_ORPHAN_MANIFEST = ".reviewed-cover-letter.json"
+
+
+def _write_orphan_manifest(staging: Path, record: dict) -> None:
+    context = record["generation_context"]
+    payload = {
+        "schema_version": 1,
+        "document_id": record["id"],
+        "application_id": record["application_id"],
+        "version": record["version"],
+        "profile_version": record["profile_version"],
+        "preview_sha256": context["reviewed_preview_sha256"],
+        "request_id": context["approval_request_id"],
+        "files": record["files"],
+        "sha256": record["sha256"],
+    }
+    encoded = json.dumps(
+        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ) + "\n"
+    atomic_generate(
+        staging / _ORPHAN_MANIFEST,
+        lambda path: path.write_text(encoded, encoding="utf-8", newline="\n"),
+    )
+
+
+def _reconcile_matching_orphan(destination: Path, record: dict, paragraphs: list[str]) -> dict:
+    try:
+        if destination.is_symlink() or not destination.is_dir():
+            raise ValueError("review directory is unavailable")
+        expected_names = {
+            *(Path(relative).name for relative in record["files"].values()),
+            _ORPHAN_MANIFEST,
+        }
+        children = list(destination.iterdir())
+        if ({child.name for child in children} != expected_names
+                or any(child.is_symlink() or not child.is_file() for child in children)):
+            raise ValueError("review directory contents differ")
+        manifest = json.loads((destination / _ORPHAN_MANIFEST).read_text(encoding="utf-8"))
+        context = record["generation_context"]
+        expected = {
+            "schema_version": 1,
+            "document_id": record["id"],
+            "application_id": record["application_id"],
+            "version": record["version"],
+            "profile_version": record["profile_version"],
+            "preview_sha256": context["reviewed_preview_sha256"],
+            "request_id": context["approval_request_id"],
+            "files": record["files"],
+        }
+        if (not isinstance(manifest, dict)
+                or {key: manifest.get(key) for key in expected} != expected
+                or set(manifest) != {*expected, "sha256"}
+                or not isinstance(manifest.get("sha256"), dict)
+                or set(manifest["sha256"]) != {"docx", "pdf", "txt"}):
+            raise ValueError("review manifest identity differs")
+        paths = {
+            extension: destination / Path(record["files"][extension]).name
+            for extension in ("docx", "pdf", "txt")
+        }
+        for extension, path in paths.items():
+            expected_hash = manifest["sha256"].get(extension)
+            if (not isinstance(expected_hash, str) or len(expected_hash) != 64
+                    or hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash):
+                raise ValueError("review artifact hash differs")
+        if paths["txt"].read_text(encoding="utf-8") != "\n".join(paragraphs) + "\n":
+            raise ValueError("review text differs")
+        if [paragraph.text for paragraph in Document(paths["docx"]).paragraphs] != paragraphs:
+            raise ValueError("review document differs")
+        validate_generated_outputs(paths)
+        return {**record, "sha256": dict(manifest["sha256"])}
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_ORPHAN_MISMATCH") from None
 
 
 def materialize_reviewed_preview(
@@ -121,6 +196,7 @@ def materialize_reviewed_preview(
             "generation_model": "deterministic-reviewed-preview-v1",
             "generation_context": context,
         }
+        _write_orphan_manifest(staging, record)
         with store.engine.begin() as connection:
             if connection.dialect.name == "sqlite":
                 connection.exec_driver_sql("BEGIN IMMEDIATE")
@@ -163,8 +239,11 @@ def materialize_reviewed_preview(
                     raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_VERSION_CONFLICT")
                 shutil.rmtree(staging)
                 return _result(saved, replayed=True)
-            publish_directory(staging, destination)
-            published = True
+            if destination.exists() or destination.is_symlink():
+                record = _reconcile_matching_orphan(destination, record, paragraphs)
+            else:
+                publish_directory(staging, destination)
+                published = True
             connection.execute(m.documents.insert().values(**record))
         return _result(record, replayed=False)
     except Exception:
