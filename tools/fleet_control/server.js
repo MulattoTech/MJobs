@@ -453,7 +453,7 @@ async function main(req,res){
    if(req.url==='/api/startup/cancel'){const r=startup.cancel(data);master.disableAutomaticDispatch();master.restore.pause();return json(res,r.statusCode,r);}
    if(mutationLock||sustain.running||turbo.running||findWork.running)return json(res,409,{error:'Another control operation is running; Startup did not submit work'});
    mutationLock=true;owns=true;
-   if(req.url==='/api/startup'){const r=startup.start(data);return json(res,r.statusCode,r);}
+   if(req.url==='/api/startup'){const policy=quota.status().policy;if(policy?.blocked)return json(res,409,{error:policy.reason,code:'QUOTA_BLOCKED',quotaPolicy:policy});const r=startup.start(data);return json(res,r.statusCode,r);}
    if(req.url==='/api/startup/reconcile'){const r=await startup.reconcile(data);return json(res,r.statusCode||200,r);}
    assertCanStartWork();
    const r=await orchestratorLauncher.launch('ui',{beforeTrigger:()=>assertCanStartWork()});

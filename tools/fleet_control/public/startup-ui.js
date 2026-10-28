@@ -40,6 +40,7 @@ const FleetStartupUI = (() => {
     '<div class="startup-current" role="status" aria-live="polite" aria-atomic="true"><h3 id="startupPhase">Loading startup state</h3><p id="startupDetail">No agents are being started by this refresh.</p></div>' +
     '<ol id="startupSteps" class="startup-steps" aria-label="Startup stages">' + stepLabels.map((label, index) => '<li data-startup-step="' + (index + 1) + '"><span>' + (index + 1) + '</span>' + label + '</li>').join('') + '</ol>' +
     '<div id="startupRestoreProgress" class="startup-restore" hidden><label id="startupRestoreLabel" for="startupRestoreMeter">Restoration progress</label><progress id="startupRestoreMeter" max="1" value="0"></progress><p id="startupRestoreDetail"></p></div>' +
+    '<p class="startup-modal-note" id="startupQuotaSettings"><a href="#quotaSection">Change the start / new-work quota limit above</a>. Emergency protection is a separate setting.</p>' +
     '<div id="startupIssue" class="startup-issue" role="alert" hidden></div>' +
     '<p id="startupFreshness" class="startup-freshness">Waiting for a status response.</p>' +
     '<div class="startup-actions"><button id="startupStart" type="button" class="primary-button" disabled>Startup…</button><button id="startupOpenUi" type="button" class="ghost-button" disabled>Open Orchestrator</button><button id="startupRecheck" type="button" class="ghost-button" hidden>Recheck safely</button><button id="startupCancel" type="button" class="danger-button" hidden>Cancel startup</button><button id="startupRefresh" type="button" class="ghost-button">Refresh status</button></div>' +
@@ -47,7 +48,9 @@ const FleetStartupUI = (() => {
 
   function setText(id, text) { const el = byId(id); if (el && el.textContent !== text) el.textContent = text; }
   function fresh() { return !!run && !readError && Date.now() - lastSuccess < 20000; }
-  function alreadyStarted() { return ['ready_paused','ready_dispatching'].includes(run?.phase) && (readiness?.ready === true || readiness?.inspectionPending === true); }
+  function quotaHoldResolved(){ return run?.error?.code==='QUOTA_LOW'&&readiness?.quota?.fresh===true&&readiness.quota.blocked===false; }
+  function alreadyStarted() { return (['ready_paused','ready_dispatching'].includes(run?.phase) && (readiness?.ready === true || readiness?.inspectionPending === true)) || (quotaHoldResolved()&&readiness?.ready===true&&!run?.active&&!run?.reconciliationRequired); }
+  function quotaBlocked() { return readiness?.quota?.blocked === true; }
   function uncertain() { return !!run && (run.phase === 'uncertain' || run.reconciliationRequired === true); }
   function relativeTime(value) {
     const age = Date.now() - Date.parse(value || '');
@@ -103,6 +106,8 @@ const FleetStartupUI = (() => {
       }
     }
     if (stale && !['ready_paused','ready_dispatching'].includes(run?.phase)) badge = 'STATUS STALE';
+    if(!stale&&quotaHoldResolved()&&readiness?.runtimesReady===true){title='Quota hold cleared; fleet already restored';badge=readiness.ready?'READY':'VERIFYING PROTECTION';detail='The current saved quota limit permits work. '+(readiness.ready?(readiness.dispatchPaused?'Use Resume Sustained to enable assignments; no restore is needed.':'Dispatch is enabled; actual agent activity is reported separately.'):(issuesText()||'Waiting for the live guard acknowledgment.'));}
+    if(!stale&&quotaBlocked()){badge='QUOTA HOLD';title='Start / new work blocked by quota';detail=(readiness.quota.reason||issuesText())+' Runtime health is separate: '+(readiness.runtimesReady?'all preserved runtimes are healthy.':'see current runtime verification below.');}
     if (!run) { title = 'Startup status unavailable'; detail = 'Waiting for a valid server response. No startup request has been sent.'; }
     setText('startupBadge', badge); setText('startupPhase', title); setText('startupDetail', detail);
     byId('startupBadge').className = 'startup-badge' + (stale || uncertain() || run?.phase === 'failed' ? ' startup-badge-warning' : run?.active ? ' startup-badge-active' : readiness?.ready === true && ['ready_paused','ready_dispatching'].includes(run?.phase) ? ' startup-badge-ready' : '');
@@ -124,13 +129,13 @@ const FleetStartupUI = (() => {
     if (hasProgress) {
       byId('startupRestoreMeter').max = progressTotal; byId('startupRestoreMeter').value = Math.max(0, Math.min(progressTotal, progressVerified));
       setText('startupRestoreLabel', progressVerified + ' / ' + progressTotal + (liveProgress ? ' runtimes verified' : ' runtimes at last completed check; checking current health'));
-      setText('startupRestoreDetail', restore?.lastError || (liveProgress ? 'Usage remaining and an armed stop guard do not mean the fleet is running. ' + (readiness.dispatchPaused ? 'Automatic dispatch is paused.' : 'Automatic dispatch is enabled.') : 'Final current-controller readiness is checked separately before Startup completes.'));
+      setText('startupRestoreDetail', restore?.lastError || (liveProgress ? 'Usage remaining and an armed stop guard do not mean the fleet is running. ' + (quotaBlocked() ? 'New work is BLOCKED by the saved quota limit, even if the scheduler is enabled.' : readiness.dispatchPaused ? 'Automatic dispatch is paused.' : 'Automatic dispatch is enabled.') : 'Final current-controller readiness is checked separately before Startup completes.'));
     }
-    const problem = readError ? 'Refresh failed: ' + readError + '. The last displayed state is not current.' : run?.error?.message || (uncertain() ? 'Recheck the guard and runtime outcome before retrying. Recheck does not launch agents.' : '');
+    const problem = quotaBlocked()&&!readError ? readiness.quota.reason : readError ? 'Refresh failed: ' + readError + '. The last displayed state is not current.' : (!quotaHoldResolved()?run?.error?.message:null) || (uncertain() ? 'Recheck the guard and runtime outcome before retrying. Recheck does not launch agents.' : '');
     byId('startupIssue').hidden = !problem; setText('startupIssue', problem);
     setText('startupFreshness', lastSuccess ? 'Last successful check: ' + new Date(lastSuccess).toLocaleTimeString() + (run?.runId ? ' · Run ' + run.runId.slice(0, 8) : '') : 'Waiting for a status response.');
-    byId('startupStart').disabled = actionBusy || stale || !!run?.active || uncertain() || alreadyStarted();
-    setText('startupStart', alreadyStarted() ? 'Already started' : pendingRequest?.uncertain ? 'Retry original Startup…' : run?.phase === 'resumable' ? 'Continue Startup…' : 'Startup…');
+    byId('startupStart').disabled = actionBusy || stale || !!run?.active || uncertain() || quotaBlocked() || alreadyStarted();
+    setText('startupStart', quotaBlocked() ? 'Blocked by quota' : alreadyStarted() ? 'Already started' : pendingRequest?.uncertain ? 'Retry original Startup…' : run?.phase === 'resumable' ? 'Continue Startup…' : 'Startup…');
     byId('startupStart').title = alreadyStarted() ? 'The fleet is already restored. Use Pause/Resume Sustained to control assignments; do not start another restore.' : '';
     byId('startupOpenUi').disabled = actionBusy || stale || !!run?.active || uncertain() || run?.phase === 'resumable';
     byId('startupCancel').hidden = !run?.active; byId('startupCancel').disabled = actionBusy || !run?.runId;
@@ -141,7 +146,7 @@ const FleetStartupUI = (() => {
   function updateModal() {
     if (!modalOpen || !byId('startupConfirmText')) { modalOpen = false; return; }
     const confirm = byId('startupConfirmButton');
-    confirm.disabled = actionBusy || !fresh() || !!run?.active || uncertain() || alreadyStarted() || byId('startupConfirmText').value.trim() !== 'STARTUP';
+    confirm.disabled = actionBusy || !fresh() || !!run?.active || uncertain() || quotaBlocked() || alreadyStarted() || byId('startupConfirmText').value.trim() !== 'STARTUP';
     const message = !fresh() ? 'Live status is stale. Wait for a successful refresh.' : run?.active ? 'Another Startup is already running. No duplicate request will be submitted.' : uncertain() ? 'Reconciliation is required before Startup can run.' : 'The server revalidates quota, guard, watcher and runtime state at each step.';
     setText('startupModalStatus', message);
   }
@@ -162,7 +167,7 @@ const FleetStartupUI = (() => {
     render(); return readPromise;
   }
   function previewStartup() {
-    if (actionBusy || !fresh() || run?.active || uncertain() || alreadyStarted()) return;
+    if (actionBusy || !fresh() || run?.active || uncertain() || quotaBlocked() || alreadyStarted()) return;
     const retry = !!pendingRequest?.uncertain;
     const count = Number.isInteger(preview?.totalTargets) ? preview.totalTargets : Number.isInteger(preview?.targetCount) ? preview.targetCount : null;
     const quota = readiness?.quota || preview?.quota;
@@ -181,7 +186,7 @@ const FleetStartupUI = (() => {
     updateModal(); byId('startupConfirmText').focus();
   }
   async function submitStartup() {
-    if (actionBusy || !fresh() || run?.active || uncertain() || alreadyStarted() || byId('startupConfirmText')?.value.trim() !== 'STARTUP') return;
+    if (actionBusy || !fresh() || run?.active || uncertain() || quotaBlocked() || alreadyStarted() || byId('startupConfirmText')?.value.trim() !== 'STARTUP') return;
     if (!pendingRequest?.uncertain) pendingRequest = { requestId: requestId(), openUi: !!byId('startupOpenUiOption').checked, startWorkAfter: !!byId('startupWorkOption')?.checked, uncertain: false, acknowledged: false };
     pendingRequest.uncertain = true; savePending();
     actionBusy = true; mutationEpoch++; render();

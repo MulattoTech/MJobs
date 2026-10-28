@@ -102,6 +102,7 @@ function projectSnapshot(results, now = Date.now()) {
       dispatchState = 'blocked';
       dispatchReason = config.autoKillArmed === false ? 'Quota protection is not armed'
         : quota.fresh === false ? 'Quota reading is unavailable or stale'
+        : quota.policy?.blocked === true && percent(config.minimumRemainingPercent)!==null ? 'Quota hold: '+percent(quota.selectedRemainingPercent)+'% remaining; start/new work requires more than '+percent(config.minimumRemainingPercent)+'%. Change it on the local board.'
         : quota.guardAcknowledged === false ? 'Waiting for quota guard acknowledgement'
         : startup.reconciliationRequired === true ? 'Startup requires reconciliation'
         : health.dispatchBlockedReason === 'No live primary orchestrator' ? 'Primary orchestrator is stopped; use protected Startup locally'
@@ -154,7 +155,7 @@ function projectSnapshot(results, now = Date.now()) {
       sampledAt: timestamp(quota.sampledAt), armed: available('quota') ? bool(config.autoKillArmed) : null,
       guardAcknowledged: quotaFresh ? bool(quota.guardAcknowledged) : null,
       remainingPercent: quotaFresh ? percent(quota.selectedRemainingPercent) : null,
-      thresholdPercent: percent(config.thresholdPercent), monitoredWindow: text(quota.monitoredWindow),
+      minimumRemainingPercent: percent(config.minimumRemainingPercent), startWorkBlocked: quotaFresh ? quota.policy?.blocked===true : true, thresholdPercent: percent(config.thresholdPercent), monitoredWindow: text(quota.monitoredWindow),
       windows: quotaFresh && Array.isArray(quota.windows) ? quota.windows.slice(0,8).map(window => ({
         label: text(window.label), remainingPercent: percent(window.remainingPercent), resetsAt: timestamp(window.resetsAt),
       })) : [] },

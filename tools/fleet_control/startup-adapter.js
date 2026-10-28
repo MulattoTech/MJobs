@@ -6,6 +6,7 @@ const path=require('node:path');
 const {isDeepStrictEqual}=require('node:util');
 const {createHash}=require('node:crypto');
 const {configRevision}=require('./quota-guard');
+const {minimumRemaining}=require('./quota-policy');
 const {unresolvedNativeOperations,unresolvedNativeReason,matchesRestoreTarget}=require('./restore-fleet');
 const {runtimeAbsentEvidence,nativeSessionIdentity,createRestorationScope}=require('./windows-runtime-evidence');
 
@@ -39,13 +40,13 @@ class StartupAdapter {
   this.check(ctx);const s=this.quota.status();
   return {quota:{fresh:s.fresh,remainingPercent:s.selectedRemainingPercent,
    ordinaryUsageAllowed:s.ordinaryUsageAllowed,armed:s.config.autoKillArmed,
-   tripped:s.config.tripped,thresholdPercent:s.config.thresholdPercent,
+   tripped:s.config.tripped,thresholdPercent:s.config.thresholdPercent,minimumRemainingPercent:minimumRemaining(s.config),
    monitorEnabled:s.config.enabled,pollSeconds:s.config.pollSeconds,window:s.config.window},
    emergency:this.emergency(),dispatchPaused:!this.master.sustain.config.enabled&&!this.master.turbo.config.enabled};
  }
  safeForMutation(ctx,{allowLatched=false,requireGuard=false}={}){
   this.check(ctx);const s=this.safety(ctx);
-  if(s.quota.fresh!==true||!Number.isFinite(s.quota.remainingPercent)||s.quota.remainingPercent<=15||s.quota.remainingPercent>100||s.quota.ordinaryUsageAllowed===false)throw Error('Fresh Codex allowance above 15% is required');
+  if(s.quota.fresh!==true||!Number.isFinite(s.quota.remainingPercent)||s.quota.remainingPercent<=s.quota.minimumRemainingPercent||s.quota.remainingPercent>100||s.quota.ordinaryUsageAllowed===false)throw Error('Fresh Codex allowance above '+s.quota.minimumRemainingPercent+'% is required; change the visible start/new-work limit in Quota settings.');
   if(s.emergency.latched&&!allowLatched)throw Error('Emergency stop was engaged; no launch performed');
   if(!s.dispatchPaused)throw Error('Automatic dispatch must remain paused during Startup');
   if(requireGuard){
@@ -90,7 +91,7 @@ class StartupAdapter {
    const previousNative=unresolvedNativeReason(this.master.restore.state);
    if(previousNative)return needsRecheck(previousNative);
    const q=this.quota.status();
-   if(q.fresh!==true||!Number.isFinite(q.selectedRemainingPercent)||q.selectedRemainingPercent<=15||q.selectedRemainingPercent>100||q.ordinaryUsageAllowed===false)throw Error('Fresh Codex allowance above 15% is required');
+   if(q.fresh!==true||!Number.isFinite(q.selectedRemainingPercent)||q.selectedRemainingPercent<=minimumRemaining(q.config)||q.selectedRemainingPercent>100||q.ordinaryUsageAllowed===false)throw Error('Fresh Codex allowance above '+minimumRemaining(q.config)+'% is required; change the visible start/new-work limit in Quota settings.');
    const e=this.master.status().emergency;
    if(e.latched){
     const age=this.now()-Date.parse(e.checkedAt||'');
@@ -275,7 +276,7 @@ class StartupAdapter {
   const q=this.quota.status(),reason=this.master.locked()?'Emergency stop is active':this.quota.dispatchBlockReason()||(unresolvedIds.length?'A previous native restore is still unverified for '+unresolvedIds.join(', ')+'. No replay is permitted.':null);
   const paused=!this.master.sustain.config.enabled&&!this.master.turbo.config.enabled;
   return {...value,ready:value.runtimesReady===true&&!reason&&!this.master.drainState.enabled,
-   reason:reason||value.reason,dispatchPaused:paused,unresolvedNativeIds:unresolvedIds,quota:{fresh:q.fresh,remainingPercent:q.selectedRemainingPercent,armed:q.config.autoKillArmed,guardAcknowledged:q.guardAcknowledged}};
+   reason:reason||value.reason,dispatchPaused:paused,unresolvedNativeIds:unresolvedIds,quota:{fresh:q.fresh,remainingPercent:q.selectedRemainingPercent,minimumRemainingPercent:minimumRemaining(q.config),thresholdPercent:q.config.thresholdPercent,blocked:q.policy?.blocked===true,reason:q.policy?.reason||null,armed:q.config.autoKillArmed,guardAcknowledged:q.guardAcknowledged}};
  }
  async openUi(ctx){this.safeForMutation(ctx,{requireGuard:true});return this.launcher.launch('ui',{signal:ctx.signal,beforeTrigger:()=>this.safeForMutation(ctx,{requireGuard:true})});}
  durableRestoreState(){
@@ -354,7 +355,7 @@ class StartupAdapter {
    verifiedTargetCount:current.verified||0,allExpectedControllersHealthy:current.runtimesReady===true,
    allExpectedRuntimesHealthy:current.runtimesReady===true,
    guard:{fresh:q.fresh,armed:q.config.autoKillArmed,tripped:q.config.tripped,monitorEnabled:q.config.enabled,remainingPercent:q.selectedRemainingPercent,
-    ordinaryUsageAllowed:q.ordinaryUsageAllowed,thresholdPercent:q.config.thresholdPercent,pollSeconds:q.config.pollSeconds,
+    ordinaryUsageAllowed:q.ordinaryUsageAllowed,thresholdPercent:q.config.thresholdPercent,minimumRemainingPercent:minimumRemaining(q.config),pollSeconds:q.config.pollSeconds,
     window:q.config.window,revision:configRevision(q.config),acknowledgedRevision:q.guardAcknowledged?q.guardAck?.revision:null}};
   if(!operationInFlight&&dispatchPaused&&current.ready&&identitiesMatch)proof.outcome='ready_paused';
   // Only the complete local audit of a run that never attempted restore can

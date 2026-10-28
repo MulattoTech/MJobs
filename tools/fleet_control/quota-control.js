@@ -3,6 +3,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {spawn}=require('node:child_process');
 const {DEFAULT,sane,selectedWindows,configRevision}=require('./quota-guard');
+const {minimumRemaining,policyStatus}=require('./quota-policy');
 function load(file,fallback){try{return JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''))}catch{return structuredClone(fallback)}}
 function persist(file,data){const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(data,null,2));fs.renameSync(tmp,file)}
 class QuotaControl{
@@ -33,7 +34,8 @@ class QuotaControl{
   const ackAt=Date.parse(info.guardAck?.appliedAt||'');
   const guardAcknowledged=!!(fresh&&selected.length&&info.guardAck?.revision===configRevision(config)&&Number.isFinite(ackAt)&&ackAt<=success&&now-ackAt>=0&&now-ackAt<=Math.max(25,config.pollSeconds*3)*1000);
   return {
-   config,
+   config:{...config,minimumRemainingPercent:minimumRemaining(config)},
+   policy:policyStatus(config,{fresh:fresh&&selected.length>0,selectedRemainingPercent:selectedRemaining,ordinaryUsageAllowed:info.ordinaryUsageAllowed}),
    guardAcknowledged,
    guardAck:info.guardAck?{revision:info.guardAck.revision,appliedAt:info.guardAck.appliedAt}:null,
    monitorOnline:alive,
@@ -66,13 +68,13 @@ class QuotaControl{
   if(s.selectedRemainingPercent<=s.config.thresholdPercent)return 'Quota safety threshold reached at '+s.selectedRemainingPercent+'% remaining; new work is blocked';
   // New assignments stop 8 percentage points early. Already-running agent turns
   // can consume quota after the last provider sample; the hard kill stays at 7%.
-  const brake=Math.min(100,s.config.thresholdPercent+8);
+  const brake=minimumRemaining(s.config);
   if(s.selectedRemainingPercent<=brake)return 'Quota safety brake: '+s.selectedRemainingPercent+'% remaining (new assignments paused at '+brake+'%, emergency at '+s.config.thresholdPercent+'%)';
   if(!s.guardAcknowledged)return 'Quota guard settings are awaiting acknowledgment from the live monitor; new work is paused';
   return null;
  }
  validateUpdate(x){
-  const allowed=['thresholdPercent','window','pollSeconds','enabled'];
+  const allowed=['thresholdPercent','window','pollSeconds','enabled','minimumRemainingPercent'];
   for(const key of Object.keys(x||{}))if(!allowed.includes(key))throw Error('Unsupported guard option: '+key);
   if(x.thresholdPercent!==undefined&&(!Number.isInteger(x.thresholdPercent)||x.thresholdPercent<0||x.thresholdPercent>50))
    throw Error('Stop threshold must be an integer percentage from 0 to 50');
@@ -80,7 +82,10 @@ class QuotaControl{
    throw Error('Poll interval must be 5–60 seconds');
   if(x.window!==undefined&&!['any','five-hour','weekly'].includes(x.window))throw Error('Invalid quota window');
   if(x.enabled!==undefined&&typeof x.enabled!=='boolean')throw Error('enabled must be boolean');
-  return {...this.config(),...x,updatedAt:new Date().toISOString()};
+  const result={...this.config(),...x,updatedAt:new Date().toISOString()};
+  if(x.minimumRemainingPercent!==undefined && (!Number.isInteger(x.minimumRemainingPercent)||x.minimumRemainingPercent<Math.max(7,result.thresholdPercent)||x.minimumRemainingPercent>99))throw Error('Start/new-work limit must be a whole percentage from '+Math.max(7,result.thresholdPercent)+' to 99; it cannot be below emergency protection.');
+  if(result.minimumRemainingPercent!==undefined&&result.minimumRemainingPercent<result.thresholdPercent)throw Error('Emergency threshold cannot exceed the saved start/new-work limit.');
+  return result;
  }
  update(x){
   const config=this.validateUpdate(x);
@@ -89,14 +94,14 @@ class QuotaControl{
    const before=this.config();
    if(before.thresholdPercent!==config.thresholdPercent||before.window!==config.window)config.autoKillArmed=false;
   }
-  persist(this.configPath,config);this.audit('quota_settings',{thresholdPercent:config.thresholdPercent,window:config.window,pollSeconds:config.pollSeconds});
+  persist(this.configPath,config);this.audit('quota_settings',{thresholdPercent:config.thresholdPercent,minimumRemainingPercent:minimumRemaining(config),window:config.window,pollSeconds:config.pollSeconds});
   this.ensure();return this.status();
  }
  arm(){
   if(this.locked())throw Error('Emergency lockout is active; re-arm Codex first');
   const s=this.status();
   if(!s.monitorOnline||!s.fresh||s.selectedRemainingPercent===null)throw Error('Wait for a fresh Codex quota sample before arming auto-kill');
-  if(s.ordinaryUsageAllowed===false||s.selectedRemainingPercent<=Math.min(100,s.config.thresholdPercent+8))throw Error('Usage must be above the safety brake ('+(s.config.thresholdPercent+8)+'% remaining) before arming a new sprint.');
+  if(s.ordinaryUsageAllowed===false||s.selectedRemainingPercent<=minimumRemaining(s.config))throw Error('Usage must be above the safety brake ('+minimumRemaining(s.config)+'% remaining) before arming a new sprint.');
   const config={...this.config(),enabled:true,autoKillArmed:true,tripped:false,updatedAt:new Date().toISOString()};
   persist(this.configPath,config);
   this.audit('quota_auto_stop_armed',{threshold:config.thresholdPercent,window:config.window,remaining:s.selectedRemainingPercent});

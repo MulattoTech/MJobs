@@ -137,7 +137,7 @@ class StartupController {
     this._persist(); this._log('phase', { runId: this.state.runId, phase });
   }
   _ctx(signal) {
-    return { runId: this.state.runId, requestId: this.state.requestId, signal, policy: { ...POLICY }, expectedEmergencyRevision: this.state.initialEmergencyRevision, guardReceipt: clone(this.state.guardReceipt), bootstrap: clone(this.state.bootstrap), autoDispatchAfter: false, startWorkAfter: this.state.options?.startWorkAfter === true };
+    return { runId: this.state.runId, requestId: this.state.requestId, signal, policy: { ...POLICY,...this.state.policy }, expectedEmergencyRevision: this.state.initialEmergencyRevision, guardReceipt: clone(this.state.guardReceipt), bootstrap: clone(this.state.bootstrap), autoDispatchAfter: false, startWorkAfter: this.state.options?.startWorkAfter === true };
   }
   _trackMutation(name, operation) {
     const id = randomUUID();
@@ -186,7 +186,10 @@ class StartupController {
     const q = value?.quota, emergency = value?.emergency;
     if (!q || q.fresh !== true || !Number.isFinite(q.remainingPercent) || q.remainingPercent < 0 || q.remainingPercent > 100) throw new StartupError('QUOTA_STALE', 'Fresh, valid Codex quota telemetry is required');
     if (q.ordinaryUsageAllowed === false) throw new StartupError('USAGE_UNAVAILABLE', 'Codex ordinary usage is unavailable');
-    if (q.remainingPercent <= POLICY.brakePercent) throw new StartupError('QUOTA_LOW', 'Quota must exceed ' + POLICY.brakePercent + '% before or during Startup');
+    const minimum=q.minimumRemainingPercent===undefined?POLICY.brakePercent:q.minimumRemainingPercent;
+    if(!Number.isInteger(minimum)||minimum<POLICY.thresholdPercent||minimum>99)throw new StartupError('QUOTA_POLICY_INVALID','Saved start/new-work quota policy is invalid.');
+    if (q.remainingPercent <= minimum) throw new StartupError('QUOTA_LOW', 'Quota hold: '+q.remainingPercent+'% remaining; start/new work requires more than '+minimum+'%. Change the visible quota limit; emergency stop stays 7%.');
+    if(this.state.policy?.brakePercent!==minimum){this.state.policy={...POLICY,brakePercent:minimum};this._persist();}
     if (!emergency || typeof emergency.latched !== 'boolean') throw new StartupError('EMERGENCY_UNKNOWN', 'Emergency-latch state is unavailable');
     if (baseline) {
       if (emergency.latched && (typeof emergency.revision !== 'string' || !emergency.revision)) throw new StartupError('EMERGENCY_UNKNOWN', 'The latched emergency revision must be identified before release');
@@ -380,7 +383,7 @@ class StartupController {
         if (proof.noOperationInFlight !== true || proof.dispatchPaused !== true || proof.restoreActive !== false || proof.launchActive !== false) return pending(proof.reason || 'No-operation-in-flight and paused-dispatch evidence is incomplete. Nothing was cleared.');
         let outcome = null;
         const guard = proof.guard;
-        const validGuard = guard?.fresh === true && guard.armed === true && guard.tripped === false && Number.isFinite(guard.remainingPercent) && guard.remainingPercent > POLICY.brakePercent && guard.remainingPercent <= 100 && guard.ordinaryUsageAllowed !== false && guard.thresholdPercent === POLICY.thresholdPercent && guard.pollSeconds === POLICY.pollSeconds && guard.window === POLICY.window && typeof guard.revision === 'string' && guard.revision.length > 0 && guard.acknowledgedRevision === guard.revision;
+        const validGuard = guard?.fresh === true && guard.armed === true && guard.tripped === false && Number.isFinite(guard.remainingPercent) && (guard.minimumRemainingPercent===undefined||(Number.isInteger(guard.minimumRemainingPercent)&&guard.minimumRemainingPercent>=7&&guard.minimumRemainingPercent<=99)) && guard.remainingPercent > (guard.minimumRemainingPercent??POLICY.brakePercent) && guard.remainingPercent <= 100 && guard.ordinaryUsageAllowed !== false && guard.thresholdPercent === POLICY.thresholdPercent && guard.pollSeconds === POLICY.pollSeconds && guard.window === POLICY.window && typeof guard.revision === 'string' && guard.revision.length > 0 && guard.acknowledgedRevision === guard.revision;
         if (proof.outcome === 'ready_paused') {
           const expected = original.bootstrap?.targetCount;
           const count = proof.expectedTargetCount;

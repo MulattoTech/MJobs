@@ -59,6 +59,12 @@
           <div class="headline-side"><span class="live-label"><span class="pulse"></span> <span id="connectionText">CONNECTING</span></span><span class="small-muted">Automatic refresh every 8 seconds</span></div>
         </section>
         <section id="quotaSection" class="quota-section" aria-label="Codex usage and automatic quota protection">
+          <div class="quota-policy-panel" id="quotaPolicyPanel" role="status" aria-live="polite">
+            <strong id="quotaPolicyState">Checking start / new-work limit...</strong>
+            <p id="quotaPolicyReason">Quota eligibility and runtime health are separate.</p>
+            <div class="quota-policy-controls"><label for="quotaMinimum">Pause starts and NEW tasks at or below (%)<input id="quotaMinimum" type="number" min="7" max="99" step="1" value="15"></label><button id="quotaMinimumSave" class="quota-save" type="button">Save start / work limit</button></div>
+            <p class="quota-policy-note" id="quotaMinimumFeedback">Saved limit applies to Startup, Sustained, Turbo and All Hands. It does not change the emergency stop. Lowering it can allow an already-enabled scheduler to resume.</p>
+          </div>
           <div class="quota-heading">
             <div><span class="section-kicker">CODEX ACCOUNT TELEMETRY</span><h2>Remaining usage <span class="quota-live" id="quotaLive">Connecting…</span></h2></div>
             <span class="quota-meta" id="quotaUpdated">Waiting for Codex App Server</span>

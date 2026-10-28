@@ -1,7 +1,7 @@
 'use strict';
 const FleetQuotaUI=(()=>{
  const el=id=>document.getElementById(id);
- let current=null,requesting=false,busy=false,settingsDirty=false;
+ let current=null,requesting=false,busy=false,settingsDirty=false,minimumDirty=false;
  const prettyTime=value=>{if(!value)return 'Not reported';const d=new Date(value);return Number.isNaN(d.valueOf())?'Unknown':d.toLocaleString()};
  function colorFor(value){return value<=10?'critical':value<=25?'warning':''}
  function paintWindow(label,valueId,barId,resetId,data){
@@ -35,13 +35,22 @@ const FleetQuotaUI=(()=>{
    data.fresh?'Codex App Server · read-only · '+data.precision+' · '+(data.monitoredWindow||'Codex')+' monitored':
    (data.warning||data.error||'Codex rate-limit data unavailable');
   const snapshot=data.config;
+  const minimum=snapshot.minimumRemainingPercent??Math.max(7,snapshot.thresholdPercent)+8;
+  const policy=data.policy||{blocked:!data.fresh||data.selectedRemainingPercent<=minimum,reason:'Current '+data.selectedRemainingPercent+'%; start/work minimum '+minimum+'%; emergency '+snapshot.thresholdPercent+'%.'};
+  el('quotaPolicyPanel').classList.toggle('blocked',policy.blocked);
+  el('quotaPolicyState').textContent=policy.blocked?'START / NEW WORK BLOCKED BY QUOTA':'QUOTA ALLOWS START / NEW WORK';
+  el('quotaPolicyReason').textContent=policy.reason+' Healthy agents may still be online while new work is blocked.';
+  if(!minimumDirty)el('quotaMinimum').value=minimum;
+  el('quotaMinimum').min=Math.max(7,snapshot.thresholdPercent);
+  el('quotaMinimumSave').disabled=busy||tripped;
+
   if(!settingsDirty){
    el('quotaThreshold').value=snapshot.thresholdPercent;
    el('quotaWindow').value=snapshot.window;
   }
   el('quotaInterval').textContent=snapshot.pollSeconds+' seconds';
   if(tripped)guard.textContent='AUTOMATIC STOP FIRED · '+prettyTime(data.trigger.triggeredAt);
-  else if(armed)guard.textContent='ARMED · new assignments brake at '+(snapshot.thresholdPercent+8)+'%, emergency agent stop at '+snapshot.thresholdPercent+'% ('+
+  else if(armed)guard.textContent='ARMED · new assignments brake at '+minimum+'%, emergency agent stop at '+snapshot.thresholdPercent+'% ('+
    (snapshot.window==='any'?'lowest available':snapshot.window)+')';
   else guard.textContent='Not armed · choose a threshold, save, then arm';
   const button=el('quotaArm');
@@ -106,7 +115,7 @@ const FleetQuotaUI=(()=>{
   const threshold=saved.thresholdPercent,remaining=current.selectedRemainingPercent;
   const immediate=remaining<=threshold;
   openModal('<h2>Arm automatic emergency stop?</h2>'+
-   '<p>The quota monitor checks in the background even with the browser closed. New assignments brake at <strong>'+(threshold+8)+'% remaining</strong>. At <strong>'+threshold+'% or below</strong>, the emergency stop terminates targeted agent runtimes and Orchestrator.inc. Only the verified isolated quota monitor and Windows Codex Sandbox Service are preserved.</p>'+
+   '<p>The quota monitor checks in the background even with the browser closed. New assignments brake at <strong>'+(saved.minimumRemainingPercent??Math.max(7,threshold)+8)+'% remaining</strong>. At <strong>'+threshold+'% or below</strong>, the emergency stop terminates targeted agent runtimes and Orchestrator.inc. Only the verified isolated quota monitor and Windows Codex Sandbox Service are preserved.</p>'+
    '<div class="emergency-warning"><strong>Current verified remaining: '+remaining+'%.</strong> '+(immediate?
     'This is ALREADY at or below your threshold and may trigger an immediate shutdown.':
     'Provider reporting is rounded and can lag actual usage, so stopping at the precise percentage cannot be guaranteed.')+
@@ -127,6 +136,18 @@ const FleetQuotaUI=(()=>{
    finally{busy=false}
   });
  }
+ async function saveMinimum(){
+  if(busy||!current)return;
+  const value=Number(el('quotaMinimum').value),floor=Math.max(7,current.config.thresholdPercent);
+  if(!Number.isInteger(value)||value<floor||value>99){toast('Start/new-work limit must be '+floor+' to 99%. Emergency protection cannot be bypassed.',true);return;}
+  if(value<current.config.minimumRemainingPercent&&!window.confirm('Lower the start/new-work quota limit to '+value+'%? Already-enabled dispatch may resume. The '+current.config.thresholdPercent+'% emergency stop is unchanged; less headroom increases overshoot risk.'))return;
+  busy=true;el('quotaMinimumSave').disabled=true;
+  try{const data=await api('/api/quota/config',{minimumRemainingPercent:value});minimumDirty=false;render(data);el('quotaMinimumFeedback').textContent='SAVED: new starts/tasks require more than '+data.config.minimumRemainingPercent+'% remaining. Emergency stop is unchanged at '+data.config.thresholdPercent+'%. No Startup request was sent.';toast('Start/new-work quota limit saved. Emergency stop unchanged.');if(typeof FleetStartupUI!=='undefined')FleetStartupUI.refresh(true);}
+  catch(e){el('quotaMinimumFeedback').textContent='Not saved: '+e.message;toast(e.message,true);}
+  finally{busy=false;el('quotaMinimumSave').disabled=false;reload();}
+ }
+ el('quotaMinimum').addEventListener('input',()=>{minimumDirty=true;el('quotaMinimumFeedback').textContent='UNSAVED change. Save start/work limit to apply; emergency protection is separate.';});
+ el('quotaMinimumSave').addEventListener('click',saveMinimum);
  for(const n of ['quotaThreshold','quotaWindow'])el(n).addEventListener('input',()=>{settingsDirty=true});
  el('quotaSave').addEventListener('click',save);
  el('quotaArm').addEventListener('click',arm);
