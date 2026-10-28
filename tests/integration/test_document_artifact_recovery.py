@@ -1,6 +1,7 @@
 """Crash recovery coverage for immutable generated document revisions."""
 import copy
 from datetime import datetime, timedelta, timezone
+import hashlib
 import json
 from pathlib import Path
 import os
@@ -98,6 +99,47 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
         os.utime(revision, (timestamp, timestamp))
         return revision
 
+    def _old_reviewed_orphan(self, application_id: str, document_id: str, *,
+                             now: datetime, unknown_file: bool = False) -> Path:
+        profile_version = "f" * 64
+        relative = f"{profile_version}/reviewed-{document_id}"
+        revision = self.root / application_id / relative
+        revision.mkdir(parents=True)
+        payloads = {
+            "docx": b"synthetic reviewed docx",
+            "pdf": b"%PDF- synthetic reviewed pdf",
+            "txt": b"synthetic reviewed text\n",
+        }
+        files = {}
+        digests = {}
+        for extension, payload in payloads.items():
+            name = f"cover-letter.{extension}"
+            (revision / name).write_bytes(payload)
+            files[extension] = f"{relative}/{name}"
+            digests[extension] = hashlib.sha256(payload).hexdigest()
+        marker = {
+            "schema_version": 1,
+            "document_id": document_id,
+            "application_id": application_id,
+            "version": 2,
+            "profile_version": profile_version,
+            "preview_sha256": "b" * 64,
+            "request_id": "synthetic-review",
+            "files": files,
+            "sha256": digests,
+        }
+        (revision / ".reviewed-cover-letter.json").write_text(
+            json.dumps(marker, sort_keys=True), encoding="utf-8",
+        )
+        if unknown_file:
+            (revision / "operator-note.md").write_text(
+                "unknown content must remain protected", encoding="utf-8",
+            )
+        old = now - timedelta(days=3)
+        for path in [*revision.iterdir(), revision]:
+            os.utime(path, (old.timestamp(), old.timestamp()))
+        return revision
+
     def test_scan_protects_referenced_uploads_and_unknown_or_debug_files(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
@@ -147,6 +189,40 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
             temp_entry = by_path[temp_file.relative_to(self.root).as_posix()]
             self.assertEqual(temp_entry["classification"], "INCOMPLETE_TEMPORARY_FILE")
             self.assertTrue(temp_entry["eligible"])
+
+    def test_reviewed_marker_revision_is_managed_but_unknown_content_stays_protected(self):
+        now = datetime.now(timezone.utc)
+        managed = self._old_reviewed_orphan(
+            "d" * 64, "a" * 64, now=now,
+        )
+        protected = self._old_reviewed_orphan(
+            "e" * 64, "c" * 64, now=now, unknown_file=True,
+        )
+
+        inventory = scan_artifacts(self.store, self.root, now=now)
+        by_path = {item["path"]: item for item in inventory}
+        managed_entry = by_path[managed.relative_to(self.root).as_posix()]
+        protected_entry = by_path[protected.relative_to(self.root).as_posix()]
+        self.assertEqual(managed_entry["classification"], "ORPHAN_REVIEWED_REVISION")
+        self.assertTrue(managed_entry["eligible"])
+        self.assertEqual(protected_entry["classification"], "UNCLASSIFIED_PROTECTED")
+        self.assertFalse(protected_entry["eligible"])
+
+        record = quarantine_artifact(
+            self.store, self.root, managed_entry["artifact_id"], now=now,
+        )
+        payload = self.root / ".quarantine" / record["quarantine_id"] / "artifact"
+        self.assertFalse(managed.exists())
+        self.assertTrue((payload / ".reviewed-cover-letter.json").is_file())
+        self.assertTrue(protected.is_dir())
+        self.assertEqual(
+            purge_expired_quarantine(
+                self.store, self.root, now=now + timedelta(days=31),
+            ),
+            [record["quarantine_id"]],
+        )
+        self.assertFalse(payload.exists())
+        self.assertTrue(protected.is_dir())
 
     def test_quarantine_restore_collision_and_retention_purge_are_audited(self):
         now = datetime.now(timezone.utc)
