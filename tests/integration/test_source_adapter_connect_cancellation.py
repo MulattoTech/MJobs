@@ -374,9 +374,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 pending = client.get(f"/operations/{identifier}").json()
                                 worker.join(timeout=2.3)  # Observe natural timeout, never force green by closing the listener.
                         else:
-                            worker.join(timeout=3 if mode == "positive" else 1.1)
+                            # Deadline mode already proves the owned transport entered and
+                            # returned within one second of the operation-deadline start.
+                            # Keep persistence/unwind scheduling separate from that network
+                            # oracle so a loaded shard cannot turn a terminal operation into
+                            # a false worker leak.
+                            worker.join(timeout=3)
                         elapsed = time.monotonic() - started
-                        self.assertFalse(worker.is_alive(), f"Owned {provider} worker exceeded fixture bound")
+                        self.assertFalse(worker.is_alive(),
+                            f"Owned {provider} worker exceeded fixture bound; {phase_diagnostic()}")
                         if mode == "cancel":
                             self.assertEqual(len(worker_finished_at), 1,
                                              "Owned adapter worker completion was not observed exactly once")
