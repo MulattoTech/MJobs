@@ -220,6 +220,11 @@ class PublicCITests(unittest.TestCase):
                 f'      - run: {marker}\n'
                 '        continue-on-error: true\n',
             ),
+            'custom_shell_step': (
+                step,
+                '      - shell: echo {0}\n'
+                f'        run: {marker}\n',
+            ),
             'disabled_job': (
                 '  python:\n',
                 '  python:\n    if: ${{ false }}\n',
@@ -266,12 +271,24 @@ class PublicCITests(unittest.TestCase):
             ('backend tests', '.github/workflows/ci.yml',
              'python -m pytest -q tests/unit',
              'python -m pytest --collect-only -q tests/unit'),
+            ('backend tests', '.github/workflows/ci.yml',
+             'python -m pytest -q tests/unit',
+             'python -m pytest --version -q tests/unit'),
+            ('backend tests', '.github/workflows/ci.yml',
+             'python -m pytest -q tests/unit',
+             'python -m pytest --co -q tests/unit'),
+            ('backend lint', '.github/workflows/ci.yml',
+             'python -m ruff check apps',
+             'python -m ruff check apps --show-files'),
             ('frontend build', 'apps/web/package.json',
              'npm run typecheck && vite build',
              'npm run typecheck && vite build --help'),
             ('frontend build', 'apps/web/package.json',
              'npm run typecheck && vite build',
              'npm run typecheck && vite build --dry-run'),
+            ('frontend type check', 'apps/web/package.json',
+             'tsc --noEmit',
+             'tsc --noEmit --showConfig'),
         )
         for boundary, relative_path, original, decoy in cases:
             with self.subTest(boundary=boundary):

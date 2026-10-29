@@ -85,12 +85,19 @@ def _unconditional_failure_gate(item: object) -> bool:
             and item.get('continue-on-error') in (None, False, 'false'))
 
 
+def _has_custom_run_shell(item: dict) -> bool:
+    defaults = item.get('defaults')
+    run_defaults = defaults.get('run') if isinstance(defaults, dict) else None
+    return isinstance(run_defaults, dict) and 'shell' in run_defaults
+
+
 def _job_commands(job: dict) -> tuple[str, ...]:
-    if not _unconditional_failure_gate(job):
+    if not _unconditional_failure_gate(job) or _has_custom_run_shell(job):
         return ()
     commands = []
     for step in job.get('steps', []):
         if (_unconditional_failure_gate(step)
+                and 'shell' not in step
                 and isinstance(step.get('run'), str)):
             commands.extend(
                 line.strip()
@@ -107,6 +114,8 @@ def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
     doc = yaml.load(path.read_text('utf-8'), Loader=yaml.BaseLoader)
     if not isinstance(doc, dict):
         return (), {}
+    if _has_custom_run_shell(doc):
+        return (), doc
     commands = []
     for job in doc.get('jobs', {}).values():
         if isinstance(job, dict):
@@ -114,9 +123,57 @@ def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
     return tuple(commands), doc
 
 
-_NON_EXECUTING_TOOL_OPTIONS = frozenset({
-    '-h', '--help', '--dry-run', '--collect-only', '--collectonly',
-})
+_BOUNDARY_ARGUMENT_POLICIES = {
+    'python -m ruff check': {
+        'allow_positionals': True,
+    },
+    'python -m mypy': {
+        'value_options': frozenset({'--config-file'}),
+    },
+    'python -m pytest': {
+        'flags': frozenset({'-q'}),
+        'assignment_options': frozenset({'--junitxml='}),
+        'allow_positionals': True,
+    },
+    'python -m cli.mock_e2e': {
+        'value_options': frozenset({'--evidence'}),
+    },
+    'npm run lint --prefix apps/web': {},
+    'npm run typecheck --prefix apps/web': {},
+    'npm test --prefix apps/web': {},
+    'npm run build --prefix apps/web': {},
+    'node scripts/lint.mjs': {},
+    'tsc --noEmit': {},
+    'vitest run': {},
+    'vite build': {},
+}
+
+
+def _boundary_arguments_allowed(marker: str, arguments: tuple[str, ...]) -> bool:
+    policy = _BOUNDARY_ARGUMENT_POLICIES.get(marker)
+    if policy is None:
+        return False
+    flags = policy.get('flags', frozenset())
+    value_options = policy.get('value_options', frozenset())
+    assignment_options = policy.get('assignment_options', frozenset())
+    allow_positionals = policy.get('allow_positionals', False)
+    index = 0
+    while index < len(arguments):
+        token = arguments[index]
+        if token in flags:
+            index += 1
+        elif token in value_options:
+            if index + 1 >= len(arguments) or arguments[index + 1].startswith('-'):
+                return False
+            index += 2
+        elif any(token.startswith(option) and len(token) > len(option)
+                 for option in assignment_options):
+            index += 1
+        elif allow_positionals and not token.startswith('-'):
+            index += 1
+        else:
+            return False
+    return True
 
 
 def _runs_command(commands: tuple[str, ...], marker: str) -> bool:
@@ -128,11 +185,10 @@ def _runs_command(commands: tuple[str, ...], marker: str) -> bool:
             continue
         if command_tokens[:len(marker_tokens)] != marker_tokens:
             continue
-        suffix = command[len(marker):]
         options = command_tokens[len(marker_tokens):]
-        if (not any(operator in suffix for operator in '|;&')
-                and not suffix.rstrip().endswith('\\')
-                and not _NON_EXECUTING_TOOL_OPTIONS.intersection(options)):
+        if (not any(operator in command for operator in '|;&')
+                and not command.rstrip().endswith('\\')
+                and _boundary_arguments_allowed(marker, options)):
             return True
     return False
 
