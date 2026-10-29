@@ -79,6 +79,18 @@ def check_workflows(root: Path) -> list[str]:
     return errors
 
 
+def _job_commands(job: dict) -> tuple[str, ...]:
+    commands = []
+    for step in job.get('steps', []):
+        if isinstance(step, dict) and isinstance(step.get('run'), str):
+            commands.extend(
+                line.strip()
+                for line in step['run'].splitlines()
+                if line.strip() and not line.lstrip().startswith('#')
+            )
+    return tuple(commands)
+
+
 def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
     path = root / '.github/workflows' / name
     if not path.is_file():
@@ -88,13 +100,8 @@ def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
         return (), {}
     commands = []
     for job in doc.get('jobs', {}).values():
-        for step in job.get('steps', []):
-            if isinstance(step, dict) and isinstance(step.get('run'), str):
-                commands.extend(
-                    line.strip()
-                    for line in step['run'].splitlines()
-                    if line.strip() and not line.lstrip().startswith('#')
-                )
+        if isinstance(job, dict):
+            commands.extend(_job_commands(job))
     return tuple(commands), doc
 
 
@@ -150,10 +157,11 @@ def check_required_ci(root: Path) -> list[str]:
             errors.append(f'MJ-REQ-278: web package does not define {boundary} script')
 
     mock_jobs = mock.get('jobs', {}) if isinstance(mock, dict) else {}
-    fixture_jobs = [job for job in mock_jobs.values() if isinstance(job, dict)
-                    and job.get('env', {}).get('MJOBS_OPERATION_MODE') == 'FIXTURE'
-                    and job.get('env', {}).get('MJOBS_COMPOSE_MOCK') == '1']
-    if not fixture_jobs:
+    fixture_mock_jobs = [job for job in mock_jobs.values() if isinstance(job, dict)
+                         and _runs_command(_job_commands(job), 'python -m cli.mock_e2e')
+                         and job.get('env', {}).get('MJOBS_OPERATION_MODE') == 'FIXTURE'
+                         and job.get('env', {}).get('MJOBS_COMPOSE_MOCK') == '1']
+    if not fixture_mock_jobs:
         errors.append('MJ-REQ-278: mock E2E must run in FIXTURE mode without external job websites')
     return errors
 

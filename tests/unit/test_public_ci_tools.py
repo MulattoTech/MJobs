@@ -120,6 +120,22 @@ class PublicCITests(unittest.TestCase):
         self.write_required_ci_contract()
         self.assertEqual(check_required_ci(self.root), [])
 
+    def test_required_ci_contract_rejects_split_mock_and_fixture_jobs(self):
+        self.write_required_ci_contract()
+        path = self.root / '.github/workflows/connected-acceptance.yml'
+        path.write_text(
+            'on: pull_request\npermissions: {contents: read}\njobs:\n'
+            '  mock:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n'
+            '    steps:\n      - run: python -m cli.mock_e2e\n'
+            '  fixture-decoy:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n'
+            '    env: {MJOBS_OPERATION_MODE: FIXTURE, MJOBS_COMPOSE_MOCK: "1"}\n'
+            '    steps:\n      - run: echo no-op\n', encoding='utf-8')
+
+        errors = check_required_ci(self.root)
+
+        self.assertTrue(any('mock E2E must run in FIXTURE mode' in error
+                            for error in errors), errors)
+
     def test_required_ci_contract_rejects_each_missing_boundary(self):
         cases = (
             ('backend lint', 'ci.yml', 'python -m ruff check apps'),
