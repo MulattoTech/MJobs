@@ -15,7 +15,7 @@ extend-exclude = [
 
 [tool.mypy]
 python_version = "3.12"
-follow_imports = "skip"
+follow_imports = "silent"
 files = [
     "apps/api/application_multipage_state.py",
     "services/operations/pipeline_workbench.py",
