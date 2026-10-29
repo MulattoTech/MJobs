@@ -254,6 +254,8 @@ class PublicCITests(unittest.TestCase):
              '"lint":"echo ok # node scripts/lint.mjs"'),
             ('frontend build', '"build":"npm run typecheck && vite build"',
              '"build":"npm run typecheck && echo vite build"'),
+            ('frontend build', '"build":"npm run typecheck && vite build"',
+             '"build":"npm run typecheck && exit 0 && vite build"'),
             ('frontend type check', '"typecheck":"tsc --noEmit"',
              '"typecheck":"tsc --noEmit || true"'),
         )

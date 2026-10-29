@@ -229,7 +229,7 @@ def _package_script_commands(script: object) -> tuple[str, ...]:
     current = []
     for token in tokens:
         if token == '&&':
-            if not current:
+            if not current or current[0] in _SHELL_PATH_CONTROL:
                 return ()
             commands.append(' '.join(current))
             current = []
@@ -237,7 +237,7 @@ def _package_script_commands(script: object) -> tuple[str, ...]:
             return ()
         else:
             current.append(token)
-    if not current:
+    if not current or current[0] in _SHELL_PATH_CONTROL:
         return ()
     commands.append(' '.join(current))
     return tuple(commands)
