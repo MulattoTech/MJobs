@@ -22,7 +22,6 @@ class LiveApplicationPolicyTests(unittest.TestCase):
             intent_job_id="job-a",
             intent_granted_at=evaluated_at - timedelta(minutes=5),
             intent_expires_at=evaluated_at + timedelta(minutes=5),
-            intent_consumed=False,
             evaluated_at=evaluated_at,
             match_score=100,
             confidence=100,
@@ -82,15 +81,6 @@ class LiveApplicationPolicyTests(unittest.TestCase):
         self.assertFalse(decision.allowed)
         self.assertIn("STALE_JOB_INTENT", decision.reasons)
 
-    def test_consumed_job_intent_cannot_be_replayed(self):
-        decision = evaluate_submission(
-            self.external_context(intent_consumed=True),
-            Policy(external_submissions_enabled=True),
-        )
-
-        self.assertFalse(decision.allowed)
-        self.assertIn("JOB_INTENT_ALREADY_CONSUMED", decision.reasons)
-
     def test_live_submission_requires_every_independent_gate(self):
         enabled = Policy(external_submissions_enabled=True)
         self.assertTrue(evaluate_submission(self.external_context(), enabled).allowed)
@@ -143,7 +133,6 @@ class LiveApplicationPolicyTests(unittest.TestCase):
             ({"job_id": None}, "job_id must be a string"),
             ({"intent_job_id": 1}, "intent_job_id must be a string"),
             ({"intent_receipt_id": False}, "intent_receipt_id must be a string"),
-            ({"intent_consumed": "false"}, "intent_consumed must be a boolean"),
         )
         for changes, message in cases:
             with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, message):

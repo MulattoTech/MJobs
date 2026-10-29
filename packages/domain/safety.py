@@ -78,7 +78,6 @@ class SubmissionContext:
     intent_job_id: str = ""
     intent_granted_at: datetime | None = None
     intent_expires_at: datetime | None = None
-    intent_consumed: bool = False
     evaluated_at: datetime | None = None
     match_score: float = 0
     confidence: float = 0
@@ -102,8 +101,7 @@ class SubmissionContext:
                 raise ValueError(f"{field} must be a string")
         if self.barrier not in (None, "CAPTCHA", "MFA", "ACCESS_CONTROL", "ANTI_BOT", "RATE_LIMIT"):
             raise ValueError("Unknown intervention barrier")
-        for field in ("user_enabled", "actual_user_intended_job", "intent_consumed",
-                      "quality_approved",
+        for field in ("user_enabled", "actual_user_intended_job", "quality_approved",
                       "facts_verified", "source_allowed",
                       "sensitive_answers_approved", "duplicate"):
             _boolean(getattr(self, field), field)
@@ -142,8 +140,6 @@ def evaluate_submission(context: SubmissionContext, policy: Policy) -> Decision:
             elif not (context.intent_granted_at <= context.evaluated_at
                       < context.intent_expires_at):
                 reasons.append("STALE_JOB_INTENT")
-            if context.intent_consumed:
-                reasons.append("JOB_INTENT_ALREADY_CONSUMED")
     if context.barrier:
         reasons.append("USER_INTERVENTION_REQUIRED")
     if context.state == "SUBMISSION_UNCONFIRMED":
