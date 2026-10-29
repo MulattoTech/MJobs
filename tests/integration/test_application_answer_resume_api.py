@@ -120,6 +120,24 @@ class ApplicationAnswerResumeApiTests(unittest.TestCase):
                 m.operations.c.id == operation_id,
             )).scalar_one()
 
+    def complete_with_matching_preflight(self, _store, application_id, *_args, **_kwargs):
+        application = self.store.application(application_id)
+        persist_preflight(self.store, application_id, {
+            "result": "PASS", "reason": None,
+            "observed_at": "2026-10-29T00:03:00Z",
+            "profile_version": application["profile_version"],
+            "document_version": application["document_version"],
+            "route_id": application["route_id"],
+            "metadata_fingerprint": FORM_FINGERPRINT,
+            "mappings": [{"question_id": QUESTION_ID, "question": QUESTION}],
+            "missing": [],
+        })
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == application_id,
+            ).values(state="DRY_RUN_COMPLETE"))
+        return self.store.application(application_id)
+
     def test_scoped_review_admission_and_completed_exact_readback(self):
         review = self.review()
         self.assertEqual(review["profile_id"], "fixture")
@@ -138,28 +156,11 @@ class ApplicationAnswerResumeApiTests(unittest.TestCase):
         self.assertEqual(pending.status_code, 202, pending.text)
         self.assertEqual(pending.json()["operation_id"], receipt["operation_id"])
 
-        application = self.store.application(self.application_id)
-        persist_preflight(self.store, self.application_id, {
-            "result": "PASS",
-            "reason": None,
-            "observed_at": "2026-10-29T00:01:00Z",
-            "profile_version": application["profile_version"],
-            "document_version": application["document_version"],
-            "route_id": application["route_id"],
-            "provider": "mock-ats",
-            "tenant": "example",
-            "requisition": "B",
-            "metadata_fingerprint": FORM_FINGERPRINT,
-            "mappings": [{"question_id": QUESTION_ID, "question": QUESTION}],
-            "missing": [],
-        })
-        with self.store.engine.begin() as connection:
-            connection.execute(update(m.applications).where(
-                m.applications.c.id == self.application_id,
-            ).values(state="DRY_RUN_COMPLETE"))
-            connection.execute(update(m.operations).where(
-                m.operations.c.id == receipt["operation_id"],
-            ).values(state="COMPLETED", error=None))
+        result, mocked = self.execute(
+            receipt["operation_id"], self.complete_with_matching_preflight,
+        )
+        self.assertEqual(result["status"], "COMPLETED", result)
+        mocked.assert_called_once()
 
         completed = self.client.get(self.base + "/resume-1")
         self.assertEqual(completed.status_code, 200, completed.text)
@@ -300,6 +301,42 @@ class ApplicationAnswerResumeApiTests(unittest.TestCase):
             self.operation_error(operation_id), "APPLICATION_RESUME_PREFLIGHT_STALE",
         )
         mocked.assert_called_once()
+
+    def test_completed_resume_replays_immutable_result_after_profile_changes(self):
+        admitted = self.client.post(self.base, json=self.payload("immutable-replay"))
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+
+        result, mocked = self.execute(
+            admitted.json()["operation_id"], self.complete_with_matching_preflight,
+        )
+        self.assertEqual(result["status"], "COMPLETED", result)
+        mocked.assert_called_once()
+
+        completed = self.client.get(self.base + "/immutable-replay")
+        self.assertEqual(completed.status_code, 200, completed.text)
+        original = completed.json()
+
+        profile = self.store.profile("fixture")
+        profile["answers"][-1]["text"] = "Edited after the completed operation."
+        self.store.save_profile(profile)
+
+        replayed = self.client.get(self.base + "/immutable-replay")
+        self.assertEqual(replayed.status_code, 200, replayed.text)
+        self.assertEqual(replayed.json(), original)
+
+    def test_completed_operation_without_fenced_result_fails_closed(self):
+        admitted = self.client.post(self.base, json=self.payload("missing-result"))
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == admitted.json()["operation_id"],
+            ).values(state="COMPLETED", error=None))
+
+        replayed = self.client.get(self.base + "/missing-result")
+        self.assertEqual(replayed.status_code, 409, replayed.text)
+        self.assertEqual(
+            replayed.json()["detail"]["code"], "APPLICATION_RESUME_RECEIPT_MISSING",
+        )
 
 
 if __name__ == "__main__":

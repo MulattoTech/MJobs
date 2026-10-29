@@ -150,16 +150,50 @@ def validate_resume_binding(store, operation):
         raise AttemptConflict("APPLICATION_ANSWER_REVIEW_STALE")
 
 
-def _completed_result(store, binding, request_id):
-    application = _scoped_application(
-        store, binding["profile_id"], binding["application_id"],
-    )
-    profile = store.profile(binding["profile_id"])
+def complete_resume_result(store, connection, operation):
+    """Validate and build the immutable result inside the operation completion fence."""
+    params = operation.get("params", {})
+    binding = params.get("resume_binding")
+    if binding is None:
+        return None
+    application = connection.execute(select(m.applications).where(
+        m.applications.c.id == binding["application_id"],
+        m.applications.c.profile_id == binding["profile_id"],
+    ).with_for_update()).mappings().one_or_none()
+    if application is None:
+        raise NoResultFound("APPLICATION_NOT_FOUND")
+    if application["target"] != "MOCK":
+        raise AttemptConflict("APPLICATION_RUN_TARGET_UNSUPPORTED")
+    profile_head = connection.execute(select(m.profiles).where(
+        m.profiles.c.id == binding["profile_id"],
+    ).with_for_update()).mappings().one_or_none()
+    if profile_head is None:
+        raise NoResultFound("PROFILE_NOT_FOUND")
+    profile = store.profile(binding["profile_id"], connection=connection)
     answer = _answer(profile, binding["answer_id"], binding["question"])
-    preflight = latest_preflight(store, binding["application_id"])
+    preflight_row = connection.execute(select(m.audit).where(
+        m.audit.c.entity_id == binding["application_id"],
+        m.audit.c.action == "APPLICATION_QUESTION_PREFLIGHT",
+    ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1).with_for_update()
+    ).mappings().one_or_none()
+    preflight = None if preflight_row is None else {
+        **preflight_row["payload"],
+        "event_id": preflight_row["id"],
+        "is_current": bool(
+            profile_head["version"] == application["profile_version"]
+            and preflight_row["payload"].get("profile_version") == application["profile_version"]
+            and preflight_row["payload"].get("document_version") == application["document_version"]
+            and preflight_row["payload"].get("route_id") == application["route_id"]
+        ),
+    }
+    if (profile_head["version"] != binding["expected_profile_version"]
+            or application["profile_version"] != binding["expected_profile_version"]):
+        raise AttemptConflict("APPLICATION_ANSWER_REVIEW_STALE")
     if (application["state"] != "DRY_RUN_COMPLETE" or not preflight
             or preflight.get("result") != "PASS" or preflight.get("is_current") is not True):
         raise AttemptConflict("APPLICATION_RESUME_PREFLIGHT_FAILED")
+    if preflight.get("event_id") == binding.get("preflight_event_id"):
+        raise AttemptConflict("APPLICATION_RESUME_PREFLIGHT_STALE")
     if preflight.get("metadata_fingerprint") != binding["form_fingerprint"]:
         raise AttemptConflict("APPLICATION_RESUME_PREFLIGHT_STALE")
     question = _question(preflight, binding["question_id"])
@@ -169,7 +203,7 @@ def _completed_result(store, binding, request_id):
             != binding["question_fingerprint"]):
         raise AttemptConflict("APPLICATION_RESUME_PREFLIGHT_STALE")
     return {
-        "request_id": request_id,
+        "request_id": params.get("request_id", ""),
         "profile_id": binding["profile_id"],
         "application_id": binding["application_id"],
         "question_id": binding["question_id"],
@@ -180,6 +214,25 @@ def _completed_result(store, binding, request_id):
         "answer": _public_answer(answer),
         "preflight": {"result": "PASS", "is_current": True},
     }
+
+
+def _stored_result(operation, binding, request_id):
+    result = operation["params"].get("resume_result")
+    if (not isinstance(result, dict)
+            or result.get("request_id") != request_id
+            or result.get("profile_id") != binding["profile_id"]
+            or result.get("application_id") != binding["application_id"]
+            or result.get("question_id") != binding["question_id"]
+            or result.get("question_fingerprint") != binding["question_fingerprint"]
+            or result.get("form_fingerprint") != binding["form_fingerprint"]
+            or result.get("profile_version") != binding["expected_profile_version"]
+            or result.get("external_submission") != "OFF"
+            or result.get("preflight") != {"result": "PASS", "is_current": True}
+            or not isinstance(result.get("answer"), dict)
+            or result["answer"].get("id") != binding["answer_id"]
+            or result["answer"].get("user_approved") is not True):
+        raise AttemptConflict("APPLICATION_RESUME_RECEIPT_MISSING")
+    return result
 
 
 def read_resume(store, profile_id, application_id, request_id):
@@ -204,10 +257,4 @@ def read_resume(store, profile_id, application_id, request_id):
         code = operation.get("error")
         raise AttemptConflict(code if isinstance(code, str) and code else
                               "APPLICATION_RESUME_PREFLIGHT_FAILED")
-    return _completed_result(store, binding, request_id), receipt
-
-
-def validate_resume_completion(store, operation):
-    binding = operation.get("params", {}).get("resume_binding")
-    if binding is not None:
-        _completed_result(store, binding, operation["params"].get("request_id", ""))
+    return _stored_result(operation, binding, request_id), receipt
