@@ -29,6 +29,18 @@ it.each(['AI_PROVIDER_UNAVAILABLE','AI_PROVIDER_TIMEOUT','AI_ERROR'])(
   },
 );
 
+it('formats the persisted durable provider failure without exposing its internal code',()=>{
+  const operation={state:'BLOCKED',error:'AI_STRUCTURED_PROVIDER_FAILED'};
+  const message=aiEvaluationFailure(operation.error);
+  expect(operation.state).toBe('BLOCKED');
+  expect(message).toContain('Discovery and deterministic scoring remain available');
+  expect(message).toContain('No partial advisory batch was published');
+  expect(message).toContain('explicit retry is safe after recovery');
+  expect(message).toContain('Automatic replay remains paused');
+  expect(message).toContain('billable');
+  expect(message).not.toContain(operation.error);
+});
+
 it('preserves BLOCKED as a terminal operation state without retry guidance',()=>{
   expect(aiEvaluationFailure('BLOCKED')).toBe(
     'Evaluation stopped: BLOCKED. No partial advisory batch was published.',

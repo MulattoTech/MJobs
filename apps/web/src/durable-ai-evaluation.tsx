@@ -30,6 +30,7 @@ export function aiEvaluationFailure(code:string) {
     AI_PROVIDER_UNAVAILABLE:'The AI provider is unavailable.',
     AI_PROVIDER_TIMEOUT:'The AI provider timed out.',
     AI_ERROR:'The AI evaluation failed.',
+    AI_STRUCTURED_PROVIDER_FAILED:'The AI provider failed.',
   }[code];
   if(providerFailure)return `${providerFailure} Discovery and deterministic scoring remain available. No partial advisory batch was published. An explicit retry is safe after recovery. Automatic replay remains paused to prevent an unintended billable provider call.`;
   return `Evaluation stopped: ${code}. No partial advisory batch was published.`;
