@@ -146,6 +146,12 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None, preference="P
         )]
     else:
         raise ValueError("APPLICATION_ROUTE_MODE_INVALID")
+    selected = [
+        ({**option, "direct_employer_resolution": direct_employer_route_discovery(
+            routes, option["preferred_route"]["id"],
+        )} if option["preferred_route"]["authority"] == "AGGREGATOR" else option)
+        for option in selected
+    ]
     return {
         "mode": mode,
         "selected": selected,
@@ -339,6 +345,9 @@ def persist_route_choices(connection, application_id, route_plan):
     for option in selected:
         route = option["preferred_route"]
         key = option["underlying_key"]
+        resolution = option.get("direct_employer_resolution")
+        state = ("PLANNED_" + resolution["status"]
+                 if isinstance(resolution, dict) else "PLANNED")
         identifier = identity("application-route-choice", application_id, key)
         upsert(connection, m.application_route_choices, {
             "id": identifier,
@@ -346,7 +355,7 @@ def persist_route_choices(connection, application_id, route_plan):
             "route_id": route["id"],
             "underlying_key": key,
             "requested_mode": route_plan["mode"],
-            "state": "PLANNED",
+            "state": state,
             "created_at": now(),
         })
     return [option["preferred_route"]["id"] for option in selected]
