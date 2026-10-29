@@ -217,9 +217,12 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         return original_collect_source(*args, **kwargs)
                     finally:
                         # Model a loaded shard delaying worker bookkeeping only
-                        # after the transport has already honored its deadline.
+                        # after the transport has already honored its deadline,
+                        # then re-enter the real worker fence before preserving
+                        # an adapter error from that earlier transport phase.
                         if unwind_delay:
                             time.sleep(unwind_delay)
+                            kwargs["check"]()
 
                 def observe_connect_tcp(backend, *args, **kwargs):
                     transport_entered.set()
