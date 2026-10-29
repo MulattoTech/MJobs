@@ -5,8 +5,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 
 from fixtures.mock_server import fixture_server
 from packages.domain.safety import Policy
@@ -38,6 +39,19 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.applications).where(
                 m.applications.c.id == self.application_id).values(target="REAL"))
+            application = dict(connection.execute(select(m.applications).where(
+                m.applications.c.id == self.application_id)).mappings().one())
+            self.store._audit(
+                connection, self.application_id, "APPLICATION_QUESTION_PREFLIGHT", {
+                    "result": "PASS",
+                    "reason": None,
+                    "observed_at": "2026-10-29T05:59:00+00:00",
+                    "profile_version": application["profile_version"],
+                    "document_version": application["document_version"],
+                    "route_id": application["route_id"],
+                    "missing": [],
+                    "answer_review": [],
+                })
         self.now = datetime(2026, 10, 29, 6, 0, tzinfo=timezone.utc)
         self.receipt_id = "live-intent-receipt-a"
         self.policy = Policy(external_submissions_enabled=True)
@@ -63,15 +77,17 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
 
     def authorize(self, *, application_id=None, receipt_id=None, policy=None,
                   barrier=None):
-        return authorize_submission(
-            self.store,
-            application_id or self.application_id,
-            confidence=100,
-            policy=self.policy if policy is None else policy,
-            intent_receipt_id=receipt_id or self.receipt_id,
-            evaluated_at=self.now,
-            barrier=barrier,
-        )
+        with patch(
+                "services.applications.submission_admission._utc_now",
+                return_value=self.now):
+            return authorize_submission(
+                self.store,
+                application_id or self.application_id,
+                confidence=100,
+                policy=self.policy if policy is None else policy,
+                intent_receipt_id=receipt_id or self.receipt_id,
+                barrier=barrier,
+            )
 
     def consumption_count(self):
         with self.store.engine.connect() as connection:
@@ -160,6 +176,64 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
                 blocked = self.authorize(barrier=barrier)
                 self.assertFalse(blocked.allowed)
                 self.assertIn("USER_INTERVENTION_REQUIRED", blocked.reasons)
+        self.assertEqual(self.consumption_count(), 0)
+
+    def test_invalid_persisted_target_fails_closed_without_consuming_intent(self):
+        self.grant()
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == self.application_id
+            ).values(target="CORRUPTED"))
+
+        decision = self.authorize()
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("INVALID_SUBMISSION_TARGET", decision.reasons)
+        self.assertEqual(
+            self.store.application(self.application_id)["state"], "READY_TO_SUBMIT")
+        self.assertEqual(self.consumption_count(), 0)
+
+    def test_caller_cannot_override_the_admission_clock(self):
+        self.grant()
+
+        with self.assertRaises(TypeError):
+            authorize_submission(
+                self.store,
+                self.application_id,
+                confidence=100,
+                policy=self.policy,
+                intent_receipt_id=self.receipt_id,
+                evaluated_at=self.now,
+            )
+
+        self.assertEqual(
+            self.store.application(self.application_id)["state"], "READY_TO_SUBMIT")
+        self.assertEqual(self.consumption_count(), 0)
+
+    def test_missing_current_validated_materials_fail_all_material_gates(self):
+        self.grant()
+        application = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(delete(m.audit).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action.in_([
+                    "DOCUMENTS_VALIDATED", "APPLICATION_QUESTION_PREFLIGHT",
+                ]),
+            ))
+            connection.execute(update(m.facts).where(
+                m.facts.c.profile_id == application["profile_id"],
+                m.facts.c.version == application["profile_version"],
+                m.facts.c.fact_id.in_(application["fact_ids"]),
+            ).values(verified=False))
+
+        decision = self.authorize()
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("QUALITY_REVIEW_REQUIRED", decision.reasons)
+        self.assertIn("UNVERIFIED_FACTS", decision.reasons)
+        self.assertIn("SENSITIVE_REVIEW_REQUIRED", decision.reasons)
+        self.assertEqual(
+            self.store.application(self.application_id)["state"], "READY_TO_SUBMIT")
         self.assertEqual(self.consumption_count(), 0)
 
 

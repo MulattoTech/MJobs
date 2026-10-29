@@ -17,6 +17,10 @@ GRANTED = "LIVE_SUBMISSION_INTENT_GRANTED"
 CONSUMED = "LIVE_SUBMISSION_INTENT_CONSUMED"
 
 
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 def _aware(value: object) -> bool:
     return (isinstance(value, datetime) and value.tzinfo is not None
             and value.utcoffset() is not None)
@@ -143,10 +147,94 @@ def _consume_intent(connection, intent: dict, application: dict,
     return connection.execute(statement).rowcount == 1
 
 
+def _latest_audit(connection, application_id: str, action: str) -> dict | None:
+    row = connection.execute(select(m.audit).where(
+        m.audit.c.entity_id == application_id,
+        m.audit.c.action == action,
+    ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)
+        .with_for_update()).mappings().one_or_none()
+    return dict(row) if row is not None else None
+
+
+def _validated_materials(connection, application: dict) -> tuple[bool, bool, bool]:
+    documents = [dict(row) for row in connection.execute(select(m.documents).where(
+        m.documents.c.application_id == application["id"],
+        m.documents.c.version == application["document_version"],
+        m.documents.c.profile_version == application["profile_version"],
+    ).with_for_update()).mappings()]
+    validation = _latest_audit(
+        connection, application["id"], "DOCUMENTS_VALIDATED")
+    payload = validation["payload"] if validation is not None else None
+    evidence = payload.get("documents") if isinstance(payload, dict) else None
+    by_id = ({row.get("id"): row for row in evidence}
+             if isinstance(evidence, list)
+             and all(isinstance(row, dict) for row in evidence) else {})
+    quality_approved = bool(
+        documents
+        and isinstance(payload, dict)
+        and payload.get("profile_version") == application["profile_version"]
+        and isinstance(evidence, list)
+        and len(by_id) == len(evidence) == len(documents)
+        and all(
+            document["id"] in by_id
+            and by_id[document["id"]].get("fact_ids") == document["fact_ids"]
+            and by_id[document["id"]].get("sha256") == document["sha256"]
+            and by_id[document["id"]].get("claim_validation")
+            == (document.get("generation_context") or {}).get("claim_validation")
+            for document in documents
+        )
+    )
+
+    selected = application.get("fact_ids")
+    fact_rows = []
+    if (isinstance(selected, list) and selected
+            and all(isinstance(fact_id, str) and fact_id for fact_id in selected)
+            and len(set(selected)) == len(selected)):
+        fact_rows = [dict(row) for row in connection.execute(select(m.facts).where(
+            m.facts.c.profile_id == application["profile_id"],
+            m.facts.c.version == application["profile_version"],
+            m.facts.c.fact_id.in_(selected),
+        )).mappings()]
+    facts_verified = bool(
+        quality_approved
+        and len(fact_rows) == len(selected or ())
+        and {row["fact_id"] for row in fact_rows} == set(selected or ())
+        and all(
+            row["verified"] is True
+            and row["user_approved"] is True
+            and isinstance(row["source"], str) and bool(row["source"].strip())
+            and isinstance(row["text"], str) and bool(row["text"].strip())
+            and type(row["confidence"]) in (int, float)
+            and row["confidence"] >= 80
+            for row in fact_rows
+        )
+    )
+
+    preflight = _latest_audit(
+        connection, application["id"], "APPLICATION_QUESTION_PREFLIGHT")
+    preflight_payload = preflight["payload"] if preflight is not None else None
+    answer_review = (preflight_payload.get("answer_review", [])
+                     if isinstance(preflight_payload, dict) else None)
+    sensitive_answers_approved = bool(
+        isinstance(preflight_payload, dict)
+        and preflight_payload.get("result") == "PASS"
+        and preflight_payload.get("profile_version") == application["profile_version"]
+        and preflight_payload.get("document_version") == application["document_version"]
+        and preflight_payload.get("route_id") == application["route_id"]
+        and preflight_payload.get("missing") == []
+        and isinstance(answer_review, list)
+        and all(isinstance(row, dict) and row.get("review_required") is False
+                for row in answer_review)
+    )
+    return quality_approved, facts_verified, sensitive_answers_approved
+
+
 def _context(application: dict, match: dict, confidence: float, hourly: int,
              daily: int, company: int, evaluated_at: datetime,
-             intent: dict | None, barrier: str | None) -> SubmissionContext:
+             intent: dict | None, barrier: str | None,
+             materials: tuple[bool, bool, bool]) -> SubmissionContext:
     is_live = application["target"] == "REAL"
+    quality_approved, facts_verified, sensitive_answers_approved = materials
     return SubmissionContext(
         target="EXTERNAL" if is_live else "MOCK",
         state=application["state"],
@@ -159,9 +247,9 @@ def _context(application: dict, match: dict, confidence: float, hourly: int,
         intent_expires_at=intent["expires_at"] if intent else None,
         evaluated_at=evaluated_at if intent else None,
         match_score=match["score"], confidence=confidence,
-        quality_approved=True, facts_verified=True,
+        quality_approved=quality_approved, facts_verified=facts_verified,
         source_allowed=(intent["source_allowed"] if intent else not is_live),
-        sensitive_answers_approved=True,
+        sensitive_answers_approved=sensitive_answers_approved,
         hourly_count=hourly, daily_count=daily, company_count=company,
         barrier=barrier,
     )
@@ -169,18 +257,19 @@ def _context(application: dict, match: dict, confidence: float, hourly: int,
 
 def authorize_submission(
         store, application_id: str, confidence: float, policy: Policy = Policy(),
-        *, intent_receipt_id: str | None = None,
-        evaluated_at: datetime | None = None, barrier: str | None = None,
+        *, intent_receipt_id: str | None = None, barrier: str | None = None,
         check=None) -> Decision:
     """Evaluate and claim one submission in a single database transaction."""
-    timestamp = evaluated_at or datetime.now(timezone.utc)
-    if not _aware(timestamp):
-        raise ValueError("evaluated_at must be timezone-aware")
+    timestamp = _utc_now()
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         application = dict(connection.execute(select(m.applications).where(
             m.applications.c.id == application_id).with_for_update()).mappings().one())
+        if application["target"] not in ("MOCK", "REAL"):
+            return Decision(False, ("INVALID_SUBMISSION_TARGET",))
+        materials = ((True, True, True) if application["target"] == "MOCK"
+                     else _validated_materials(connection, application))
         connection.execute(select(m.profiles).where(
             m.profiles.c.id == application["profile_id"]).with_for_update()).one()
         if check:
@@ -214,7 +303,7 @@ def authorize_submission(
                 connection, intent_receipt_id, application, timestamp)
         decision = evaluate_submission(_context(
             application, match, confidence, hourly, daily, company,
-            timestamp, intent, barrier), policy)
+            timestamp, intent, barrier, materials), policy)
         if intent_error and intent_error not in decision.reasons:
             decision = Decision(False, (*decision.reasons, intent_error))
         if decision.allowed:
