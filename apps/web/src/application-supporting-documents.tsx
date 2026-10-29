@@ -34,14 +34,19 @@ export function ApplicationSupportingDocuments({profileId, applicationId, disabl
   const [selection, setSelection] = useState<Selection|null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const request = useRef<{key:string;id:string}|null>(null);
+  const loadingScope = useRef('');
   const scope = `${profileId}:${applicationId}`;
 
-  async function load() {
+  async function load(isRetry = false) {
+    if (loadingScope.current === scope) return;
+    loadingScope.current = scope;
     setLoading(true);
+    setRetrying(isRetry);
     setError('');
     try {
       const result = await api<Selection>(endpoint(profileId, applicationId));
@@ -55,7 +60,9 @@ export function ApplicationSupportingDocuments({profileId, applicationId, disabl
       setSelection(null);
       setError('Supporting document choices could not be loaded. Retry to review this application.');
     } finally {
+      if (loadingScope.current === scope) loadingScope.current = '';
       setLoading(false);
+      setRetrying(false);
     }
   }
 
@@ -114,11 +121,13 @@ export function ApplicationSupportingDocuments({profileId, applicationId, disabl
   const unavailable = selection?.unavailable_revision_ids ?? [];
   const staleSelected = selectedIds.filter(id => !available.some(row => row.revision_id === id));
 
-  return <section className="panel application-supporting-documents" aria-label="Supporting documents for this mock application">
+  return <section className="panel application-supporting-documents" aria-label="Supporting documents for this mock application" aria-busy={loading}>
     <h3>Supporting documents for this mock application</h3>
     <p>Choose optional profile documents for this job. Files are stored as unreviewed; selection does not verify their contents. They are attached only in the controlled local mock workflow. External application uploads remain disabled.</p>
     {loading && <p role="status">Loading profile documents…</p>}
     {error && <p role="alert">{error}</p>}
+    {(error || retrying) && <button type="button" disabled={disabled||loading}
+      onClick={() => void load(true)}>{retrying?'Retrying supporting documents…':'Retry loading supporting documents'}</button>}
     {unavailable.length > 0 && <div role="alert">
       <p>One or more selected revisions are archived or unavailable. Remove them before saving this application’s selection.</p>
       <button type="button" disabled={disabled||saving} onClick={() => {
