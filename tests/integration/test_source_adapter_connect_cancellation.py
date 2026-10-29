@@ -374,10 +374,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 pending = client.get(f"/operations/{identifier}").json()
                                 worker.join(timeout=2.3)  # Observe natural timeout, never force green by closing the listener.
                         else:
-                            # Transport completion retains its strict one-second
-                            # oracle above; allow bounded terminal persistence and
-                            # cleanup the same fixture allowance as the finalizer.
-                            worker.join(timeout=3)
+                            worker.join(timeout=3 if mode == "positive" else 1.1)
                         elapsed = time.monotonic() - started
                         self.assertFalse(worker.is_alive(), f"Owned {provider} worker exceeded fixture bound")
                         if mode == "cancel":
