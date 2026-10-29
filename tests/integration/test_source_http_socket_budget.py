@@ -106,6 +106,7 @@ def tcp_source(mode, *, tls_context=None):
                 if hello[:1] != b"\x16":
                     raise AssertionError("Expected real TLS handshake record")
                 state["bytes"] = len(hello)
+                state["engaged_at"] = time.monotonic()
                 engaged.set()
                 while not stop.is_set() and time.monotonic() < deadline:
                     try:
@@ -185,7 +186,7 @@ def tcp_source(mode, *, tls_context=None):
 
 class SourceHttpSocketBudgetTests(unittest.TestCase):
     def run_source(self, mode, *, cancel=False, worker_budget=.8, setup_delay=0,
-                   unwind_delay=0):
+                   unwind_delay=0, worker_entry_delay=0):
         with tempfile.TemporaryDirectory(prefix="mjobs-source-tcp-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -204,6 +205,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 transport_entered = threading.Event()
                 connect_exited = threading.Event()
                 connect_exit = {}
+                tls_entered = threading.Event()
+                tls_entry = {}
                 tls_exited = threading.Event()
                 tls_exit = {}
 
@@ -230,6 +233,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         connect_exited.set()
 
                 def observe_start_tls(stream, *args, **kwargs):
+                    tls_entry["at"] = time.monotonic()
+                    tls_entered.set()
                     try:
                         return original_start_tls(stream, *args, **kwargs)
                     finally:
@@ -282,6 +287,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
 
                         def execute():
                             try:
+                                if worker_entry_delay:
+                                    time.sleep(worker_entry_delay)
                                 outcome.append(execute_operation(identifier))
                             except BaseException as error:
                                 errors.append(error)
@@ -294,8 +301,21 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             if mode == "connect-stall":
                                 self.assertTrue(transport_entered.wait(3),
                                                 "Worker did not reach source HTTP transport")
-                            self.assertTrue(engaged.wait(3 if mode == "positive-hostname" else 1),
-                                            "Real loopback TCP operation did not engage")
+                            if mode == "tls-stall" and not cancel:
+                                self.assertTrue(tls_entered.wait(3),
+                                                "Worker did not reach TLS transport after fixture setup")
+                                tls_deadline_end = tls_entry["at"] + 1.1
+                                engagement_wait = max(0, tls_deadline_end - time.monotonic())
+                                self.assertTrue(engaged.wait(engagement_wait),
+                                                f"Real loopback TLS operation did not engage within "
+                                                f"the transport deadline; entry={tls_entry}")
+                                engagement_elapsed = socket_state["engaged_at"] - tls_entry["at"]
+                                self.assertLess(engagement_elapsed, 1.1,
+                                                f"TLS ClientHello engagement exceeded the transport "
+                                                f"deadline: {engagement_elapsed:.3f}s")
+                            else:
+                                self.assertTrue(engaged.wait(3 if mode == "positive-hostname" else 1),
+                                                "Real loopback TCP operation did not engage")
                             if cancel:
                                 if mode == "connect-stall":
                                     connecting = socket_state["connecting_socket"]
@@ -338,7 +358,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                 elif mode == "tls-stall":
                                     self.assertTrue(tls_exited.wait(1.1),
                                                     "TLS transport ignored the operation deadline")
-                                    transport_elapsed = tls_exit["at"] - started
+                                    transport_elapsed = tls_exit["at"] - tls_entry["at"]
                                     self.assertLess(transport_elapsed, 1.1,
                                                     "TLS transport exceeded the operation deadline")
                                     self.assertEqual(tls_exit["fileno"], -1,
@@ -439,7 +459,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
         self.run_source("tls-stall", cancel=True, worker_budget=30)
 
     def test_worker_deadline_during_real_tls_handshake_stall(self):
-        self.run_source("tls-stall", unwind_delay=.8)
+        self.run_source("tls-stall", unwind_delay=.8, worker_entry_delay=1.1)
 
     def test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads(self):
         class Cancelled(Exception):
