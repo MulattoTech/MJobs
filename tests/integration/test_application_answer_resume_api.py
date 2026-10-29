@@ -1,5 +1,6 @@
 """Bound answer-review resume admission and exact worker-result readback."""
 from copy import deepcopy
+import json
 from pathlib import Path
 import os
 import tempfile
@@ -315,6 +316,18 @@ class ApplicationAnswerResumeApiTests(unittest.TestCase):
         completed = self.client.get(self.base + "/immutable-replay")
         self.assertEqual(completed.status_code, 200, completed.text)
         original = completed.json()
+        self.assertEqual(original["answer"]["text"], ANSWER["text"])
+
+        generic_list = self.client.get("/operations")
+        self.assertEqual(generic_list.status_code, 200, generic_list.text)
+        generic_detail = self.client.get(
+            "/operations/" + admitted.json()["operation_id"],
+        )
+        self.assertEqual(generic_detail.status_code, 200, generic_detail.text)
+        for generic in (generic_list.json(), generic_detail.json()):
+            with self.subTest(endpoint="generic-operation"):
+                self.assertNotIn(ANSWER["text"], json.dumps(generic))
+                self.assertNotIn("resume_result", json.dumps(generic))
 
         profile = self.store.profile("fixture")
         profile["answers"][-1]["text"] = "Edited after the completed operation."
