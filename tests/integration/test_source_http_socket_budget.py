@@ -202,6 +202,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 original_connect_tcp = http_transport._Backend.connect_tcp
                 original_start_tls = http_transport._Stream.start_tls
                 transport_entered = threading.Event()
+                connect_exited = threading.Event()
+                connect_exit = {}
                 tls_exited = threading.Event()
                 tls_exit = {}
 
@@ -218,7 +220,14 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
 
                 def observe_connect_tcp(backend, *args, **kwargs):
                     transport_entered.set()
-                    return original_connect_tcp(backend, *args, **kwargs)
+                    try:
+                        return original_connect_tcp(backend, *args, **kwargs)
+                    finally:
+                        connecting = socket_state.get("connecting_socket")
+                        connect_exit["at"] = time.monotonic()
+                        connect_exit["fileno"] = (connecting.fileno()
+                                                  if connecting is not None else None)
+                        connect_exited.set()
 
                 def observe_start_tls(stream, *args, **kwargs):
                     try:
@@ -281,6 +290,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         worker = threading.Thread(target=execute, name="mjobs-owned-source-worker", daemon=True)
                         worker.start()
                         try:
+                            transport_elapsed = None
                             if mode == "connect-stall":
                                 self.assertTrue(transport_entered.wait(3),
                                                 "Worker did not reach source HTTP transport")
@@ -311,10 +321,25 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                 self.assertFalse(worker.is_alive(),
                                                  f"Cancellation ignored during {mode} for {time.monotonic()-requested:.3f}s")
                             else:
-                                if mode == "tls-stall":
+                                if mode == "connect-stall":
+                                    self.assertTrue(connect_exited.wait(1.1),
+                                                    "TCP connect transport ignored the operation deadline")
+                                    transport_elapsed = connect_exit["at"] - started
+                                    self.assertLess(transport_elapsed, 1.1,
+                                                    f"TCP connect transport exceeded the operation deadline: "
+                                                    f"{transport_elapsed:.3f}s; exit={connect_exit}")
+                                    self.assertEqual(connect_exit["fileno"], -1,
+                                                     f"Timed-out TCP connect retained its socket: "
+                                                     f"exit={connect_exit}")
+                                    # Terminal persistence is separately bounded:
+                                    # loaded shards may schedule it after the
+                                    # transport has already closed on deadline.
+                                    worker.join(timeout=3)
+                                elif mode == "tls-stall":
                                     self.assertTrue(tls_exited.wait(1.1),
                                                     "TLS transport ignored the operation deadline")
-                                    self.assertLess(tls_exit["at"] - started, 1.1,
+                                    transport_elapsed = tls_exit["at"] - started
+                                    self.assertLess(transport_elapsed, 1.1,
                                                     "TLS transport exceeded the operation deadline")
                                     self.assertEqual(tls_exit["fileno"], -1,
                                                      "Timed-out TLS transport retained its socket")
@@ -356,7 +381,9 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                 self.assertTrue(socket_state["peer_closed"].wait(.3),
                                                 "Remotive body response remained open after worker deadline")
                             print(f"OWNED_SOURCE_BUDGET mode={mode} cancel={cancel} "
-                                  f"latency={settled_elapsed:.3f}s")
+                                  f"latency={settled_elapsed:.3f}s"
+                                  + (f" transport={transport_elapsed:.3f}s"
+                                     if transport_elapsed is not None else ""))
                             self.assertLess(socket_state["bytes"], 65536)
                             with store.engine.connect() as connection:
                                 source = connection.execute(select(m.job_sources).where(
@@ -406,7 +433,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
         self.run_source("connect-stall", cancel=True, worker_budget=30, setup_delay=1.1)
 
     def test_worker_deadline_during_real_tcp_connect_stall(self):
-        self.run_source("connect-stall")
+        self.run_source("connect-stall", unwind_delay=.8)
 
     def test_public_cancel_during_real_tls_handshake_stall(self):
         self.run_source("tls-stall", cancel=True, worker_budget=30)
