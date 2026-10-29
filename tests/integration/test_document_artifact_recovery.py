@@ -1,6 +1,7 @@
 """Crash recovery coverage for immutable generated document revisions."""
 import copy
 from datetime import datetime, timedelta, timezone
+import hashlib
 import json
 from pathlib import Path
 import os
@@ -98,6 +99,47 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
         os.utime(revision, (timestamp, timestamp))
         return revision
 
+    def _old_reviewed_orphan(self, application_id: str, document_id: str, *,
+                             now: datetime, unknown_file: bool = False) -> Path:
+        profile_version = "f" * 64
+        relative = f"{profile_version}/reviewed-{document_id}"
+        revision = self.root / application_id / relative
+        revision.mkdir(parents=True)
+        payloads = {
+            "docx": b"synthetic reviewed docx",
+            "pdf": b"%PDF- synthetic reviewed pdf",
+            "txt": b"synthetic reviewed text\n",
+        }
+        files = {}
+        digests = {}
+        for extension, payload in payloads.items():
+            name = f"cover-letter.{extension}"
+            (revision / name).write_bytes(payload)
+            files[extension] = f"{relative}/{name}"
+            digests[extension] = hashlib.sha256(payload).hexdigest()
+        marker = {
+            "schema_version": 1,
+            "document_id": document_id,
+            "application_id": application_id,
+            "version": 2,
+            "profile_version": profile_version,
+            "preview_sha256": "b" * 64,
+            "request_id": "synthetic-review",
+            "files": files,
+            "sha256": digests,
+        }
+        (revision / ".reviewed-cover-letter.json").write_text(
+            json.dumps(marker, sort_keys=True), encoding="utf-8",
+        )
+        if unknown_file:
+            (revision / "operator-note.md").write_text(
+                "unknown content must remain protected", encoding="utf-8",
+            )
+        old = now - timedelta(days=3)
+        for path in [*revision.iterdir(), revision]:
+            os.utime(path, (old.timestamp(), old.timestamp()))
+        return revision
+
     def test_scan_protects_referenced_uploads_and_unknown_or_debug_files(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
@@ -147,6 +189,141 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
             temp_entry = by_path[temp_file.relative_to(self.root).as_posix()]
             self.assertEqual(temp_entry["classification"], "INCOMPLETE_TEMPORARY_FILE")
             self.assertTrue(temp_entry["eligible"])
+
+    def test_reviewed_marker_revision_is_managed_but_unknown_content_stays_protected(self):
+        now = datetime.now(timezone.utc)
+        managed = self._old_reviewed_orphan(
+            "d" * 64, "a" * 64, now=now,
+        )
+        protected = self._old_reviewed_orphan(
+            "e" * 64, "c" * 64, now=now, unknown_file=True,
+        )
+
+        inventory = scan_artifacts(self.store, self.root, now=now)
+        by_path = {item["path"]: item for item in inventory}
+        managed_path = managed.relative_to(self.root).as_posix()
+        protected_path = protected.relative_to(self.root).as_posix()
+        self.assertEqual(
+            [item["path"] for item in inventory
+             if item["path"] == managed_path or item["path"].startswith(f"{managed_path}/")],
+            [managed_path],
+        )
+        self.assertEqual(
+            [item["path"] for item in inventory
+             if item["path"] == protected_path or item["path"].startswith(f"{protected_path}/")],
+            [protected_path],
+        )
+        managed_entry = by_path[managed_path]
+        protected_entry = by_path[protected_path]
+        self.assertEqual(managed_entry["classification"], "ORPHAN_REVIEWED_REVISION")
+        self.assertTrue(managed_entry["eligible"])
+        self.assertEqual(protected_entry["classification"], "INVALID_REVIEWED_REVISION_PROTECTED")
+        self.assertFalse(protected_entry["eligible"])
+
+        record = quarantine_artifact(
+            self.store, self.root, managed_entry["artifact_id"], now=now,
+        )
+        payload = self.root / ".quarantine" / record["quarantine_id"] / "artifact"
+        self.assertFalse(managed.exists())
+        self.assertTrue((payload / ".reviewed-cover-letter.json").is_file())
+        self.assertTrue(protected.is_dir())
+
+        restored = restore_quarantined(
+            self.store, self.root, record["quarantine_id"], now=now,
+        )
+        self.assertEqual(restored["state"], "RESTORED")
+        self.assertTrue((managed / ".reviewed-cover-letter.json").is_file())
+        restored_entry = next(
+            item for item in scan_artifacts(self.store, self.root, now=now)
+            if item["path"] == managed_path
+        )
+        purge_record = quarantine_artifact(
+            self.store, self.root, restored_entry["artifact_id"], now=now,
+        )
+        self.assertEqual(
+            purge_expired_quarantine(
+                self.store, self.root, now=now + timedelta(days=31),
+            ),
+            [purge_record["quarantine_id"]],
+        )
+        self.assertFalse(
+            (self.root / ".quarantine" / purge_record["quarantine_id"] / "artifact").exists()
+        )
+        self.assertTrue(protected.is_dir())
+
+    def test_reviewed_restore_rejects_manifest_path_not_bound_to_payload_marker(self):
+        now = datetime.now(timezone.utc)
+        application_id = "d" * 64
+        document_id = "a" * 64
+        reviewed = self._old_reviewed_orphan(
+            application_id, document_id, now=now,
+        )
+        candidate = next(
+            item for item in scan_artifacts(self.store, self.root, now=now)
+            if item.get("path") == reviewed.relative_to(self.root).as_posix()
+        )
+        record = quarantine_artifact(
+            self.store, self.root, candidate["artifact_id"], now=now,
+        )
+        quarantine_id = record["quarantine_id"]
+        manifest_path = self.root / ".quarantine" / f"{quarantine_id}.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        redirected = (
+            f"{'e' * 64}/{'1' * 64}/reviewed-{document_id}"
+        )
+        manifest["original_path"] = redirected
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+        payload = self.root / ".quarantine" / quarantine_id / "artifact"
+        with self.assertRaisesRegex(ValueError, "reviewed identity"):
+            restore_quarantined(self.store, self.root, quarantine_id, now=now)
+        self.assertTrue(payload.is_dir())
+        self.assertFalse((self.root / redirected).exists())
+
+    def test_invalid_reviewed_layout_is_atomic_and_cannot_quarantine_a_child(self):
+        now = datetime.now(timezone.utc)
+        cases = []
+
+        digest_mismatch = self._old_reviewed_orphan("1" * 64, "a" * 64, now=now)
+        (digest_mismatch / "cover-letter.txt").write_bytes(b"mutated after marker creation")
+        cases.append(("digest mismatch", digest_mismatch))
+
+        malformed_marker = self._old_reviewed_orphan("2" * 64, "b" * 64, now=now)
+        (malformed_marker / ".reviewed-cover-letter.json").write_text("{", encoding="utf-8")
+        cases.append(("malformed marker", malformed_marker))
+
+        unknown_extra = self._old_reviewed_orphan(
+            "3" * 64, "c" * 64, now=now, unknown_file=True,
+        )
+        cases.append(("unknown extra", unknown_extra))
+
+        inventory = scan_artifacts(self.store, self.root, now=now)
+        for label, revision in cases:
+            with self.subTest(label=label):
+                relative = revision.relative_to(self.root).as_posix()
+                items = [
+                    item for item in inventory
+                    if item["path"] == relative or item["path"].startswith(f"{relative}/")
+                ]
+                self.assertEqual(len(items), 1)
+                self.assertEqual(items[0]["path"], relative)
+                self.assertEqual(
+                    items[0]["classification"], "INVALID_REVIEWED_REVISION_PROTECTED",
+                )
+                self.assertFalse(items[0]["eligible"])
+                self.assertNotIn("artifact_id", items[0])
+
+                child = revision / "cover-letter.txt"
+                child_relative = child.relative_to(self.root).as_posix()
+                child_digest = hashlib.sha256(child.read_bytes()).hexdigest()
+                child_artifact_id = hashlib.sha256(
+                    f"artifact-v1\0{child_relative}\0{child_digest}".encode("utf-8")
+                ).hexdigest()
+                with self.assertRaisesRegex(ValueError, "not eligible for quarantine"):
+                    quarantine_artifact(
+                        self.store, self.root, child_artifact_id, now=now,
+                    )
+                self.assertTrue(child.is_file())
 
     def test_quarantine_restore_collision_and_retention_purge_are_audited(self):
         now = datetime.now(timezone.utc)
