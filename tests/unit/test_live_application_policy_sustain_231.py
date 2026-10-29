@@ -1,6 +1,7 @@
 """MJ-REQ-230: real submission needs distinct, explicit user intent."""
 
 from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 import os
 import unittest
 from unittest.mock import patch
@@ -10,11 +11,19 @@ from packages.domain.safety import Policy, SubmissionContext, evaluate_submissio
 
 class LiveApplicationPolicyTests(unittest.TestCase):
     def external_context(self, **changes):
+        evaluated_at = datetime(2026, 10, 29, 4, 0, tzinfo=timezone.utc)
         context = SubmissionContext(
             target="EXTERNAL",
             state="READY_TO_SUBMIT",
             user_enabled=True,
             actual_user_intended_job=True,
+            job_id="job-a",
+            intent_receipt_id="intent-a",
+            intent_job_id="job-a",
+            intent_granted_at=evaluated_at - timedelta(minutes=5),
+            intent_expires_at=evaluated_at + timedelta(minutes=5),
+            intent_consumed=False,
+            evaluated_at=evaluated_at,
             match_score=100,
             confidence=100,
             quality_approved=True,
@@ -43,6 +52,44 @@ class LiveApplicationPolicyTests(unittest.TestCase):
 
         self.assertFalse(decision.allowed)
         self.assertIn("ACTUAL_USER_INTENT_REQUIRED", decision.reasons)
+
+    def test_boolean_intent_without_durable_job_receipt_fails_closed(self):
+        """A transient yes/no value is not durable consent for a specific job."""
+        decision = evaluate_submission(
+            self.external_context(intent_receipt_id=""),
+            Policy(external_submissions_enabled=True),
+        )
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("DURABLE_JOB_INTENT_REQUIRED", decision.reasons)
+
+    def test_intent_for_another_job_cannot_authorize_submission(self):
+        decision = evaluate_submission(
+            self.external_context(job_id="job-b"),
+            Policy(external_submissions_enabled=True),
+        )
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("JOB_INTENT_MISMATCH", decision.reasons)
+
+    def test_expired_job_intent_fails_closed(self):
+        evaluated_at = self.external_context().evaluated_at
+        decision = evaluate_submission(
+            self.external_context(intent_expires_at=evaluated_at),
+            Policy(external_submissions_enabled=True),
+        )
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("STALE_JOB_INTENT", decision.reasons)
+
+    def test_consumed_job_intent_cannot_be_replayed(self):
+        decision = evaluate_submission(
+            self.external_context(intent_consumed=True),
+            Policy(external_submissions_enabled=True),
+        )
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("JOB_INTENT_ALREADY_CONSUMED", decision.reasons)
 
     def test_live_submission_requires_every_independent_gate(self):
         enabled = Policy(external_submissions_enabled=True)
@@ -90,6 +137,17 @@ class LiveApplicationPolicyTests(unittest.TestCase):
             with self.subTest(target=arbitrary_target), self.assertRaisesRegex(
                     ValueError, "Unknown submission target"):
                 self.external_context(target=arbitrary_target)
+
+    def test_malformed_intent_binding_is_rejected_before_evaluation(self):
+        cases = (
+            ({"job_id": None}, "job_id must be a string"),
+            ({"intent_job_id": 1}, "intent_job_id must be a string"),
+            ({"intent_receipt_id": False}, "intent_receipt_id must be a string"),
+            ({"intent_consumed": "false"}, "intent_consumed must be a boolean"),
+        )
+        for changes, message in cases:
+            with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, message):
+                self.external_context(**changes)
 
     def test_mock_policy_does_not_require_or_infer_live_submission_consent(self):
         mock = replace(
