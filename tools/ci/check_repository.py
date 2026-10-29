@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shlex
 import subprocess
 from urllib.parse import unquote, urlsplit
 import yaml
@@ -116,6 +117,33 @@ def _runs_command(commands: tuple[str, ...], marker: str) -> bool:
     return False
 
 
+def _package_script_commands(script: object) -> tuple[str, ...]:
+    if not isinstance(script, str):
+        return ()
+    lexer = shlex.shlex(script, posix=True, punctuation_chars='|&;')
+    lexer.whitespace_split = True
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        return ()
+    commands = []
+    current = []
+    for token in tokens:
+        if token == '&&':
+            if not current:
+                return ()
+            commands.append(' '.join(current))
+            current = []
+        elif token and set(token) <= set('|&;'):
+            return ()
+        else:
+            current.append(token)
+    if not current:
+        return ()
+    commands.append(' '.join(current))
+    return tuple(commands)
+
+
 def _has_workflow_trigger(doc: dict, trigger: str) -> bool:
     configured = doc.get('on')
     if isinstance(configured, str):
@@ -159,7 +187,7 @@ def check_required_ci(root: Path) -> list[str]:
         'frontend build': ('build', 'vite build'),
     }
     for boundary, (name, marker) in script_markers.items():
-        if marker not in str(scripts.get(name, '')):
+        if not _runs_command(_package_script_commands(scripts.get(name)), marker):
             errors.append(f'MJ-REQ-278: web package does not define {boundary} script')
 
     mock_jobs = mock.get('jobs', {}) if isinstance(mock, dict) else {}

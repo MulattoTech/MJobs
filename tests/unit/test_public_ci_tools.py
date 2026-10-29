@@ -206,6 +206,26 @@ class PublicCITests(unittest.TestCase):
                 errors = check_required_ci(self.root)
                 self.assertTrue(any('backend tests' in error for error in errors), errors)
 
+    def test_required_ci_contract_rejects_package_script_decoys(self):
+        cases = (
+            ('frontend lint', '"lint":"node scripts/lint.mjs"',
+             '"lint":"echo node scripts/lint.mjs"'),
+            ('frontend lint', '"lint":"node scripts/lint.mjs"',
+             '"lint":"echo ok # node scripts/lint.mjs"'),
+            ('frontend build', '"build":"npm run typecheck && vite build"',
+             '"build":"npm run typecheck && echo vite build"'),
+            ('frontend type check', '"typecheck":"tsc --noEmit"',
+             '"typecheck":"tsc --noEmit || true"'),
+        )
+        for boundary, original, decoy in cases:
+            with self.subTest(boundary=boundary, decoy=decoy):
+                self.write_required_ci_contract()
+                path = self.root / 'apps/web/package.json'
+                path.write_text(path.read_text('utf-8').replace(original, decoy),
+                                encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any(boundary in error for error in errors), errors)
+
 
 if __name__ == '__main__':
     unittest.main()
