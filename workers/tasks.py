@@ -11,6 +11,10 @@ from packages.persistence.store import Store, identity, now
 from services.applications.mock_adapter import apply_mock
 from services.applications.attempt_history import AttemptConflict, timeout_failure_code
 from services.applications.run_requests import validate_run_operation
+from services.applications.answer_resume import (
+    validate_resume_binding,
+    validate_resume_completion,
+)
 from services.discovery.pipeline import discover, MockClient
 from services.company_discovery.flywheel import discover_company_source
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
@@ -468,11 +472,13 @@ def execute_operation(operation_id, *, registry_module=None,
                     store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check)
             elif operation["kind"] == "APPLY_MOCK":
                 validate_run_operation(store, operation)
+                validate_resume_binding(store, operation)
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check,
                            debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1",
                            request_id=operation_id,
                            expected_fingerprint=operation["params"].get("input_fingerprint"))
+                validate_resume_completion(store, operation)
                 if application["state"] not in ("CONFIRMED", "DRY_RUN_COMPLETE"):
                     state, error = "BLOCKED", application["state"]
             else:

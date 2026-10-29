@@ -815,6 +815,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_browser_job_extraction_router(store))
     from apps.api.application_answer_matching import create_application_answer_matching_router
     app.include_router(create_application_answer_matching_router(store))
+    from apps.api.application_answer_resume import create_application_answer_resume_router
+    app.include_router(create_application_answer_resume_router(store, operation_mode))
     from apps.api.scoring_profiles import create_scoring_profiles_router
     app.include_router(create_scoring_profiles_router(store))
     from apps.api.matching_explanations import create_matching_explanations_router

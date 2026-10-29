@@ -46,6 +46,71 @@ export type ApplicationAnswerReviewClient = {
   resumeAndValidate:(profileId:string,applicationId:string,input:{request_id:string;question_id:string;question_fingerprint:string;form_fingerprint:string;answer_id:string;expected_profile_version:string})=>Promise<AnswerResumeValidation>;
 };
 
+type ResumeClient = Pick<ApplicationAnswerReviewClient,'resumeAndValidate'>;
+
+function resumeEndpoint(profileId:string,applicationId:string):string {
+  return `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/answer-review-resumes`;
+}
+
+async function resumeResponseValue(response:Response):Promise<unknown> {
+  let value:unknown=null;
+  try { value=await response.json(); } catch { /* handled below */ }
+  if(!response.ok) {
+    const detail=value&&typeof value==='object'&&'detail' in value
+      ? (value as {detail?:unknown}).detail:null;
+    const code=detail&&typeof detail==='object'&&'code' in detail
+      ? String((detail as {code?:unknown}).code):`HTTP_${response.status}`;
+    throw Object.assign(new Error(code),{code,status:response.status});
+  }
+  return value;
+}
+
+function decodeResumeValidation(value:unknown):AnswerResumeValidation {
+  if(!value||typeof value!=='object')throw new Error('The resumed application returned an invalid validation result.');
+  const result=value as Partial<AnswerResumeValidation>;
+  const answer=result.answer as Partial<ReviewedAnswer>|undefined;
+  const preflight=result.preflight as Partial<AnswerResumeValidation['preflight']>|undefined;
+  const valid=typeof result.request_id==='string'&&!!result.request_id
+    &&typeof result.profile_id==='string'&&!!result.profile_id
+    &&typeof result.application_id==='string'&&!!result.application_id
+    &&typeof result.question_id==='string'&&!!result.question_id
+    &&typeof result.question_fingerprint==='string'&&!!result.question_fingerprint
+    &&typeof result.form_fingerprint==='string'&&!!result.form_fingerprint
+    &&typeof result.profile_version==='string'&&!!result.profile_version
+    &&result.external_submission==='OFF'
+    &&!!answer&&typeof answer.id==='string'&&!!answer.id
+    &&typeof answer.question==='string'&&typeof answer.text==='string'
+    &&answer.user_approved===true&&typeof answer.verified==='boolean'
+    &&typeof answer.confidence==='number'
+    &&!!preflight&&(preflight.result==='PASS'||preflight.result==='FAIL'||preflight.result==='UNKNOWN')
+    &&typeof preflight.is_current==='boolean';
+  if(!valid)throw new Error('The resumed application returned an invalid validation result.');
+  return value as AnswerResumeValidation;
+}
+
+export function createApplicationAnswerResumeClient(
+  request:typeof fetch=fetch,
+  wait:(milliseconds:number)=>Promise<void>=(milliseconds)=>new Promise(resolve=>setTimeout(resolve,milliseconds)),
+  maxPolls=600,
+):ResumeClient {
+  return {resumeAndValidate:async(profileId,applicationId,input)=>{
+    const endpoint=resumeEndpoint(profileId,applicationId);
+    await resumeResponseValue(await request(endpoint,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),
+    }));
+    for(let poll=0;poll<maxPolls;poll+=1) {
+      await wait(100);
+      const response=await request(`${endpoint}/${encodeURIComponent(input.request_id)}`,{method:'GET'});
+      if(response.status===202) {
+        await resumeResponseValue(response);
+        continue;
+      }
+      return decodeResumeValidation(await resumeResponseValue(response));
+    }
+    throw new Error('The resumed application did not complete fresh validation.');
+  }};
+}
+
 function normalize(value:string):string {
   return value.trim().replace(/\s+/g,' ');
 }
@@ -82,7 +147,7 @@ export function hasExactReviewedAnswerReadback(review:ApplicationAnswerReview,re
 }
 
 export async function resumeAndRevalidateAnswer(
-  client:ApplicationAnswerReviewClient,
+  client:ResumeClient,
   profileId:string,
   applicationId:string,
   review:ApplicationAnswerReview,

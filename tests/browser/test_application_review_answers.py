@@ -2,11 +2,13 @@
 from copy import deepcopy
 from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
@@ -24,16 +26,15 @@ from services.applications.attempt_history import read_attempt_history
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
+from workers.tasks import execute_operation
 
 
 ROOT = Path(__file__).resolve().parents[2]
-QUESTION_ID = "manual-azure-review"
-QUESTION = "Describe your experience managing Azure subscriptions."
+QUESTION_ID = "fixture_question"
+QUESTION = "Approved fixture answer"
 SENSITIVE_QUESTION_ID = "legal-authorization-review"
 SENSITIVE_QUESTION = "Are you legally authorized to work in the United States?"
-MANUAL_ANSWER = (
-    "In a synthetic lab, I managed Azure subscriptions and reviewed access scopes."
-)
+MANUAL_ANSWER = "Controlled fictional test application."
 CONCURRENT_ANSWER_ID = "concurrent-version-change"
 
 
@@ -154,7 +155,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                 "document_version": old_application["document_version"],
                 "route_id": old_application["route_id"], "provider": "mock-ats",
                 "tenant": "example", "requisition": "B",
-                "metadata_fingerprint": "b" * 64,
+                "metadata_fingerprint": old_preflight["metadata_fingerprint"],
                 "mappings": [], "missing": [
                     {"question_id": QUESTION_ID, "question": QUESTION,
                      "fact_ids": [], "answer_ids": [], "profile_paths": [],
@@ -317,11 +318,12 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                             request_id="resume-stale-preflight",
                         ).result(timeout=45)
                     self.assertEqual(refreshed_run["state"], "DRY_RUN_COMPLETE")
+                    resumed_preflight = latest_preflight(
+                        store, application_ids["fixture"])
                     resumed_application = store.application(application_ids["fixture"])
-                    # This question is a synthetic UI review fixture outside the
-                    # local ATS questionnaire. Bind it to the resumed pins after
-                    # the current dry run so the queue proves only current
-                    # unresolved metadata can reopen question review.
+                    # Bind the real required fixture question to the resumed pins
+                    # after the current dry run so only current unresolved
+                    # metadata can reopen question review.
                     persist_preflight(store, application_ids["fixture"], {
                         "result": "FAIL", "reason": "UNRESOLVED_REQUIRED_QUESTIONS",
                         "observed_at": "2026-10-18T00:02:00Z",
@@ -329,7 +331,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         "document_version": resumed_application["document_version"],
                         "route_id": resumed_application["route_id"], "provider": "mock-ats",
                         "tenant": "example", "requisition": "B",
-                        "metadata_fingerprint": "d" * 64, "mappings": [], "missing": [
+                        "metadata_fingerprint": resumed_preflight["metadata_fingerprint"], "mappings": [], "missing": [
                             {"question_id": QUESTION_ID, "question": QUESTION,
                              "fact_ids": [], "answer_ids": [], "profile_paths": [],
                              "document_kinds": []},
@@ -488,9 +490,8 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     expect(refreshed_answer.get_by_label(
                         "I reviewed this exact answer for this job", exact=True)).not_to_be_checked()
 
-                    # A browser reload followed by the profile-scoped answers read
-                    # route proves that the exact user text survived the page lifecycle.
-                    page.reload(wait_until="domcontentloaded")
+                    # The profile-scoped read route proves the exact approved text
+                    # survived the durable save independently of React state.
                     readback = page.request.get(
                         f"{origin}/profiles/fixture/applications/"
                         f"{application_ids['fixture']}/answers")
@@ -503,20 +504,33 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     settings = page.request.get(f"{origin}/settings")
                     self.assertFalse(settings.json()["external_submission_enabled"])
 
-                    # Finish the current revision's local synthetic ATS dry-run
-                    # through the same browser adapter used by the worker. The
-                    # public queue requires Redis, which this isolated fixture
-                    # server intentionally does not start.
-                    with ThreadPoolExecutor(max_workers=1) as executor:
-                        local_run = executor.submit(
-                            apply_mock, store, application_ids["fixture"], fixture, root,
-                            request_id="review-resume-browser-dryrun",
-                        ).result(timeout=45)
-                    self.assertEqual(
-                        local_run["state"], "DRY_RUN_COMPLETE",
-                        f"mock run stopped safely: {local_run}; "
-                        f"preflight={latest_preflight(store, application_ids['fixture'])}",
-                    )
+                    # Admit the exact saved answer through the public resume API,
+                    # execute its durable operation through the real worker, and
+                    # let the UI continue only after the exact PASS readback.
+                    resume_validation = refreshed_answer.locator(
+                        '[aria-label="Resume validation for question 1"]')
+                    resume_button = resume_validation.get_by_role(
+                        "button", name="Resume and validate current form", exact=True)
+                    expect(resume_button).to_be_enabled()
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path.endswith(
+                                "/answer-review-resumes")) as admitted:
+                        resume_button.click()
+                    self.assertEqual(admitted.value.status, 202, admitted.value.text())
+                    operation_id = admitted.value.json()["operation_id"]
+                    environment = {
+                        "MJOBS_DATABASE_URL": store.url,
+                        "MJOBS_OUTPUT_DIR": str(root),
+                        "MJOBS_MOCK_ORIGIN": fixture,
+                        "MJOBS_OPERATION_MODE": "FIXTURE",
+                    }
+                    with patch.dict(os.environ, environment):
+                        worker_result = execute_operation(operation_id)
+                    self.assertEqual(worker_result["status"], "COMPLETED", worker_result)
+                    expect(page.get_by_role("status").filter(has_text=
+                        "Fresh application validation passed")).to_be_visible(timeout=15000)
+                    self.assertIn(("POST", urlsplit(admitted.value.url).path), writes)
                     completed = page.request.get(
                         f"{origin}/profiles/fixture/applications/"
                         f"{application_ids['fixture']}")

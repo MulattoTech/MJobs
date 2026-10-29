@@ -31,6 +31,14 @@ import { JobMatchScoreFilter } from './job-match-score-filter';
 import { JobSourceFilter } from './job-source-filter';
 import { isSensitiveAnswerQuestion, suggestAnswers } from './answer-matching';
 import { ApplicationAnswerMatching } from './application-answer-matching';
+import {
+  createApplicationAnswerResumeClient,
+  hasBoundReviewScope,
+  resumeAndRevalidateAnswer,
+  type ApplicationAnswerReview,
+  type AnswerSaveReadback,
+  type ReviewedAnswer,
+} from './application-review-answers';
 import { ApplicationStoryReferenceWorkspace, type ApplicationStoryCitation } from './application-story-reference-workspace';
 import { JobRiskSignalsPanel, type JobRiskSignalsResponse } from './job-risk-signals';
 import { RecruiterClassificationCard, type RecruiterClassification } from './recruiter-classification';
@@ -115,6 +123,7 @@ const sourceCandidateReviewClient = createSourceCandidateReviewClient();
 const applicationPriorityClient = createApplicationPriorityClient();
 const matchFeedbackClient = createMatchFeedbackClient();
 const companyPreferenceClient = createCompanyPreferenceClient();
+const applicationAnswerResumeClient = createApplicationAnswerResumeClient();
 const getApplicationPriority = (profileId:string,jobId:string) => applicationPriorityClient.load(profileId,jobId);
 const multipageApplicationPages:ApplicationMultipagePage[]=[
   {id:'contact',title:'Contact information',fields:[
@@ -138,7 +147,7 @@ type ApplicationTracking = {status:string|null;attribution:'USER_REPORTED'|'EXTE
 type Application = {id:string; title:string; company:string; state:string; target:string; job_id:string; profile_id:string; route_id?:string; route_choices?:{route_id:string;underlying_key:string;requested_mode:string;state:string}[]; adapter_knowledge?:{provider:string|null;tenant_identifier:string|null;basis:string;adapter_status:string;external_submission_enabled:boolean}; document_version:number; profile_version:string; fact_ids:string[]; trace:string[]; confirmation:Record<string,unknown>|null; question_preflight?:{result:'PASS'|'FAIL'|'UNKNOWN';reason:string|null;observed_at:string;is_current?:boolean|null;missing:{question_id:string;question:string;fact_ids?:string[];answer_ids?:string[];profile_paths?:string[];document_kinds?:string[];application_context?:string[]}[]}|null; pipeline_status?:string|null; pipeline_attribution?:string|null; external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[]; answer_bank?:Answer[]; attempts?:{state:string; started_at:string;steps:string[]}[]};
 type AnswerConfidencePolicy = {minimum_saved_answer_confidence:number;minimum_question_match_confidence:number};
 type SensitiveAnswerSuggestion = {category:string|null;response:string;mode:'PREFER_NOT_TO_ANSWER'|'USE_CONFIGURED_RESPONSE'|'ALWAYS_REQUIRE_REVIEW';source?:'PROFILE_CONFIGURATION';review_required:true};
-type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;storyCitation?:ApplicationStoryCitation;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion;matchResponse?:ApplicationAnswerMatchResponse|null;matchLoading?:boolean;matchError?:string};
+type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;resumeReview?:ApplicationAnswerReview;savedReadback?:AnswerSaveReadback;storyCitation?:ApplicationStoryCitation;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion;matchResponse?:ApplicationAnswerMatchResponse|null;matchLoading?:boolean;matchError?:string};
 type Doc = GeneratedDocument;
 type DocumentArchiveLibrary = {
   uploaded: (Resume & {revision_id?:string;document_kind?:string;archived_at?:string|null})[];
@@ -1211,7 +1220,7 @@ function App() {
       suggestion.confidence<answerConfidencePolicy.minimum_saved_answer_confidence||
       suggestion.score<answerConfidencePolicy.minimum_question_match_confidence)return;
     setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index&&row.question===suggestion.question?{
-      ...row,text:suggestion.text,answer_id:suggestion.answer_id,reviewed:false,bankConsent:false,bankConfidence:undefined,
+      ...row,text:suggestion.text,answer_id:suggestion.answer_id,savedReadback:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined,
     }:row));
   }
   async function exportAnswers() {
@@ -1247,7 +1256,7 @@ function App() {
     setNotice(`Current application documents are revision ${refreshed.document_version} for the saved profile. Earlier document revisions and audit history remain available. Run a local dry run to create a fresh ATS question preflight for this revision. Nothing was submitted.`);
   }
   function editAnswerQuestion(index:number,question:string) {
-    setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question,text:row.answer_id?'':row.text,answer_id:undefined,reviewed:false,storyCitation:undefined,bankConsent:false,bankConfidence:undefined,sensitivePolicySuggestion:undefined,matchResponse:null,matchError:'',matchLoading:false}:row));
+    setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question,text:row.answer_id?'':row.text,answer_id:undefined,resumeReview:undefined,savedReadback:undefined,reviewed:false,storyCitation:undefined,bankConsent:false,bankConfidence:undefined,sensitivePolicySuggestion:undefined,matchResponse:null,matchError:'',matchLoading:false}:row));
     const pending=sensitiveSuggestionTimers.current.get(index);
     if(pending!==undefined)window.clearTimeout(pending);
     if(!profileId||!selectedApp||!isSensitiveAnswerQuestion(question))return;
@@ -1265,11 +1274,17 @@ function App() {
     },250);
     sensitiveSuggestionTimers.current.set(index,timer);
   }
-  function reviewPreflightQuestion(question:string) {
-    const normalized=question.toLocaleLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'';
+  async function reviewPreflightQuestion(item:{question_id:string;question:string}) {
+    if(!selectedApp||!profileId)throw new Error('Select an application and profile before reviewing a required question.');
+    const selectedProfile=profileId;const selectedApplication=selectedApp.id;const selectionSequence=appSequence.current;
+    const review=await api<ApplicationAnswerReview>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(selectedApplication)}/answer-review-resumes/questions/${encodeURIComponent(item.question_id)}`);
+    if(profileRef.current!==selectedProfile||selectionSequence!==appSequence.current||selectedAppRef.current?.id!==selectedApplication)return;
+    if(!hasBoundReviewScope(review,selectedProfile,selectedApplication,item.question_id)||review.question.text!==item.question)
+      throw new Error('The required question changed while its review was loading. Reload the application before continuing.');
+    const normalized=item.question.toLocaleLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'';
     const existing=answerDrafts.findIndex(row=>(row.question.toLocaleLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'')===normalized);
-    if(existing>=0){document.getElementById(`application-answer-question-${existing}`)?.focus();return;}
-    setAnswerDrafts(rows=>rows.some(row=>(row.question.toLocaleLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'')===normalized)?rows:[...rows,{question,text:'',reviewed:false}]);
+    if(existing>=0){setAnswerDrafts(rows=>rows.map((row,index)=>index===existing?{...row,resumeReview:review,savedReadback:undefined}:row));document.getElementById(`application-answer-question-${existing}`)?.focus();return;}
+    setAnswerDrafts(rows=>rows.some(row=>(row.question.toLocaleLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'')===normalized)?rows:[...rows,{question:item.question,text:'',reviewed:false,resumeReview:review}]);
     setNotice('Required question added to this application’s answer review.');
   }
   async function saveReviewedAnswerToBank(index:number) {
@@ -1291,9 +1306,25 @@ function App() {
     try{await api('/profiles',{method:'PUT',body:JSON.stringify(payload)});}catch(error){if(error instanceof Error&&/409|conflict|profile changed/i.test(error.message))throw new Error('Profile changed while this answer was being saved. Your answer was not added; confirm the current profile, then review and save again.');throw error;}
     const saved=await api<Profile>('/profiles/'+encodeURIComponent(selectedProfile));
     if(profileRef.current!==selectedProfile||selectionSequence!==appSequence.current||selectedApp?.id!==selectedApplication)return;
+    const persisted=saved.answers.find(row=>row.id===answer.id&&row.user_approved===true&&row.verified===true&&row.question===answer.question&&row.text===answer.text);
+    if(!persisted||!saved.version)throw new Error('The saved answer was not confirmed by the durable Answer Bank readback. Review and save it again.');
+    const savedReadback:AnswerSaveReadback={answer:persisted as ReviewedAnswer,profile_version:saved.version,external_submission:'OFF'};
     setSelectedApp(currentApp=>currentApp?.id===selectedApplication?{...currentApp,answer_bank:saved.answers||[]}:currentApp);
-    setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index?{...row,answer_id:answer.id,bankConsent:false}:row));
+    setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index?{...row,answer_id:answer.id,savedReadback,bankConsent:false}:row));
     setNotice(`Reviewed answer saved to this profile's Answer Bank at ${answer.confidence}% confidence. It still requires review for each application.`);
+  }
+  async function resumeReviewedAnswer(index:number) {
+    const draft=answerDrafts[index];
+    if(!draft||!selectedApp||!profileId||!draft.resumeReview||!draft.savedReadback)
+      throw new Error('Save and read back the exact reviewed answer before resuming this application.');
+    if(selectedApp.profile_id!==profileId||selectedApp.profile_version!==draft.savedReadback.profile_version)
+      throw new Error('Resume and prepare the current saved profile revision before continuing.');
+    const selectedProfile=profileId;const selectedApplication=selectedApp.id;const selectionSequence=appSequence.current;
+    await resumeAndRevalidateAnswer(applicationAnswerResumeClient,selectedProfile,selectedApplication,draft.resumeReview,draft.savedReadback,crypto.randomUUID());
+    if(profileRef.current!==selectedProfile||selectionSequence!==appSequence.current||selectedAppRef.current?.id!==selectedApplication)return;
+    await showApp(selectedApplication,undefined,false);
+    await refresh(selectedProfile);
+    setNotice('Fresh application validation passed for the exact approved answer and current form. The paused mock application resumed locally. Nothing was submitted.');
   }
   async function saveAnswerConfidencePolicy() {
     if(!profileId||answerConfidencePolicyProfileId!==profileId)throw new Error('Load the active profile confidence settings before saving.');
@@ -1822,7 +1853,7 @@ function App() {
                 <p>Profile preference · {sensitiveSuggestion.mode==='PREFER_NOT_TO_ANSWER'?'Prefer not to answer':'Configured response'}</p>
                 <p>Proposed from this profile's explicit policy. This response requires review for this application.</p>
                 <p>Proposed response: <strong>{sensitiveSuggestion.response}</strong></p>
-                <button type="button" disabled={!!busy} onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:sensitiveSuggestion.response,answer_id:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined}:row))}>{sensitiveSuggestion.mode==='PREFER_NOT_TO_ANSWER'?'Use “Prefer not to answer” for this application':'Use configured response for this application'}</button>
+                <button type="button" disabled={!!busy} onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:sensitiveSuggestion.response,answer_id:undefined,savedReadback:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined}:row))}>{sensitiveSuggestion.mode==='PREFER_NOT_TO_ANSWER'?'Use “Prefer not to answer” for this application':'Use configured response for this application'}</button>
               </div>}
               {draft.answer_id&&!selected&&<p className="safety">The selected reusable answer no longer meets the active profile's saved confidence thresholds. Choose another eligible answer or replace this text with a manually reviewed answer.</p>}
               {selected&&<div className="provenance" aria-label={`Selected reusable answer for question ${index+1}`}>
@@ -1835,12 +1866,13 @@ function App() {
                 {suggestions.map(({answer,match})=><div key={answer.id}>
                   <p>{answerMatchLabel(match.method)} · match score {Math.round(match.score*100)}% · saved-answer confidence {answer.confidence}%</p>
                   <p>Saved question: {answer.question} · Provenance: {answer.source}</p>
-                  <button type="button" onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:answer.text,answer_id:answer.id,reviewed:false,bankConsent:false,bankConfidence:undefined}:row))}>Use saved answer (review required)</button>
+                  <button type="button" onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:answer.text,answer_id:answer.id,savedReadback:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined}:row))}>Use saved answer (review required)</button>
                 </div>)}
               </div>}
-              <label>Answer<textarea maxLength={10000} value={draft.text} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:e.target.value,answer_id:undefined,reviewed:false,bankConsent:false}:row))}/></label>
+              <label>Answer<textarea maxLength={10000} value={draft.text} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,text:e.target.value,answer_id:undefined,savedReadback:undefined,reviewed:false,bankConsent:false}:row))}/></label>
               <label className="consent"><input type="checkbox" checked={draft.reviewed} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,reviewed:e.target.checked,bankConsent:e.target.checked?row.bankConsent:false}:row))}/> I reviewed this exact answer for this job</label>
               {!sensitive&&<><button type="button" disabled={!!busy||!draft.reviewed||!draft.question.trim()||!draft.text.trim()} onClick={()=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,bankConfidence:80,bankConsent:false}:row))}>Save to Answer Bank</button>{draft.bankConfidence!==undefined&&<div className="provenance" aria-label={`Answer Bank confirmation for question ${index+1}`}><p>This is a separate profile-level save. Confirm the answer is accurate and suitable for future reuse. It will remain subject to per-application review.</p><label>Answer bank confidence (%)<input aria-label="Answer bank confidence (%)" type="number" min={0} max={100} step={1} value={draft.bankConfidence} disabled={!!busy} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,bankConfidence:Number(e.target.value)}:row))}/></label><label className="consent"><input aria-label="I confirm this answer is accurate and may be reused" type="checkbox" checked={!!draft.bankConsent} disabled={!!busy} onChange={e=>setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,bankConsent:e.target.checked}:row))}/> I confirm this answer is accurate and may be reused</label><button type="button" disabled={!!busy||!draft.reviewed||!draft.text.trim()||!draft.question.trim()||!draft.bankConsent||!Number.isInteger(draft.bankConfidence)||draft.bankConfidence<0||draft.bankConfidence>100} onClick={()=>void action('Saving reviewed answer to Answer Bank',()=>saveReviewedAnswerToBank(index))}>Confirm and save to Answer Bank</button></div>}</>}
+              {draft.resumeReview&&draft.savedReadback&&<div className="provenance" aria-label={`Resume validation for question ${index+1}`}><p>The exact approved answer was read back from the Answer Bank. Resume will run a fresh local form preflight and must match this application, question, answer, and form before the page continues.</p><button type="button" className="primary" disabled={!!busy||selectedApp.profile_version!==draft.savedReadback.profile_version} onClick={()=>void action('Resuming application with fresh validation',()=>resumeReviewedAnswer(index))}>Resume and validate current form</button>{selectedApp.profile_version!==draft.savedReadback.profile_version&&<p role="status">Prepare the current saved profile revision before resuming.</p>}</div>}
               <button type="button" className="quiet" onClick={()=>setAnswerDrafts(rows=>rows.filter((_,i)=>i!==index))}>Remove question</button>
             </fieldset>;
           })}
@@ -1849,7 +1881,7 @@ function App() {
         </section>
         {selectedApp.target==='MOCK'?(operationMode==='FIXTURE'?(selectedApp.state==='AUTH_REQUIRED'?<ManualMockAuthentication applicationId={selectedApp.id} company={selectedApp.company} title={selectedApp.title} signInPending={busy==='Opening MOCK sign-in'} rerunPending={busy==='Rerunning MOCK application'} heldOperations={ops.filter(op=>op.kind==='MANUAL_AUTH'&&op.entity_id===selectedApp.id&&(op.state==='RUNNING'||(op.state==='BLOCKED'&&op.error==='BROWSER_RELEASE_UNCONFIRMED'))).map(op=>op.id)} recoveryPending={busy==='Recovering closed browser'} onRecover={(applicationId,operationId)=>void recoverManualMockBrowser(applicationId,operationId)} onStartSignIn={applicationId=>void openManualMockSignIn(applicationId)} onRerun={applicationId=>void rerunAfterManualMockSignIn(applicationId)}/>:<MockRunControls profileId={profileId||''} applicationId={selectedApp.id} applicationState={selectedApp.state} disabled={!!busy} onRefresh={async()=>{await showApp(selectedApp.id,undefined,false);await refresh(profileRef.current);}}/>):<p className="safety">Fictional application actions are disabled in personal mode.</p>):<p className="safety">Manual preparation only. Review the documents and use the employer’s own application page.</p>}
         {selectedApp.profile_id===profileId&&['PREPARED','DRY_RUN_COMPLETE','REVIEW_REQUIRED'].includes(selectedApp.state)&&<section className="panel" aria-label="Resume application preparation"><h3>Resume with current approved profile</h3><p>If the saved profile changed, prepare a new document revision from its current approved facts and answers. If the profile is unchanged, the existing preparation stays current. Older profile and document revisions stay in history. Any previous question preflight is cleared for a new revision and must be reviewed again. This action does not open an employer site or submit anything.</p><button type="button" disabled={!!busy||!profileId} onClick={()=>void action('Re-preparing application from current profile',reprepareSelectedApplication)}>Resume and prepare current revision</button></section>}
-        <section className="panel" aria-label="ATS question preflight"><h3>ATS question preflight</h3>{selectedApp.question_preflight?.is_current===false?<p role="status">The saved question preflight belongs to an older profile or document revision. Its historical result is retained, but it cannot be used for this revision. Run a local dry run to check current questions.</p>:selectedApp.question_preflight?<><p>{selectedApp.question_preflight.result} · checked {stamp(selectedApp.question_preflight.observed_at)}{selectedApp.question_preflight.reason?` · ${selectedApp.question_preflight.reason}`:''}</p>{selectedApp.question_preflight.missing.length>0&&<ul aria-label="Unresolved required questions">{selectedApp.question_preflight.missing.map(item=>{const missing=Object.entries({facts:item.fact_ids,answers:item.answer_ids,profile:item.profile_paths,documents:item.document_kinds,application:item.application_context}).filter(([,values])=>values?.length).map(([kind,values])=>`${kind}: ${values!.join(', ')}`).join('; ');return <li key={item.question_id}><strong>{item.question}</strong> ({item.question_id})<p><strong>Unresolved reason:</strong> {missing?`Persisted preflight is missing ${missing}.`:selectedApp.question_preflight?.reason||'The persisted preflight did not identify a resolvable mapping.'}</p><button type="button" disabled={!!busy} onClick={()=>reviewPreflightQuestion(item.question)}>Review this question</button></li>;})}</ul>}</>:<p>No current structured question preflight is available. Run a local dry run to check the current route and create a preflight for this document revision.</p>}<p className="muted">Only supported structured metadata is checked. UNKNOWN or missing required answers stop the browser flow for review.</p></section>
+        <section className="panel" aria-label="ATS question preflight"><h3>ATS question preflight</h3>{selectedApp.question_preflight?.is_current===false?<p role="status">The saved question preflight belongs to an older profile or document revision. Its historical result is retained, but it cannot be used for this revision. Run a local dry run to check current questions.</p>:selectedApp.question_preflight?<><p>{selectedApp.question_preflight.result} · checked {stamp(selectedApp.question_preflight.observed_at)}{selectedApp.question_preflight.reason?` · ${selectedApp.question_preflight.reason}`:''}</p>{selectedApp.question_preflight.missing.length>0&&<ul aria-label="Unresolved required questions">{selectedApp.question_preflight.missing.map(item=>{const missing=Object.entries({facts:item.fact_ids,answers:item.answer_ids,profile:item.profile_paths,documents:item.document_kinds,application:item.application_context}).filter(([,values])=>values?.length).map(([kind,values])=>`${kind}: ${values!.join(', ')}`).join('; ');return <li key={item.question_id}><strong>{item.question}</strong> ({item.question_id})<p><strong>Unresolved reason:</strong> {missing?`Persisted preflight is missing ${missing}.`:selectedApp.question_preflight?.reason||'The persisted preflight did not identify a resolvable mapping.'}</p><button type="button" disabled={!!busy} onClick={()=>void action('Loading required question review',()=>reviewPreflightQuestion(item))}>Review this question</button></li>;})}</ul>}</>:<p>No current structured question preflight is available. Run a local dry run to check the current route and create a preflight for this document revision.</p>}<p className="muted">Only supported structured metadata is checked. UNKNOWN or missing required answers stop the browser flow for review.</p></section>
         <h3>Tracking evidence</h3><p className="description">{selectedApp.trace.join(' → ')}</p>{selectedApp.confirmation&&<pre>{JSON.stringify(selectedApp.confirmation,null,2)}</pre>}<h3>Attempts</h3>{selectedApp.attempts?.map((attempt,i)=><p key={i}>{stamp(attempt.started_at)} · {attempt.state} · {attempt.steps.join(' → ')}</p>)}</fieldset>:<div className="empty"><h2>Your paper trail.</h2><p>Select an application to download documents and inspect its status and attempts.</p></div>}</section></div></>}
       {tab==='Applications'&&selectedApp&&profileId&&<fieldset disabled={applicationReadbackBlocked} style={{border:0,padding:0,minWidth:0}}>
         <ApplicationRehearsal key={'rehearsal:'+profileId+':'+selectedApp.id} profileId={profileId} applicationId={selectedApp.id}/>

@@ -5,6 +5,7 @@ import {
   ApplicationReviewAnswersView,
   ApplicationReviewAnswers,
   continueAfterFreshValidation,
+  createApplicationAnswerResumeClient,
   hasExactReviewedAnswerReadback,
   hasBoundReviewScope,
   resumeAndRevalidateAnswer,
@@ -185,6 +186,59 @@ describe('application review answer editor',()=>{
     await expect(continueAfterFreshValidation(client,'profile-a','application-a',review,saved,'resume-failed',continued))
       .rejects.toThrow('fresh application validation');
     expect(continued).not.toHaveBeenCalled();
+  });
+
+  it('uses the bound resume API and polls to an exact completed validation',async()=>{
+    const queued={operation_id:'operation-1',state:'QUEUED',error_code:null,replayed:false,
+      input_fingerprint:'a'.repeat(64),external_submission_enabled:false};
+    const completed={
+      request_id:'resume-http',profile_id:'profile/a',application_id:'application?b',
+      question_id:'q-azure',question_fingerprint:'question-v1',form_fingerprint:'form-v1',
+      profile_version:'profile-v2',external_submission:'OFF' as const,answer:saved.answer,
+      preflight:{result:'PASS' as const,is_current:true},
+    };
+    const request=vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(queued),{status:202,headers:{'Content-Type':'application/json'}}))
+      .mockResolvedValueOnce(new Response(JSON.stringify(queued),{status:202,headers:{'Content-Type':'application/json'}}))
+      .mockResolvedValueOnce(new Response(JSON.stringify(completed),{status:200,headers:{'Content-Type':'application/json'}}));
+    const wait=vi.fn().mockResolvedValue(undefined);
+    const client=createApplicationAnswerResumeClient(request as typeof fetch,wait);
+    await expect(client.resumeAndValidate('profile/a','application?b',{
+      request_id:'resume-http',question_id:'q-azure',question_fingerprint:'question-v1',
+      form_fingerprint:'form-v1',answer_id:'answer-1',expected_profile_version:'profile-v2',
+    })).resolves.toEqual(completed);
+    const base='/profiles/profile%2Fa/applications/application%3Fb/answer-review-resumes';
+    expect(request).toHaveBeenNthCalledWith(1,base,expect.objectContaining({method:'POST'}));
+    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({
+      request_id:'resume-http',question_id:'q-azure',question_fingerprint:'question-v1',
+      form_fingerprint:'form-v1',answer_id:'answer-1',expected_profile_version:'profile-v2',
+    });
+    expect(request).toHaveBeenNthCalledWith(2,base+'/resume-http',{method:'GET'});
+    expect(request).toHaveBeenNthCalledWith(3,base+'/resume-http',{method:'GET'});
+    expect(wait).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails closed when the bound resume API rejects or never completes',async()=>{
+    const rejected=vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({detail:{code:'APPLICATION_RESUME_PREFLIGHT_STALE'}}),
+      {status:409,headers:{'Content-Type':'application/json'}},
+    ));
+    const rejectedClient=createApplicationAnswerResumeClient(rejected as typeof fetch,vi.fn());
+    await expect(rejectedClient.resumeAndValidate('profile-a','application-a',{
+      request_id:'resume-rejected',question_id:'q-azure',question_fingerprint:'question-v1',
+      form_fingerprint:'form-v1',answer_id:'answer-1',expected_profile_version:'profile-v2',
+    })).rejects.toThrow('APPLICATION_RESUME_PREFLIGHT_STALE');
+
+    const queued={operation_id:'operation-1',state:'QUEUED',error_code:null,replayed:false,
+      input_fingerprint:'a'.repeat(64),external_submission_enabled:false};
+    const pending=vi.fn().mockResolvedValue(new Response(JSON.stringify(queued),{
+      status:202,headers:{'Content-Type':'application/json'},
+    }));
+    const pendingClient=createApplicationAnswerResumeClient(pending as typeof fetch,vi.fn(),2);
+    await expect(pendingClient.resumeAndValidate('profile-a','application-a',{
+      request_id:'resume-timeout',question_id:'q-azure',question_fingerprint:'question-v1',
+      form_fingerprint:'form-v1',answer_id:'answer-1',expected_profile_version:'profile-v2',
+    })).rejects.toThrow('did not complete');
   });
 
   it('rejects empty text, missing deliberate review, or a save without exact readback',async()=>{
