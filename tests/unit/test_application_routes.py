@@ -144,7 +144,7 @@ class ApplicationRouteTests(unittest.TestCase):
             route_mode="THIS_ROUTE", route_id="agg-a",
         )
         self.assertEqual(list_route_choices(self.store, application_id)[0]["state"],
-                         "PLANNED_UNRESOLVED")
+                         "PREPARATION_UNRESOLVED")
 
     def test_aggregator_route_discovery_surfaces_multiple_verified_ats_candidates_as_ambiguous(self):
         with self.store.engine.begin() as connection:
@@ -188,7 +188,7 @@ class ApplicationRouteTests(unittest.TestCase):
         )
         choices = list_route_choices(self.store, application_id)
         self.assertEqual([choice["route_id"] for choice in choices], ["agg-a"])
-        self.assertEqual(choices[0]["state"], "PLANNED_ATS_CANDIDATE_FOUND")
+        self.assertEqual(choices[0]["state"], "PREPARATION_ATS_CANDIDATE_FOUND")
 
     def test_job_read_model_keeps_all_routes_and_postings_without_duplicate_list_rows(self):
         rows = self.store.jobs("fixture")

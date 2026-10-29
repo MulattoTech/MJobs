@@ -346,7 +346,9 @@ def persist_route_choices(connection, application_id, route_plan):
         route = option["preferred_route"]
         key = option["underlying_key"]
         resolution = option.get("direct_employer_resolution")
-        state = ("PLANNED_" + resolution["status"]
+        # This is preparation evidence only. Submission admission must perform
+        # its own fresh bounded check and must never authorize from this state.
+        state = ("PREPARATION_" + resolution["status"]
                  if isinstance(resolution, dict) else "PLANNED")
         identifier = identity("application-route-choice", application_id, key)
         upsert(connection, m.application_route_choices, {
