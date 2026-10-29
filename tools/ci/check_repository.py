@@ -79,19 +79,28 @@ def check_workflows(root: Path) -> list[str]:
     return errors
 
 
-def _workflow_commands(root: Path, name: str) -> tuple[str, dict]:
+def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
     path = root / '.github/workflows' / name
     if not path.is_file():
-        return '', {}
+        return (), {}
     doc = yaml.load(path.read_text('utf-8'), Loader=yaml.BaseLoader)
     if not isinstance(doc, dict):
-        return '', {}
+        return (), {}
     commands = []
     for job in doc.get('jobs', {}).values():
         for step in job.get('steps', []):
             if isinstance(step, dict) and isinstance(step.get('run'), str):
-                commands.append(step['run'])
-    return '\n'.join(commands), doc
+                commands.extend(
+                    line.strip()
+                    for line in step['run'].splitlines()
+                    if line.strip() and not line.lstrip().startswith('#')
+                )
+    return tuple(commands), doc
+
+
+def _runs_command(commands: tuple[str, ...], marker: str) -> bool:
+    return any(command == marker or command.startswith(f'{marker} ')
+               for command in commands)
 
 
 def _has_workflow_trigger(doc: dict, trigger: str) -> bool:
@@ -122,7 +131,7 @@ def check_required_ci(root: Path) -> list[str]:
         'mock E2E': (mock_commands, 'python -m cli.mock_e2e'),
     }
     for boundary, (commands, marker) in required.items():
-        if marker not in commands:
+        if not _runs_command(commands, marker):
             errors.append(f'MJ-REQ-278: missing enforced {boundary} boundary ({marker})')
 
     package_path = root / 'apps/web/package.json'

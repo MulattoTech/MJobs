@@ -151,6 +151,24 @@ class PublicCITests(unittest.TestCase):
                 self.assertTrue(any(workflow in error and 'pull_request' in error
                                     for error in errors), errors)
 
+    def test_required_ci_contract_rejects_echo_and_comment_decoys(self):
+        marker = 'npm run build --prefix apps/web'
+        original = f'      - run: {marker}\n'
+        decoys = {
+            'echo': f'      - run: echo "{marker}"\n',
+            'comment': ('      - run: |\n'
+                        f'          # {marker}\n'
+                        '          echo omitted\n'),
+        }
+        for kind, replacement in decoys.items():
+            with self.subTest(kind=kind):
+                self.write_required_ci_contract()
+                path = self.root / '.github/workflows/ci.yml'
+                path.write_text(path.read_text('utf-8').replace(original, replacement),
+                                encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any('frontend build' in error for error in errors), errors)
+
 
 if __name__ == '__main__':
     unittest.main()
