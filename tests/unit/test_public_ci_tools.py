@@ -258,6 +258,30 @@ class PublicCITests(unittest.TestCase):
                 errors = check_required_ci(self.root)
                 self.assertTrue(any(boundary in error for error in errors), errors)
 
+    def test_required_ci_contract_rejects_non_executing_tool_modes(self):
+        cases = (
+            ('backend lint', '.github/workflows/ci.yml',
+             'python -m ruff check apps',
+             'python -m ruff check apps --help'),
+            ('backend tests', '.github/workflows/ci.yml',
+             'python -m pytest -q tests/unit',
+             'python -m pytest --collect-only -q tests/unit'),
+            ('frontend build', 'apps/web/package.json',
+             'npm run typecheck && vite build',
+             'npm run typecheck && vite build --help'),
+            ('frontend build', 'apps/web/package.json',
+             'npm run typecheck && vite build',
+             'npm run typecheck && vite build --dry-run'),
+        )
+        for boundary, relative_path, original, decoy in cases:
+            with self.subTest(boundary=boundary):
+                self.write_required_ci_contract()
+                path = self.root / relative_path
+                path.write_text(path.read_text('utf-8').replace(original, decoy),
+                                encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any(boundary in error for error in errors), errors)
+
 
 if __name__ == '__main__':
     unittest.main()

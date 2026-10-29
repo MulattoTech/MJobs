@@ -114,13 +114,25 @@ def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
     return tuple(commands), doc
 
 
+_NON_EXECUTING_TOOL_OPTIONS = frozenset({
+    '-h', '--help', '--dry-run', '--collect-only', '--collectonly',
+})
+
+
 def _runs_command(commands: tuple[str, ...], marker: str) -> bool:
+    marker_tokens = tuple(shlex.split(marker, posix=True))
     for command in commands:
-        if command != marker and not command.startswith(f'{marker} '):
+        try:
+            command_tokens = tuple(shlex.split(command, posix=True))
+        except ValueError:
+            continue
+        if command_tokens[:len(marker_tokens)] != marker_tokens:
             continue
         suffix = command[len(marker):]
-        if not any(operator in suffix for operator in '|;&') \
-                and not suffix.rstrip().endswith('\\'):
+        options = command_tokens[len(marker_tokens):]
+        if (not any(operator in suffix for operator in '|;&')
+                and not suffix.rstrip().endswith('\\')
+                and not _NON_EXECUTING_TOOL_OPTIONS.intersection(options)):
             return True
     return False
 
