@@ -91,6 +91,33 @@ def _has_custom_run_shell(item: dict) -> bool:
     return isinstance(run_defaults, dict) and 'shell' in run_defaults
 
 
+_SHELL_PATH_CONTROL = frozenset({
+    'exit', 'return', 'break', 'continue', 'exec',
+    'if', 'then', 'elif', 'else', 'fi',
+    'for', 'while', 'until', 'do', 'done',
+    'case', 'esac', 'select', 'function', '{', '}', '(', ')',
+    'set', 'trap', 'source', '.', 'eval',
+})
+
+
+def _straight_line_run_commands(script: str) -> tuple[str, ...]:
+    commands = []
+    for raw_line in script.splitlines():
+        command = raw_line.strip()
+        if not command or command.startswith('#'):
+            continue
+        try:
+            tokens = shlex.split(command, posix=True)
+        except ValueError:
+            break
+        if (not tokens or tokens[0] in _SHELL_PATH_CONTROL
+                or any(operator in command for operator in '|;&')
+                or command.rstrip().endswith('\\')):
+            break
+        commands.append(command)
+    return tuple(commands)
+
+
 def _job_commands(job: dict) -> tuple[str, ...]:
     if not _unconditional_failure_gate(job) or _has_custom_run_shell(job):
         return ()
@@ -99,11 +126,7 @@ def _job_commands(job: dict) -> tuple[str, ...]:
         if (_unconditional_failure_gate(step)
                 and 'shell' not in step
                 and isinstance(step.get('run'), str)):
-            commands.extend(
-                line.strip()
-                for line in step['run'].splitlines()
-                if line.strip() and not line.lstrip().startswith('#')
-            )
+            commands.extend(_straight_line_run_commands(step['run']))
     return tuple(commands)
 
 

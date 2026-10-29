@@ -196,6 +196,9 @@ class PublicCITests(unittest.TestCase):
             'continued_or_true': ('      - run: |\n'
                                   f'          {marker} \\\n'
                                   '            || true\n'),
+            'early_exit': ('      - run: |\n'
+                           '          exit 0\n'
+                           f'          {marker}\n'),
         }
         for kind, replacement in decoys.items():
             with self.subTest(kind=kind):
