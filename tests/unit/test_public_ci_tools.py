@@ -2,7 +2,7 @@
 from pathlib import Path
 import tempfile
 import unittest
-from tools.ci.check_repository import check_markdown, check_workflows
+from tools.ci.check_repository import check_markdown, check_required_ci, check_workflows
 from tools.ci.run_shard import select_files
 from tools.ci.test_summary import summarize
 from tools.ci.release_gate import unmet
@@ -89,6 +89,56 @@ class PublicCITests(unittest.TestCase):
         folder.mkdir(parents=True)
         (folder / 'good.yml').write_text('on: pull_request\npermissions: {contents: read}\njobs:\n  good:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n    steps:\n      - run: echo pass\n')
         self.assertEqual(check_workflows(self.root), [])
+
+    def write_required_ci_contract(self):
+        workflows = self.root / '.github/workflows'
+        workflows.mkdir(parents=True, exist_ok=True)
+        web = self.root / 'apps/web'
+        web.mkdir(parents=True, exist_ok=True)
+        (workflows / 'ci.yml').write_text(
+            'on: pull_request\npermissions: {contents: read}\njobs:\n'
+            '  python:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n    steps:\n'
+            '      - run: python -m ruff check apps\n'
+            '      - run: python -m mypy --config-file pyproject.toml\n'
+            '      - run: python -m pytest -q tests/unit\n'
+            '  web:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n    steps:\n'
+            '      - run: npm run lint --prefix apps/web\n'
+            '      - run: npm run typecheck --prefix apps/web\n'
+            '      - run: npm test --prefix apps/web\n'
+            '      - run: npm run build --prefix apps/web\n',
+            encoding='utf-8')
+        (workflows / 'connected-acceptance.yml').write_text(
+            'on: pull_request\npermissions: {contents: read}\njobs:\n'
+            '  mock:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n'
+            '    env: {MJOBS_OPERATION_MODE: FIXTURE, MJOBS_COMPOSE_MOCK: "1"}\n'
+            '    steps:\n      - run: python -m cli.mock_e2e\n', encoding='utf-8')
+        (web / 'package.json').write_text(
+            '{"scripts":{"lint":"node scripts/lint.mjs","typecheck":"tsc --noEmit",'
+            '"test":"vitest run","build":"npm run typecheck && vite build"}}', encoding='utf-8')
+
+    def test_required_ci_contract_accepts_all_eight_offline_boundaries(self):
+        self.write_required_ci_contract()
+        self.assertEqual(check_required_ci(self.root), [])
+
+    def test_required_ci_contract_rejects_each_missing_boundary(self):
+        cases = (
+            ('backend lint', 'ci.yml', 'python -m ruff check apps'),
+            ('backend type check', 'ci.yml', 'python -m mypy --config-file pyproject.toml'),
+            ('backend tests', 'ci.yml', 'python -m pytest -q tests/unit'),
+            ('frontend lint', 'ci.yml', 'npm run lint --prefix apps/web'),
+            ('frontend type check', 'ci.yml', 'npm run typecheck --prefix apps/web'),
+            ('frontend tests', 'ci.yml', 'npm test --prefix apps/web'),
+            ('frontend build', 'ci.yml', 'npm run build --prefix apps/web'),
+            ('mock E2E', 'connected-acceptance.yml', 'python -m cli.mock_e2e'),
+        )
+        for boundary, workflow, marker in cases:
+            with self.subTest(boundary=boundary):
+                self.write_required_ci_contract()
+                path = self.root / '.github/workflows' / workflow
+                path.write_text(path.read_text('utf-8').replace(marker, 'echo omitted'),
+                                encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any(boundary in error for error in errors), errors)
 
 
 if __name__ == '__main__':

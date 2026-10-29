@@ -1,6 +1,7 @@
 """Read-only public workflow and curated-documentation checks."""
 from __future__ import annotations
 import argparse
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -78,6 +79,64 @@ def check_workflows(root: Path) -> list[str]:
     return errors
 
 
+def _workflow_commands(root: Path, name: str) -> tuple[str, dict]:
+    path = root / '.github/workflows' / name
+    if not path.is_file():
+        return '', {}
+    doc = yaml.load(path.read_text('utf-8'), Loader=yaml.BaseLoader)
+    if not isinstance(doc, dict):
+        return '', {}
+    commands = []
+    for job in doc.get('jobs', {}).values():
+        for step in job.get('steps', []):
+            if isinstance(step, dict) and isinstance(step.get('run'), str):
+                commands.append(step['run'])
+    return '\n'.join(commands), doc
+
+
+def check_required_ci(root: Path) -> list[str]:
+    """Require every MJ-REQ-278 boundary in offline pull-request CI."""
+    errors = []
+    fast_commands, _ = _workflow_commands(root, 'ci.yml')
+    mock_commands, mock = _workflow_commands(root, 'connected-acceptance.yml')
+    required = {
+        'backend lint': (fast_commands, 'python -m ruff check'),
+        'backend type check': (fast_commands, 'python -m mypy'),
+        'backend tests': (fast_commands, 'python -m pytest'),
+        'frontend lint': (fast_commands, 'npm run lint --prefix apps/web'),
+        'frontend type check': (fast_commands, 'npm run typecheck --prefix apps/web'),
+        'frontend tests': (fast_commands, 'npm test --prefix apps/web'),
+        'frontend build': (fast_commands, 'npm run build --prefix apps/web'),
+        'mock E2E': (mock_commands, 'python -m cli.mock_e2e'),
+    }
+    for boundary, (commands, marker) in required.items():
+        if marker not in commands:
+            errors.append(f'MJ-REQ-278: missing enforced {boundary} boundary ({marker})')
+
+    package_path = root / 'apps/web/package.json'
+    try:
+        scripts = json.loads(package_path.read_text('utf-8')).get('scripts', {})
+    except (OSError, json.JSONDecodeError):
+        scripts = {}
+    script_markers = {
+        'frontend lint': ('lint', 'node scripts/lint.mjs'),
+        'frontend type check': ('typecheck', 'tsc --noEmit'),
+        'frontend tests': ('test', 'vitest run'),
+        'frontend build': ('build', 'vite build'),
+    }
+    for boundary, (name, marker) in script_markers.items():
+        if marker not in str(scripts.get(name, '')):
+            errors.append(f'MJ-REQ-278: web package does not define {boundary} script')
+
+    mock_jobs = mock.get('jobs', {}) if isinstance(mock, dict) else {}
+    fixture_jobs = [job for job in mock_jobs.values() if isinstance(job, dict)
+                    and job.get('env', {}).get('MJOBS_OPERATION_MODE') == 'FIXTURE'
+                    and job.get('env', {}).get('MJOBS_COMPOSE_MOCK') == '1']
+    if not fixture_jobs:
+        errors.append('MJ-REQ-278: mock E2E must run in FIXTURE mode without external job websites')
+    return errors
+
+
 def check_private_paths(root: Path) -> list[str]:
     result = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'], capture_output=True, check=True)
     errors = []
@@ -94,7 +153,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, default=ROOT)
     root = parser.parse_args().root.resolve()
-    errors = check_markdown(root, DOCS) + check_workflows(root) + check_private_paths(root)
+    errors = (check_markdown(root, DOCS) + check_workflows(root)
+              + check_required_ci(root) + check_private_paths(root))
     for error in errors:
         print(error)
     print(f'Public repository policy: {"FAIL" if errors else "PASS"} ({len(errors)} errors)')
