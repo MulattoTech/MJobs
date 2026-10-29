@@ -5,6 +5,7 @@ import os
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import tempfile
 from datetime import datetime, timedelta, timezone
@@ -19,6 +20,10 @@ from packages.persistence import models as m
 DEFAULT_ORPHAN_AGE = timedelta(hours=24)
 DEFAULT_QUARANTINE_RETENTION = timedelta(days=30)
 QUARANTINE_DIRECTORY = ".quarantine"
+REVIEWED_COVER_LETTER_MARKER = ".reviewed-cover-letter.json"
+_REVIEWED_REVISION = re.compile(r"reviewed-([0-9a-f]{64})\Z")
+_REVIEW_ID = re.compile(r"[0-9a-f]{64}\Z")
+_REVIEW_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 
 
 def _fsync_directory(path: Path) -> None:
@@ -138,6 +143,64 @@ def _only_generated_files(path: Path) -> bool:
     return True
 
 
+def _reviewed_revision_layout(parts: tuple[str, ...]) -> bool:
+    """Recognize the reserved directory shape without trusting its contents."""
+    return (len(parts) == 3
+            and _REVIEW_ID.fullmatch(parts[0]) is not None
+            and _REVIEW_ID.fullmatch(parts[1]) is not None
+            and _REVIEWED_REVISION.fullmatch(parts[2]) is not None)
+
+
+def _managed_reviewed_revision(path: Path, parts: tuple[str, ...]) -> bool:
+    """Recognize only exact, integrity-bound reviewed cover-letter revisions."""
+    if not _reviewed_revision_layout(parts):
+        return False
+    match = _REVIEWED_REVISION.fullmatch(parts[2])
+    assert match is not None
+    expected_names = {
+        "cover-letter.docx", "cover-letter.pdf", "cover-letter.txt",
+        REVIEWED_COVER_LETTER_MARKER,
+    }
+    try:
+        children = list(path.iterdir())
+        if ({child.name for child in children} != expected_names
+                or any(child.is_symlink() or not child.is_file() for child in children)):
+            return False
+        marker = json.loads((path / REVIEWED_COVER_LETTER_MARKER).read_text(encoding="utf-8"))
+        expected_relative = f"{parts[1]}/{parts[2]}"
+        expected_files = {
+            extension: f"{expected_relative}/cover-letter.{extension}"
+            for extension in ("docx", "pdf", "txt")
+        }
+        if (not isinstance(marker, dict)
+                or set(marker) != {
+                    "schema_version", "document_id", "application_id", "version",
+                    "profile_version", "preview_sha256", "request_id", "files", "sha256",
+                }
+                or marker.get("schema_version") != 1
+                or marker.get("document_id") != match.group(1)
+                or marker.get("application_id") != parts[0]
+                or marker.get("profile_version") != parts[1]
+                or type(marker.get("version")) is not int or marker["version"] < 1
+                or not isinstance(marker.get("preview_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", marker["preview_sha256"])
+                or not isinstance(marker.get("request_id"), str)
+                or _REVIEW_REQUEST_ID.fullmatch(marker["request_id"]) is None
+                or marker.get("files") != expected_files
+                or not isinstance(marker.get("sha256"), dict)
+                or set(marker["sha256"]) != {"docx", "pdf", "txt"}):
+            return False
+        for extension, expected_hash in marker["sha256"].items():
+            artifact = path / f"cover-letter.{extension}"
+            if (not isinstance(expected_hash, str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", expected_hash)
+                    or hashlib.sha256(artifact.read_bytes()).hexdigest() != expected_hash):
+                return False
+        return True
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+
+
 def _classification(path: Path, root: Path, referenced: set[str]) -> tuple[str, bool]:
     relative = _relative(root, path)
     parts = Path(relative).parts
@@ -159,6 +222,10 @@ def _classification(path: Path, root: Path, referenced: set[str]) -> tuple[str, 
         if any(item.is_file() and item.suffix.casefold() in {".pdf", ".docx", ".txt"}
                for item in path.iterdir()) and _only_generated_files(path):
             return "ORPHAN_GENERATED_REVISION", True
+    if path.is_dir() and _reviewed_revision_layout(parts):
+        if _managed_reviewed_revision(path, parts):
+            return "ORPHAN_REVIEWED_REVISION", True
+        return "INVALID_REVIEWED_REVISION_PROTECTED", False
     if path.is_file() and len(parts) >= 4 and path.name.endswith(".tmp"):
         return "INCOMPLETE_TEMPORARY_FILE", True
     if path.is_file() and len(parts) >= 4 and path.suffix.casefold() in {".pdf", ".docx", ".txt"}:
@@ -204,6 +271,10 @@ def _scan_with_connection(connection, root: Path, now: datetime,
         modified = datetime.fromtimestamp(stat.st_mtime, timezone.utc)
         age = now - modified
         eligible = eligible_class and age >= minimum_age and not path.is_symlink()
+        if path.is_dir() and classification == "INVALID_REVIEWED_REVISION_PROTECTED":
+            results.append({"path": _relative(root, path), "classification": classification,
+                            "eligible": False})
+            return
         if path.is_dir() and eligible_class:
             try:
                 digest, size = _artifact_digest(path)
@@ -410,6 +481,8 @@ def _managed_generated_path(relative: str, *, is_directory: bool,
     if is_directory:
         if classification == "FAILED_GENERATION_STAGING":
             return ".staging-" in parts[2] and parts[2].startswith(".")
+        if classification == "ORPHAN_REVIEWED_REVISION":
+            return _REVIEWED_REVISION.fullmatch(parts[2]) is not None
         return parts[2].isdigit()
     if not parts[2].isdigit():
         return False
@@ -432,9 +505,17 @@ def restore_quarantined(store, output_dir: str | Path, quarantine_id: str, *,
             manifest.get("original_path"),
             is_directory=manifest.get("classification") in {
                 "FAILED_GENERATION_STAGING", "ORPHAN_ANSWER_EXPORT",
-                "ORPHAN_GENERATED_REVISION"},
+                "ORPHAN_GENERATED_REVISION", "ORPHAN_REVIEWED_REVISION"},
             classification=manifest.get("classification")):
         raise ValueError("Quarantine manifest does not identify a managed generated artifact")
+    if manifest.get("classification") == "ORPHAN_REVIEWED_REVISION":
+        parts = Path(manifest["original_path"]).parts
+        reviewed = payload if payload.exists() else destination
+        if (not _reviewed_revision_layout(parts)
+                or (reviewed.exists()
+                    and (reviewed.is_symlink() or not reviewed.is_dir()
+                         or not _managed_reviewed_revision(reviewed, parts)))):
+            raise ValueError("Quarantine reviewed identity does not match its payload marker")
     if destination.exists() and not payload.exists():
         digest, size = _artifact_digest(destination)
         if digest == manifest.get("sha256") and size == manifest.get("size_bytes"):

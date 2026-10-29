@@ -315,6 +315,19 @@ class ApplicationReprepareInput(BaseModel):
     expected_application_profile_version: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
     expected_profile_version: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
     expected_state: Literal["PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"]
+    reviewed_cover_letter_document_id: str | None = Field(
+        default=None, min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$",
+    )
+    reviewed_cover_letter_sha256: str | None = Field(
+        default=None, min_length=64, max_length=64, pattern=r"^[0-9a-f]{64}$",
+    )
+
+    @model_validator(mode="after")
+    def complete_reviewed_cover_letter_selection(self):
+        if ((self.reviewed_cover_letter_document_id is None)
+                != (self.reviewed_cover_letter_sha256 is None)):
+            raise ValueError("Reviewed cover-letter ID and hash must be selected together")
+        return self
 
 
 class PreferredApplicationRouteInput(BaseModel):
@@ -806,7 +819,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     from apps.api.career_story_selection import create_career_story_selection_router
     app.include_router(create_career_story_selection_router(store))
     from apps.api.cover_letter_preview import create_cover_letter_preview_router
-    app.include_router(create_cover_letter_preview_router(store))
+    app.include_router(create_cover_letter_preview_router(store, output_dir))
     from apps.api.interview_preparation import create_interview_preparation_router
     app.include_router(create_interview_preparation_router(store))
     from apps.api.role_lenses import create_role_lenses_router
@@ -2330,6 +2343,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 store, application_row["job_id"], profile_id, output_dir,
                 profile_version=value.expected_profile_version,
                 preserve_fact_ids=config.pop("preserve_fact_ids", None),
+                reviewed_cover_letter_document_id=value.reviewed_cover_letter_document_id,
+                reviewed_cover_letter_sha256=value.reviewed_cover_letter_sha256,
                 **config,
                 reprepare_expected={
                     "application_id": application_id,

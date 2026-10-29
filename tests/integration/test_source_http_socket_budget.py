@@ -26,6 +26,7 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
+from workers import tasks as worker_tasks
 from workers.tasks import execute_operation
 from services.discovery.sources import http_transport
 from services.discovery.sources.remotive import Remotive, SourceError
@@ -183,7 +184,7 @@ def tcp_source(mode, *, tls_context=None):
 
 
 class SourceHttpSocketBudgetTests(unittest.TestCase):
-    def run_source(self, mode, *, cancel=False, worker_budget=.8):
+    def run_source(self, mode, *, cancel=False, worker_budget=.8, setup_delay=0):
         with tempfile.TemporaryDirectory(prefix="mjobs-source-tcp-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -196,6 +197,18 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 source = tcp_connect_stall() if mode == "connect-stall" else tcp_source(mode)
                 original_connect = socket.socket.connect
                 original_connect_ex = socket.socket.connect_ex
+                original_collect_source = worker_tasks.collect_source
+                original_connect_tcp = http_transport._Backend.connect_tcp
+                transport_entered = threading.Event()
+
+                def delayed_collect_source(*args, **kwargs):
+                    if setup_delay:
+                        time.sleep(setup_delay)
+                    return original_collect_source(*args, **kwargs)
+
+                def observe_connect_tcp(backend, *args, **kwargs):
+                    transport_entered.set()
+                    return original_connect_tcp(backend, *args, **kwargs)
 
                 def observe_connect(connection, address):
                     if mode == "connect-stall" and address[:2] == socket_state["address"]:
@@ -219,6 +232,9 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
                 }), patch("socket.socket.connect", new=observe_connect), patch(
                         "socket.socket.connect_ex", new=observe_connect_ex), patch(
+                        "workers.tasks.collect_source", new=delayed_collect_source), patch(
+                        "services.discovery.sources.http_transport._Backend.connect_tcp",
+                        new=observe_connect_tcp), patch(
                         "services.discovery.sources.remotive.API_URL", endpoint), patch(
                         "workers.tasks.timeout", return_value=worker_budget):
                     with TestClient(create_app(store, "http://127.0.0.1:1", root,
@@ -245,8 +261,11 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         worker = threading.Thread(target=execute, name="mjobs-owned-source-worker", daemon=True)
                         worker.start()
                         try:
+                            if mode == "connect-stall":
+                                self.assertTrue(transport_entered.wait(3),
+                                                "Worker did not reach source HTTP transport")
                             self.assertTrue(engaged.wait(3 if mode == "positive-hostname" else 1),
-                                            "Worker did not reach real loopback TCP server")
+                                            "Real loopback TCP operation did not engage")
                             if cancel:
                                 if mode == "connect-stall":
                                     connecting = socket_state["connecting_socket"]
@@ -350,6 +369,9 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
         # Valid production operation budget; the source's minimum supported
         # two-second connect timeout must not become the cancellation latency.
         self.run_source("connect-stall", cancel=True, worker_budget=30)
+
+    def test_connect_stall_oracle_starts_after_worker_setup(self):
+        self.run_source("connect-stall", cancel=True, worker_budget=30, setup_delay=1.1)
 
     def test_worker_deadline_during_real_tcp_connect_stall(self):
         self.run_source("connect-stall")
