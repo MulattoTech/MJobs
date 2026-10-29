@@ -80,10 +80,18 @@ def check_workflows(root: Path) -> list[str]:
     return errors
 
 
+def _unconditional_failure_gate(item: object) -> bool:
+    return (isinstance(item, dict) and 'if' not in item
+            and item.get('continue-on-error') in (None, False, 'false'))
+
+
 def _job_commands(job: dict) -> tuple[str, ...]:
+    if not _unconditional_failure_gate(job):
+        return ()
     commands = []
     for step in job.get('steps', []):
-        if isinstance(step, dict) and isinstance(step.get('run'), str):
+        if (_unconditional_failure_gate(step)
+                and isinstance(step.get('run'), str)):
             commands.extend(
                 line.strip()
                 for line in step['run'].splitlines()

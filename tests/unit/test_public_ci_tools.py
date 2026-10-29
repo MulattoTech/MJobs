@@ -206,6 +206,38 @@ class PublicCITests(unittest.TestCase):
                 errors = check_required_ci(self.root)
                 self.assertTrue(any('backend tests' in error for error in errors), errors)
 
+    def test_required_ci_contract_rejects_skipped_or_non_gating_workflow_paths(self):
+        marker = 'python -m pytest -q tests/unit'
+        step = f'      - run: {marker}\n'
+        cases = {
+            'skipped_step': (
+                step,
+                '      - if: ${{ false }}\n'
+                f'        run: {marker}\n',
+            ),
+            'continue_on_error_step': (
+                step,
+                f'      - run: {marker}\n'
+                '        continue-on-error: true\n',
+            ),
+            'disabled_job': (
+                '  python:\n',
+                '  python:\n    if: ${{ false }}\n',
+            ),
+            'continue_on_error_job': (
+                '  python:\n',
+                '  python:\n    continue-on-error: true\n',
+            ),
+        }
+        for kind, (original, decoy) in cases.items():
+            with self.subTest(kind=kind):
+                self.write_required_ci_contract()
+                path = self.root / '.github/workflows/ci.yml'
+                path.write_text(path.read_text('utf-8').replace(original, decoy, 1),
+                                encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any('backend tests' in error for error in errors), errors)
+
     def test_required_ci_contract_rejects_package_script_decoys(self):
         cases = (
             ('frontend lint', '"lint":"node scripts/lint.mjs"',
