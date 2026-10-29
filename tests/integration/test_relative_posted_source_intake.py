@@ -78,11 +78,23 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
             self.assertEqual(outcome['status'], 'COMPLETED', outcome)
         return identifier
 
-    def _filtered(self, window):
+    def _filtered(self, window, query_at=None):
         saved = self.client.put('/search-profiles', json={'id': 'date-filter', 'profile_id': 'fixture',
             'name': 'Synthetic date filter', 'date_window': window, 'enabled': True})
         self.assertEqual(saved.status_code, 200, saved.text)
-        response = self.client.get('/jobs', params={'profile_id': 'fixture', 'search_profile_id': 'date-filter'})
+        def query():
+            return self.client.get('/jobs', params={
+                'profile_id': 'fixture', 'search_profile_id': 'date-filter'})
+        if query_at is None:
+            response = query()
+        else:
+            class QueryClock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    return query_at.astimezone(tz) if tz else query_at.replace(tzinfo=None)
+            with patch('apps.api.main.datetime', QueryClock), patch(
+                    'services.discovery.search_semantics.datetime', QueryClock):
+                response = query()
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()['jobs']
 
@@ -342,17 +354,21 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
                     m.posting_value_candidates.c.id == row['id']).values(normalized=values))
 
     def test_preupgrade_absolute_date_without_precision_is_not_refreshed_by_relative_recollection(self):
-        original = (self.collected_at - timedelta(days=10)).isoformat()
+        collected_at = datetime(2020, 1, 15, 12, tzinfo=timezone.utc)
+        recollected_at = collected_at + timedelta(hours=1)
+        query_at = recollected_at + timedelta(hours=1)
+        self.collected_at = collected_at
+        original = (collected_at - timedelta(days=10)).isoformat()
         self.payload['jobs'][0]['publication_date'] = original
-        self._collect(request_id='legacy-absolute')
+        self._collect(collected_at, 'legacy-absolute')
         self._emulate_preupgrade_dates(original)
         self._reopen()
-        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
+        self.assertEqual(len(self._filtered('LAST_24_HOURS', query_at)), 0)
         self.payload['jobs'][0]['publication_date'] = '2 hours ago'
-        self._collect(self.collected_at + timedelta(hours=1), 'relative-after-legacy-absolute')
+        self._collect(recollected_at, 'relative-after-legacy-absolute')
         self._reopen()
-        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
-        job = self._filtered('LAST_30_DAYS')[0]
+        self.assertEqual(len(self._filtered('LAST_24_HOURS', query_at)), 0)
+        job = self._filtered('LAST_30_DAYS', query_at)[0]
         self.assertEqual(job['attributes']['reported_posted_at'], original)
         self.assertIsNone(job['attributes']['reported_posted_at_raw'])
         self.assertEqual(job['attributes']['reported_posted_at_precision'], 'SOURCE')
