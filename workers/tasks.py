@@ -539,6 +539,24 @@ def execute_operation(operation_id, *, registry_module=None,
             if collection_budget is not None:
                 collection_stop_reason = error
             history_counts = {}
+        if retry_failure is not None:
+            try:
+                # Adapter errors can settle just before the monotonic worker
+                # deadline, then reach retry classification after cleanup or
+                # persistence scheduling. Reassert local authority here so an
+                # expired/cancelled operation cannot be queued from an earlier
+                # retryable provider result.
+                check()
+            except OperationTimedOut:
+                state, error, retry_failure = "FAILED", "OPERATION_TIMEOUT", None
+                history_counts = {}
+                if collection_budget is not None:
+                    collection_stop_reason = error
+            except OperationCancelled:
+                state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
+                history_counts = {}
+                if collection_budget is not None:
+                    collection_stop_reason = error
         with store.engine.begin() as connection:
             if connection.dialect.name == "sqlite":
                 connection.exec_driver_sql("BEGIN IMMEDIATE")
