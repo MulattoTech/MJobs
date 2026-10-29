@@ -140,6 +140,17 @@ class PublicCITests(unittest.TestCase):
                 errors = check_required_ci(self.root)
                 self.assertTrue(any(boundary in error for error in errors), errors)
 
+    def test_required_ci_contract_rejects_missing_pull_request_trigger(self):
+        for workflow in ('ci.yml', 'connected-acceptance.yml'):
+            with self.subTest(workflow=workflow):
+                self.write_required_ci_contract()
+                path = self.root / '.github/workflows' / workflow
+                path.write_text(path.read_text('utf-8').replace(
+                    'on: pull_request', 'on: workflow_dispatch'), encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any(workflow in error and 'pull_request' in error
+                                    for error in errors), errors)
+
 
 if __name__ == '__main__':
     unittest.main()

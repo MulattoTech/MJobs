@@ -94,11 +94,23 @@ def _workflow_commands(root: Path, name: str) -> tuple[str, dict]:
     return '\n'.join(commands), doc
 
 
+def _has_workflow_trigger(doc: dict, trigger: str) -> bool:
+    configured = doc.get('on')
+    if isinstance(configured, str):
+        return configured == trigger
+    if isinstance(configured, (list, dict)):
+        return trigger in configured
+    return False
+
+
 def check_required_ci(root: Path) -> list[str]:
     """Require every MJ-REQ-278 boundary in offline pull-request CI."""
     errors = []
-    fast_commands, _ = _workflow_commands(root, 'ci.yml')
+    fast_commands, fast = _workflow_commands(root, 'ci.yml')
     mock_commands, mock = _workflow_commands(root, 'connected-acceptance.yml')
+    for name, doc in (('ci.yml', fast), ('connected-acceptance.yml', mock)):
+        if not _has_workflow_trigger(doc, 'pull_request'):
+            errors.append(f'MJ-REQ-278: {name} must run on pull_request')
     required = {
         'backend lint': (fast_commands, 'python -m ruff check'),
         'backend type check': (fast_commands, 'python -m mypy'),
