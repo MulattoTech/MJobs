@@ -49,8 +49,8 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
             store.bind_workspace_mode("FIXTURE")
             profile = deepcopy(PROFILE)
             # Keep only already-approved synthetic ATS answers so the resumed
-            # revision can pass the fixture form after the newly reviewed answer
-            # is saved. The user-reviewed Azure answer remains the new change.
+            # revision can pass the fixture form after the required answer is
+            # explicitly reviewed and saved with a new durable identity.
             profile["answers"] = [
                 {"id": "synthetic-country", "question": "Country",
                  "text": "United States", "source": "User-reviewed fixture",
@@ -247,12 +247,12 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     expect(bank_button).to_be_disabled()
 
                     # Editing and reviewing text remains local until the explicit save.
+                    profile_before_typing = deepcopy(store.profile("fixture"))
                     answer.fill(MANUAL_ANSWER)
                     editor.get_by_label("I reviewed this exact answer for this job", exact=True).check()
                     self.assertEqual(writes, [],
                                      "Typing and review acknowledgement must not persist")
-                    self.assertFalse(any(item.get("text") == MANUAL_ANSWER
-                                         for item in store.profile("fixture")["answers"]))
+                    self.assertEqual(store.profile("fixture"), profile_before_typing)
                     expect(bank_button).to_be_enabled()
                     bank_button.click()
                     confirmation = editor.locator('[aria-label="Answer Bank confirmation for question 1"]')
@@ -291,8 +291,14 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(stale_save.value.status, 409)
                     expect(page.locator('main > .alert[role="alert"]')).to_contain_text(
                         "Profile changed while this answer was being saved")
-                    self.assertFalse(any(item.get("text") == MANUAL_ANSWER
-                                         for item in store.profile("fixture")["answers"]))
+                    answers_after_rejection = store.profile("fixture")["answers"]
+                    question_answers = [item for item in answers_after_rejection
+                                        if item.get("question") == QUESTION]
+                    self.assertEqual(
+                        [item["id"] for item in question_answers],
+                        ["synthetic-fixture-answer"],
+                        "The rejected save must not replace the durable answer identity",
+                    )
                     expect(confirmation).to_be_visible()
                     context.unroute("**/profiles", concurrent_profile_change)
 
@@ -525,8 +531,11 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         "MJOBS_MOCK_ORIGIN": fixture,
                         "MJOBS_OPERATION_MODE": "FIXTURE",
                     }
-                    with patch.dict(os.environ, environment):
-                        worker_result = execute_operation(operation_id)
+                    with patch.dict(os.environ, environment), \
+                            ThreadPoolExecutor(max_workers=1) as executor:
+                        worker_result = executor.submit(
+                            execute_operation, operation_id,
+                        ).result(timeout=45)
                     self.assertEqual(worker_result["status"], "COMPLETED", worker_result)
                     expect(page.get_by_role("status").filter(has_text=
                         "Fresh application validation passed")).to_be_visible(timeout=15000)
@@ -568,6 +577,13 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                             "DRY_RUN_COMPLETE")
                     history_panel = page.get_by_role(
                         "region", name="Durable attempt history", exact=True)
+                    with page.expect_response(lambda response:
+                            response.request.method == "GET"
+                            and urlsplit(response.url).path.endswith(
+                                "/attempt-history")) as refreshed_history:
+                        history_panel.get_by_role(
+                            "button", name="Refresh attempt history", exact=True).click()
+                    self.assertEqual(refreshed_history.value.status, 200)
                     for attempt in history["attempts"]:
                         expect(history_panel).to_contain_text(attempt["attempt_id"])
                     expect(history_panel).to_contain_text("Frozen inputs: profile version")
@@ -633,8 +649,9 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         ("PUT", "/profiles"),
                         ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/reprepare"),
                         ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/reprepare"),
+                        ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/answer-review-resumes"),
                     ])
-                    self.assertEqual(len(request_bodies), 5)
+                    self.assertEqual(len(request_bodies), 6)
                     for profile_id in ("fixture", "other-profile"):
                         self.assertFalse(any(
                             item.get("text") == "Synthetic application-only answer"
@@ -656,6 +673,16 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         "expected_profile_version", "expected_state",
                     })
                     self.assertEqual(request_bodies[3], request_bodies[4])
+                    self.assertEqual(set(request_bodies[5]), {
+                        "request_id", "question_id", "question_fingerprint",
+                        "form_fingerprint", "answer_id", "expected_profile_version",
+                    })
+                    self.assertEqual(request_bodies[5]["question_id"], QUESTION_ID)
+                    self.assertEqual(request_bodies[5]["form_fingerprint"],
+                                     resumed_preflight["metadata_fingerprint"])
+                    self.assertEqual(request_bodies[5]["answer_id"], persisted["id"])
+                    self.assertEqual(request_bodies[5]["expected_profile_version"],
+                                     saved_profile["version"])
                     self.assertGreater(store.count("documents"), documents_before)
                     self.assertEqual(store.count("application_attempts"), attempts_before + 2)
                     self.assertEqual(store.application(applications_before[0]["id"])["state"],
