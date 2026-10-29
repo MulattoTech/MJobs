@@ -1,0 +1,368 @@
+"""Materialize an explicitly approved cover-letter preview for one application."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import shutil
+from uuid import uuid4
+
+from docx import Document
+from docx.shared import Pt
+from sqlalchemy import select
+
+from packages.persistence import models as m
+from packages.persistence.store import identity, now
+from services.documents.artifacts import atomic_generate, publish_directory
+from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
+from services.documents.failure_status import validate_generated_outputs
+from services.documents.render import render_pdf
+from services.documents.validation import validate_assertions
+from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
+
+
+class ReviewedCoverLetterError(ValueError):
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__(code)
+
+
+_ORPHAN_MANIFEST = ".reviewed-cover-letter.json"
+
+
+def _has_reparse_component(path: Path) -> bool:
+    """Return true when a configured path crosses a filesystem alias."""
+    try:
+        absolute = path.absolute()
+        current = Path(absolute.anchor)
+        for part in absolute.parts[1:]:
+            current = current / part
+            if (current.is_symlink()
+                    or (hasattr(current, "is_junction") and current.is_junction())):
+                return True
+        return False
+    except (OSError, RuntimeError, ValueError):
+        return True
+
+
+def _saved_artifact_path(application_root: Path, relative: object) -> Path:
+    if not isinstance(relative, str) or not relative or "\\" in relative:
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    parts = Path(relative).parts
+    if Path(relative).is_absolute() or any(part in ("", ".", "..") for part in parts):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    path = application_root.joinpath(*parts)
+    if _has_reparse_component(path):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    try:
+        resolved = path.resolve(strict=False)
+    except (OSError, RuntimeError, ValueError):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID") from None
+    if not resolved.is_relative_to(application_root):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    return path
+
+
+def _validate_saved_artifacts(output_dir: str | Path, application_id: str,
+                              record: dict) -> None:
+    configured_root = Path(output_dir)
+    configured_application_root = configured_root / application_id
+    if (_has_reparse_component(configured_root)
+            or _has_reparse_component(configured_application_root)):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    try:
+        root = configured_root.resolve()
+        application_root = configured_application_root.resolve()
+    except (OSError, RuntimeError, ValueError):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID") from None
+    if not application_root.is_relative_to(root):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+
+    files = record.get("files")
+    expected_hashes = record.get("sha256")
+    if not isinstance(files, dict) or not isinstance(expected_hashes, dict):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_CONTENT_CHANGED")
+    for extension in ("docx", "pdf", "txt"):
+        path = _saved_artifact_path(application_root, files.get(extension))
+        expected_hash = expected_hashes.get(extension)
+        try:
+            if not path.is_file():
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_CONTENT_CHANGED")
+            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+        except ReviewedCoverLetterError:
+            raise
+        except OSError:
+            raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_CONTENT_CHANGED") from None
+        if (not isinstance(expected_hash, str) or len(expected_hash) != 64
+                or actual_hash != expected_hash):
+            raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_CONTENT_CHANGED")
+
+
+def _write_orphan_manifest(staging: Path, record: dict) -> None:
+    context = record["generation_context"]
+    payload = {
+        "schema_version": 1,
+        "document_id": record["id"],
+        "application_id": record["application_id"],
+        "version": record["version"],
+        "profile_version": record["profile_version"],
+        "preview_sha256": context["reviewed_preview_sha256"],
+        "request_id": context["approval_request_id"],
+        "files": record["files"],
+        "sha256": record["sha256"],
+    }
+    encoded = json.dumps(
+        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ) + "\n"
+    atomic_generate(
+        staging / _ORPHAN_MANIFEST,
+        lambda path: path.write_text(encoded, encoding="utf-8", newline="\n"),
+    )
+
+
+def _reconcile_matching_orphan(destination: Path, record: dict, paragraphs: list[str]) -> dict:
+    try:
+        if destination.is_symlink() or not destination.is_dir():
+            raise ValueError("review directory is unavailable")
+        expected_names = {
+            *(Path(relative).name for relative in record["files"].values()),
+            _ORPHAN_MANIFEST,
+        }
+        children = list(destination.iterdir())
+        if ({child.name for child in children} != expected_names
+                or any(child.is_symlink() or not child.is_file() for child in children)):
+            raise ValueError("review directory contents differ")
+        manifest = json.loads((destination / _ORPHAN_MANIFEST).read_text(encoding="utf-8"))
+        context = record["generation_context"]
+        expected = {
+            "schema_version": 1,
+            "document_id": record["id"],
+            "application_id": record["application_id"],
+            "version": record["version"],
+            "profile_version": record["profile_version"],
+            "preview_sha256": context["reviewed_preview_sha256"],
+            "request_id": context["approval_request_id"],
+            "files": record["files"],
+        }
+        if (not isinstance(manifest, dict)
+                or {key: manifest.get(key) for key in expected} != expected
+                or set(manifest) != {*expected, "sha256"}
+                or not isinstance(manifest.get("sha256"), dict)
+                or set(manifest["sha256"]) != {"docx", "pdf", "txt"}):
+            raise ValueError("review manifest identity differs")
+        paths = {
+            extension: destination / Path(record["files"][extension]).name
+            for extension in ("docx", "pdf", "txt")
+        }
+        for extension, path in paths.items():
+            expected_hash = manifest["sha256"].get(extension)
+            if (not isinstance(expected_hash, str) or len(expected_hash) != 64
+                    or hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash):
+                raise ValueError("review artifact hash differs")
+        if paths["txt"].read_text(encoding="utf-8") != "\n".join(paragraphs) + "\n":
+            raise ValueError("review text differs")
+        if [paragraph.text for paragraph in Document(paths["docx"]).paragraphs] != paragraphs:
+            raise ValueError("review document differs")
+        validate_generated_outputs(paths)
+        return {**record, "sha256": dict(manifest["sha256"])}
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_ORPHAN_MISMATCH") from None
+
+
+def materialize_reviewed_preview(
+    store,
+    output_dir: str | Path,
+    *,
+    profile: dict,
+    job: dict,
+    application_id: str,
+    expected_base_document_version: int,
+    preview: dict,
+    preview_sha256: str,
+    request_id: str,
+) -> dict:
+    """Persist one immutable future-version row without promoting the application."""
+    if hashlib.sha256(preview["preview_text"].encode("utf-8")).hexdigest() != preview_sha256:
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PREVIEW_MISMATCH")
+    application = store.application(application_id)
+    if application["profile_id"] != profile["id"] or application["job_id"] != job["id"]:
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SCOPE_MISMATCH")
+    if application["document_version"] != expected_base_document_version:
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_BASE_STALE")
+
+    target_version = expected_base_document_version + 1
+    document_id = identity(
+        "reviewed-cover-letter", application_id,
+        expected_base_document_version, target_version,
+    )
+    paragraphs, generated_context = build_cover_letter(
+        profile, job, profile["facts"], preview["style"], preview["length"],
+    )
+    if "\n\n".join(paragraphs) != preview["preview_text"]:
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PREVIEW_MISMATCH")
+    context = {
+        **generated_context,
+        "review_status": "APPROVED",
+        "approval_request_id": request_id,
+        "reviewed_preview_sha256": preview_sha256,
+        "base_document_version": expected_base_document_version,
+        "profile_id": profile["id"],
+        "profile_version": profile["version"],
+        "job_id": job["id"],
+        "job_fingerprint": preview["job_fingerprint"],
+        "style": preview["style"],
+        "length": preview["length"],
+        "job_snapshot": job,
+        "source_fact_fingerprints": preview["source_fact_fingerprints"],
+    }
+    claim_validation = validate_assertions(
+        "cover-letter", paragraphs, profile, generated_context["fact_ids"], job["title"],
+        COVER_LETTER_TEMPLATE, generation_context=context,
+    )
+    context["claim_validation"] = claim_validation
+
+    output_root = Path(output_dir).resolve()
+    application_root = (output_root / application_id).resolve()
+    if not application_root.is_relative_to(output_root):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    relative = f"{profile['version']}/reviewed-{document_id}"
+    destination = (application_root / relative).resolve()
+    if not destination.is_relative_to(application_root):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    staging = destination.with_name(f".{destination.name}.staging-{uuid4().hex}")
+    staging.mkdir(parents=True, exist_ok=False)
+    published = False
+    try:
+        document = Document()
+        document.styles["Normal"].font.name = "Arial"
+        document.styles["Normal"].font.size = Pt(11)
+        for text in paragraphs:
+            document.add_paragraph(text)
+        paths = {
+            "docx": staging / "cover-letter.docx",
+            "pdf": staging / "cover-letter.pdf",
+            "txt": staging / "cover-letter.txt",
+        }
+        atomic_generate(paths["docx"], document.save)
+        atomic_generate(paths["txt"], lambda path: path.write_text(
+            "\n".join(paragraphs) + "\n", encoding="utf-8", newline="\n",
+        ))
+        atomic_generate(paths["pdf"], lambda path: render_pdf(path, paragraphs))
+        validate_generated_outputs(paths)
+        record = {
+            "id": document_id,
+            "application_id": application_id,
+            "kind": "cover-letter",
+            "version": target_version,
+            "profile_version": profile["version"],
+            "files": {kind: f"{relative}/{path.name}" for kind, path in paths.items()},
+            "fact_ids": generated_context["fact_ids"],
+            "sha256": {kind: hashlib.sha256(path.read_bytes()).hexdigest()
+                       for kind, path in paths.items()},
+            "template": COVER_LETTER_TEMPLATE,
+            "created_at": now(),
+            "generation_model": "deterministic-reviewed-preview-v1",
+            "generation_context": context,
+        }
+        _write_orphan_manifest(staging, record)
+        with store.engine.begin() as connection:
+            if connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            # Match prepare(): profile, job, then application. Opposite row-lock
+            # order would deadlock if approval overlaps a reprepare transaction.
+            current_profile_version = connection.execute(
+                select(m.profiles.c.version).where(
+                    m.profiles.c.id == profile["id"],
+                ).with_for_update(),
+            ).scalar_one_or_none()
+            current_job = connection.execute(
+                select(m.jobs, m.companies.c.name.label("company")).select_from(
+                    m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id)
+                ).where(m.jobs.c.id == job["id"]).with_for_update(),
+            ).mappings().one_or_none()
+            locked = dict(connection.execute(select(m.applications).where(
+                m.applications.c.id == application_id,
+            ).with_for_update()).mappings().one())
+            if (locked["profile_id"] != profile["id"] or locked["job_id"] != job["id"]):
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SCOPE_MISMATCH")
+            if locked["document_version"] != expected_base_document_version:
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_BASE_STALE")
+            if (current_profile_version != profile["version"]
+                    or current_job is None
+                    or cover_letter_preview_fingerprint(dict(current_job))
+                    != preview["job_fingerprint"]):
+                raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_CONTEXT_STALE")
+            existing = list(connection.execute(select(m.documents).where(
+                m.documents.c.application_id == application_id,
+                m.documents.c.version == target_version,
+                m.documents.c.kind == "cover-letter",
+            )).mappings())
+            if existing:
+                if len(existing) != 1 or existing[0]["id"] != document_id:
+                    raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_VERSION_CONFLICT")
+                saved = dict(existing[0])
+                saved_context = saved.get("generation_context") or {}
+                if (saved_context.get("approval_request_id") != request_id
+                        or saved_context.get("reviewed_preview_sha256") != preview_sha256):
+                    raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_VERSION_CONFLICT")
+                _validate_saved_artifacts(output_dir, application_id, saved)
+                shutil.rmtree(staging)
+                return _result(saved, replayed=True)
+            if destination.exists() or destination.is_symlink():
+                record = _reconcile_matching_orphan(destination, record, paragraphs)
+            else:
+                publish_directory(staging, destination)
+                published = True
+            connection.execute(m.documents.insert().values(**record))
+        return _result(record, replayed=False)
+    except Exception:
+        if published:
+            shutil.rmtree(destination, ignore_errors=True)
+        raise
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
+
+
+def _result(record: dict, *, replayed: bool) -> dict:
+    context = record["generation_context"]
+    return {
+        "application_id": record["application_id"],
+        "document_id": record["id"],
+        "base_document_version": context["base_document_version"],
+        "version": record["version"],
+        "preview_sha256": context["reviewed_preview_sha256"],
+        "sha256": record["sha256"],
+        "replayed": replayed,
+    }
+
+
+def resolve_reviewed_cover_letter(
+    connection,
+    output_dir: str | Path,
+    *,
+    application: dict,
+    profile: dict,
+    job: dict,
+    document_id: str,
+    preview_sha256: str,
+) -> dict:
+    """Resolve and re-hash the exact approved future-version document row."""
+    rows = list(connection.execute(select(m.documents).where(
+        m.documents.c.application_id == application["id"],
+        m.documents.c.version == application["document_version"] + 1,
+        m.documents.c.kind == "cover-letter",
+    )).mappings())
+    if len(rows) != 1 or rows[0]["id"] != document_id:
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SELECTION_INVALID")
+    row = dict(rows[0])
+    context = row.get("generation_context") or {}
+    if (context.get("review_status") != "APPROVED"
+            or context.get("base_document_version") != application["document_version"]
+            or context.get("profile_id") != application["profile_id"]
+            or context.get("profile_version") != profile["version"]
+            or context.get("job_id") != application["job_id"]
+            or context.get("job_fingerprint") != cover_letter_preview_fingerprint(job)
+            or context.get("reviewed_preview_sha256") != preview_sha256):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_SELECTION_STALE")
+    _validate_saved_artifacts(output_dir, application["id"], row)
+    return row
