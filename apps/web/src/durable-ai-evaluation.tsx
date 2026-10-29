@@ -26,6 +26,12 @@ export function aiEvaluationFailure(code:string) {
   if(code==='AI_PROVIDER_CREDENTIAL_CHANGED')return 'The saved credential changed, so this batch stopped. Review provider history before requesting a new evaluation plan.';
   if(code==='AI_PROVIDER_CREDENTIAL_UNAVAILABLE')return 'The saved credential could not be unlocked. Restore access to the existing credential store before previewing and requesting evaluation again.';
   if(code==='AI_PROVIDER_BINDING_INVALID')return 'The saved credential source could not be verified. Preview a new evaluation plan.';
+  const providerFailure={
+    AI_PROVIDER_UNAVAILABLE:'The AI provider is unavailable.',
+    AI_PROVIDER_TIMEOUT:'The AI provider timed out.',
+    AI_ERROR:'The AI evaluation failed.',
+  }[code];
+  if(providerFailure)return `${providerFailure} Discovery and deterministic scoring remain available. No partial advisory batch was published. An explicit retry is safe after recovery. Automatic replay remains paused to prevent an unintended billable provider call.`;
   return `Evaluation stopped: ${code}. No partial advisory batch was published.`;
 }
 

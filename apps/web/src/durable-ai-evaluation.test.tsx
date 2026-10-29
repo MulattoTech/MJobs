@@ -16,3 +16,21 @@ it('distinguishes disabled providers and reused intents from stale candidate pla
   expect(conflict.stale).toBe(false);expect(conflict.message).toContain('Check saved operations');
   expect(aiAdmissionFailure(new Error('offline')).message).toContain('same request identity');
 });
+
+it.each(['AI_PROVIDER_UNAVAILABLE','AI_PROVIDER_TIMEOUT','AI_ERROR'])(
+  'keeps non-AI work available and requires an explicit safe retry for %s',code=>{
+    const message=aiEvaluationFailure(code);
+    expect(message).toContain('Discovery and deterministic scoring remain available');
+    expect(message).toContain('No partial advisory batch was published');
+    expect(message).toContain('explicit retry is safe after recovery');
+    expect(message).toContain('Automatic replay remains paused');
+    expect(message).toContain('billable');
+    expect(message).not.toContain(code);
+  },
+);
+
+it('preserves BLOCKED as a terminal operation state without retry guidance',()=>{
+  expect(aiEvaluationFailure('BLOCKED')).toBe(
+    'Evaluation stopped: BLOCKED. No partial advisory batch was published.',
+  );
+});
