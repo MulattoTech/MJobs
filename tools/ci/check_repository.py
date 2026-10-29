@@ -106,8 +106,14 @@ def _workflow_commands(root: Path, name: str) -> tuple[tuple[str, ...], dict]:
 
 
 def _runs_command(commands: tuple[str, ...], marker: str) -> bool:
-    return any(command == marker or command.startswith(f'{marker} ')
-               for command in commands)
+    for command in commands:
+        if command != marker and not command.startswith(f'{marker} '):
+            continue
+        suffix = command[len(marker):]
+        if not any(operator in suffix for operator in '|;&') \
+                and not suffix.rstrip().endswith('\\'):
+            return True
+    return False
 
 
 def _has_workflow_trigger(doc: dict, trigger: str) -> bool:

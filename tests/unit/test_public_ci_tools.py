@@ -185,6 +185,27 @@ class PublicCITests(unittest.TestCase):
                 errors = check_required_ci(self.root)
                 self.assertTrue(any('frontend build' in error for error in errors), errors)
 
+    def test_required_ci_contract_rejects_non_gating_commands(self):
+        marker = 'python -m pytest -q tests/unit'
+        original = f'      - run: {marker}\n'
+        decoys = {
+            'or_true': f'      - run: {marker} || true\n',
+            'pipeline': f'      - run: {marker} | cat\n',
+            'background': f'      - run: {marker} &\n',
+            'semicolon_true': f'      - run: {marker}; true\n',
+            'continued_or_true': ('      - run: |\n'
+                                  f'          {marker} \\\n'
+                                  '            || true\n'),
+        }
+        for kind, replacement in decoys.items():
+            with self.subTest(kind=kind):
+                self.write_required_ci_contract()
+                path = self.root / '.github/workflows/ci.yml'
+                path.write_text(path.read_text('utf-8').replace(original, replacement),
+                                encoding='utf-8')
+                errors = check_required_ci(self.root)
+                self.assertTrue(any('backend tests' in error for error in errors), errors)
+
 
 if __name__ == '__main__':
     unittest.main()
