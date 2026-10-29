@@ -261,6 +261,7 @@ def execute_operation(operation_id, *, registry_module=None,
         durable_resume_result = None
         durable_comparison_result = None
         durable_ai_result = None
+        deadline = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -539,24 +540,6 @@ def execute_operation(operation_id, *, registry_module=None,
             if collection_budget is not None:
                 collection_stop_reason = error
             history_counts = {}
-        if retry_failure is not None:
-            try:
-                # Adapter errors can settle just before the monotonic worker
-                # deadline, then reach retry classification after cleanup or
-                # persistence scheduling. Reassert local authority here so an
-                # expired/cancelled operation cannot be queued from an earlier
-                # retryable provider result.
-                check()
-            except OperationTimedOut:
-                state, error, retry_failure = "FAILED", "OPERATION_TIMEOUT", None
-                history_counts = {}
-                if collection_budget is not None:
-                    collection_stop_reason = error
-            except OperationCancelled:
-                state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
-                history_counts = {}
-                if collection_budget is not None:
-                    collection_stop_reason = error
         with store.engine.begin() as connection:
             if connection.dialect.name == "sqlite":
                 connection.exec_driver_sql("BEGIN IMMEDIATE")
@@ -596,6 +579,16 @@ def execute_operation(operation_id, *, registry_module=None,
                         state, error = 'BLOCKED', failure.code
             finished_at = now()
             retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
+            if retry is not None and deadline is not None and time.monotonic() >= deadline:
+                # The fenced operation and any committed receipt now have
+                # precedence. Recheck the monotonic deadline only for a failure
+                # the discovery policy would actually retry, immediately before
+                # applying that retry plan.
+                state, error, retry_failure = "FAILED", "OPERATION_TIMEOUT", None
+                retry = None
+                history_counts = {}
+                if collection_budget is not None:
+                    collection_stop_reason = error
             if retry is not None:
                 state, error = "QUEUED", retry["error"]
             if state == "FAILED":
