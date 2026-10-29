@@ -82,9 +82,10 @@ class ControlledApplicationFieldPrivacyTests(ApplicationLogFixture, unittest.Tes
         self.assertIsNotNone(public.json()['receipt'])
         audits, operation = self.related_audit_and_operation(queued['operation_id'])
         self.assertTrue(any(row['action'] == 'APPLICATION_DRY_RUN' for row in audits))
+        self.assert_private_values_absent(result)
         self.assert_private_values_absent(public.json())
         self.assert_private_values_absent(audits)
-        self.assert_private_values_absent(operation['params'])
+        self.assert_private_values_absent(operation)
         self.assert_private_values_absent([record.getMessage() for record in captured.records])
 
     def test_controlled_field_values_and_browser_diagnostics_stay_out_of_errors_audit_and_log(self):
@@ -107,10 +108,16 @@ class ControlledApplicationFieldPrivacyTests(ApplicationLogFixture, unittest.Tes
         self.assertEqual(public.json()['error_code'], 'CONTROLLED_DRY_RUN_BROWSER_FAILED')
         self.assertIsNone(public.json()['receipt'])
         audits, operation = self.related_audit_and_operation(queued['operation_id'])
+        failure_audits = [row for row in audits
+                          if row['action'] == 'OPERATION_ATTEMPT_FINISHED']
+        self.assertTrue(failure_audits, audits)
+        self.assertTrue(any(row['payload'].get('state') == 'BLOCKED'
+                            and row['payload'].get('error') ==
+                            'CONTROLLED_DRY_RUN_BROWSER_FAILED'
+                            for row in failure_audits), failure_audits)
         self.assert_private_values_absent(public.json())
         self.assert_private_values_absent(audits)
-        self.assert_private_values_absent(operation['params'])
-        self.assert_private_values_absent(operation['error'])
+        self.assert_private_values_absent(operation)
         self.assert_private_values_absent([record.getMessage() for record in captured.records])
 
 
