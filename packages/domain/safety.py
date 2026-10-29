@@ -66,6 +66,7 @@ class SubmissionContext:
     target: str = "EXTERNAL"
     state: str = "PREPARING"
     user_enabled: bool = False
+    actual_user_intended_job: bool = False
     match_score: float = 0
     confidence: float = 0
     quality_approved: bool = False
@@ -85,7 +86,8 @@ class SubmissionContext:
             raise ValueError("State must be a nonempty string")
         if self.barrier not in (None, "CAPTCHA", "MFA", "ACCESS_CONTROL", "ANTI_BOT", "RATE_LIMIT"):
             raise ValueError("Unknown intervention barrier")
-        for field in ("user_enabled", "quality_approved", "facts_verified", "source_allowed",
+        for field in ("user_enabled", "actual_user_intended_job", "quality_approved",
+                      "facts_verified", "source_allowed",
                       "sensitive_answers_approved", "duplicate"):
             _boolean(getattr(self, field), field)
         for field in ("match_score", "confidence"):
@@ -108,6 +110,8 @@ def evaluate_submission(context: SubmissionContext, policy: Policy) -> Decision:
             reasons.append("EXTERNAL_SUBMISSION_DISABLED")
         if not context.user_enabled:
             reasons.append("USER_ENABLEMENT_REQUIRED")
+        if not context.actual_user_intended_job:
+            reasons.append("ACTUAL_USER_INTENT_REQUIRED")
     if context.barrier:
         reasons.append("USER_INTERVENTION_REQUIRED")
     if context.state == "SUBMISSION_UNCONFIRMED":
