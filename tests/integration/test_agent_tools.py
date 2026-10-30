@@ -386,6 +386,220 @@ class AgentToolBoundaryTests(unittest.TestCase):
             self.runtime().run([], cost_usd=float("nan"))
         self.assertEqual(self.store.count("audit_events"), before)
 
+    def slice_runtime(self, handler=None):
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+
+        seen = []
+
+        def observe(args, context):
+            seen.append(args.value)
+            return handler(args, context) if handler else {"value": args.value}
+
+        registry = ToolRegistry()
+        for name, classification in (("read_value", ToolClass.READ),
+                                     ("propose_value", ToolClass.PROPOSE)):
+            registry.register(AgentTool(name, "Synthetic observation", classification,
+                                        Request, Response, observe))
+        return AgentRuntime(self.store, registry, profile_id="fixture", task="resume_tailor"), seen
+
+    @staticmethod
+    def slice_calls(*values):
+        return [{"name": "read_value", "arguments": {"value": value}} for value in values]
+
+    def test_prior_slice_selects_snapshot_and_persists_only_diagnostic_linkage(self):
+        runtime, seen = self.slice_runtime()
+        calls = self.slice_calls("excluded-canary", "private-argument-canary", "tail-canary")
+        prior = runtime.run(calls, max_duration_ms=900, max_pages=2)
+        calls[1]["arguments"]["value"] = "mutated-canary"
+        seen.clear()
+        first = runtime.rerun_prior_slice(prior["run_id"], 1, 2)
+        second = runtime.rerun_prior_slice(prior["run_id"], 1, 2)
+        self.assertEqual(seen, ["private-argument-canary"] * 2)
+        self.assertEqual(first["steps"], second["steps"])
+        self.assertEqual(len({prior["run_id"], first["run_id"], second["run_id"]}), 3)
+        reopened = Store(self.url)
+        try:
+            for result in (first, second):
+                self.assertEqual(result["state"], "DIAGNOSTIC_ONLY")
+                self.assertEqual(result["stop_reason"], "DIAGNOSTIC_ONLY")
+                self.assertIsNone(result["collection_result"])
+                trace = read_agent_trace(reopened, result["run_id"])
+                self.assertEqual(trace["run_limits"], {
+                    "step_limit": 1, "max_duration_ms": 900, "max_pages": 2,
+                    "success_artifact": "DIAGNOSTIC_ONLY"})
+                terminal = trace["terminal"]
+                self.assertEqual(terminal["state"], "OUTPUT_UNVERIFIED")
+                self.assertEqual(terminal["stop_reason"], "DIAGNOSTIC_ONLY")
+                self.assertEqual(terminal["prior_run_id"], prior["run_id"])
+                self.assertEqual((terminal["slice_start"], terminal["slice_stop"]), (1, 2))
+                self.assertNotIn("COMPLETED", json.dumps(trace))
+                self.assertNotIn("SUCCESS_ARTIFACT_VERIFIED", json.dumps(trace))
+            with reopened.engine.connect() as connection:
+                payloads = [row["payload"] for row in connection.execute(m.audit.select()).mappings()]
+            self.assertNotIn("canary", json.dumps(payloads))
+        finally:
+            reopened.engine.dispose()
+
+    def test_prior_slice_rejects_bad_bounds_and_limits_before_any_dispatch(self):
+        runtime, seen = self.slice_runtime()
+        prior = runtime.run(self.slice_calls(*[str(i) for i in range(6)]))
+        before = self.store.count("audit_events")
+        seen.clear()
+        for start, stop in ((0, 0), (2, 1), (-1, 2), (0, 7), (0, 6),
+                            (True, 2), (0, False), (0.0, 1), (0, "2"), (None, 2)):
+            with self.subTest(start=start, stop=stop), self.assertRaises(ValueError):
+                runtime.rerun_prior_slice(prior["run_id"], start, stop)
+        self.assertEqual(seen, [])
+        self.assertEqual(self.store.count("audit_events"), before)
+        result = runtime.rerun_prior_slice(prior["run_id"], 1, 6)
+        self.assertEqual(seen, ["1", "2", "3", "4", "5"])
+        self.assertEqual(len(result["steps"]), 5)
+
+    def test_prior_slice_rejects_foreign_stale_and_malformed_bindings(self):
+        from services.agents import runtime as runtime_module
+        runtime, seen = self.slice_runtime()
+        with patch.object(runtime_module, "MAX_PRIOR_RUN_BINDINGS", 2):
+            prior = runtime.run(self.slice_calls("first"))
+            foreign = AgentRuntime(self.store, runtime.registry,
+                                   profile_id="fixture", task="resume_tailor")
+            with self.assertRaises(ValueError):
+                foreign.rerun_prior_slice(prior["run_id"], 0, 1)
+            for attribute, value in (("profile_id", "other"), ("task", "job_match")):
+                with patch.object(runtime, attribute, value), self.assertRaises(ValueError):
+                    runtime.rerun_prior_slice(prior["run_id"], 0, 1)
+            runtime.run(self.slice_calls("second"))
+            current = runtime.run(self.slice_calls("third"))
+            before = self.store.count("audit_events")
+            seen.clear()
+            for run_id in (None, [], {}, True, "private-id-canary", "0" * 32, prior["run_id"]):
+                with self.subTest(run_id=run_id), self.assertRaises(ValueError):
+                    runtime.rerun_prior_slice(run_id, 0, 1)
+            self.assertEqual(seen, [])
+            self.assertEqual(self.store.count("audit_events"), before)
+            self.assertEqual(runtime.rerun_prior_slice(current["run_id"], 0, 1)["state"],
+                             "DIAGNOSTIC_ONLY")
+
+    def test_prior_slice_prevalidates_entire_slice_and_never_replays_proposals(self):
+        runtime, seen = self.slice_runtime()
+        calls = self.slice_calls("read-canary", "proposal-canary")
+        calls[1]["name"] = "propose_value"
+        prior = runtime.run(calls)
+        seen.clear()
+        before = self.store.count("audit_events")
+        with self.assertRaises(ValueError):
+            runtime.rerun_prior_slice(prior["run_id"], 0, 2)
+        self.assertEqual(seen, [])
+        self.assertEqual(self.store.count("audit_events"), before)
+        side_effect_runtime = self.runtime("job_match")
+        pending = side_effect_runtime.run([{
+            "name": "set_job_disposition", "arguments": {
+                "job_id": "job-one", "disposition": "SAVED"}}])
+        before = self.store.count("audit_events")
+        with self.assertRaises(ValueError):
+            side_effect_runtime.rerun_prior_slice(pending["run_id"], 0, 1)
+        self.assertEqual(self.store.count("audit_events"), before)
+        self.assertEqual(read_job_tracking(self.store, "fixture", "job-one")["disposition"], "ACTIVE")
+
+    def test_prior_slice_inherits_time_budget_and_stops_before_next_handler(self):
+        from services.agents import runtime as runtime_module
+        clock = [10.0]
+        slow = [False]
+
+        def handler(args, context):
+            context.check_budget()
+            if slow[0]:
+                clock[0] += 0.6
+            return {"value": args.value}
+
+        runtime, seen = self.slice_runtime(handler)
+        with patch.object(runtime_module.time, "monotonic", lambda: clock[0]):
+            prior = runtime.run(self.slice_calls("first", "second"), max_duration_ms=500)
+            seen.clear()
+            slow[0] = True
+            result = runtime.rerun_prior_slice(prior["run_id"], 0, 2)
+        self.assertEqual(seen, ["first"])
+        self.assertEqual(result["state"], "DIAGNOSTIC_ONLY")
+        terminal = read_agent_trace(self.store, result["run_id"])["terminal"]
+        self.assertEqual(terminal["diagnostic_outcome"], "TIME_BUDGET_EXHAUSTED")
+        self.assertEqual(terminal["budget_consumed_ms"], 600)
+
+    def test_prior_slice_rejects_invalid_call_and_stale_tool_without_dispatch(self):
+        from dataclasses import replace
+        runtime, seen = self.slice_runtime()
+        calls = self.slice_calls("valid", "invalid")
+        calls[1]["arguments"]["value"] = []
+        invalid = runtime.run(calls)
+        valid = runtime.run(self.slice_calls("valid"))
+        seen.clear()
+        before = self.store.count("audit_events")
+        with self.assertRaises(ValueError):
+            runtime.rerun_prior_slice(invalid["run_id"], 0, 2)
+        original = runtime.registry.get("read_value")
+        replacement = replace(original, handler=lambda args, context: seen.append("unexpected"))
+        with patch.dict(runtime.registry._tools, {"read_value": replacement}):
+            with self.assertRaises(ValueError):
+                runtime.rerun_prior_slice(valid["run_id"], 0, 1)
+        self.assertEqual(seen, [])
+        self.assertEqual(self.store.count("audit_events"), before)
+
+    def test_prior_slice_inherits_page_budget_and_keeps_budget_failure_diagnostic(self):
+        pages_per_call = [1]
+        fetched = []
+
+        def handler(args, context):
+            for _ in range(pages_per_call[0]):
+                context.consume_page()
+                fetched.append(args.value)
+            return {"value": args.value}
+
+        runtime, seen = self.slice_runtime(handler)
+        prior = runtime.run(self.slice_calls("first", "second"), max_pages=2)
+        fetched.clear()
+        seen.clear()
+        pages_per_call[0] = 3
+        result = runtime.rerun_prior_slice(prior["run_id"], 0, 2)
+        self.assertEqual(seen, ["first"])
+        self.assertEqual(fetched, ["first", "first"])
+        self.assertEqual(result["state"], "DIAGNOSTIC_ONLY")
+        terminal = read_agent_trace(self.store, result["run_id"])["terminal"]
+        self.assertEqual(terminal["diagnostic_outcome"], "PAGE_BUDGET_EXHAUSTED")
+        self.assertEqual(terminal["pages_consumed"], 2)
+        self.assertEqual(terminal["stop_reason"], "DIAGNOSTIC_ONLY")
+
+    def test_prior_slice_cannot_replay_unexecuted_calls_or_promote_verified_collection(self):
+        from services.agents.acceptance import CollectionContract
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            items: list[dict]
+        registry = ToolRegistry()
+        registry.register(AgentTool("read_items", "Read synthetic items", ToolClass.READ,
+                                    Request, Response, lambda args, context: {
+                                        "items": [{"id": args.value}]}))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="resume_tailor")
+        call = {"name": "read_items", "arguments": {"value": "private-output-canary"}}
+        prior = runtime.run([call], collection_contract=CollectionContract(
+            items_key="items", expected_count=1))
+        self.assertEqual(prior["stop_reason"], "SUCCESS_ARTIFACT_VERIFIED")
+        for _ in range(2):
+            result = runtime.rerun_prior_slice(prior["run_id"], 0, 1)
+            self.assertEqual(result["state"], "DIAGNOSTIC_ONLY")
+            trace = read_agent_trace(self.store, result["run_id"])
+            self.assertIsNone(trace["terminal"]["collection_result"])
+            self.assertNotIn("SUCCESS_ARTIFACT_VERIFIED", json.dumps(trace))
+            self.assertNotIn("private-output-canary", json.dumps(trace))
+        truncated = runtime.run([call] * 21)
+        with self.assertRaises(ValueError):
+            runtime.rerun_prior_slice(truncated["run_id"], 19, 21)
+
 
 if __name__ == "__main__":
     unittest.main()
