@@ -277,7 +277,10 @@ foreach($s in $c.CounterSamples){
 }
 $rows | ConvertTo-Json -Compress
 """
-    result = _run(["powershell.exe", "-NoProfile", "-Command", script], timeout=6)
+    try:
+        result = _run(["powershell.exe", "-NoProfile", "-Command", script], timeout=6)
+    except (OSError, subprocess.TimeoutExpired):
+        return {"available": False, "error": "GPU telemetry temporarily unavailable"}
     if result.returncode or not result.stdout.strip():
         return {"available": False}
     try:
