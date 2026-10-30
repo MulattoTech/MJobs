@@ -82,6 +82,22 @@ class DurableUploadedComparisonTests(unittest.TestCase):
         finally:
             reopened.engine.dispose()
 
+    def test_direct_creator_rejects_registry_drift_before_input_construction(self):
+        from packages.domain import operation_types
+        from services.documents import durable_comparison
+
+        registered = operation_types.OPERATION_TYPES - {durable_comparison.KIND}
+        with patch.object(operation_types, 'OPERATION_TYPES', registered), \
+                patch.object(durable_comparison, 'inputs',
+                             side_effect=AssertionError(
+                                 'comparison inputs were read before operation-type validation')):
+            with self.assertRaisesRegex(ValueError, '^OPERATION_TYPE_INVALID$'):
+                durable_comparison.queue_comparison(
+                    self.store, self.root, 'fixture', 'unused-application',
+                    'unused-base-revision', 'unused-tailored-document',
+                    'registry-drift-request-0001')
+        self.assertEqual(self.store.count('worker_operations'), 0)
+
     def test_admission_replay_with_unknown_driver_rowcount(self):
         """Unknown INSERT counts must not change real intent/replay identity."""
         app, target = self.target(); upload = self.upload()

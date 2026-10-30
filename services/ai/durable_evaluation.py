@@ -6,6 +6,7 @@ import time
 
 from sqlalchemy import insert, select, update
 
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.ai.consumer import AIJobInput, AIJobEvaluation, _prompt, validate_job_evidence
@@ -34,6 +35,7 @@ def status(row):
 
 
 def queue_evaluation(store, profile_id, request_id, search_profile_id=None, preview_fingerprint=None):
+    validate_operation_type(KIND)
     if not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,128}', request_id):
         raise DurableEvaluationError('AI_EVALUATION_REQUEST_INVALID')
     policy = AICostPolicy(**(store.ai_cost_policy(profile_id) or {}))
