@@ -154,7 +154,7 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
     if not isinstance(attempt_id, str) or not _ATTEMPT_RE.fullmatch(attempt_id):
         return None
     root = Path(capture_root)
-    published_metadata = None
+    target = None
     try:
         started = time.monotonic()
         budget = SCREENSHOT_TIMEOUT_MS / 1000
@@ -276,15 +276,16 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
         if not target.is_dir():
             return None
         _atomic_json(target / "metadata.json", metadata)
-        published_metadata = target / "metadata.json"
         checkpoint()
         return target
     except Exception:
         # Diagnostics are best-effort. They must never replace the browser error
-        # or interrupt the application state transition that follows it.
-        if published_metadata is not None:
+        # or interrupt the application state transition that follows it. Remove
+        # any unpublished package so failed atomic writes leave no diagnostics.
+        if target is not None:
             try:
-                published_metadata.unlink(missing_ok=True)
+                if target.is_dir() and not target.is_symlink():
+                    shutil.rmtree(target)
             except OSError:
                 pass
         return None

@@ -4,7 +4,9 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest import mock
 
+from services.applications import debug_capture as debug_capture_module
 from services.applications.debug_capture import (
     append_diagnostic_event,
     append_console_error,
@@ -15,6 +17,34 @@ from services.applications.debug_capture import (
 
 
 class BrowserDebugCaptureTests(unittest.TestCase):
+    def test_failed_metadata_publication_removes_incomplete_capture(self):
+        attempt_id = "f" * 32
+        original_atomic_json = debug_capture_module._atomic_json
+
+        def fail_metadata_publication(path, value):
+            if path.name == "metadata.json":
+                raise OSError("synthetic metadata publication failure")
+            return original_atomic_json(path, value)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "debug-captures"
+            with mock.patch.object(
+                debug_capture_module,
+                "_atomic_json",
+                side_effect=fail_metadata_publication,
+            ):
+                capture = capture_browser_failure(
+                    None,
+                    root,
+                    attempt_id=attempt_id,
+                    step="DETECT_FORM",
+                    configured_url="https://example.test/apply/private-id?token=secret",
+                    error=RuntimeError("PRIVATE_EXCEPTION_MESSAGE"),
+                )
+
+            self.assertIsNone(capture)
+            self.assertFalse((root / attempt_id).exists())
+
     def test_fixed_application_trace_phases_are_allowed_in_failure_metadata(self):
         phases = ("FILL_LOCATION", "ANSWER_STANDARD", "ANSWER_CUSTOM")
         with tempfile.TemporaryDirectory() as directory:
