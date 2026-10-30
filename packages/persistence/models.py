@@ -237,6 +237,12 @@ company_sources = table(
     Column("identity_authorization", JSON),
     constraints=(UniqueConstraint("company_id", "provider", "tenant", "career_url"),),
 )
+Index(
+    "ix_company_job_sources_enabled_id",
+    company_sources.c.id,
+    sqlite_where=company_sources.c.enabled.is_(True),
+    postgresql_where=company_sources.c.enabled.is_(True),
+)
 company_contexts = table(
     "company_contexts",
     Column("company_id", ForeignKey("companies.id"), nullable=False),
@@ -274,6 +280,7 @@ jobs = table("canonical_jobs", Column("company_id", ForeignKey("companies.id"), 
              Column("description", String(50000), nullable=False), Column("skills", JSON, nullable=False),
              Column("location", String(1000), nullable=False), Column("remote_type", String(32), nullable=False),
              Column("attributes", JSON, nullable=False, server_default="{}"))
+Index("ix_canonical_jobs_company_id_id", jobs.c.company_id, jobs.c.id)
 routes = table("application_routes", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                Column("company_id", ForeignKey("companies.id"), nullable=False), Column("provider", String(32), nullable=False),
                Column("tenant", String(128), nullable=False), Column("requisition", String(128), nullable=False),
@@ -553,6 +560,8 @@ matches = table("job_matches", Column("job_id", ForeignKey("canonical_jobs.id"),
                 Column("score", Float, nullable=False), Column("missing", JSON, nullable=False), Column("components", JSON, nullable=False),
                 constraints=(CheckConstraint("score >= 0 AND score <= 100",
                                              name="ck_job_matches_score_range"),))
+Index("ix_job_matches_job_profile_version", matches.c.job_id, matches.c.profile_id,
+      matches.c.profile_version)
 applications = table("applications", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                      Column("route_id", ForeignKey("application_routes.id"), nullable=False),
                      Column("profile_id", ForeignKey("career_profiles.id"), nullable=False), Column("profile_version", String(64), nullable=False),
@@ -563,6 +572,8 @@ applications = table("applications", Column("job_id", ForeignKey("canonical_jobs
                      constraints=(UniqueConstraint("job_id", "profile_id"),
                                   CheckConstraint(APPLICATION_STATE_CHECK,
                                                   name="ck_applications_state_valid")))
+Index("ix_applications_profile_created_id", applications.c.profile_id,
+      applications.c.created_at.desc(), applications.c.id.desc())
 application_route_choices = table("application_route_choices",
                                   Column("application_id", ForeignKey("applications.id"), nullable=False),
                                   Column("route_id", ForeignKey("application_routes.id"), nullable=False),
