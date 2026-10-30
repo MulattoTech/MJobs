@@ -98,6 +98,27 @@ _SHELL_PATH_CONTROL = frozenset({
     'case', 'esac', 'select', 'function', '{', '}', '(', ')',
     'set', 'trap', 'source', '.', 'eval',
 })
+_SHELL_ASSIGNMENT = re.compile(r'[A-Za-z_][A-Za-z0-9_]*=.*\Z')
+_SHELL_DISPATCH_PREFIXES = frozenset({'command', 'builtin'})
+
+
+def _effective_shell_command(tokens: tuple[str, ...]) -> str | None:
+    index = 0
+    while index < len(tokens) and _SHELL_ASSIGNMENT.fullmatch(tokens[index]):
+        index += 1
+    if index == len(tokens):
+        return None
+    while tokens[index] in _SHELL_DISPATCH_PREFIXES:
+        index += 1
+        if index == len(tokens):
+            return ''
+        if tokens[index].startswith('-'):
+            return ''
+        while index < len(tokens) and _SHELL_ASSIGNMENT.fullmatch(tokens[index]):
+            index += 1
+        if index == len(tokens):
+            return ''
+    return tokens[index]
 
 
 def _straight_line_run_commands(script: str) -> tuple[str, ...]:
@@ -110,7 +131,8 @@ def _straight_line_run_commands(script: str) -> tuple[str, ...]:
             tokens = shlex.split(command, posix=True)
         except ValueError:
             break
-        if (not tokens or tokens[0] in _SHELL_PATH_CONTROL
+        effective = _effective_shell_command(tuple(tokens))
+        if (not tokens or effective in _SHELL_PATH_CONTROL or effective == ''
                 or any(operator in command for operator in '|;&')
                 or command.rstrip().endswith('\\')):
             break
@@ -229,7 +251,8 @@ def _package_script_commands(script: object) -> tuple[str, ...]:
     current = []
     for token in tokens:
         if token == '&&':
-            if not current or current[0] in _SHELL_PATH_CONTROL:
+            effective = _effective_shell_command(tuple(current))
+            if not current or effective in _SHELL_PATH_CONTROL or effective == '':
                 return ()
             commands.append(' '.join(current))
             current = []
@@ -237,7 +260,8 @@ def _package_script_commands(script: object) -> tuple[str, ...]:
             return ()
         else:
             current.append(token)
-    if not current or current[0] in _SHELL_PATH_CONTROL:
+    effective = _effective_shell_command(tuple(current))
+    if not current or effective in _SHELL_PATH_CONTROL or effective == '':
         return ()
     commands.append(' '.join(current))
     return tuple(commands)

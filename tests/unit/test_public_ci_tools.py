@@ -199,6 +199,12 @@ class PublicCITests(unittest.TestCase):
             'early_exit': ('      - run: |\n'
                            '          exit 0\n'
                            f'          {marker}\n'),
+            'assignment_early_exit': ('      - run: |\n'
+                                      '          CI=1 exit 0\n'
+                                      f'          {marker}\n'),
+            'command_early_exit': ('      - run: |\n'
+                                   '          command exit 0\n'
+                                   f'          {marker}\n'),
         }
         for kind, replacement in decoys.items():
             with self.subTest(kind=kind):
