@@ -178,8 +178,9 @@ class ProfileAICredentialTests(unittest.TestCase):
 
         with patch('workers.tasks.evaluate_for_operation', side_effect=rotate_after_staging):
             result = execute_operation(operation)
-        self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_PROVIDER_CREDENTIAL_CHANGED')
+        contract.assert_value_free_ai_operation_error(
+            self, self.store, self.client, operation, result,
+            'AI_PROVIDER_CREDENTIAL_CHANGED')
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
     def test_pending_worker_restart_keeps_binding_and_calls_once(self):

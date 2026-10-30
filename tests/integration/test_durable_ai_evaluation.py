@@ -1,5 +1,6 @@
 """Durable advisory scoring must survive API loss without duplicate provider calls."""
 import copy
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -17,6 +18,33 @@ from services.discovery.matching import recalculate
 from tests.integration.test_spine import PROFILE
 from workers.operations import claim, recover_expired
 from workers.tasks import execute_operation
+
+
+def assert_value_free_ai_operation_error(case, store, client, operation_id, result, detailed_code):
+    case.assertEqual(result['status'], 'BLOCKED')
+    case.assertEqual(result['error_category'], 'AI_ERROR')
+    with store.engine.connect() as connection:
+        operation = dict(connection.execute(select(m.operations).where(
+            m.operations.c.id == operation_id)).mappings().one())
+        audit = list(connection.execute(select(m.audit.c.payload).where(
+            m.audit.c.entity_id == operation_id,
+            m.audit.c.action == 'OPERATION_ATTEMPT_FINISHED')).scalars())
+    case.assertEqual(operation['error'], 'AI_ERROR')
+    case.assertEqual(audit, [{'state': 'BLOCKED', 'error': 'AI_ERROR', 'attempt_count': 1}])
+    public = client.get('/operations/' + operation_id)
+    case.assertEqual(public.status_code, 200, public.text)
+    case.assertEqual(public.json()['error'], 'AI_ERROR')
+    evaluation = client.get('/profiles/fixture/ai-cost-plan/operations/' + operation_id)
+    case.assertEqual(evaluation.status_code, 200, evaluation.text)
+    case.assertEqual(evaluation.json()['error'], 'AI_ERROR')
+    observable = json.dumps({
+        'result': result,
+        'operation': operation,
+        'audit': audit,
+        'public': public.json(),
+        'evaluation': evaluation.json(),
+    })
+    case.assertNotIn(detailed_code, observable)
 
 
 class DurableAIEvaluationTests(unittest.TestCase):
@@ -106,8 +134,27 @@ class DurableAIEvaluationTests(unittest.TestCase):
             return result
         with patch('workers.tasks.evaluate_for_operation', side_effect=changed_result):
             result = self.run_worker(operation)
-        self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        assert_value_free_ai_operation_error(
+            self, self.store, self.client, operation, result, 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+
+    def test_profile_change_after_staging_is_value_free_at_final_commit(self):
+        from services.ai.durable_evaluation import evaluate_for_operation
+        operation = self.queue().json()['operation_id']
+
+        def changed_result(*args, **kwargs):
+            result = evaluate_for_operation(*args, **kwargs)
+            updated = copy.deepcopy(PROFILE)
+            updated['name'] = 'Changed after valid staging'
+            self.store.save_profile(updated)
+            return result
+
+        with patch('workers.tasks.evaluate_for_operation', side_effect=changed_result):
+            worker_result = self.run_worker(operation)
+        assert_value_free_ai_operation_error(
+            self, self.store, self.client, operation, worker_result,
+            'AI_EVALUATION_PROFILE_CHANGED')
         self.assertEqual(len(self.calls), 1)
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -434,9 +481,11 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 store.save_profile(updated)
                 return super().generate_structured(**kwargs)
         self.router = EditingRouter
-        result = self.run_worker(response.json()['operation_id'])
-        self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_PROFILE_CHANGED')
+        operation = response.json()['operation_id']
+        result = self.run_worker(operation)
+        assert_value_free_ai_operation_error(
+            self, self.store, self.client, operation, result,
+            'AI_EVALUATION_PROFILE_CHANGED')
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
     def test_expired_before_provider_call_resumes_safely(self):
