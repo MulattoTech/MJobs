@@ -2,6 +2,7 @@
 import re
 from sqlalchemy import insert, select, update
 from sqlalchemy.exc import NoResultFound
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.documents.comparison import ComparisonUnavailable, read_generated_snapshot, tailored_context
@@ -63,6 +64,7 @@ def status(operation):
 
 def queue_comparison(store, output_dir, profile_id, application_id, base_revision_id,
                      tailored_document_id, request_id):
+    validate_operation_type(KIND)
     if not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,128}', request_id):
         raise DurableComparisonError('COMPARISON_REQUEST_INVALID')
     params = {**inputs(store, output_dir, profile_id, application_id, base_revision_id,
