@@ -351,6 +351,8 @@ class RemoteOKTests(unittest.TestCase):
     def test_cancellation_during_stream_preserves_error_and_source_health(self):
         source_id = configure_source(self.store, "default", provider="remoteok")
         cancelled = threading.Event()
+        worker_ready = threading.Event()
+        release_worker = threading.Event()
         stream_started = threading.Event()
         release_stream = threading.Event()
         cancellation = OperationCancelled("synthetic stream cancel")
@@ -372,6 +374,10 @@ class RemoteOKTests(unittest.TestCase):
         transport = httpx.MockTransport(lambda _: httpx.Response(200, stream=StalledStream()))
 
         def collect():
+            worker_ready.set()
+            if not release_worker.wait(timeout=3):
+                errors.append(TimeoutError("collector worker release timed out"))
+                return
             try:
                 collect_source(self.store, source_id, "fixture", check=check, transport=transport)
             except Exception as exc:
@@ -379,7 +385,18 @@ class RemoteOKTests(unittest.TestCase):
 
         thread = threading.Thread(target=collect)
         thread.start()
-        self.assertTrue(stream_started.wait(timeout=1))
+
+        def cleanup_worker():
+            cancelled.set()
+            release_worker.set()
+            release_stream.set()
+            thread.join(timeout=3)
+            self.assertFalse(thread.is_alive(), "collector worker did not stop during fixture cleanup")
+
+        self.addCleanup(cleanup_worker)
+        self.assertTrue(worker_ready.wait(timeout=3), "collector worker did not start")
+        release_worker.set()
+        self.assertTrue(stream_started.wait(timeout=3), "collector did not enter the response stream")
         cancelled.set()
         thread.join(timeout=0.5)
         self.assertFalse(thread.is_alive())

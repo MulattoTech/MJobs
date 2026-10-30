@@ -41,7 +41,8 @@ def main() -> int:
                                  '--redact', '--no-banner', '--report-format', 'json',
                                  '--report-path', str(output / 'secret-scan-redacted.json'),
                                  '--gitleaks-ignore-path', str(ROOT / '.gitleaksignore')],
-                                cwd=ROOT, timeout=600)
+                                cwd=ROOT, timeout=600,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print('Scanner result:', 'PASS' if result.returncode == 0 else 'FAIL - investigate redacted findings')
         return result.returncode
 

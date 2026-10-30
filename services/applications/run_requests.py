@@ -10,6 +10,7 @@ import re
 from sqlalchemy import select
 from sqlalchemy.orm.exc import NoResultFound
 
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.applications.attempt_history import (
@@ -72,8 +73,10 @@ def _view(operation, *, replayed):
             "external_submission_enabled": False}
 
 
-def queue_mock_run(store, profile_id, application_id, *, submit=False, request_id):
+def queue_mock_run(store, profile_id, application_id, *, submit=False, request_id,
+                   resume_binding=None):
     """Admit a new reviewed intent, or return the same immutable durable request."""
+    validate_operation_type("APPLY_MOCK")
     operation_id = _identifier(profile_id, application_id, request_id)
     if type(submit) is not bool:
         raise AttemptConflict("APPLICATION_RUN_MODE_INVALID")
@@ -89,7 +92,8 @@ def queue_mock_run(store, profile_id, application_id, *, submit=False, request_i
         if previous is not None:
             if (previous["kind"] != "APPLY_MOCK" or previous["entity_id"] != application_id
                     or previous["params"].get("input_fingerprint") != fingerprint
-                    or previous["params"].get("input_snapshot") != snapshot):
+                    or previous["params"].get("input_snapshot") != snapshot
+                    or previous["params"].get("resume_binding") != resume_binding):
                 raise AttemptConflict("APPLICATION_RUN_REQUEST_REUSED")
             return _view(previous, replayed=True)
         if application["state"] in {"SUBMITTING", "SUBMISSION_UNCONFIRMED"}:
@@ -110,7 +114,9 @@ def queue_mock_run(store, profile_id, application_id, *, submit=False, request_i
         timestamp = now()
         row = {"id": operation_id, "kind": "APPLY_MOCK", "entity_id": application_id,
                "params": {"submit": submit, "run_contract_version": 1,
-                          "input_fingerprint": fingerprint, "input_snapshot": snapshot},
+                          "input_fingerprint": fingerprint, "input_snapshot": snapshot,
+                          **({"resume_binding": resume_binding, "request_id": request_id}
+                             if resume_binding is not None else {})},
                "state": "QUEUED", "error": None, "updated_at": timestamp}
         connection.execute(m.operations.insert().values(**row))
         store._audit(connection, application_id, "APPLICATION_RUN_REQUESTED_V1", {
