@@ -68,7 +68,7 @@ const selection = {
     format: 'pdf',
     size_bytes: 2048,
   }],
-  selected_revision_ids: [],
+  selected_revision_ids: [] as string[],
   unavailable_revision_ids: [],
 };
 
