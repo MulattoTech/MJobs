@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from hmac import compare_digest
 import os
+import threading
 import time
 from uuid import uuid4
 
@@ -54,6 +55,30 @@ MAX_ATTEMPTS = 3
 INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT", "UPLOADED_RESUME_COMPARE", "MANUAL_AUTH")
 
 
+class _LocalCancellation:
+    """Pause local polling while a cancellation transaction resolves."""
+
+    def __init__(self):
+        self.staged = threading.Event()
+        self.resolved = threading.Event()
+        self.committed = False
+
+    def stage(self):
+        self.staged.set()
+
+    def resolve(self, committed):
+        self.committed = committed
+        self.resolved.set()
+
+    def wait_for_commit(self, timeout=1):
+        return (self.staged.is_set() and self.resolved.wait(timeout)
+                and self.committed)
+
+
+_LOCAL_CANCELLATIONS: dict[str, _LocalCancellation] = {}
+_LOCAL_CANCELLATIONS_LOCK = threading.Lock()
+
+
 class OperationCancelled(Exception):
     """Cooperative stop before an irreversible submission reservation."""
 
@@ -72,6 +97,28 @@ class OperationActionError(ValueError):
     def __init__(self, code):
         self.code = code
         super().__init__(code)
+
+
+def register_operation_cancellation(operation_id):
+    """Expose one process-local wakeup while durable state remains authoritative."""
+    cancellation = _LocalCancellation()
+    with _LOCAL_CANCELLATIONS_LOCK:
+        _LOCAL_CANCELLATIONS[operation_id] = cancellation
+    return cancellation
+
+
+def unregister_operation_cancellation(operation_id, cancellation):
+    with _LOCAL_CANCELLATIONS_LOCK:
+        if _LOCAL_CANCELLATIONS.get(operation_id) is cancellation:
+            del _LOCAL_CANCELLATIONS[operation_id]
+
+
+def _stage_operation_cancellation(operation_id):
+    with _LOCAL_CANCELLATIONS_LOCK:
+        cancellation = _LOCAL_CANCELLATIONS.get(operation_id)
+    if cancellation is not None:
+        cancellation.stage()
+    return cancellation
 
 
 def timeout():
@@ -393,8 +440,15 @@ def inline_cancel_requested(store, operation_id):
     return row is None or row.cancel_requested or row.state != "RUNNING"
 
 
-def check_cancelled(store, operation_id, attempt_count=None):
+def check_cancelled(store, operation_id, attempt_count=None, local_cancellation=None):
     """Stop a worker whose durable authority ended, even before recovery runs."""
+    if (local_cancellation is not None
+            and threading.current_thread().name == "mjobs-request-deadline"
+            and local_cancellation.wait_for_commit()):
+        # The staged token pauses this watcher's SQLite polling, but only a
+        # committed transaction authorizes request-owned I/O interruption.
+        # Execution threads always read the durable row below.
+        raise OperationCancelled("Operation no longer authorized to continue")
     with store.engine.connect() as connection:
         row = connection.execute(select(
             m.operations.c.cancel_requested, m.operations.c.state,
@@ -456,33 +510,46 @@ def dry_run_saved(connection, operation):
 
 
 def request_cancel(store, operation_id):
-    with store.engine.begin() as connection:
-        if connection.dialect.name == "sqlite":
-            connection.exec_driver_sql("BEGIN IMMEDIATE")
-        row = dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one())
-        if row['state'] in {'QUEUED', 'RUNNING'} and company_refresh_saved(connection, row):
-            return {**row, 'reason': 'REFRESH_ALREADY_SAVED'}
-        if row['kind'] == 'APPLICATION_DRY_RUN' and row['state'] in {'QUEUED', 'RUNNING'}:
-            if dry_run_saved(connection, row):
-                return {**row, 'reason': 'VERIFICATION_ALREADY_SAVED'}
-        if row["kind"] == "APPLY_MOCK":
-            application = connection.execute(select(m.applications).where(m.applications.c.id == row["entity_id"]).with_for_update()).mappings().one()
-            if application["state"] in ("SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED"):
-                return {**row, "reason": "RECONCILIATION_REQUIRED"}
-        if row["state"] not in ("QUEUED", "RUNNING"):
-            return {**row, "reason": "TERMINAL_OPERATION"}
-        timestamp = now()
-        queued_cancel = row["state"] == "QUEUED"
-        values = {"cancel_requested": True,
-                  "state": "CANCELLED" if queued_cancel else row["state"],
-                  "updated_at": timestamp}
-        if queued_cancel:
-            values.update(completed_at=timestamp, current_step="FINALIZING",
-                          next_attempt_at=None,
-                          recovery_metadata={"action": "NONE"})
-        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
-        store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
-        return {**row, **values}
+    local_cancellation = None
+    try:
+        with store.engine.begin() as connection:
+            if connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            row = dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one())
+            if row['state'] in {'QUEUED', 'RUNNING'} and company_refresh_saved(connection, row):
+                return {**row, 'reason': 'REFRESH_ALREADY_SAVED'}
+            if row['kind'] == 'APPLICATION_DRY_RUN' and row['state'] in {'QUEUED', 'RUNNING'}:
+                if dry_run_saved(connection, row):
+                    return {**row, 'reason': 'VERIFICATION_ALREADY_SAVED'}
+            if row["kind"] == "APPLY_MOCK":
+                application = connection.execute(select(m.applications).where(m.applications.c.id == row["entity_id"]).with_for_update()).mappings().one()
+                if application["state"] in ("SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED"):
+                    return {**row, "reason": "RECONCILIATION_REQUIRED"}
+            if row["state"] not in ("QUEUED", "RUNNING"):
+                return {**row, "reason": "TERMINAL_OPERATION"}
+            timestamp = now()
+            queued_cancel = row["state"] == "QUEUED"
+            values = {"cancel_requested": True,
+                      "state": "CANCELLED" if queued_cancel else row["state"],
+                      "updated_at": timestamp}
+            if queued_cancel:
+                values.update(completed_at=timestamp, current_step="FINALIZING",
+                              next_attempt_at=None,
+                              recovery_metadata={"action": "NONE"})
+            connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
+            if row["kind"] == "AI_EVALUATE_QUEUED" and not queued_cancel:
+                # Stop local SQLite polling while this transaction resolves;
+                # request-owned I/O remains live until commit succeeds.
+                local_cancellation = _stage_operation_cancellation(operation_id)
+            store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
+            result = {**row, **values}
+    except Exception:
+        if local_cancellation is not None:
+            local_cancellation.resolve(False)
+        raise
+    if local_cancellation is not None:
+        local_cancellation.resolve(True)
+    return result
 
 
 def retry_dead_letter(store, operation_id):

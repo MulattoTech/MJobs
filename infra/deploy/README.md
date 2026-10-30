@@ -101,6 +101,14 @@ sources, and built into a SHA-tagged Docker image. **Changed migration
 sources block unattended rollout.** A guarded operator-approved migration
 is necessary; no automatic database downgrade is attempted.
 
+An interrupted release directory can be reused only after verifying its exact
+GitHub origin and commit, independent Git metadata, unchanged tracked files,
+and plain filesystem paths. Only the protected `.env` and `compose.micro.yml`
+overlays may be extra files, including ignored files. Unknown or modified
+candidates are retained and blocked for reconciliation. All paginated GitHub
+check runs are verified against the exact commit; a newer queued run blocks an
+older successful run with the same required check name.
+
 For an eligible unchanged-schema build, the updater quiesces only the
 `mjobs-micro` application writers, uses MJobs' own local backup utility to
 save/verify PostgreSQL and document data, starts the new image with the
@@ -118,10 +126,10 @@ schtasks.exe /Query /TN "MJobs Micro - Verified Main Update" /V /FO LIST
 ```
 
 If a new `main` revision has not passed all checks, **the current MJobs
-version is kept running**. In particular, the Windows preview is currently
-pinned to the tested deployment branch until this deployment implementation
-passes protected PR checks and enters `main`. Do not treat a successful
-pull request or static README page as full production acceptance.
+version is kept running**. Read `/__deployment` for the exact running revision
+and the private `MJobsMicro/state.json` for its verified release directory.
+Do not treat a successful pull request or static README page as full production
+acceptance.
 
 ## Rollback and limitations
 
@@ -136,7 +144,8 @@ The old Ubuntu MJobs deployment is retained only as an extra recovery
 reference. It must not be restarted in parallel with the Windows PERSONAL
 stack or reattached to the public DNS hostname.
 
-**Not yet verified:** a real authenticated Cloudflare browser session,
-remote personal-document workflows, and a complete post-merge update and
-automated rollback drill. The MJobs product itself remains a developer
-preview with unsatisfied acceptance criteria.
+Deployment evidence must separately establish authenticated Cloudflare access,
+exact running source, and application readiness. Remote personal-document
+workflows and an automated rollback drill require their own recorded proof.
+The MJobs product remains a developer preview with unsatisfied acceptance
+criteria; publishing a new build does not complete those criteria.

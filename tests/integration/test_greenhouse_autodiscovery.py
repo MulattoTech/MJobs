@@ -229,16 +229,42 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
                 'job_id': original['id'], 'company_id': original['company_id'],
                 'provider': 'greenhouse', 'tenant': 'example', 'requisition': '101',
                 'url': self.jobs[0]['absolute_url']})
+        # The employer feed may revise both its salary and apply URL while the
+        # ATS requisition remains the same canonical job identity.
+        self.jobs[0]['absolute_url'] += '?job=101'
+        self.jobs[0]['pay_input_ranges'] = [{
+            'currency_type': 'USD', 'min_cents': 15000000, 'max_cents': 17000000,
+        }]
+        # A second role at the same company must remain separate even though
+        # its title and description are identical to the first-party listing.
+        self.jobs.append(dict(self.jobs[0], id=102,
+            absolute_url='https://job-boards.greenhouse.io/example/jobs/102',
+            pay_input_ranges=[{'currency_type': 'USD', 'min_cents': 17000000, 'max_cents': 19000000}]))
         record_company_domain(self.store, original['company_id'], 'employer.example',
                               'FIRST_PARTY_JOB_LINK', ['corroborated original employer posting'])
         result = self.discover()
         self.assertEqual(result['status'], 'COMPLETED', result)
         self.assertEqual(self.store.count('companies'), 1)
-        self.assertEqual(self.store.count('canonical_jobs'), 1)
+        self.assertEqual(self.store.count('canonical_jobs'), 2)
         with self.store.engine.connect() as connection:
             postings = list(connection.execute(select(m.postings)).mappings())
-        self.assertEqual(len(postings), 2)
-        self.assertEqual({row['job_id'] for row in postings}, {original['id']})
+            routes = list(connection.execute(select(m.routes)).mappings())
+            jobs = list(connection.execute(select(m.jobs)).mappings())
+            candidates = list(connection.execute(select(m.posting_value_candidates).join(
+                m.postings, m.postings.c.id == m.posting_value_candidates.c.posting_id
+            ).where(m.postings.c.source_job_id == '101')).mappings())
+        self.assertEqual(len(postings), 3)
+        first_party_postings = [row for row in postings if row['source_job_id'] in {'101', '102'}]
+        self.assertEqual(len(first_party_postings), 2)
+        first_party_by_requisition = {row['source_job_id']: row for row in first_party_postings}
+        self.assertEqual(first_party_by_requisition['101']['job_id'], original['id'])
+        distinct_job = next(job for job in jobs if job['id'] != original['id'])
+        self.assertEqual(distinct_job['requisition'], '102')
+        self.assertNotEqual(distinct_job['id'], original['id'])
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]['normalized']['attributes']['salary_min'], 150000)
+        self.assertTrue(any(route['requisition'] == '102' and route['job_id'] == distinct_job['id']
+                            for route in routes))
 
     def test_initial_provider_failure_recovers_through_persisted_collector(self):
         from services.discovery.sources.collect import collect_source

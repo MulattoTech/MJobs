@@ -625,10 +625,10 @@ print(json.dumps(tasks.execute_operation(operation_id)), flush=True)
             discover(self.store, origin, "fixture")
             application = prepare(self.store, self.store.jobs()[0]["id"], "fixture", self.root)
             operation = enqueue_operation(self.store, "APPLY_MOCK", application, {"submit": True})
-            def cancel_in_form(store, identifier, attempt_count=None):
+            def cancel_in_form(store, identifier, attempt_count=None, local_cancellation=None):
                 if store.application(application)["state"] == "FILLING":
                     request_cancel(store, identifier)
-                check_cancelled(store, identifier, attempt_count)
+                check_cancelled(store, identifier, attempt_count, local_cancellation)
             with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url, MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="FIXTURE"), patch("workers.tasks.check_cancelled", side_effect=cancel_in_form):
                 result = execute_operation(operation)
         self.assertEqual(result["status"], "CANCELLED")

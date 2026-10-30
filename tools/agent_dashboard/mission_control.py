@@ -53,6 +53,7 @@ def git(cwd: Path, *args: str, timeout: float = 16.0) -> subprocess.CompletedPro
     return subprocess.run(
         ["git", "-C", str(cwd), *args], capture_output=True, encoding="utf-8",
         errors="replace", text=True, check=False, timeout=timeout,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
 
 

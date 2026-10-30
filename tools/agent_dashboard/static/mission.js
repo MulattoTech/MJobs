@@ -502,8 +502,9 @@
       invalidatePreview(card,"CLI model catalogue changed. Revalidating your selection…");
     }
     const running = Boolean(state.pid) && ["RUNNING","ADOPTED_RUNNING"].includes(state.status);
+    const external=globalThis.MJobsFleetObservation?.provider(item.lane);
     const badge = $(".cli-state",card);
-    badge.textContent = (running ? "RUNNING" : (item.available ? "READY" : "NOT INSTALLED"));
+    badge.textContent = external?.present?(external.working?"AO WORKING":"AO IDLE"):(running?"INDEPENDENT RUNNING":item.available?"INDEPENDENT READY":"NOT AVAILABLE");
     badge.className = "pill cli-state " + (running ? "running" : (item.available ? "completed" : "error"));
     $(".launch-worktree",card).textContent = "Worktree: " + item.worktree;
     $(".launch-run-type",card).textContent = item.lane === "codex"
@@ -515,8 +516,10 @@
         " · " + (state.effective_model || "")
       : (state.status||"Stopped")+" · branch " + item.branch +
         (state.launch_mode?" · last run "+state.launch_mode:"");
+    if(external?.present)$(".launch-runtime",card).textContent=external.total+" AO agents ("+external.working+" working). This independent launcher is "+(state.status||"stopped")+"; use the live Fleet controls above for AO.";
     $(".launch-stop",card).disabled = !running;
     updateLaunchGate(card);
+    if(external?.present){$(".launch-start",card).disabled=true;$(".launch-start",card).title="An AO fleet is already active; use Fleet Control rather than starting another integration owner.";}
     if (!item.available && !$(".status-line",card).textContent)
       labelStatus(card, item.name + " executable unavailable; no software will be installed.", "warn");
   }
@@ -570,7 +573,7 @@
     for (const item of slots) cards.has(item.lane) ? updateCard(item) : mountCard(item);
     $("#legacyRunner").textContent = data.legacy_opencode_available
       ? "Legacy OpenCode/Ollama runner detected (available in advanced agent controls below)."
-      : "OpenCode/Ollama not installed. Claude CLI is the working third session; nothing will be reinstalled.";
+      : "Independent launch slots are separate from the AO fleet. Installation is not proof that a provider is currently running; see live observations above.";
   }
 
   function fmtTime(value) {

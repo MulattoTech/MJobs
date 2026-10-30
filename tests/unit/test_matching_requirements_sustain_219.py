@@ -66,7 +66,7 @@ def test_remote_preference_mismatch_is_a_known_low_fit():
         {"preferences": {"work_arrangements": ["REMOTE"]}},
     )
     result = evaluate_match_components(
-        {"remote_type": "ON_SITE"},
+        {"remote_type": "ONSITE"},
         {"preferences": {"work_arrangements": ["REMOTE"]}},
     )
 

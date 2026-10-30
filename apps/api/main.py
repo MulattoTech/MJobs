@@ -761,6 +761,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     deploy_sha = os.environ.get("MJOBS_DEPLOY_SHA", "").strip().lower()
     if deploy_sha and not re.fullmatch(r"[0-9a-f]{40}", deploy_sha):
         raise ValueError("MJOBS_DEPLOY_SHA_INVALID")
+    notifications_enabled_value = os.environ.get("MJOBS_NOTIFICATIONS_ENABLED", "0")
+    if notifications_enabled_value not in {"0", "1"}:
+        raise ValueError("MJOBS_NOTIFICATIONS_ENABLED_INVALID")
+    notifications_enabled = notifications_enabled_value == "1"
     if operation_mode == "FIXTURE":
         guard = MockClient(mock_origin)
         guard.close()
@@ -981,7 +985,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/settings")
     def settings():
-        return {"mode": "LOCAL_FIRST", "operation_mode": operation_mode, "external_submission_enabled": False, "browser_workers": limit("APPLY_MOCK") if operation_mode == "FIXTURE" else 0, "worker_limits": {kind: limit(kind) for kind in QUEUES}}
+        return {"mode": "LOCAL_FIRST", "operation_mode": operation_mode,
+                "external_submission_enabled": False,
+                "browser_workers": limit("APPLY_MOCK") if operation_mode == "FIXTURE" else 0,
+                "worker_limits": {kind: limit(kind) for kind in QUEUES},
+                "notifications": {"enabled": notifications_enabled, "delivery": "IN_APP"}}
 
     @app.get("/profiles")
     def profiles():

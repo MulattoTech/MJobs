@@ -57,6 +57,27 @@ def canonical_ingestion_job(connection, *, company_id, proposed_id, posting_id, 
         if existing['company_id'] != company_id:
             raise ValueError('SOURCE_VALUE_CANONICAL_IDENTITY_MISMATCH')
         return dict(existing)
+    # A stable ATS tenant/requisition pair is stronger than a particular
+    # application URL. Employer URLs can change (or an aggregator may expose a
+    # different apply URL) while the requisition and canonical job remain the
+    # same. Scope the lookup to the resolved company and require one target so
+    # ambiguous historical routes never cause an automatic merge.
+    if provider and tenant and requisition:
+        native_job_ids = set(connection.execute(select(m.routes.c.job_id).where(
+            m.routes.c.company_id == company_id,
+            m.routes.c.provider == provider,
+            m.routes.c.tenant == tenant,
+            m.routes.c.requisition == requisition,
+        )).scalars())
+        if len(native_job_ids) == 1:
+            native_target = connection.execute(select(m.jobs).where(
+                m.jobs.c.id == next(iter(native_job_ids)),
+                m.jobs.c.company_id == company_id,
+            ).with_for_update()).mappings().one_or_none()
+            if native_target is not None:
+                return dict(native_target)
+        elif len(native_job_ids) > 1:
+            return None
     url = specific_application_url(application_url)
     if not url:
         return None
