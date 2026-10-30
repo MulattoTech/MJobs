@@ -17,13 +17,6 @@ from services.ai.providers.transport import request_guard
 from services.ai.tasks import AITaskRouter
 from tests.integration import test_durable_ai_evaluation as evaluation_tests
 from tests.unit.test_ai_tls_handshake import HTTPS_PROVIDERS, recorded_duplicates
-from workers.operations import (
-    check_cancelled,
-    claim,
-    register_operation_cancellation,
-    request_cancel,
-    unregister_operation_cancellation,
-)
 
 
 class TimedCloseEvent(threading.Event):
@@ -84,40 +77,63 @@ class DurableTLSRecoveryTests(unittest.TestCase):
     new_client = evaluation_tests.DurableAIEvaluationTests.new_client
     run_worker = evaluation_tests.DurableAIEvaluationTests.run_worker
 
-    def test_staged_local_signal_does_not_replace_rolled_back_cancellation(self):
-        admitted = self.client.post(
-            '/profiles/fixture/ai-cost-plan/evaluate/queued',
-            json={'request_id': 'rolled-back-cancellation'},
-        )
-        self.assertEqual(admitted.status_code, 202, admitted.text)
-        operation_id = admitted.json()['operation_id']
-        operation = claim(self.store, operation_id)
-        self.assertIsNotNone(operation)
-        local_cancellation = register_operation_cancellation(operation_id)
-        original_audit = self.store._audit
+    def test_rolled_back_cancellation_does_not_interrupt_inflight_tls(self):
+        provider_type = next(provider for provider in HTTPS_PROVIDERS
+                             if provider.name == 'openai')
+        with stalled_tls_peer() as (origin, started, closed), recorded_duplicates() as duplicates:
+            client = httpx.Client(trust_env=False, timeout=1.5)
+            self.addCleanup(client.close)
+            provider = provider_type(base_url=origin, client_factory=lambda **_kwargs: client)
 
-        def reject_cancellation_audit(connection, entity_id, action, payload):
-            if action == 'CANCELLATION_REQUESTED':
-                raise RuntimeError('synthetic cancellation rollback')
-            return original_audit(connection, entity_id, action, payload)
+            class BoundedProvider:
+                capabilities = provider.capabilities
 
-        try:
-            with mock.patch.object(
-                    self.store, '_audit', side_effect=reject_cancellation_audit):
-                with self.assertRaisesRegex(RuntimeError, 'synthetic cancellation rollback'):
-                    request_cancel(self.store, operation_id)
-            self.assertTrue(local_cancellation.is_set(),
-                            'rollback negative did not exercise the staged wakeup')
-            check_cancelled(
-                self.store, operation_id, operation['attempt_count'], local_cancellation,
+                def generate(self, **kwargs):
+                    kwargs['timeout_seconds'] = 1
+                    return provider.generate(**kwargs)
+
+            self.router = lambda configuration: AITaskRouter(
+                configuration, provider_factory=lambda _name: BoundedProvider(),
             )
+            admitted = self.client.post(
+                '/profiles/fixture/ai-cost-plan/evaluate/queued',
+                json={'request_id': 'rolled-back-cancellation'},
+            )
+            self.assertEqual(admitted.status_code, 202, admitted.text)
+            operation_id = admitted.json()['operation_id']
+            path = '/profiles/fixture/ai-cost-plan/operations/' + operation_id
+            original_audit = self.store._audit
+
+            def reject_cancellation_audit(connection, entity_id, action, payload):
+                if action == 'CANCELLATION_REQUESTED':
+                    raise RuntimeError('synthetic cancellation rollback')
+                return original_audit(connection, entity_id, action, payload)
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                work = pool.submit(self.run_worker, operation_id)
+                self.assertTrue(started.wait(3), 'TLS ClientHello never reached the peer')
+                with mock.patch.object(
+                        self.store, '_audit', side_effect=reject_cancellation_audit):
+                    cancelling = pool.submit(self.client.post, path + '/cancel')
+                    with self.assertRaisesRegex(RuntimeError, 'synthetic cancellation rollback'):
+                        cancelling.result(timeout=1)
+                self.assertFalse(closed.wait(.2),
+                                 'rolled-back cancellation interrupted the TLS call')
+                self.assertFalse(work.done(),
+                                 'rolled-back cancellation terminally failed the worker')
+                result = work.result(timeout=2)
+
+            self.assertEqual(result['status'], 'BLOCKED', result)
+            self.assertEqual(result['error_category'], 'AI_ERROR')
+            self.assertTrue(closed.wait(.4), 'provider timeout did not close the TLS peer')
+            self.assertEqual(len(duplicates), 1)
+            self.assertEqual(duplicates[0].fileno(), -1)
+            self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
             with self.store.engine.connect() as connection:
                 row = connection.execute(select(
                     m.operations.c.state, m.operations.c.cancel_requested,
                 ).where(m.operations.c.id == operation_id)).one()
-            self.assertEqual((row.state, row.cancel_requested), ('RUNNING', False))
-        finally:
-            unregister_operation_cancellation(operation_id, local_cancellation)
+            self.assertEqual((row.state, row.cancel_requested), ('BLOCKED', False))
 
     def test_request_owner_finishes_cleanup_before_guard_returns(self):
         watcher_close_started = threading.Event()
@@ -243,9 +259,9 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                                     response = cancelling.result(timeout=1)
                                 acknowledged_at = time.monotonic()
                                 self.assertEqual(response.status_code, 200, response.text)
-                                self.assertTrue(
+                                self.assertFalse(
                                     closed_before_commit,
-                                    'staged durable cancellation did not interrupt TLS before commit',
+                                    'uncommitted cancellation interrupted TLS before commit',
                                 )
                             result = work.result(timeout=3)
                             terminal_at = time.monotonic()
