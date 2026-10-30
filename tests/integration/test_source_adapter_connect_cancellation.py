@@ -125,8 +125,22 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             source = empty_source(provider) if mode == "positive" else tcp_connect_stall()
             original_connect = socket.socket.connect
             original_connect_ex = socket.socket.connect_ex
+            original_close = socket.socket.close
             errors, outcome = [], []
+            trace = {}
             worker = None
+
+            def diagnostic():
+                start = trace.get("cancel_started_at")
+                if start is None:
+                    return f"trace={trace}"
+                relative_ms = {
+                    key: round((trace[key] - start) * 1000, 1)
+                    for key in ("connect_ex_entered_at", "connect_ex_returned_at",
+                                "cancel_returned_at", "socket_closed_at", "worker_finished_at")
+                    if key in trace
+                }
+                return f"trace_ms_from_cancel={relative_ms}, trace={trace}"
 
             def observe_connect(connection, address):
                 if mode != "positive" and address[:2] == state["address"]:
@@ -136,18 +150,29 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 return original_connect(connection, address)
 
             def observe_connect_ex(connection, address):
+                owned = mode != "positive" and address[:2] == state["address"]
+                if owned:
+                    trace["connect_ex_entered_at"] = time.monotonic()
                 status = original_connect_ex(connection, address)
-                if mode != "positive" and address[:2] == state["address"]:
+                if owned:
+                    trace["connect_ex_returned_at"] = time.monotonic()
+                    trace["connect_ex_status"] = status
                     state["connects"] += 1
                     state["connecting_socket"] = connection
                     engaged.set()
                 return status
+
+            def observe_close(connection):
+                if connection is state.get("connecting_socket"):
+                    trace.setdefault("socket_closed_at", time.monotonic())
+                return original_close(connection)
 
             with source as (endpoint, engaged, state), ExitStack() as endpoints, patch.dict(os.environ, {
                     "MJOBS_DATABASE_URL": url, "MJOBS_OPERATION_MODE": "FIXTURE",
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
             }), patch("socket.socket.connect", new=observe_connect), patch(
                     "socket.socket.connect_ex", new=observe_connect_ex), patch(
+                    "socket.socket.close", new=observe_close), patch(
                     "workers.tasks.timeout", return_value=.8 if mode == "deadline" else 30):
                 if provider == "lever":
                     from services.discovery.sources.lever import endpoint as production_endpoint
@@ -175,10 +200,13 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     identifier = response.json()["operation_id"]
 
                     def execute():
+                        trace["worker_started_at"] = time.monotonic()
                         try:
                             outcome.append(execute_operation(identifier))
                         except BaseException as error:
                             errors.append(type(error).__name__)
+                        finally:
+                            trace["worker_finished_at"] = time.monotonic()
 
                     worker = threading.Thread(target=execute, name="mjobs-owned-adapter-worker", daemon=True)
                     started = time.monotonic()
@@ -192,7 +220,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertFalse(socket_select.select([], [connection], [], 0)[1],
                                              "Connect must still be pending at public cancellation")
                             started = time.monotonic()
+                            trace["cancel_started_at"] = started
                             response = client.post(f"/operations/{identifier}/cancel")
+                            trace["cancel_returned_at"] = time.monotonic()
                             self.assertEqual(response.status_code, 202, response.text)
                             worker.join(timeout=.35)
                             if worker.is_alive():
@@ -233,11 +263,14 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         if mode != "positive":
                             self.assertEqual(state["connects"], 1)
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
-                        print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
+                        details = f" {diagnostic()}" if mode == "cancel" else ""
+                        print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} "
+                              f"latency={elapsed:.3f}s{details}")
                         if mode == "cancel":
                             self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
-                                f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
+                                f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}; "
+                                f"{diagnostic()}")
                     finally:
                         worker.join(timeout=3)
                         self.assertFalse(worker.is_alive(), "Owned adapter worker leaked")
