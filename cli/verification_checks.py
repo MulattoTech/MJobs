@@ -113,6 +113,15 @@ def _corroborate(report, expected):
     if passed("duplicate-submission protection") and (
             not passed("mock confirmation") or not passed("mock global source")):
         raise ValueError("duplicate-submission evidence missing")
+    if passed("duplicate-submission protection"):
+        confirmation_operation_id = observed.get("confirmation_operation_id")
+        retry_operation_id = observed.get("duplicate_retry_operation_id")
+        retry_submission_count = observed.get("duplicate_retry_submission_count")
+        if (not isinstance(confirmation_operation_id, str) or not confirmation_operation_id.strip()
+                or retry_operation_id != confirmation_operation_id
+                or observed.get("duplicate_retry_confirmation_matches") is not True
+                or type(retry_submission_count) is not int or retry_submission_count != 1):
+            raise ValueError("duplicate replay evidence missing")
     # A PASS from the global source probe depends on the registry's selected
     # source identity too; do not let downstream success bypass that evidence
     # when the registry row is FAIL or NOT_RUN.

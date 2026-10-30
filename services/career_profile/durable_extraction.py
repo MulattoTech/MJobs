@@ -5,6 +5,7 @@ import re
 
 from sqlalchemy import insert, select
 
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.career_profile.extraction import extract_resume
@@ -41,6 +42,7 @@ def _params(profile_id: str, resume_id: str, resume_sha256: str, request_id: str
 
 def queue_extraction(store, profile_id: str, record: dict, request_id: str) -> dict:
     """Insert-or-read one explicit user intent; never reopen a terminal operation."""
+    validate_operation_type(OPERATION_KIND)
     params = _params(profile_id, record.get("id"), record.get("sha256"), request_id)
     operation_id = identity(OPERATION_KIND, profile_id, {"profile_id": profile_id, "request_id": request_id})
     values = {

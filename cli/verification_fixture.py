@@ -257,16 +257,26 @@ def exercise(report, root, timeout):
                             and confirmed["confirmation"]["receipt"] == receipt["receipt"]
                             and receipt["confirmation_url"] == origin + "/ats/submit/B",
                             "mock confirmation not corroborated by owned fixture receipt")
-                    report["observations"].update(application_id=app_id, submission_count=receipt["submission_count"])
+                    report["observations"].update(
+                        application_id=app_id,
+                        submission_count=receipt["submission_count"],
+                        confirmation_operation_id=submit["operation_id"],
+                    )
                     passed(active, "API mock submit executed in Chromium; confirmation matches owned mock receipt")
 
                     active = "duplicate-submission protection"
                     again = call("POST", app_path + "/mock-run", json={"submit": True})
                     require(again["operation_id"] == submit["operation_id"], "retry operation identity changed")
                     replay = apply_mock(store, app_id, origin, root, submit=True, check=check)
-                    require(replay["confirmation"] == confirmed["confirmation"]
-                            and fixture.get(origin + "/_test/request-counts").json()["submit"] == 1,
+                    retry_confirmation_matches = replay["confirmation"] == confirmed["confirmation"]
+                    retry_submission_count = fixture.get(origin + "/_test/request-counts").json()["submit"]
+                    require(retry_confirmation_matches and retry_submission_count == 1,
                             "retry bypassed duplicate submission fence")
+                    report["observations"].update(
+                        duplicate_retry_operation_id=again["operation_id"],
+                        duplicate_retry_confirmation_matches=retry_confirmation_matches,
+                        duplicate_retry_submission_count=retry_submission_count,
+                    )
                     passed(active, "API retry reused operation; real adapter replay preserved confirmation and submit count stayed one")
 
                     active = "durable readback"
