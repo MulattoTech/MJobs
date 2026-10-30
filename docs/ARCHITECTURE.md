@@ -146,6 +146,8 @@ cadence, backoff and active-operation checks constrain scheduling. The
 origin and must not be mistaken for the public provider transport. See
 [the discovery area contract](../services/discovery/AREA.md) for the adapter contract.
 
+The saved-search [cheap-prefilter preview route](../apps/api/cheap_prefilter.py) applies a bounded title/keyword subset and returns aggregate stage counts, not candidate contents or persisted matches. Title include/exclude checks happen before keyword checks against the assembled text corpus; if that corpus is truncated, it is not used for keyword rejection, while an overlong uncertain title is not used to reject. This preview is not full search or matching. [Implementation: `apps/api/cheap_prefilter.py`, lines 102–145; `services/discovery/cheap_prefilter.py`, lines 18–24, 60–123; API tests: `tests/integration/test_cheap_prefilter_api.py`, lines 111–125, 147–157.]
+
 ## Company discovery
 
 [Requests](../services/company_discovery/requests.py) and
@@ -187,6 +189,8 @@ connect results to ingestion. Scores explain suitability, not invented qualifica
 or authorization to apply. Changed profile/search inputs require fresh scoped
 evaluation rather than presenting an old score as current.
 
+The read-only [selected-job comparison API](../apps/api/job_comparison.py) validates profile/search/job scope and compares server-built snapshots from saved matches; it does not rescore or update matches. If no scoring profile is selected and stored contributions are empty, the route represents the saved score with a synthesized `skills` contribution marked `LEGACY_MATCH_BASELINE`, not a fresh computation. [Implementation: `apps/api/job_comparison.py`, lines 58–97, 76–86, 139–257; service: `services/matching/job_comparison.py`; recovery tests: `tests/integration/test_job_comparison_api_recovery.py`, lines 120–220.]
+
 ## Documents
 
 [Generation](../services/documents/generate.py) prepares factual, versioned documents
@@ -202,6 +206,8 @@ preparation, extraction and comparison, not employer submission.
 reviewed and generated artifacts. Do not overwrite an original to make a generated
 revision appear approved. `MJOBS_OUTPUT_DIR` points to the local document volume in
 Compose; backup/recovery must account for files as well as database records.
+
+The [upload service](../services/documents/uploads.py) stores unreviewed bytes, performs bounded format checks, and verifies stored size/digest on readback; it does not turn file contents into resume facts. TXT rejects control characters below U+0020 except TAB/CR/LF. The API upload handler is in [`apps/api/main.py`](../apps/api/main.py#L1288); the wrapper translates `UploadIntegrityError`, while filesystem `OSError`s may propagate. [Implementation: `services/documents/uploads.py`, lines 19–30, 33–106, 124–212; API: `apps/api/main.py`, lines 1288–1320; tests: `tests/integration/test_resume_upload.py`, lines 35–57.]
 
 ## Application automation
 
@@ -220,6 +226,8 @@ submission is not safe to replay merely because a worker stopped. The
 performs read-only MOCK receipt reconciliation: a missing or unverifiable receipt
 leaves an uncertain submission `SUBMISSION_UNCONFIRMED`, not a fabricated success
 or proof of non-submission. See [the application area contract](../services/applications/AREA.md).
+
+The [Lever markup analyzer](../services/applications/adapters/lever_markup.py) performs bounded, value-free static control extraction. Recognized challenge markers or any recognized interactive ARIA role/non-false `contenteditable` inside the form—including on native form tags—produce `UNKNOWN`; this is a conservative parser outcome, not a CAPTCHA or access-control bypass. [Implementation: `services/applications/adapters/lever_markup.py`, lines 90–124, 182–246; tests: `tests/unit/test_lever_markup.py`, lines 67–109; evidence: [connected feature batch](evidence/2026-10-11-connected-feature-batch.json#L79).]
 
 ## Recovery
 
@@ -287,6 +295,8 @@ do not infer those results from this description or a health response. The retai
 [Ubuntu updater](../infra/deploy/host_update.py) is not evidence that two PERSONAL
 origins should run concurrently.
 
+The [transient-retention API](../apps/api/transient_retention.py) exposes policy read/update and a server-scoped preview. Preview calls the worker in dry-run mode with pruning disabled, uses configured scope rather than caller-selected roots, and returns a saved summary; it does not remove files. A saved policy update is not itself a cleanup run. [Implementation: `apps/api/transient_retention.py`, lines 130–205; worker: `workers/transient_retention.py`; tests: `tests/integration/test_transient_retention.py`, lines 202–229, 270–284.]
+
 ## Security
 
 - **Workspace identity:** [operation mode](../packages/domain/operation_mode.py) and
@@ -321,3 +331,5 @@ the [requirement index](../planning/REQUIREMENT_INDEX.json) is derived. Code pre
 a diagram, service health, or a passing unit test does not certify a complete flow.
 Retain exact-revision evidence and distinguish local, synthetic and real-provider
 validation; preserve historical evidence without presenting it as current proof.
+
+**Verification boundary for these module references:** This documents source contracts, not acceptance evidence. The cited tests were not run for this documentation change; hosted checks and connected/runtime acceptance are NOT_RUN until verified on the exact PR revision.
