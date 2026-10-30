@@ -33,6 +33,22 @@ from services.discovery.sources.remotive import Remotive, SourceError
 from tests.unit.test_ai_tls_handshake import tls_contexts
 
 
+def peer_closed_within(connection, timeout):
+    """Observe peer EOF/reset without charging a fixture thread's scheduling."""
+    deadline = time.monotonic() + timeout
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return False
+        if not socket_select.select([connection], [], [], remaining)[0]:
+            return False
+        try:
+            if not connection.recv(4096):
+                return True
+        except (ConnectionResetError, ConnectionAbortedError):
+            return True
+
+
 @contextmanager
 def tcp_connect_stall():
     """Fill only this listener's accept backlog; never accept a connection."""
@@ -63,7 +79,7 @@ def tcp_connect_stall():
 
 
 @contextmanager
-def tcp_source(mode, *, tls_context=None):
+def tcp_source(mode, *, tls_context=None, hold_tls_peer_observer=False):
     if mode == "positive-hostname":
         # Bind the hosts-file lookup's preferred loopback family. A listener
         # restricted to IPv4 cannot serve the preferred ::1 address on Windows.
@@ -79,7 +95,8 @@ def tcp_source(mode, *, tls_context=None):
     listener.settimeout(.1)
     stop, engaged = threading.Event(), threading.Event()
     state = {"bytes": 0, "requests": 0, "connection": None, "address": listener.getsockname()[:2],
-             "peer_closed": threading.Event()}
+             "peer_closed": threading.Event(), "peer_observation_handoff": threading.Event(),
+             "peer_observer_release": threading.Event()}
 
     def serve():
         connection = None
@@ -107,17 +124,15 @@ def tcp_source(mode, *, tls_context=None):
                     raise AssertionError("Expected real TLS handshake record")
                 state["bytes"] = len(hello)
                 state["engaged_at"] = time.monotonic()
+                # Hand the accepted socket to the assertion thread before
+                # publishing engagement; this fixture thread must not race its
+                # recv against the strict peer-close observation.
+                state["peer_observation_handoff"].set()
                 engaged.set()
-                while not stop.is_set() and time.monotonic() < deadline:
-                    try:
-                        if not connection.recv(4096):
-                            state["peer_closed"].set()
-                            break
-                    except socket.timeout:
-                        continue
-                    except (ConnectionResetError, ConnectionAbortedError):
-                        state["peer_closed"].set()
-                        break
+                if hold_tls_peer_observer:
+                    state["peer_observer_release"].wait()
+                else:
+                    stop.wait(max(0, deadline - time.monotonic()))
                 return
             request = bytearray()
             while b"\r\n\r\n" not in request:
@@ -172,6 +187,7 @@ def tcp_source(mode, *, tls_context=None):
         yield f"{scheme}://{host}:{listener.getsockname()[1]}/source", engaged, state
     finally:
         stop.set()
+        state["peer_observer_release"].set()
         connection = state["connection"]
         if connection is not None:
             try:
@@ -187,7 +203,8 @@ def tcp_source(mode, *, tls_context=None):
 class SourceHttpSocketBudgetTests(unittest.TestCase):
     def run_source(self, mode, *, cancel=False, worker_budget=.8, setup_delay=0,
                    unwind_delay=0, worker_entry_delay=0,
-                   retryable_failure_after_transport=False, log_context_delay=0):
+                   retryable_failure_after_transport=False, log_context_delay=0,
+                   hold_tls_peer_observer=False):
         with tempfile.TemporaryDirectory(prefix="mjobs-source-tcp-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -197,7 +214,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
             outcome, errors = [], []
             worker = None
             try:
-                source = tcp_connect_stall() if mode == "connect-stall" else tcp_source(mode)
+                source = (tcp_connect_stall() if mode == "connect-stall"
+                          else tcp_source(mode, hold_tls_peer_observer=hold_tls_peer_observer))
                 original_connect = socket.socket.connect
                 original_connect_ex = socket.socket.connect_ex
                 original_collect_source = worker_tasks.collect_source
@@ -388,6 +406,17 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                     worker.join(timeout=3 if mode == "positive-hostname" else 1.1)
                                 self.assertFalse(worker.is_alive(),
                                                  f"Operation deadline ignored during {mode} for {time.monotonic()-started:.3f}s")
+                            if mode == "tls-stall":
+                                self.assertTrue(tls_exited.is_set(),
+                                                "TLS transport did not exit before peer observation")
+                                self.assertEqual(tls_exit["fileno"], -1,
+                                                 "Interrupted TLS transport retained its socket")
+                                self.assertTrue(socket_state["peer_observation_handoff"].is_set(),
+                                                "TLS fixture did not hand off peer observation")
+                                self.assertTrue(peer_closed_within(
+                                    socket_state["connection"], .3),
+                                    "Owned TLS connection remained alive after interruption")
+                                socket_state["peer_closed"].set()
                             settled_elapsed = time.monotonic() - (requested if cancel else started)
                             self.assertEqual(errors, [])
                             self.assertEqual(len(outcome), 1)
@@ -412,8 +441,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             if "connecting_socket" in socket_state:
                                 self.assertEqual(socket_state["connecting_socket"].fileno(), -1)
                             if mode == "tls-stall":
-                                self.assertTrue(socket_state["peer_closed"].wait(.3),
-                                                "Owned TLS connection remained alive after interruption")
+                                self.assertTrue(socket_state["peer_closed"].is_set(),
+                                                "TLS peer-close observation was not retained")
                             if mode == "body-drip":
                                 self.assertTrue(socket_state["peer_closed"].wait(.3),
                                                 "Remotive body response remained open after worker deadline")
@@ -477,7 +506,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
 
     def test_worker_deadline_during_real_tls_handshake_stall(self):
         self.run_source("tls-stall", unwind_delay=.8, worker_entry_delay=1.1,
-                        retryable_failure_after_transport=True)
+                        retryable_failure_after_transport=True,
+                        hold_tls_peer_observer=True)
 
     def test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads(self):
         class Cancelled(Exception):
