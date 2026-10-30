@@ -1,6 +1,7 @@
 """Bounded local agent runs and human-reviewed proposal execution."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 from hashlib import sha256
 import json
 import re
@@ -9,7 +10,7 @@ from typing import Any
 
 from services.career_profile.profile_access import TASK_PATHS
 from services.agents.registry import (
-    AgentToolContext, AgentToolError, PageBudget, PolicyDecision, ReviewDecision,
+    AgentTool, AgentToolContext, AgentToolError, PageBudget, PolicyDecision, ReviewDecision,
     ToolClass, ToolRegistry,
 )
 from services.agents.acceptance import CollectionContract, validate_collection_output
@@ -24,7 +25,16 @@ DEFAULT_RUN_DURATION_MS = 30_000
 MAX_RUN_DURATION_MS = 120_000
 MAX_RUN_PAGES = 100
 MAX_DIAGNOSTIC_SLICE_STEPS = 5
+MAX_PRIOR_RUN_BINDINGS = 16
 _ESCAPE_OUTCOMES = {"AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"}
+
+
+@dataclass(frozen=True)
+class _PriorRunBinding:
+    scope: tuple[object, ...]
+    calls: tuple[tuple[AgentTool, str] | None, ...]
+    max_duration_ms: int
+    max_pages: int | None
 
 
 class AgentRuntime:
@@ -41,6 +51,58 @@ class AgentRuntime:
         self.profile_id = profile_id
         self.task = task
         self.registry.seal()
+        # Bounded, process-local input snapshots only. Never persist arguments
+        # or outputs, and never reconstruct a binding from a trace/run ID.
+        self._prior_runs: dict[str, _PriorRunBinding] = {}
+
+    def rerun_prior_slice(self, prior_run_id: str, start: int, stop: int) -> dict[str, Any]:
+        """Reobserve executed calls [start, stop) from this runtime only.
+
+        Bindings expire after sixteen later source runs or runtime disposal.
+        A rerun has a fresh deadline and page permits with the source maxima,
+        and at most five steps. Like ordinary runs, deadline enforcement is
+        cooperative at handler boundaries and via AgentToolContext; a blocked
+        synchronous handler is not preempted. Agreement is never acceptance.
+        """
+        if (not isinstance(prior_run_id, str)
+                or not re.fullmatch(r"[0-9a-f]{32}", prior_run_id)):
+            raise ValueError("Prior run binding is unavailable")
+        binding = self._prior_runs.get(prior_run_id)
+        if (binding is None
+                or binding.scope != (self.store, self.registry, self.profile_id, self.task)):
+            raise ValueError("Prior run binding is unavailable")
+        if (type(start) is not int or type(stop) is not int
+                or not 0 <= start < stop <= len(binding.calls)
+                or stop - start > MAX_DIAGNOSTIC_SLICE_STEPS):
+            raise ValueError("Prior slice must select one to five executed calls")
+        calls = []
+        # Prevalidate the whole slice before creating a trace or invoking any
+        # handler. Non-READ and invalid calls have no replayable snapshot.
+        for snapshot in binding.calls[start:stop]:
+            if snapshot is None:
+                raise ValueError("Prior slices require registered read-only calls")
+            tool, arguments = snapshot
+            try:
+                current = self.registry.get(tool.name)
+                if current is not tool or current.classification != ToolClass.READ:
+                    raise ValueError("Prior read-only tool binding is stale")
+                self.registry.parse(current, json.loads(arguments))
+            except AgentToolError:
+                raise ValueError("Prior read-only tool binding is stale") from None
+            calls.append({"name": tool.name, "arguments": json.loads(arguments)})
+        return self._run(calls, max_duration_ms=binding.max_duration_ms,
+                         max_pages=binding.max_pages,
+                         _prior_slice=(prior_run_id, start, stop))
+
+    def _read_snapshot(self, name: object, arguments: object) -> tuple[AgentTool, str] | None:
+        try:
+            tool = self.registry.get(name)
+            if tool.classification == ToolClass.READ:
+                _, canonical = self.registry.parse(tool, arguments)
+                return tool, canonical
+        except AgentToolError:
+            pass
+        return None
 
     def diagnose_slice(self, calls: object, *, max_attempts: int = 2,
                        max_duration_ms: int = DEFAULT_RUN_DURATION_MS,
@@ -145,6 +207,19 @@ class AgentRuntime:
             collection_contract: CollectionContract | None = None,
             _diagnostic_id: str | None = None,
             _diagnostic_attempt: int | None = None) -> dict[str, Any]:
+        return self._run(calls, cost_usd=cost_usd, input_tokens=input_tokens,
+                         output_tokens=output_tokens, max_duration_ms=max_duration_ms,
+                         max_pages=max_pages, collection_contract=collection_contract,
+                         _diagnostic_id=_diagnostic_id, _diagnostic_attempt=_diagnostic_attempt)
+
+    def _run(self, calls: object, *, cost_usd: float | None = None,
+             input_tokens: int | None = None, output_tokens: int | None = None,
+             max_duration_ms: int = DEFAULT_RUN_DURATION_MS,
+             max_pages: int | None = None,
+             collection_contract: CollectionContract | None = None,
+             _diagnostic_id: str | None = None,
+             _diagnostic_attempt: int | None = None,
+             _prior_slice: tuple[str, int, int] | None = None) -> dict[str, Any]:
         self._validate_metrics(cost_usd, input_tokens, output_tokens)
         if (type(max_duration_ms) is not int or not 1 <= max_duration_ms <= MAX_RUN_DURATION_MS):
             raise ValueError("Agent run duration must be between one and 120000 milliseconds")
@@ -163,16 +238,25 @@ class AgentRuntime:
         started = time.monotonic()
         deadline = started + max_duration_ms / 1000
         run_id = new_run_id()
+        scope = (self.store, self.registry, self.profile_id, self.task)
+        snapshots = []
+        step_limit = len(calls) if _prior_slice is not None else MAX_AGENT_STEPS
         profile_ref = sha256(self.profile_id.encode("utf-8")).hexdigest()[:24]
         started_event = {
             "schema_version": 1, "task": self.task, "profile_ref": profile_ref,
-            "step_limit": MAX_AGENT_STEPS, "max_duration_ms": max_duration_ms,
+            "step_limit": step_limit, "max_duration_ms": max_duration_ms,
             "max_pages": max_pages,
             "success_artifact": "collection_output" if collection_contract else "all_tools_completed",
         }
         if _diagnostic_id is not None:
             started_event.update({"diagnostic_id": _diagnostic_id,
                                   "diagnostic_attempt": _diagnostic_attempt})
+        prior_metadata = {}
+        if _prior_slice is not None:
+            prior_metadata = {"prior_run_id": _prior_slice[0],
+                              "slice_start": _prior_slice[1], "slice_stop": _prior_slice[2]}
+            started_event.update(prior_metadata)
+            started_event["success_artifact"] = "DIAGNOSTIC_ONLY"
         append_agent_event(self.store, run_id, "AGENT_RUN_STARTED", started_event)
         if not isinstance(calls, list):
             calls = []
@@ -186,7 +270,7 @@ class AgentRuntime:
                                    page_budget=PageBudget(max_pages) if max_pages is not None else None)
         stop_reason = None
         collection_result = None
-        for index, call in enumerate(calls[:MAX_AGENT_STEPS], start=1):
+        for index, call in enumerate(calls[:step_limit], start=1):
             if time.monotonic() >= deadline:
                 state = "LIMIT_REACHED"
                 stop_reason = "TIME_BUDGET_EXHAUSTED"
@@ -194,6 +278,10 @@ class AgentRuntime:
             name = call.get("name") if isinstance(call, dict) else None
             safe_name = name if isinstance(name, str) and _SAFE_TOOL.fullmatch(name) else "INVALID_TOOL_NAME"
             arguments = call.get("arguments") if isinstance(call, dict) else None
+            snapshot = self._read_snapshot(name, arguments)
+            snapshots.append(snapshot)
+            if snapshot is not None:
+                arguments = json.loads(snapshot[1])
             try:
                 output, proposal_id = self.registry.invoke(name, arguments, context)
                 result_code = "PROPOSAL_PENDING" if proposal_id else "OK"
@@ -230,10 +318,10 @@ class AgentRuntime:
                 state = "LIMIT_REACHED"
                 stop_reason = "TIME_BUDGET_EXHAUSTED"
                 break
-        if len(calls) > MAX_AGENT_STEPS and stop_reason is None:
+        if len(calls) > step_limit and stop_reason is None:
             state = "LIMIT_REACHED"
             stop_reason = "STEP_BUDGET_EXHAUSTED"
-        if state == "COMPLETED" and collection_contract is not None:
+        if state == "COMPLETED" and collection_contract is not None and _prior_slice is None:
             collection_result = validate_collection_output(
                 results[-1]["output"] if results else None, collection_contract)
             if collection_result.code != "OUTPUT_VALID":
@@ -243,6 +331,12 @@ class AgentRuntime:
                 stop_reason = "SUCCESS_ARTIFACT_VERIFIED"
         if stop_reason is None:
             stop_reason = state
+        if _prior_slice is not None:
+            # Never persist a completed/accepted diagnostic run. Keep budget
+            # and escape reasons separately without promoting agreement.
+            prior_metadata["diagnostic_outcome"] = (
+                "CALLS_FINISHED" if stop_reason == "COMPLETED" else stop_reason)
+            state, stop_reason = "OUTPUT_UNVERIFIED", "DIAGNOSTIC_ONLY"
         consumed_ms = max(0, int(round((time.monotonic() - started) * 1000)))
         terminal_event = {
             "state": state, "step_count": len(results), "cost_usd": cost_usd,
@@ -258,8 +352,15 @@ class AgentRuntime:
         if _diagnostic_id is not None:
             terminal_event.update({"diagnostic_id": _diagnostic_id,
                                    "diagnostic_attempt": _diagnostic_attempt})
+        terminal_event.update(prior_metadata)
         append_agent_event(self.store, run_id, "AGENT_RUN_TERMINAL", terminal_event)
-        return {"run_id": run_id, "state": state, "steps": results,
+        if _prior_slice is None:
+            self._prior_runs[run_id] = _PriorRunBinding(
+                scope, tuple(snapshots), max_duration_ms, max_pages)
+            while len(self._prior_runs) > MAX_PRIOR_RUN_BINDINGS:
+                del self._prior_runs[next(iter(self._prior_runs))]
+        return {"run_id": run_id,
+                "state": "DIAGNOSTIC_ONLY" if _prior_slice is not None else state, "steps": results,
                 "stop_reason": stop_reason,
                 "max_pages": max_pages,
                 "pages_consumed": context.page_budget.consumed if context.page_budget else 0,
