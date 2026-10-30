@@ -426,10 +426,11 @@ function updateCard(lane,data,coord) {
   const runtime=data.runtime||{}, cfg=data.config||{}, a=data.activity||{};
   const claim=coord?.claims?.[lane]||{};
   $(".lane-runner",node).textContent=(cfg.runner||lane)+" · "+(runtime.effective_model||cfg.model||"");
-  const st=runtime.status||"STOPPED";
+  const external=globalThis.MJobsFleetObservation?.provider(lane);
+  const st=external?.present?(external.working?"AO WORKING":"AO IDLE"):("Independent: "+(runtime.status||"NOT REPORTED"));
   $(".status",node).textContent=st;
   $(".status",node).className="status pill "+statusClass(st);
-  $(".activity",node).textContent=a.state||"UNKNOWN";
+  $(".activity",node).textContent=external?.present?external.working+" working / "+external.total+" AO agents":a.state||"NOT REPORTED";
   $(".activity",node).className="activity pill "+statusClass(a.state||"UNKNOWN");
   $(".pid",node).textContent=runtime.pid||"—";
   $(".issue",node).textContent=claim.issue?"#"+claim.issue:"—";
@@ -438,7 +439,7 @@ function updateCard(lane,data,coord) {
   $(".memory",node).textContent=(a.process_tree?.length ? totalMemory(a.process_tree).toFixed(0)+" MB" : "—");
   $(".lane-gpu",node).textContent=(a.observed_gpu_percent!=null ? a.observed_gpu_percent.toFixed(1)+"%" : "—");
   $(".workspace",node).textContent=runtime.workspace ? "Worktree: "+runtime.workspace : "";
-  $(".reason",node).textContent=runtime.last_reason||"";
+  $(".reason",node).textContent=external?.present?external.total+" AO runtimes managed through Fleet Control. Independent launcher: "+(runtime.status||"not reported")+(runtime.last_reason?". "+runtime.last_reason:""):runtime.last_reason||"No AO runtime is represented by this independent launcher record.";
   $(".process-proof",node).textContent=processProof(data);
   renderUsage(node,data.usage,lane);
 

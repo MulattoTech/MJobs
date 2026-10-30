@@ -92,6 +92,7 @@ def _run(args: list[str], cwd: Path, timeout: int = 10) -> subprocess.CompletedP
     return subprocess.run(
         args, cwd=str(cwd), text=True, capture_output=True, timeout=timeout,
         encoding="utf-8", errors="replace", check=False,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
 
 

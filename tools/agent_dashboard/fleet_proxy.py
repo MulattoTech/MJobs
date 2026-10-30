@@ -1,4 +1,5 @@
 """Guarded, fixed-target Fleet Control route on Mission Control's loopback port."""
+from contextlib import asynccontextmanager
 from urllib.parse import urlsplit
 import httpx
 from fastapi import HTTPException, Request
@@ -23,15 +24,37 @@ WRITES = {"api/nudge", "api/replace", "api/retire", "api/agent-plan",
           "api/startup/reconcile", "api/orchestrator/open"}
 
 
-async def _relay(method, tail, body, headers):
-    async with httpx.AsyncClient(trust_env=False, follow_redirects=False,
-                                 timeout=httpx.Timeout(95, connect=2)) as client:
-        return await client.request(method, "http://127.0.0.1:8787/" + tail,
-                                    content=body, headers=headers)
-
-
 def install_fleet_proxy(app, relay=None):
-    relay = relay or _relay
+    if relay is None:
+        # Client/transport construction is synchronous. Do it once at startup,
+        # before requests arrive, rather than blocking every concurrent asset.
+        # This closure belongs to this app only, never another app/event loop.
+        client = None
+        previous_lifespan = app.router.lifespan_context
+
+        @asynccontextmanager
+        async def fleet_lifespan(application):
+            nonlocal client
+            async with previous_lifespan(application) as state:
+                async with httpx.AsyncClient(
+                    trust_env=False, follow_redirects=False,
+                    timeout=httpx.Timeout(95, connect=2),
+                ) as managed_client:
+                    client = managed_client
+                    try:
+                        yield state
+                    finally:
+                        client = None
+
+        app.router.lifespan_context = fleet_lifespan
+
+        async def relay(method, tail, body, headers):
+            if client is None:
+                raise httpx.ConnectError("Fleet proxy lifespan is not active")
+            return await client.request(
+                method, "http://127.0.0.1:8787/" + tail,
+                content=body, headers=headers,
+            )
 
     @app.get("/fleet")
     async def fleet_redirect():

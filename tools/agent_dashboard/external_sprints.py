@@ -25,6 +25,7 @@ def _git(cwd: Path, *arguments: str) -> str | None:
             ["git", "-C", str(cwd), *arguments],
             capture_output=True, text=True, timeout=7, check=False,
             encoding="utf-8", errors="replace",
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except (OSError, subprocess.TimeoutExpired):
         return None

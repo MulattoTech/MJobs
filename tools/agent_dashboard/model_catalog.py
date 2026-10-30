@@ -48,6 +48,7 @@ class ModelCatalog:
         result = subprocess.run(
             args, cwd=str(cwd), check=False, capture_output=True,
             text=True, encoding="utf-8", errors="replace", timeout=timeout,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         if result.returncode != 0:
             raise RuntimeError("Installed Codex CLI model discovery returned an error.")
