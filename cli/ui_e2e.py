@@ -679,7 +679,7 @@ def run(base_url, evidence_path, onboarding=False):
             if onboarding:
                 page.get_by_label("Job title", exact=True).fill("")
                 page.get_by_label("Work location", exact=True).select_option("")
-            card = page.get_by_role("button").filter(has=page.get_by_role("heading", name="Data Engineer", exact=True))
+            card = page.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True)
             expect(card).to_have_count(1)
             card.click()
             expect(page.get_by_role("heading", name="Why this match?", exact=True)).to_be_visible()
@@ -1205,7 +1205,7 @@ def run(base_url, evidence_path, onboarding=False):
             page.reload(wait_until="domcontentloaded")
             expect(page.get_by_label("Active profile")).to_have_value(profile_id)
             navigation("Applications")
-            page.get_by_role("button").filter(has=page.get_by_role("heading", name="Data Engineer", exact=True)).click()
+            page.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True).click()
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             navigation('Profile')
             base_resumes_before_library=request('/profiles/'+profile_id+'/resumes')['resumes']
