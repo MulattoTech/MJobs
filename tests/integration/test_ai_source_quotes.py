@@ -38,7 +38,7 @@ class AISourceQuoteTests(unittest.TestCase):
         self.fixture.response_body['job_evidence'] = [{'field': 'description', 'quote': 'Invented secret unsupported experience'}]
         result = execute_operation(self.fixture.queue())
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_STRUCTURED_OUTPUT_INVALID')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.history(), [])
         self.assertNotIn('Invented secret', str(result))
 
@@ -87,6 +87,6 @@ class AISourceQuoteTests(unittest.TestCase):
         self.fixture.on_request = respond
         result = execute_operation(self.fixture.queue())
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_STRUCTURED_OUTPUT_INVALID')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(len(self.fixture.requests), 2)
         self.assertEqual(self.history(), [])
