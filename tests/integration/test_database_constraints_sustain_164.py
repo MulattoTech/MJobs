@@ -26,14 +26,18 @@ TIMESTAMP = "2026-10-24T12:00:00Z"
 PARENT_REVISION = "20261018cm01"
 TARGET_REVISION = "20261024dc01"
 APPLICATION_STATES = m.APPLICATION_STATES
-APPLICATION_WRITER_PATHS = (
-    "services/applications/mock_adapter.py",
+APPLICATION_DIRECT_WRITER_PATHS = (
+    "services/applications/submission_admission.py",
     "services/documents/generate.py",
     "services/applications/external_capture.py",
     "services/applications/confirmation_recovery.py",
 )
+APPLICATION_WRITER_PATHS = (
+    "services/applications/mock_adapter.py",
+    *APPLICATION_DIRECT_WRITER_PATHS,
+)
 APPLICATION_WRITE_BOUNDARY_PATHS = (
-    *APPLICATION_WRITER_PATHS,
+    *APPLICATION_DIRECT_WRITER_PATHS,
     "packages/persistence/profile_restore.py",
     "packages/persistence/store.py",
 )

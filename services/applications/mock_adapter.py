@@ -1,5 +1,5 @@
 """Controlled real browser flow for the explicit local mock ATS provider."""
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 import hashlib
 import math
 from pathlib import Path
@@ -8,11 +8,10 @@ from uuid import uuid4
 import httpx
 
 from playwright.sync_api import sync_playwright
-from sqlalchemy import func, select, update
+from sqlalchemy import select, update
 
-from packages.domain.safety import Fact, Policy, SubmissionContext, evaluate_submission, select_verified_facts
+from packages.domain.safety import Fact, Policy, select_verified_facts
 from packages.persistence import models as m
-from packages.persistence.store import now
 from services.discovery.pipeline import MockClient
 from services.audit_history import record_mock_application_submitted
 from services.applications.preflight import (
@@ -20,6 +19,7 @@ from services.applications.preflight import (
     persist_preflight,
     questionnaire_fingerprint,
 )
+from services.applications.submission_admission import authorize_submission
 from services.applications.form_analysis import analyze_questionnaire
 from services.applications.mock_answer_bindings import (
     MOCK_ANSWER_SLOTS,
@@ -201,33 +201,8 @@ def _receipt(client, application, requisition, *, observed_url=None,
 
 
 def _authorize(store, application_id, confidence, policy=Policy(), check=None):
-    with store.engine.begin() as connection:
-        application = connection.execute(select(m.applications).where(m.applications.c.id == application_id).with_for_update()).mappings().one()
-        # Serialize all submission reservations for the same profile in PostgreSQL.
-        connection.execute(select(m.profiles).where(m.profiles.c.id == application["profile_id"]).with_for_update()).one()
-        if check:
-            check()
-        job = connection.execute(select(m.jobs).where(m.jobs.c.id == application["job_id"])).mappings().one()
-        match = connection.execute(select(m.matches).where(m.matches.c.job_id == job["id"], m.matches.c.profile_id == application["profile_id"],
-            m.matches.c.profile_version == application["profile_version"])).mappings().one()
-        submitted = select(func.count()).select_from(m.applications.join(m.jobs, m.jobs.c.id == m.applications.c.job_id)).where(
-            m.applications.c.profile_id == application["profile_id"],
-            m.applications.c.state.in_(["SUBMITTING", "CONFIRMED", "SUBMISSION_UNCONFIRMED"]))
-        timestamp = datetime.now(timezone.utc)
-        hourly = connection.execute(submitted.where(m.applications.c.submitted_at >= (timestamp - timedelta(hours=1)).isoformat())).scalar_one()
-        daily = connection.execute(submitted.where(m.applications.c.submitted_at >= (timestamp - timedelta(days=1)).isoformat())).scalar_one()
-        company = connection.execute(submitted.where(m.jobs.c.company_id == job["company_id"])).scalar_one()
-        decision = evaluate_submission(SubmissionContext(target=application["target"], state=application["state"],
-            match_score=match["score"], confidence=confidence, quality_approved=True, facts_verified=True,
-            source_allowed=application["target"] == "MOCK", sensitive_answers_approved=True,
-            hourly_count=hourly, daily_count=daily, company_count=company), policy)
-        if decision.allowed:
-            changed = connection.execute(update(m.applications).where(m.applications.c.id == application_id,
-                m.applications.c.state == "READY_TO_SUBMIT").values(state="SUBMITTING", submitted_at=now(), trace=[*application["trace"], "SUBMIT"]))
-            if changed.rowcount != 1:
-                raise ValueError("Submission was claimed concurrently")
-            store._audit(connection, application_id, "SUBMITTING", {"provider": "mock-ats"})
-        return decision
+    return authorize_submission(
+        store, application_id, confidence, policy, check=check)
 
 
 def _read_questionnaire(client, route):
