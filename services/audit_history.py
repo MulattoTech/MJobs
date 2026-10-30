@@ -53,6 +53,15 @@ _APPLICATION_EVENTS = {
     "APPLICATION_NOTE": ("APPLICATION_NOTE_ADDED", "Application note added"),
     "EXTERNAL_APPLICATION_REPORTED": ("APPLICATION_REPORTED", "You reported applying outside MJobs"),
     "APPLICATION_ANSWERS_EXPORTED": ("APPLICATION_ANSWERS_EXPORTED", "Reviewed answers exported"),
+    "APPLICATION_CONFIRMATION_CHECKED_V1": (
+        "APPLICATION_CONFIRMATION_CHECKED", "Application confirmation checked",
+    ),
+}
+
+_CONFIRMATION_CHECK_SUMMARIES = {
+    "CONFIRMED": "Confirmation check found a confirmed application",
+    "NO_VERIFIED_RECEIPT": "Confirmation check found no verified receipt",
+    "CHECK_UNAVAILABLE": "Confirmation check was unavailable",
 }
 
 
@@ -336,6 +345,12 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                 elif action == "CONFIRMED":
                     # A persisted state alone is not evidence of employer receipt.
                     continue
+                elif action == "APPLICATION_CONFIRMATION_CHECKED_V1":
+                    payload = row["payload"]
+                    result = payload.get("result") if isinstance(payload, dict) else None
+                    status = result.get("status") if isinstance(result, dict) else None
+                    if isinstance(status, str):
+                        summary = _CONFIRMATION_CHECK_SUMMARIES.get(status, summary)
                 events.append(_event(row, event_type, summary, subject, company))
 
     events.sort(key=lambda event: (event["timestamp"], event["id"]), reverse=True)

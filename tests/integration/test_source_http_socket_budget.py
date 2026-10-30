@@ -26,10 +26,27 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
+from workers import tasks as worker_tasks
 from workers.tasks import execute_operation
 from services.discovery.sources import http_transport
 from services.discovery.sources.remotive import Remotive, SourceError
 from tests.unit.test_ai_tls_handshake import tls_contexts
+
+
+def peer_closed_within(connection, timeout):
+    """Observe peer EOF/reset without charging a fixture thread's scheduling."""
+    deadline = time.monotonic() + timeout
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return False
+        if not socket_select.select([connection], [], [], remaining)[0]:
+            return False
+        try:
+            if not connection.recv(4096):
+                return True
+        except (ConnectionResetError, ConnectionAbortedError):
+            return True
 
 
 @contextmanager
@@ -62,7 +79,7 @@ def tcp_connect_stall():
 
 
 @contextmanager
-def tcp_source(mode, *, tls_context=None):
+def tcp_source(mode, *, tls_context=None, hold_tls_peer_observer=False):
     if mode == "positive-hostname":
         # Bind the hosts-file lookup's preferred loopback family. A listener
         # restricted to IPv4 cannot serve the preferred ::1 address on Windows.
@@ -78,7 +95,8 @@ def tcp_source(mode, *, tls_context=None):
     listener.settimeout(.1)
     stop, engaged = threading.Event(), threading.Event()
     state = {"bytes": 0, "requests": 0, "connection": None, "address": listener.getsockname()[:2],
-             "peer_closed": threading.Event()}
+             "peer_closed": threading.Event(), "peer_observation_handoff": threading.Event(),
+             "peer_observer_release": threading.Event()}
 
     def serve():
         connection = None
@@ -105,17 +123,16 @@ def tcp_source(mode, *, tls_context=None):
                 if hello[:1] != b"\x16":
                     raise AssertionError("Expected real TLS handshake record")
                 state["bytes"] = len(hello)
+                state["engaged_at"] = time.monotonic()
+                # Hand the accepted socket to the assertion thread before
+                # publishing engagement; this fixture thread must not race its
+                # recv against the strict peer-close observation.
+                state["peer_observation_handoff"].set()
                 engaged.set()
-                while not stop.is_set() and time.monotonic() < deadline:
-                    try:
-                        if not connection.recv(4096):
-                            state["peer_closed"].set()
-                            break
-                    except socket.timeout:
-                        continue
-                    except (ConnectionResetError, ConnectionAbortedError):
-                        state["peer_closed"].set()
-                        break
+                if hold_tls_peer_observer:
+                    state["peer_observer_release"].wait()
+                else:
+                    stop.wait(max(0, deadline - time.monotonic()))
                 return
             request = bytearray()
             while b"\r\n\r\n" not in request:
@@ -170,6 +187,7 @@ def tcp_source(mode, *, tls_context=None):
         yield f"{scheme}://{host}:{listener.getsockname()[1]}/source", engaged, state
     finally:
         stop.set()
+        state["peer_observer_release"].set()
         connection = state["connection"]
         if connection is not None:
             try:
@@ -183,7 +201,10 @@ def tcp_source(mode, *, tls_context=None):
 
 
 class SourceHttpSocketBudgetTests(unittest.TestCase):
-    def run_source(self, mode, *, cancel=False, worker_budget=.8):
+    def run_source(self, mode, *, cancel=False, worker_budget=.8, setup_delay=0,
+                   unwind_delay=0, worker_entry_delay=0,
+                   retryable_failure_after_transport=False, log_context_delay=0,
+                   hold_tls_peer_observer=False):
         with tempfile.TemporaryDirectory(prefix="mjobs-source-tcp-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -193,9 +214,66 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
             outcome, errors = [], []
             worker = None
             try:
-                source = tcp_connect_stall() if mode == "connect-stall" else tcp_source(mode)
+                source = (tcp_connect_stall() if mode == "connect-stall"
+                          else tcp_source(mode, hold_tls_peer_observer=hold_tls_peer_observer))
                 original_connect = socket.socket.connect
                 original_connect_ex = socket.socket.connect_ex
+                original_collect_source = worker_tasks.collect_source
+                original_log_context = worker_tasks._resolve_application_log_context
+                original_connect_tcp = http_transport._Backend.connect_tcp
+                original_start_tls = http_transport._Stream.start_tls
+                transport_entered = threading.Event()
+                connect_exited = threading.Event()
+                connect_exit = {}
+                tls_entered = threading.Event()
+                tls_entry = {}
+                tls_exited = threading.Event()
+                tls_exit = {}
+
+                def delayed_collect_source(*args, **kwargs):
+                    try:
+                        if setup_delay:
+                            time.sleep(setup_delay)
+                        return original_collect_source(*args, **kwargs)
+                    except Exception as failure:
+                        if retryable_failure_after_transport:
+                            self.assertTrue(tls_exited.is_set(),
+                                            "Retryable adapter error preceded TLS transport exit")
+                            raise SourceError("SOURCE_NETWORK_ERROR", retry_seconds=120) from failure
+                        raise
+                    finally:
+                        # Model a loaded shard delaying worker bookkeeping only
+                        # after the transport has already honored its deadline.
+                        # Production must reassert deadline authority before it
+                        # classifies any earlier adapter error for retry.
+                        if unwind_delay:
+                            time.sleep(unwind_delay)
+
+                def delayed_log_context(*args, **kwargs):
+                    if log_context_delay:
+                        time.sleep(log_context_delay)
+                    return original_log_context(*args, **kwargs)
+
+                def observe_connect_tcp(backend, *args, **kwargs):
+                    transport_entered.set()
+                    try:
+                        return original_connect_tcp(backend, *args, **kwargs)
+                    finally:
+                        connecting = socket_state.get("connecting_socket")
+                        connect_exit["at"] = time.monotonic()
+                        connect_exit["fileno"] = (connecting.fileno()
+                                                  if connecting is not None else None)
+                        connect_exited.set()
+
+                def observe_start_tls(stream, *args, **kwargs):
+                    tls_entry["at"] = time.monotonic()
+                    tls_entered.set()
+                    try:
+                        return original_start_tls(stream, *args, **kwargs)
+                    finally:
+                        tls_exit["at"] = time.monotonic()
+                        tls_exit["fileno"] = stream.connection.fileno()
+                        tls_exited.set()
 
                 def observe_connect(connection, address):
                     if mode == "connect-stall" and address[:2] == socket_state["address"]:
@@ -219,6 +297,13 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
                 }), patch("socket.socket.connect", new=observe_connect), patch(
                         "socket.socket.connect_ex", new=observe_connect_ex), patch(
+                        "workers.tasks.collect_source", new=delayed_collect_source), patch(
+                        "workers.tasks._resolve_application_log_context",
+                        new=delayed_log_context), patch(
+                        "services.discovery.sources.http_transport._Backend.connect_tcp",
+                        new=observe_connect_tcp), patch(
+                        "services.discovery.sources.http_transport._Stream.start_tls",
+                        new=observe_start_tls), patch(
                         "services.discovery.sources.remotive.API_URL", endpoint), patch(
                         "workers.tasks.timeout", return_value=worker_budget):
                     with TestClient(create_app(store, "http://127.0.0.1:1", root,
@@ -237,6 +322,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
 
                         def execute():
                             try:
+                                if worker_entry_delay:
+                                    time.sleep(worker_entry_delay)
                                 outcome.append(execute_operation(identifier))
                             except BaseException as error:
                                 errors.append(error)
@@ -245,8 +332,25 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         worker = threading.Thread(target=execute, name="mjobs-owned-source-worker", daemon=True)
                         worker.start()
                         try:
-                            self.assertTrue(engaged.wait(3 if mode == "positive-hostname" else 1),
-                                            "Worker did not reach real loopback TCP server")
+                            transport_elapsed = None
+                            if mode == "connect-stall":
+                                self.assertTrue(transport_entered.wait(3),
+                                                "Worker did not reach source HTTP transport")
+                            if mode == "tls-stall" and not cancel:
+                                self.assertTrue(tls_entered.wait(3),
+                                                "Worker did not reach TLS transport after fixture setup")
+                                tls_deadline_end = tls_entry["at"] + 1.1
+                                engagement_wait = max(0, tls_deadline_end - time.monotonic())
+                                self.assertTrue(engaged.wait(engagement_wait),
+                                                f"Real loopback TLS operation did not engage within "
+                                                f"the transport deadline; entry={tls_entry}")
+                                engagement_elapsed = socket_state["engaged_at"] - tls_entry["at"]
+                                self.assertLess(engagement_elapsed, 1.1,
+                                                f"TLS ClientHello engagement exceeded the transport "
+                                                f"deadline: {engagement_elapsed:.3f}s")
+                            else:
+                                self.assertTrue(engaged.wait(3 if mode == "positive-hostname" else 1),
+                                                "Real loopback TCP operation did not engage")
                             if cancel:
                                 if mode == "connect-stall":
                                     connecting = socket_state["connecting_socket"]
@@ -272,9 +376,47 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                 self.assertFalse(worker.is_alive(),
                                                  f"Cancellation ignored during {mode} for {time.monotonic()-requested:.3f}s")
                             else:
-                                worker.join(timeout=3 if mode == "positive-hostname" else 1.1)
+                                if mode == "connect-stall":
+                                    self.assertTrue(connect_exited.wait(1.1),
+                                                    "TCP connect transport ignored the operation deadline")
+                                    transport_elapsed = connect_exit["at"] - started
+                                    self.assertLess(transport_elapsed, 1.1,
+                                                    f"TCP connect transport exceeded the operation deadline: "
+                                                    f"{transport_elapsed:.3f}s; exit={connect_exit}")
+                                    self.assertEqual(connect_exit["fileno"], -1,
+                                                     f"Timed-out TCP connect retained its socket: "
+                                                     f"exit={connect_exit}")
+                                    # Terminal persistence is separately bounded:
+                                    # loaded shards may schedule it after the
+                                    # transport has already closed on deadline.
+                                    worker.join(timeout=3)
+                                elif mode == "tls-stall":
+                                    self.assertTrue(tls_exited.wait(1.1),
+                                                    "TLS transport ignored the operation deadline")
+                                    transport_elapsed = tls_exit["at"] - tls_entry["at"]
+                                    self.assertLess(transport_elapsed, 1.1,
+                                                    "TLS transport exceeded the operation deadline")
+                                    self.assertEqual(tls_exit["fileno"], -1,
+                                                     "Timed-out TLS transport retained its socket")
+                                    # Terminal persistence is separately bounded:
+                                    # loaded shards may schedule it after the
+                                    # transport has already closed on deadline.
+                                    worker.join(timeout=3)
+                                else:
+                                    worker.join(timeout=3 if mode == "positive-hostname" else 1.1)
                                 self.assertFalse(worker.is_alive(),
                                                  f"Operation deadline ignored during {mode} for {time.monotonic()-started:.3f}s")
+                            if mode == "tls-stall":
+                                self.assertTrue(tls_exited.is_set(),
+                                                "TLS transport did not exit before peer observation")
+                                self.assertEqual(tls_exit["fileno"], -1,
+                                                 "Interrupted TLS transport retained its socket")
+                                self.assertTrue(socket_state["peer_observation_handoff"].is_set(),
+                                                "TLS fixture did not hand off peer observation")
+                                self.assertTrue(peer_closed_within(
+                                    socket_state["connection"], .3),
+                                    "Owned TLS connection remained alive after interruption")
+                                socket_state["peer_closed"].set()
                             settled_elapsed = time.monotonic() - (requested if cancel else started)
                             self.assertEqual(errors, [])
                             self.assertEqual(len(outcome), 1)
@@ -299,13 +441,15 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             if "connecting_socket" in socket_state:
                                 self.assertEqual(socket_state["connecting_socket"].fileno(), -1)
                             if mode == "tls-stall":
-                                self.assertTrue(socket_state["peer_closed"].wait(.3),
-                                                "Owned TLS connection remained alive after interruption")
+                                self.assertTrue(socket_state["peer_closed"].is_set(),
+                                                "TLS peer-close observation was not retained")
                             if mode == "body-drip":
                                 self.assertTrue(socket_state["peer_closed"].wait(.3),
                                                 "Remotive body response remained open after worker deadline")
                             print(f"OWNED_SOURCE_BUDGET mode={mode} cancel={cancel} "
-                                  f"latency={settled_elapsed:.3f}s")
+                                  f"latency={settled_elapsed:.3f}s"
+                                  + (f" transport={transport_elapsed:.3f}s"
+                                     if transport_elapsed is not None else ""))
                             self.assertLess(socket_state["bytes"], 65536)
                             with store.engine.connect() as connection:
                                 source = connection.execute(select(m.job_sources).where(
@@ -339,26 +483,31 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
     def test_worker_deadline_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
-                self.run_source(mode)
+                self.run_source(mode, log_context_delay=.8 if mode == "header-drip" else 0)
 
     def test_public_cancel_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
-                self.run_source(mode, cancel=True)
+                self.run_source(mode, cancel=True, log_context_delay=.8 if mode == "body-drip" else 0)
 
     def test_public_cancel_during_real_tcp_connect_stall(self):
         # Valid production operation budget; the source's minimum supported
         # two-second connect timeout must not become the cancellation latency.
         self.run_source("connect-stall", cancel=True, worker_budget=30)
 
+    def test_connect_stall_oracle_starts_after_worker_setup(self):
+        self.run_source("connect-stall", cancel=True, worker_budget=30, setup_delay=1.1)
+
     def test_worker_deadline_during_real_tcp_connect_stall(self):
-        self.run_source("connect-stall")
+        self.run_source("connect-stall", unwind_delay=.8)
 
     def test_public_cancel_during_real_tls_handshake_stall(self):
         self.run_source("tls-stall", cancel=True, worker_budget=30)
 
     def test_worker_deadline_during_real_tls_handshake_stall(self):
-        self.run_source("tls-stall")
+        self.run_source("tls-stall", unwind_delay=.8, worker_entry_delay=1.1,
+                        retryable_failure_after_transport=True,
+                        hold_tls_peer_observer=True)
 
     def test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads(self):
         class Cancelled(Exception):

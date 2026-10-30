@@ -1,6 +1,6 @@
 # Maintainer reference: `services/discovery/matching.py`
 
-- **Current main source commit:** `b73750e37c487a008dfdd2277440a2559d98ecf4`
+- **Current main source commit:** `dec30c341f96fcb719458e6ecacb172904d93976`
 - **Source path:** `services/discovery/matching.py`
 - **Full source blob SHA:** `db2699e8e595e8ee4258d3590601850e903187d4`
 - **Outcome:** `documented`
@@ -210,7 +210,7 @@ Source: the `recalculate` definition in `services/discovery/matching.py`. The fu
 
 Optional zero-argument cancellation/authorization callback; defaults to a no-op. It is called once immediately before scoring each selected job (the `recalculate` definition in `services/discovery/matching.py`). Exceptions propagate and abort the surrounding transaction. If the candidate set is empty, this function does not call `check` because the call is inside the job loop.
 
-Worker callers pass their operation lifecycle check for collection, rescore-only, and selected-search workflows (`workers/tasks.py:320-369`).
+Worker callers pass their operation lifecycle check for collection, rescore-only, and selected-search workflows (`workers/tasks.py:338-374`).
 
 #### `candidate_job_ids`
 

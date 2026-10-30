@@ -1,14 +1,14 @@
 # Maintainer reference: runtime health probes
 
 **Source:** `services/runtime_health.py`
-**Current main source commit:** `b73750e37c487a008dfdd2277440a2559d98ecf4`
+**Current main source commit:** `dec30c341f96fcb719458e6ecacb172904d93976`
 **Source blob:** `7401dd076ab0de154ebfa0e65a6b7707bc07a284`
 
 ## What this module reports
 
 This module provides three related but distinct observations: `scheduler_health_probe` checks one Redis scheduler-success heartbeat; `worker_health_probe` checks one named queue and this container’s worker; `read_runtime_health` builds the aggregate readiness mapping for every queue in `REQUIRED_QUEUES` (`services/runtime_health.py:16–24, 105–166`; the `read_runtime_health` definition in that module). The module CLI selects the scheduler probe or the worker/container probe (`services/runtime_health.py:169–200`). It is a health/readiness signal, not proof of job completion, durable business outcome, or host restart.
 
-`services/runtime_health.py` imports `QUEUES` from `workers.operations` (`services/runtime_health.py:16`); the operation-to-queue mapping is defined in `workers/operations.py:17–22`. `REQUIRED_QUEUES` is the sorted unique set of those values (`services/runtime_health.py:24`), so callers should not hard-code a separate queue list. Aggregate output has the shape `{"scheduler": bool, "workers": {queue_name: bool, ...}}` (the `read_runtime_health` definition in `services/runtime_health.py`).
+`services/runtime_health.py` imports `QUEUES` from `workers.operations` (`services/runtime_health.py:16`); the operation-to-queue mapping is defined in `workers/operations.py:18–23`. `REQUIRED_QUEUES` is the sorted unique set of those values (`services/runtime_health.py:24`), so callers should not hard-code a separate queue list. Aggregate output has the shape `{"scheduler": bool, "workers": {queue_name: bool, ...}}` (the `read_runtime_health` definition in `services/runtime_health.py`).
 
 ## Scheduler heartbeat contract
 
@@ -47,4 +47,4 @@ Safe local usage is to let the configured Compose healthcheck invoke these comma
 
 `docs/TROUBLESHOOTING.md` warns that a running container is not proof of a fresh worker heartbeat and links the readiness endpoint/runtime-health module (`docs/TROUBLESHOOTING.md:40–54`). `docs/ARCHITECTURE.md` describes runtime health at a high level (`docs/ARCHITECTURE.md:257–263`). These are useful operational pointers but do not explain the three probe contracts, heartbeat TTL/format, CLI environment and exit behavior, or the aggregate-vs-container-local distinction. Therefore this reference records a specific maintainer-documentation gap rather than duplicating those broader procedures.
 
-Source and cited-document references were revalidated against current main `b73750e37c487a008dfdd2277440a2559d98ecf4`. This reference does not establish runtime behavior or test acceptance.
+Source and cited-document references were revalidated against current main `dec30c341f96fcb719458e6ecacb172904d93976`. This reference does not establish runtime behavior or test acceptance.

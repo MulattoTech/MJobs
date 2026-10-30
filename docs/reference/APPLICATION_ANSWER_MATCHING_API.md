@@ -1,12 +1,12 @@
 # Maintainer reference: application answer matching API
 
 **Source:** apps/api/application_answer_matching.py
-**Current main source commit:** b73750e37c487a008dfdd2277440a2559d98ecf4
+**Current main source commit:** dec30c341f96fcb719458e6ecacb172904d93976
 **Source blob:** 6264f8debd5ac44fd1aba12c1c71931febc2526f
 
 ## Purpose and route
 
-create_application_answer_matching_router(store) builds a FastAPI router over the supplied local persistence store. The application mounts it in `apps/api/main.py:816–817`. Its route is:
+create_application_answer_matching_router(store) builds a FastAPI router over the supplied local persistence store. The application mounts it in `apps/api/main.py:829–830`. Its route is:
 
     POST /profiles/{profile_id}/applications/{application_id}/answers/match
 

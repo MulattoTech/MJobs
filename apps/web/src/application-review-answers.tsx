@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ApplicationAnswerReview = {
+  profile_id:string;
+  application_id:string;
   profile_version:string;
+  form_fingerprint:string;
   company?:string;
   job_title?:string;
-  question:{question_id:string;text:string;reason:string;sensitive?:boolean;supported?:boolean;unsupported_reason?:string};
+  question:{question_id:string;fingerprint:string;text:string;reason:string;sensitive?:boolean;supported?:boolean;unsupported_reason?:string};
   answer_bank:ReviewedAnswer[];
 };
 
@@ -24,10 +27,89 @@ export type AnswerSaveReadback = {
   external_submission:'OFF';
 };
 
+export type AnswerResumeValidation = {
+  request_id:string;
+  profile_id:string;
+  application_id:string;
+  question_id:string;
+  question_fingerprint:string;
+  form_fingerprint:string;
+  profile_version:string;
+  external_submission:'OFF';
+  answer:ReviewedAnswer;
+  preflight:{result:'PASS'|'FAIL'|'UNKNOWN';is_current:boolean};
+};
+
 export type ApplicationAnswerReviewClient = {
   load:(profileId:string,applicationId:string,questionId:string)=>Promise<ApplicationAnswerReview>;
   saveToAnswerBank:(profileId:string,applicationId:string,input:{question_id:string;question:string;text:string;save_to_answer_bank:true;reviewed:true;expected_profile_version:string},operationId:string)=>Promise<AnswerSaveReadback>;
+  resumeAndValidate:(profileId:string,applicationId:string,input:{request_id:string;question_id:string;question_fingerprint:string;form_fingerprint:string;answer_id:string;expected_profile_version:string})=>Promise<AnswerResumeValidation>;
 };
+
+type ResumeClient = Pick<ApplicationAnswerReviewClient,'resumeAndValidate'>;
+
+function resumeEndpoint(profileId:string,applicationId:string):string {
+  return `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/answer-review-resumes`;
+}
+
+async function resumeResponseValue(response:Response):Promise<unknown> {
+  let value:unknown=null;
+  try { value=await response.json(); } catch { /* handled below */ }
+  if(!response.ok) {
+    const detail=value&&typeof value==='object'&&'detail' in value
+      ? (value as {detail?:unknown}).detail:null;
+    const code=detail&&typeof detail==='object'&&'code' in detail
+      ? String((detail as {code?:unknown}).code):`HTTP_${response.status}`;
+    throw Object.assign(new Error(code),{code,status:response.status});
+  }
+  return value;
+}
+
+function decodeResumeValidation(value:unknown):AnswerResumeValidation {
+  if(!value||typeof value!=='object')throw new Error('The resumed application returned an invalid validation result.');
+  const result=value as Partial<AnswerResumeValidation>;
+  const answer=result.answer as Partial<ReviewedAnswer>|undefined;
+  const preflight=result.preflight as Partial<AnswerResumeValidation['preflight']>|undefined;
+  const valid=typeof result.request_id==='string'&&!!result.request_id
+    &&typeof result.profile_id==='string'&&!!result.profile_id
+    &&typeof result.application_id==='string'&&!!result.application_id
+    &&typeof result.question_id==='string'&&!!result.question_id
+    &&typeof result.question_fingerprint==='string'&&!!result.question_fingerprint
+    &&typeof result.form_fingerprint==='string'&&!!result.form_fingerprint
+    &&typeof result.profile_version==='string'&&!!result.profile_version
+    &&result.external_submission==='OFF'
+    &&!!answer&&typeof answer.id==='string'&&!!answer.id
+    &&typeof answer.question==='string'&&typeof answer.text==='string'
+    &&answer.user_approved===true&&typeof answer.verified==='boolean'
+    &&typeof answer.confidence==='number'
+    &&!!preflight&&(preflight.result==='PASS'||preflight.result==='FAIL'||preflight.result==='UNKNOWN')
+    &&typeof preflight.is_current==='boolean';
+  if(!valid)throw new Error('The resumed application returned an invalid validation result.');
+  return value as AnswerResumeValidation;
+}
+
+export function createApplicationAnswerResumeClient(
+  request:typeof fetch=fetch,
+  wait:(milliseconds:number)=>Promise<void>=(milliseconds)=>new Promise(resolve=>setTimeout(resolve,milliseconds)),
+  maxPolls=600,
+):ResumeClient {
+  return {resumeAndValidate:async(profileId,applicationId,input)=>{
+    const endpoint=resumeEndpoint(profileId,applicationId);
+    await resumeResponseValue(await request(endpoint,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),
+    }));
+    for(let poll=0;poll<maxPolls;poll+=1) {
+      await wait(100);
+      const response=await request(`${endpoint}/${encodeURIComponent(input.request_id)}`,{method:'GET'});
+      if(response.status===202) {
+        await resumeResponseValue(response);
+        continue;
+      }
+      return decodeResumeValidation(await resumeResponseValue(response));
+    }
+    throw new Error('The resumed application did not complete fresh validation.');
+  }};
+}
 
 function normalize(value:string):string {
   return value.trim().replace(/\s+/g,' ');
@@ -44,6 +126,17 @@ function errorMessage(error:unknown):string {
   return 'The answer could not be saved. Your text is still here; retry when ready.';
 }
 
+export function hasBoundReviewScope(
+  review:ApplicationAnswerReview,profileId:string,applicationId:string,questionId:string,
+):boolean {
+  return review.profile_id===profileId
+    &&review.application_id===applicationId
+    &&review.question.question_id===questionId
+    &&typeof review.profile_version==='string'&&!!review.profile_version.trim()
+    &&typeof review.form_fingerprint==='string'&&!!review.form_fingerprint.trim()
+    &&typeof review.question.fingerprint==='string'&&!!review.question.fingerprint.trim();
+}
+
 export function hasExactReviewedAnswerReadback(review:ApplicationAnswerReview,readback:AnswerSaveReadback,text:string):boolean {
   const answer=readback.answer;
   return readback.external_submission==='OFF'
@@ -51,6 +144,60 @@ export function hasExactReviewedAnswerReadback(review:ApplicationAnswerReview,re
     &&answer.user_approved===true&&!!answer.id
     &&normalize(answer.question)===normalize(review.question.text)
     &&normalize(answer.text)===normalize(text);
+}
+
+export async function resumeAndRevalidateAnswer(
+  client:ResumeClient,
+  profileId:string,
+  applicationId:string,
+  review:ApplicationAnswerReview,
+  saved:AnswerSaveReadback,
+  requestId:string,
+):Promise<ReviewedAnswer> {
+  if(!hasBoundReviewScope(review,profileId,applicationId,review.question.question_id))
+    throw new Error('Continue requires an exact application and question review binding. Reload before continuing.');
+  if(!hasExactReviewedAnswerReadback(review,saved,saved.answer.text))
+    throw new Error('Continue requires an exact approved saved answer. Save and read it back again.');
+  const result=await client.resumeAndValidate(profileId,applicationId,{
+    request_id:requestId,
+    question_id:review.question.question_id,
+    question_fingerprint:review.question.fingerprint,
+    form_fingerprint:review.form_fingerprint,
+    answer_id:saved.answer.id,
+    expected_profile_version:saved.profile_version,
+  });
+  const exact=result.request_id===requestId
+    &&result.profile_id===profileId
+    &&result.application_id===applicationId
+    &&result.question_id===review.question.question_id
+    &&result.question_fingerprint===review.question.fingerprint
+    &&result.form_fingerprint===review.form_fingerprint
+    &&result.profile_version===saved.profile_version
+    &&result.external_submission==='OFF'
+    &&result.preflight.result==='PASS'
+    &&result.preflight.is_current===true
+    &&result.answer.id===saved.answer.id
+    &&result.answer.user_approved===true
+    &&normalize(result.answer.question)===normalize(review.question.text)
+    &&normalize(result.answer.text)===normalize(saved.answer.text);
+  if(!exact)
+    throw new Error('Continue was blocked because fresh application validation did not match the approved answer and current form.');
+  return result.answer;
+}
+
+export async function continueAfterFreshValidation(
+  client:ApplicationAnswerReviewClient,
+  profileId:string,
+  applicationId:string,
+  review:ApplicationAnswerReview,
+  saved:AnswerSaveReadback,
+  requestId:string,
+  onContinue:(answer:ReviewedAnswer)=>void,
+):Promise<void> {
+  const answer=await resumeAndRevalidateAnswer(
+    client,profileId,applicationId,review,saved,requestId,
+  );
+  onContinue(answer);
 }
 
 export async function saveAndReadBackAnswer(
@@ -61,17 +208,22 @@ export async function saveAndReadBackAnswer(
   text:string,
   operationId:string,
   reviewed=true,
-):Promise<ReviewedAnswer> {
+):Promise<AnswerSaveReadback> {
+  if(!hasBoundReviewScope(review,profileId,applicationId,review.question.question_id))
+    throw new Error('Save requires an exact application and question review binding. Reload before saving.');
   if(!normalize(text))throw new Error('Enter an answer before saving it to the Answer Bank.');
   if(!reviewed)throw new Error('Review this answer before saving it to the Answer Bank.');
   if(review.question.sensitive)throw new Error('This sensitive question needs a separate review and cannot be saved to the Answer Bank here.');
   if(review.question.supported!==true)throw new Error('This question type is unsupported by this review path.');
   const current=await client.load(profileId,applicationId,review.question.question_id);
-  if(current.question.question_id!==review.question.question_id)
+  if(!hasBoundReviewScope(current,profileId,applicationId,review.question.question_id)
+      ||current.form_fingerprint!==review.form_fingerprint
+      ||current.question.fingerprint!==review.question.fingerprint
+      ||normalize(current.question.text)!==normalize(review.question.text))
     throw Object.assign(new Error('The selected required question changed while this answer was being reviewed.'),{code:'STALE_VERSION'});
   const existing=current.answer_bank.find(answer=>!!answer.id&&answer.user_approved===true
     &&normalize(answer.question)===normalize(review.question.text)&&normalize(answer.text)===normalize(text));
-  if(existing)return existing;
+  if(existing)return {answer:existing,profile_version:current.profile_version,external_submission:'OFF'};
   if(current.profile_version!==review.profile_version)
     throw Object.assign(new Error('The profile changed while this answer was being reviewed.'),{code:'STALE_VERSION'});
   const result=await client.saveToAnswerBank(profileId,applicationId,{
@@ -85,7 +237,7 @@ export async function saveAndReadBackAnswer(
     &&normalize(answer.question)===normalize(review.question.text)&&normalize(answer.text)===normalize(text));
   if(persisted.profile_version!==result.profile_version||!exact)
     throw new Error('The saved answer was not confirmed by the durable Answer Bank readback. Retry to check the saved version.');
-  return exact;
+  return {...result,answer:exact};
 }
 
 export function ApplicationReviewAnswersView({
@@ -140,7 +292,7 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
   const [review,setReview]=useState<ApplicationAnswerReview|null>(null);
   const [draftText,setDraftText]=useState('');
   const [reviewed,setReviewed]=useState(false);
-  const [savedAnswer,setSavedAnswer]=useState<ReviewedAnswer|null>(null);
+  const [savedReadback,setSavedReadback]=useState<AnswerSaveReadback|null>(null);
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
   const [loadError,setLoadError]=useState('');
@@ -152,11 +304,11 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
 
   const loadReview=useCallback(async(preserveDraft=false)=>{
     const current=++sequence.current;
-    setLoading(true);setBusy(false);setLoadError('');setSaveError('');setReview(null);setSavedAnswer(null);if(!preserveDraft){setDraftText('');operationId.current='';}setReviewed(false);
+    setLoading(true);setBusy(false);setLoadError('');setSaveError('');setReview(null);setSavedReadback(null);if(!preserveDraft){setDraftText('');operationId.current='';}setReviewed(false);
     try{
       const result=await clientRef.current.load(profileId,applicationId,questionId);
       if(current!==sequence.current)return;
-      if(result.question.question_id!==questionId||!result.profile_version||!Array.isArray(result.answer_bank))
+      if(!hasBoundReviewScope(result,profileId,applicationId,questionId)||!Array.isArray(result.answer_bank))
         throw new Error('The saved review does not match the selected profile, application, question, or version. Reload before continuing.');
       setReview(result);
     }catch(error){if(current===sequence.current)setLoadError(errorMessage(error));}
@@ -166,17 +318,17 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
   useEffect(()=>{void loadReview();return()=>{sequence.current+=1;};},[loadReview]);
 
   function updateDraft(value:string) {
-    setDraftText(value);setReviewed(false);setSavedAnswer(null);setSaveError('');operationId.current='';
+    setDraftText(value);setReviewed(false);setSavedReadback(null);setSaveError('');operationId.current='';
   }
 
   async function save() {
     if(!review||!normalize(draftText)||!reviewed||busy)return;
     const saveSequence=sequence.current;
     if(!operationId.current)operationId.current=globalThis.crypto?.randomUUID?.()||`answer-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    setBusy(true);setSaveError('');setSavedAnswer(null);
+    setBusy(true);setSaveError('');setSavedReadback(null);
     try{
       const result=await saveAndReadBackAnswer(clientRef.current,profileId,applicationId,review,draftText,operationId.current,reviewed);
-      if(saveSequence===sequence.current)setSavedAnswer(result);
+      if(saveSequence===sequence.current)setSavedReadback(result);
     }catch(error){
       if(saveSequence!==sequence.current)return;
       const code=errorCode(error);
@@ -186,11 +338,24 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
     }finally{if(saveSequence===sequence.current)setBusy(false);}
   }
 
+  async function continueReview() {
+    if(!review||!savedReadback||busy)return;
+    const continueSequence=sequence.current;
+    const requestId=globalThis.crypto?.randomUUID?.()||`resume-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    setBusy(true);setSaveError('');
+    try{
+      await continueAfterFreshValidation(
+        clientRef.current,profileId,applicationId,review,savedReadback,requestId,onContinue,
+      );
+    }catch(error){
+      if(continueSequence===sequence.current)setSaveError(errorMessage(error));
+    }finally{if(continueSequence===sequence.current)setBusy(false);}
+  }
+
   if(loading)return <section className="panel" aria-label="Application review answer editor"><p role="status">Loading the selected required question…</p></section>;
   if(loadError||!review)return <section className="panel" aria-label="Application review answer editor"><h2>Application question review</h2><p role="alert">{loadError||'The selected question is unavailable.'}</p><button type="button" onClick={()=>void loadReview()}>Retry loading question</button></section>;
-  return <ApplicationReviewAnswersView review={review} draftText={draftText} reviewed={reviewed} busy={busy} savedAnswer={savedAnswer}
+  return <ApplicationReviewAnswersView review={review} draftText={draftText} reviewed={reviewed} busy={busy} savedAnswer={savedReadback?.answer||null}
     error={saveError} onDraftChange={updateDraft} onReviewedChange={setReviewed} onSave={()=>void save()}
-    onContinue={()=>{if(!savedAnswer?.id||review.question.sensitive||!savedAnswer.user_approved||normalize(savedAnswer.question)!==normalize(review.question.text)||normalize(savedAnswer.text)!==normalize(draftText))return;
-      onContinue(savedAnswer);}}
+    onContinue={()=>void continueReview()}
     onRetry={()=>void loadReview(true)} />;
 }
