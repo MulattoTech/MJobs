@@ -205,6 +205,10 @@ class PublicCITests(unittest.TestCase):
             'command_early_exit': ('      - run: |\n'
                                    '          command exit 0\n'
                                    f'          {marker}\n'),
+            'stateful_expansion_early_exit': ('      - run: |\n'
+                                              '          x=exit\n'
+                                              '          $x 0\n'
+                                              f'          {marker}\n'),
         }
         for kind, replacement in decoys.items():
             with self.subTest(kind=kind):
@@ -264,6 +268,8 @@ class PublicCITests(unittest.TestCase):
              '"build":"npm run typecheck && exit 0 && vite build"'),
             ('frontend build', '"build":"npm run typecheck && vite build"',
              '"build":"npm run typecheck && CI=1 exit 0 && vite build"'),
+            ('frontend build', '"build":"npm run typecheck && vite build"',
+             '"build":"npm run typecheck && x=exit && $x 0 && vite build"'),
             ('frontend type check', '"typecheck":"tsc --noEmit"',
              '"typecheck":"tsc --noEmit || true"'),
         )

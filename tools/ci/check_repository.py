@@ -107,7 +107,7 @@ def _effective_shell_command(tokens: tuple[str, ...]) -> str | None:
     while index < len(tokens) and _SHELL_ASSIGNMENT.fullmatch(tokens[index]):
         index += 1
     if index == len(tokens):
-        return None
+        return ''
     while tokens[index] in _SHELL_DISPATCH_PREFIXES:
         index += 1
         if index == len(tokens):
@@ -118,7 +118,10 @@ def _effective_shell_command(tokens: tuple[str, ...]) -> str | None:
             index += 1
         if index == len(tokens):
             return ''
-    return tokens[index]
+    command = tokens[index]
+    if '$' in command or '`' in command:
+        return ''
+    return command
 
 
 def _straight_line_run_commands(script: str) -> tuple[str, ...]:
