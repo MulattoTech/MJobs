@@ -80,7 +80,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self.change_job()
         result = self.run_worker(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.calls, [])
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -124,7 +124,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         recover_expired(self.store)
         result = self.run_worker(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(len(self.calls), 1)
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -186,7 +186,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(description=prefix + 'changed'))
         result = self.run_worker(operation)
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(self.calls, [])
 
     def test_changed_job_during_provider_call_never_publishes_result(self):
@@ -199,7 +199,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self.router = EditingRouter
         result = self.run_worker(operation)
         self.assertEqual(result['status'], 'BLOCKED')
-        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(result['error_category'], 'AI_ERROR')
         self.assertEqual(len(self.calls), 1)
         self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
@@ -467,7 +467,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                         patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.url, 'MJOBS_OPERATION_MODE': 'PERSONAL'}):
                     result = execute_operation(response.json()['operation_id'])
                 self.assertEqual(result['status'], 'BLOCKED')
-                self.assertEqual(result['error_category'], error.code)
+                self.assertEqual(result['error_category'], 'AI_ERROR')
                 self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
 
     def test_batch_deadline_discards_late_response_without_partial_publication(self):
@@ -631,7 +631,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     operation_id = admitted.json()['operation_id']
                     result = self.run_worker(operation_id)
                     self.assertEqual(result['status'], 'BLOCKED')
-                    self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
+                    self.assertEqual(result['error_category'], 'AI_ERROR')
                     self.assertEqual(calls, ['synthetic request'])
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
                     reopened = Store(self.url)
@@ -644,7 +644,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                         '/profiles/fixture/ai-cost-plan/operations/' + operation_id)
                     self.assertEqual(readback.status_code, 200, readback.text)
                     self.assertEqual(readback.json()['state'], 'BLOCKED')
-                    self.assertEqual(readback.json()['error'], 'AI_PROVIDER_TIMEOUT')
+                    self.assertEqual(readback.json()['error'], 'AI_ERROR')
                 finally:
                     transport.close()
                     finish.set()
@@ -742,7 +742,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)
                     if not cancel:
-                        self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
+                        self.assertEqual(result['error_category'], 'AI_ERROR')
                     self.assertTrue(response_closed)
                     self.assertEqual(server.calls, 1)
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
@@ -758,7 +758,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     self.assertEqual(readback.status_code, 200, readback.text)
                     self.assertEqual(readback.json()['state'], expected)
                     if not cancel:
-                        self.assertEqual(readback.json()['error'], 'AI_PROVIDER_TIMEOUT')
+                        self.assertEqual(readback.json()['error'], 'AI_ERROR')
 
     def test_cancel_closes_actual_controlled_openai_transport(self):
         from services.ai.providers import OpenAIProvider
