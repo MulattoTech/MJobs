@@ -177,6 +177,68 @@ class OperationRetryTests(unittest.TestCase):
         self.assertEqual(row["retry_count"], 0)
         self.assertIsNone(row["next_attempt_at"])
 
+    def test_deadline_crossed_inside_operation_fence_cannot_schedule_retry(self):
+        identifier = self.enqueue()
+        persistence_window = {"entered": False}
+
+        def monotonic():
+            return 31.0 if persistence_window["entered"] else 0.0
+
+        def enter_persistence_window(*_args, **_kwargs):
+            persistence_window["entered"] = True
+            return False
+
+        with patch("workers.tasks.time.monotonic", side_effect=monotonic), \
+                patch("workers.tasks.timeout", return_value=30), \
+                patch("workers.tasks.collect_source",
+                      side_effect=SourceError("SOURCE_NETWORK_ERROR", retry_seconds=120)), \
+                patch("workers.tasks.company_refresh_saved", side_effect=enter_persistence_window):
+            result = execute_operation(identifier)
+
+        row = self.row(identifier)
+        self.assertTrue(persistence_window["entered"])
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        self.assertEqual((row["state"], row["error"]),
+                         ("DEAD_LETTERED", "OPERATION_TIMEOUT"))
+        self.assertEqual(row["retry_count"], 0)
+        self.assertIsNone(row["next_attempt_at"])
+
+    def test_invalid_timeout_configuration_finalizes_claimed_operation(self):
+        identifier = self.enqueue()
+
+        with patch("workers.operations.timeout", return_value=180), \
+                patch.dict(os.environ, {"MJOBS_OPERATION_TIMEOUT": "not-an-integer"}):
+            result = execute_operation(identifier)
+
+        row = self.row(identifier)
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        self.assertEqual((row["state"], row["error"]), ("DEAD_LETTERED", "ValueError"))
+        self.assertEqual(row["attempt_count"], 1)
+        self.assertIsNotNone(row["completed_at"])
+        self.assertIsNone(row["lease_expires_at"])
+
+    def test_apply_mock_failure_ignores_concurrent_cancel_for_retry_precedence(self):
+        identifier = enqueue_operation(
+            self.store, "APPLY_MOCK", "synthetic-application", {"submit": True})
+
+        def fail_after_cancel(*_args, **_kwargs):
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == identifier).values(cancel_requested=True))
+            raise RuntimeError("synthetic post-submission failure")
+
+        with patch("workers.tasks.validate_run_operation"), \
+                patch("workers.tasks.validate_resume_binding"), \
+                patch("workers.tasks.apply_mock", side_effect=fail_after_cancel):
+            result = execute_operation(identifier)
+
+        row = self.row(identifier)
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        self.assertEqual((row["state"], row["error"]), ("DEAD_LETTERED", "RuntimeError"))
+        self.assertTrue(row["cancel_requested"])
+        self.assertEqual(row["retry_count"], 0)
+        self.assertIsNone(row["next_attempt_at"])
+
     def test_nontransient_failures_never_schedule_automatic_retry(self):
         for code in ("AUTH_REQUIRED", "CAPTCHA_REQUIRED", "JOB_CLOSED",
                      "UNKNOWN_MANDATORY_QUESTION", "SUBMISSION_UNCONFIRMED", "SOURCE_HTTP_403"):
