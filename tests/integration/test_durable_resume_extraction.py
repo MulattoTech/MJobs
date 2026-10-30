@@ -88,6 +88,21 @@ class DurableResumeExtractionTests(unittest.TestCase):
         progress = self.client.get(f"/profiles/{self.profile_id}/operations/progress").json()["operations"]
         self.assertIn(first_payload["operation_id"], {row["operation_id"] for row in progress})
 
+    def test_direct_creator_rejects_registry_drift_before_input_normalization(self):
+        from packages.domain import operation_types
+        from services.career_profile import durable_extraction
+
+        class UnreadableRecord:
+            def get(self, _key):
+                raise AssertionError("resume record was read before operation-type validation")
+
+        registered = operation_types.OPERATION_TYPES - {durable_extraction.OPERATION_KIND}
+        with patch.object(operation_types, "OPERATION_TYPES", registered):
+            with self.assertRaisesRegex(ValueError, "^OPERATION_TYPE_INVALID$"):
+                durable_extraction.queue_extraction(
+                    self.store, self.profile_id, UnreadableRecord(), self.request_id)
+        self.assertEqual(self.store.count("worker_operations"), 0)
+
     def test_unknown_insert_rowcount_preserves_actual_replay_identity(self):
         from sqlalchemy import event
         def unknown_count(connection, clause, multiparams, params, options, result):

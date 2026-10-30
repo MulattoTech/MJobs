@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from sqlalchemy import func, or_, select, text, update
 
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import now, identity
 from services.audit_history import record_application_preparation_event
@@ -154,7 +155,12 @@ def _application_browser_busy(connection, category, kind, entity_id):
 
 def claim(store, operation_id):
     with store.engine.begin() as connection:
-        kind = connection.execute(select(m.operations.c.kind).where(m.operations.c.id == operation_id)).scalar_one()
+        initial = connection.execute(select(m.operations).where(
+            m.operations.c.id == operation_id)).mappings().one()
+        if terminalize_invalid_operation_type(
+                store, connection, initial, OPERATION_CATEGORIES):
+            return None
+        kind = initial["kind"]
         category = OPERATION_CATEGORIES[kind]
         _lock(connection, category)
         _expire_inline(connection, now())
@@ -196,6 +202,7 @@ def claim(store, operation_id):
 
 def admit_inline(store, kind, entity_id, *, owner_token=None, manual_auth_identity=None):
     """Reserve a bounded operation that executes in the API process, not RQ."""
+    validate_operation_type(kind)
     if kind not in INLINE_KINDS or kind in QUEUES:
         raise ValueError("Unsupported inline operation kind")
     recovery_metadata = {}
@@ -236,6 +243,39 @@ def admit_inline(store, kind, entity_id, *, owner_token=None, manual_auth_identi
                               + timedelta(seconds=timeout() + 30)).isoformat(),
         ))
     return operation_id
+
+
+def terminalize_invalid_operation_type(store, connection, row, executable_types):
+    """Durably dead-letter a persisted type this boundary cannot execute."""
+    try:
+        validate_operation_type(row["kind"])
+    except ValueError:
+        pass
+    else:
+        if row["kind"] in executable_types:
+            return False
+    timestamp = now()
+    changed = connection.execute(update(m.operations).where(
+        m.operations.c.id == row["id"],
+        m.operations.c.state.in_(("QUEUED", "RUNNING")),
+    ).values(
+        state="DEAD_LETTERED",
+        error="OPERATION_TYPE_INVALID",
+        updated_at=timestamp,
+        current_step="FINALIZING",
+        completed_at=timestamp,
+        dead_lettered_at=timestamp,
+        lease_expires_at=None,
+        next_attempt_at=None,
+        recovery_metadata={"action": "MANUAL_REVIEW"},
+    ))
+    if changed.rowcount == 1:
+        store._audit(connection, row["id"], "OPERATION_DEAD_LETTERED", {
+            "state": "DEAD_LETTERED",
+            "error": "OPERATION_TYPE_INVALID",
+            "attempt_count": int(row["attempt_count"]),
+        })
+    return True
 
 
 def record_manual_auth_process(store, operation_id, identity, *, owner_token):

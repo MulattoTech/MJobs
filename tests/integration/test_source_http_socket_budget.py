@@ -454,7 +454,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
     def test_worker_deadline_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
-                self.run_source(mode)
+                self.run_source(mode, log_context_delay=.8 if mode == "header-drip" else 0)
 
     def test_public_cancel_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
