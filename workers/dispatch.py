@@ -115,7 +115,7 @@ def dispatch_pending(store, redis_url, *, registry_module=None):
             rows = _pending_operations(connection)
             count = 0
             for row in rows:
-                if terminalize_invalid_operation_type(store, connection, row):
+                if terminalize_invalid_operation_type(store, connection, row, QUEUES):
                     continue
                 try:
                     job = Job.fetch(row["id"], connection=redis)

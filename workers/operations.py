@@ -157,7 +157,8 @@ def claim(store, operation_id):
     with store.engine.begin() as connection:
         initial = connection.execute(select(m.operations).where(
             m.operations.c.id == operation_id)).mappings().one()
-        if terminalize_invalid_operation_type(store, connection, initial):
+        if terminalize_invalid_operation_type(
+                store, connection, initial, OPERATION_CATEGORIES):
             return None
         kind = initial["kind"]
         category = OPERATION_CATEGORIES[kind]
@@ -244,13 +245,15 @@ def admit_inline(store, kind, entity_id, *, owner_token=None, manual_auth_identi
     return operation_id
 
 
-def terminalize_invalid_operation_type(store, connection, row):
-    """Durably dead-letter an invalid persisted type before handler lookup."""
+def terminalize_invalid_operation_type(store, connection, row, executable_types):
+    """Durably dead-letter a persisted type this boundary cannot execute."""
     try:
         validate_operation_type(row["kind"])
-        return False
     except ValueError:
         pass
+    else:
+        if row["kind"] in executable_types:
+            return False
     timestamp = now()
     changed = connection.execute(update(m.operations).where(
         m.operations.c.id == row["id"],

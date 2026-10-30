@@ -92,6 +92,33 @@ class OperationProgressLifecycleTests(unittest.TestCase):
         self.assertEqual(row['recovery_metadata'], {'action': 'MANUAL_REVIEW'})
         self.assertEqual(action, 'OPERATION_DEAD_LETTERED')
 
+    def test_claim_dead_letters_a_canonical_type_without_a_runtime_handler(self):
+        operation_id = 'persisted-unhandled-canonical-claim-type'
+        with self.store.engine.begin() as connection:
+            connection.execute(m.operations.insert().values(
+                id=operation_id,
+                kind='SEARCH_SOURCE',
+                entity_id='profile-1',
+                params={},
+                state='QUEUED',
+                error=None,
+                updated_at=now(),
+            ))
+
+        self.assertIsNone(claim(self.store, operation_id))
+
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id)).mappings().one()
+            action = connection.execute(select(m.audit.c.action).where(
+                m.audit.c.entity_id == operation_id)).scalar_one()
+        self.assertEqual(row['state'], 'DEAD_LETTERED')
+        self.assertEqual(row['error'], 'OPERATION_TYPE_INVALID')
+        self.assertEqual(row['current_step'], 'FINALIZING')
+        self.assertIsNotNone(row['completed_at'])
+        self.assertEqual(row['recovery_metadata'], {'action': 'MANUAL_REVIEW'})
+        self.assertEqual(action, 'OPERATION_DEAD_LETTERED')
+
 
 if __name__ == '__main__':
     unittest.main()

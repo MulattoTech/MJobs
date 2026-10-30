@@ -96,6 +96,41 @@ class ApiQueueTests(unittest.TestCase):
         self.assertEqual(row["recovery_metadata"], {"action": "MANUAL_REVIEW"})
         self.assertEqual(action, "OPERATION_DEAD_LETTERED")
 
+    def test_canonical_type_without_queue_handler_is_dead_lettered_before_lookup(self):
+        operation_id = "persisted-unhandled-canonical-dispatch-type"
+        with self.store.engine.begin() as connection:
+            connection.execute(m.operations.insert().values(
+                id=operation_id,
+                kind="SEARCH_SOURCE",
+                entity_id="fixture",
+                params={},
+                state="QUEUED",
+                error=None,
+                updated_at=now(),
+            ))
+        redis = Mock()
+        redis.ping.return_value = True
+        with patch("workers.dispatch.Redis.from_url", return_value=redis), \
+                patch("workers.dispatch.Job.fetch") as fetch, \
+                patch("workers.dispatch.Queue") as queue:
+            self.assertEqual(
+                dispatch_pending(self.store, "redis://synthetic/0"),
+                {"status": "DISPATCHED", "count": 0},
+            )
+        fetch.assert_not_called()
+        queue.assert_not_called()
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id)).mappings().one()
+            action = connection.execute(select(m.audit.c.action).where(
+                m.audit.c.entity_id == operation_id)).scalar_one()
+        self.assertEqual(row["state"], "DEAD_LETTERED")
+        self.assertEqual(row["error"], "OPERATION_TYPE_INVALID")
+        self.assertEqual(row["current_step"], "FINALIZING")
+        self.assertIsNotNone(row["completed_at"])
+        self.assertEqual(row["recovery_metadata"], {"action": "MANUAL_REVIEW"})
+        self.assertEqual(action, "OPERATION_DEAD_LETTERED")
+
     def test_dispatch_serializes_registry_selector_for_real_task_entrypoint(self):
         from rq.exceptions import NoSuchJobError
 
