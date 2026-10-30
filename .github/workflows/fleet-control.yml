@@ -21,16 +21,21 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
+          repository: MulattoTech/Fleet-Control-Hub
+          ref: ae399aaaf6790adb6630a810495216a0014b08d7
+          path: .fleet-source
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
-      - name: Test controls with isolated fixtures and no inference
-        run: node tools/fleet_control/check-fleet.js
+      - name: Verify shared source manifest
+        run: node .fleet-source/scripts/controller-package.js verify mjobs-controller
+      - name: Test shared controls with isolated fixtures and no inference
+        run: node .fleet-source/packages/mjobs-controller/check-fleet.js
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: fleet-control-regressions
-          path: tools/fleet_control/diagnostics/preflight-results.json
+          path: .fleet-source/packages/mjobs-controller/diagnostics/preflight-results.json
           retention-days: 7
           if-no-files-found: error

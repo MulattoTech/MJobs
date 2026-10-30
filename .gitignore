@@ -23,3 +23,6 @@ events.jsonl
 
 # Private raw Codex CLI transcripts; never publish.
 /docs/CLI_Output/
+
+# CI checkout of canonical shared controller source
+/.fleet-source/
