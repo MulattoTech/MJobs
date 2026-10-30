@@ -1,6 +1,6 @@
 """MJ-REQ-004: real public-worker connect cancellation for remaining adapters.
 
-Only provider endpoint constants and the operation timeout are fixture seams.
+Provider endpoints, operation timeout and SSL-context readiness are fixture seams.
 No production transport/check/stream is replaced. Synthetic loopback stores only.
 """
 from contextlib import ExitStack, contextmanager
@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import select as socket_select
 import socket
+import ssl
 import tempfile
 import threading
 import time
@@ -20,6 +21,7 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 import httpx
+import httpx._transports.default as httpx_default
 from sqlalchemy import select
 
 from apps.api import main as api_main
@@ -117,8 +119,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
 
     def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0,
-                   transport_setup_delay=0, worker_unwind_delay=0):
+                   transport_setup_delay=0, worker_unwind_delay=0, ssl_setup_delay=0):
         tenant = tenant or source_tenant(provider)
+        cold_ssl = mode == "cold_ssl_deadline"
+        finite_deadline = mode == "deadline" or cold_ssl
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
             url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -148,6 +152,38 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             worker_finished_at = []
             worker = None
 
+            # Transport-ready cases prepare the trust store separately. The
+            # distinct cold-context case below keeps initialization timed.
+            # Keep the real verifying context and real
+            # SourceTransport/backend; only its construction is made ready before
+            # the unchanged operation-start clock. Never cache a transport/check.
+            original_ssl_context = httpx_default.create_ssl_context
+            if not cold_ssl:
+                ssl_setup_started_at = time.monotonic()
+                if ssl_setup_delay:
+                    time.sleep(ssl_setup_delay)
+                ssl_context = original_ssl_context(verify=True, cert=None, trust_env=False)
+                ssl_context_ready_at = time.monotonic()
+                self.assertEqual(ssl_context.verify_mode, ssl.CERT_REQUIRED)
+                self.assertTrue(ssl_context.check_hostname)
+                self.assertGreaterEqual(ssl_context_ready_at - ssl_setup_started_at, ssl_setup_delay)
+            ssl_context_uses = []
+
+            def ready_ssl_context(verify=True, cert=None, trust_env=True):
+                if (threading.current_thread() is worker and verify is True
+                        and cert is None and trust_env is False):
+                    if cold_ssl:
+                        phases["cold_ssl_started_at"] = time.monotonic()
+                        time.sleep(ssl_setup_delay)
+                        context = original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
+                        phases["cold_ssl_completed_at"] = time.monotonic()
+                        self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+                        self.assertTrue(context.check_hostname)
+                        return context
+                    ssl_context_uses.append(time.monotonic())
+                    return ssl_context
+                return original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
+
             def phase_diagnostic():
                 deadline_start = deadline_started_at[0] if deadline_started_at else None
                 timestamp_keys = (
@@ -158,6 +194,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "transport_call_completed_at", "transport_operation_completed_at",
                     "worker_outcome_at", "worker_error_at",
                     "worker_finished_at", "terminal_readback_at",
+                    "cold_ssl_started_at", "cold_ssl_completed_at",
                 )
                 timestamps = {}
                 for key in timestamp_keys:
@@ -259,7 +296,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     return started_at + .8
 
             def record_timeout():
-                return GuardedDeadline() if mode == "deadline" else 30
+                return GuardedDeadline() if finite_deadline else 30
 
             original_request_cancel = api_main.request_cancel
 
@@ -279,7 +316,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "services.discovery.sources.http_transport._Backend.connect_tcp",
                     new=observe_connect_tcp), patch(
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
-                    "workers.tasks.timeout", side_effect=record_timeout):
+                    "workers.tasks.timeout", side_effect=record_timeout), patch(
+                    "httpx._transports.default.create_ssl_context", new=ready_ssl_context):
                 if provider == "lever":
                     from services.discovery.sources.lever import endpoint as production_endpoint
                     # Resolve the real regional endpoint first; only replace its origin.
@@ -342,7 +380,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             f"{phase_diagnostic()}")
                         phases["worker_release_signaled_at"] = time.monotonic()
                         collection_release.set()
-                        if mode == "deadline":
+                        if finite_deadline:
                             self.assertTrue(deadline_guard_armed.wait(3),
                                 f"{provider} worker never armed its operation deadline; "
                                 f"{phase_diagnostic()}")
@@ -360,6 +398,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertEqual(len(deadline_started_at), 1,
                                 f"{provider} source collector entered without one recorded operation deadline; "
                                 f"{phase_diagnostic()}")
+                            self.assertLessEqual(ssl_context_ready_at, deadline_started_at[0],
+                                "Trust-store initialization must finish before the operation deadline starts")
                             self.assertLessEqual(phases["worker_released_at"],
                                                  phases["deadline_guard_armed_at"],
                                 f"{provider} deadline guard armed before worker release; "
@@ -399,7 +439,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertLessEqual(phases["transport_call_completed_at"] - deadline_started_at[0], 1.0,
                                 f"{provider} transport connect call completed after the 1s operation-start window; "
                                 f"{phase_diagnostic()}")
-                        elif mode != "positive":
+                        elif mode == "cancel":
                             # Coordinate cancellation from entry to the real
                             # owned connect call. The older `engaged` event is a
                             # connect-completion observation and can invert this
@@ -466,6 +506,21 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 0, worker_finished_at[0] - response_finished_at)
                         self.assertEqual(errors, [])
                         self.assertEqual(len(outcome), 1)
+                        if cold_ssl:
+                            self.assertEqual(len(deadline_started_at), 1)
+                            self.assertEqual(ssl_context_uses, [], "Cold setup must not use a prebuilt context")
+                            self.assertGreater(ssl_setup_delay, .8)
+                            self.assertGreaterEqual(phases["cold_ssl_started_at"], deadline_started_at[0])
+                            self.assertGreaterEqual(
+                                phases["cold_ssl_completed_at"] - phases["cold_ssl_started_at"], ssl_setup_delay)
+                            self.assertGreater(phases["cold_ssl_completed_at"] - deadline_started_at[0], .8)
+                            self.assertFalse(transport_entered.is_set(), "Expired setup must not start a socket connect")
+                            self.assertFalse(transport_completed.is_set(), "Cold timeout cannot report transport success")
+                        elif provider == "remoteok":
+                            self.assertTrue(ssl_context_uses,
+                                "Owned remoteok transport did not use its ready SSL context")
+                        if not cold_ssl:
+                            self.assertTrue(all(used_at >= ssl_context_ready_at for used_at in ssl_context_uses))
                         expected = "COMPLETED" if mode == "positive" else "CANCELLED" if mode == "cancel" else "DEAD_LETTERED"
                         reopened = Store(url)
                         try:
@@ -494,7 +549,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         finally:
                             reopened.engine.dispose()
                         self.assertEqual(state["requests"], (2 if provider == "greenhouse" else 1) if mode == "positive" else 0)
-                        if mode != "positive":
+                        if cold_ssl:
+                            self.assertEqual(state["connects"], 0)
+                            self.assertIsNone(state.get("connecting_socket"))
+                        elif mode != "positive":
                             self.assertEqual(state["connects"], 1)
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
@@ -540,7 +598,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
         for provider in ENDPOINTS:
             with self.subTest(provider=provider):
                 self.run_source(provider, "deadline",
-                                coordinator_delay=1.05 if provider == "remoteok" else 0)
+                                coordinator_delay=1.05 if provider == "remoteok" else 0,
+                                ssl_setup_delay=1.1 if provider == "remoteok" else 0)
+
+    def test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect(self):
+        self.run_source("remoteok", "cold_ssl_deadline", ssl_setup_delay=1.1)
 
     def test_lever_global_public_cancel_during_real_tcp_connect(self):
         self.run_source("lever", "cancel", tenant="global:synthetic",
