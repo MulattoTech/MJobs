@@ -12,6 +12,7 @@ from sqlalchemy import select, update
 from cli import ui_e2e
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
+from packages.domain import operation_types
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.applications.attempt_history import AttemptConflict
@@ -54,6 +55,13 @@ class ApplicationRunRequestTests(unittest.TestCase):
             self.assertEqual(read_mock_run(reopened, "fixture", self.app_id, "reviewed-run-1")["operation_id"], first["operation_id"])
         finally:
             reopened.engine.dispose()
+
+    def test_direct_run_creation_enforces_the_canonical_operation_registry(self):
+        without_apply_mock = operation_types.OPERATION_TYPES - {"APPLY_MOCK"}
+        with patch.object(operation_types, "OPERATION_TYPES", without_apply_mock):
+            with self.assertRaisesRegex(ValueError, "^OPERATION_TYPE_INVALID$"):
+                self.queue("registry-rejected-run")
+        self.assertEqual(self.store.count("worker_operations"), 0)
 
     def test_concurrent_double_click_is_one_atomic_admission(self):
         with ThreadPoolExecutor(max_workers=2) as pool:

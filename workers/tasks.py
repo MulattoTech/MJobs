@@ -674,10 +674,12 @@ def execute_operation(operation_id, *, registry_module=None,
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
         try:
-            if state == "CANCELLED" and operation["kind"] == "DISCOVER":
-                # The terminal cancellation is already durable. Optional source
-                # context enrichment must not extend the public cancellation
-                # bound while a loaded database services this second lookup.
+            if (operation["kind"] == "DISCOVER"
+                    and (state == "CANCELLED"
+                         or (state == "DEAD_LETTERED" and error == "OPERATION_TIMEOUT"))):
+                # The terminal interruption is already durable. Optional source
+                # context enrichment must not extend its public time bound while
+                # a loaded database services this second lookup.
                 context = {}
             elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
                 context = _resolve_company_source_company_id(store, operation, full_context=True)
