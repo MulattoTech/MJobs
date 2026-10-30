@@ -1,7 +1,9 @@
 """Synthetic XSS regression coverage for third-party posting descriptions."""
+from copy import deepcopy
 from html import escape
 import unittest
 
+from services.discovery.sources.lever import Lever
 from services.discovery.sources.structured_text import structured_text
 
 
@@ -66,6 +68,53 @@ class StructuredTextWebSecurityTests(unittest.TestCase):
             result,
             "Responsibilities\n- Build Python services\nVisit the role page & learn more.",
         )
+
+    def test_lever_normalize_sanitizes_untrusted_description_without_mutating_input(self):
+        posting_id = "00000000-0000-4000-8000-000000000173"
+        raw = {
+            "id": posting_id,
+            "text": "Senior Python Engineer",
+            "hostedUrl": f"https://jobs.lever.co/example/{posting_id}",
+            "categories": {"location": "Remote"},
+            "description": (
+                "<h2>Responsibilities</h2><ul><li>Build Café services — 東京</li></ul>"
+                "<script>lever-script-sentinel</script>"
+                "<style>lever-style-sentinel{display:none}</style>"
+                "<p hidden>lever-hidden-attribute-sentinel</p>"
+                "<p aria-hidden='true'>lever-aria-hidden-sentinel</p>"
+                "<div style='display:none'>lever-hidden-style-sentinel</div>"
+                "<img src=x onerror='lever-event-sentinel'>"
+                "<a href='javascript:lever-url-sentinel' "
+                "onclick='lever-click-sentinel'>Apply safely</a>"
+                "<div style='background:url(javascript:lever-style-url-sentinel)'>"
+                "Visible role note</div>"
+            ),
+        }
+        original = deepcopy(raw)
+
+        normalized = Lever("global:example").normalize(raw)
+
+        self.assertEqual(
+            normalized["description"],
+            "Responsibilities\n- Build Café services — 東京\nApply safely\nVisible role note",
+        )
+        for sentinel in (
+            "lever-script-sentinel",
+            "lever-style-sentinel",
+            "lever-hidden-attribute-sentinel",
+            "lever-aria-hidden-sentinel",
+            "lever-hidden-style-sentinel",
+            "lever-event-sentinel",
+            "lever-url-sentinel",
+            "lever-click-sentinel",
+            "lever-style-url-sentinel",
+        ):
+            self.assertNotIn(sentinel, normalized["description"])
+        self.assertNotIn("javascript:", normalized["description"].casefold())
+        self.assertNotIn("onerror", normalized["description"].casefold())
+        self.assertNotIn("onclick", normalized["description"].casefold())
+        self.assertNotIn("style=", normalized["description"].casefold())
+        self.assertEqual(raw, original)
 
 
 if __name__ == "__main__":
