@@ -5,6 +5,7 @@ No production transport/check/stream is replaced. Synthetic loopback stores only
 """
 from contextlib import ExitStack, contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import errno
 import json
 import os
 from pathlib import Path
@@ -126,29 +127,57 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             original_connect = socket.socket.connect
             original_connect_ex = socket.socket.connect_ex
             errors, outcome = [], []
+            trace = {}
+            worker_ready, release_worker = threading.Event(), threading.Event()
+            deadline_started = threading.Event()
+            setup_wait_seconds = 5
             worker = None
 
             def observe_connect(connection, address):
                 if mode != "positive" and address[:2] == state["address"]:
                     state["connects"] += 1
                     state["connecting_socket"] = connection
+                    if mode == "deadline":
+                        trace["connect_entered_at"] = time.monotonic()
                     engaged.set()
                 return original_connect(connection, address)
 
             def observe_connect_ex(connection, address):
-                status = original_connect_ex(connection, address)
-                if mode != "positive" and address[:2] == state["address"]:
+                owned = mode != "positive" and address[:2] == state["address"]
+                if owned and mode == "deadline":
                     state["connects"] += 1
                     state["connecting_socket"] = connection
+                    trace["connect_entered_at"] = time.monotonic()
+                status = original_connect_ex(connection, address)
+                if owned:
+                    if mode == "deadline":
+                        trace["connect_ex_returned_at"] = time.monotonic()
+                        trace["connect_ex_status"] = status
+                        trace["engaged_at"] = trace["connect_ex_returned_at"]
+                    else:
+                        state["connects"] += 1
+                        state["connecting_socket"] = connection
                     engaged.set()
                 return status
 
+            def bounded_timeout():
+                trace["deadline_started_at"] = time.monotonic()
+                trace["operation_deadline_at"] = trace["deadline_started_at"] + .8
+                deadline_started.set()
+                return .8 if mode == "deadline" else 30
+
+            def diagnostic():
+                return (f"trace={trace!r}; worker_errors={errors!r}; "
+                        f"connects={state['connects']}; requests={state['requests']}; "
+                        f"socket_closed={getattr(state.get('connecting_socket'), 'fileno', lambda: None)() == -1}")
+
+            worker_timeout_patch = (patch("workers.tasks.timeout", new=bounded_timeout)
+                                    if mode == "deadline" else patch("workers.tasks.timeout", return_value=30))
             with source as (endpoint, engaged, state), ExitStack() as endpoints, patch.dict(os.environ, {
                     "MJOBS_DATABASE_URL": url, "MJOBS_OPERATION_MODE": "FIXTURE",
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
             }), patch("socket.socket.connect", new=observe_connect), patch(
-                    "socket.socket.connect_ex", new=observe_connect_ex), patch(
-                    "workers.tasks.timeout", return_value=.8 if mode == "deadline" else 30):
+                    "socket.socket.connect_ex", new=observe_connect_ex), worker_timeout_patch:
                 if provider == "lever":
                     from services.discovery.sources.lever import endpoint as production_endpoint
                     # Resolve the real regional endpoint first; only replace its origin.
@@ -175,16 +204,57 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     identifier = response.json()["operation_id"]
 
                     def execute():
+                        if mode == "deadline":
+                            worker_ready.set()
+                            if not release_worker.wait(setup_wait_seconds):
+                                errors.append("WorkerReleaseTimeout")
+                                return
+                            trace["worker_started_at"] = time.monotonic()
                         try:
                             outcome.append(execute_operation(identifier))
                         except BaseException as error:
-                            errors.append(type(error).__name__)
+                            errors.append(f"{type(error).__name__}: {error}")
 
                     worker = threading.Thread(target=execute, name="mjobs-owned-adapter-worker", daemon=True)
-                    started = time.monotonic()
+                    worker_created_at = time.monotonic()
                     worker.start()
                     try:
-                        self.assertTrue(engaged.wait(1), f"{provider} never reached owned TCP boundary")
+                        if mode == "deadline":
+                            ready = worker_ready.wait(setup_wait_seconds)
+                            trace["worker_ready_at"] = time.monotonic() if ready else None
+                            trace["engaged_before_release"] = engaged.is_set()
+                            release_worker.set()
+                            deadline_observed = deadline_started.wait(setup_wait_seconds)
+                            trace["deadline_observed_at"] = time.monotonic() if deadline_observed else None
+                            engagement_deadline_at = trace["deadline_started_at"] + 1.0 if deadline_observed else None
+                            trace["engagement_deadline_at"] = engagement_deadline_at
+                            engagement_window = max(0.0, engagement_deadline_at - time.monotonic()) if deadline_observed else 0.0
+                            boundary_reached = engaged.wait(engagement_window)
+                            trace["boundary_observed_at"] = time.monotonic() if boundary_reached else None
+                            if boundary_reached:
+                                connection = state["connecting_socket"]
+                                trace["pending_socket_samples"] = []
+                                while time.monotonic() < trace["operation_deadline_at"]:
+                                    was_open = connection.fileno() >= 0
+                                    writable = None
+                                    if was_open:
+                                        try:
+                                            writable = bool(socket_select.select([], [connection], [], 0)[1])
+                                        except (OSError, ValueError):
+                                            pass
+                                    is_open = connection.fileno() >= 0
+                                    trace["pending_socket_samples"].append({
+                                        "at": time.monotonic(),
+                                        "open": was_open and is_open,
+                                        "writable": writable,
+                                    })
+                                    remaining = trace["operation_deadline_at"] - time.monotonic()
+                                    if remaining <= 0 or not is_open:
+                                        break
+                                    time.sleep(min(.01, remaining))
+                                trace["pending_socket_observation_ended_at"] = time.monotonic()
+                        else:
+                            self.assertTrue(engaged.wait(1), f"{provider} never reached owned TCP boundary")
                         pending = None
                         if mode == "cancel":
                             connection = state["connecting_socket"]
@@ -199,10 +269,12 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 pending = client.get(f"/operations/{identifier}").json()
                                 worker.join(timeout=2.3)  # Observe natural timeout, never force green by closing the listener.
                         else:
+                            started = worker_created_at
                             worker.join(timeout=3 if mode == "positive" else 1.1)
                         elapsed = time.monotonic() - started
                         self.assertFalse(worker.is_alive(), f"Owned {provider} worker exceeded fixture bound")
-                        self.assertEqual(errors, [])
+                        trace["worker_finished_at"] = time.monotonic()
+                        self.assertEqual(errors, [], diagnostic())
                         self.assertEqual(len(outcome), 1)
                         expected = "COMPLETED" if mode == "positive" else "CANCELLED" if mode == "cancel" else "DEAD_LETTERED"
                         reopened = Store(url)
@@ -210,6 +282,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             with TestClient(create_app(reopened, "http://127.0.0.1:1", root,
                                     "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as fresh:
                                 saved = fresh.get(f"/operations/{identifier}").json()
+                                trace["terminal_readback_at"] = time.monotonic()
                                 self.assertEqual(saved["state"], expected, saved)
                                 self.assertEqual(saved["attempt_count"], 1)
                                 if mode != "positive":
@@ -231,8 +304,29 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             reopened.engine.dispose()
                         self.assertEqual(state["requests"], (2 if provider == "greenhouse" else 1) if mode == "positive" else 0)
                         if mode != "positive":
-                            self.assertEqual(state["connects"], 1)
-                            self.assertEqual(state["connecting_socket"].fileno(), -1)
+                            self.assertEqual(state["connects"], 1, diagnostic())
+                            self.assertEqual(state["connecting_socket"].fileno(), -1, diagnostic())
+                        if mode == "deadline":
+                            self.assertFalse(trace["engaged_before_release"],
+                                             f"{provider} reached connect before worker release; {diagnostic()}")
+                            self.assertTrue(ready, f"{provider} worker did not reach release gate; {diagnostic()}")
+                            self.assertTrue(deadline_observed,
+                                            f"{provider} operation did not establish its deadline; {diagnostic()}")
+                            self.assertTrue(boundary_reached,
+                                            f"{provider} did not reach the owned connect attempt within 1s of the operation deadline; {diagnostic()}")
+                            self.assertNotIn(trace["connect_ex_status"], (0, errno.EISCONN),
+                                             f"{provider} connect_ex completed instead of remaining pending; {diagnostic()}")
+                            samples = [sample for sample in trace.get("pending_socket_samples", [])
+                                       if sample["at"] <= trace["operation_deadline_at"]]
+                            self.assertGreaterEqual(len(samples), 2,
+                                                    f"{provider} socket was not observed through the operation deadline; {diagnostic()}")
+                            self.assertTrue(all(sample["open"] and sample["writable"] is False for sample in samples),
+                                            f"{provider} socket did not remain open and non-writable through the operation deadline; {diagnostic()}")
+                            self.assertGreaterEqual(trace["pending_socket_observation_ended_at"],
+                                                    trace["operation_deadline_at"],
+                                                    f"{provider} socket observation ended before the .8s operation deadline; {diagnostic()}")
+                            self.assertLessEqual(trace["connect_entered_at"], trace["engagement_deadline_at"],
+                                                 f"{provider} connect attempt missed the 1s engagement deadline; {diagnostic()}")
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
                             self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
