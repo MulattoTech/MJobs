@@ -262,6 +262,8 @@ class PublicCITests(unittest.TestCase):
              '"build":"npm run typecheck && echo vite build"'),
             ('frontend build', '"build":"npm run typecheck && vite build"',
              '"build":"npm run typecheck && exit 0 && vite build"'),
+            ('frontend build', '"build":"npm run typecheck && vite build"',
+             '"build":"npm run typecheck && CI=1 exit 0 && vite build"'),
             ('frontend type check', '"typecheck":"tsc --noEmit"',
              '"typecheck":"tsc --noEmit || true"'),
         )
