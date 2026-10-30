@@ -59,7 +59,7 @@ class SelectedSearchAITests(SelectedSearchAIHarness):
         self.router=UnavailableRouter
         result=self.run_worker(admitted.json()['operation_id'])
         self.assertEqual(result['status'],'BLOCKED')
-        self.assertEqual(result['error_category'],'AI_PROVIDER_TIMEOUT')
+        self.assertEqual(result['error_category'],'AI_ERROR')
         self.assertEqual(self.preview('cloud')['candidates'],preview['candidates'])
         self.assertEqual(self.client.get('/profiles/fixture/ai-cost-plan/evaluations').json()['runs'],[])
 

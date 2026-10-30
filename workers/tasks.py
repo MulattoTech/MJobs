@@ -5,6 +5,7 @@ import time
 
 from sqlalchemy import and_, or_, select, update
 
+from packages.domain.operation_errors import ai_operation_error_category
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now
@@ -513,7 +514,7 @@ def execute_operation(operation_id, *, registry_module=None,
         except DurableComparisonError as failure:
             state, error = "BLOCKED", failure.code
         except (DurableEvaluationError, AIProviderError, AIProviderDisabled, StructuredOutputError) as failure:
-            state, error = 'BLOCKED', failure.code
+            state, error = 'BLOCKED', ai_operation_error_category(getattr(failure, 'code', None))
         except ComparisonUnavailable:
             state, error = "BLOCKED", "COMPARISON_INPUT_UNAVAILABLE"
         except PublicFetchError as failure:

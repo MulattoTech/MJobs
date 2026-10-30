@@ -214,7 +214,7 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)
                     if not cancel:
-                        self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
+                        self.assertEqual(result['error_category'], 'AI_ERROR')
                     self.assertTrue(response_closed, 'TLS peer remained connected')
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
                     reopened = Store(self.url)
@@ -230,7 +230,7 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                     self.assertEqual(readback.status_code, 200, readback.text)
                     self.assertEqual(readback.json()['state'], expected)
                     if not cancel:
-                        self.assertEqual(readback.json()['error'], 'AI_PROVIDER_TIMEOUT')
+                        self.assertEqual(readback.json()['error'], 'AI_ERROR')
                     # Redelivering a terminal operation cannot reopen its uncertain call.
                     self.assertEqual(self.run_worker(operation_id)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
                     self.assertEqual(len(duplicates), 1)
