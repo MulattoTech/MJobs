@@ -80,6 +80,14 @@ def test_invalid_or_oversized_worker_category_fails_before_worker_start(
     monkeypatch.setenv("MJOBS_DATABASE_URL", "synthetic://not-opened")
     monkeypatch.setenv("MJOBS_REDIS_URL", "redis://synthetic.invalid/0")
     monkeypatch.setenv("MJOBS_OPERATION_MODE", "PERSONAL")
+    for name, value in {
+        "MJOBS_SOURCE_COLLECTION_CONCURRENCY": "4",
+        "MJOBS_COMPANY_DISCOVERY_CONCURRENCY": "2",
+        "MJOBS_AI_CONCURRENCY": "2",
+        "MJOBS_DOCUMENT_GENERATION_CONCURRENCY": "2",
+        "MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": "2",
+    }.items():
+        monkeypatch.setenv(name, value)
     monkeypatch.setenv(environment, configured)
 
     with pytest.raises(ValueError, match="Operation concurrency outside conservative bounds"):
