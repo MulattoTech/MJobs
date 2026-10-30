@@ -155,6 +155,7 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
         return None
     root = Path(capture_root)
     target = None
+    target_created = False
     try:
         started = time.monotonic()
         budget = SCREENSHOT_TIMEOUT_MS / 1000
@@ -185,6 +186,7 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
         resolved_root = root.resolve(strict=True)
         target = root / attempt_id
         target.mkdir(exist_ok=False)
+        target_created = True
         checkpoint()
         if target.resolve(strict=True).parent != resolved_root:
             shutil.rmtree(target)
@@ -282,7 +284,7 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
         # Diagnostics are best-effort. They must never replace the browser error
         # or interrupt the application state transition that follows it. Remove
         # any unpublished package so failed atomic writes leave no diagnostics.
-        if target is not None:
+        if target_created and target is not None:
             try:
                 if target.is_dir() and not target.is_symlink():
                     shutil.rmtree(target)

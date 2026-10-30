@@ -17,6 +17,30 @@ from services.applications.debug_capture import (
 
 
 class BrowserDebugCaptureTests(unittest.TestCase):
+    def test_duplicate_attempt_preserves_existing_capture_package(self):
+        attempt_id = "e" * 32
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "debug-captures"
+            existing = root / attempt_id
+            existing.mkdir(parents=True)
+            marker = existing / "metadata.json"
+            marker.write_text('{"status":"existing"}\n', encoding="utf-8")
+
+            capture = capture_browser_failure(
+                None,
+                root,
+                attempt_id=attempt_id,
+                step="DETECT_FORM",
+                configured_url="https://example.test/apply/existing",
+                error=RuntimeError("SYNTHETIC_DUPLICATE_ATTEMPT"),
+            )
+
+            self.assertIsNone(capture)
+            self.assertEqual(
+                marker.read_text(encoding="utf-8"),
+                '{"status":"existing"}\n',
+            )
+
     def test_failed_metadata_publication_removes_incomplete_capture(self):
         attempt_id = "f" * 32
         original_atomic_json = debug_capture_module._atomic_json
