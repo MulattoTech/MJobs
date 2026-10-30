@@ -167,6 +167,53 @@ class CandidateReuseTests(unittest.TestCase):
         self.assertFalse(any("clone" in call.args[0] or "docker" in call.args[0]
                              for call in executor.call_args_list))
 
+    def test_fresh_clone_uses_verifier_line_endings_despite_host_autocrlf(self):
+        (self.source / ".gitattributes").write_bytes(b"*.py text eol=lf\n*.yml text eol=lf\n")
+        (self.source / "frontend.tsx").write_bytes(b"export const value = 1;\nexport const next = 2;\n")
+        self.git("add", ".gitattributes", "frontend.tsx")
+        self.git("add", "--renormalize", ".")
+        self.git("-c", "user.name=Updater Test", "-c", "user.email=updater@example.test",
+                 "-c", "commit.gpgsign=false", "commit", "-m", "line ending fixture")
+        sha = self.git("rev-parse", "HEAD")
+        clone_from = self.source.as_uri()
+        real_command = cd.command
+        clone_calls = []
+
+        def local_clone(args, **kwargs):
+            if args[0] == "git" and "clone" in args:
+                self.assertEqual(args[-2], f"https://github.com/{cd.REPOSITORY}.git")
+                clone_calls.append(kwargs.get("env"))
+                local_args = [*args[:-2], clone_from, args[-1]]
+                result = real_command(local_args, **kwargs)
+                real_command(["git", "remote", "set-url", "origin", args[-2]],
+                             cwd=args[-1], env=kwargs.get("env"))
+                return result
+            return real_command(args, **kwargs)
+
+        for kind in ("global", "system"):
+            with self.subTest(config=kind):
+                config = Path(self.temp.name) / (kind + ".gitconfig")
+                config.write_text("[core]\n\tautocrlf = true\n", encoding="utf-8")
+                env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+                env["GIT_CONFIG_GLOBAL"] = str(config) if kind == "global" else os.devnull
+                if kind == "system":
+                    env["GIT_CONFIG_SYSTEM"] = str(config)
+                else:
+                    env["GIT_CONFIG_NOSYSTEM"] = "1"
+                home = Path(self.temp.name) / ("fresh-" + kind)
+                with patch.dict(os.environ, env, clear=True), patch.object(cd, "HOME", home), \
+                        patch.object(cd, "log"), \
+                        patch.object(cd, "command", side_effect=local_clone):
+                    candidate = cd.prepare_candidate(sha)
+                    self.assertEqual((candidate / "frontend.tsx").read_bytes(),
+                                     b"export const value = 1;\nexport const next = 2;\n")
+                    self.assertEqual(clone_calls[-1]["GIT_CONFIG_NOSYSTEM"], "1")
+                    self.assertEqual(clone_calls[-1]["GIT_CONFIG_GLOBAL"], os.devnull)
+                    self.assertNotIn("GIT_CONFIG_SYSTEM", clone_calls[-1])
+                    (candidate / "frontend.tsx").write_bytes(b"edited\n")
+                    with self.assertRaisesRegex(RuntimeError, "tracked files changed"):
+                        cd.verify_candidate(candidate, sha)
+
     def test_wrong_origin_is_rejected(self):
         self.git("remote", "set-url", "origin", "https://github.com/other/MJobs.git")
         self.assert_blocked()

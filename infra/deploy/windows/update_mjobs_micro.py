@@ -127,6 +127,12 @@ def require_plain_path(path):
                 & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)):
             raise RuntimeError('Redirected deployment path; requires reconciliation')
 
+def candidate_git_environment():
+    """Use identical checkout and verification rules regardless of host Git settings."""
+    env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+    env.update(GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull, GIT_OPTIONAL_LOCKS='0')
+    return env
+
 def verify_candidate(source, sha):
     """Reuse only an independent, unchanged clone at the expected release path."""
     source = Path(source).absolute()
@@ -150,8 +156,7 @@ def verify_candidate(source, sha):
                 raise RuntimeError('Redirected or special candidate entry; requires reconciliation')
 
     # Ignore ambient Git overrides; do not execute cached local hooks or filters.
-    env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
-    env.update(GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull, GIT_OPTIONAL_LOCKS='0')
+    env = candidate_git_environment()
 
     def git(*args):
         return command(['git', '--no-replace-objects', '-c', 'core.fsmonitor=false',
@@ -199,7 +204,7 @@ def prepare_candidate(sha):
         log(f'Cloning verified main candidate {sha[:12]}')
         command(['git', '-c', 'core.longpaths=true', 'clone', '--depth', '1',
                  '--branch', 'main', f'https://github.com/{REPOSITORY}.git', str(source)],
-                timeout=240, label='clone exact main')
+                env=candidate_git_environment(), timeout=240, label='clone exact main')
     verify_candidate(source, sha)
     return source
 
