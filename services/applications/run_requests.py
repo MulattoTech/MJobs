@@ -10,6 +10,7 @@ import re
 from sqlalchemy import select
 from sqlalchemy.orm.exc import NoResultFound
 
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.applications.attempt_history import (
@@ -75,6 +76,7 @@ def _view(operation, *, replayed):
 def queue_mock_run(store, profile_id, application_id, *, submit=False, request_id,
                    resume_binding=None):
     """Admit a new reviewed intent, or return the same immutable durable request."""
+    validate_operation_type("APPLY_MOCK")
     operation_id = _identifier(profile_id, application_id, request_id)
     if type(submit) is not bool:
         raise AttemptConflict("APPLICATION_RUN_MODE_INVALID")

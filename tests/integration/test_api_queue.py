@@ -13,8 +13,9 @@ from sqlalchemy import select
 
 from apps.api.main import create_app, create_from_env
 from cli.compose_recovery import collect_public_job_inventory, compare_public_job_inventory
+from packages.domain.operation_types import REQUIRED_OPERATION_TYPES
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, now
 from tests.integration.test_spine import PROFILE
 from workers.dispatch import enqueue_operation, dispatch_pending
 from fixtures.mock_server import fixture_server
@@ -44,6 +45,56 @@ class ApiQueueTests(unittest.TestCase):
         result = dispatch_pending(self.store, "redis://127.0.0.1:1/0")
         self.assertEqual(result["status"], "QUEUE_UNAVAILABLE")
         self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_invalid_operation_types_are_redacted_and_never_persisted(self):
+        for value in ("search_source", "UNKNOWN_PRIVATE_SENTINEL", None, 7, True, [], {}):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "^OPERATION_TYPE_INVALID$") as raised:
+                    enqueue_operation(self.store, value, "fixture", {})
+                self.assertNotIn("UNKNOWN_PRIVATE_SENTINEL", repr(raised.exception))
+                self.assertEqual(self.store.count("worker_operations"), 0)
+
+    def test_canonical_types_without_handlers_use_stable_unsupported_path(self):
+        for operation_type in sorted(REQUIRED_OPERATION_TYPES):
+            with self.subTest(operation_type=operation_type):
+                with self.assertRaisesRegex(ValueError, "^Unsupported operation kind$"):
+                    enqueue_operation(self.store, operation_type, "fixture", {})
+                self.assertEqual(self.store.count("worker_operations"), 0)
+
+    def test_persisted_invalid_type_is_dead_lettered_before_queue_handler_lookup(self):
+        operation_id = "persisted-invalid-operation-type"
+        with self.store.engine.begin() as connection:
+            connection.execute(m.operations.insert().values(
+                id=operation_id,
+                kind="UNKNOWN_PRIVATE_SENTINEL",
+                entity_id="fixture",
+                params={},
+                state="QUEUED",
+                error=None,
+                updated_at=now(),
+            ))
+        redis = Mock()
+        redis.ping.return_value = True
+        with patch("workers.dispatch.Redis.from_url", return_value=redis), \
+                patch("workers.dispatch.Job.fetch") as fetch, \
+                patch("workers.dispatch.Queue") as queue:
+            self.assertEqual(
+                dispatch_pending(self.store, "redis://synthetic/0"),
+                {"status": "DISPATCHED", "count": 0},
+            )
+        fetch.assert_not_called()
+        queue.assert_not_called()
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id)).mappings().one()
+            action = connection.execute(select(m.audit.c.action).where(
+                m.audit.c.entity_id == operation_id)).scalar_one()
+        self.assertEqual(row["state"], "DEAD_LETTERED")
+        self.assertEqual(row["error"], "OPERATION_TYPE_INVALID")
+        self.assertEqual(row["current_step"], "FINALIZING")
+        self.assertIsNotNone(row["completed_at"])
+        self.assertEqual(row["recovery_metadata"], {"action": "MANUAL_REVIEW"})
+        self.assertEqual(action, "OPERATION_DEAD_LETTERED")
 
     def test_dispatch_serializes_registry_selector_for_real_task_entrypoint(self):
         from rq.exceptions import NoSuchJobError

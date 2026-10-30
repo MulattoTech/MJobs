@@ -6,14 +6,21 @@ from rq.job import Job
 from rq.exceptions import NoSuchJobError
 from sqlalchemy import case, or_, select, text
 
+from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.audit_history import record_application_preparation_event
-from workers.operations import QUEUES, recover_expired, timeout
+from workers.operations import (
+    QUEUES,
+    recover_expired,
+    terminalize_invalid_operation_type,
+    timeout,
+)
 
 
 def enqueue_operation(store, kind, entity_id, params, *, connection=None, preparation_priority=None,
                       task_key=None):
+    validate_operation_type(kind)
     if kind not in QUEUES:
         raise ValueError("Unsupported operation kind")
     if task_key is not None and (not isinstance(task_key, str) or not task_key or len(task_key) > 256):
@@ -108,6 +115,8 @@ def dispatch_pending(store, redis_url, *, registry_module=None):
             rows = _pending_operations(connection)
             count = 0
             for row in rows:
+                if terminalize_invalid_operation_type(store, connection, row):
+                    continue
                 try:
                     job = Job.fetch(row["id"], connection=redis)
                     if job.get_status() in ("queued", "started", "scheduled", "deferred"):
