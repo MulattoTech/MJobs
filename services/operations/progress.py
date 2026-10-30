@@ -62,6 +62,11 @@ def _recovery_summary(value):
 def operation_public_record(row):
     """Preserve the legacy record shape while withholding internal owner data."""
     result = dict(row)
+    params = result.get("params")
+    if isinstance(params, dict):
+        result["params"] = {
+            key: value for key, value in params.items() if key != "resume_result"
+        }
     metadata = result.get("recovery_metadata")
     if isinstance(metadata, dict):
         result["recovery_metadata"] = {

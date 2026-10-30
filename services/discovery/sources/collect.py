@@ -6,7 +6,7 @@ import json
 import httpx
 from urllib.parse import urlsplit
 
-from sqlalchemy import select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
@@ -162,6 +162,40 @@ def persist_posting(connection, data):
     checksum = hashlib.sha256(json.dumps(data["raw"], sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
     upsert(connection, m.posting_snapshots, {"id": identity(data["id"], checksum), "posting_id": data["id"],
         "raw": data["raw"], "sha256": checksum, "retrieved_at": data["fetched_at"]})
+
+
+def _latest_valid_posted_dates(connection, posting_id):
+    """Return the newest parseable date claim for one exact posting."""
+    before = None
+    while True:
+        statement = select(
+            m.posting_value_candidates.c.id,
+            m.posting_value_candidates.c.normalized,
+            m.posting_value_candidates.c.observed_at,
+        ).where(m.posting_value_candidates.c.posting_id == posting_id)
+        if before is not None:
+            statement = statement.where(or_(
+                m.posting_value_candidates.c.observed_at < before['observed_at'],
+                and_(m.posting_value_candidates.c.observed_at == before['observed_at'],
+                     m.posting_value_candidates.c.id < before['id']),
+            ))
+        candidates = list(connection.execute(statement.order_by(
+            m.posting_value_candidates.c.observed_at.desc(),
+            m.posting_value_candidates.c.id.desc(),
+        ).limit(64)).mappings())
+        for candidate in candidates:
+            attributes = (candidate['normalized'] or {}).get('attributes') or {}
+            reference = next((parsed for value in (
+                attributes.get('reported_posted_at_reference_at'),
+                candidate['observed_at'],
+                attributes.get('last_collected_at'),
+                attributes.get('first_seen_at'),
+            ) if (parsed := parse_timestamp(value)) is not None), None)
+            if parse_timestamp(attributes.get('reported_posted_at'), reference_at=reference) is not None:
+                return {**attributes, 'observed_at': candidate['observed_at']}
+        if len(candidates) < 64:
+            return {}
+        before = candidates[-1]
 
 
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
@@ -349,17 +383,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 # The anchor belongs to this posting, not another canonical source
                 # or a later poll. Prior valid snapshots carry the stable reference
                 # while still allowing an explicit absolute source correction.
-                prior_values = connection.execute(select(m.posting_value_candidates.c.normalized,
-                    m.posting_value_candidates.c.observed_at).where(
-                    m.posting_value_candidates.c.posting_id == posting_id,
-                    m.posting_value_candidates.c.normalized['attributes']['reported_posted_at']
-                        .as_string().is_not(None)).order_by(
-                        m.posting_value_candidates.c.observed_at.desc(), m.posting_value_candidates.c.id.desc())
-                    .limit(1)).mappings().one_or_none()
-                previous_dates = ((prior_values or {}).get('normalized') or {}).get('attributes') or (
+                previous_dates = _latest_valid_posted_dates(connection, posting_id) or (
                     existing_attributes if existing_attributes.get('source_id') == source_id else {})
-                if prior_values:
-                    previous_dates = {**previous_dates, 'observed_at': prior_values['observed_at']}
                 attrs = job['attributes']
                 raw_date = attrs.get('reported_posted_at_raw', attrs.get('reported_posted_at'))
                 # Adapters may validate another native field (RemoteOK epoch).
