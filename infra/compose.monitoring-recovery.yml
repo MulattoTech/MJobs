@@ -139,5 +139,7 @@ volumes:
     labels: *stk-labels
   runtime-database:
     labels: *stk-labels
+  migration-backups:
+    labels: *stk-labels
   stk-source:
     labels: *stk-labels

@@ -1,3 +1,13 @@
+## Release residual completion — 2026-10-30T16:58:50+00:00
+
+Root remains the sole integration owner. PR872 merged as a1731224099ff0e6bc9e679b871cda874a1285fd and is live at the M-TechLabs MJobs URL after a verified private backup and guarded schema upgrade; all seven writers are healthy. PR873 merged as 84162a6fca87f62b683bacefc345070e69748ed8 with all PR checks successful. Its exact-main deployment gates are still being observed.
+
+This follow-up ports two narrowly reviewed residual fixes: final AI evaluation fences use the existing value-free AI_ERROR category, and the monitoring recovery overlay labels its inherited migration-backups volume. Source histories df7ea424c4ece4f0593b404f9db57f37c330341f and 6b5731fece75d426051915a934cef730f98cb1f7 remain preserved in recovery. Windows validation passed 51 durable AI/credential tests and 14 monitoring tests. Actual Docker Compose rendering passes the unchanged ownership validator; removing the backup labels or substituting a foreign label is rejected. No fixture containers or real provider calls were started.
+
+Repository recovery preserves the complete common Git directory, independently verified object history, and 2268 reflog commits including 205 private recovery anchors. 110 stale registrations were pruned with exact scope checks; all 25 temporary protection locks were restored and frozen session 122 remains protected. Six complete old worktrees were removed; a seventh was deregistered by Git but left filesystem contents, which are retained for separate reconciliation. Unmerged drafts, dirty legacy Fleet work, and incomplete or unsafe experiments remain recovery material; they are not claimed as shipped.
+
+Next: merge this exact tested follow-up through normal protected checks, verify all four deployment gates on the resulting main SHA, install the reviewed updater, deploy and verify the public URL, then reenable the existing updater task. Native paid agents remain stopped at the prescribed 7% reserve. External employer submission remains OFF. Broader MJ-REQ-161/MJ-REQ-292 acceptance and canonical matrices are unchanged by these targeted tests.
+
 ## 2026-10-30 release integration checkpoint
 
 PR #872 is merged as a1731224099ff0e6bc9e679b871cda874a1285fd. GitHub confirms all 18 original pending PRs merged through the preserved ancestry. Legacy PR #825 is closed as superseded; its exact head remains under archive/mjobs-fleet-pr825-20261030, and Fleet-Control-Hub PR #6 preserves the residual docs/tests. Shared Fleet source stays pinned to c3d3470470aa5e2ac04985a2d781bb01fe3d562d.
