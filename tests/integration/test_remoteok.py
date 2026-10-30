@@ -375,7 +375,9 @@ class RemoteOKTests(unittest.TestCase):
 
         def collect():
             worker_ready.set()
-            release_worker.wait()
+            if not release_worker.wait(timeout=3):
+                errors.append(TimeoutError("collector worker release timed out"))
+                return
             try:
                 collect_source(self.store, source_id, "fixture", check=check, transport=transport)
             except Exception as exc:
@@ -383,6 +385,15 @@ class RemoteOKTests(unittest.TestCase):
 
         thread = threading.Thread(target=collect)
         thread.start()
+
+        def cleanup_worker():
+            cancelled.set()
+            release_worker.set()
+            release_stream.set()
+            thread.join(timeout=3)
+            self.assertFalse(thread.is_alive(), "collector worker did not stop during fixture cleanup")
+
+        self.addCleanup(cleanup_worker)
         self.assertTrue(worker_ready.wait(timeout=3), "collector worker did not start")
         release_worker.set()
         self.assertTrue(stream_started.wait(timeout=3), "collector did not enter the response stream")
