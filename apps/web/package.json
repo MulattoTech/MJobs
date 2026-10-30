@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && vite build",
+    "lint": "node scripts/lint.mjs",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
     "test": "vitest run"
   },
   "dependencies": {

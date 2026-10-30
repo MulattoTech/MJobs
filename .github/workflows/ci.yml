@@ -66,6 +66,10 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci --prefix apps/web --no-audit --no-fund
+      - name: Lint frontend source policy
+        run: npm run lint --prefix apps/web
+      - name: Type-check frontend
+        run: npm run typecheck --prefix apps/web
       - name: Test trusted automated-review policy and rejection cases
         run: node --test tests/ci/verified_review.test.cjs
       - run: npm test --prefix apps/web
