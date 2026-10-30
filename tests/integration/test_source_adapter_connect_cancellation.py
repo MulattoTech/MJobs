@@ -136,6 +136,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             worker_ready_at = []
             collection_ready = threading.Event()
             collection_release = threading.Event()
+            deadline_guard_armed = threading.Event()
+            deadline_guard_release = threading.Event()
+            deadline_guard_released = threading.Event()
             deadline_started_at = []
             transport_entered = threading.Event()
             transport_completed = threading.Event()
@@ -149,7 +152,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 deadline_start = deadline_started_at[0] if deadline_started_at else None
                 timestamp_keys = (
                     "worker_ready_at", "worker_release_signaled_at", "worker_released_at",
-                    "operation_deadline_started_at",
+                    "deadline_guard_armed_at", "deadline_guard_release_signaled_at",
+                    "deadline_guard_released_at", "operation_deadline_started_at",
                     "collector_entered_at", "transport_call_entered_at",
                     "transport_call_completed_at", "transport_operation_completed_at",
                     "worker_outcome_at", "worker_error_at",
@@ -238,13 +242,24 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     phases["transport_operation_completed_at"] = time.monotonic()
                     transport_operation_completed.set()
 
+            class GuardedDeadline:
+                def __radd__(self, _sampled_at):
+                    phases["deadline_guard_armed_at"] = time.monotonic()
+                    deadline_guard_armed.set()
+                    if not deadline_guard_release.wait(5):
+                        raise AssertionError("Test did not release armed operation deadline")
+                    phases["deadline_guard_released_at"] = time.monotonic()
+                    # The coordinator delay is fixture setup, not part of the
+                    # strict real-transport deadline. Start the unchanged .8s
+                    # budget only after both sides cross the causal gate.
+                    started_at = time.monotonic()
+                    deadline_started_at.append(started_at)
+                    phases["operation_deadline_started_at"] = started_at
+                    deadline_guard_released.set()
+                    return started_at + .8
+
             def record_timeout():
-                # workers.tasks immediately adds this duration to monotonic time
-                # to construct its operation deadline.
-                started_at = time.monotonic()
-                deadline_started_at.append(started_at)
-                phases["operation_deadline_started_at"] = started_at
-                return .8 if mode == "deadline" else 30
+                return GuardedDeadline() if mode == "deadline" else 30
 
             original_request_cancel = api_main.request_cancel
 
@@ -325,10 +340,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         self.assertTrue(worker_ready.wait(3),
                             f"{provider} worker never reached pre-deadline gate; "
                             f"{phase_diagnostic()}")
-                        if coordinator_delay:
-                            time.sleep(coordinator_delay)
                         phases["worker_release_signaled_at"] = time.monotonic()
                         collection_release.set()
+                        if mode == "deadline":
+                            self.assertTrue(deadline_guard_armed.wait(3),
+                                f"{provider} worker never armed its operation deadline; "
+                                f"{phase_diagnostic()}")
+                            if coordinator_delay:
+                                time.sleep(coordinator_delay)
+                            phases["deadline_guard_release_signaled_at"] = time.monotonic()
+                            deadline_guard_release.set()
+                            self.assertTrue(deadline_guard_released.wait(3),
+                                f"{provider} worker never released its operation deadline; "
+                                f"{phase_diagnostic()}")
                         self.assertTrue(collection_ready.wait(3),
                             f"{provider} worker never reached source collection; "
                             f"{phase_diagnostic()}")
@@ -336,8 +360,23 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertEqual(len(deadline_started_at), 1,
                                 f"{provider} source collector entered without one recorded operation deadline; "
                                 f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["worker_released_at"],
+                                                 phases["deadline_guard_armed_at"],
+                                f"{provider} deadline guard armed before worker release; "
+                                f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["deadline_guard_release_signaled_at"],
+                                                 phases["deadline_guard_released_at"],
+                                f"{provider} deadline guard escaped before coordinator release; "
+                                f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["deadline_guard_released_at"],
+                                                 deadline_started_at[0],
+                                f"{provider} operation deadline preceded guard release; "
+                                f"{phase_diagnostic()}")
                             self.assertLessEqual(deadline_started_at[0], phases["collector_entered_at"],
                                 f"{provider} source collector entry preceded operation-deadline construction; "
+                                f"{phase_diagnostic()}")
+                            self.assertTrue(engaged.wait(1),
+                                f"{provider} did not complete one owned TCP connect attempt; "
                                 f"{phase_diagnostic()}")
                             connect_window_end = deadline_started_at[0] + 1.0
                             entry_wait = max(0, connect_window_end - time.monotonic())
@@ -477,6 +516,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
                         collection_release.set()
+                        deadline_guard_release.set()
                         if worker.is_alive():
                             client.post(f"/operations/{identifier}/cancel")
                         worker.join(timeout=3)
@@ -499,7 +539,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
     def test_finite_worker_deadline_during_real_tcp_connect(self):
         for provider in ENDPOINTS:
             with self.subTest(provider=provider):
-                self.run_source(provider, "deadline")
+                self.run_source(provider, "deadline",
+                                coordinator_delay=1.05 if provider == "remoteok" else 0)
 
     def test_lever_global_public_cancel_during_real_tcp_connect(self):
         self.run_source("lever", "cancel", tenant="global:synthetic",
@@ -515,7 +556,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
         self.run_source("lever", "deadline", tenant="global:synthetic")
 
     def test_lever_eu_finite_deadline_during_real_tcp_connect(self):
-        self.run_source("lever", "deadline", tenant="eu:synthetic")
+        self.run_source("lever", "deadline", tenant="eu:synthetic", coordinator_delay=1.05)
 
     def test_lever_global_healthy_worker_and_fresh_source_readback(self):
         self.run_source("lever", "positive", tenant="global:synthetic")
