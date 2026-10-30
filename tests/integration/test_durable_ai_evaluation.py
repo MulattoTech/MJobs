@@ -657,6 +657,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         import threading
         import time
         import httpx
+        from services.ai.providers import transport as provider_transport
         from services.ai.tasks import AITaskRouter
         from tests.unit.test_ai_header_deadline import HeaderServer, PROVIDERS
 
@@ -678,6 +679,18 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     # HeaderServer's close signal is set by its handler on FIN/reset.
                     # Preserve that event contract while recording the exact observation phase.
                     server.closed = TimedCloseEvent()
+                    watcher_ready = threading.Event()
+                    original_watch = provider_transport._RequestGuard.watch
+
+                    def watch_with_readiness(guard):
+                        # The partial-header fixture can run before a newly spawned
+                        # deadline thread is scheduled on a loaded shard. Prove the
+                        # request-owned watcher has entered and checked its guard
+                        # before starting the strict provider-boundary timer.
+                        guard.check(close_resources=False)
+                        watcher_ready.set()
+                        return original_watch(guard)
+
                     budget = 4 if cancel else .3
                     server.client.timeout = httpx.Timeout(budget)
                     class BoundedProvider:
@@ -694,8 +707,11 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     self.assertEqual(admitted.status_code, 202, admitted.text)
                     operation_id = admitted.json()['operation_id']
                     path = '/profiles/fixture/ai-cost-plan/operations/' + operation_id
-                    with ThreadPoolExecutor(max_workers=1) as pool:
+                    with patch.object(provider_transport._RequestGuard, 'watch',
+                                      watch_with_readiness), ThreadPoolExecutor(max_workers=1) as pool:
                         work = pool.submit(self.run_worker, operation_id)
+                        self.assertTrue(watcher_ready.wait(3),
+                            'Request deadline watcher did not enter its guard')
                         self.assertTrue(server.started.wait(3), 'Pre-header provider boundary not reached')
                         # Client setup stays outside this strict POST-entry through
                         # durable worker-terminal timing contract.
