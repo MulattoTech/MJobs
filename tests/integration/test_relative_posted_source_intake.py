@@ -78,11 +78,23 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
             self.assertEqual(outcome['status'], 'COMPLETED', outcome)
         return identifier
 
-    def _filtered(self, window):
+    def _filtered(self, window, query_at=None):
         saved = self.client.put('/search-profiles', json={'id': 'date-filter', 'profile_id': 'fixture',
             'name': 'Synthetic date filter', 'date_window': window, 'enabled': True})
         self.assertEqual(saved.status_code, 200, saved.text)
-        response = self.client.get('/jobs', params={'profile_id': 'fixture', 'search_profile_id': 'date-filter'})
+        def query():
+            return self.client.get('/jobs', params={
+                'profile_id': 'fixture', 'search_profile_id': 'date-filter'})
+        if query_at is None:
+            response = query()
+        else:
+            class QueryClock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    return query_at.astimezone(tz) if tz else query_at.replace(tzinfo=None)
+            with patch('apps.api.main.datetime', QueryClock), patch(
+                    'services.discovery.search_semantics.datetime', QueryClock):
+                response = query()
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()['jobs']
 
@@ -179,6 +191,81 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         self.assertEqual(corrected_attrs['reported_posted_at'], corrected)
         self.assertEqual(corrected_attrs['reported_posted_at_precision'], 'SOURCE')
 
+    def test_pagination_skips_newer_invalid_candidates_and_stays_posting_scoped(self):
+        target_native_id = self.payload['jobs'][0]['id']
+        other = deepcopy(RAW_REMOTIVE_PAYLOAD['jobs'][1])
+        other_date = (self.collected_at - timedelta(minutes=15)).isoformat()
+        other['publication_date'] = other_date
+        self.payload['jobs'].append(other)
+        self.payload['job-count'] = 2
+        self.payload['jobs'][0]['publication_date'] = None
+        self._collect()
+        self.payload['jobs'][0]['publication_date'] = '2 hours ago'
+        first_valid_at = self.collected_at + timedelta(hours=1)
+        self._collect(first_valid_at, 'first-valid-before-recoverable-legacy')
+        older_date = (self.collected_at - timedelta(hours=1)).isoformat()
+        with self.store.engine.begin() as connection:
+            postings = list(connection.execute(select(m.postings)).mappings())
+            target_posting = next(row for row in postings if row['raw']['id'] == target_native_id)
+            other_posting = next(row for row in postings if row['raw']['id'] == other['id'])
+            target_candidates = list(connection.execute(select(m.posting_value_candidates).where(
+                m.posting_value_candidates.c.posting_id == target_posting['id']).order_by(
+                m.posting_value_candidates.c.observed_at.desc(),
+                m.posting_value_candidates.c.id.desc())).mappings())
+            older, initial_unknown = target_candidates
+            self.assertNotEqual(older['id'], initial_unknown['id'])
+            self.assertEqual(older['observed_at'], first_valid_at.isoformat())
+            self.assertEqual(older['normalized']['attributes']['reported_posted_at'], older_date)
+            self.assertIsNone(initial_unknown['normalized']['attributes']['reported_posted_at'])
+            other_candidate = connection.execute(select(m.posting_value_candidates).where(
+                m.posting_value_candidates.c.posting_id == other_posting['id']).order_by(
+                m.posting_value_candidates.c.observed_at.desc())).mappings().first()
+            self.assertNotEqual(other_candidate['posting_id'], older['posting_id'])
+            self.assertEqual(other_candidate['normalized']['attributes']['reported_posted_at'], other_date)
+            invalid_ids = []
+            for offset in range(2, 67):
+                invalid = dict(older)
+                invalid['id'] = hashlib.sha256(
+                    f"{target_posting['id']}:invalid:{offset}".encode()).hexdigest()
+                invalid['observed_at'] = (self.collected_at + timedelta(hours=offset)).isoformat()
+                invalid['normalized'] = deepcopy(older['normalized'])
+                invalid['normalized']['attributes'].update(
+                    reported_posted_at='not a timestamp',
+                    reported_posted_at_raw='not a timestamp',
+                    reported_posted_at_precision='UNKNOWN',
+                    reported_posted_at_reference_at='also not a timestamp',
+                )
+                connection.execute(m.posting_value_candidates.insert().values(**invalid))
+                invalid_ids.append(invalid['id'])
+            invalid_rows = list(connection.execute(select(m.posting_value_candidates).where(
+                m.posting_value_candidates.c.id.in_(invalid_ids))).mappings())
+            self.assertEqual(len(invalid_rows), 65)
+            self.assertEqual({row['id'] for row in invalid_rows}, set(invalid_ids))
+            self.assertEqual({row['posting_id'] for row in invalid_rows}, {target_posting['id']})
+            self.assertTrue(all(row['observed_at'] > older['observed_at'] for row in invalid_rows))
+            self.assertEqual({row['normalized']['attributes']['reported_posted_at']
+                              for row in invalid_rows}, {'not a timestamp'})
+            canonical = connection.execute(select(m.jobs).where(
+                m.jobs.c.id == target_posting['job_id'])).mappings().one()
+            canonical_attributes = deepcopy(canonical['attributes'])
+            canonical_attributes.update(source_id='different-source', reported_posted_at=other_date,
+                reported_posted_at_raw=other_date, reported_posted_at_precision='SOURCE',
+                reported_posted_at_reference_at=None)
+            connection.execute(update(m.jobs).where(m.jobs.c.id == target_posting['job_id']).values(
+                attributes=canonical_attributes))
+        self.payload['jobs'][0]['publication_date'] = '2 hours ago'
+        self._collect(self.collected_at + timedelta(days=4), 'relative-after-invalid-candidate-pages')
+        self._reopen()
+        rows = self.client.get('/jobs', params={'profile_id': 'fixture'}).json()['jobs']
+        by_native = {row['attributes']['native_posting_id']: row for row in rows}
+        attrs = by_native[target_native_id]['attributes']
+        self.assertEqual(attrs['reported_posted_at'], older_date)
+        self.assertEqual(attrs['reported_posted_at_raw'], '2 hours ago')
+        self.assertEqual(attrs['reported_posted_at_reference_at'], first_valid_at.isoformat())
+        self.assertEqual(by_native[other['id']]['attributes']['reported_posted_at'], other_date)
+        filtered = {row['attributes']['native_posting_id'] for row in self._filtered('LAST_24_HOURS')}
+        self.assertEqual(filtered, {target_native_id, other['id']})
+
     def test_remoteok_missing_or_invalid_date_retains_valid_epoch_after_public_collection(self):
         source = self.client.put('/sources', json={'provider': 'remoteok', 'tenant': 'default',
             'poll_interval': 300, 'request_timeout': 8, 'rate_limit': 60, 'jitter_seconds': 0})
@@ -267,17 +354,21 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
                     m.posting_value_candidates.c.id == row['id']).values(normalized=values))
 
     def test_preupgrade_absolute_date_without_precision_is_not_refreshed_by_relative_recollection(self):
-        original = (self.collected_at - timedelta(days=10)).isoformat()
+        collected_at = datetime(2020, 1, 15, 12, tzinfo=timezone.utc)
+        recollected_at = collected_at + timedelta(hours=1)
+        query_at = recollected_at + timedelta(hours=1)
+        self.collected_at = collected_at
+        original = (collected_at - timedelta(days=10)).isoformat()
         self.payload['jobs'][0]['publication_date'] = original
-        self._collect(request_id='legacy-absolute')
+        self._collect(collected_at, 'legacy-absolute')
         self._emulate_preupgrade_dates(original)
         self._reopen()
-        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
+        self.assertEqual(len(self._filtered('LAST_24_HOURS', query_at)), 0)
         self.payload['jobs'][0]['publication_date'] = '2 hours ago'
-        self._collect(self.collected_at + timedelta(hours=1), 'relative-after-legacy-absolute')
+        self._collect(recollected_at, 'relative-after-legacy-absolute')
         self._reopen()
-        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
-        job = self._filtered('LAST_30_DAYS')[0]
+        self.assertEqual(len(self._filtered('LAST_24_HOURS', query_at)), 0)
+        job = self._filtered('LAST_30_DAYS', query_at)[0]
         self.assertEqual(job['attributes']['reported_posted_at'], original)
         self.assertIsNone(job['attributes']['reported_posted_at_raw'])
         self.assertEqual(job['attributes']['reported_posted_at_precision'], 'SOURCE')
