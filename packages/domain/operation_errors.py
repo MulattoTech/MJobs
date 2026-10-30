@@ -45,3 +45,9 @@ def source_collection_error_category(provider_code):
     if len(http_status) == 3 and http_status.startswith("5") and http_status.isdigit():
         return "NETWORK_ERROR"
     return None
+
+
+def ai_operation_error_category(_diagnostic=None):
+    """Map AI diagnostics to the value-free public operation category."""
+    # Provider/evaluation details are internal and may contain untrusted text.
+    return "AI_ERROR"

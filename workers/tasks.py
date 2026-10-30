@@ -5,6 +5,7 @@ import time
 
 from sqlalchemy import and_, or_, select, update
 
+from packages.domain.operation_errors import ai_operation_error_category
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now
@@ -513,7 +514,7 @@ def execute_operation(operation_id, *, registry_module=None,
         except DurableComparisonError as failure:
             state, error = "BLOCKED", failure.code
         except (DurableEvaluationError, AIProviderError, AIProviderDisabled, StructuredOutputError) as failure:
-            state, error = 'BLOCKED', failure.code
+            state, error = 'BLOCKED', ai_operation_error_category(getattr(failure, 'code', None))
         except ComparisonUnavailable:
             state, error = "BLOCKED", "COMPARISON_INPUT_UNAVAILABLE"
         except PublicFetchError as failure:
@@ -674,10 +675,12 @@ def execute_operation(operation_id, *, registry_module=None,
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
         try:
-            if state == "CANCELLED" and operation["kind"] == "DISCOVER":
-                # The terminal cancellation is already durable. Optional source
-                # context enrichment must not extend the public cancellation
-                # bound while a loaded database services this second lookup.
+            if (operation["kind"] == "DISCOVER"
+                    and (state == "CANCELLED"
+                         or (state == "DEAD_LETTERED" and error == "OPERATION_TIMEOUT"))):
+                # The terminal interruption is already durable. Optional source
+                # context enrichment must not extend its public time bound while
+                # a loaded database services this second lookup.
                 context = {}
             elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
                 context = _resolve_company_source_company_id(store, operation, full_context=True)
