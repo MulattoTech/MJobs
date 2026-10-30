@@ -85,6 +85,7 @@ services:
       MJOBS_CREDENTIAL_ENCRYPTION_KEY: ${MJOBS_CREDENTIAL_ENCRYPTION_KEY:?Run python -m cli.init_env}
       MJOBS_PUBLIC_HOST: ${MJOBS_PUBLIC_HOST:-}
       MJOBS_DEPLOY_SHA: ${MJOBS_DEPLOY_SHA:-}
+      MJOBS_NOTIFICATIONS_ENABLED: ${MJOBS_NOTIFICATIONS_ENABLED:-0}
     command: [python, -m, uvicorn, apps.api.main:create_from_env, --factory, --host, 0.0.0.0, --port, '8000']
     ports: ['127.0.0.1:${MJOBS_PORT:-18700}:8000']
     networks: [private, ui, source-egress]

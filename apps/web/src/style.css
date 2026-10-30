@@ -56,3 +56,9 @@ a:visited {color:var(--info)}
 .theme-control select {width:auto;min-width:110px}
 .theme-control small {color:var(--muted)}
 svg [role="button"]:focus-visible rect {stroke:var(--focus);stroke-width:3px}
+
+/* The Jobs columns need 616px after the tablet sidebar and main padding. */
+@media(max-width:860px){.job-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Filter controls wrap within the page at desktop widths as well. */
+.filters{flex-wrap:wrap}

@@ -220,7 +220,7 @@ class JobInventoryRestartCriterion55BrowserTests(unittest.TestCase):
             self.assertEqual(store.count("job_postings"), 4)
 
             external, errors = [], []
-            first_origin, sock, server, thread = self._start_api(
+            first_origin, first_sock, first_server, first_thread = self._start_api(
                 store,
                 fixture_origin,
                 root,
@@ -243,7 +243,7 @@ class JobInventoryRestartCriterion55BrowserTests(unittest.TestCase):
                     self._assert_fixture_inventory(before)
                     browser.close()
             finally:
-                self._stop_api(store, sock, server, thread)
+                self._stop_api(store, first_sock, first_server, first_thread)
 
             reopened = Store(database_url)
             reopened.bind_workspace_mode("FIXTURE")
@@ -252,8 +252,12 @@ class JobInventoryRestartCriterion55BrowserTests(unittest.TestCase):
                 fixture_origin,
                 root,
             )
-            self.assertNotEqual(first_origin, second_origin)
             try:
+                # A released port may be reused; new instances prove the restart.
+                self.assertIsNot(reopened, store)
+                self.assertIsNot(sock, first_sock)
+                self.assertIsNot(server, first_server)
+                self.assertIsNot(thread, first_thread)
                 with sync_playwright() as playwright:
                     browser, context, page = self._browser(
                         playwright,

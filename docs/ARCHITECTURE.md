@@ -146,6 +146,8 @@ cadence, backoff and active-operation checks constrain scheduling. The
 origin and must not be mistaken for the public provider transport. See
 [the discovery area contract](../services/discovery/AREA.md) for the adapter contract.
 
+The saved-search [cheap-prefilter preview route](../apps/api/cheap_prefilter.py) applies a bounded title/keyword subset and returns aggregate stage counts, not candidate contents or persisted matches. In the [filter service](../services/discovery/cheap_prefilter.py), title include/exclude checks happen before keyword checks against the assembled text corpus. A truncated corpus is not used for keyword rejection, and an overlong uncertain title is not used to reject. This preview is not full search or matching.
+
 ## Company discovery
 
 [Requests](../services/company_discovery/requests.py) and
@@ -187,6 +189,8 @@ connect results to ingestion. Scores explain suitability, not invented qualifica
 or authorization to apply. Changed profile/search inputs require fresh scoped
 evaluation rather than presenting an old score as current.
 
+The read-only [selected-job comparison API](../apps/api/job_comparison.py) validates profile/search/job scope and compares server-built snapshots from saved matches; it does not rescore or update matches. If no scoring profile is selected and stored contributions are empty, the route represents the saved score with a synthesized `skills` contribution marked `LEGACY_MATCH_BASELINE`, not a fresh computation.
+
 ## Documents
 
 [Generation](../services/documents/generate.py) prepares factual, versioned documents
@@ -202,6 +206,8 @@ preparation, extraction and comparison, not employer submission.
 reviewed and generated artifacts. Do not overwrite an original to make a generated
 revision appear approved. `MJOBS_OUTPUT_DIR` points to the local document volume in
 Compose; backup/recovery must account for files as well as database records.
+
+The [upload service](../services/documents/uploads.py) stores unreviewed bytes, performs bounded format checks, and verifies stored size/digest on readback; it does not turn file contents into resume facts. TXT rejects control characters below U+0020 except TAB/CR/LF. Integrity checks raise `UploadIntegrityError`; filesystem `OSError`s may propagate from the service.
 
 ## Application automation
 
@@ -220,6 +226,8 @@ submission is not safe to replay merely because a worker stopped. The
 performs read-only MOCK receipt reconciliation: a missing or unverifiable receipt
 leaves an uncertain submission `SUBMISSION_UNCONFIRMED`, not a fabricated success
 or proof of non-submission. See [the application area contract](../services/applications/AREA.md).
+
+The [Lever markup analyzer](../services/applications/adapters/lever_markup.py) performs bounded, value-free static control extraction. Recognized challenge markers produce `UNKNOWN`. Recognized interactive ARIA roles or non-false `contenteditable` inside the form, including on native form controls, also produce `UNKNOWN`. These are conservative parser outcomes, not CAPTCHA or access-control bypasses.
 
 ## Recovery
 
@@ -287,6 +295,8 @@ do not infer those results from this description or a health response. The retai
 [Ubuntu updater](../infra/deploy/host_update.py) is not evidence that two PERSONAL
 origins should run concurrently.
 
+The [transient-retention API](../apps/api/transient_retention.py) exposes policy read/update and a server-scoped preview. It invokes the preview worker with `dry_run=True` and `prune_enabled=False`, using configured scope rather than caller-selected roots. The response includes the preview and the last saved sweep summary. A saved policy update is not itself a cleanup run.
+
 ## Security
 
 - **Workspace identity:** [operation mode](../packages/domain/operation_mode.py) and
@@ -321,3 +331,5 @@ the [requirement index](../planning/REQUIREMENT_INDEX.json) is derived. Code pre
 a diagram, service health, or a passing unit test does not certify a complete flow.
 Retain exact-revision evidence and distinguish local, synthetic and real-provider
 validation; preserve historical evidence without presenting it as current proof.
+
+**Verification boundary for these module references:** These paragraphs describe source contracts. Acceptance claims require separate test and runtime evidence for the exact revision.

@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: MulattoTech/Fleet-Control-Hub
-          ref: ae399aaaf6790adb6630a810495216a0014b08d7
+          ref: c3d3470470aa5e2ac04985a2d781bb01fe3d562d
           path: .fleet-source
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38

@@ -13,6 +13,7 @@ else:
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -56,21 +57,51 @@ def main_sha():
         raise RuntimeError('Main SHA is not a full lowercase commit')
     return value
 
+def check_runs(sha):
+    if not isinstance(sha, str) or not re.fullmatch('[0-9a-f]{40}', sha):
+        raise RuntimeError('Invalid commit for independent checks')
+    pages = json.loads(command(
+        ['gh', 'api', '--paginate', '--slurp',
+         f'repos/{REPOSITORY}/commits/{sha}/check-runs?filter=all&per_page=100'],
+        timeout=120, label='read all independent checks'))
+    if not isinstance(pages, list) or not pages or not isinstance(pages[0], dict):
+        raise RuntimeError('Invalid paginated check response; fail closed')
+    expected = pages[0].get('total_count')
+    if type(expected) is not int or expected < 0:
+        raise RuntimeError('Invalid check count; fail closed')
+    runs = {}
+    for page in pages:
+        if (not isinstance(page, dict)
+                or type(page.get('total_count')) is not int
+                or page['total_count'] != expected
+                or not isinstance(page.get('check_runs'), list)):
+            raise RuntimeError('Check pages changed or are incomplete; fail closed')
+        for entry in page['check_runs']:
+            if (not isinstance(entry, dict)
+                    or type(entry.get('id')) is not int or entry['id'] <= 0
+                    or entry.get('head_sha') != sha):
+                raise RuntimeError('Invalid check identity or commit; fail closed')
+            if entry['id'] in runs:
+                raise RuntimeError('Duplicate check across pages; retry next cycle')
+            runs[entry['id']] = entry
+    if len(runs) != expected:
+        raise RuntimeError('Incomplete check pagination; fail closed')
+    return list(runs.values())
+
 def checks_pass(sha):
-    data = json.loads(command(['gh', 'api', f'repos/{REPOSITORY}/commits/{sha}/check-runs?per_page=100'],
-                              timeout=40, label='read independent checks'))
-    if data.get('total_count', 0) > 100:
-        raise RuntimeError('Checks are paginated; fail closed')
     rows = {}
-    for entry in data.get('check_runs', []):
+    for entry in check_runs(sha):
         name = entry.get('name')
-        if name not in REQUIRED or entry.get('app', {}).get('slug') != 'github-actions':
+        app = entry.get('app')
+        if (name not in REQUIRED or not isinstance(app, dict)
+                or app.get('slug') != 'github-actions'):
             continue
-        order = (entry.get('started_at') or '', entry.get('id') or 0)
-        if name not in rows or order > rows[name][0]:
-            rows[name] = (order, entry)
-    return all(name in rows and rows[name][1].get('status') == 'completed'
-               and rows[name][1].get('conclusion') == 'success' for name in REQUIRED)
+        # A newly queued run may have no started_at. Its newer ID must still
+        # supersede an older success, or an in-progress rerun could be bypassed.
+        if name not in rows or entry['id'] > rows[name]['id']:
+            rows[name] = entry
+    return all(name in rows and rows[name].get('status') == 'completed'
+               and rows[name].get('conclusion') == 'success' for name in REQUIRED)
 
 def migration_digest(source):
     source = Path(source)
@@ -82,6 +113,95 @@ def migration_digest(source):
         checksum.update(item.relative_to(source).as_posix().encode('utf-8') + b'\0')
         checksum.update(hashlib.sha256(item.read_bytes()).digest())
     return checksum.hexdigest()
+
+def require_plain_path(path):
+    """Reject redirected existing components, including Windows junctions."""
+    path = Path(path).absolute()
+    for item in (path, *path.parents):
+        try:
+            info = item.lstat()
+        except FileNotFoundError:
+            continue
+        if (stat.S_ISLNK(info.st_mode)
+                or getattr(info, 'st_file_attributes', 0)
+                & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)):
+            raise RuntimeError('Redirected deployment path; requires reconciliation')
+
+def verify_candidate(source, sha):
+    """Reuse only an independent, unchanged clone at the expected release path."""
+    source = Path(source).absolute()
+    if (not isinstance(sha, str) or not re.fullmatch('[0-9a-f]{40}', sha)
+            or source != (HOME / 'releases' / sha).absolute()):
+        raise RuntimeError('Unexpected candidate path or commit')
+    require_plain_path(source)
+    if not source.is_dir() or not (source / '.git').is_dir():
+        raise RuntimeError('Candidate is not an independent clone; requires reconciliation')
+
+    def walk_error(error):
+        raise RuntimeError('Cannot inspect candidate paths') from error
+
+    for root, directories, files in os.walk(source, followlinks=False, onerror=walk_error):
+        for name in directories + files:
+            item = Path(root) / name
+            info = item.lstat()
+            if (not (stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode))
+                    or getattr(info, 'st_file_attributes', 0)
+                    & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)):
+                raise RuntimeError('Redirected or special candidate entry; requires reconciliation')
+
+    # Ignore ambient Git overrides; do not execute cached local hooks or filters.
+    env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+    env.update(GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull, GIT_OPTIONAL_LOCKS='0')
+
+    def git(*args):
+        return command(['git', '--no-replace-objects', '-c', 'core.fsmonitor=false',
+                        *args], cwd=source, env=env, label='verify release clone')
+
+    allowed_config = {'core.repositoryformatversion', 'core.filemode', 'core.bare',
+                      'core.logallrefupdates', 'core.symlinks', 'core.ignorecase',
+                      'core.longpaths', 'remote.origin.url', 'remote.origin.fetch',
+                      'branch.main.remote', 'branch.main.merge'}
+    keys = git('config', '--local', '--no-includes', '--name-only', '--list').splitlines()
+    if any(key.lower() not in allowed_config for key in keys):
+        raise RuntimeError('Unexpected candidate Git configuration; requires reconciliation')
+    if (source / '.git' / 'objects' / 'info' / 'alternates').exists():
+        raise RuntimeError('Candidate uses external Git objects; requires reconciliation')
+    if (Path(git('rev-parse', '--show-toplevel')).absolute() != source
+            or Path(git('rev-parse', '--absolute-git-dir')).absolute() != source / '.git'
+            or (source / git('rev-parse', '--git-common-dir')).absolute() != source / '.git'
+            or git('remote', 'get-url', '--all', 'origin') != f'https://github.com/{REPOSITORY}.git'
+            or git('rev-parse', 'HEAD') != sha):
+        raise RuntimeError('Candidate provenance or commit mismatch; requires reconciliation')
+    if git('status', '--porcelain=v1', '--untracked-files=no', '--ignore-submodules=none'):
+        raise RuntimeError('Candidate tracked files changed; requires reconciliation')
+    if any(entry and not entry.startswith('H ')
+           for entry in git('ls-files', '-v', '-z').split('\0')):
+        raise RuntimeError('Candidate index hides tracked changes; requires reconciliation')
+    overlays = {'.env', 'compose.micro.yml'}
+    if git('ls-files', '-z', '--', *sorted(overlays)):
+        raise RuntimeError('Candidate tracks a private deployment overlay')
+    # The status tag preserves leading whitespace in names through command().strip().
+    extras = (git('ls-files', '-t', '--others', '--exclude-standard', '-z') + '\0'
+              + git('ls-files', '-t', '--others', '--ignored', '--exclude-standard', '-z'))
+    if any(entry and (not entry.startswith('? ') or entry[2:] not in overlays)
+           for entry in extras.split('\0')):
+        raise RuntimeError('Unknown candidate files; requires reconciliation')
+    if any((source / name).exists() and not (source / name).is_file() for name in overlays):
+        raise RuntimeError('Invalid candidate overlay; requires reconciliation')
+
+def prepare_candidate(sha):
+    if not isinstance(sha, str) or not re.fullmatch('[0-9a-f]{40}', sha):
+        raise RuntimeError('Invalid candidate commit')
+    source = HOME / 'releases' / sha
+    require_plain_path(source)
+    if not source.exists():
+        source.parent.mkdir(parents=True, exist_ok=True)
+        log(f'Cloning verified main candidate {sha[:12]}')
+        command(['git', '-c', 'core.longpaths=true', 'clone', '--depth', '1',
+                 '--branch', 'main', f'https://github.com/{REPOSITORY}.git', str(source)],
+                timeout=240, label='clone exact main')
+    verify_candidate(source, sha)
+    return source
 
 def compose(source, sha, image, *args, timeout=300):
     env = os.environ.copy()
@@ -135,28 +255,23 @@ def run_update():
     if not checks_pass(sha):
         log(f'No verified deployment candidate for main {sha[:12]}; retaining {old_sha[:12]}')
         return
-    source = HOME / 'releases' / sha
-    if source.exists():
-        raise RuntimeError('Candidate directory already exists; requires reconciliation')
-    source.parent.mkdir(parents=True, exist_ok=True)
-    log(f'Cloning verified main candidate {sha[:12]}')
-    command(['git', '-c', 'core.longpaths=true', 'clone', '--depth', '1',
-             '--branch', 'main', f'https://github.com/{REPOSITORY}.git', str(source)],
-            timeout=240, label='clone exact main')
-    observed = command(['git', 'rev-parse', 'HEAD'], cwd=source, label='verify checkout')
-    if observed != sha:
-        raise RuntimeError('Main advanced during candidate clone; not deploying')
+    source = prepare_candidate(sha)
     if migration_digest(source) != migration_digest(old_source):
         raise RuntimeError('New migrations require offline guarded review; no automatic rollout')
     if ('MJOBS_PUBLIC_HOST' not in (source / 'compose.yml').read_text(encoding='utf-8')
             or 'MJOBS_IMAGE' not in (source / 'compose.yml').read_text(encoding='utf-8')):
         raise RuntimeError('Candidate lacks external-host deployment contract')
     for filename in ('.env', 'compose.micro.yml'):
+        require_plain_path(BASE / filename)
+        require_plain_path(source / filename)
+        if not (BASE / filename).is_file():
+            raise RuntimeError('Missing protected deployment overlay')
         shutil.copy2(BASE / filename, source / filename)
     image = 'mjobs-micro:sha-' + sha
     log('Building full tested image from verified source (no code agents)')
     command(['docker', 'build', '-f', 'infra/docker/Dockerfile', '-t', image, '.'],
             cwd=source, timeout=4500, label='validated Docker image build')
+    verify_candidate(source, sha)
     if main_sha() != sha or not checks_pass(sha):
         raise RuntimeError('Candidate was superseded or checks changed before deployment')
 

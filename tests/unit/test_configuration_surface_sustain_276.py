@@ -1,6 +1,9 @@
 """MJ-REQ-275 ordinary settings must include safe notification controls."""
 
+import json
 import os
+import shutil
+import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
@@ -56,3 +59,31 @@ def test_invalid_notification_configuration_fails_closed(tmp_path, configured):
     with patch.dict(os.environ, {"MJOBS_NOTIFICATIONS_ENABLED": configured}, clear=True), \
             pytest.raises(ValueError, match="^MJOBS_NOTIFICATIONS_ENABLED_INVALID$"):
         _public_settings(tmp_path)
+
+
+@pytest.mark.parametrize(("configured", "expected"), ((None, False), ("0", False), ("1", True)))
+def test_compose_notification_configuration_reaches_public_readback(tmp_path, configured, expected):
+    docker = shutil.which("docker")
+    if docker is None:
+        pytest.skip("Docker Compose CLI is unavailable; API configuration tests still run")
+    root = Path(__file__).resolve().parents[2]
+    environment = os.environ.copy()
+    environment.pop("MJOBS_NOTIFICATIONS_ENABLED", None)
+    environment["POSTGRES_PASSWORD"] = "configuration-test-only"
+    environment["MJOBS_CREDENTIAL_ENCRYPTION_KEY"] = "configuration-test-only"
+    if configured is not None:
+        environment["MJOBS_NOTIFICATIONS_ENABLED"] = configured
+    env_file = tmp_path / "compose.env"
+    env_file.write_text("", encoding="utf-8")
+    rendered = subprocess.run(
+        [docker, "compose", "--env-file", str(env_file), "-f", str(root / "compose.yml"),
+         "config", "--format", "json"],
+        env=environment, capture_output=True, text=True, timeout=30, check=True,
+    )
+    api_environment = json.loads(rendered.stdout)["services"]["api"]["environment"]
+    with patch.dict(os.environ, {
+        "MJOBS_NOTIFICATIONS_ENABLED": api_environment["MJOBS_NOTIFICATIONS_ENABLED"],
+    }, clear=True):
+        settings = _public_settings(tmp_path)
+    assert settings["notifications"] == {"enabled": expected, "delivery": "IN_APP"}
+    assert settings["external_submission_enabled"] is False
