@@ -186,7 +186,8 @@ def tcp_source(mode, *, tls_context=None):
 
 class SourceHttpSocketBudgetTests(unittest.TestCase):
     def run_source(self, mode, *, cancel=False, worker_budget=.8, setup_delay=0,
-                   unwind_delay=0, worker_entry_delay=0):
+                   unwind_delay=0, worker_entry_delay=0,
+                   retryable_failure_after_transport=False, log_context_delay=0):
         with tempfile.TemporaryDirectory(prefix="mjobs-source-tcp-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -200,6 +201,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 original_connect = socket.socket.connect
                 original_connect_ex = socket.socket.connect_ex
                 original_collect_source = worker_tasks.collect_source
+                original_log_context = worker_tasks._resolve_application_log_context
                 original_connect_tcp = http_transport._Backend.connect_tcp
                 original_start_tls = http_transport._Stream.start_tls
                 transport_entered = threading.Event()
@@ -215,11 +217,24 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         if setup_delay:
                             time.sleep(setup_delay)
                         return original_collect_source(*args, **kwargs)
+                    except Exception as failure:
+                        if retryable_failure_after_transport:
+                            self.assertTrue(tls_exited.is_set(),
+                                            "Retryable adapter error preceded TLS transport exit")
+                            raise SourceError("SOURCE_NETWORK_ERROR", retry_seconds=120) from failure
+                        raise
                     finally:
                         # Model a loaded shard delaying worker bookkeeping only
                         # after the transport has already honored its deadline.
+                        # Production must reassert deadline authority before it
+                        # classifies any earlier adapter error for retry.
                         if unwind_delay:
                             time.sleep(unwind_delay)
+
+                def delayed_log_context(*args, **kwargs):
+                    if log_context_delay:
+                        time.sleep(log_context_delay)
+                    return original_log_context(*args, **kwargs)
 
                 def observe_connect_tcp(backend, *args, **kwargs):
                     transport_entered.set()
@@ -265,6 +280,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 }), patch("socket.socket.connect", new=observe_connect), patch(
                         "socket.socket.connect_ex", new=observe_connect_ex), patch(
                         "workers.tasks.collect_source", new=delayed_collect_source), patch(
+                        "workers.tasks._resolve_application_log_context",
+                        new=delayed_log_context), patch(
                         "services.discovery.sources.http_transport._Backend.connect_tcp",
                         new=observe_connect_tcp), patch(
                         "services.discovery.sources.http_transport._Stream.start_tls",
@@ -442,7 +459,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
     def test_public_cancel_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
-                self.run_source(mode, cancel=True)
+                self.run_source(mode, cancel=True, log_context_delay=.8 if mode == "body-drip" else 0)
 
     def test_public_cancel_during_real_tcp_connect_stall(self):
         # Valid production operation budget; the source's minimum supported
@@ -459,7 +476,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
         self.run_source("tls-stall", cancel=True, worker_budget=30)
 
     def test_worker_deadline_during_real_tls_handshake_stall(self):
-        self.run_source("tls-stall", unwind_delay=.8, worker_entry_delay=1.1)
+        self.run_source("tls-stall", unwind_delay=.8, worker_entry_delay=1.1,
+                        retryable_failure_after_transport=True)
 
     def test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads(self):
         class Cancelled(Exception):
