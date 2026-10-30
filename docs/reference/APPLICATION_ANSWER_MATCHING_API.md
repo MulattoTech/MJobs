@@ -66,7 +66,7 @@ The API area guide does not list this endpoint (`apps/api/AREA.md:1–37`). The 
 ## Evidence index
 
 - API source: `apps/api/application_answer_matching.py:1–27, 30–76, 79–150, 161–252`.
-- Router mount: `apps/api/main.py:816–817`.
+- Router mount: `apps/api/main.py:829–830`.
 - Integration tests: `tests/integration/test_application_answer_matching_api.py:19–108, 110–170, 217–289`.
 - API area documentation check: `apps/api/AREA.md:1–37`.
 - Runtime behavior and test acceptance are not established by this reference.
