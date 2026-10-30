@@ -453,7 +453,15 @@ def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
     }
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None, preserve_fact_ids=None, resolved_route_id=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None, preserve_fact_ids=None, resolved_route_id=None, reviewed_cover_letter_document_id=None, reviewed_cover_letter_sha256=None):
+    if ((reviewed_cover_letter_document_id is None)
+            != (reviewed_cover_letter_sha256 is None)):
+        raise ValueError('reviewed cover-letter ID and hash must be selected together')
+    if reviewed_cover_letter_document_id is not None and reprepare_expected is None:
+        raise PreparationError(
+            "COVER_LETTER_REVIEW_SELECTION_INVALID",
+            "A reviewed cover letter can only be selected while preparing its saved application",
+        )
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -637,6 +645,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             cover_letter_context["job_snapshot"]["role_lens"] = role_lens
         prior = connection.execute(select(m.applications).where(m.applications.c.job_id == job_id, m.applications.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
         reprepare_audit = None
+        reviewed_cover_letter = None
         if reprepare_expected is not None:
             if not isinstance(reprepare_expected, dict) or prior is None:
                 raise PreparationError("APPLICATION_REPREPARE_STALE", "Reload the saved application before preparing it again")
@@ -674,6 +683,23 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                           "document_version": prior["document_version"],
                           "route_id": prior["route_id"], "state": prior["state"]},
             }
+            if reviewed_cover_letter_document_id is not None:
+                from services.documents.reviewed_cover_letter import (
+                    ReviewedCoverLetterError,
+                    resolve_reviewed_cover_letter,
+                )
+                try:
+                    reviewed_cover_letter = resolve_reviewed_cover_letter(
+                        connection, output_dir,
+                        application=dict(prior), profile=profile, job=job,
+                        document_id=reviewed_cover_letter_document_id,
+                        preview_sha256=reviewed_cover_letter_sha256,
+                    )
+                except ReviewedCoverLetterError as error:
+                    raise PreparationError(
+                        error.code,
+                        "The reviewed cover letter changed; review and approve it again",
+                    ) from None
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
@@ -699,7 +725,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
                 and {key:value for key,value in prior_letter_context.items()
                      if key not in {'claim_validation', 'prompt_provenance'}} == cover_letter_context)
-            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
+            if reviewed_cover_letter is None and prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
@@ -787,7 +813,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         resume_story_offset = len(kinds['resume'])
         kinds['resume'].extend(resume_story_paragraphs)
         kinds['cover-letter'] = cover_letter_paragraphs
-        if set(kinds) != {'resume', 'cover-letter'}:
+        if reviewed_cover_letter is not None:
+            del kinds['cover-letter']
+        expected_kinds = {'resume'} if reviewed_cover_letter is not None else {'resume', 'cover-letter'}
+        if set(kinds) != expected_kinds:
             raise PreparationError('UNSUPPORTED_CLAIM', 'The generated document set has no complete validation contract')
         for kind, paragraphs in kinds.items():
             output_path = 'resume' if kind == 'resume' else 'cover letter'
@@ -842,12 +871,15 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         check()
         publish_directory(staging, root)
         staged.append(root)
+        current_records = [*records]
+        if reviewed_cover_letter is not None:
+            current_records.append(reviewed_cover_letter)
         if reprepare_audit is not None:
             reprepare_audit["current"] = {
                 "application_id": application_id, "job_id": job_id,
                 "profile_id": profile_id, "profile_version": profile["version"],
                 "document_version": revision, "route_id": route["id"],
-                "document_ids": sorted(record["id"] for record in records),
+                "document_ids": sorted(record["id"] for record in current_records),
                 "state": "PREPARED",
             }
             # Record the exact old pin set before changing the mutable application
@@ -859,7 +891,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                               for option in route_plan["selected"]],
                 "route_mode": route_plan["mode"],
                 "preparation_config": saved_preparation_config,
-                "document_kinds": sorted({record["kind"] for record in records}),
+                "document_kinds": sorted({record["kind"] for record in current_records}),
                 "adapter_knowledge": application_adapter_knowledge(connection, route["id"]),
                 "reprepare": reprepare_audit,
             })
@@ -873,12 +905,12 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             'profile_version': profile['version'], 'documents': [
                 {'id': r['id'], 'fact_ids': r['fact_ids'], 'sha256': r['sha256'],
                  'claim_validation': r['generation_context']['claim_validation']}
-                for r in records]})
+                for r in current_records]})
         prepared_payload = {"fact_ids": fact_ids, "profile_version": profile["version"],
             "document_version": revision, "route_ids": selected_route_ids,
             "route_mode": route_plan["mode"],
             "preparation_config": saved_preparation_config,
-            "document_kinds": sorted({record["kind"] for record in records}),
+            "document_kinds": sorted({record["kind"] for record in current_records}),
             "adapter_knowledge": application_adapter_knowledge(connection, route["id"])}
         if reprepare_audit is None:
             store._audit(connection, application_id, "DOCUMENTS_PREPARED", prepared_payload)

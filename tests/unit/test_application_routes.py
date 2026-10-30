@@ -130,7 +130,7 @@ class ApplicationRouteTests(unittest.TestCase):
         selected = plan_application_routes(routes, "THIS_ROUTE", "agg-a")
         self.assertEqual(selected["selected"][0]["preferred_route"]["id"], "agg-a")
 
-    def test_aggregator_route_discovery_stays_unresolved_without_verified_ats_sibling(self):
+    def test_aggregator_route_discovery_persists_unresolved_without_verified_ats_sibling(self):
         with self.store.engine.begin() as connection:
             connection.execute(m.company_ats_tenants.delete().where(
                 m.company_ats_tenants.c.provider == "greenhouse"))
@@ -139,6 +139,12 @@ class ApplicationRouteTests(unittest.TestCase):
             "source_route_id": "agg-a",
             "candidate_route_ids": [],
         })
+        application_id = prepare(
+            self.store, "job", "fixture", self.root,
+            route_mode="THIS_ROUTE", route_id="agg-a",
+        )
+        self.assertEqual(list_route_choices(self.store, application_id)[0]["state"],
+                         "PREPARATION_UNRESOLVED")
 
     def test_aggregator_route_discovery_surfaces_multiple_verified_ats_candidates_as_ambiguous(self):
         with self.store.engine.begin() as connection:
@@ -170,7 +176,7 @@ class ApplicationRouteTests(unittest.TestCase):
         self.assertEqual(self.store.count("job_postings"), 3)
         self.assertEqual(self.store.count("canonical_jobs"), 1)
 
-    def test_document_worker_enforces_user_route_choice_and_persists_the_selected_route(self):
+    def test_document_worker_preserves_user_aggregator_choice_and_persists_resolution(self):
         profile = self.store.profile("fixture")
         profile["preferences"]["application_route_preference"] = "USER_CHOICE"
         self.store.save_profile(profile)
@@ -182,6 +188,7 @@ class ApplicationRouteTests(unittest.TestCase):
         )
         choices = list_route_choices(self.store, application_id)
         self.assertEqual([choice["route_id"] for choice in choices], ["agg-a"])
+        self.assertEqual(choices[0]["state"], "PREPARATION_ATS_CANDIDATE_FOUND")
 
     def test_job_read_model_keeps_all_routes_and_postings_without_duplicate_list_rows(self):
         rows = self.store.jobs("fixture")
