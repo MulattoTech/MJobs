@@ -1,3 +1,13 @@
+## 2026-10-30 release integration checkpoint
+
+PR #872 is merged as a1731224099ff0e6bc9e679b871cda874a1285fd. GitHub confirms all 18 original pending PRs merged through the preserved ancestry. Legacy PR #825 is closed as superseded; its exact head remains under archive/mjobs-fleet-pr825-20261030, and Fleet-Control-Hub PR #6 preserves the residual docs/tests. Shared Fleet source stays pinned to c3d3470470aa5e2ac04985a2d781bb01fe3d562d.
+
+This follow-up fixes a real Windows release-clone failure: checkout and validation now use the same sanitized Git configuration. The focused updater suite passes 24 tests on Linux; Windows passes 22 with two existing symlink-privilege skips. The new regression reproduces both system/global autocrlf failures on old code and confirms actual tracked edits are still rejected. Eighteen older patch-equivalent histories are reconciled only by ordinary merges whose complete Git tree remained unchanged; three histories that conflicted or changed the tree were retained.
+
+At this checkpoint, deployment of the merged release is still pending the independent exact-main deployment gates and the existing offline guarded migration. The original Windows checkout has been fast-forwarded cleanly to a1731224. Recovery bundles are independently verified, and cleanup remains scoped to unchanged merged work with verified archives. Do not infer a live deployment or full product acceptance from this note. Native orchestration remains held at the 7% reserve; no new paid native agent turns are authorized by this checkpoint. External employer submissions remain OFF. ChatGPT-Web/root owns this serialized integration/deployment path.
+
+---
+
 ## 2026-10-30 pending-finish-line integration and deployment ownership
 
 - The user authorized ChatGPT Web as the single integration owner to consolidate completed MJobs work, use normal protected-main merges, deploy the tested result to https://mjobs.m-techlabs.com, and reduce verified obsolete branches/worktrees. Native AO agents remain paused at the prescribed 7% reserve; this integration does not restart them. New Orchestrator/Antigravity development should use the verified final main and separate file ownership.
