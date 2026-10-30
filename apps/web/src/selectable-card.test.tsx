@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import React from 'react';
+import React, { act } from 'react';
+import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { getByRole } from '@testing-library/dom';
 import { describe, expect, it } from 'vitest';
 import { SelectableCard } from './selectable-card';
 
@@ -38,29 +40,44 @@ describe('selectable cards in the Jobs and Applications views', () => {
       provenance={{ postingSources: ['HiringCafe'], routeProvider: 'Greenhouse' }}
       onActivate={() => undefined}
     />);
-    const button = new JSDOM(html).window.document.querySelector('button');
+    const document = new JSDOM(html).window.document;
+    const button = document.querySelector('button');
 
     expect(button?.getAttribute('type')).toBe('button');
-    expect(button?.getAttribute('aria-label')).toContain('Acme Corp');
-    expect(button?.getAttribute('aria-label')).toContain('Platform Engineer');
     expect(button?.querySelector('div,p,h1,h2,h3,h4,h5,h6')).toBeNull();
-    expect(button?.textContent).toContain('Acme Corp');
-    expect(button?.textContent).toContain('Platform Engineer');
+    expect(getByRole(document.body, 'button', { name: 'Acme Corp Platform Engineer' })).toBe(button);
+    for (const description of ['92% · Strong', 'Remote · Full time', 'Manual capture', '1 posting', 'HiringCafe', 'Greenhouse']) {
+      expect(getByRole(document.body, 'button', { name: 'Acme Corp Platform Engineer', description: new RegExp(description) })).toBe(button);
+    }
   });
 
-  it('uses native click activation without custom keyboard emulation', () => {
+  it('uses native click activation without custom keyboard emulation', async () => {
     let activations = 0;
-    const card = SelectableCard({
-      company: 'Acme Corp',
-      title: 'Platform Engineer',
-      badge: 'Ready',
-      summary: 'Remote',
-      onActivate: () => { activations += 1; },
-    });
+    const dom = new JSDOM('<div id="root"></div>');
+    const previousWindow = globalThis.window;
+    const previousDocument = globalThis.document;
+    globalThis.window = dom.window as unknown as Window & typeof globalThis;
+    globalThis.document = dom.window.document;
+    const root = createRoot(dom.window.document.querySelector('#root')!);
 
-    expect(card.props.type).toBe('button');
-    expect(card.props.onKeyDown).toBeUndefined();
-    card.props.onClick();
-    expect(activations).toBe(1);
+    try {
+      await act(async () => root.render(<SelectableCard
+        company="Acme Corp"
+        title="Platform Engineer"
+        badge="Ready"
+        summary="Remote"
+        onActivate={() => { activations += 1; }}
+      />));
+      const button = getByRole(dom.window.document.body, 'button', { name: 'Acme Corp Platform Engineer' }) as HTMLButtonElement;
+
+      expect(button.type).toBe('button');
+      expect(button.onkeydown).toBeNull();
+      button.click();
+      expect(activations).toBe(1);
+    } finally {
+      await act(async () => root.unmount());
+      globalThis.window = previousWindow;
+      globalThis.document = previousDocument;
+    }
   });
 });

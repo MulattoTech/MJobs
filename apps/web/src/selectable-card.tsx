@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { JobRouteProvenance, type JobRouteProvenanceProps } from './job-route-provenance';
 
 export type SelectableCardFooterItem = {
@@ -28,21 +29,33 @@ export function SelectableCard({
   selected = false,
   onActivate,
 }: SelectableCardProps) {
+  const cardId = useId();
+  const companyId = `${cardId}-company`;
+  const titleId = `${cardId}-title`;
+  const badgeId = `${cardId}-badge`;
+  const summaryId = `${cardId}-summary`;
+  const footerId = `${cardId}-footer`;
+  const provenanceId = `${cardId}-provenance`;
+  const descriptionIds = [badgeId, summaryId];
+  if (footerItems.length > 0) descriptionIds.push(footerId);
+  if (provenance) descriptionIds.push(provenanceId);
+
   return <button
     type="button"
     className={`job-card${selected ? ' selected' : ''}`}
-    aria-label={`${title} at ${company}`}
+    aria-labelledby={`${companyId} ${titleId}`}
+    aria-describedby={descriptionIds.join(' ')}
     onClick={onActivate}
   >
     <span className="card-top">
-      <span className="eyebrow">{company}</span>
-      <span className={badgeClassName}>{badge}</span>
+      <span className="eyebrow" id={companyId}>{company}</span>
+      <span className={badgeClassName} id={badgeId}>{badge}</span>
     </span>
-    <span className="job-card-title">{title}</span>
-    <span className="job-card-summary">{summary}</span>
-    {footerItems.length > 0 && <span className="card-foot">
+    <span className="job-card-title" id={titleId}>{title}</span>
+    <span className="job-card-summary" id={summaryId}>{summary}</span>
+    {footerItems.length > 0 && <span className="card-foot" id={footerId}>
       {footerItems.map((item, index) => <span className={item.className} key={`${item.text}-${index}`}>{item.text}</span>)}
     </span>}
-    {provenance && <JobRouteProvenance {...provenance} />}
+    {provenance && <span id={provenanceId}><JobRouteProvenance {...provenance} /></span>}
   </button>;
 }
