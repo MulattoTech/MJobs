@@ -86,19 +86,23 @@ function findElements(node: ReactNode, type: string): ReactElement<ElementProps>
   });
 }
 
-function render() {
+function render(profileId = 'profile-1', applicationId = 'application-1') {
   hooks.stateCursor = 0;
   hooks.refCursor = 0;
   hooks.effectCursor = 0;
-  return ApplicationSupportingDocuments({profileId: 'profile-1', applicationId: 'application-1'});
+  return ApplicationSupportingDocuments({profileId, applicationId});
 }
 
-async function runInitialLoad() {
-  render();
+async function runEffects() {
   const effects = hooks.effects.splice(0);
   effects.forEach(effect => effect());
   await Promise.resolve();
   await Promise.resolve();
+}
+
+async function runInitialLoad() {
+  render();
+  await runEffects();
 }
 
 describe('application supporting documents recovery', () => {
@@ -178,5 +182,50 @@ describe('application supporting documents recovery', () => {
     expect(failedAgainMarkup).not.toContain('SECRET retry response');
     expect(nextRetry?.props.disabled).toBe(false);
     expect(mockedApi).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a completed retry after the panel moves to another profile and application scope', async () => {
+    const retryA = deferred<typeof selection>();
+    const loadB = deferred<typeof selection>();
+    mockedApi
+      .mockRejectedValueOnce(new Error('scope A unavailable'))
+      .mockReturnValueOnce(retryA.promise)
+      .mockReturnValueOnce(loadB.promise);
+
+    await runInitialLoad();
+    findElements(render(), 'button')
+      .find(button => button.props.children === 'Retry loading supporting documents')
+      ?.props.onClick?.();
+
+    render('profile-2', 'application-2');
+    await runEffects();
+    expect(renderToStaticMarkup(render('profile-2', 'application-2'))).toContain('aria-busy="true"');
+
+    retryA.resolve({
+      ...selection,
+      selected_revision_ids: ['revision-1'],
+      available: [{...selection.available[0], label: 'Scope A private label'}],
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const pendingB = renderToStaticMarkup(render('profile-2', 'application-2'));
+    expect(pendingB).toContain('aria-busy="true"');
+    expect(pendingB).not.toContain('Scope A private label');
+    expect(pendingB).not.toContain('checked=""');
+
+    loadB.resolve({
+      ...selection,
+      profile_id: 'profile-2',
+      application_id: 'application-2',
+      available: [{...selection.available[0], revision_id: 'revision-2', label: 'Scope B certification'}],
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const recoveredB = renderToStaticMarkup(render('profile-2', 'application-2'));
+    expect(recoveredB).toContain('aria-busy="false"');
+    expect(recoveredB).toContain('Scope B certification');
+    expect(recoveredB).not.toContain('Scope A private label');
   });
 });

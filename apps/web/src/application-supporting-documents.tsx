@@ -39,17 +39,20 @@ export function ApplicationSupportingDocuments({profileId, applicationId, disabl
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const request = useRef<{key:string;id:string}|null>(null);
-  const loadingScope = useRef('');
+  const activeLoad = useRef<{scope:string;token:symbol}|null>(null);
   const scope = `${profileId}:${applicationId}`;
 
   async function load(isRetry = false) {
-    if (loadingScope.current === scope) return;
-    loadingScope.current = scope;
+    if (activeLoad.current?.scope === scope) return;
+    const token = Symbol(scope);
+    activeLoad.current = {scope, token};
+    const isActive = () => activeLoad.current?.token === token;
     setLoading(true);
     setRetrying(isRetry);
     setError('');
     try {
       const result = await api<Selection>(endpoint(profileId, applicationId));
+      if (!isActive()) return;
       if (result.profile_id !== profileId || result.application_id !== applicationId) {
         throw new Error('Application document selection scope did not match.');
       }
@@ -57,12 +60,15 @@ export function ApplicationSupportingDocuments({profileId, applicationId, disabl
       setSelectedIds(result.selected_revision_ids);
       setNotice('');
     } catch {
+      if (!isActive()) return;
       setSelection(null);
       setError('Supporting document choices could not be loaded. Retry to review this application.');
     } finally {
-      if (loadingScope.current === scope) loadingScope.current = '';
-      setLoading(false);
-      setRetrying(false);
+      if (isActive()) {
+        activeLoad.current = null;
+        setLoading(false);
+        setRetrying(false);
+      }
     }
   }
 
