@@ -79,3 +79,26 @@ def test_invalid_operation_type_uses_one_redacted_error(value):
 
     assert str(raised.value) == "OPERATION_TYPE_INVALID"
     assert "UNKNOWN_PRIVATE_SENTINEL" not in repr(raised.value)
+
+
+def test_ai_direct_creator_rejects_registry_drift_before_provider_work(tmp_path, monkeypatch):
+    module = contract()
+    from packages.persistence.store import Store
+    from services.ai import durable_evaluation
+
+    store = Store(f"sqlite:///{(tmp_path / 'operation-types.db').as_posix()}")
+    store.migrate()
+    monkeypatch.setattr(
+        module, "OPERATION_TYPES", module.OPERATION_TYPES - {durable_evaluation.KIND})
+
+    def unexpected_provider_lookup(*_args, **_kwargs):
+        pytest.fail("AI provider configuration was read before operation-type validation")
+
+    monkeypatch.setattr(store, "ai_cost_policy", unexpected_provider_lookup)
+    try:
+        with pytest.raises(ValueError, match="^OPERATION_TYPE_INVALID$"):
+            durable_evaluation.queue_evaluation(
+                store, "fixture", "registry-drift-request-0001")
+        assert store.count("worker_operations") == 0
+    finally:
+        store.engine.dispose()
