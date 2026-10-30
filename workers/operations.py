@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from hmac import compare_digest
 import os
+import threading
 import time
 from uuid import uuid4
 
@@ -52,6 +53,8 @@ CATEGORY_KINDS = {
 CATEGORIES = tuple(CATEGORY_LIMITS)
 MAX_ATTEMPTS = 3
 INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT", "UPLOADED_RESUME_COMPARE", "MANUAL_AUTH")
+_LOCAL_CANCELLATIONS: dict[str, threading.Event] = {}
+_LOCAL_CANCELLATIONS_LOCK = threading.Lock()
 
 
 class OperationCancelled(Exception):
@@ -72,6 +75,27 @@ class OperationActionError(ValueError):
     def __init__(self, code):
         self.code = code
         super().__init__(code)
+
+
+def register_operation_cancellation(operation_id):
+    """Expose one process-local wakeup while durable state remains authoritative."""
+    cancellation = threading.Event()
+    with _LOCAL_CANCELLATIONS_LOCK:
+        _LOCAL_CANCELLATIONS[operation_id] = cancellation
+    return cancellation
+
+
+def unregister_operation_cancellation(operation_id, cancellation):
+    with _LOCAL_CANCELLATIONS_LOCK:
+        if _LOCAL_CANCELLATIONS.get(operation_id) is cancellation:
+            del _LOCAL_CANCELLATIONS[operation_id]
+
+
+def _signal_operation_cancellation(operation_id):
+    with _LOCAL_CANCELLATIONS_LOCK:
+        cancellation = _LOCAL_CANCELLATIONS.get(operation_id)
+    if cancellation is not None:
+        cancellation.set()
 
 
 def timeout():
@@ -393,8 +417,14 @@ def inline_cancel_requested(store, operation_id):
     return row is None or row.cancel_requested or row.state != "RUNNING"
 
 
-def check_cancelled(store, operation_id, attempt_count=None):
+def check_cancelled(store, operation_id, attempt_count=None, local_cancellation=None):
     """Stop a worker whose durable authority ended, even before recovery runs."""
+    if (local_cancellation is not None and local_cancellation.is_set()
+            and threading.current_thread().name == "mjobs-request-deadline"):
+        # This early wakeup only releases request-owned I/O while the cancel
+        # transaction commits. Execution threads still read the durable row so
+        # a rolled-back request cannot manufacture a CANCELLED operation.
+        raise OperationCancelled("Operation no longer authorized to continue")
     with store.engine.connect() as connection:
         row = connection.execute(select(
             m.operations.c.cancel_requested, m.operations.c.state,
@@ -481,6 +511,11 @@ def request_cancel(store, operation_id):
                           next_attempt_at=None,
                           recovery_metadata={"action": "NONE"})
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
+        if row["kind"] == "AI_EVALUATE_QUEUED" and not queued_cancel:
+            # The database row is already staged in this transaction. Wake an
+            # in-process TLS request now so its read polling and socket cleanup
+            # overlap commit; other worker processes retain the durable poll.
+            _signal_operation_cancellation(operation_id)
         store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
         return {**row, **values}
 

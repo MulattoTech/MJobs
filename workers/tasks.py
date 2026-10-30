@@ -50,6 +50,7 @@ from services.discovery.search_history_events import build_search_history_record
 from services.discovery.search_profiles import FixtureSearchUnavailable
 from workers.operations import (
     claim, check_cancelled, company_refresh_saved, dry_run_saved,
+    register_operation_cancellation, unregister_operation_cancellation,
     OperationCancelled, OperationTimedOut, timeout,
 )
 from workers.structured_logging import log_operation_finished
@@ -222,11 +223,13 @@ def execute_operation(operation_id, *, registry_module=None,
         application_registry = configured_application_registry(registry_module)
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
+    local_cancellation = None
     try:
         store.assert_workspace_mode(operation_mode)
         operation = claim(store, operation_id)
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}
+        local_cancellation = register_operation_cancellation(operation_id)
         started_at = time.monotonic()
         params = operation["params"] if isinstance(operation.get("params"), dict) else {}
         records_search = (operation["kind"] == "DISCOVER"
@@ -267,7 +270,9 @@ def execute_operation(operation_id, *, registry_module=None,
             deadline = time.monotonic() + timeout()
 
             def remaining_seconds():
-                check_cancelled(store, operation_id, operation["attempt_count"])
+                check_cancelled(
+                    store, operation_id, operation["attempt_count"], local_cancellation,
+                )
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise OperationTimedOut("OPERATION_TIMEOUT")
@@ -694,6 +699,8 @@ def execute_operation(operation_id, *, registry_module=None,
         log_operation_finished(logged_operation, state, error, time.monotonic() - started_at)
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
+        if local_cancellation is not None:
+            unregister_operation_cancellation(operation_id, local_cancellation)
         store.engine.dispose()
 
 

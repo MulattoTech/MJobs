@@ -5,6 +5,7 @@ import socket
 import threading
 import time
 import unittest
+from unittest import mock
 
 import httpx
 from sqlalchemy import select
@@ -16,6 +17,13 @@ from services.ai.providers.transport import request_guard
 from services.ai.tasks import AITaskRouter
 from tests.integration import test_durable_ai_evaluation as evaluation_tests
 from tests.unit.test_ai_tls_handshake import HTTPS_PROVIDERS, recorded_duplicates
+from workers.operations import (
+    check_cancelled,
+    claim,
+    register_operation_cancellation,
+    request_cancel,
+    unregister_operation_cancellation,
+)
 
 
 class TimedCloseEvent(threading.Event):
@@ -75,6 +83,41 @@ class DurableTLSRecoveryTests(unittest.TestCase):
     setUp = evaluation_tests.DurableAIEvaluationTests.setUp
     new_client = evaluation_tests.DurableAIEvaluationTests.new_client
     run_worker = evaluation_tests.DurableAIEvaluationTests.run_worker
+
+    def test_staged_local_signal_does_not_replace_rolled_back_cancellation(self):
+        admitted = self.client.post(
+            '/profiles/fixture/ai-cost-plan/evaluate/queued',
+            json={'request_id': 'rolled-back-cancellation'},
+        )
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        operation_id = admitted.json()['operation_id']
+        operation = claim(self.store, operation_id)
+        self.assertIsNotNone(operation)
+        local_cancellation = register_operation_cancellation(operation_id)
+        original_audit = self.store._audit
+
+        def reject_cancellation_audit(connection, entity_id, action, payload):
+            if action == 'CANCELLATION_REQUESTED':
+                raise RuntimeError('synthetic cancellation rollback')
+            return original_audit(connection, entity_id, action, payload)
+
+        try:
+            with mock.patch.object(
+                    self.store, '_audit', side_effect=reject_cancellation_audit):
+                with self.assertRaisesRegex(RuntimeError, 'synthetic cancellation rollback'):
+                    request_cancel(self.store, operation_id)
+            self.assertTrue(local_cancellation.is_set(),
+                            'rollback negative did not exercise the staged wakeup')
+            check_cancelled(
+                self.store, operation_id, operation['attempt_count'], local_cancellation,
+            )
+            with self.store.engine.connect() as connection:
+                row = connection.execute(select(
+                    m.operations.c.state, m.operations.c.cancel_requested,
+                ).where(m.operations.c.id == operation_id)).one()
+            self.assertEqual((row.state, row.cancel_requested), ('RUNNING', False))
+        finally:
+            unregister_operation_cancellation(operation_id, local_cancellation)
 
     def test_request_owner_finishes_cleanup_before_guard_returns(self):
         watcher_close_started = threading.Event()
@@ -174,15 +217,36 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                         cancel_client = self.new_client()
                         cancel_client_setup_ms = (time.monotonic() - setup_started) * 1000
                     try:
-                        with ThreadPoolExecutor(max_workers=1) as pool:
+                        with ThreadPoolExecutor(max_workers=2) as pool:
                             work = pool.submit(self.run_worker, operation_id)
                             self.assertTrue(started.wait(3), 'TLS ClientHello never reached the peer')
                             before = time.monotonic()
                             acknowledged_at = None
                             if cancel:
-                                response = cancel_client.post(path + '/cancel')
+                                cancellation_staged = threading.Event()
+                                release_cancellation = threading.Event()
+                                original_audit = self.store._audit
+
+                                def pause_cancellation_audit(connection, entity_id, action, payload):
+                                    if action == 'CANCELLATION_REQUESTED':
+                                        cancellation_staged.set()
+                                        release_cancellation.wait(1)
+                                    return original_audit(connection, entity_id, action, payload)
+
+                                with mock.patch.object(
+                                        self.store, '_audit', side_effect=pause_cancellation_audit):
+                                    cancelling = pool.submit(cancel_client.post, path + '/cancel')
+                                    self.assertTrue(cancellation_staged.wait(.5),
+                                                    'cancel transaction was not staged')
+                                    closed_before_commit = closed.wait(.2)
+                                    release_cancellation.set()
+                                    response = cancelling.result(timeout=1)
                                 acknowledged_at = time.monotonic()
                                 self.assertEqual(response.status_code, 200, response.text)
+                                self.assertTrue(
+                                    closed_before_commit,
+                                    'staged durable cancellation did not interrupt TLS before commit',
+                                )
                             result = work.result(timeout=3)
                             terminal_at = time.monotonic()
                             self.assertFalse(any(t.name == 'mjobs-request-deadline'
