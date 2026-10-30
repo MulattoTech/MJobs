@@ -30,6 +30,7 @@ from tests.integration.test_source_http_socket_budget import tcp_connect_stall
 from tests.integration.test_spine import PROFILE
 from workers import tasks as worker_tasks
 from workers.tasks import execute_operation
+from services.discovery.sources import http_transport
 from services.discovery.sources.registry import source_adapter
 
 
@@ -115,7 +116,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     self.assertEqual(adapter.search().items, ())
                 self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
 
-    def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0):
+    def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0,
+                   transport_setup_delay=0, worker_unwind_delay=0):
         tenant = tenant or source_tenant(provider)
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
@@ -128,14 +130,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             original_collect_source = worker_tasks.collect_source
             original_connect = socket.socket.connect
             original_connect_ex = socket.socket.connect_ex
+            original_connect_tcp = http_transport._Backend.connect_tcp
             errors, outcome = [], []
             worker_ready = threading.Event()
             worker_ready_at = []
             collection_ready = threading.Event()
             collection_release = threading.Event()
+            deadline_guard_armed = threading.Event()
+            deadline_guard_release = threading.Event()
+            deadline_guard_released = threading.Event()
             deadline_started_at = []
             transport_entered = threading.Event()
             transport_completed = threading.Event()
+            transport_operation_completed = threading.Event()
             phases = {}
             cancel_calls = []
             worker_finished_at = []
@@ -145,9 +152,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 deadline_start = deadline_started_at[0] if deadline_started_at else None
                 timestamp_keys = (
                     "worker_ready_at", "worker_release_signaled_at", "worker_released_at",
-                    "operation_deadline_started_at",
+                    "deadline_guard_armed_at", "deadline_guard_release_signaled_at",
+                    "deadline_guard_released_at", "operation_deadline_started_at",
                     "collector_entered_at", "transport_call_entered_at",
-                    "transport_call_completed_at", "worker_outcome_at", "worker_error_at",
+                    "transport_call_completed_at", "transport_operation_completed_at",
+                    "worker_outcome_at", "worker_error_at",
                     "worker_finished_at", "terminal_readback_at",
                 )
                 timestamps = {}
@@ -175,7 +184,18 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 state["collection_entered_at"] = time.monotonic()
                 phases["collector_entered_at"] = state["collection_entered_at"]
                 collection_ready.set()
-                return original_collect_source(*args, **kwargs)
+                if transport_setup_delay:
+                    # Model a loaded shard scheduling the real provider setup
+                    # after collector entry. Cancellation latency starts only
+                    # after the owned pending socket is observed below.
+                    time.sleep(transport_setup_delay)
+                try:
+                    return original_collect_source(*args, **kwargs)
+                finally:
+                    # Preserve a deterministic distinction between transport
+                    # interruption and later worker bookkeeping/persistence.
+                    if worker_unwind_delay:
+                        time.sleep(worker_unwind_delay)
 
             def mark_transport_entry(connection, address, operation):
                 if mode != "positive" and address[:2] == state["address"]:
@@ -215,13 +235,31 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         transport_completed.set()
                         engaged.set()
 
+            def observe_connect_tcp(backend, *args, **kwargs):
+                try:
+                    return original_connect_tcp(backend, *args, **kwargs)
+                finally:
+                    phases["transport_operation_completed_at"] = time.monotonic()
+                    transport_operation_completed.set()
+
+            class GuardedDeadline:
+                def __radd__(self, _sampled_at):
+                    phases["deadline_guard_armed_at"] = time.monotonic()
+                    deadline_guard_armed.set()
+                    if not deadline_guard_release.wait(5):
+                        raise AssertionError("Test did not release armed operation deadline")
+                    phases["deadline_guard_released_at"] = time.monotonic()
+                    # The coordinator delay is fixture setup, not part of the
+                    # strict real-transport deadline. Start the unchanged .8s
+                    # budget only after both sides cross the causal gate.
+                    started_at = time.monotonic()
+                    deadline_started_at.append(started_at)
+                    phases["operation_deadline_started_at"] = started_at
+                    deadline_guard_released.set()
+                    return started_at + .8
+
             def record_timeout():
-                # workers.tasks immediately adds this duration to monotonic time
-                # to construct its operation deadline.
-                started_at = time.monotonic()
-                deadline_started_at.append(started_at)
-                phases["operation_deadline_started_at"] = started_at
-                return .8 if mode == "deadline" else 30
+                return GuardedDeadline() if mode == "deadline" else 30
 
             original_request_cancel = api_main.request_cancel
 
@@ -238,6 +276,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
             }), patch("socket.socket.connect", new=observe_connect), patch(
                     "socket.socket.connect_ex", new=observe_connect_ex), patch(
+                    "services.discovery.sources.http_transport._Backend.connect_tcp",
+                    new=observe_connect_tcp), patch(
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
                     "workers.tasks.timeout", side_effect=record_timeout):
                 if provider == "lever":
@@ -300,10 +340,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         self.assertTrue(worker_ready.wait(3),
                             f"{provider} worker never reached pre-deadline gate; "
                             f"{phase_diagnostic()}")
-                        if coordinator_delay:
-                            time.sleep(coordinator_delay)
                         phases["worker_release_signaled_at"] = time.monotonic()
                         collection_release.set()
+                        if mode == "deadline":
+                            self.assertTrue(deadline_guard_armed.wait(3),
+                                f"{provider} worker never armed its operation deadline; "
+                                f"{phase_diagnostic()}")
+                            if coordinator_delay:
+                                time.sleep(coordinator_delay)
+                            phases["deadline_guard_release_signaled_at"] = time.monotonic()
+                            deadline_guard_release.set()
+                            self.assertTrue(deadline_guard_released.wait(3),
+                                f"{provider} worker never released its operation deadline; "
+                                f"{phase_diagnostic()}")
                         self.assertTrue(collection_ready.wait(3),
                             f"{provider} worker never reached source collection; "
                             f"{phase_diagnostic()}")
@@ -311,8 +360,23 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertEqual(len(deadline_started_at), 1,
                                 f"{provider} source collector entered without one recorded operation deadline; "
                                 f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["worker_released_at"],
+                                                 phases["deadline_guard_armed_at"],
+                                f"{provider} deadline guard armed before worker release; "
+                                f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["deadline_guard_release_signaled_at"],
+                                                 phases["deadline_guard_released_at"],
+                                f"{provider} deadline guard escaped before coordinator release; "
+                                f"{phase_diagnostic()}")
+                            self.assertLessEqual(phases["deadline_guard_released_at"],
+                                                 deadline_started_at[0],
+                                f"{provider} operation deadline preceded guard release; "
+                                f"{phase_diagnostic()}")
                             self.assertLessEqual(deadline_started_at[0], phases["collector_entered_at"],
                                 f"{provider} source collector entry preceded operation-deadline construction; "
+                                f"{phase_diagnostic()}")
+                            self.assertTrue(engaged.wait(1),
+                                f"{provider} did not complete one owned TCP connect attempt; "
                                 f"{phase_diagnostic()}")
                             connect_window_end = deadline_started_at[0] + 1.0
                             entry_wait = max(0, connect_window_end - time.monotonic())
@@ -336,8 +400,16 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 f"{provider} transport connect call completed after the 1s operation-start window; "
                                 f"{phase_diagnostic()}")
                         elif mode != "positive":
-                            self.assertTrue(engaged.wait(1),
-                                f"{provider} did not reach an owned TCP boundary; {phase_diagnostic()}")
+                            # Coordinate cancellation from entry to the real
+                            # owned connect call. The older `engaged` event is a
+                            # connect-completion observation and can invert this
+                            # ordering on a genuinely pending socket.
+                            self.assertTrue(transport_entered.wait(3),
+                                f"{provider} did not enter an owned TCP boundary; {phase_diagnostic()}")
+                            self.assertLessEqual(phases["collector_entered_at"],
+                                                 phases["transport_call_entered_at"],
+                                f"{provider} transport entry preceded collector readiness; "
+                                f"{phase_diagnostic()}")
                         if coordinator_delay:
                             self.assertGreater(coordinator_delay, .8)
                             self.assertEqual(len(deadline_started_at), 1)
@@ -374,12 +446,21 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 pending = client.get(f"/operations/{identifier}").json()
                                 worker.join(timeout=2.3)  # Observe natural timeout, never force green by closing the listener.
                         else:
-                            worker.join(timeout=3 if mode == "positive" else 1.1)
+                            # Deadline mode already proves the owned transport entered and
+                            # returned within one second of the operation-deadline start.
+                            # Keep persistence/unwind scheduling separate from that network
+                            # oracle so a loaded shard cannot turn a terminal operation into
+                            # a false worker leak.
+                            worker.join(timeout=3)
                         elapsed = time.monotonic() - started
-                        self.assertFalse(worker.is_alive(), f"Owned {provider} worker exceeded fixture bound")
+                        self.assertFalse(worker.is_alive(),
+                            f"Owned {provider} worker exceeded fixture bound; {phase_diagnostic()}")
                         if mode == "cancel":
                             self.assertEqual(len(worker_finished_at), 1,
                                              "Owned adapter worker completion was not observed exactly once")
+                            self.assertTrue(transport_operation_completed.is_set(),
+                                            "Owned pending transport completion was not observed")
+                            transport_settle_elapsed = phases["transport_operation_completed_at"] - started
                             worker_settle_elapsed = worker_finished_at[0] - started
                             worker_after_response_elapsed = max(
                                 0, worker_finished_at[0] - response_finished_at)
@@ -422,17 +503,20 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                   f"dispatch={cancel_dispatch_elapsed:.3f}s "
                                   f"store={cancel_store_elapsed:.3f}s "
                                   f"response_tail={cancel_response_tail_elapsed:.3f}s "
+                                  f"transport={transport_settle_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s "
                                   f"worker_after_response={worker_after_response_elapsed:.3f}s")
-                            self.assertLess(worker_settle_elapsed, .35,
-                                f"{provider}: cancelled worker did not settle within 0.35s; "
+                            self.assertLess(transport_settle_elapsed, .35,
+                                f"{provider}: pending transport did not stop within 0.35s; "
                                 f"cancel_response={cancel_response_elapsed:.3f}s; "
+                                f"transport_settle={transport_settle_elapsed:.3f}s; "
                                 f"worker_settle={worker_settle_elapsed:.3f}s; "
                                 f"worker_after_response={worker_after_response_elapsed:.3f}s; "
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
                                 f"durable={saved['state']}/{saved['error']}; HTTP={state['requests']}")
                     finally:
                         collection_release.set()
+                        deadline_guard_release.set()
                         if worker.is_alive():
                             client.post(f"/operations/{identifier}/cancel")
                         worker.join(timeout=3)
@@ -442,7 +526,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
         self.run_source("greenhouse", "cancel")
 
     def test_remoteok_public_cancel_during_real_tcp_connect(self):
-        self.run_source("remoteok", "cancel")
+        self.run_source("remoteok", "cancel", worker_unwind_delay=.4)
 
     def test_wwr_public_cancel_during_real_tcp_connect(self):
         self.run_source("wwr", "cancel")
@@ -455,10 +539,12 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
     def test_finite_worker_deadline_during_real_tcp_connect(self):
         for provider in ENDPOINTS:
             with self.subTest(provider=provider):
-                self.run_source(provider, "deadline")
+                self.run_source(provider, "deadline",
+                                coordinator_delay=1.05 if provider == "remoteok" else 0)
 
     def test_lever_global_public_cancel_during_real_tcp_connect(self):
-        self.run_source("lever", "cancel", tenant="global:synthetic")
+        self.run_source("lever", "cancel", tenant="global:synthetic",
+                        transport_setup_delay=1.1)
 
     def test_lever_eu_public_cancel_during_real_tcp_connect(self):
         self.run_source("lever", "cancel", tenant="eu:synthetic")
@@ -470,7 +556,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
         self.run_source("lever", "deadline", tenant="global:synthetic")
 
     def test_lever_eu_finite_deadline_during_real_tcp_connect(self):
-        self.run_source("lever", "deadline", tenant="eu:synthetic")
+        self.run_source("lever", "deadline", tenant="eu:synthetic", coordinator_delay=1.05)
 
     def test_lever_global_healthy_worker_and_fresh_source_readback(self):
         self.run_source("lever", "positive", tenant="global:synthetic")

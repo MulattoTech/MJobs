@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from math import isfinite
 from typing import Iterable, cast
 
@@ -22,6 +23,11 @@ def _score(value: object, name: str) -> None:
 def _count(value: object, name: str) -> None:
     if type(value) is not int or value < 0:
         raise ValueError(f"{name} must be a nonnegative integer")
+
+
+def _aware_datetime(value: object) -> bool:
+    return (isinstance(value, datetime) and value.tzinfo is not None
+            and value.utcoffset() is not None)
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,13 @@ class SubmissionContext:
     target: str = "EXTERNAL"
     state: str = "PREPARING"
     user_enabled: bool = False
+    actual_user_intended_job: bool = False
+    job_id: str = ""
+    intent_receipt_id: str = ""
+    intent_job_id: str = ""
+    intent_granted_at: datetime | None = None
+    intent_expires_at: datetime | None = None
+    evaluated_at: datetime | None = None
     match_score: float = 0
     confidence: float = 0
     quality_approved: bool = False
@@ -83,9 +96,13 @@ class SubmissionContext:
             raise ValueError("Unknown submission target")
         if not isinstance(self.state, str) or not self.state:
             raise ValueError("State must be a nonempty string")
+        for field in ("job_id", "intent_receipt_id", "intent_job_id"):
+            if not isinstance(getattr(self, field), str):
+                raise ValueError(f"{field} must be a string")
         if self.barrier not in (None, "CAPTCHA", "MFA", "ACCESS_CONTROL", "ANTI_BOT", "RATE_LIMIT"):
             raise ValueError("Unknown intervention barrier")
-        for field in ("user_enabled", "quality_approved", "facts_verified", "source_allowed",
+        for field in ("user_enabled", "actual_user_intended_job", "quality_approved",
+                      "facts_verified", "source_allowed",
                       "sensitive_answers_approved", "duplicate"):
             _boolean(getattr(self, field), field)
         for field in ("match_score", "confidence"):
@@ -108,6 +125,21 @@ def evaluate_submission(context: SubmissionContext, policy: Policy) -> Decision:
             reasons.append("EXTERNAL_SUBMISSION_DISABLED")
         if not context.user_enabled:
             reasons.append("USER_ENABLEMENT_REQUIRED")
+        if not context.actual_user_intended_job:
+            reasons.append("ACTUAL_USER_INTENT_REQUIRED")
+        if not context.intent_receipt_id.strip():
+            reasons.append("DURABLE_JOB_INTENT_REQUIRED")
+        elif (not context.job_id.strip() or not context.intent_job_id.strip()
+              or context.job_id != context.intent_job_id):
+            reasons.append("JOB_INTENT_MISMATCH")
+        if context.intent_receipt_id.strip():
+            intent_times = (context.intent_granted_at, context.intent_expires_at,
+                            context.evaluated_at)
+            if not all(_aware_datetime(value) for value in intent_times):
+                reasons.append("INVALID_JOB_INTENT")
+            elif not (context.intent_granted_at <= context.evaluated_at
+                      < context.intent_expires_at):
+                reasons.append("STALE_JOB_INTENT")
     if context.barrier:
         reasons.append("USER_INTERVENTION_REQUIRED")
     if context.state == "SUBMISSION_UNCONFIRMED":

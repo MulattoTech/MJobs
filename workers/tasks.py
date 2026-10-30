@@ -11,6 +11,10 @@ from packages.persistence.store import Store, identity, now
 from services.applications.mock_adapter import apply_mock
 from services.applications.attempt_history import AttemptConflict, timeout_failure_code
 from services.applications.run_requests import validate_run_operation
+from services.applications.answer_resume import (
+    complete_resume_result,
+    validate_resume_binding,
+)
 from services.discovery.pipeline import discover, MockClient
 from services.company_discovery.flywheel import discover_company_source
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
@@ -257,6 +261,7 @@ def execute_operation(operation_id, *, registry_module=None,
         durable_resume_result = None
         durable_comparison_result = None
         durable_ai_result = None
+        deadline = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -468,6 +473,7 @@ def execute_operation(operation_id, *, registry_module=None,
                     store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check)
             elif operation["kind"] == "APPLY_MOCK":
                 validate_run_operation(store, operation)
+                validate_resume_binding(store, operation)
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check,
                            debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1",
@@ -553,6 +559,12 @@ def execute_operation(operation_id, *, registry_module=None,
             result_saved = company_refresh_saved(connection, current) or dry_run_saved(connection, current)
             if result_saved:
                 state, error, retry_failure = "COMPLETED", None, None
+            resume_result = None
+            if operation["kind"] == "APPLY_MOCK" and state == "COMPLETED":
+                try:
+                    resume_result = complete_resume_result(store, connection, current)
+                except AttemptConflict as failure:
+                    state, error = "BLOCKED", failure.code
             if operation['kind'] == AI_EVALUATION_KIND and state == 'COMPLETED':
                 current_profile_version = connection.execute(select(m.profiles.c.version).where(
                     m.profiles.c.id == operation['entity_id']).with_for_update()).scalar_one()
@@ -567,6 +579,16 @@ def execute_operation(operation_id, *, registry_module=None,
                         state, error = 'BLOCKED', failure.code
             finished_at = now()
             retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
+            if retry is not None and deadline is not None and time.monotonic() >= deadline:
+                # The fenced operation and any committed receipt now have
+                # precedence. Recheck the monotonic deadline only for a failure
+                # the discovery policy would actually retry, immediately before
+                # applying that retry plan.
+                state, error, retry_failure = "FAILED", "OPERATION_TIMEOUT", None
+                retry = None
+                history_counts = {}
+                if collection_budget is not None:
+                    collection_stop_reason = error
             if retry is not None:
                 state, error = "QUEUED", retry["error"]
             if state == "FAILED":
@@ -579,6 +601,8 @@ def execute_operation(operation_id, *, registry_module=None,
                       "next_attempt_at": None,
                       "recovery_metadata": ({"action": "NONE"} if state == "COMPLETED" else
                                             {"action": "MANUAL_REVIEW"} if state in {"DEAD_LETTERED", "BLOCKED"} else {})}
+            if resume_result is not None:
+                values["params"] = {**current["params"], "resume_result": resume_result}
             if retry is not None:
                 values.update(retry, current_step="RETRY_WAIT", retry_count=operation["retry_count"] + 1)
             if result_saved:
@@ -650,7 +674,12 @@ def execute_operation(operation_id, *, registry_module=None,
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
         try:
-            if operation["kind"] == "COMPANY_SOURCE_REFRESH":
+            if state == "CANCELLED" and operation["kind"] == "DISCOVER":
+                # The terminal cancellation is already durable. Optional source
+                # context enrichment must not extend the public cancellation
+                # bound while a loaded database services this second lookup.
+                context = {}
+            elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
                 context = _resolve_company_source_company_id(store, operation, full_context=True)
             else:
                 context = _resolve_application_log_context(store, operation)
