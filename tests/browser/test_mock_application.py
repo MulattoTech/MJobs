@@ -518,13 +518,56 @@ class MockApplicationTests(unittest.TestCase):
             self.assertIn("HOURLY_LIMIT_REACHED", decision.reasons)
 
     def test_changed_profile_does_not_change_prepared_contact_or_answers(self):
+        from playwright.sync_api import Locator
+        from unittest.mock import patch
+
         with fixture_server() as origin:
             app_id = self.prepared(origin)
             old_version = self.store.application(app_id)["profile_version"]
-            self.store.save_profile(dict(PROFILE, name="Changed Fixture", email="changed@example.test", answers=[]))
+            self.store.save_profile(dict(PROFILE, name="Changed Fixture", email="changed@example.test"))
+            current = self.store.profile("fixture")
+            self.assertEqual(current["name"], "Changed Fixture")
+            self.assertEqual(current["email"], "changed@example.test")
             self.assertEqual(self.store.profile("fixture", old_version)["name"], "Alex Fixture")
-            result = apply_mock(self.store, app_id, origin, self.root)
+            observed = {}
+            original_fill = Locator.fill
+
+            def observe_fill(locator, value, *args, **kwargs):
+                result = original_fill(locator, value, *args, **kwargs)
+                field = locator.get_attribute("name")
+                if field in {"name", "email", "answer"}:
+                    observed[field] = locator.input_value()
+                return result
+
+            with patch.object(Locator, "fill", observe_fill):
+                result = apply_mock(self.store, app_id, origin, self.root)
             self.assertEqual(result["state"], "DRY_RUN_COMPLETE")
+            self.assertEqual(result["profile_version"], old_version)
+            self.assertEqual(observed, {
+                "name": "Alex Fixture",
+                "email": "alex@example.test",
+                "answer": "Controlled fictional test application.",
+            })
+
+    def test_revoked_answers_stop_before_browser_or_submission(self):
+        from unittest.mock import patch
+        from services.applications.preflight import latest_preflight
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            self.store.save_profile(dict(PROFILE, answers=[]))
+            with patch("services.applications.mock_adapter.sync_playwright") as browser:
+                result = apply_mock(self.store, app_id, origin, self.root, submit=True)
+            browser.assert_not_called()
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            self.assertIn("CHANGED_ANSWER", result["trace"])
+            report = latest_preflight(self.store, app_id)
+            self.assertEqual(report["result"], "UNKNOWN")
+            self.assertEqual(report["reason"], "CHANGED_ANSWER")
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
+                             {"status": "not_found"})
 
     def test_missing_required_answer_stops_before_browser_and_shows_question(self):
         from unittest.mock import patch
