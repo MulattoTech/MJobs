@@ -30,7 +30,8 @@ def assert_value_free_ai_operation_error(case, store, client, operation_id, resu
             m.audit.c.entity_id == operation_id,
             m.audit.c.action == 'OPERATION_ATTEMPT_FINISHED')).scalars())
     case.assertEqual(operation['error'], 'AI_ERROR')
-    case.assertEqual(audit, [{'state': 'BLOCKED', 'error': 'AI_ERROR', 'attempt_count': 1}])
+    case.assertEqual(audit, [{'state': 'BLOCKED', 'error': 'AI_ERROR', 'attempt_count': 1,
+                             'error_category': 'AI_ERROR'}])
     public = client.get('/operations/' + operation_id)
     case.assertEqual(public.status_code, 200, public.text)
     case.assertEqual(public.json()['error'], 'AI_ERROR')

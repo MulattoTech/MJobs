@@ -20,6 +20,16 @@ from services.applications.debug_capture import (
 
 
 class BrowserDebugCaptureTests(unittest.TestCase):
+    def test_supported_upload_and_manual_auth_failure_phases_are_preserved(self):
+        for step in ('UPLOAD_SUPPORTING_DOCUMENTS', 'MANUAL_AUTH_NAVIGATE', 'MANUAL_AUTH_WAIT'):
+            with self.subTest(step=step), tempfile.TemporaryDirectory() as directory:
+                target = capture_browser_failure(None, Path(directory) / 'captures',
+                    attempt_id='a' * 32, step=step, configured_url='https://example.test/login',
+                    error=RuntimeError('SYNTHETIC_PRIVATE_FAILURE'))
+                self.assertIsNotNone(target)
+                metadata = json.loads((target / 'metadata.json').read_text())
+                self.assertEqual(metadata['current_step'], step)
+
     def test_duplicate_attempt_preserves_existing_capture_package(self):
         attempt_id = "e" * 32
         with tempfile.TemporaryDirectory() as directory:

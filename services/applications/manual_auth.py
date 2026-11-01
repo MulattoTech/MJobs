@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import math
 import re
+import secrets
 from urllib.parse import quote, urlsplit, urlunsplit
 
 from sqlalchemy import select
@@ -14,6 +15,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.discovery.pipeline import MockClient
+from services.applications.debug_capture import capture_browser_failure, subscribe_debug_events
 
 
 _SAFE_REQUISITION = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
@@ -422,15 +424,19 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
             except Exception:
                 pass
         return OPEN_UNAVAILABLE
-    return run_browser(profile, login_url, client, check=check, on_process=on_process)
+    return run_browser(profile, login_url, client, check=check, on_process=on_process,
+                       debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1")
 
 
 def run_browser(profile: Path, login_url: str, client: MockClient,
-                *, check=None, on_process=None) -> str:
+                *, check=None, on_process=None, debug_capture=False) -> str:
     """Run the validated fixture window in the caller's containment boundary."""
     context = None
     launch_attempted = False
     close_confirmed = False
+    page = None
+    browser_events = []
+    step = "MANUAL_AUTH_NAVIGATE"
     try:
         if check is not None:
             check()
@@ -456,8 +462,11 @@ def run_browser(profile: Path, login_url: str, client: MockClient,
                     if client.allowed(browser_route.request.url)
                     else browser_route.abort()))
                 page = context.pages[0] if context.pages else context.new_page()
+                if debug_capture is True:
+                    subscribe_debug_events(page, browser_events)
                 page.goto(login_url, wait_until="domcontentloaded",
                           timeout=_browser_wait_ms(check, 15000))
+                step = "MANUAL_AUTH_WAIT"
                 while not page.is_closed():
                     try:
                         page.wait_for_timeout(_browser_wait_ms(check, 250))
@@ -468,6 +477,15 @@ def run_browser(profile: Path, login_url: str, client: MockClient,
                         if not page.is_closed():
                             raise
                         break
+            except Exception as error:
+                if debug_capture is True:
+                    try:
+                        capture_browser_failure(page, profile.parent / "debug-captures",
+                            attempt_id=secrets.token_hex(16), step=step, configured_url=login_url,
+                            error=error, events=browser_events, check=check)
+                    except Exception:
+                        pass
+                raise
             finally:
                 # The context needs its live driver even after the page closes.
                 # Cleanup must precede sync_playwright's __exit__ on every path.

@@ -42,7 +42,7 @@ class ManualAuthHostTests(unittest.TestCase):
                    {"mock_origin": "http://user:secret@127.0.0.1:8123"},
                    {"requisition": "../apply"}, {"budget_seconds": True},
                    {"budget_seconds": 0}, {"budget_seconds": 901},
-                   {"secret": "extra-field"}]
+                   {"secret": "extra-field"}, {"debug_capture": "1"}, {"debug_capture": 1}]
         for change in changes:
             with self.subTest(change=change):
                 result, browser = self.run_host(json.dumps({**self.payload, **change}).encode())
@@ -54,6 +54,14 @@ class ManualAuthHostTests(unittest.TestCase):
                 result, browser = self.run_host(data)
                 self.assertEqual(result, 2)
                 browser.assert_not_called()
+
+    def test_only_private_boolean_opt_in_enables_failure_capture(self):
+        for enabled in (False, True):
+            with self.subTest(enabled=enabled):
+                result, browser = self.run_host(json.dumps({
+                    **self.payload, "debug_capture": enabled}).encode())
+                self.assertEqual(result, 0)
+                self.assertIs(browser.call_args.kwargs.get("debug_capture", False), enabled)
 
     def test_escaped_profile_is_rejected(self):
         from services.applications import manual_auth_host as host

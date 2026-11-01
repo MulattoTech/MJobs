@@ -18,7 +18,7 @@ PRIVATE = 'SYNTHETIC_PRIVATE_BACKUP_DIAGNOSTIC'
 class BackupDiagnosticTests(unittest.TestCase):
     def failure(self, stderr, *, backup_diagnostics=True):
         result = subprocess.CompletedProcess([], 2, stdout=PRIVATE, stderr=stderr)
-        with patch.object(cd.subprocess, 'run', return_value=result):
+        with patch.object(cd, '_run_captured', return_value=result):
             with self.assertRaises(RuntimeError) as caught:
                 cd.command(['synthetic-tool', '--credential', PRIVATE],
                            env={'SYNTHETIC_PRIVATE_VALUE': PRIVATE},
@@ -83,23 +83,23 @@ class BackupDiagnosticTests(unittest.TestCase):
 
     def test_success_and_nonbackup_failure_keep_the_existing_contract(self):
         result = subprocess.CompletedProcess([], 0, stdout='  verified\n', stderr=PRIVATE)
-        with patch.object(cd.subprocess, 'run', return_value=result):
+        with patch.object(cd, '_run_captured', return_value=result):
             self.assertEqual(cd.command(['synthetic-tool'], backup_diagnostics=True), 'verified')
         error = self.failure('Backup refused: PostgreSQL must be running for a logical backup\n',
                              backup_diagnostics=False)
         self.assertEqual(str(error), 'quiescent backup failed (exit 2)')
 
-    def test_backup_timeout_is_safe_and_other_timeouts_keep_the_existing_contract(self):
-        timeout = subprocess.TimeoutExpired(['synthetic-tool', PRIVATE], 1,
-                                            output=PRIVATE, stderr=PRIVATE)
-        with patch.object(cd.subprocess, 'run', side_effect=timeout):
+    def test_all_command_timeouts_are_safe_and_backup_keeps_its_fixed_code(self):
+        timeout = cd.CommandCaptureError('COMMAND_TIMEOUT')
+        with patch.object(cd, '_run_captured', side_effect=timeout):
             with self.assertRaises(RuntimeError) as caught:
                 cd.command(['synthetic-tool', PRIVATE], label='verify backup', backup_diagnostics=True)
-            with self.assertRaises(subprocess.TimeoutExpired) as original:
+            with self.assertRaises(RuntimeError) as original:
                 cd.command(['synthetic-tool', PRIVATE])
         self.assertEqual(str(caught.exception), 'verify backup timed out [BACKUP_COMMAND_TIMEOUT]')
         self.assertNotIn(PRIVATE, ''.join(traceback.format_exception(caught.exception)))
-        self.assertIs(original.exception, timeout)
+        self.assertEqual(str(original.exception), 'command could not complete [COMMAND_TIMEOUT]')
+        self.assertNotIn(PRIVATE, ''.join(traceback.format_exception(original.exception)))
 
     def test_main_retains_the_safe_reason_in_the_existing_log(self):
         error = self.failure('Backup refused: Backup runtime configuration contains unsupported settings\n')
@@ -140,7 +140,7 @@ class BackupRollbackTests(unittest.TestCase):
                     def process(args, **_kwargs):
                         if len(args) > 3 and args[1:3] == ['-m', 'cli.local_backup'] and args[3] == phase:
                             if timed_out:
-                                raise subprocess.TimeoutExpired(args, 1, output=PRIVATE, stderr=PRIVATE)
+                                raise cd.CommandCaptureError('COMMAND_TIMEOUT')
                             return subprocess.CompletedProcess(args, 2, stdout=PRIVATE,
                                 stderr='Backup refused: Backup runtime configuration is invalid\n')
                         return subprocess.CompletedProcess(args, 0, stdout='', stderr='')
@@ -152,7 +152,7 @@ class BackupRollbackTests(unittest.TestCase):
                             patch.object(cd, 'prepare_candidate', return_value=source), \
                             patch.object(cd, 'migration_digest', return_value='same-migrations'), \
                             patch.object(cd, 'verify_candidate'), patch.object(cd, 'require_plain_path'), \
-                            patch.object(cd.subprocess, 'run', side_effect=process), \
+                            patch.object(cd, '_run_captured', side_effect=process), \
                             patch.object(cd, 'compose') as compose, patch.object(cd, 'ready') as ready, \
                             patch.object(cd, 'atomic_state') as save_state, patch.object(cd, 'log') as log:
                         with self.assertRaises(RuntimeError) as caught:

@@ -4,6 +4,7 @@ This internal service never releases capacity or changes application history.
 Its caller must finish the owning operation or leave uncertain capacity held.
 """
 import json
+import os
 from copy import deepcopy
 from pathlib import Path
 import sys
@@ -82,7 +83,8 @@ def open_isolated_manual_auth_window(*, store, operation_id, application_id,
             check()
         payload = json.dumps({'schema': 1, 'output_dir': str(Path(output_dir).resolve()),
             'application_id': application_id, 'mock_origin': mock_origin,
-            'requisition': route['requisition'], 'budget_seconds': budget_seconds}).encode('utf-8')
+            'requisition': route['requisition'], 'budget_seconds': budget_seconds,
+            'debug_capture': os.environ.get('MJOBS_BROWSER_DEBUG_CAPTURE', '0') == '1'}).encode('utf-8')
         if len(payload) > 2048:
             return STALE
         job = BrowserTreeJob()
