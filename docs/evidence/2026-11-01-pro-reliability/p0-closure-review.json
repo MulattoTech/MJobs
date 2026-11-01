@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-01T21:46:26.710852+00:00",
+  "scope": "Independent local review of the 14 selected unresolved original P0 requirements; no canonical acceptance files modified",
+  "result": "NO_NEW_FULL_P0_ACCEPTANCE_SUPPORTED",
+  "new_p0_pass_count": 0,
+  "inspected_status_counts": {
+    "PARTIAL": 4,
+    "NOT_RUN": 10
+  },
+  "p0_progress_projection": {
+    "owner_verified_baseline_pass": 12,
+    "original_p0_denominator": 26,
+    "projected_pass_after_this_sprint": 12,
+    "qualification": "Unchanged projection from the parent-provided baseline, not a fresh audit of all 26 rows."
+  },
+  "integration_boundary": "Final PR879 protected gates/merge and any deployment are recorded separately by the integration owner. This review does not certify them.",
+  "measured_progress": [
+    {
+      "slice": "Frontend complete-operation deadlines",
+      "evidence": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+      "finding": "21 active modules / 32 dispatch sites now bounded, plus the additional unused client; 30 s default and 60 s resume workflow; headers/body/error readers, cancellation, guarded late effects and no automatic write replay.",
+      "executed_record": {
+        "frontend_passed": 1096,
+        "new_direct_deadline_cases": 82,
+        "new_mounted_lifecycle_cases": 14,
+        "targeted_chromium_passed": 5
+      }
+    },
+    {
+      "slice": "Native DOM diagnostics",
+      "evidence": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+      "finding": "300 ms native DOM sub-budget within original caller-derived 2 s capture cap; create/send/detach and two-phase cancellation; retained 160 visited nodes / depth 8 / 8192 actual LF bytes; privacy projection and incomplete-package cleanup.",
+      "executed_record": {
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0,
+        "subtests_passed": 11,
+        "real_chromium_cases": 3
+      },
+      "limits": [
+        "Raw CDP reply decoding precedes retained caps.",
+        "Synchronous filesystem work is checkpointed, not hard-preempted.",
+        "MJ-REQ-179 also remains PARTIAL."
+      ]
+    },
+    {
+      "slice": "Stalled-socket oracle repair",
+      "source": "tests/integration/test_source_http_socket_budget.py",
+      "finding": "Separates worker/admission setup from socket engagement and starts fixture lifetime after accept; deterministic 1.1 s worker-entry and 3.1 s idle-listener regressions preserve original 0.8 s worker, 1.1 s finish and 0.35 s cancellation checks plus durable/socket/no-retry assertions.",
+      "execution_status": "Parent-reported full module 16 tests / 11 subtests PASS on Windows and Linux; final delivery should retain the actual execution artifact. This reviewer inspected the diff and parsed the file but did not run that suite."
+    },
+    {
+      "slice": "Implementation journal",
+      "status": "PENDING_PARENT_CHECKPOINT",
+      "finding": "A new durable checkpoint will advance the journal/update portion of 008. It cannot by itself prove all six interruption scenarios."
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "MJ-REQ-000",
+      "issue": 1,
+      "title": "HIGHEST-PRIORITY DIRECTIVES",
+      "current_canonical_result": "PARTIAL",
+      "recommended_result": "PARTIAL",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/governance_safety.md#0",
+      "literal_contract_summary": "A functioning application; truthful profile/document/answer facts; thresholds, rate/company limits and quality/confidence/sensitive/source gates; challenge intervention without bypass; supported form recognition, classification, uploads, questions, multipage validation, enabled submission, confirmation, persistent sessions and recovery.",
+      "closure_limit": "The sprint delivers real code and strengthens truth-preserving failure/retry behavior, but it is not a complete audit and executed proof of this overarching capability and safety contract."
+    },
+    {
+      "requirement_id": "MJ-REQ-004",
+      "issue": 5,
+      "title": "BOUND EXTERNAL OPERATIONS",
+      "current_canonical_result": "PARTIAL",
+      "recommended_result": "PARTIAL",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/governance_safety.md#4",
+      "literal_contract_summary": "Timeouts, captured output, controlled cancellation, retry policy and error classification across HTTP, browser navigation/selectors, AI, parsing, OCR, external processes, source collectors and ATS collectors; no worker permanently blocked on one source.",
+      "closure_limit": "Carry forward prior bounded-operation evidence and append the frontend/native-DOM/socket slices. A current complete surface-to-control proof is not established. Raw CDP response decoding precedes retained caps; diagnostic filesystem work is checkpointed, not hard-preempted."
+    },
+    {
+      "requirement_id": "MJ-REQ-008",
+      "issue": 9,
+      "title": "SAVE IMPLEMENTATION PROGRESS",
+      "current_canonical_result": "PARTIAL",
+      "recommended_result": "PARTIAL",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/governance_safety.md#8",
+      "literal_contract_summary": "An updated machine-readable journal with current_phase, completed_steps, files_added, files_modified, tests_completed, tests_remaining, migrations_applied, live_integrations_tested, known_errors, known_limitations and last_safe_checkpoint; resumability after terminal, Codex, container, host, browser and worker interruption.",
+      "closure_limit": "The sprint checkpoint is still a parent-owned pending action in this review. A checkpoint alone cannot establish all six interruption scenarios. Canonical limits retain physical host restart and incomplete queue/worker recovery proof, including actual RQ maintenance redelivery and named Redis interruption opt-in."
+    },
+    {
+      "requirement_id": "MJ-REQ-290",
+      "issue": 291,
+      "title": "IMPLEMENTATION PHASES",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#290",
+      "literal_contract_summary": "The complete A-W capability checklist, including real usable sources, company discovery, real ATS adapters, safe application automation, mock end-to-end work, controlled live reads, deployment validation and final audit; order may be interleaved.",
+      "closure_limit": "Verified slices advance the checklist; no complete criterion-by-criterion A-W closure is supplied."
+    },
+    {
+      "requirement_id": "MJ-REQ-291",
+      "issue": 292,
+      "title": "TEST MATRIX",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#291",
+      "literal_contract_summary": "The minimum matrix across profile, search profiles, sources, company discovery, ATS detection, job model, matching, documents, applications, idempotency, recovery and security.",
+      "closure_limit": "Test totals and focused new regressions do not establish all listed behavior cells. Each cell needs an executed meaningful oracle, exact source identity and explicit skip/failure accounting."
+    },
+    {
+      "requirement_id": "MJ-REQ-292",
+      "issue": 293,
+      "title": "END-TO-END ACCEPTANCE TEST",
+      "current_canonical_result": "PARTIAL",
+      "recommended_result": "PARTIAL",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#292",
+      "literal_contract_summary": "The complete connected 60-step user workflow, including step 11 real discovered jobs, steps 23-31 automatic employer discovery/enrollment/enumeration and dedupe, safe application review/resume, local mock confirmation, and steps 54-60 restart persistence plus scheduler/company-monitoring recovery.",
+      "closure_limit": "Retain older scoped and current fixture proofs, including current inventory-preservation evidence where recorded. The complete 60-step contract remains unproven; the synthetic onboarding artifact explicitly remains PARTIAL for real-provider step 11. Separate component/provider proofs must not be silently presented as one completed user journey."
+    },
+    {
+      "requirement_id": "MJ-REQ-293",
+      "issue": 294,
+      "title": "DEFINITION OF DONE",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#293",
+      "literal_contract_summary": "Coherent end-to-end operation of the listed major workflows, including several working real ATS adapters, recovery, 24/7 scheduling and Docker persistence.",
+      "closure_limit": "Passing build, UI, Compose or selected mock flows is explicitly insufficient under this requirement. Full connected proof is absent."
+    },
+    {
+      "requirement_id": "MJ-REQ-294",
+      "issue": 295,
+      "title": "REQUIRED DELIVERABLES",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#294",
+      "literal_contract_summary": "All 70 actual deliverables, including complete backend/frontend, real source/application integrations, company monitoring, automation/review controls, recovery assets, complete end-to-end CI, verification utility and final report.",
+      "closure_limit": "No complete functional and executed inventory of all 70 deliverables is established. File presence or a generated checklist is insufficient."
+    },
+    {
+      "requirement_id": "MJ-REQ-295",
+      "issue": 296,
+      "title": "FINAL IMPLEMENTATION REPORT",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#295",
+      "literal_contract_summary": "A compact but thorough completion report covering architecture, file changes, services, every source and supported ATS capability/limitation, company discovery, dedupe, matching, documents, actual test commands/results, external limitations, exact startup, limitations and meaningful next work.",
+      "closure_limit": "A sprint handoff can satisfy reporting needs for this slice; it does not demonstrate the complete product-level final report and its underlying verified capability inventory."
+    },
+    {
+      "requirement_id": "MJ-REQ-296",
+      "issue": 297,
+      "title": "IMPORTANT FAILURE RULE",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#296",
+      "literal_contract_summary": "When a source or ATS changes, investigate supported API/public endpoint/HTML/structured-data/ATS/browser approaches; retain the subsystem and classify an unstable integration while continuing other work.",
+      "closure_limit": "Report observed sprint compliance as process evidence. The selected canonical row has no accepted whole-requirement evidence; do not manufacture a P0 PASS merely because this sprint did not remove a subsystem."
+    },
+    {
+      "requirement_id": "MJ-REQ-297",
+      "issue": 298,
+      "title": "IMPORTANT AUTONOMY RULE",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#297",
+      "literal_contract_summary": "Execute authorized implementation and testing while preserving explicit prohibitions on invented credentials/facts, bypasses, random external submissions and unrelated or destructive host changes; change the implementation approach when needed.",
+      "closure_limit": "The sprint authorization and preserved external-submission/no-paid-AI boundaries are compliance evidence. They are not a newly verified product capability or an administrative P0 acceptance shortcut."
+    },
+    {
+      "requirement_id": "MJ-REQ-298",
+      "issue": 299,
+      "title": "CORE DESIGN PRINCIPLE",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "docs/spec/areas/delivery_control.md#298",
+      "literal_contract_summary": "The complete integrated profile-to-search-to-employer-monitoring-to-canonical-job-to-matching-to-documents-to-application/review-to-durable-record architecture, with continuous workers/schedulers and persistent recoverable important operations.",
+      "closure_limit": "The sprint improves parts of this chain; the complete continuous/recoverable architecture has not been demonstrated end-to-end."
+    },
+    {
+      "requirement_id": "MJ-REQ-299",
+      "issue": 300,
+      "title": "PRODUCT OUTCOME",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "https://github.com/MulattoTech/MJobs/issues/300",
+      "literal_contract_summary": "The complete real-world install/profile/search experience with continuous multi-source and direct-employer discovery, automatic new-employer learning, dedupe/provenance, explainable matching, truthful materials, supported application automation/review and explicitly enabled policy-gated submission, durable tracking and continuous operation.",
+      "closure_limit": "This is an overarching real-world outcome. Fixture environments, UX deadlines and scoped recovery tests do not establish the entire outcome. Its full authoritative text was reviewed from the supplied issue body."
+    },
+    {
+      "requirement_id": "MJ-REQ-300",
+      "issue": 301,
+      "title": "START EXECUTION",
+      "current_canonical_result": "NOT_RUN",
+      "recommended_result": "NOT_RUN",
+      "new_full_acceptance": false,
+      "authoritative_section": "https://github.com/MulattoTech/MJobs/issues/301",
+      "literal_contract_summary": "Inspect eight workspace domains, maintain the journal, implement and verify coherent slices and the named real product capabilities, run/fix tests and the application, validate Docker, complete local mock end-to-end work and bounded real-source reads, retain deliverables/evidence/capability matrix/report, and treat automatic company career-site discovery as first-class.",
+      "closure_limit": "The title does not make this a start-work checkbox. This sprint advances its execution method, but no complete implementation and verification of the full listed contract is established. Its full authoritative text was reviewed from the supplied issue body."
+    }
+  ],
+  "next_batch": [
+    {
+      "order": 1,
+      "action": "Finish and verify the machine-readable milestone checkpoint",
+      "done_when": "All 11 literal journal fields identify immutable source/evidence, completed versus remaining tests, observed failures/skips, no live integrations that were not run, and a usable last_safe_checkpoint. Record recovery execution separately; do not relabel a checkpoint as all six interruption PASS."
+    },
+    {
+      "order": 2,
+      "action": "Select one remaining MJ-REQ-004 operation surface using a current call-site/control/evidence matrix",
+      "done_when": "Its timeout, bounded captured output where applicable, caller cancellation, explicit retry policy and error classification are demonstrated through real hang/continuous-drip/cancel/cleanup paths with durable result and no replay. Preserve already executed scopes and explicit raw-CDP/filesystem limits."
+    },
+    {
+      "order": 3,
+      "action": "Run a connected MJ-REQ-292 acceptance campaign and implement failures found",
+      "done_when": "All 60 steps are mapped to actual connected outcomes, with real read-only jobs, automatic employer discovery/enrollment/enumeration/dedupe, local mock submit/confirmation and observed scheduler/monitoring recovery after restart. External employer submission stays off; literal 48 is dry-run and 49 submits only to the local mock."
+    },
+    {
+      "order": 4,
+      "action": "Close the remaining 008 interruption evidence under appropriate authorization",
+      "done_when": "The six named interruption scenarios are demonstrated from the saved journal and durable state; physical host restart requires its own authorized window. Do not launch CLI agents or perform a host restart merely to improve acceptance counts."
+    }
+  ],
+  "p1_separation": {
+    "conditional_new_full_original_p1_acceptances": [
+      "MJ-REQ-209",
+      "MJ-REQ-210",
+      "MJ-REQ-211",
+      "MJ-REQ-254"
+    ],
+    "count": 4,
+    "condition": "Only after exact protected integration and canonical update. These are P1 gains, not P0 closure; no reference-denominator change."
+  },
+  "input_sha256": {
+    "selected-capability.json": "3eebf1a4218f0641e1aff62b05cff3d06f1a3cef783c12c24e06e90cd08e740f",
+    "selected-index.json": "ed3c81e7df616679c85ac22e87066f8da75620722d5d3af043827ac138b26058",
+    "p0-last-issues.json": "6252710024bcede1bdd271ca701040dad5d40b6e18f1add807d37345a3227feb",
+    "MJobs/docs/spec/areas/governance_safety.md": "9921897c2b44b972f796c61822f3193abdea33094d94d0f1aa405e106548b65d",
+    "MJobs/docs/spec/areas/delivery_control.md": "a9ea7c804a321849256da2f1f0422ff97bf0e09136870515cb70941661faa68a",
+    "MJobs/docs/evidence/2026-11-01-ui-injected-request-deadlines.json": "b9a2f20cccfd1f6a03fbb1a367bc56c266b1db0f0d7532e48d991e34e8f659f1",
+    "MJobs/docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json": "440b96f6c13df7a9fc7f4c814b0af835732c8c7d021d0e476c022d2657df4d22"
+  },
+  "review_limits": [
+    "Source/evidence review only; this file is a recommendation, not a canonical update or hosted gate.",
+    "Existing historical artifact findings are carried from the supplied canonical rows; their entire contents were not independently re-executed.",
+    "PARTIAL/NOT_RUN does not assert that every listed capability is missing; it records absence of demonstrated complete closure."
+  ],
+  "source_excerpt_limit": "The local delivery_control.md transfer is limited to 1000 lines. Full 299/300 requirement text was read from the supplied current GitHub issue 300/301 bodies. No missing-section defect in the repository specification is inferred."
+}

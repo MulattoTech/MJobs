@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-11-01T21:48:57.908198+00:00",
+  "tested_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+  "run": "https://github.com/MulattoTech/MJobs/actions/runs/41352977153",
+  "job": "https://github.com/MulattoTech/MJobs/actions/runs/41352977153/job/124986945723",
+  "artifact_name": "synthetic-acceptance-json",
+  "scope": "Exact proposed-merge disposable Compose fixture execution; production restore not performed",
+  "artifacts": [
+    {
+      "artifact": "ci-backup-recovery.json",
+      "sha256": "0defe95b4d346ebec62f206bd0ef51747a37fa28d19d320e977241abe9cc29c6",
+      "result": "PASS",
+      "external_submission_enabled": false,
+      "local_persistence": {
+        "result": "PASS",
+        "domains": [
+          "postgresql",
+          "uploaded_resumes",
+          "generated_resumes",
+          "cover_letters",
+          "application_history",
+          "company_source_catalog",
+          "configuration"
+        ],
+        "scope": "Synthetic FIXTURE inventory only; PERSONAL runtime and complete startup command acceptance NOT_RUN",
+        "configuration": "Operator-managed local configuration retained; archive settings not applied"
+      },
+      "public_job_inventory_recovery": {
+        "result": "NOT_RUN",
+        "reason": "Baseline has no canonical public job/source-copy inventory"
+      },
+      "implementation_progress": null
+    },
+    {
+      "artifact": "ci-backup.json",
+      "sha256": "528be492234ebd1ef286ac216a9ecb5c228340fb20e4972521b14b5a1a1e2844",
+      "result": "PASS",
+      "external_submission_enabled": false,
+      "behavior": "Fresh database/documents/provider volumes restored; original confirmed application and request replay retained; exact independent receipt submission_count remains one",
+      "local_persistence": {
+        "result": "PASS",
+        "domains": [
+          "postgresql",
+          "uploaded_resumes",
+          "generated_resumes",
+          "cover_letters",
+          "application_history",
+          "company_source_catalog",
+          "configuration"
+        ],
+        "scope": "Synthetic FIXTURE inventory only; PERSONAL runtime and complete startup command acceptance NOT_RUN",
+        "configuration": "Operator-managed local configuration retained; archive settings not applied"
+      },
+      "configuration_restore": "Operator-managed configuration retained; archive settings not applied",
+      "negative_controls": {
+        "running_writers": "PASS",
+        "corrupt_archive": "PASS",
+        "occupied_target": "PASS"
+      },
+      "public_cli": {
+        "backup": {
+          "exit_code": 0,
+          "status": "PASS",
+          "result": "PASS",
+          "file_count": 81
+        },
+        "verify": {
+          "exit_code": 0,
+          "status": "PASS",
+          "result": "PASS",
+          "file_count": 81
+        },
+        "restore": {
+          "exit_code": 0,
+          "status": "PASS",
+          "result": "PASS"
+        }
+      }
+    },
+    {
+      "artifact": "ci-mock-e2e.json",
+      "sha256": "9ab65fab4381bc574b23c1a3f0c398e9f2755710fa711423b8f11a6211939b1f",
+      "result": "PASS",
+      "external_submission_enabled": false
+    },
+    {
+      "artifact": "ci-recovery.json",
+      "sha256": "3aac8950d9d505c527340bac327aad6fb9019e971c47e74b2671eb1b8e4e0aba",
+      "result": "PASS",
+      "external_submission_enabled": false,
+      "local_persistence": {
+        "result": "PASS",
+        "domains": [
+          "postgresql",
+          "uploaded_resumes",
+          "generated_resumes",
+          "cover_letters",
+          "application_history",
+          "company_source_catalog",
+          "configuration"
+        ],
+        "scope": "Synthetic FIXTURE inventory only; PERSONAL runtime and complete startup command acceptance NOT_RUN",
+        "configuration": "Operator-managed local configuration retained; archive settings not applied"
+      },
+      "public_job_inventory_recovery": {
+        "result": "PASS",
+        "profile_id": "3307407a-1d30-4e38-bbd9-b3e1ebc40609",
+        "job_count": 2,
+        "source_copy_count": 4,
+        "sha256": "f1a636ef584be08474b8b48e78ae4e9c21bf99390858b3df613d523a1302dffb",
+        "scope": "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes via public GET /jobs readback"
+      },
+      "implementation_progress": null
+    },
+    {
+      "artifact": "ci-ui-onboarding.json",
+      "sha256": "1a7c46fbf0a00c8487576ec830a303a51a3f87357382cfa89040d5ca27bdf22c",
+      "result": "PARTIAL",
+      "external_submission_enabled": false,
+      "local_persistence": {
+        "domains": {
+          "application_history": {
+            "count": 1,
+            "sha256": "3a659ebb1b28f2a30639ec1340e72279634816416aee165e7c3be38917f41bd6"
+          },
+          "company_source_catalog": {
+            "count": 1,
+            "sha256": "2bb039dade47a740004582c797aa9f8e1ae8648cbad78b1cec2f6ba146e16b34"
+          },
+          "configuration": {
+            "count": 1,
+            "sha256": "abbca08e7d8fdbfac2f45d75ff1e78a1e72fa7052c6dc53e43b952c3057bdc2b"
+          },
+          "cover_letters": {
+            "count": 6,
+            "sha256": "0c6df2ebecbade54a59fc566b89484ded10730c696e3fc3af85bef2cd305b104"
+          },
+          "generated_resumes": {
+            "count": 6,
+            "sha256": "ebe64998a060be14705953612d2c23f242828adc229538170186f29e586e1dac"
+          },
+          "postgresql": {
+            "count": 1,
+            "sha256": "716e7621be98998d0512c7eca1e4ff1c98fef5a062565e5e028e7ac298bfc67e"
+          },
+          "uploaded_resumes": {
+            "count": 2,
+            "sha256": "5ed77e79c522e200954f0b04b8e405f33ff094c8026bc8b8fae6db035c501ee1"
+          }
+        },
+        "schema_version": 1
+      },
+      "limitations": [
+        "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
+        "Source identity/deduplication and live public-source proof are outside this local fixture run."
+      ],
+      "overall_state": "PARTIAL",
+      "remaining_state": "NONE",
+      "checks": [
+        {
+          "action": "UI created a new synthetic profile without replacing existing profiles",
+          "result": "PASS"
+        },
+        {
+          "action": "PDF imported through UI and extraction suggestions remain unverified and unapproved after readback",
+          "result": "PASS"
+        },
+        {
+          "action": "UI saves two explicitly approved synthetic answers and keeps the required mock-form answer unreviewed for later question review",
+          "result": "PASS"
+        },
+        {
+          "action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved",
+          "result": "PASS"
+        },
+        {
+          "action": "Created a remote IT title search in the Sources UI; actual fixture discovery completed and the selected same-profile filter returned no matching jobs",
+          "boundary": "Sources search form \u2192 Jobs saved-search selection \u2192 queued /discovery \u2192 Compose source worker \u2192 selected-search jobs API",
+          "result": "PASS"
+        },
+        {
+          "action": "Selected a matching remote Data Engineer search; actual fixture worker completed and only the matching job appeared in same-profile filtered readback",
+          "boundary": "Jobs UI \u2192 Sources UI \u2192 queued /discovery \u2192 Compose source worker \u2192 selected-search jobs API",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+          "result": "PASS"
+        },
+        {
+          "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+          "result": "PASS"
+        },
+        {
+          "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+          "result": "PASS"
+        },
+        {
+          "action": "Pending fact excluded from matching and downloaded factual DOCX",
+          "result": "PASS"
+        },
+        {
+          "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+          "result": "PASS"
+        },
+        {
+          "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+          "result": "PASS"
+        },
+        {
+          "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+          "result": "PASS"
+        },
+        {
+          "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+          "result": "PASS"
+        },
+        {
+          "action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history",
+          "boundary": "Connected React UI \u2192 public profile/reprepare APIs \u2192 actual document worker",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit new reviewed run clears only the prior terminal browser intent; blocked operation and stale preflight remain readable",
+          "boundary": "Connected React UI \u2192 public run receipt/operation APIs",
+          "result": "PASS"
+        },
+        {
+          "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+          "result": "PASS"
+        },
+        {
+          "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+          "result": "PASS"
+        },
+        {
+          "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "artifact": "ci-ui.json",
+      "sha256": "874833ded6e555beddd1b30b86577703b36fd4e5905aae28b2c063d8f6adb0bf",
+      "result": "PASS",
+      "external_submission_enabled": false,
+      "local_persistence": {
+        "domains": {
+          "application_history": {
+            "count": 1,
+            "sha256": "6cbd505372fce3c226f6002a6fa8ca2f1c3f940758043cb456956f9ac3012ef2"
+          },
+          "company_source_catalog": {
+            "count": 1,
+            "sha256": "2bb039dade47a740004582c797aa9f8e1ae8648cbad78b1cec2f6ba146e16b34"
+          },
+          "configuration": {
+            "count": 1,
+            "sha256": "abbca08e7d8fdbfac2f45d75ff1e78a1e72fa7052c6dc53e43b952c3057bdc2b"
+          },
+          "cover_letters": {
+            "count": 5,
+            "sha256": "d925faff8e09efed20180ddb3504bb973d96fef237a172c94935fde0e453f809"
+          },
+          "generated_resumes": {
+            "count": 5,
+            "sha256": "c2b5d4545ce3fba963fb7d789dedf8c03f03a9b735e6640654a42ecedd746368"
+          },
+          "postgresql": {
+            "count": 1,
+            "sha256": "6a5797cd69f517ce4a6f02b61c1ca74b67029b91dd13bc07837e8efed0fa82eb"
+          },
+          "uploaded_resumes": {
+            "count": 1,
+            "sha256": "1337a2e15c7ba113a5af903b5bff18f7e51977bdf8fe7b93f5b87a5c6f7c829f"
+          }
+        },
+        "schema_version": 1
+      },
+      "limitations": [],
+      "overall_state": "PASS",
+      "remaining_state": "NONE",
+      "checks": [
+        {
+          "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+          "result": "PASS"
+        },
+        {
+          "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+          "result": "PASS"
+        },
+        {
+          "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+          "result": "PASS"
+        },
+        {
+          "action": "Pending fact excluded from matching and downloaded factual DOCX",
+          "result": "PASS"
+        },
+        {
+          "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+          "result": "PASS"
+        },
+        {
+          "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+          "result": "PASS"
+        },
+        {
+          "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+          "result": "PASS"
+        },
+        {
+          "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+          "result": "PASS"
+        },
+        {
+          "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+          "result": "PASS"
+        },
+        {
+          "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+          "result": "PASS"
+        },
+        {
+          "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+          "result": "PASS"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Onboarding remains PARTIAL despite all22listedactionsPASS; real-provider step11 is outside synthetic proof.",
+    "Fixture backup creates and verifies an archive and restores into a distinct empty project. Operator-managed configuration is retained; this does not prove complete private PERSONAL configuration/credential recovery.",
+    "Production archive integrity and guarded deployment are recorded separately."
+  ]
+}

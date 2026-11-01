@@ -1,0 +1,842 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-01T21:58:09.714036+00:00",
+  "scope": "Four original P1 acceptances and two partial updates",
+  "source": {
+    "baseline_revision": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+    "merged_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+    "pr": 879,
+    "tested_merge_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+    "tested_merge_tree": "dcabac56ca4cb39dd896e52ef83f25b45e3a9a62",
+    "protected_merge_proof": "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+    "required_checks": [
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/41352977134/job/124991023899",
+        "name": "Integration / PostgreSQL and Redis",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/41352977152/job/124987977098",
+        "name": "CI / required",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/41352977249/job/124986946067",
+        "name": "Security / secret scan",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/41352977146/job/124986945489",
+        "name": "Dependencies / introduced vulnerabilities",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/41352977153/job/124986945723",
+        "name": "Disposable Compose / mock end-to-end",
+        "state": "SUCCESS"
+      }
+    ],
+    "source_jobs": [
+      {
+        "run_id": 41352977152,
+        "job_id": 124986946186,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977152/job/124986946186",
+        "name": "Web / Vitest and production build",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [
+          "2026-11-01T21:38:05.1608115Z  Test Files  153 passed (153)",
+          "2026-11-01T21:38:05.1613745Z       Tests  1096 passed (1096)"
+        ],
+        "summary_line_count": 2
+      },
+      {
+        "run_id": 41352977134,
+        "job_id": 124986945899,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977134/job/124986945899",
+        "name": "Integration / shard 2",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [
+          "2026-11-01T21:50:21.8572953Z 826 passed, 23 skipped, 5 warnings, 442 subtests passed in 678.67s (0:11:18)"
+        ],
+        "summary_line_count": 1
+      },
+      {
+        "run_id": 41352977134,
+        "job_id": 124986945770,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977134/job/124986945770",
+        "name": "Integration / shard 1",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [
+          "2026-11-01T21:53:39.2238559Z 795 passed, 2 warnings, 571 subtests passed in 891.00s (0:14:51)"
+        ],
+        "summary_line_count": 1
+      },
+      {
+        "run_id": 41352977152,
+        "job_id": 124986946127,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977152/job/124986946127",
+        "name": "Python / unit and integrity",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [
+          "2026-11-01T21:41:35.1856780Z 3188 passed, 51 skipped, 1 warning, 3518 subtests passed in 201.77s (0:03:21)"
+        ],
+        "summary_line_count": 1
+      },
+      {
+        "run_id": 41352977134,
+        "job_id": 124986945590,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977134/job/124986945590",
+        "name": "Integration / shard 0",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [
+          "2026-11-01T21:50:32.8287359Z 795 passed, 12 skipped, 14 warnings, 359 subtests passed in 701.98s (0:11:41)"
+        ],
+        "summary_line_count": 1
+      },
+      {
+        "run_id": 41352977152,
+        "job_id": 124986945919,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977152/job/124986945919",
+        "name": "Repository / policy and docs",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [],
+        "summary_line_count": 0
+      },
+      {
+        "run_id": 41352977153,
+        "job_id": 124986945723,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41352977153/job/124986945723",
+        "name": "Disposable Compose / mock end-to-end",
+        "conclusion": "success",
+        "checked_out_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+        "summary_lines": [
+          "2026-11-01T21:39:03.7584586Z #16 20.96  Test Files  153 passed (153)",
+          "2026-11-01T21:39:03.7585081Z #16 20.96       Tests  1096 passed (1096)",
+          "2026-11-01T21:42:51.1494791Z 5 passed in 49.54s"
+        ],
+        "summary_line_count": 3
+      }
+    ]
+  },
+  "acceptance": {
+    "new_full_pass": [
+      "MJ-REQ-209",
+      "MJ-REQ-210",
+      "MJ-REQ-211",
+      "MJ-REQ-254"
+    ],
+    "new_partial": [
+      "MJ-REQ-224",
+      "MJ-REQ-275"
+    ],
+    "remain_partial": [
+      "MJ-REQ-004",
+      "MJ-REQ-008",
+      "MJ-REQ-167",
+      "MJ-REQ-179",
+      "MJ-REQ-267",
+      "MJ-REQ-269"
+    ],
+    "counts_before": {
+      "original": {
+        "PASS": 165,
+        "PARTIAL": 92,
+        "NOT_RUN": 109,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 19,
+        "PARTIAL": 4,
+        "NOT_RUN": 36,
+        "total": 59
+      },
+      "P0": {
+        "PASS": 12,
+        "PARTIAL": 4,
+        "NOT_RUN": 10,
+        "total": 26
+      },
+      "P1": {
+        "PASS": 92,
+        "PARTIAL": 18,
+        "NOT_RUN": 6,
+        "total": 116
+      }
+    },
+    "counts_after": {
+      "original": {
+        "PASS": 169,
+        "PARTIAL": 90,
+        "NOT_RUN": 107,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 19,
+        "PARTIAL": 4,
+        "NOT_RUN": 36,
+        "total": 59
+      },
+      "P0": {
+        "PASS": 12,
+        "PARTIAL": 4,
+        "NOT_RUN": 10,
+        "total": 26
+      },
+      "P1": {
+        "PASS": 96,
+        "PARTIAL": 16,
+        "NOT_RUN": 4,
+        "total": 116
+      }
+    },
+    "criteria": "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+    "whole_product_readiness": "UNKNOWN/PARTIAL",
+    "reference_bytes_sha256": "fda62abe9db711ea41941bf991685c95c9d323d9554ca8776366a99c9800653b"
+  },
+  "evidence_index": [
+    {
+      "path": "docs/evidence/2026-10-09-direct-employer-route-discovery.json",
+      "sha256": "b88ed90628716b73124d55dc914f3f9143ec18a9a2d9045da799ad96b03b8e33"
+    },
+    {
+      "path": "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
+      "sha256": "fef65cb8572a0f07d3db2160daa2db64521d96d1b55c6a59549075202bda27bd"
+    },
+    {
+      "path": "docs/evidence/2026-10-09-document-fact-trace.json",
+      "sha256": "05b0a866d2a71983c71154f11d3b86ed4f1e51614b7f16c6b495fb88f4e7616d"
+    },
+    {
+      "path": "docs/evidence/2026-10-09-reviewed-employer-route-save.json",
+      "sha256": "c29b1575373ec82271b4e413a941d3f279da521ba8a9d7d6e4ff9773f291c2bc"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json",
+      "sha256": "e6cfe26300a64854f1e179f63ad688a345a124830b904f53e490d9685c61db84"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+      "sha256": "440b96f6c13df7a9fc7f4c814b0af835732c8c7d021d0e476c022d2657df4d22"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+      "sha256": "51869e9f6ac105c66c5f7ace4c22f9ce7105ddd18b5167325724ca5a573f3caa"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+      "sha256": "5467f6388746c0991eb78361b471fde1a5b8ab6cfbf9ba7ce4013ed04d3041a8"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-p1-delivery.json",
+      "sha256": "71bc8f409f21ba9bfce13c50f35e7f44a0ec2d9f2910c1d7c8d1484d053d2306"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-p1/criteria.json",
+      "sha256": "11170543b3bcf76463a0608c0dc8ae3b7d30c6ca4b02eba35674de98f1b13dc1"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-p1/hosted-execution.json",
+      "sha256": "03c8c768c5d80ebdd07fab0d65d36d415794ba089f1d25c359b35cd2553e6fec"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/dependency-followup.json",
+      "sha256": "99817d057ce76bcf8d94dcd4373911972043315ecb0368e815ff22014fd56c64"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/hosted-synthetic-artifacts.json",
+      "sha256": "de56db9d9925b619736b4511c7bcf5b6565f6edadf00af1fe92ef41e24f1b4da"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/linux-native-browser.json",
+      "sha256": "234791f81609d70fe8cc05540c6bb7c1db1b29d2ba191d6bc553a90e5092e81b"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/p0-closure-review.json",
+      "sha256": "f16833757ffe8afed380251c66ac60ee30f60352a0009a28224c188c63b02c19"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-878-protected-merge.json",
+      "sha256": "52b7711a8d55477341281faba9e4d27757b8bde241561e6613d23074da592739"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-879-earlier-head-protected-checks.json",
+      "sha256": "3b4f2b3d3ba641524c7bdd881bf10880defe52644d0ea356b8b12663b8f50c7d"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-source-socket-test-phases.json",
+      "sha256": "56adde08d6386c3722619421afcdcf4e45fc17046166da1561526caa8721cc80"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+      "sha256": "b9a2f20cccfd1f6a03fbb1a367bc56c266b1db0f0d7532e48d991e34e8f659f1"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-worker-logging-configuration.json",
+      "sha256": "0a3c521c477e867c157accc7475817251c409a048491b6afd981a2911c4821b6"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+      "sha256": "2f6c231b9d90bf4acf6c1e50e62ac3c24c35d64a8bc078bce66d010d015e352f"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+      "sha256": "c59e714780fe81a62e8a06e6377c2cff26f444dfa5d64699acad690daf6f00eb"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/production-before.json",
+      "sha256": "67e32a668f873be4f335e4fc1aa7bfe11179bd8391d1f5e0f20c0fba09b37449"
+    }
+  ],
+  "executed_validation_records": [
+    {
+      "record": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+      "scope": "Frontend",
+      "passed": 1096,
+      "failed": 0,
+      "skipped": 0,
+      "new_direct_deadline_cases": 82,
+      "new_mounted_lifecycle_cases": 14
+    },
+    {
+      "record": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+      "scope": "Five targeted real-Chromium fixture/core/progress/document cases",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "record": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+      "scope": "Focused fixture/discovery/backup group",
+      "passed": 132,
+      "failed": 0,
+      "skipped": 3,
+      "subtests_passed": 66,
+      "skip_treatment": "Retained as skips, never counted as PASS; final fixture/browser group below is zero-skip."
+    },
+    {
+      "record": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+      "scope": "Combined fixture browser/unit group",
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "record": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+      "scope": "Two repaired browser-contract cases plus worker review integration module",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "record": "docs/evidence/2026-11-01-worker-logging-configuration.json",
+      "scope": "Worker log-level tests",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 3,
+      "additional": "Sanitized Compose DEBUG and ERROR overrides match all five worker services."
+    },
+    {
+      "record": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+      "scope": "Native diagnostics unit/protocol/browser group",
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 11
+    }
+  ],
+  "counting_note": "Execution groups overlap; skips remain skips. Neither partial updates nor test counts add full requirements.",
+  "retained_failures": [
+    {
+      "evidence": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+      "sections": [
+        "resolved_intermediate_findings",
+        "historical_combined_run"
+      ],
+      "treatment": "Preserved unchanged"
+    },
+    {
+      "evidence": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+      "sections": [
+        "resolved_intermediate_failures"
+      ],
+      "treatment": "Preserved unchanged"
+    },
+    {
+      "evidence": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+      "sections": [
+        "baseline_reproduction"
+      ],
+      "treatment": "Preserved unchanged"
+    },
+    {
+      "evidence": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+      "sections": [
+        "failure_history",
+        "failure_resolution"
+      ],
+      "treatment": "Preserved unchanged"
+    },
+    {
+      "evidence": "docs/evidence/2026-11-01-source-socket-test-phases.json",
+      "treatment": "Preserve the initial main-40ba header-stall engagement failure and the final Windows/Linux 16-test, 11-subtest, zero-skip runs. The oracle repair does not relax production deadlines."
+    }
+  ],
+  "historical_protected_checks": {
+    "evidence": "docs/evidence/2026-11-01-pro-reliability/pr-879-earlier-head-protected-checks.json",
+    "treatment": "Historical only; not the final merge proof"
+  },
+  "dependency_followup": "docs/evidence/2026-11-01-pro-reliability/dependency-followup.json",
+  "retained_external_blockers": [
+    {
+      "integration": "We Work Remotely",
+      "code": "SOURCE_DUPLICATE_JOB_ID",
+      "status": "RETAINED_UNRESOLVED",
+      "note": "Conflicting upstream content for one native job identity; retain this failure instead of counting the live source as PASS.",
+      "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
+    },
+    {
+      "dependency": "minimatch",
+      "alert": 63,
+      "status": "RETAINED_UNRESOLVED",
+      "note": "The proposed major-version-11 fix is unsupported in the current dependency baseline; retain the recorded compatibility blocker.",
+      "evidence": "docs/evidence/2026-11-01-pro-reliability/dependency-followup.json"
+    }
+  ],
+  "remaining_limits": [
+    {
+      "requirement_id": "MJ-REQ-224",
+      "note": "Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF."
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "note": "Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits."
+    },
+    {
+      "requirement_id": "MJ-REQ-004",
+      "note": "Retain the existing broader external-operation parent limitation. Frontend deadlines, native DOM capture bounds and real loopback socket tests prove bounded slices only; they do not establish all external-operation timeout/retry/cancellation criteria. Raw CDP bytes are decoded before retained-size caps, and synchronous diagnostic filesystem work is checkpointed rather than hard-preempted."
+    },
+    {
+      "requirement_id": "MJ-REQ-008",
+      "note": "Preserve the canonical remaining limits: physical host restart, actual RQ maintenance redelivery, the named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete. Current fixture reopen and source-budget checks do not close those clauses."
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "note": "Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations."
+    },
+    {
+      "requirement_id": "MJ-REQ-179",
+      "note": "Native DOM topology, visual/serialized redaction, retained-size caps and bounded capture/abort recovery are executed for the tested local failure path. Complete browser-automation/real-adapter coverage is not established. Raw CDP decode bytes are not capped before parsing, synchronous filesystem work is not hard-preempted, and existing failure owners retain context cleanup."
+    },
+    {
+      "requirement_id": "MJ-REQ-267",
+      "note": "Only explicit resolve/save API actions call resolve_aggregator_redirect. Preparation selects stored routes and may record an already-known ATS-sibling lookup as PREPARATION_*; this is not a fresh automatic pre-submission probe. The missing automatic consumer remains. External submission being OFF does not make the requirement vacuously complete."
+    },
+    {
+      "requirement_id": "MJ-REQ-269",
+      "note": "Immutable fact tracing is verified for the existing deterministic document workflow and displayed history. The inspected AI consumer performs job scoring; document preparation uses deterministic templates, while rewrite review handles supplied proposals. A supported AI-generated document consumer with fact references is not demonstrated. Controlled provider fixtures could establish that path when implemented; paid/live inference is not asserted as a necessary acceptance prerequisite."
+    }
+  ],
+  "source_changes_since_baseline": [
+    {
+      "status": "M",
+      "path": ".env.example"
+    },
+    {
+      "status": "M",
+      "path": ".gitleaksignore"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/api.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-answer-matching-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-confirmation-recovery.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-form-review-connected.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-multipage-workspace.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-multipage-workspace.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-priority-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-rehearsal.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-review-answers.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/application-review-answers.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/data-export.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/data-export.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/dynamic-application-form-client.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/injected-request-deadlines.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/injected-request-lifecycle.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/interview-preparation-client.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/interview-preparation-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/interview-preparation-connected.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/interview-preparation.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/interview-preparation.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/job-comparison-client.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/job-comparison-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/match-feedback-client.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/match-feedback-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/matching-explanation-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/mock-run-client.test.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/mock-run-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/resume-workspace-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/retention-policy.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/retention-policy.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/role-scoring-preview-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/role-scoring-profile-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/search-history-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/source-candidate-review-client.ts"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/workspace-request-deadline.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "compose.yml"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-source-socket-test-phases.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-ui-deadline-secret-review.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-worker-logging-configuration.json"
+    },
+    {
+      "status": "M",
+      "path": "fixtures/AREA.md"
+    },
+    {
+      "status": "M",
+      "path": "fixtures/mock_server.py"
+    },
+    {
+      "status": "M",
+      "path": "infra/deploy/windows/update_mjobs_micro.py"
+    },
+    {
+      "status": "M",
+      "path": "services/applications/debug_capture.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/test_debug_capture_privacy.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/browser/test_mock_application.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/browser/test_mock_environment_coverage.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/integration/test_mock_company_environment.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/integration/test_source_http_socket_budget.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/test_browser_debug_capture.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/test_fleet_t12_debug_capture_budget.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/test_mock_environment_coverage.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/test_mock_html_security.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/test_windows_micro_backup_diagnostics.py"
+    }
+  ],
+  "deployment": {
+    "status": "PENDING_SEPARATE_RECORD",
+    "last_reported_production_revision": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+    "source_deployed": "NOT_VERIFIED",
+    "post_deployment_health": "NOT_RUN",
+    "public_authenticated_smoke": "BLOCKED",
+    "public_blocker": "Cloudflare login",
+    "note": "No deployment or production-health claim is made by this source acceptance record.",
+    "before_receipt": "docs/evidence/2026-11-01-pro-reliability/production-before.json",
+    "baseline_health": "VERIFIED",
+    "baseline_observed_at": "2026-11-01T21:58:37.087762+00:00"
+  },
+  "publication": {
+    "branch": "work/pro-acceptance-20261101",
+    "status": "PENDING_SEPARATE_PROTECTED_PR_RECEIPT",
+    "note": "This artifact cannot name its future publication commit; append the immutable acceptance PR receipt later."
+  },
+  "safety": {
+    "external_submissions": 0,
+    "paid_ai_calls": 0,
+    "live_database_restore_claimed": false
+  },
+  "acceptance_document_validation": [
+    {
+      "command": "python tools/mjobs_reconcile_planning.py --apply",
+      "started_at": "2026-11-01T21:58:09.730894+00:00",
+      "finished_at": "2026-11-01T21:58:09.801673+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "17e1d057ada0e7da92a1c7a6431cfe13c52a353837b03406a98319df3ca6a430"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --write",
+      "started_at": "2026-11-01T21:58:09.801673+00:00",
+      "finished_at": "2026-11-01T21:58:09.895377+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "03078af1470313ea2e2cd9dc754f9dc63fcbe7a501ac51ba4164593663f29d51"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "started_at": "2026-11-01T21:58:09.895377+00:00",
+      "finished_at": "2026-11-01T21:58:09.970919+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "started_at": "2026-11-01T21:58:09.970919+00:00",
+      "finished_at": "2026-11-01T21:58:10.035144+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "started_at": "2026-11-01T21:58:10.035144+00:00",
+      "finished_at": "2026-11-01T21:58:10.112607+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53"
+    },
+    {
+      "command": "python -m tools.agent_context validate --task pro-p0p1-20261101",
+      "started_at": "2026-11-01T21:58:10.186696+00:00",
+      "finished_at": "2026-11-01T21:58:10.424031+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "9d9985a18f7144384ea0c8be05b0a69620318075f7ffae8a274cb8f85e7076e5"
+    },
+    {
+      "command": "git diff --check",
+      "started_at": "2026-11-01T21:58:10.424031+00:00",
+      "finished_at": "2026-11-01T21:58:10.478539+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "acceptance_draft_changes": [
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/dependency-followup.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/hosted-synthetic-artifacts.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/linux-native-browser.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/p0-closure-review.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-878-protected-merge.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-879-earlier-head-protected-checks.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/CAPABILITY_MATRIX.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/GITHUB_ISSUE_MAP.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/REQUIREMENT_INDEX.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/LABELS.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/PROGRESS_DASHBOARD.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/PROGRESS_CARD.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/PROGRESS_CARD.svg"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/criteria.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+    },
+    {
+      "status": "A",
+      "path": "planning/agent_handoffs/pro-p0p1-20261101.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/SESSION_HANDOFF.md"
+    },
+    {
+      "path": "docs/evidence/2026-11-01-pro-reliability/production-before.json",
+      "status": "A"
+    }
+  ]
+}

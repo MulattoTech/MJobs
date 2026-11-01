@@ -1,0 +1,129 @@
+{
+  "archive_inventory_count": 7,
+  "expected_sha": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+  "health": {
+    "checks": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "scheduler": true,
+      "schema": true,
+      "worker": true,
+      "workers": {
+        "mjobs-ai": true,
+        "mjobs-application": true,
+        "mjobs-company-discovery": true,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      }
+    },
+    "db_backend": "postgresql",
+    "operation_mode": "PERSONAL",
+    "status": "ready",
+    "version": "0.1.0-dev"
+  },
+  "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+  "observed_at": "2026-11-01T21:58:37.087762+00:00",
+  "phase": "before",
+  "previous_sha": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+  "production_restore_performed": false,
+  "rollback_image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+  "schema_version": 1,
+  "services": {
+    "ai-worker": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "33364762884c23325564bd84c00bde52e13f4eb98b614096e3c5e575bd229b77",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "log_level": null,
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "api": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "2b6b743a31c8e2c9fb0cac96572fdbde671f97cd0d8c170ac4d12d7d46bba573",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "company-discovery-worker": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "917d97c9c0e9172a030fd0c3b49f35b24044681341c5fa247f9918bc0ace564c",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "log_level": null,
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "document-worker": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "6189d818c359a8f8d2098ac45fea4485be309408e15e040d8301b7cc21e1e05d",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "log_level": null,
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "migrate": {
+      "exit_code": 0,
+      "health": null,
+      "id": "e071bc0398fe40b9c27807c5d6875ddb5a1b8188426dae62f32f31135deca8d5",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "state": "exited",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "postgres": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "bb11582979b038aa54f433fd80cc1b0ab001268f9d063462031d23974883f5b2",
+      "image_id": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+      "state": "running"
+    },
+    "redis": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "a999cbadbc39141770a7165d3dfbd4813c7e1402aad5e74fe61dadd48954dba9",
+      "image_id": "sha256:c6eabf748fc7a61dbb5a705c78bcf3d6377b1127a97d0ce965c11c44ba46896f",
+      "state": "running"
+    },
+    "scheduler": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "3989753ff399ea4233881ce9b45eff45d788dd4877d9756a619e90dd84c171a2",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "source-worker": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "9b3862443c3700f758cf03231db7e02bd5a83d02222397633f34a256842b6171",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "log_level": null,
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    },
+    "worker": {
+      "exit_code": 0,
+      "health": "healthy",
+      "id": "0b883cc2da35597a0131e49b2d23427621c7238c2d34fa2ee61841110a120da0",
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "log_level": null,
+      "state": "running",
+      "tag": "mjobs-micro:sha-b0c5724e517749dd00a73a7e9fc4b8f277a736dc"
+    }
+  },
+  "source": {
+    "git_head_matches": true,
+    "required_files_present": [
+      "compose.yml",
+      ".env",
+      "compose.micro.yml"
+    ]
+  },
+  "state_sha": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+  "status": "VERIFIED",
+  "task_invoked_by_observer": false,
+  "observer_correction": "Initial read-only preflight refused an absent Health key on the successfully exited migrate container. Optional-field handling was corrected; no deployment action or receipt was produced before the successful observation."
+}

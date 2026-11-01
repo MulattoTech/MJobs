@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-01T06:12:03.759437+00:00",
+  "timestamp": "2026-11-01T21:58:09.714036+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -83,9 +83,15 @@
         "docs/evidence/2026-10-13-provider-response-cancellation.json",
         "docs/evidence/2026-10-13-provider-response-deadline.json",
         "docs/evidence/2026-10-13-provider-header-deadline.json",
-        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json",
+        "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+        "docs/evidence/2026-11-01-source-socket-test-phases.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Historical checkpoint: The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Connected pre-response-header reads now share the request deadline and cancellation guard across all five HTTP AI providers, with real TCP/TLS loopback and durable terminal-state proof. DNS/TCP/TLS establishment before stream exposure and broader external-operation acceptance remain PARTIAL. Current verified campaign closeout: Current campaign PR662 adds executed bounded DNS/TCP/TLS establishment/deadline/cancellation and synthetic loopback/durable terminal-state proof; prior connection-establishment limitation is superseded for this slice. Broader external-operation parent remains PARTIAL; no whole-parent approval or live-provider/paid-inference execution claimed.",
+      "note": "Historical checkpoint: The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Connected pre-response-header reads now share the request deadline and cancellation guard across all five HTTP AI providers, with real TCP/TLS loopback and durable terminal-state proof. DNS/TCP/TLS establishment before stream exposure and broader external-operation acceptance remain PARTIAL. Current verified campaign closeout: Current campaign PR662 adds executed bounded DNS/TCP/TLS establishment/deadline/cancellation and synthetic loopback/durable terminal-state proof; prior connection-establishment limitation is superseded for this slice. Broader external-operation parent remains PARTIAL; no whole-parent approval or live-provider/paid-inference execution claimed.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Retain the existing broader external-operation parent limitation. Frontend deadlines, native DOM capture bounds and real loopback socket tests prove bounded slices only; they do not establish all external-operation timeout/retry/cancellation criteria. Raw CDP bytes are decoded before retained-size caps, and synchronous diagnostic filesystem work is checkpointed rather than hard-preempted. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "latest_evidence_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
       "latest_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420",
       "priority": "P0",
@@ -147,9 +153,12 @@
         "docs/evidence/2026-10-07-browser-crash-recovery.json",
         "docs/evidence/2026-10-07-browser-process-crash-recovery.json",
         "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
-        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json"
+        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN. Protected merged PR715 (248eb34f -> 9efaaab9) and PR716 (19e5a83b -> 41d51974) add scoped lease-loss/NULL-lease fencing, attempt/receipt recovery and consistent backup snapshots; exact-head hosted gates and qualified local evidence are recorded in docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json. Physical host restart, actual RQ maintenance redelivery, named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete; PARTIAL unchanged.",
+      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN. Protected merged PR715 (248eb34f -> 9efaaab9) and PR716 (19e5a83b -> 41d51974) add scoped lease-loss/NULL-lease fencing, attempt/receipt recovery and consistent backup snapshots; exact-head hosted gates and qualified local evidence are recorded in docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json. Physical host restart, actual RQ maintenance redelivery, named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete; PARTIAL unchanged.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Preserve the canonical remaining limits: physical host restart, actual RQ maintenance redelivery, the named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete. Current fixture reopen and source-budget checks do not close those clauses. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -2062,9 +2071,13 @@
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
         "docs/evidence/2026-10-11-six-team-integration.json",
-        "docs/evidence/2026-10-11-six-team-followups.json"
+        "docs/evidence/2026-10-11-six-team-followups.json",
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Quiescent database/document backup and fresh restore verified with 385 files/eight identical database inventories and encrypted credentials. Schema-2 archive now captures exact Compose plus strict nonsecret runtime allowlist. Secrets, private custom configuration and override recovery remain separately operator-protected; broader operational backup acceptance remains open.",
+      "note": "Quiescent database/document backup and fresh restore verified with 385 files/eight identical database inventories and encrypted credentials. Schema-2 archive now captures exact Compose plus strict nonsecret runtime allowlist. Secrets, private custom configuration and override recovery remain separately operator-protected; broader operational backup acceptance remains open.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2215,9 +2228,13 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
-        "docs/evidence/2026-10-08-debug-capture-package-privacy.json"
+        "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
+        "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Existing local mock-ATS capture is verified PARTIAL. A synthetic FIXTURE-mode browser/package-writer privacy regression is actively claimed to prove produced screenshot and metadata/DOM redaction; this test-only slice does not add real ATS support. Issue #180 remains OPEN/PARTIAL; hosted checks NOT_RUN. Additional synthetic FIXTURE-mode package-writer privacy regression integrated at 89b9a5e24087183717c4359282db544bb48b8fef (tested exact source head d4e5d975e7e16e3e2db477099119207a923dbc91, tree 5d1d349d3352119e477a6c0e1d7e3ec5e1e9e82d); connected Chromium test PASS 1/1 on rebased candidate and combined integration tree. Full captured name/email input rectangles are required all-black, and a one-pixel white-leak negative control fails the same predicate; canaries are absent from serialized metadata/DOM, state remains REVIEW_REQUIRED, and no submission receipt exists. LOCAL_DELEGATED_REVIEW PASS; catalogue/progress/lane/diff checks PASS. Evidence docs/evidence/2026-10-08-debug-capture-package-privacy.json. Test-only slice; real ATS/browser adapter support remains unavailable, so issue #180 / MJ-REQ-179 remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "note": "Existing local mock-ATS capture is verified PARTIAL. A synthetic FIXTURE-mode browser/package-writer privacy regression is actively claimed to prove produced screenshot and metadata/DOM redaction; this test-only slice does not add real ATS support. Issue #180 remains OPEN/PARTIAL; hosted checks NOT_RUN. Additional synthetic FIXTURE-mode package-writer privacy regression integrated at 89b9a5e24087183717c4359282db544bb48b8fef (tested exact source head d4e5d975e7e16e3e2db477099119207a923dbc91, tree 5d1d349d3352119e477a6c0e1d7e3ec5e1e9e82d); connected Chromium test PASS 1/1 on rebased candidate and combined integration tree. Full captured name/email input rectangles are required all-black, and a one-pixel white-leak negative control fails the same predicate; canaries are absent from serialized metadata/DOM, state remains REVIEW_REQUIRED, and no submission receipt exists. LOCAL_DELEGATED_REVIEW PASS; catalogue/progress/lane/diff checks PASS. Evidence docs/evidence/2026-10-08-debug-capture-package-privacy.json. Test-only slice; real ATS/browser adapter support remains unavailable, so issue #180 / MJ-REQ-179 remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Native DOM topology, visual/serialized redaction, retained-size caps and bounded capture/abort recovery are executed for the tested local failure path. Complete browser-automation/real-adapter coverage is not established. Raw CDP decode bytes are not capped before parsing, synchronous filesystem work is not hard-preempted, and existing failure owners retain context cleanup. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2564,33 +2581,46 @@
     },
     {
       "requirement_id": "MJ-REQ-209",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: PASS for the literal local mock job-board environment: distinct jobs, duplicate provenance, salary and remote variants, local application redirects, and an explicitly unknown employer. Unknown-employer production ingestion is not claimed. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-210",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: PASS for the named fictional employer environment: homepage, Careers redirect, ATS portal, two distinct jobs, browser navigation, real fixture discovery, duplicate preservation, and database reopen. No external employer submission was performed. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-211",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: PASS for the literal mock ATS environment: one-page and multipage forms, required controls, document uploads, custom and conditional questions, server-side validation, and durable idempotent confirmation. This does not close every supported application adapter's contract matrix. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -2742,9 +2772,15 @@
     },
     {
       "requirement_id": "MJ-REQ-224",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3070,12 +3106,17 @@
     },
     {
       "requirement_id": "MJ-REQ-254",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-11-01-pro-p1-delivery.json",
-        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+        "docs/evidence/2026-11-01-pro-p1/criteria.json",
+        "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "docs/evidence/2026-11-01-pro-p1/hosted-execution.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: PARTIAL: defaults, filtering, durable progress, automation state, explanations and explicit safe retry have executed component and Chromium evidence. Shared JSON/upload helpers and five direct-fetch paths now bound fetch and response-body waits, but 21 active modules still have 32 unbounded injected-client dispatch sites. The full UX objective remains open.",
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: PARTIAL: defaults, filtering, durable progress, automation state, explanations and explicit safe retry have executed component and Chromium evidence. Shared JSON/upload helpers and five direct-fetch paths now bound fetch and response-body waits, but 21 active modules still have 32 unbounded injected-client dispatch sites. The full UX objective remains open.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: PASS for the ten literal UX criteria: the retained prior per-criterion evidence is supplemented by bounded injected requests, mounted lifecycle recovery, the frontend suite, and targeted real-Chromium journeys. Whole-product readiness and the broader MJ-REQ-004 operation contract remain incomplete. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3230,9 +3271,12 @@
       "evidence": [
         "docs/evidence/2026-10-09-direct-employer-route-discovery.json",
         "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
-        "docs/evidence/2026-10-09-reviewed-employer-route-save.json"
+        "docs/evidence/2026-10-09-reviewed-employer-route-save.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "The explicit save action rechecks the bounded redirect, validates current employer/ATS identity evidence, persists an idempotent selectable route and readback, and leaves the existing user selection unchanged. Verified locally on main at b2413668e11b8af84ad4ba0c1d81527b27c3691e. Automatic pre-submission integration is not exercised while external submission is OFF; requirement remains PARTIAL.",
+      "note": "The explicit save action rechecks the bounded redirect, validates current employer/ATS identity evidence, persists an idempotent selectable route and readback, and leaves the existing user selection unchanged. Verified locally on main at b2413668e11b8af84ad4ba0c1d81527b27c3691e. Automatic pre-submission integration is not exercised while external submission is OFF; requirement remains PARTIAL.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Only explicit resolve/save API actions call resolve_aggregator_redirect. Preparation selects stored routes and may record an already-known ATS-sibling lookup as PREPARATION_*; this is not a fresh automatic pre-submission probe. The missing automatic consumer remains. External submission being OFF does not make the requirement vacuously complete. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3252,9 +3296,12 @@
       "requirement_id": "MJ-REQ-269",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-document-fact-trace.json"
+        "docs/evidence/2026-10-09-document-fact-trace.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
       ],
-      "note": "Connected generated-document history resolves saved fact IDs against the immutable generation profile snapshot and the UI shows fact text, source, and approval state. Focused browser acceptance confirms current edits and unapproved facts do not leak into historical trace. Live AI-provider generation was not exercised; see evidence limitations.",
+      "note": "Connected generated-document history resolves saved fact IDs against the immutable generation profile snapshot and the UI shows fact text, source, and approval state. Focused browser acceptance confirms current edits and unapproved facts do not leak into historical trace. Live AI-provider generation was not exercised; see evidence limitations.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Immutable fact tracing is verified for the existing deterministic document workflow and displayed history. The inspected AI consumer performs job scoring; document preparation uses deterministic templates, while rewrite review handles supplied proposals. A supported AI-generated document consumer with fact references is not demonstrated. Controlled provider fixtures could establish that path when implemented; paid/live inference is not asserted as a necessary acceptance prerequisite. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3321,9 +3368,14 @@
     },
     {
       "requirement_id": "MJ-REQ-275",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-11-01-worker-logging-configuration.json",
+        "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+        "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"

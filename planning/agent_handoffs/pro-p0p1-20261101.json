@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "task_id": "pro-p0p1-20261101",
+  "objective": "Publish evidence-backed MJobs P0/P1 reliability sprint acceptance without inflating completion",
+  "owner": "ChatGPT Pro integration owner",
+  "branch": "work/pro-acceptance-20261101",
+  "head_sha": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+  "routing_state": "INTEGRATE",
+  "next_action": "Publish this acceptance checkpoint through the protected PR from work/pro-acceptance-20261101; append the final publication receipt.",
+  "created_at": "2026-11-01T21:58:10.179885+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "python tools/mjobs_reconcile_planning.py --apply",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --write",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Publish this acceptance checkpoint through the protected PR from work/pro-acceptance-20261101; append the final publication receipt.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Guarded production release, exact deployed-revision verification and /ready health remain NOT_RUN in this record.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Authenticated public browser smoke is BLOCKED by Cloudflare login; no bypass or success claim.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Production deployment and post-deployment health pending separate receipt",
+    "Authenticated public smoke blocked by Cloudflare login"
+  ],
+  "milestone_id": "pro-reliability-20261101",
+  "implementation_state": {
+    "current_phase": "Integrated source verified; acceptance publication pending; production/public checks pending separately",
+    "last_safe_checkpoint": "Source 9993b184f90c6e46210dc441d28bdd61bd20b321, tested merge 9463bd886ec20c2643f0b32306f25c46b01db20d, protected PR #879; P0 12/26 and P1 96/116 PASS",
+    "completed_steps": [
+      "Verified exact protected merge, five required checks and seven source checkouts",
+      "Prepared four full P1 acceptances, two partial updates and retained six partial parent limits",
+      "Regenerated original/reference-derived index and progress dashboard without changing reference authority"
+    ],
+    "files_added": [
+      "apps/web/src/injected-request-deadlines.test.ts",
+      "apps/web/src/injected-request-lifecycle.test.tsx",
+      "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+      "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+      "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+      "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+      "docs/evidence/2026-11-01-pro-reliability/criteria.json",
+      "docs/evidence/2026-11-01-pro-reliability/dependency-followup.json",
+      "docs/evidence/2026-11-01-pro-reliability/hosted-synthetic-artifacts.json",
+      "docs/evidence/2026-11-01-pro-reliability/linux-native-browser.json",
+      "docs/evidence/2026-11-01-pro-reliability/p0-closure-review.json",
+      "docs/evidence/2026-11-01-pro-reliability/pr-878-protected-merge.json",
+      "docs/evidence/2026-11-01-pro-reliability/pr-879-earlier-head-protected-checks.json",
+      "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+      "docs/evidence/2026-11-01-pro-reliability/production-before.json",
+      "docs/evidence/2026-11-01-source-socket-test-phases.json",
+      "docs/evidence/2026-11-01-ui-deadline-secret-review.json",
+      "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+      "docs/evidence/2026-11-01-worker-logging-configuration.json",
+      "planning/agent_handoffs/pro-p0p1-20261101.json",
+      "tests/browser/test_mock_environment_coverage.py",
+      "tests/integration/test_mock_company_environment.py",
+      "tests/unit/test_mock_environment_coverage.py",
+      "tests/unit/test_windows_micro_backup_diagnostics.py"
+    ],
+    "files_modified": [
+      ".env.example",
+      ".gitleaksignore",
+      "apps/web/src/api.ts",
+      "apps/web/src/application-answer-matching-client.ts",
+      "apps/web/src/application-confirmation-recovery.tsx",
+      "apps/web/src/application-form-review-connected.tsx",
+      "apps/web/src/application-multipage-workspace.test.tsx",
+      "apps/web/src/application-multipage-workspace.tsx",
+      "apps/web/src/application-priority-client.ts",
+      "apps/web/src/application-rehearsal.tsx",
+      "apps/web/src/application-review-answers.test.tsx",
+      "apps/web/src/application-review-answers.tsx",
+      "apps/web/src/data-export.test.tsx",
+      "apps/web/src/data-export.tsx",
+      "apps/web/src/dynamic-application-form-client.ts",
+      "apps/web/src/interview-preparation-client.test.ts",
+      "apps/web/src/interview-preparation-client.ts",
+      "apps/web/src/interview-preparation-connected.tsx",
+      "apps/web/src/interview-preparation.test.tsx",
+      "apps/web/src/interview-preparation.tsx",
+      "apps/web/src/job-comparison-client.test.ts",
+      "apps/web/src/job-comparison-client.ts",
+      "apps/web/src/match-feedback-client.test.ts",
+      "apps/web/src/match-feedback-client.ts",
+      "apps/web/src/matching-explanation-client.ts",
+      "apps/web/src/mock-run-client.test.ts",
+      "apps/web/src/mock-run-client.ts",
+      "apps/web/src/resume-workspace-client.ts",
+      "apps/web/src/retention-policy.test.tsx",
+      "apps/web/src/retention-policy.tsx",
+      "apps/web/src/role-scoring-preview-client.ts",
+      "apps/web/src/role-scoring-profile-client.ts",
+      "apps/web/src/search-history-client.ts",
+      "apps/web/src/source-candidate-review-client.ts",
+      "apps/web/src/workspace-request-deadline.test.tsx",
+      "compose.yml",
+      "docs/PROGRESS_CARD.json",
+      "docs/PROGRESS_CARD.svg",
+      "docs/PROGRESS_DASHBOARD.md",
+      "fixtures/AREA.md",
+      "fixtures/mock_server.py",
+      "infra/deploy/windows/update_mjobs_micro.py",
+      "planning/CAPABILITY_MATRIX.json",
+      "planning/GITHUB_ISSUE_MAP.json",
+      "planning/LABELS.json",
+      "planning/REQUIREMENT_INDEX.json",
+      "planning/SESSION_HANDOFF.md",
+      "services/applications/debug_capture.py",
+      "tests/browser/test_debug_capture_privacy.py",
+      "tests/browser/test_mock_application.py",
+      "tests/integration/test_source_http_socket_budget.py",
+      "tests/unit/test_browser_debug_capture.py",
+      "tests/unit/test_fleet_t12_debug_capture_budget.py",
+      "tests/unit/test_mock_html_security.py"
+    ],
+    "tests_completed": [
+      "Recorded in docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json: python -m pytest -q tests/unit/test_browser_debug_capture.py tests/unit/test_fleet_t12_debug_capture_budget.py tests/browser/test_debug_capture_privacy.py --junitxml=C:/Tools/Dev/mjobs-pro-dom-final.xml; {\"failed\": 0, \"passed\": 34, \"skipped\": 0, \"subtests_passed\": 11}",
+      "Recorded in docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json: python -m pytest -q tests/unit/test_mock_environment_coverage.py tests/unit/test_mock_html_security.py tests/unit/test_mock_discovery_client.py tests/integration/test_mock_company_environment.py tests/integration/test_spine.py tests/unit/test_windows_micro_cd.py tests/unit/test_windows_micro_backup_diagnostics.py tests/unit/test_local_backup.py tests/unit/test_backup_restore_snapshot.py tests/unit/test_backup_config_snapshot.py tests/unit/test_backup_credential_restore.py tests/unit/test_backup_fixture_receipts.py --junitxml=C:/Tools/Dev/mjobs-pro-fixture-backup-focused.xml; {\"errors\": 0, \"failed\": 0, \"passed\": 132, \"result\": \"PASS_WITH_RECORDED_SKIPS\", \"skipped\": 3, \"subtests_passed\": 66}",
+      "Recorded in docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json: python -m pytest -q tests/browser/test_mock_environment_coverage.py tests/browser/test_mock_application.py tests/browser/test_mock_dynamic_review.py tests/browser/test_mock_html_security.py tests/unit/test_mock_environment_coverage.py tests/unit/test_mock_html_security.py --junitxml=C:/Tools/Dev/mjobs-pro-fixture-browser-final.xml; {\"errors\": 0, \"failed\": 0, \"passed\": 56, \"result\": \"PASS\", \"skipped\": 0, \"subtests_passed\": 0}",
+      "Recorded in docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json: git diff --check; {\"result\": \"PASS\"}",
+      "Recorded in docs/evidence/2026-11-01-prepared-contact-answer-revocation.json: python -m pytest -q tests/browser/test_mock_application.py::MockApplicationTests::test_changed_profile_does_not_change_prepared_contact_or_answers tests/browser/test_mock_application.py::MockApplicationTests::test_revoked_answers_stop_before_browser_or_submission tests/integration/test_fleet_t13_worker_review.py; {\"failed\": 0, \"passed\": 11, \"skipped\": 0}",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: npm --prefix apps/web test -- --reporter=json --outputFile=C:/Tools/Dev/mjobs-pro-ui-stable.json --maxWorkers=4; {\"failed\": 0, \"passed\": 1096, \"skipped\": 0}",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: python -m pytest -q tests/browser/test_first_run_wizard.py tests/browser/test_core_workflow_trial.py tests/browser/test_document_fact_trace.py tests/browser/test_operation_progress.py tests/browser/test_fleet_t11_operation_recovery_progress.py; {\"failed\": 0, \"passed\": 5, \"skipped\": 0}",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: npm --prefix apps/web run lint: PASS",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: npm --prefix apps/web run typecheck: PASS",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: npm --prefix apps/web run build: PASS",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: npm --prefix apps/web run quality:test: PASS",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: npm --prefix apps/web run format:check: PASS after four unchanged checkout files were normalized from CRLF to their exact tracked LF bytes; no Git diff in those files.",
+      "Recorded in docs/evidence/2026-11-01-ui-injected-request-deadlines.json: git diff --check: PASS",
+      "Recorded in docs/evidence/2026-11-01-worker-logging-configuration.json: python -m pytest -q tests/unit/test_configuration_contract_sustain_276.py; {\"failed\": 0, \"passed\": 4, \"skipped\": 0, \"subtests_passed\": 3}",
+      "Recorded in docs/evidence/2026-11-01-worker-logging-configuration.json: docker compose --env-file .env.example -f compose.yml config --format json; {}",
+      "Recorded in docs/evidence/2026-11-01-worker-logging-configuration.json: git diff --check; {\"result\": \"PASS\"}",
+      "python tools/mjobs_reconcile_planning.py --apply: PASS",
+      "python -m tools.verification.progress_dashboard --write: PASS",
+      "python -m tools.verification.catalogue: PASS",
+      "python -m tools.verification.progress validate: PASS",
+      "python -m tools.verification.progress_dashboard --check: PASS",
+      "Read-only production BEFORE observation at 2026-11-01T21:58:37.087762+00:00: baseline SHA/image/all7writers/readiness/rollback-source verified; expected source release remains pending."
+    ],
+    "tests_remaining": [
+      "Publish this acceptance checkpoint through the protected PR from work/pro-acceptance-20261101; append the final publication receipt.",
+      "Guarded production release, exact deployed-revision verification and /ready health remain NOT_RUN in this record.",
+      "Authenticated public browser smoke is BLOCKED by Cloudflare login; no bypass or success claim."
+    ],
+    "migrations_applied": [],
+    "live_integrations_tested": [],
+    "known_errors": [
+      "Historical failures and corrections are retained at their source evidence paths in docs/evidence/2026-11-01-pro-reliability-delivery.json",
+      "Public authenticated smoke: BLOCKED by Cloudflare login",
+      "Retained WWR SOURCE_DUPLICATE_JOB_ID: conflicting upstream content for one native identity",
+      "Retained minimatch #63: proposed major-version-11 fix unsupported in the current dependency baseline"
+    ],
+    "known_limitations": [
+      "Retain the existing broader external-operation parent limitation. Frontend deadlines, native DOM capture bounds and real loopback socket tests prove bounded slices only; they do not establish all external-operation timeout/retry/cancellation criteria. Raw CDP bytes are decoded before retained-size caps, and synchronous diagnostic filesystem work is checkpointed rather than hard-preempted.",
+      "Preserve the canonical remaining limits: physical host restart, actual RQ maintenance redelivery, the named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete. Current fixture reopen and source-budget checks do not close those clauses.",
+      "Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations.",
+      "Native DOM topology, visual/serialized redaction, retained-size caps and bounded capture/abort recovery are executed for the tested local failure path. Complete browser-automation/real-adapter coverage is not established. Raw CDP decode bytes are not capped before parsing, synchronous filesystem work is not hard-preempted, and existing failure owners retain context cleanup.",
+      "Only explicit resolve/save API actions call resolve_aggregator_redirect. Preparation selects stored routes and may record an already-known ATS-sibling lookup as PREPARATION_*; this is not a fresh automatic pre-submission probe. The missing automatic consumer remains. External submission being OFF does not make the requirement vacuously complete.",
+      "Immutable fact tracing is verified for the existing deterministic document workflow and displayed history. The inspected AI consumer performs job scoring; document preparation uses deterministic templates, while rewrite review handles supplied proposals. A supported AI-generated document consumer with fact references is not demonstrated. Controlled provider fixtures could establish that path when implemented; paid/live inference is not asserted as a necessary acceptance prerequisite.",
+      "Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF.",
+      "Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits.",
+      "Empty migration/live-integration lists make no claim of production execution in this checkpoint.",
+      "File lists combine the actual integrated source diff from baseline with this generator's acceptance draft outputs; exact statuses are in the delivery record.",
+      "MJ-REQ-008 remains PARTIAL; writing this checkpoint does not close interruption/restart acceptance."
+    ]
+  }
+}

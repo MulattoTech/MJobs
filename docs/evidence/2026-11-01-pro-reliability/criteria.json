@@ -1,0 +1,799 @@
+{
+  "schema_version": 1,
+  "scope": "Read-only acceptance recommendation for the original MJobs requirement authority; no canonical files changed",
+  "recommendation_status": "APPLIED_AFTER_FINAL_PROTECTED_MERGE",
+  "integration_condition": {
+    "status": "SATISFIED",
+    "pr": 879,
+    "merged_source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+    "tested_merge_revision": "9463bd886ec20c2643f0b32306f25c46b01db20d",
+    "tested_merge_tree": "dcabac56ca4cb39dd896e52ef83f25b45e3a9a62",
+    "required_checks": "5/5 SUCCESS",
+    "source_jobs": "7/7 success at the exact tested merge",
+    "merge_proof": {
+      "path": "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
+      "sha256": "2f6c231b9d90bf4acf6c1e50e62ac3c24c35d64a8bc078bce66d010d015e352f"
+    }
+  },
+  "deployment": {
+    "status": "PENDING_SEPARATE_RECORD",
+    "last_reported_production_revision": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+    "source_deployed": "NOT_VERIFIED",
+    "post_deployment_health": "NOT_RUN",
+    "public_authenticated_smoke": "BLOCKED",
+    "public_blocker": "Cloudflare login",
+    "note": "No deployment or production-health claim is made by this source acceptance record.",
+    "before_receipt": "docs/evidence/2026-11-01-pro-reliability/production-before.json",
+    "baseline_health": "VERIFIED",
+    "baseline_observed_at": "2026-11-01T21:58:37.087762+00:00"
+  },
+  "authorities": {
+    "original": {
+      "file": "planning/CAPABILITY_MATRIX.json",
+      "array": "requirements",
+      "key": "requirement_id",
+      "denominator": 366
+    },
+    "reference": {
+      "file": "planning/REFERENCE_GAP_MATRIX.json",
+      "denominator": 59,
+      "change": "NONE"
+    },
+    "derived_index": {
+      "file": "planning/REQUIREMENT_INDEX.json",
+      "array": "requirements",
+      "key": "id",
+      "action": "Regenerate from authoritative matrices after any approved change; do not treat issue numbers as requirement IDs."
+    }
+  },
+  "count_projection": {
+    "scope": "Applied original P1 transitions; exact baseline and final counts validated",
+    "denominator": 116,
+    "before": {
+      "PASS": 92,
+      "PARTIAL": 18,
+      "NOT_RUN": 6
+    },
+    "after": {
+      "PASS": 96,
+      "PARTIAL": 16,
+      "NOT_RUN": 4
+    },
+    "new_full_acceptances": 4,
+    "newly_recognized_partial_rows": 2,
+    "p0_pass_change": 0,
+    "reference_acceptance_change": 0,
+    "note": "Keep original366 and reference59 separate. Partial updates add no full acceptance. Reconcile actual matrices before publishing totals."
+  },
+  "evidence_basis": {
+    "specifications": [
+      "docs/spec/areas/test_harness.md",
+      "docs/spec/areas/operations_ux_ci.md",
+      "docs/spec/areas/orchestration_data_security.md"
+    ],
+    "source_hash_verification": [
+      {
+        "record": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "matched": 35,
+        "different": 0,
+        "missing": 0,
+        "verified_source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+        "comparison": "Integrated Git blob bytes"
+      },
+      {
+        "record": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "matched": 8,
+        "different": 0,
+        "missing": 0,
+        "verified_source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+        "comparison": "Integrated Git blob bytes"
+      },
+      {
+        "record": "docs/evidence/2026-11-01-worker-logging-configuration.json",
+        "matched": 4,
+        "different": 0,
+        "missing": 0,
+        "verified_source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+        "comparison": "Integrated Git blob bytes"
+      },
+      {
+        "record": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+        "matched": 1,
+        "different": 0,
+        "missing": 0,
+        "verified_source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+        "comparison": "Integrated Git blob bytes"
+      },
+      {
+        "record": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+        "matched": 4,
+        "different": 0,
+        "missing": 0,
+        "verified_source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+        "comparison": "Integrated Git blob bytes"
+      }
+    ],
+    "source_hash_verification_note": "Retained source hashes were compared with the integrated Git blobs. This verifies source identity; the executed tests remain the recorded runs, not new executions by this generator.",
+    "executed_records": [
+      {
+        "record": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "scope": "Frontend",
+        "passed": 1096,
+        "failed": 0,
+        "skipped": 0,
+        "new_direct_deadline_cases": 82,
+        "new_mounted_lifecycle_cases": 14
+      },
+      {
+        "record": "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "scope": "Five targeted real-Chromium fixture/core/progress/document cases",
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "record": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "scope": "Focused fixture/discovery/backup group",
+        "passed": 132,
+        "failed": 0,
+        "skipped": 3,
+        "subtests_passed": 66,
+        "skip_treatment": "Retained as skips, never counted as PASS; final fixture/browser group below is zero-skip."
+      },
+      {
+        "record": "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "scope": "Combined fixture browser/unit group",
+        "passed": 56,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "record": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+        "scope": "Two repaired browser-contract cases plus worker review integration module",
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "record": "docs/evidence/2026-11-01-worker-logging-configuration.json",
+        "scope": "Worker log-level tests",
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "subtests_passed": 3,
+        "additional": "Sanitized Compose DEBUG and ERROR overrides match all five worker services."
+      },
+      {
+        "record": "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+        "scope": "Native diagnostics unit/protocol/browser group",
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0,
+        "subtests_passed": 11
+      }
+    ],
+    "note": "Counts describe separate executed groups with overlapping coverage and must not be summed into distinct requirements or unique tests."
+  },
+  "full_pass_recommendations": [
+    {
+      "requirement_id": "MJ-REQ-209",
+      "issue": 210,
+      "title": "MOCK SOURCE ENVIRONMENT",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-209"
+      },
+      "current_result": "PARTIAL",
+      "proposed_result": "PASS",
+      "priority": "P1",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "multiple jobs",
+          "finding": "The opt-in coverage board exposes distinct requisitions A, B and C.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_board_coverage_keeps_duplicates_distinct_jobs_and_unknowns_explicit"
+          ]
+        },
+        {
+          "criterion": "duplicate jobs",
+          "finding": "A retains two source posting IDs, distinct metadata and the same application route; the baseline A rows remain unchanged.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_scenario_is_explicit_and_baseline_board_is_preserved",
+            "tests/unit/test_mock_environment_coverage.py::test_board_coverage_keeps_duplicates_distinct_jobs_and_unknowns_explicit"
+          ]
+        },
+        {
+          "criterion": "salary variants",
+          "finding": "Annual ranges, an hourly B range, and explicit missing C salary/currency/period are asserted.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_board_coverage_keeps_duplicates_distinct_jobs_and_unknowns_explicit"
+          ]
+        },
+        {
+          "criterion": "remote variants",
+          "finding": "REMOTE, HYBRID, ONSITE and UNKNOWN remain explicit.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_scenario_is_explicit_and_baseline_board_is_preserved",
+            "tests/unit/test_mock_environment_coverage.py::test_board_coverage_keeps_duplicates_distinct_jobs_and_unknowns_explicit"
+          ]
+        },
+        {
+          "criterion": "application redirects",
+          "finding": "Each A/B/C board application URL redirects to its corresponding same-origin mock ATS path.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_board_coverage_keeps_duplicates_distinct_jobs_and_unknowns_explicit"
+          ]
+        },
+        {
+          "criterion": "unknown company",
+          "finding": "C exposes absent company and company_website without an invented identity.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_board_coverage_keeps_duplicates_distinct_jobs_and_unknowns_explicit"
+          ]
+        }
+      ],
+      "caveats": [
+        "This literal requirement is a local fixture environment. Successful production ingestion of an absent employer identity is not claimed. Opt-in coverage is deliberate; baseline behavior remains compatible."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-210",
+      "issue": 211,
+      "title": "MOCK COMPANY ENVIRONMENT",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-210"
+      },
+      "current_result": "PARTIAL",
+      "proposed_result": "PASS",
+      "priority": "P1",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "fictional employer Example Systems Inc.",
+          "finding": "The homepage and job records use the exact required fictional employer name.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_named_employer_homepage_careers_redirect_portal_and_distinct_jobs",
+            "tests/browser/test_mock_environment_coverage.py::test_named_company_careers_redirect_and_jobs_are_navigable"
+          ]
+        },
+        {
+          "criterion": "homepage",
+          "finding": "The local /company homepage renders the named employer and careers link.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_named_employer_homepage_careers_redirect_portal_and_distinct_jobs",
+            "tests/browser/test_mock_environment_coverage.py::test_named_company_careers_redirect_and_jobs_are_navigable"
+          ]
+        },
+        {
+          "criterion": "careers navigation",
+          "finding": "Real Chromium follows the Careers link from the homepage.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_named_company_careers_redirect_and_jobs_are_navigable"
+          ]
+        },
+        {
+          "criterion": "career portal",
+          "finding": "The /ats/example portal provides the Jobs navigation and provider/tenant identity.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_named_employer_homepage_careers_redirect_portal_and_distinct_jobs",
+            "tests/browser/test_mock_environment_coverage.py::test_named_company_careers_redirect_and_jobs_are_navigable"
+          ]
+        },
+        {
+          "criterion": "ATS redirect",
+          "finding": "The careers route redirects to /ats/example; HTTP and browser checks observe the redirect.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_named_employer_homepage_careers_redirect_portal_and_distinct_jobs",
+            "tests/browser/test_mock_environment_coverage.py::test_named_company_careers_redirect_and_jobs_are_navigable"
+          ]
+        },
+        {
+          "criterion": "multiple jobs",
+          "finding": "The portal exposes distinct A/B jobs. The actual fixture discover() pipeline runs twice and preserves two canonical jobs, four posting copies and one company source after database reopen.",
+          "test_selectors": [
+            "tests/integration/test_mock_company_environment.py::test_company_navigation_discovers_two_jobs_preserves_copies_and_reopens",
+            "tests/browser/test_mock_environment_coverage.py::test_named_company_careers_redirect_and_jobs_are_navigable"
+          ]
+        }
+      ],
+      "caveats": [
+        "Evidence is intentionally fictional and local; no public employer or external application submission is implied."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-211",
+      "issue": 212,
+      "title": "MOCK ATS ENVIRONMENT",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-211"
+      },
+      "current_result": "PARTIAL",
+      "proposed_result": "PASS",
+      "priority": "P1",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
+        "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "simple one-page form",
+          "finding": "GET /ats/apply/A?flow=onepage renders one form whose complete successful submission is exercised by Chromium.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_has_all_controls_while_default_review_remains_multipage",
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation"
+          ]
+        },
+        {
+          "criterion": "multi-page form",
+          "finding": "The default form advances through /ats/review and /ats/submit; real browser validation, review and confirmation are exercised.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation",
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit"
+          ]
+        },
+        {
+          "criterion": "resume upload",
+          "finding": "A real fixture upload control accepts the synthetic PDF; absent, invalid and oversized uploads are rejected without a receipt.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_server_rejects_each_missing_required_field_without_receipt",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_rejects_invalid_or_oversized_upload_without_receipt"
+          ]
+        },
+        {
+          "criterion": "cover-letter upload",
+          "finding": "The cover-letter control and shared server validation are exercised in the same complete forms.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_server_rejects_each_missing_required_field_without_receipt",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_rejects_invalid_or_oversized_upload_without_receipt"
+          ]
+        },
+        {
+          "criterion": "dropdowns",
+          "finding": "Country and the active State or province controls are selected in Chromium.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation"
+          ]
+        },
+        {
+          "criterion": "radio buttons",
+          "finding": "The Remote role radio is asserted structurally and selected in the browser journey.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_has_all_controls_while_default_review_remains_multipage",
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation"
+          ]
+        },
+        {
+          "criterion": "checkboxes",
+          "finding": "Document-review and explicit confirmation checkboxes are exercised, with required-field rejection before receipts.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_server_rejects_each_missing_required_field_without_receipt",
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation"
+          ]
+        },
+        {
+          "criterion": "custom questions",
+          "finding": "The approved fictional answer is filled in both form variants; wrong answers are rejected by the server.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation",
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_rejects_wrong_answer_and_active_conditional_field_on_server"
+          ]
+        },
+        {
+          "criterion": "conditional questions",
+          "finding": "Country changes reveal/hide the dependent control, clear stale values and toggle required state; the active branch is separately server-validated.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_rejects_wrong_answer_and_active_conditional_field_on_server"
+          ]
+        },
+        {
+          "criterion": "validation errors",
+          "finding": "Missing fields, wrong answers and invalid/oversized uploads return rejection without receipts; the browser displays a validation error before successful correction.",
+          "test_selectors": [
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_server_rejects_each_missing_required_field_without_receipt",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_rejects_invalid_or_oversized_upload_without_receipt",
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation"
+          ]
+        },
+        {
+          "criterion": "confirmation screen",
+          "finding": "Both browser journeys reach the explicit confirmation screen. Durable receipt replay retains count=1 and rejects cross-job reuse.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation",
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation",
+            "tests/unit/test_mock_environment_coverage.py::test_onepage_receipt_is_durable_idempotent_and_cannot_be_reused_for_other_job",
+            "tests/unit/test_mock_environment_coverage.py::test_multipage_uses_same_validation_and_rejects_cross_job_receipt_reuse",
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart"
+          ]
+        }
+      ],
+      "caveats": [
+        "This accepts the mock ATS environment, not all production application adapters. Direct one-page fixture/browser journeys do not prove that every adapter can drive that form."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-254",
+      "issue": 255,
+      "title": "UX STANDARD",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-254"
+      },
+      "current_result": "PARTIAL",
+      "proposed_result": "PASS",
+      "priority": "P1",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/hosted-execution.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "good defaults",
+          "finding": "Retain the prior disabled-by-default AI, finite limits and ordered first-run configuration evidence; this batch reran the real browser wizard/core flows.",
+          "test_selectors": [
+            "apps/web/src/first-run-wizard.test.tsx",
+            "tests/browser/test_first_run_wizard.py::FirstRunWizardBrowserTests::test_wizard_runs_profile_scoped_saved_search_and_reads_back_history"
+          ]
+        },
+        {
+          "criterion": "little unnecessary configuration",
+          "finding": "Saved profile/source/search settings are reused and optional AI credentials do not block the core workflow.",
+          "test_selectors": [
+            "tests/browser/test_core_workflow_trial.py::CoreWorkflowTrialBrowserTests::test_import_capture_prepare_answers_track_and_reopen",
+            "tests/browser/test_first_run_wizard.py::FirstRunWizardBrowserTests::test_wizard_runs_profile_scoped_saved_search_and_reads_back_history"
+          ]
+        },
+        {
+          "criterion": "fast filtering",
+          "finding": "Retain the prior 250 ms filter debounce, scoped queries and stale-response guards with list/detail and core workflow evidence; the literal has no numerical latency SLA.",
+          "test_selectors": [
+            "tests/browser/test_responsive_design_sustain_256.py",
+            "tests/browser/test_core_workflow_trial.py::CoreWorkflowTrialBrowserTests::test_import_capture_prepare_answers_track_and_reopen"
+          ],
+          "execution_basis": "Retained earlier criterion/delivery evidence; responsive-specific execution is not represented as a new run in the current UI record."
+        },
+        {
+          "criterion": "meaningful progress",
+          "finding": "Saved operation state and progress survive reload and recover through scoped cancellation/readback.",
+          "test_selectors": [
+            "tests/browser/test_operation_progress.py::OperationProgressBrowserTests::test_saved_progress_is_safe_profile_scoped_and_survives_reload",
+            "tests/browser/test_fleet_t11_operation_recovery_progress.py::FleetT11OperationRecoveryProgressBrowserTests::test_actual_recovery_reload_privacy_stale_profile_and_later_completion"
+          ]
+        },
+        {
+          "criterion": "clear automation state",
+          "finding": "Queued/running/terminal states remain explicit; timeout of confirmation readback preserves uncertain-submission guidance.",
+          "test_selectors": [
+            "apps/web/src/durable-ai-evaluation.test.tsx",
+            "apps/web/src/injected-request-lifecycle.test.tsx",
+            "tests/browser/test_operation_progress.py"
+          ]
+        },
+        {
+          "criterion": "useful errors",
+          "finding": "Sanitized errors release loading state and expose recovery; a matching-explanation timeout offers an explicit successful retry.",
+          "test_selectors": [
+            "apps/web/src/injected-request-lifecycle.test.tsx",
+            "apps/web/src/application-supporting-documents.test.tsx",
+            "apps/web/src/durable-ai-evaluation.test.tsx"
+          ]
+        },
+        {
+          "criterion": "safe retry",
+          "finding": "Finite chained-operation budgets preserve request identity, suppress stale/unmounted effects, and do not automatically replay writes or uncertain submission.",
+          "test_selectors": [
+            "apps/web/src/injected-request-deadlines.test.ts",
+            "apps/web/src/injected-request-lifecycle.test.tsx",
+            "apps/web/src/mock-run-client.test.ts",
+            "apps/web/src/application-supporting-documents.test.tsx"
+          ]
+        },
+        {
+          "criterion": "persistent operations",
+          "finding": "Durable operation identity and terminal state are reloaded from the server; retained worker crash/replay evidence supports the persistence criterion.",
+          "test_selectors": [
+            "tests/browser/test_fleet_t11_operation_recovery_progress.py",
+            "tests/integration/test_process_restart_recovery_sustain_275.py::ProcessRestartRecoverySustain275Tests::test_crash_after_discovery_recovers_once_and_replay_does_not_add_attempt"
+          ]
+        },
+        {
+          "criterion": "explanations",
+          "finding": "The supported UI exposes scoring, source/route provenance and immutable document facts; current browser core/document history checks reran.",
+          "test_selectors": [
+            "tests/browser/test_document_fact_trace.py::DocumentFactTraceBrowserTests::test_history_shows_only_facts_from_immutable_generation_snapshot",
+            "tests/browser/test_core_workflow_trial.py",
+            "apps/web/src/durable-ai-evaluation.test.tsx"
+          ]
+        },
+        {
+          "criterion": "no mysterious frozen screens",
+          "finding": "The remaining 21 active modules/32 injected dispatch sites now bound complete headers/body parsing; chained operations share finite budgets and mounted views release loading/cancel late effects. The evidence records 82 new direct deadline cases and 14 mounted lifecycle cases.",
+          "test_selectors": [
+            "apps/web/src/api-deadline.test.ts",
+            "apps/web/src/injected-request-deadlines.test.ts",
+            "apps/web/src/injected-request-lifecycle.test.tsx",
+            "apps/web/src/workspace-request-deadline.test.tsx"
+          ]
+        }
+      ],
+      "caveats": [
+        "Recommendation joins retained criterion-specific evidence with the new final request-gap coverage; it is not based on source existence alone.",
+        "The six qualitative UX descriptors are assessed through the ten operational clauses in the literal specification, not as a claim that the whole product is complete.",
+        "MJ-REQ-004 remains PARTIAL; frontend recovery evidence is not whole-backend timeout/cancellation acceptance."
+      ]
+    }
+  ],
+  "partial_recommendations": [
+    {
+      "requirement_id": "MJ-REQ-224",
+      "issue": 225,
+      "title": "APPLICATION ADAPTER CONTRACT TESTS",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-224"
+      },
+      "current_result": "NOT_RUN",
+      "proposed_result": "PARTIAL",
+      "priority": "P1",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json",
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "verified controlled subset",
+          "finding": "Executed mock-ATS browser coverage includes multipage navigation, actual frozen contact and approved-answer DOM fills, uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser/start or form submission.",
+          "test_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit",
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart",
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_changed_profile_does_not_change_prepared_contact_or_answers",
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_revoked_answers_stop_before_browser_or_submission"
+          ]
+        },
+        {
+          "criterion": "worker safety integration",
+          "finding": "The recorded 11-pass regression command includes tests/integration/test_fleet_t13_worker_review.py; the existing answer_changed_before_browser expectation remains CHANGED_ANSWER.",
+          "test_selectors": [
+            "tests/integration/test_fleet_t13_worker_review.py"
+          ]
+        },
+        {
+          "criterion": "additional fixture substrate",
+          "finding": "The new one-page and extended multipage browser journeys validate the local fixture contract; they are not substituted for application-adapter execution.",
+          "test_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_onepage_upload_controls_conditional_lifecycle_and_confirmation",
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation"
+          ]
+        }
+      ],
+      "caveats": [
+        "The complete seven-dimension matrix (ATS detection, navigation, field fill, upload, question handling, validation, confirmation) across every supported application adapter is not established.",
+        "No supported real-employer adapter was added or exercised by this slice. Fixture-only execution is sufficient for this partial finding, but not for the full 'each adapter' requirement."
+      ],
+      "recommended_note": "Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF."
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "issue": 276,
+      "title": "CONFIGURATION",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-275"
+      },
+      "current_result": "NOT_RUN",
+      "proposed_result": "PARTIAL",
+      "priority": "P1",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-worker-logging-configuration.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "logging",
+          "finding": "An ordinary MJOBS_WORKER_LOG_LEVEL setting is validated by workers/main.py, forwarded through the shared Compose environment and consumed by RQ Worker.work. Four unit cases plus three subtests pass; sanitized Compose renders verify DEBUG and ERROR for all five worker services.",
+          "test_selectors": [
+            "tests/unit/test_configuration_contract_sustain_276.py"
+          ]
+        },
+        {
+          "criterion": "other connected surfaces reviewed",
+          "finding": "Source inspection identifies connected AI task/cost settings, sources/cadence, company discovery, scoring, application route/answer policies and document preparation options; do not mark those categories fully accepted merely from UI or source existence.",
+          "test_selectors": []
+        }
+      ],
+      "caveats": [
+        "Notifications are parsed/returned by GET /settings but no behavior consumer is connected.",
+        "Browser profiles remain fixed at output_dir/application_id/browser-profile, including manual auth.",
+        "Submission limits remain Policy() defaults; controlled dry-run pause/daily limits are API-only, per application and UTC day, and do not establish submission hourly/daily UI/environment configuration.",
+        "Structured operation events retain their separate INFO logger. This logging patch covers RQ console configuration.",
+        "The test filename ending _276 is historical; this finding concerns MJ-REQ-275 and does not promote MJ-REQ-276."
+      ],
+      "recommended_note": "Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits."
+    }
+  ],
+  "keep_partial": [
+    {
+      "requirement_id": "MJ-REQ-004",
+      "issue": 5,
+      "result": "PARTIAL",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-ui-injected-request-deadlines.json",
+        "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
+        "docs/evidence/2026-11-01-source-socket-test-phases.json"
+      ],
+      "note": "Retain the existing broader external-operation parent limitation. Frontend deadlines, native DOM capture bounds and real loopback socket tests prove bounded slices only; they do not establish all external-operation timeout/retry/cancellation criteria. Raw CDP bytes are decoded before retained-size caps, and synchronous diagnostic filesystem work is checkpointed rather than hard-preempted.",
+      "additional_checkpoint": {
+        "test_path": "tests/integration/test_source_http_socket_budget.py",
+        "evidence": "docs/evidence/2026-11-01-source-socket-test-phases.json",
+        "scope": "Retained initial main-40ba header-stall oracle failure and final Windows/Linux phase-aware socket runs; production deadline limits are unchanged.",
+        "acceptance_result": "PARTIAL"
+      },
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-004"
+      }
+    },
+    {
+      "requirement_id": "MJ-REQ-008",
+      "issue": 9,
+      "result": "PARTIAL",
+      "evidence_records": [
+        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json"
+      ],
+      "note": "Preserve the canonical remaining limits: physical host restart, actual RQ maintenance redelivery, the named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete. Current fixture reopen and source-budget checks do not close those clauses.",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-008"
+      }
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "issue": 168,
+      "title": "DATA BACKUP",
+      "result": "PARTIAL",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json"
+      ],
+      "note": "Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations.",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-167"
+      }
+    },
+    {
+      "requirement_id": "MJ-REQ-179",
+      "issue": 180,
+      "title": "DEBUG CAPTURE",
+      "result": "PARTIAL",
+      "evidence_records": [
+        "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json"
+      ],
+      "note": "Native DOM topology, visual/serialized redaction, retained-size caps and bounded capture/abort recovery are executed for the tested local failure path. Complete browser-automation/real-adapter coverage is not established. Raw CDP decode bytes are not capped before parsing, synchronous filesystem work is not hard-preempted, and existing failure owners retain context cleanup.",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-179"
+      }
+    },
+    {
+      "requirement_id": "MJ-REQ-267",
+      "issue": 268,
+      "title": "DIRECT EMPLOYER ROUTE DISCOVERY BEFORE APPLY",
+      "result": "PARTIAL",
+      "evidence_records": [
+        "docs/evidence/2026-10-09-direct-employer-route-discovery.json",
+        "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
+        "docs/evidence/2026-10-09-reviewed-employer-route-save.json"
+      ],
+      "note": "Only explicit resolve/save API actions call resolve_aggregator_redirect. Preparation selects stored routes and may record an already-known ATS-sibling lookup as PREPARATION_*; this is not a fresh automatic pre-submission probe. The missing automatic consumer remains. External submission being OFF does not make the requirement vacuously complete.",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-267"
+      }
+    },
+    {
+      "requirement_id": "MJ-REQ-269",
+      "issue": 270,
+      "title": "DOCUMENT FACT TRACE",
+      "result": "PARTIAL",
+      "evidence_records": [
+        "docs/evidence/2026-10-09-document-fact-trace.json"
+      ],
+      "note": "Immutable fact tracing is verified for the existing deterministic document workflow and displayed history. The inspected AI consumer performs job scoring; document preparation uses deterministic templates, while rewrite review handles supplied proposals. A supported AI-generated document consumer with fact references is not demonstrated. Controlled provider fixtures could establish that path when implemented; paid/live inference is not asserted as a necessary acceptance prerequisite.",
+      "canonical_row": {
+        "file": "planning/CAPABILITY_MATRIX.json",
+        "array": "requirements",
+        "key": "requirement_id",
+        "value": "MJ-REQ-269"
+      }
+    }
+  ],
+  "recorded_at": "2026-11-01T21:58:09.714036+00:00",
+  "source_revision": "9993b184f90c6e46210dc441d28bdd61bd20b321",
+  "verified_counts": {
+    "before": {
+      "original": {
+        "PASS": 165,
+        "PARTIAL": 92,
+        "NOT_RUN": 109,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 19,
+        "PARTIAL": 4,
+        "NOT_RUN": 36,
+        "total": 59
+      },
+      "P0": {
+        "PASS": 12,
+        "PARTIAL": 4,
+        "NOT_RUN": 10,
+        "total": 26
+      },
+      "P1": {
+        "PASS": 92,
+        "PARTIAL": 18,
+        "NOT_RUN": 6,
+        "total": 116
+      }
+    },
+    "after": {
+      "original": {
+        "PASS": 169,
+        "PARTIAL": 90,
+        "NOT_RUN": 107,
+        "total": 366
+      },
+      "reference": {
+        "PASS": 19,
+        "PARTIAL": 4,
+        "NOT_RUN": 36,
+        "total": 59
+      },
+      "P0": {
+        "PASS": 12,
+        "PARTIAL": 4,
+        "NOT_RUN": 10,
+        "total": 26
+      },
+      "P1": {
+        "PASS": 96,
+        "PARTIAL": 16,
+        "NOT_RUN": 4,
+        "total": 116
+      }
+    }
+  }
+}

@@ -2714,7 +2714,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-210",
@@ -2722,7 +2722,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-211",
@@ -2730,7 +2730,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-212",
@@ -2834,7 +2834,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-225",
@@ -3074,7 +3074,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-255",
@@ -3242,7 +3242,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-276",
@@ -3446,9 +3446,9 @@
     }
   ],
   "summary": {
-    "PARTIAL": 96,
-    "PASS": 184,
-    "NOT_RUN": 145
+    "PARTIAL": 94,
+    "PASS": 188,
+    "NOT_RUN": 143
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }
