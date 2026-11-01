@@ -1,0 +1,132 @@
+{
+  "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+  "started_at": "2026-11-01T05:49:40.150237+00:00",
+  "command": [
+    "C:\\Tools\\Dev\\MJobs-pro-p1-20261101\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/browser/test_application_supporting_documents.py",
+    "tests/browser/test_core_workflow_trial.py",
+    "tests/browser/test_document_fact_trace.py",
+    "tests/browser/test_education_match_explanation.py",
+    "tests/browser/test_email_status.py",
+    "tests/browser/test_first_run_wizard.py",
+    "tests/browser/test_fleet_t11_operation_recovery_progress.py",
+    "tests/browser/test_full_application_e2e_213.py",
+    "tests/browser/test_job_source_ats_separation.py",
+    "tests/browser/test_operation_progress.py",
+    "tests/browser/test_responsive_design_sustain_256.py",
+    "tests/browser/test_saved_search_filters.py",
+    "tests/browser/test_saved_search_schedule.py",
+    "tests/browser/test_source_relationship_graph.py",
+    "--junitxml=outputs/pro-p1-ca1e-browser.xml"
+  ],
+  "source_tree": "130fc988fe56d7c18f1bf39977e54f700deaf727",
+  "source_test_hashes": {
+    "tests/browser/test_application_supporting_documents.py": "cc781a4f75b28ce6630d99afb225a23622acbe150e0b6f47b94e540a082c2675",
+    "tests/browser/test_core_workflow_trial.py": "da7bf9d1102ad2acfd4951544990d332466f87d5bb7c6a78667f260197602f90",
+    "tests/browser/test_document_fact_trace.py": "5f4ab99509906b1fea1715cf46617491e3d1377676ae54d4bd33035150a337a1",
+    "tests/browser/test_education_match_explanation.py": "cd27386445c24fb8051e422adaa3a6d1f7c7848024a4c153b9c9448bbdcecbbe",
+    "tests/browser/test_email_status.py": "225c0d74a8f654a019e34e90828f1fbefea941ffbb8e9cab9cd3811d04922b41",
+    "tests/browser/test_first_run_wizard.py": "97f4c901641f292721d803a5fd125cdde6d83e8965252d4b88679ccac517b77a",
+    "tests/browser/test_fleet_t11_operation_recovery_progress.py": "99d4fd4d08e6e1196015c1b970c660a1ca4f8849100a4a5c7b1d2e96c0ea11fd",
+    "tests/browser/test_full_application_e2e_213.py": "423999672eb650f905cc3241576f45725b98097678fed2edff3142d69c9ec7b4",
+    "tests/browser/test_job_source_ats_separation.py": "4f2d0f83438732528e430b70f8eee9b1b7f1cdb7a21306afe1b28f6cbe7fda45",
+    "tests/browser/test_operation_progress.py": "9cec582a67106fb955301808d23295e23be37738fbc24e38ac9c0a5cee488412",
+    "tests/browser/test_responsive_design_sustain_256.py": "310eb201e96298a2ccf3137e0e218a15bcebc2a8cfb930d5e5b5b6c1e993dcd4",
+    "tests/browser/test_saved_search_filters.py": "12f6bfe929240c8abfcb71a2b216c5732d60fb37fab799524ff2db635b31445e",
+    "tests/browser/test_saved_search_schedule.py": "cd8a877ca83547bfd11d8f6b3122578965e5d4653e77bd44029fc6e213d26563",
+    "tests/browser/test_source_relationship_graph.py": "1b4bba988840ec53a6b64821ec6fde8d8552a2cb8dd97a61a3a21945c8405ffa"
+  },
+  "external_submission_enabled": false,
+  "mode": "ISOLATED_SYNTHETIC_WINDOWS_CHROMIUM",
+  "exit_code": 0,
+  "finished_at": "2026-11-01T05:52:47.141546+00:00",
+  "pro-p1-ca1e-browser.log_sha256": "fd72b45ea979e4e3ff4c9f2999713eee9489006c82402fd0614547ed3a53c91b",
+  "pro-p1-ca1e-browser.xml_sha256": "f17ab7c13b04dbb46d14a67e8bdc72f5838c37ebccbdce29ac10a5d1cfbe1194",
+  "suite_totals": {
+    "tests": 20,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "class": "tests.browser.test_application_supporting_documents.ApplicationSupportingDocumentsBrowserTests",
+      "name": "test_parent_refresh_preserves_one_live_selection_panel",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_application_supporting_documents.ApplicationSupportingDocumentsBrowserTests",
+      "name": "test_select_reload_and_recover_job_scoped_supporting_document",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_core_workflow_trial.CoreWorkflowTrialBrowserTests",
+      "name": "test_import_capture_prepare_answers_track_and_reopen",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_document_fact_trace.DocumentFactTraceBrowserTests",
+      "name": "test_history_shows_only_facts_from_immutable_generation_snapshot",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_education_match_explanation.EducationMatchExplanationBrowserTests",
+      "name": "test_job_detail_renders_persisted_education_fit_factor",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_email_status.EmailStatusBrowserTests",
+      "name": "test_reviewed_email_status_is_local_explicit_and_survives_reload",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_first_run_wizard.FirstRunWizardBrowserTests",
+      "name": "test_wizard_runs_profile_scoped_saved_search_and_reads_back_history",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_fleet_t11_operation_recovery_progress.FleetT11OperationRecoveryProgressBrowserTests",
+      "name": "test_actual_recovery_reload_privacy_stale_profile_and_later_completion",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_full_application_e2e_213.FullApplicationE2EBrowserTests",
+      "name": "test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_job_source_ats_separation.JobSourceAtsSeparationBrowserTests",
+      "name": "test_source_and_route_provider_stay_distinct_after_reload",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_operation_progress.OperationProgressBrowserTests",
+      "name": "test_saved_progress_is_safe_profile_scoped_and_survives_reload",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_responsive_design_sustain_256.ResponsiveJobsBrowserTests",
+      "name": "test_jobs_fit_desktop_tablet_and_mobile_with_keyboard_selection",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_saved_search_filters.SavedSearchFiltersBrowserTests",
+      "name": "test_saved_filters_restore_controls_results_and_clear_with_profile_isolation",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_saved_search_schedule.SavedSearchScheduleBrowserTests",
+      "name": "test_saved_search_cadence_persists_and_never_starts_external_work",
+      "result": "passed"
+    },
+    {
+      "class": "tests.browser.test_source_relationship_graph.SourceRelationshipGraphBrowserTests",
+      "name": "test_sources_relationship_selection_refresh_and_profile_readback",
+      "result": "passed"
+    }
+  ],
+  "case_nodes": 15
+}

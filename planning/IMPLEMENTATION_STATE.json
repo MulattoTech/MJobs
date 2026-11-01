@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-15T19:01:21.652133+00:00",
+  "generated_at": "2026-11-01T06:12:03.759437+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Verified product source at PR659 head7c96a899; closeout branch records acceptance with executable inputs unchanged. Final main synchronization and clean-status readback are required before the completion report. Private and unrelated histories preserved.",
-    "current_verified_github_state": "PR657 settings and PR658 document recovery merged with exact-head required checks; PR659 Docker health merged with verified source/restored-project outage evidence. Final acceptance closeout follows through protected PR.",
-    "current_verified_at": "2026-10-15T01:46:08.317894+00:00"
+    "current_verified_local_state": "Owned source worktree verified at ca1e62c6; primary Windows main retained clean during isolated execution. Source integrated at 07eab582; acceptance records follow through their own protected PR.",
+    "current_verified_github_state": "PR #875 merged at 07eab582 after all five required gates on proposed merge f68edc8c. The 43 literal P1 requirements have independently reconciled execution evidence; this checkpoint records 92/116.",
+    "current_verified_at": "2026-11-01T06:12:03.759437+00:00"
   },
-  "current_milestone": "ORIGINAL-VERIFIED-DELIVERY-CLOSEOUT-20261015",
-  "current_objective": "Record five independently reviewed original criteria and four bounded partial slices with protected final-source execution",
+  "current_milestone": "PRO-P1-VERIFIED-DELIVERY-20261101",
+  "current_objective": "Continue from verified 92/116 P1 acceptance; complete remaining UX, source-quality and application-readiness gaps",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -675,13 +675,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "utc": "2026-10-14T21:47:49.717359+00:00",
-    "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
-    "tested_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
-    "main": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
-    "pr": 654,
-    "required_gates": "PASS5/5",
-    "evidence": "docs\\evidence\\2026-10-14-round3-startup-theme.json"
+    "utc": "2026-11-01T06:12:03.759437+00:00",
+    "source_commit": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+    "tested_head": "f68edc8cce2013f4ccfc5df209862dc40651fb9e",
+    "main": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+    "pr": 875,
+    "required_gates": "PASS 5/5",
+    "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -748,7 +748,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read current Git/Project#1 and #277/MJ-REQ-276 original settings-versioning contract; #15 remains PARTIAL for unrun physical host restart.",
+  "recommended_resume_step": "Read this checkpoint and the protected acceptance PR receipts; verify current main, issue closure and deployment before resuming the remaining P1 work. Start with MJ-REQ-254 request deadlines, MJ-REQ-275 configuration or MJ-REQ-179 bounded DOM capture, after checking active ownership.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -967,12 +967,114 @@
         "git_commit": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
         "evidence_path": "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       }
+    },
+    {
+      "milestone_id": "PRO-P1-VERIFIED-DELIVERY-20261101",
+      "timestamp": "2026-11-01T06:12:03.759437+00:00",
+      "current_phase": "P1_ACCEPTANCE_RECORDED",
+      "requirements": [
+        "MJ-REQ-020",
+        "MJ-REQ-021",
+        "MJ-REQ-030",
+        "MJ-REQ-034",
+        "MJ-REQ-157",
+        "MJ-REQ-159",
+        "MJ-REQ-163",
+        "MJ-REQ-164",
+        "MJ-REQ-170",
+        "MJ-REQ-213",
+        "MJ-REQ-214",
+        "MJ-REQ-215",
+        "MJ-REQ-216",
+        "MJ-REQ-217",
+        "MJ-REQ-219",
+        "MJ-REQ-220",
+        "MJ-REQ-222",
+        "MJ-REQ-223",
+        "MJ-REQ-225",
+        "MJ-REQ-226",
+        "MJ-REQ-227",
+        "MJ-REQ-228",
+        "MJ-REQ-229",
+        "MJ-REQ-230",
+        "MJ-REQ-255",
+        "MJ-REQ-256",
+        "MJ-REQ-258",
+        "MJ-REQ-259",
+        "MJ-REQ-260",
+        "MJ-REQ-261",
+        "MJ-REQ-262",
+        "MJ-REQ-271",
+        "MJ-REQ-274",
+        "MJ-REQ-278",
+        "MJ-REQ-279",
+        "MJ-REQ-280",
+        "MJ-REQ-281",
+        "MJ-REQ-282",
+        "MJ-REQ-283",
+        "MJ-REQ-284",
+        "MJ-REQ-285",
+        "MJ-REQ-286",
+        "MJ-REQ-287"
+      ],
+      "validated_product_commit": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "completed_steps": [
+        "Protected source PR #875 integrated after exact proposed-merge required gates.",
+        "Recorded 43 independently reviewed original P1 acceptances and bounded partial MJ-REQ-254 evidence; denominator unchanged."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json",
+        "docs/evidence/2026-11-01-pro-p1/hosted-execution.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Final source required CI, all PostgreSQL/Redis shards and disposable Compose browser/recovery/backup PASS; exact JUnit outcomes and checkout revisions retained.",
+        "Final source frontend: 1,000 PASS; exact-revision Windows critical browser manifest PASS.",
+        "Three public sources captured and production-collected twice with two database reopens each; official employer careers/ATS/tenant discovery PASS."
+      ],
+      "tests_remaining": [
+        "Protected acceptance-record PR gates and final main deployment readback."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Remotive: 13 jobs",
+        "RemoteOK: 99 jobs",
+        "Greenhouse: 19 jobs",
+        "Official Greenhouse careers page and exact ATS tenant"
+      ],
+      "known_errors": [
+        "WWR conflicting native identity: SOURCE_DUPLICATE_JOB_ID; captured failed batch retained."
+      ],
+      "known_limitations": [
+        "MJ-REQ-254 remains PARTIAL: 21 active UI modules contain 32 unbounded injected-fetch dispatch sites.",
+        "WWR live batch FAILS SOURCE_DUPLICATE_JOB_ID for conflicting content under one native identity. Both failed attempts are retained; 228 is supported by Remotive, RemoteOK and Greenhouse.",
+        "Live source replay proves same-capture dedupe and persistence in isolated SQLite; it does not claim coincidental cross-provider jobs or external employer submissions.",
+        "Windows, Linux and hosted executions have distinct scopes. Skips are recorded explicitly and never counted as passes.",
+        "The onboarding synthetic artifact remains PARTIAL for its real-provider clause; all performed synthetic actions passed. Live provider requirements have separate explicit evidence.",
+        "Original 366 and additive 59 acceptance authorities remain separate and retain their denominators.",
+        "Production deployment and post-merge issue readback are verified separately after this protected acceptance PR.",
+        "The additional opt-in STK01 full-stack lifecycle case remains SKIPPED; its supporting module records 15 passed / 1 skipped. The independent literal requirement 020 review establishes all required policy-field/isolation assertions passed without claiming the extra stack scenario ran."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+        "evidence_path": "docs/evidence/2026-11-01-pro-p1-delivery.json"
+      }
     }
   ],
-  "current_phase": "ACCEPTANCE_RECORDING_PENDING_PROTECTED_INTEGRATION",
+  "current_phase": "P1_ACCEPTANCE_RECORDED",
   "last_safe_checkpoint": {
-    "git_commit": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
-    "evidence_path": "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+    "git_commit": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+    "evidence_path": "docs/evidence/2026-11-01-pro-p1-delivery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -1485,9 +1587,54 @@
   "active_development_issue": {
     "numbers": [],
     "requirement_ids": [],
-    "status": "NONE",
-    "last_pr": 654,
-    "last_completed_original_requirement": "MJ-REQ-257"
+    "status": "ACCEPTANCE_PUBLICATION_PENDING",
+    "last_pr": 875,
+    "last_completed_original_requirements": [
+      "MJ-REQ-020",
+      "MJ-REQ-021",
+      "MJ-REQ-030",
+      "MJ-REQ-034",
+      "MJ-REQ-157",
+      "MJ-REQ-159",
+      "MJ-REQ-163",
+      "MJ-REQ-164",
+      "MJ-REQ-170",
+      "MJ-REQ-213",
+      "MJ-REQ-214",
+      "MJ-REQ-215",
+      "MJ-REQ-216",
+      "MJ-REQ-217",
+      "MJ-REQ-219",
+      "MJ-REQ-220",
+      "MJ-REQ-222",
+      "MJ-REQ-223",
+      "MJ-REQ-225",
+      "MJ-REQ-226",
+      "MJ-REQ-227",
+      "MJ-REQ-228",
+      "MJ-REQ-229",
+      "MJ-REQ-230",
+      "MJ-REQ-255",
+      "MJ-REQ-256",
+      "MJ-REQ-258",
+      "MJ-REQ-259",
+      "MJ-REQ-260",
+      "MJ-REQ-261",
+      "MJ-REQ-262",
+      "MJ-REQ-271",
+      "MJ-REQ-274",
+      "MJ-REQ-278",
+      "MJ-REQ-279",
+      "MJ-REQ-280",
+      "MJ-REQ-281",
+      "MJ-REQ-282",
+      "MJ-REQ-283",
+      "MJ-REQ-284",
+      "MJ-REQ-285",
+      "MJ-REQ-286",
+      "MJ-REQ-287"
+    ],
+    "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
   },
   "historical_control_snapshots": [
     {
@@ -2914,13 +3061,44 @@
     "original_pass_requires_all_criteria": true
   },
   "updated_at": "2026-10-14T21:47:49.717359+00:00",
-  "current_verified_local_state": "PR654 product/source main c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce merged; final documentation deltas preserved in a checksummed archive under .mjobs-recovery/archives/round3-final-closeout-20261014 and proposed on chore/round3-final-closeout-20261014. No uncommitted product source changes.",
-  "current_verified_github_state": "PR654 MERGED at c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce; exact final-head five required gates PASS; #258 closed/Done/PASS; #15 open/Todo/PARTIAL. Final paperwork awaiting separately protected PR review, not additional product delivery.",
+  "current_verified_local_state": "Owned source worktree verified at ca1e62c6; primary Windows main retained clean during isolated execution. Source integrated at 07eab582; acceptance records follow through their own protected PR.",
+  "current_verified_github_state": "PR #875 merged at 07eab582 after all five required gates on proposed merge f68edc8c. The 43 literal P1 requirements have independently reconciled execution evidence; this checkpoint records 92/116.",
   "next_candidates": [
     {
-      "issue": 246,
-      "requirement_id": "MJ-REQ-245",
-      "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
+      "issue": 255,
+      "requirement_id": "MJ-REQ-254",
+      "status": "PARTIAL",
+      "remaining_scope": "Cover 21 remaining active UI modules and 32 unbounded injected-fetch dispatch sites."
+    },
+    {
+      "issue": 276,
+      "requirement_id": "MJ-REQ-275",
+      "status": "NOT_RUN",
+      "remaining_scope": "Complete and verify the literal configuration surfaces."
+    },
+    {
+      "issue": 180,
+      "requirement_id": "MJ-REQ-179",
+      "status": "PARTIAL",
+      "remaining_scope": "Bound DOM capture without unsafe unbounded evaluation."
+    },
+    {
+      "issue": 268,
+      "requirement_id": "MJ-REQ-267",
+      "status": "PARTIAL",
+      "remaining_scope": "Resolve current employer application routes before submission preparation."
+    },
+    {
+      "issue": 225,
+      "requirement_id": "MJ-REQ-224",
+      "status": "NOT_RUN",
+      "remaining_scope": "Execute full supported application-adapter contract journeys."
+    },
+    {
+      "issue": 270,
+      "requirement_id": "MJ-REQ-269",
+      "status": "PARTIAL",
+      "remaining_scope": "Trace AI-generated document claims to approved facts."
     }
   ],
   "current_verified_at": "2026-10-14T21:47:49.717359+00:00",

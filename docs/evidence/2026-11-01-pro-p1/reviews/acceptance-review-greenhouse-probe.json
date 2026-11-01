@@ -1,0 +1,44 @@
+{
+  "reviewer": "ChatGPT-Web pr_triage independent local read-only reviewer",
+  "reviewed_at": "2026-11-01T05:50:24.622607+00:00",
+  "script": "/workspace/scratch/05fe891fa40c/harness_greenhouse_persistence_probe.py",
+  "script_sha256": "7efc889ef2ab0bccd1e26d5db45a7e1db344579f4c086eb24d860c1909933655",
+  "helper": "/workspace/scratch/05fe891fa40c/harness_live_persistence_probe.py",
+  "helper_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+  "verdict": "NO_BLOCKERS_FOR_BOUNDED_EXECUTION",
+  "acceptance_status": "PENDING_REAL_EXECUTION",
+  "scope": "Scratch Greenhouse public capture and actual offline production collector persistence oracle for the remaining third source of literal MJ-REQ-228.",
+  "checks": [
+    "Only exact GET https://boards-api.greenhouse.io/v1/boards/greenhouse and https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs?content=true accepted, once each.",
+    "Pinned helper SHA256 enforced before import; it rejects authorization/cookie headers and bounds both wire and adapter-decoded responses.",
+    "Capture 20s, requests 6s, concurrency 1 and 1s live request-start spacing. Each endpoint owns a transport because production Greenhouse closes each request client.",
+    "Both exact wire responses are retained with exclusive files and hashes; replay rejects changed hashes/endpoints or missing responses.",
+    "Exact tenant greenhouse and source-company attribution match production adapter semantics; native requisition source IDs used without aggregator identity substitution.",
+    "Expected posting IDs and content-addressed snapshot IDs/hashes derived without changing or pre-deduplicating source input.",
+    "Company identity, name and domain checked exactly against captured board metadata, and all captured job company attributions match.",
+    "Actual collect_source runs twice in throwaway SQLite with sockets/subprocesses denied, total jobs_seen equal captured entries, rejected=0, direct_application false.",
+    "Exact durable posting/snapshot/company identities and counts, stable canonical state, HEALTHY stored source and zero application/attempt rows required across both passes and both database reopens.",
+    "One fixture timestamp update makes only the throwaway source eligible for offline second polling; it causes no additional external request.",
+    "Failure exits nonzero and leaves result FAIL. Existing WWR failures and earlier evidence are preserved; no source/canonical edit."
+  ],
+  "fixture_evidence": {
+    "path": "/workspace/scratch/05fe891fa40c/harness-greenhouse-selfcheck.json",
+    "sha256": "db3452216128f796baec31a2d66ba7c79badb7c1879f43e07f4ce3fd98e285a6",
+    "source_revision": "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+    "result": "PASS",
+    "jobs": 2,
+    "postings": 2,
+    "snapshots": 2,
+    "companies": 1,
+    "collector_passes": 2,
+    "database_reopens": 2,
+    "external_get_attempts": 0,
+    "offline_egress_attempts": 0,
+    "execution": "Executed by harness_delivery; exact report and implementation independently inspected, not rerun by this reviewer."
+  },
+  "blocking_findings": [],
+  "limitations": [
+    "A passing fixture run is not live acceptance. Root must execute this immutable script, then the resulting live evidence must be reviewed before MJ-REQ-228 can be proposed PASS.",
+    "A successful Greenhouse run would satisfy the generic third-source criterion alongside Remotive and RemoteOK, but does not repair or relabel WWR production failure SOURCE_DUPLICATE_JOB_ID."
+  ]
+}

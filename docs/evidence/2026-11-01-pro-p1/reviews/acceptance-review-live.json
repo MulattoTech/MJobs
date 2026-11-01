@@ -1,0 +1,450 @@
+{
+  "schema_version": 1,
+  "reviewer": "ChatGPT-Web pr_triage independent local read-only reviewer",
+  "reviewed_at": "2026-11-01T05:52:18.217630+00:00",
+  "reviewed_head": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+  "canonical_status_modified": false,
+  "review_scope": "Literal MJ-REQ-228 and MJ-REQ-229 criteria, executed evidence, exact probe scripts, production code paths, prior-evidence binding and source identity. No new network, browser, remote-desktop or source mutations by this reviewer.",
+  "authority": "/workspace/scratch/05fe891fa40c/MJobs/planning/ISSUE_SEED.jsonl",
+  "requirements": [
+    {
+      "id": "MJ-REQ-228",
+      "verdict": "READY_FOR_FULL_ACCEPTANCE_FROM_OBSERVED_EVIDENCE",
+      "acceptance_recommendation": "All literal criteria are supported by successful bounded public captures and complete production-persistence checks for Remotive, RemoteOK and Greenhouse. Root may record full acceptance after its required source/merge/canonical gates. Preserve both WWR failures prominently: this recommendation does not imply WWR succeeds for the observed conflicting feed, and this review itself changes no canonical status.",
+      "sources": [
+        "/workspace/scratch/05fe891fa40c/remote-harness-live-read-evidence.json",
+        "/workspace/scratch/05fe891fa40c/remote-harness-live-persistence-evidence.json",
+        "/workspace/scratch/05fe891fa40c/harness_live_read_probe.py",
+        "/workspace/scratch/05fe891fa40c/harness_live_persistence_probe_v1.py",
+        "/workspace/scratch/05fe891fa40c/harness-persistence-selfcheck.json",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/discovery/sources/collect.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/discovery/sources/registry.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/discovery/sources/remotive.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/discovery/sources/remoteok.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/discovery/sources/wwr.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/dedupe/policy.py",
+        "/workspace/scratch/05fe891fa40c/remote-harness-wwr-live-followup.json",
+        "/workspace/scratch/05fe891fa40c/harness_live_persistence_probe.py",
+        "/workspace/scratch/05fe891fa40c/remote-harness-greenhouse-live-evidence.json",
+        "/workspace/scratch/05fe891fa40c/harness_greenhouse_persistence_probe.py",
+        "/workspace/scratch/05fe891fa40c/harness-greenhouse-selfcheck.json",
+        "/workspace/scratch/05fe891fa40c/acceptance-review-greenhouse-probe.json"
+      ],
+      "criteria": [
+        {
+          "criterion": "After mocks pass",
+          "verdict": "PASS",
+          "implementation": "Production adapters and collector exercised with deterministic fixture transports before the live observations. Source and persistence code are identical at fixture revision e2cc88b0, initial live revision a2a1e4e2 and persisted live revision e6963812.",
+          "test_oracle": "Four mock JUnit files have zero failures/errors and precede the first live run; the security-policy suite retains two explicit skipped opt-in live tests. The exact b22ea2de three-provider fixture self-check precedes its live persistence run. The exact 7efc889e Greenhouse probe/helper fixture passed at 05:49:39 UTC before its real ca1e62c6 run at 05:50:26 UTC. Relevant production Git objects are identical across all observed revisions."
+        },
+        {
+          "criterion": "Run bounded read-only discovery against several real sources",
+          "verdict": "PASS",
+          "implementation": "Fixed public endpoints and production read-only adapters. Remotive and RemoteOK each use one exact GET; Greenhouse uses two exact fixed GETs for board metadata and jobs?content=true. Each capture is bounded to 20 seconds, 6-second requests, at most 5 MB per response and at most 1000 jobs. Greenhouse also enforces concurrency 1 and one-second request-start spacing. Exact captured wire bytes are replayed offline through collect_source in isolated temporary SQLite workspaces.",
+          "test_oracle": "The e696 Remotive and RemoteOK captures both completed two production collections and two reopens. The ca1 Greenhouse tenant greenhouse capture returned HTTP 200 for both fixed endpoints and likewise completed both collections/reopens. These three distinct production adapters satisfy several real sources. WWR remains separately failed: original probe precondition failure, then actual production SOURCE_DUPLICATE_JOB_ID."
+        },
+        {
+          "criterion": "Verify jobs collected",
+          "verdict": "PASS",
+          "implementation": "verify_source calls the unchanged production collect_source with refresh_matches=False and no profile. Every raw captured job must be seen with rejected=0, and persisted source-copy counts are checked after each collection and database reopen.",
+          "test_oracle": "Remotive: 13 canonical jobs, 13 source copies and 13 snapshots. RemoteOK: 99 canonical jobs, 99 source copies and 99 snapshots. Greenhouse: 19 canonical jobs, 19 source copies and 19 snapshots. Each exact inventory survives two real collect_source passes and two database reopens, with total jobs_seen matching captured entries and rejected=0."
+        },
+        {
+          "criterion": "Verify normalization",
+          "verdict": "PASS",
+          "implementation": "Every captured job is normalized by its production adapter; title and requisition must be nonempty, description must be a string, and submission_capability must be MANUAL_ONLY. Stored canonical fields and hashes are checked across both passes/reopens.",
+          "test_oracle": "Production normalization checked all 13 Remotive, 99 RemoteOK and 19 Greenhouse entries; captured normalization hashes are recorded. Persisted title/requisition and canonical fields remain stable across both passes/reopens. Greenhouse source/company attribution and native requisition identities are checked against the captured board metadata; no fixture content is substituted into a live result."
+        },
+        {
+          "criterion": "Verify dedupe",
+          "verdict": "PASS",
+          "implementation": "Each immutable captured response set is replayed unchanged through production adapters and collect_source twice with sockets/subprocesses denied. Canonical IDs/content, source-copy IDs/raw hashes, snapshot IDs/hashes, company identities and counts must remain exactly equal after both collections and both reopens. The Greenhouse oracle additionally matches the exact expected native source IDs and content-addressed snapshot ID/hash sets.",
+          "test_oracle": "Remotive, RemoteOK and Greenhouse each pass exact durable-state equality across repeated production collection and reopen. Greenhouse expected source identity hash ad51170f... and snapshot hash f9982089... match both durable passes. This proves repeated-discovery dedupe; no coincidental cross-source duplicate is claimed. Preserve WWR failures without reinterpretation: b22 DUPLICATE_NATIVE_SOURCE_IDENTITIES before collection and 4b9 production SOURCE_DUPLICATE_JOB_ID at first collection."
+        },
+        {
+          "criterion": "Verify company extraction",
+          "verdict": "PASS",
+          "implementation": "Every source item supplies a company name and identity parts, and production collection persists canonical-job company references. The oracle rejects orphan company references and checks stable company state; Greenhouse checks the exact single-company identity, name and domain against its live board response.",
+          "test_oracle": "Remotive persists 9 company identities for 13 jobs; RemoteOK persists 92 for 99 jobs; Greenhouse persists 1 exact company for 19 jobs. Counts and hashes remain identical through both collector passes and both database reopens."
+        },
+        {
+          "criterion": "Verify source health",
+          "verdict": "PASS",
+          "implementation": "Checks production adapter HEALTHY and stored source health_status HEALTHY, consecutive_failures=0, last_success present and last_error absent after successful collection.",
+          "test_oracle": "All three passing sources have production adapter HEALTHY and persisted HEALTHY on both passes/reopens. Stored jobs_seen is 13, 99 and 19 respectively; the executed shared oracle also requires consecutive_failures=0, last_success present and last_error absent. WWR adapter health from its successful fetch is kept distinct from its failed production collection."
+        },
+        {
+          "criterion": "Do not submit applications during this phase",
+          "verdict": "PASS",
+          "implementation": "Only fixed GET listing/careers transports are called. Discovery remains MANUAL_ONLY; offline collections use no applicant profile. Socket/subprocess egress is denied during replay, direct_application must be false and application/attempt tables must remain empty.",
+          "test_oracle": "All three successful sources record zero external submission requests, zero application records/attempts and zero offline egress attempts. Remotive/RemoteOK use one fixed external GET each; Greenhouse uses exactly its two fixed GETs. Temporary databases are removed after successful checks. Reviewed scripts contain no submission or paid-provider call path."
+        }
+      ],
+      "limitations": [
+        "Successful acceptance set is Remotive, RemoteOK and Greenhouse. The generic literal requirement does not require WWR or every builtin source; WWR currently fails production collection for the captured conflicting same-identity content.",
+        "Both WWR failures remain recorded. Its 99 entries, 98 identities, 99 distinct raw snapshots and 64 companies are capture expectations; adapter HEALTHY does not mean persisted collection succeeded.",
+        "Public responses were captured once per attempted provider (two fixed responses for Greenhouse); repeated production collection and dedupe were exercised offline using those exact responses. No extra provider request is represented as part of offline replay.",
+        "Dedupe evidence covers durable repeated-discovery identity and content stability. No live cross-source coincidental duplicate is claimed.",
+        "Recorded executions occurred at exact revisions e696 for Remotive/RemoteOK and ca1 for Greenhouse; relevant production Git objects are identical. This local reviewer inspected exact scripts and recorded evidence rather than repeating live requests."
+      ],
+      "remaining_gaps": [],
+      "literal_scope_review": {
+        "reviewed_at": "2026-11-01T05:47:51.235901+00:00",
+        "authorities": [
+          "/workspace/scratch/05fe891fa40c/MJobs/planning/ISSUE_SEED.jsonl",
+          "/workspace/scratch/05fe891fa40c/MJobs/docs/spec/source/MJobs_Startup_Prompt.original.md",
+          "/workspace/scratch/05fe891fa40c/MJobs/docs/spec/areas/test_harness.md"
+        ],
+        "finding": "All three authorities require bounded read-only discovery against several real sources. None names WWR, requires every builtin adapter to pass live, or requires an aggregator-only set.",
+        "recommended_acceptance_set_if_new_proof_passes": [
+          "remotive",
+          "remoteok",
+          "greenhouse"
+        ],
+        "why_greenhouse": "Existing production adapter with passing fixture contract and publicly verified employer tenant. Complete live capture and production-persistence proof now passes at ca1e62c6: 19 jobs, 19 native source copies, 19 snapshots, 1 company, two collector passes and two reopens.",
+        "failure_policy": "Neither WWR attempt is relabeled PASS. A third provider satisfying the generic literal criterion does not imply that WWR production collection is healthy for the observed conflicting feed.",
+        "wwr_executed_followup": {
+          "path": "/workspace/scratch/05fe891fa40c/remote-harness-wwr-live-followup.json",
+          "sha256": "ba5c63fb03456f06899bf2d52f1f021222aad20857e9e38aab8c02f860336d95",
+          "revision": "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "script_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+          "observed_at": "2026-11-01T05:42:10.959910+00:00",
+          "result": "FAIL",
+          "phase": "PERSIST_1",
+          "error_type": "SourceError",
+          "error_code": "SOURCE_DUPLICATE_JOB_ID",
+          "incoming_entries": 99,
+          "unique_source_identities": 98,
+          "conflicting_source_identities": 1,
+          "unique_posting_raw_snapshots": 99,
+          "response_status": 200,
+          "wire_sha256": "2f484f11586aa304a8c1771f52e90cc956f466327317ea307c9def1d5122b333",
+          "live_get_attempts": 1,
+          "offline_egress_attempts": 0,
+          "retained_capture_metadata_remote_path": "outputs\\wwr-live-capture\\wwr-20261101T054213256531Z-2f484f11586a.json",
+          "caveat": "Counts and HEALTHY are capture/adapter observations, not a persisted inventory or healthy collection. The production collector rejects a conflicting native identity on the first pass; there are no successful persistence/reopen results."
+        },
+        "accepted_source_set_from_observed_evidence": [
+          "remotive",
+          "remoteok",
+          "greenhouse"
+        ],
+        "observed_full_criteria_completion_at": "2026-11-01T05:50:26.505210+00:00"
+      }
+    },
+    {
+      "id": "MJ-REQ-229",
+      "verdict": "READY_FOR_FULL_ACCEPTANCE_FROM_OBSERVED_EVIDENCE",
+      "acceptance_recommendation": "All literal functional criteria are supported. Root may record full acceptance after its required source/merge/canonical gates; this review itself does not promote status.",
+      "sources": [
+        "/workspace/scratch/05fe891fa40c/remote-harness-live-read-evidence.json",
+        "/workspace/scratch/05fe891fa40c/remote-harness-live-persistence-evidence.json",
+        "/workspace/scratch/05fe891fa40c/harness_live_read_probe.py",
+        "/workspace/scratch/05fe891fa40c/harness_live_persistence_probe_v1.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/company_discovery/public_client.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/company_discovery/fetch_policy.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/ats_detection/detector.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/ats_detection/board_links.py",
+        "/workspace/scratch/05fe891fa40c/MJobs/services/discovery/sources/greenhouse.py",
+        "/workspace/scratch/05fe891fa40c/remote-harness-greenhouse-live-evidence.json",
+        "/workspace/scratch/05fe891fa40c/harness_greenhouse_persistence_probe.py"
+      ],
+      "criteria": [
+        {
+          "criterion": "Use one or several publicly discoverable employer career sites",
+          "verdict": "PASS",
+          "implementation": "verify_careers uses the official public Greenhouse careers URL with the existing PublicCompanyClient and bounded_get policies. Its two-GET budget includes robots handling and allows no application requests.",
+          "test_oracle": "At e696 the public https://www.greenhouse.com/careers/opportunities page returned HTTP 200 in two GETs including robots; content SHA256 is 88a15402eead7eb3582e38d669bc81c96eca0a28adc43d96effbdd2c0fc9ee2d. One employer satisfies the literal one-or-several wording."
+        },
+        {
+          "criterion": "Verify careers page",
+          "verdict": "PASS",
+          "implementation": "The executed oracle requires response_status 200 and text/html from the selected official careers URL through production origin/TLS/DNS/robots protections.",
+          "test_oracle": "The e696 company row records result PASS and the page content hash. The earlier a2 board URL attempt remains a distinct FAIL with REDIRECT_BLOCKED; the later official careers-page observation does not relabel that attempt."
+        },
+        {
+          "criterion": "Verify ATS detection",
+          "verdict": "PASS",
+          "implementation": "Production detect_ats must return MATCH with provider greenhouse. Production greenhouse_board_tenants must independently extract the exact greenhouse tenant from structural HTTPS board links on that careers page.",
+          "test_oracle": "The e696 company row records ats_provider greenhouse and ats_tenant greenhouse; both assertions are mandatory before result PASS. This binds the observed careers page to the exact public API tenant used for job enumeration."
+        },
+        {
+          "criterion": "Verify job enumeration",
+          "verdict": "PASS",
+          "implementation": "The production Greenhouse adapter enumerates the exact https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs endpoint. verify_careers validates the prior report is PUBLIC_READ_ONLY with zero submissions, a successful greenhouse/greenhouse record, the exact endpoint and a positive inventory. It records the separate prior revision, timestamp and raw report hash.",
+          "test_oracle": "The a2 live run enumerated 19 Greenhouse jobs at 05:29:21.197304 UTC. The e696 careers run at 05:36:28.488847 UTC ties those 19 jobs to the same structurally verified tenant. All discovery/company/ATS/dedupe/persistence/migration/dependency Git objects are identical across revisions. The raw prior hash d8facf2b... matches the CRLF Windows original reconstructed exactly from the local LF transfer."
+        },
+        {
+          "criterion": "No submission required",
+          "verdict": "PASS",
+          "implementation": "Both executed probes are public discovery reads; the Greenhouse inventory examples assert MANUAL_ONLY capability and there is no application submission call in the career/ATS/enumeration path.",
+          "test_oracle": "Both bound reports explicitly record external_submission_requests=0. No application was submitted for this acceptance check."
+        }
+      ],
+      "limitations": [
+        "Careers-page detection and tenant enumeration were separate observations approximately seven minutes apart at separately named revisions; their source code is identical and the evidence binding is explicit.",
+        "Enumeration is a public adapter inventory observation, not automated employer enrollment or application execution. Those extra behaviors are not part of the literal MJ-REQ-229 criteria.",
+        "The initial career-board URL failed with REDIRECT_BLOCKED and remains failed historical evidence. Only the later official careers-page run satisfies the page and ATS checks.",
+        "Local read-only review inspected recorded execution and exact scripts; the reviewer did not independently repeat remote live requests."
+      ],
+      "remaining_gaps": [],
+      "supplemental_current_source_evidence": "The ca1e62c6 Greenhouse public board/jobs capture independently enumerates and persists the same tenant with 19 jobs, two collections and two reopens. Careers-page/ATS evidence remains the separately named e696 official-page observation, retaining its a2 prior-report binding and initial failed board-page history."
+    }
+  ],
+  "evidence": {
+    "initial_live": {
+      "path": "/workspace/scratch/05fe891fa40c/remote-harness-live-read-evidence.json",
+      "revision": "a2a1e4e206013181e89feff738586c120bf30cbd",
+      "observed_at": "2026-11-01T05:29:21.197304+00:00",
+      "local_lf_sha256": "b109b47e517a0a8728ae6bc599a8b0d693f3b956fac6ce106c9fa4693cbd7e64",
+      "original_windows_crlf_sha256": "d8facf2b2c44ca9af3207ce482586995defe171ad188fc3eb48421ffb78ed527",
+      "line_ending_binding": "The later executed probe hashed Windows CRLF bytes. Replacing LF with CRLF in the transferred local file reproduces its exact recorded prior_evidence_sha256; no content mismatch."
+    },
+    "persisted_live": {
+      "path": "/workspace/scratch/05fe891fa40c/remote-harness-live-persistence-evidence.json",
+      "sha256": "ec67de6ca8f64991b7d1e6a77fc691f79d9231e51aee77654a790b549deff6a6",
+      "revision": "e69638121e79a40632afdef80b70befa1de4ecfa",
+      "observed_at": "2026-11-01T05:36:28.488847+00:00",
+      "script_path": "/workspace/scratch/05fe891fa40c/harness_live_persistence_probe_v1.py",
+      "script_sha256": "b22ea2de1c6dbb71587bbacec77a378e7722333a09c5f48a4d5b271371b7e7b0",
+      "source_results": [
+        {
+          "provider": "remotive",
+          "result": "PASS"
+        },
+        {
+          "provider": "wwr",
+          "result": "FAIL"
+        },
+        {
+          "provider": "remoteok",
+          "result": "PASS"
+        }
+      ],
+      "company_result": "PASS"
+    },
+    "initial_script": {
+      "path": "/workspace/scratch/05fe891fa40c/harness_live_read_probe.py",
+      "sha256": "99ab3a46f965c71e50ad37c67e6ff8019fea56e323c008588b91fc23b2d42714"
+    },
+    "mock_runs": [
+      {
+        "path": "/workspace/scratch/05fe891fa40c/harness-source-contract-after.xml",
+        "sha256": "aaef6abc803f1043cd6313ee9359f58c6998d03c98c7f8470c8158bf112b854d",
+        "timestamp": "2026-11-01T13:55:11.279657+09:00",
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 21
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/harness-wwr-contract.xml",
+        "sha256": "2fb3cba628e7878d4746898a455d8fc1eea0bf9ddd38ed033a11efcd05409516",
+        "timestamp": "2026-11-01T13:56:16.021538+09:00",
+        "tests": 52,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 52
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/harness-security-live-policy.xml",
+        "sha256": "d86d2c71cb2a12d63374e6c1866d7a154122547b2ff3c31b14ca155787232758",
+        "timestamp": "2026-11-01T13:57:53.062954+09:00",
+        "tests": 118,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 116
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/harness-acceptance-initial-unrestricted.xml",
+        "sha256": "c2ae83b67fd0e691f92f8180109c2c31b8aedfb376308ca36fc439d3e8f299ec",
+        "timestamp": "2026-11-01T13:56:57.779097+09:00",
+        "tests": 214,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 214
+      }
+    ],
+    "persistence_oracle_selfcheck": {
+      "path": "/workspace/scratch/05fe891fa40c/harness-persistence-selfcheck.json",
+      "sha256": "379fa7ef95e61b274f65c830a31721caf50e122b153aee3c7bd8c9e32e9d5afe",
+      "revision": "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+      "script_sha256": "b22ea2de1c6dbb71587bbacec77a378e7722333a09c5f48a4d5b271371b7e7b0",
+      "result": "PASS_FOR_THREE_FIXTURE_SOURCES",
+      "external_gets": 0
+    },
+    "source_identity_across_revisions": [
+      {
+        "path": "services/discovery",
+        "git_object": "f6313b5a4ff57f189d08274eebcdce5bde859035",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      },
+      {
+        "path": "services/company_discovery",
+        "git_object": "25d15f70434f4f243eef90a7198008180042843c",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      },
+      {
+        "path": "services/ats_detection",
+        "git_object": "136e3d2b19de204b1f3c9324af34f8d098af6f12",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      },
+      {
+        "path": "services/dedupe",
+        "git_object": "8960f5863d47c10f6abf4a0c3929f793d1393e6b",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      },
+      {
+        "path": "packages/persistence",
+        "git_object": "75d2ab41f19bd4eba778f79d330b270a1b4914e1",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      },
+      {
+        "path": "migrations",
+        "git_object": "78938c05dc3c832d3e850e463c98cf924119091d",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      },
+      {
+        "path": "requirements.lock",
+        "git_object": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+        "same_in_revisions": [
+          "a2a1e4e206013181e89feff738586c120bf30cbd",
+          "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+          "e69638121e79a40632afdef80b70befa1de4ecfa",
+          "ca1e62c6dc64ef4149bba577f02973684e259e16"
+        ]
+      }
+    ],
+    "corrected_wwr_probe_executed_failure": {
+      "path": "/workspace/scratch/05fe891fa40c/remote-harness-wwr-live-followup.json",
+      "sha256": "ba5c63fb03456f06899bf2d52f1f021222aad20857e9e38aab8c02f860336d95",
+      "revision": "e69638121e79a40632afdef80b70befa1de4ecfa",
+      "script_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+      "observed_at": "2026-11-01T05:42:10.959910+00:00",
+      "result": "FAIL",
+      "phase": "PERSIST_1",
+      "error_type": "SourceError",
+      "error_code": "SOURCE_DUPLICATE_JOB_ID",
+      "incoming_entries": 99,
+      "unique_source_identities": 98,
+      "conflicting_source_identities": 1,
+      "unique_posting_raw_snapshots": 99,
+      "response_status": 200,
+      "wire_sha256": "2f484f11586aa304a8c1771f52e90cc956f466327317ea307c9def1d5122b333",
+      "live_get_attempts": 1,
+      "offline_egress_attempts": 0,
+      "retained_capture_metadata_remote_path": "outputs\\wwr-live-capture\\wwr-20261101T054213256531Z-2f484f11586a.json",
+      "caveat": "Counts and HEALTHY are capture/adapter observations, not a persisted inventory or healthy collection. The production collector rejects a conflicting native identity on the first pass; there are no successful persistence/reopen results."
+    },
+    "wwr_failure_history": [
+      {
+        "path": "/workspace/scratch/05fe891fa40c/remote-harness-live-persistence-evidence.json",
+        "script_sha256": "b22ea2de1c6dbb71587bbacec77a378e7722333a09c5f48a4d5b271371b7e7b0",
+        "result": "FAIL",
+        "error_code": "DUPLICATE_NATIVE_SOURCE_IDENTITIES",
+        "scope": "Probe rejected duplicate incoming identity before production collection."
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/remote-harness-wwr-live-followup.json",
+        "script_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+        "result": "FAIL",
+        "error_code": "SOURCE_DUPLICATE_JOB_ID",
+        "scope": "Corrected probe reached production collection and observed conflicting-content rejection at PERSIST_1."
+      }
+    ],
+    "greenhouse_live_persisted": {
+      "path": "/workspace/scratch/05fe891fa40c/remote-harness-greenhouse-live-evidence.json",
+      "sha256": "1f36a96042bf30fe8fbfda0e429d6763e1f1070f3053fce7c622d290c9e18421",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "observed_at": "2026-11-01T05:50:26.505210+00:00",
+      "script_path": "/workspace/scratch/05fe891fa40c/harness_greenhouse_persistence_probe.py",
+      "script_sha256": "7efc889ef2ab0bccd1e26d5db45a7e1db344579f4c086eb24d860c1909933655",
+      "helper_path": "/workspace/scratch/05fe891fa40c/harness_live_persistence_probe.py",
+      "helper_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+      "result": "PASS",
+      "provider": "greenhouse",
+      "tenant": "greenhouse",
+      "capture_manifest_remote_path": "outputs\\greenhouse-live-capture\\manifest-20261101T055029163257Z.json",
+      "responses": [
+        {
+          "endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse",
+          "status": 200,
+          "wire_bytes": 60,
+          "wire_sha256": "d2019ef53733234660ea89ef429c4907c5c0208cda67a8c7712b4341fbbd97ec"
+        },
+        {
+          "endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs?content=true",
+          "status": 200,
+          "wire_bytes": 76822,
+          "wire_sha256": "d5cd216d62e4a1aaa3b22349e27cba6644f8d553bd2c14c88eee103f37b2c3e9"
+        }
+      ],
+      "jobs_returned": 19,
+      "canonical_jobs": 19,
+      "source_copies": 19,
+      "posting_snapshots": 19,
+      "companies": 1,
+      "collector_passes": 2,
+      "database_reopens": 2,
+      "stable_passes_equal": true,
+      "expected_source_identity_sha256": "ad51170fc5f9c5413893b29e8ea4a8a151091c4e7d99b21ca539614ee5cb26cb",
+      "expected_snapshots_sha256": "f998208908062e069f88830289ee224c188ac99bf61bcea4a1c866d381a2a1f5",
+      "persisted_source_health": "HEALTHY",
+      "external_get_attempts": 2,
+      "external_submission_requests": 0,
+      "offline_egress_attempts": 0,
+      "application_records": 0,
+      "application_attempts": 0,
+      "temporary_database_removed": true,
+      "fixture_before_live": {
+        "path": "/workspace/scratch/05fe891fa40c/harness-greenhouse-selfcheck.json",
+        "sha256": "db3452216128f796baec31a2d66ba7c79badb7c1879f43e07f4ce3fd98e285a6",
+        "observed_at": "2026-11-01T05:49:39.195119+00:00",
+        "script_sha256": "7efc889ef2ab0bccd1e26d5db45a7e1db344579f4c086eb24d860c1909933655",
+        "result": "PASS"
+      }
+    }
+  },
+  "review_commands": [
+    "git diff --name-only a2a1e4e206013181e89feff738586c120bf30cbd e69638121e79a40632afdef80b70befa1de4ecfa -- services/discovery services/company_discovery services/ats_detection services/dedupe packages/persistence migrations requirements.lock",
+    "git diff --name-only e2cc88b02ecd06e6dc8ea888db493291dc4339f7 e69638121e79a40632afdef80b70befa1de4ecfa -- services/discovery services/company_discovery services/ats_detection services/dedupe packages/persistence migrations requirements.lock",
+    "git rev-parse <revision>:<source-path> for each source identity entry",
+    "hashlib.sha256(raw.replace(b\"\\r\\n\",b\"\\n\").replace(b\"\\n\",b\"\\r\\n\")).hexdigest() to verify Windows prior-evidence binding",
+    "JSON assertions and XML testsuite counts/timestamps parsed from the exact recorded files; no new test/live run claimed",
+    "JSON assertions verified exact live script/helper hashes, exact two HTTP-200 endpoints, 19-job inventory, equality of both persisted passes, exact expected posting/snapshot hashes, two reopens, zero application/egress and unchanged source Git objects at ca1e62c6."
+  ]
+}

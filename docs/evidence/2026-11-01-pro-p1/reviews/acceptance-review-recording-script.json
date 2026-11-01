@@ -1,0 +1,52 @@
+{
+  "reviewer": "ChatGPT-Web pr_triage independent read-only reviewer",
+  "reviewed_at": "2026-11-01T06:02:25.612661+00:00",
+  "script": "/workspace/scratch/05fe891fa40c/record_p1_acceptance.py",
+  "script_sha256": "0076baffadb41585b50a18542b6d42ba271b906daa0f7496d7ba525b9d5d12e4",
+  "verdict": "NO_BLOCKERS_IN_PATCHED_RECORDER",
+  "execution_readiness": "BLOCKED_BY_PENDING_REAL_INTEGRATION_EVIDENCE",
+  "draft_path": "/workspace/scratch/05fe891fa40c/p1-reviewed-draft.json",
+  "draft_sha256": "daaea10990db66e29e971795aa0cd44c864fd9d369d8692bd64aa9730544a486",
+  "expected_source_head": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+  "checks": [
+    "Exactly 43 original P1 candidate IDs, 44 unique draft rows, final source revision and complete candidate decisions/gaps are asserted. MJ-REQ-254 stays PARTIAL.",
+    "Current HEAD must be the specified integrated source merge, tracked tree clean, merge receipt true/SHA matching, source/proposed-merge/current trees equal.",
+    "Five required hosted checks and exact 3 run IDs are bound to the expected source; all runs/jobs completed successfully, checkout evidence nonempty for actual source jobs.",
+    "Source/test, evidence and reviewer manifest hashes are verified before writes; historical live source Git objects bridge to the final source.",
+    "Windows browser revision/tree/source-test hashes and nonempty passing case evidence are checked. Live probe/helper hashes and exact observed revisions remain bound.",
+    "Execution reconciliation must be COMPLETE with required_coverage_result PASS, no missing/errors/unresolved/required-node/module/PG-RQ/gate issues, and matching input/artifact hashes.",
+    "All 17 required PostgreSQL/RQ nodes must have actual passing executions. Current PENDING evidence therefore cannot be recorded.",
+    "All denominator, 92-pass, reference 59 and unrelated-row equality checks precede the canonical matrix dump.",
+    "Optimized Python is rejected so assert guards cannot be silently disabled.",
+    "Current by_id summary-key mutation remains consistent; before-state evidence lists are replaced without mutating the snapshot.",
+    "Phase P1_ACCEPTANCE_RECORDED is used. Final protected-record integration and deployment receipts remain separate later observations."
+  ],
+  "read_only_validation": {
+    "ast_parse": "PASS",
+    "current_source_hash_mismatches": [],
+    "current_evidence_hash_mismatches": [],
+    "current_review_manifest_hash_mismatches": [],
+    "current_execution_input_artifact_hash_mismatches": [],
+    "draft_bound_by_execution_sha256": "daaea10990db66e29e971795aa0cd44c864fd9d369d8692bd64aa9730544a486",
+    "requirement164_named_nodes": 8,
+    "requirement164_uncollected_mixin_references": 0,
+    "execution_named_node_problems": []
+  },
+  "current_execution_snapshot": {
+    "status": "PENDING_INTEGRATION_IMPORT",
+    "required_coverage_result": "PENDING",
+    "missing_imports": [
+      {
+        "run_id": 41278248903,
+        "path": "/workspace/scratch/05fe891fa40c/hosted-41278248903.json",
+        "status": "PENDING_IMPORT"
+      }
+    ]
+  },
+  "blocking_code_findings": [],
+  "limitations": [
+    "The recorder was read and AST-parsed only; it was not executed.",
+    "This review does not attest that integration or protected merge has completed. The runtime guards must receive final actual evidence before execution.",
+    "No canonical or production source file was written by the reviewer."
+  ]
+}

@@ -1,0 +1,959 @@
+{
+  "schema_version": 1,
+  "reviewer": "/root/docs_delivery",
+  "mode": "independent read-only criterion audit; no source/matrix edits or test execution in this review",
+  "generated_at": "2026-11-01T05:08:03.149453+00:00",
+  "repository": "/workspace/scratch/05fe891fa40c/MJobs",
+  "reviewed_head": "a2a1e4e206013181e89feff738586c120bf30cbd",
+  "baseline_note": "Started on 9bae326bc02e0146148ecea86d7c4fb61e44cc1f. Root advanced through 5882ddb9b31628f8f57b4124cf2d7b320b41391f (API deadline/frontend tests) to a2a1e4e206013181e89feff738586c120bf30cbd (saved-filter browser selectors). Independently read the latter diff: only heading/card assertions change to exact accessible job-card buttons; the date-filter request assertions remain intact. Inspected core production files are unchanged. File digests pin the reviewed text.",
+  "summary": {
+    "FULL_IMPLEMENTATION_PENDING_TEST_GATES": [
+      "MJ-REQ-157",
+      "MJ-REQ-159",
+      "MJ-REQ-163",
+      "MJ-REQ-164",
+      "MJ-REQ-021",
+      "MJ-REQ-030",
+      "MJ-REQ-034",
+      "MJ-REQ-170"
+    ],
+    "PARTIAL": [
+      "MJ-REQ-174",
+      "MJ-REQ-179"
+    ],
+    "canonical_acceptance_updated": false
+  },
+  "verification": {
+    "reviewer_executed_tests": false,
+    "reason": "Parent owns current-revision local/Windows/hosted test runs. This is an independent source-and-test-oracle audit; inspected assertions are not presented as freshly passing tests.",
+    "known_execution_dependencies": [
+      "Actual isolated PostgreSQL for database authority/relational/index/concurrency gates.",
+      "Real Chromium plus accepted frontend build for public browser cases."
+    ],
+    "commands_actually_run": [
+      "git rev-parse HEAD",
+      "git status --short",
+      "git diff --name-only 9bae326bc02e0146148ecea86d7c4fb61e44cc1f..HEAD",
+      "rg --files plus scoped rg/sed/Python source reads",
+      "AST validation of every named test function in this report",
+      "git diff 5882ddb9b31628f8f57b4124cf2d7b320b41391f..a2a1e4e206013181e89feff738586c120bf30cbd -- tests/browser/test_saved_search_filters.py"
+    ],
+    "result": "All referenced source/test files exist, and each named test function exists in its stated module. No execution result is inferred from code or test names."
+  },
+  "requirements": [
+    {
+      "requirement_id": "MJ-REQ-157",
+      "title": "[MJ-REQ-157] Operation Types",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Examples:\n\n```text\nSEARCH_SOURCE\nDISCOVER_COMPANY\nVALIDATE_COMPANY_SOURCE\nENUMERATE_COMPANY\nPARSE_JOB\nDEDUPE_JOB\nSCORE_JOB\nGENERATE_RESUME\nGENERATE_COVER_LETTER\nPREPARE_APPLICATION\nSUBMIT_APPLICATION\nBACKUP\n```",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "The literal presents operation names as examples. Current code provides a validated immutable type contract and actual runtime queue/inline boundaries; it does not claim a separate executable handler for every illustrative name. Registry presence alone is not the evidence: creators validate before persistence, claim/dispatch reject corrupt or unsupported persisted kinds before execution, and actual queued/inline lifecycles are exercised.",
+      "source_paths": [
+        "packages/domain/operation_types.py",
+        "workers/dispatch.py",
+        "workers/operations.py",
+        "workers/tasks.py",
+        "services/applications/run_requests.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Operation types, illustrated by SEARCH_SOURCE through BACKUP",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "The immutable contract contains the twelve literal example names plus the existing runtime names. Runtime kinds are reconciled against QUEUES and INLINE_KINDS. Validation rejects non-string, unknown, altered-case and whitespace variants with one value-free error.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_operation_types.py",
+              "name": "test_required_and_runtime_operation_types_form_one_immutable_contract"
+            },
+            {
+              "path": "tests/unit/test_operation_types.py",
+              "name": "test_every_registered_operation_type_round_trips_exactly"
+            },
+            {
+              "path": "tests/unit/test_operation_types.py",
+              "name": "test_invalid_operation_type_uses_one_redacted_error"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Operational enforcement rather than an unused enum",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "enqueue_operation validates before writing an outbox row; dispatch validates persisted kind before RQ lookup; claim/admit validates before worker execution. Canonical example names without registered runtime handlers deliberately return unsupported/dead-letter rather than falsely execute. Actual DISCOVER queue and inline AI paths record their lifecycles.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_invalid_operation_types_are_redacted_and_never_persisted"
+            },
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_persisted_invalid_type_is_dead_lettered_before_queue_handler_lookup"
+            },
+            {
+              "path": "tests/integration/test_operation_progress_lifecycle.py",
+              "name": "test_queued_worker_records_start_and_inline_completion_readback"
+            },
+            {
+              "path": "tests/integration/test_operation_progress_lifecycle.py",
+              "name": "test_claim_dead_letters_a_canonical_type_without_a_runtime_handler"
+            },
+            {
+              "path": "tests/integration/test_application_run_requests.py",
+              "name": "test_direct_run_creation_enforces_the_canonical_operation_registry"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Execute operation-type unit, outbox/queue, operation lifecycle and direct-creator tests on the accepted revision. Do not describe illustrative types as twelve new runnable handlers."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-159",
+      "title": "[MJ-REQ-159] Task Idempotency",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Use deterministic task identifiers where appropriate.\n\nExample:\n\n```text\ncollect:<source>:<window>\ncompany-discover:<company_id>\nscore:<canonical_job>:<profile_version>\napply:<route_id>:<career_profile_version>\n```",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "Deterministic identities are scoped to the actual intent and immutable inputs where appropriate. The literal task-key spellings are examples, not a requirement to rename working queues. Replay, concurrent admission, restart and terminal-state preservation have meaningful behavioral oracles.",
+      "source_paths": [
+        "packages/persistence/store.py",
+        "workers/dispatch.py",
+        "services/discovery/scheduler.py",
+        "services/company_discovery/triggers.py",
+        "services/applications/run_requests.py",
+        "services/discovery/matching.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Use deterministic task identifiers where appropriate",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "identity hashes canonical serialized parts. Generic enqueue uses kind/entity/params, or kind plus explicit task_key, then INSERT ON CONFLICT DO NOTHING. A repeated key preserves original params and terminal state; changing the entity under an existing task key fails closed.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_queue_disconnect_preserves_one_durable_operation"
+            },
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_concurrent_requests_share_one_durable_operation"
+            },
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_task_key_replays_without_replacing_original_operation_params"
+            },
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_task_key_reuse_for_another_entity_fails_closed"
+            },
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_duplicate_enqueue_does_not_reopen_a_dead_letter"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Collection and company-discovery examples",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Source scheduling uses collect:<source>:<window>; saved-search scheduling also scopes its key to search and due time. Company discovery normalizes mapping order and scopes durable request receipts/active intent coalescing to profile version, candidate and trigger authority. Transaction rollback removes both receipt and outbox on failure; original terminal receipts replay while an explicit fresh intent may retry.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "name": "test_same_collection_window_replay_keeps_original_operation_when_profiles_change"
+            },
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "name": "test_due_discovery_survives_store_restart_and_completes_once"
+            },
+            {
+              "path": "tests/integration/test_company_discovery_idempotency.py",
+              "name": "test_concurrent_intents_share_one_operation"
+            },
+            {
+              "path": "tests/integration/test_company_discovery_idempotency.py",
+              "name": "test_candidate_mapping_order_does_not_change_intent_identity"
+            },
+            {
+              "path": "tests/integration/test_company_discovery_idempotency.py",
+              "name": "test_terminal_failure_allows_fresh_intent_but_replays_both_original_intents"
+            },
+            {
+              "path": "tests/integration/test_company_discovery_idempotency.py",
+              "name": "test_receipt_failure_rolls_back_outbox_then_intent_can_recover"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Scoring and application intent examples",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Matching persists by deterministic job/profile/profile-version identity. Application request IDs are bounded and scoped to profile/application/request; reviewed input fingerprint and route snapshot cannot change under replay. Duplicate concurrent clicks share one admission; terminal replay never reopens a worker; confirmed or uncertain submission state cannot admit a blind new browser run.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_company_discovery_idempotency.py",
+              "name": "test_changed_profile_requires_new_scoring_snapshot_original_intent_replays"
+            },
+            {
+              "path": "tests/integration/test_application_run_requests.py",
+              "name": "test_duplicate_user_request_and_database_reopen_keep_one_operation"
+            },
+            {
+              "path": "tests/integration/test_application_run_requests.py",
+              "name": "test_concurrent_double_click_is_one_atomic_admission"
+            },
+            {
+              "path": "tests/integration/test_application_run_requests.py",
+              "name": "test_terminal_request_replay_never_reopens_operation"
+            },
+            {
+              "path": "tests/integration/test_application_run_requests.py",
+              "name": "test_route_rewrite_cannot_silently_change_a_reviewed_run"
+            },
+            {
+              "path": "tests/integration/test_application_run_requests.py",
+              "name": "test_ambiguous_and_confirmed_applications_do_not_admit_new_browser_work"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Run the named SQLite tests and the CompanyDiscoveryIdempotencyPostgreSQLTests concurrency/terminal-replay/isolation cases against an isolated actual PostgreSQL database on the accepted revision."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-163",
+      "title": "[MJ-REQ-163] Database Constraints",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Use:\n\n```text\nforeign keys\nunique constraints\nnot-null constraints\nenum/check constraints where appropriate\n```\n\nPrevent impossible state where practical.",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "Constraints exist in persistent schema and versioned migrations, with negative writes tested directly below the service layer. These tests prove rejection and rollback, not merely a list of schema metadata.",
+      "source_paths": [
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "packages/persistence/resume_workspace.py",
+        "migrations/versions/20261024dc01_core_database_constraints.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Foreign keys",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Core application/job/route/profile and dependent child relationships use ForeignKey. Every SQLite connection enables foreign_keys. Direct orphan insert/update and referenced-parent deletion reject without corrupting the surrounding populated graph; PostgreSQL uses the same relational contracts.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_valid_rows_reopen_with_sqlite_foreign_keys_enabled"
+            },
+            {
+              "path": "tests/integration/test_application_relational_rejections_164.py",
+              "name": "test_orphan_job_route_and_profile_are_rejected_on_insert_and_update"
+            },
+            {
+              "path": "tests/integration/test_application_relational_rejections_164.py",
+              "name": "test_referenced_parent_deletion_preserves_application_and_children"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Unique constraints and not-null constraints",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Schema primary keys and named unique constraints include one application per job/profile and provider/tenant identities. Required application fields are nullable=False. Raw SQL NULL and duplicate logical-pair tests use distinct IDs, verify rollback, then prove valid rows can still commit and reopen.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_application_relational_rejections_164.py",
+              "name": "test_duplicate_job_profile_is_rejected_for_distinct_application_ids"
+            },
+            {
+              "path": "tests/integration/test_application_relational_rejections_164.py",
+              "name": "test_explicit_sql_null_required_fields_are_rejected_on_insert_and_update"
+            },
+            {
+              "path": "tests/integration/test_application_relational_rejections_164.py",
+              "name": "test_valid_pair_and_optional_nulls_commit_and_reopen"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Enum/check constraints where appropriate; prevent impossible state where practical",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Schema and migration enforce match score 0..100 and an explicit allowed application-state set. Migration checks invalid preexisting values before DDL; all states produced by supported writers remain allowed. Upgrade/downgrade/reupgrade and injected batch failures verify row/schema/version preservation and retry.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_match_score_outside_zero_to_one_hundred_rejects_atomically"
+            },
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_unknown_application_state_rejects_atomically"
+            },
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_every_writer_derived_application_state_remains_admissible"
+            },
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_upgrade_downgrade_and_reupgrade_preserve_valid_rows"
+            },
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_invalid_existing_rows_abort_before_ddl_and_can_retry"
+            },
+            {
+              "path": "tests/integration/test_database_constraints_sustain_164.py",
+              "name": "test_batch_failures_roll_back_schema_rows_version_and_retry_cleanly"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Run both sustain and relational-rejection modules, including PostgreSQLApplicationRelationalRejectionTests. A local PostgreSQL skip is not PostgreSQL acceptance evidence."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-164",
+      "title": "[MJ-REQ-164] Database Indexes",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Review actual query patterns.\n\nLikely indexes:\n\n```text\ncanonical job status\ncompany\nnormalized title\nposted_at\nfirst_seen_at\nremote type\nsalary\nmatch score\napplication state\nsource\nATS\ncompany source priority\n```",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "The literal requires a review of actual query patterns and labels its index list likely. Existing production access paths, concrete migration changes, selective synthetic query plans and migration sustain satisfy that scope. A separate physical index for every named concept is not asserted or required by this wording.",
+      "source_paths": [
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "services/company_discovery/monitoring.py",
+        "services/company_discovery/sources.py",
+        "migrations/versions/20261025di01_database_indexes.py",
+        "tests/integration/test_database_indexes_sustain_165.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Review actual query patterns",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "The reviewed queries are company-scoped canonical job listing, job/profile/version match lookup, recent profile applications, company source listing, enabled-source scheduling, ATS ownership, and source/native posting identity. The sustain module seeds 2,048 rows and explains the same selective relational predicates/orderings. SQLite and PostgreSQL have separate plan assertions; required ordering must avoid unnecessary sorts.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_database_indexes_sustain_165.py",
+              "name": "test_selective_production_queries_use_indexes"
+            },
+            {
+              "path": "tests/integration/test_database_indexes_sustain_165.py",
+              "name": "test_evidence_backed_index_shapes_exist"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Likely indexes: status, company, title, dates, remote type, salary, match score, application state, source, ATS and source priority",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "The model binds these concepts to actual columns/JSON rather than invented column names. New usable prefixes are canonical_jobs(company_id,id), job_matches(job_id,profile_id,profile_version), applications(profile_id,created_at DESC,id DESC), and company_job_sources(id) WHERE enabled IS TRUE. Existing unique indexes supply source/native-posting and company/provider/tenant lookups; lifecycle history already has job_id/observed_at. This is a selective workload review, not evidence that every JSON/string filter is now independently indexed.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_database_indexes_sustain_165.py",
+              "name": "test_requirement_concepts_are_bound_to_real_storage"
+            },
+            {
+              "path": "tests/integration/test_database_indexes_sustain_165.py",
+              "name": "test_partial_enabled_index_rejects_disabled_predicate"
+            },
+            {
+              "path": "tests/integration/test_database_indexes_sustain_165.py",
+              "name": "test_upgrade_downgrade_reupgrade_preserves_rows_schema_and_plans"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Run SQLite and DatabaseIndexPostgreSQLTests plan checks after migrations. Wrong partial-predicate negative control and populated migration cycle must pass. Do not use absence of PostgreSQL as a pass."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-174",
+      "title": "[MJ-REQ-174] Security — Database",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Use:\n\n```text\nORM\nparameterized queries\nleast-privileged credentials\n```\n\nNever concatenate raw job content into SQL.",
+      "implementation_judgment": "PARTIAL",
+      "acceptance_status": "KEEP_PARTIAL",
+      "rationale": "Parameterized persistence and a narrowly provisioned PostgreSQL runtime identity are implemented. However, strict reading of the explicit ORM criterion is not yet met: production code uses SQLAlchemy Core Table/MetaData and mapping dictionaries, not mapped ORM entities or ORM Session queries. SQLAlchemy is an ORM-capable library, but Core is not itself its ORM. This distinction must not be hidden under a green security test.",
+      "source_paths": [
+        "packages/persistence/models.py",
+        "packages/persistence/store.py",
+        "cli/provision_database.py",
+        "cli/runtime_database.py",
+        "compose.yml",
+        "tests/integration/test_database_least_privilege.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "ORM",
+          "review_status": "LITERAL_GAP",
+          "observed_behavior": "models.py declares Table/MetaData, and Store uses engine connections plus Core select/insert/update and mappings(). A repository search found sqlalchemy.orm imports only for NoResultFound exceptions, with no mapped classes, DeclarativeBase/declarative_base, Session, sessionmaker or mapped_column. No actual ORM-mapped persistence route was established in this review.",
+          "named_tests": []
+        },
+        {
+          "literal_criterion": "Parameterized queries; never concatenate raw job content into SQL",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Application persistence binds values with SQLAlchemy expressions and .values/.where parameters. Job descriptions and source payloads remain values/JSON. Inspected textual SQL is fixed transaction/lock SQL or a table name obtained from trusted model metadata. Provisioning composes administrative identifiers through psycopg.sql.Identifier/Literal; it does not interpolate arbitrary job text.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_api_queue.py",
+              "name": "test_ui_job_inventory_survives_worker_and_store_reopen_and_rejects_source_copy_change"
+            },
+            {
+              "path": "tests/integration/test_relative_posted_source_intake.py",
+              "name": "test_absolute_invalid_unknown_and_future_claims_keep_raw_source_evidence"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Least-privileged credentials",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Compose separates migration/admin configuration from runtime credentials. Provisioning creates/reuses a distinct mjobs_runtime role, grants DML on application tables and SELECT on migration version, revokes schema/database creation and TEMP, and validates effective inherited/PUBLIC privileges before publishing credentials. The runtime launcher accepts only the expected role/driver from the private URL file and never falls back to admin credentials. The actual PostgreSQL test verifies DML success, forbidden DDL/temp/schema/role/database/TRUNCATE/alembic writes fail with SQLSTATE 42501, repeat provisioning preserves credentials, and excess direct/PUBLIC authority fails without replacement.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_runtime_database.py",
+              "name": "test_missing_invalid_admin_or_ambiguous_file_never_falls_back"
+            },
+            {
+              "path": "tests/unit/test_database_provisioning.py",
+              "name": "test_effective_unexpected_authority_refuses_reuse_without_replacing_credentials"
+            },
+            {
+              "path": "tests/unit/test_database_provisioning.py",
+              "name": "test_fresh_role_inheriting_public_authority_cannot_publish_credentials"
+            },
+            {
+              "path": "tests/integration/test_database_least_privilege.py",
+              "name": "test_populated_upgrade_repeat_provision_privilege_denial_and_recovery"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [
+        "The literal ORM clause needs a real ORM-backed production persistence path or an explicit recorded acceptance interpretation from the requirement owner; importing ORM exceptions or relabeling Core is insufficient.",
+        "The actual PostgreSQL least-privilege gate must pass on the accepted revision; pure unit mocks cannot establish database authority."
+      ],
+      "required_execution_gates": [
+        "Execute tests/unit/test_database_provisioning.py, tests/unit/test_runtime_database.py and tests/integration/test_database_least_privilege.py with an isolated actual PostgreSQL administrative fixture."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-021",
+      "title": "[MJ-REQ-021] Continuous Scheduling",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Support search intervals such as:\n\n```text\n15 minutes\n30 minutes\n1 hour\n2 hours\n6 hours\n12 hours\ndaily\ncustom\n```\n\nDo not require all sources to use the same cadence.\n\nUse:\n\n```text\nretry\nbackoff\njitter\nrate limiting\n```",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "Independent durable cadences, user-editable saved-search intervals, bounded retry/backoff, jitter and request pacing are all connected. The historical company-feed jitter gap is repaired in current monitoring_policy.next_due; it must be tested as well as the older board-source scheduler.",
+      "source_paths": [
+        "services/discovery/scheduler.py",
+        "services/discovery/sources/collect.py",
+        "services/discovery/search_profiles.py",
+        "services/company_discovery/monitoring.py",
+        "services/company_discovery/monitoring_policy.py",
+        "services/company_discovery/public_client.py",
+        "apps/web/src/saved-search-schedule.tsx"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "15 minutes, 30 minutes, 1 hour, 2 hours, 6 hours, 12 hours, daily and custom",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Source policy and saved-search scheduler validate integer intervals from 300 to 604800 seconds. Every listed duration is representable, and the public schedule editor accepts a custom interval in seconds with durable save/reload. The literal says such as; it does not require preset button labels.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_saved_search_schedule_api.py",
+              "name": "test_scheduler_only_update_persists_cadence_and_preserves_criteria"
+            },
+            {
+              "path": "tests/integration/test_saved_search_schedule_api.py",
+              "name": "test_invalid_scheduler_interval_is_rejected"
+            },
+            {
+              "path": "tests/browser/test_saved_search_schedule.py",
+              "name": "test_saved_search_cadence_persists_and_never_starts_external_work"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Do not require all sources to use the same cadence",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Each source stores poll_interval and due/backoff state. The scheduler independently selects eligible source/profile work, skips active operations and uses durable collection-window identities. Saved searches may set independent cadence while respecting source minimums. A failing source does not block healthy due sources.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "name": "test_scheduler_respects_independent_source_cadence_and_deduplicates_ticks"
+            },
+            {
+              "path": "tests/unit/test_saved_search_scheduler.py",
+              "name": "test_profiles_keep_independent_intervals"
+            },
+            {
+              "path": "tests/unit/test_saved_search_scheduler.py",
+              "name": "test_source_poll_interval_is_a_lower_bound_even_when_search_is_due"
+            },
+            {
+              "path": "tests/integration/test_source_policy_cadence_sustain_021.py",
+              "name": "test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Retry, backoff, jitter and rate limiting",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Source failures persist retry/backoff and consecutive-failure state; source_due_at takes the maximum of normal cadence and backoff plus deterministic bounded jitter. Company next_due derives stable nonnegative jitter from source/revision/stamp, persists once and never shortens a weekly base interval to the retry cap. Public-client pacing and durable company rate reservations survive reopen and interrupt/defer without a retry storm.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_company_monitoring_policy_runtime.py",
+              "name": "test_jitter_is_stable_nonnegative_and_never_shortens_backoff"
+            },
+            {
+              "path": "tests/integration/test_company_monitoring_policy_runtime.py",
+              "name": "test_weekly_success_receipt_and_recovered_schedule_keep_public_weekly_due"
+            },
+            {
+              "path": "tests/integration/test_company_monitoring_policy_runtime.py",
+              "name": "test_durable_rate_cursor_survives_fresh_store_retry_and_stale_owner"
+            },
+            {
+              "path": "tests/integration/test_company_monitoring_policy_runtime.py",
+              "name": "test_public_worker_occupied_cursor_defers_without_success_quality_or_retry_storm"
+            },
+            {
+              "path": "tests/integration/test_company_monitoring_policy_runtime.py",
+              "name": "test_mixed_source_defer_isolated_and_persisted_due_does_not_redraw_jitter"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Include tests/integration/test_company_monitoring_policy_runtime.py in the source-policy batch; old source-policy tests alone do not resolve the historical company-source gap. Run public saved-search Chromium test on the accepted build."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-030",
+      "title": "[MJ-REQ-030] Date Filtering",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Support:\n\n```text\nlast hour\ntoday\n24 hours\n3 days\n7 days\n30 days\ncustom\n```\n\nNormalize relative timestamps.\n\nStore both:\n\n```text\nreported_posted_at\nfirst_seen_at\nlast_seen_at\n```",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "Date windows now exist in UI, validated API/search configuration and query semantics. Relative source timestamps are anchored to first relevant observation, and durable source-posting snapshots retain source wording; malformed/future claims do not become artificially recent results.",
+      "source_paths": [
+        "services/discovery/search_semantics.py",
+        "services/discovery/search_profiles.py",
+        "services/discovery/sources/collect.py",
+        "services/discovery/company_feed.py",
+        "services/dedupe/source_values.py",
+        "packages/persistence/store.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Last hour, today, 24 hours, 3 days, 7 days, 30 days and custom",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "DATE_WINDOWS and _date_window_bounds implement all seven requested windows. Today begins at UTC midnight; custom bounds require explicit UTC, inclusive ordered endpoints and no mixed legacy/canonical fields. API tests put records exactly on and one second outside boundaries. The browser actually selects LAST_HOUR, TODAY and CUSTOM, fills the UTC controls and asserts the outgoing query/response, then clears them.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_saved_search_filters.py",
+              "name": "test_canonical_date_windows_include_boundaries_and_exclude_older_postings"
+            },
+            {
+              "path": "tests/integration/test_saved_search_filters.py",
+              "name": "test_custom_date_window_is_inclusive_and_rejects_ambiguous_or_mixed_bounds"
+            },
+            {
+              "path": "tests/integration/test_saved_search_filters.py",
+              "name": "test_custom_date_window_round_trips_reopens_and_invalid_update_is_atomic"
+            },
+            {
+              "path": "tests/browser/test_saved_search_filters.py",
+              "name": "test_saved_filters_restore_controls_results_and_clear_with_profile_isolation"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Normalize relative timestamps",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Minute/hour/day ago inputs require an explicit observation reference. The first valid normalized claim/reference is retained through later changing or stale age labels; an invalid claim is unknown, rather than falling back to recent first_seen. Absolute/RFC2822 source dates are normalized to UTC with known offset and future dates are excluded from current windows.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_relative_posted_timestamp.py",
+              "name": "test_relative_units_need_explicit_utc_reference_and_keep_granularity"
+            },
+            {
+              "path": "tests/unit/test_relative_posted_timestamp.py",
+              "name": "test_invalid_claim_is_unknown_instead_of_falling_back_to_recent_first_seen"
+            },
+            {
+              "path": "tests/integration/test_relative_posted_source_intake.py",
+              "name": "test_public_intake_excludes_two_hours_ago_from_last_hour"
+            },
+            {
+              "path": "tests/integration/test_relative_posted_source_intake.py",
+              "name": "test_first_valid_date_after_unknown_is_not_reanchored_on_later_polls"
+            },
+            {
+              "path": "tests/integration/test_relative_posted_source_intake.py",
+              "name": "test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Store reported_posted_at, first_seen_at and last_seen_at",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Collection persists all three attributes plus the raw source claim, reference time and precision. A reopened database preserves first_seen and reported publication while later observations advance last_seen; immutable raw snapshots retain both original and later age wording. Public detail and filtered job views read these persisted facts.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_relative_posted_source_intake.py",
+              "name": "test_reopen_replay_and_updated_age_label_preserve_first_normalized_claim"
+            },
+            {
+              "path": "tests/integration/test_relative_posted_source_intake.py",
+              "name": "test_preupgrade_relative_claim_uses_its_candidate_observation_and_remains_stable"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Run relative-timestamp unit/public-intake, saved-filter API, and public saved-filter Chromium tests on the accepted frontend build."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-034",
+      "title": "[MJ-REQ-034] Education Requirement Parsing",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Differentiate:\n\n```text\nBachelor's required\nBachelor's preferred\nBachelor's or equivalent experience\nDegree preferred\nNo degree specified\n```\n\nThese are materially different.",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "The five classifications are produced by substantive parsing of source language and are preserved into jobs, filters and match explanations. Current public-intake coverage includes the exact former negative counterexample plus discipline lists, typography, competing qualifiers and unrelated subjects.",
+      "source_paths": [
+        "services/discovery/search_semantics.py",
+        "services/discovery/sources/greenhouse.py",
+        "services/discovery/sources/collect.py",
+        "services/discovery/company_feed.py",
+        "services/discovery/search_profiles.py",
+        "services/discovery/matching.py",
+        "apps/web/src/main.tsx"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Bachelor's required; Bachelor's preferred; Bachelor's or equivalent experience; Degree preferred; No degree specified",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "parse_education_requirement attaches mandatory/preferred/equivalent evidence to complete degree subjects, honors negation, retains original source wording and bounds input complexity. It emits BACHELORS_REQUIRED, BACHELORS_PREFERRED, BACHELORS_OR_EQUIVALENT_EXPERIENCE, DEGREE_PREFERRED or NONE_SPECIFIED. A mandatory claim wins across conflicting clauses, while an alternative within the same claim remains separate.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_education_requirement.py",
+              "name": "test_supported_categories_negation_and_clause_conflicts"
+            },
+            {
+              "path": "tests/unit/test_education_requirement.py",
+              "name": "test_original_typography_is_retained_as_evidence"
+            },
+            {
+              "path": "tests/unit/test_education_requirement.py",
+              "name": "test_completed_subject_never_borrows_arbitrary_unrelated_qualifiers"
+            },
+            {
+              "path": "tests/unit/test_education_requirement.py",
+              "name": "test_bounded_parser_does_not_promote_a_truncated_claim"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "These categories are materially different in persisted/public behavior",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Supported source adapters and company intake call the parser. The public worker/API test supplies provider HTTP bytes only, reopens storage, checks raw posting and canonical classification, queries each exact filter and checks matching facts. The historic \"Bachelor's degree not required\" counterexample no longer matches REQUIRED. Public browser checks an education fit factor derived from approved education facts and clearly shows its score effect.",
+          "named_tests": [
+            {
+              "path": "tests/integration/test_education_negation_public_intake.py",
+              "name": "test_negated_degree_is_not_returned_by_required_education_filter"
+            },
+            {
+              "path": "tests/integration/test_education_negation_public_intake.py",
+              "name": "test_categories_typography_conflicts_and_matching_survive_reopen_and_replay"
+            },
+            {
+              "path": "tests/integration/test_education_negation_public_intake.py",
+              "name": "test_explicit_field_lists_outside_fixture_vocabulary_survive_public_readback"
+            },
+            {
+              "path": "tests/integration/test_saved_search_filters.py",
+              "name": "test_education_filter_uses_parser_classifications_and_filters_before_limit"
+            },
+            {
+              "path": "tests/browser/test_education_match_explanation.py",
+              "name": "test_job_detail_renders_persisted_education_fit_factor"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Run parser unit tests, public Greenhouse intake regression corpus, education filter API cases and education-match Chromium case. The browser test seeds the parsed classification; actual parser-to-public evidence comes from public-intake tests, not that browser fixture alone."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-170",
+      "title": "[MJ-REQ-170] Retention",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "Automatically clean bounded transient data such as:\n\n```text\ndebug screenshots\ntemporary HTML\nold raw payloads\ntemporary browser artifacts\ntemporary generated files\nrotated logs\n```\n\nDo not delete core application history automatically.",
+      "implementation_judgment": "FULL",
+      "acceptance_status": "PENDING_ROOT_VERIFICATION",
+      "rationale": "Automatic scheduled cleanup is implemented for explicit managed transient roots with durable user policy and administrator limits. The literal does not require unconfigured host-wide deletion or destructive cleanup enabled by default. This review therefore does not carry those historical added scope demands into acceptance.",
+      "source_paths": [
+        "services/privacy/transient_retention.py",
+        "services/privacy/retention_policy.py",
+        "workers/transient_retention.py",
+        "services/discovery/scheduler.py",
+        "apps/api/transient_retention.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Automatically clean bounded transient data",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "The long-running scheduler invokes run_with_config at a default daily interval, bounded 300..2592000 seconds, and passes Store so durable policy applies. After explicit enabled policy and non-dry-run administrator configuration, the worker removes eligible files and publishes an atomic sanitized receipt. Reopen tests confirm saved ages and enablement govern a separate worker process/store.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_transient_retention_scheduler.py",
+              "name": "test_scheduler_passes_store_for_durable_user_policy"
+            },
+            {
+              "path": "tests/unit/test_transient_retention_scheduler.py",
+              "name": "test_explicit_validated_policy_runs_and_returns_only_worker_summary"
+            },
+            {
+              "path": "tests/integration/test_retention_policy.py",
+              "name": "test_policy_api_persists_and_worker_prunes_only_effective_transient_files"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Examples: debug screenshots, temporary HTML, old raw payloads, browser artifacts, generated temporary files and rotated logs",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "The common engine validates all six category values, explicit safe relative roots, non-broad filename globs and 1..365 day ages. Eligibility depends on actual file age and rule scope, not the category name. Only matching regular direct-child files are considered; exact age boundary, fresh/unknown/nested/outside paths and symlinks are retained or block the sweep. Existing execution oracles directly remove screenshot and generated-temporary fixtures; the other four categories use the same generic rule path and are not claimed as separate live-host tests.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_transient_retention.py",
+              "name": "test_explicit_prune_removes_only_expired_allowlisted_file"
+            },
+            {
+              "path": "tests/unit/test_transient_retention.py",
+              "name": "test_exact_age_boundary_is_retained"
+            },
+            {
+              "path": "tests/unit/test_transient_retention.py",
+              "name": "test_unrecognized_names_and_nested_files_are_preserved"
+            },
+            {
+              "path": "tests/unit/test_generated_temporary_retention_171.py",
+              "name": "test_generated_temporary_pruning_requires_explicit_gate_and_preserves_other_data"
+            },
+            {
+              "path": "tests/integration/test_transient_retention.py",
+              "name": "test_worker_dry_run_prune_repeat_and_interruption_recovery"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Do not delete core application history automatically",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Protected path components reject applications/history/documents/profiles/source/job/credential roots; no database history deletion is called. Managed roots are allowlisted, symlink/junction ancestors rejected, files revalidated before unlink, and the receipt destination must be separate and recognized. Tests preserve core history and forbid overwriting it with a receipt. Failure after real removal preserves actual counts rather than reporting a false zero-success recovery.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_transient_retention.py",
+              "name": "test_directory_redirect_after_scan_preserves_moved_file"
+            },
+            {
+              "path": "tests/integration/test_transient_retention_receipt_safety.py",
+              "name": "test_core_history_destination_blocks_before_pruning"
+            },
+            {
+              "path": "tests/integration/test_transient_retention_receipt_safety.py",
+              "name": "test_write_failure_keeps_actual_removals_and_retry_readback"
+            },
+            {
+              "path": "tests/integration/test_retention_policy.py",
+              "name": "test_changed_config_requires_reconfirmation_and_admin_ceiling_blocks_pruning"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [],
+      "required_execution_gates": [
+        "Run transient retention engine/worker/scheduler/policy/generated-temporary/receipt-safety modules. Public policy browser tests establish persisted settings and read-only preview; they do not themselves run cleanup. No live user data should be used for these gates."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-179",
+      "title": "[MJ-REQ-179] Debug Capture",
+      "literal_source": "planning/ISSUE_SEED.jsonl",
+      "authoritative_requirement_text": "On browser failure optionally capture:\n\n```text\nscreenshot\nsanitized DOM\ncurrent URL\nconsole errors\nnetwork errors\ncurrent automation step\n```\n\nwith retention limits.",
+      "implementation_judgment": "PARTIAL",
+      "acceptance_status": "KEEP_PARTIAL",
+      "rationale": "Enabled mock-browser failures connect to redacted screenshots, sanitized URL, hashed error-event diagnostics, automation step and age/count retention. A concrete literal gap remains: _dom_snapshot always returns an omitted marker with no DOM evidence. A file named dom.json does not establish a sanitized DOM capture.",
+      "source_paths": [
+        "services/applications/debug_capture.py",
+        "services/applications/browser_capture.py",
+        "services/applications/mock_adapter.py",
+        "workers/tasks.py"
+      ],
+      "criteria": [
+        {
+          "literal_criterion": "Optional failure capture",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "MJOBS_BROWSER_DEBUG_CAPTURE defaults off and the mock adapter accepts an explicit strict boolean. With capture enabled, actual browser failure handling calls capture_browser_failure with the active step, browser page and collected events; diagnostics are best-effort and do not replace the original failure or mutate submission outcome.",
+          "named_tests": [
+            {
+              "path": "tests/browser/test_debug_capture_privacy.py",
+              "name": "test_fixture_browser_failure_package_redacts_visual_and_serialized_canaries"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Screenshot",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Screenshot capture uses the shared remaining diagnostic deadline, redacts visual text/control/media regions and enforces a 5 MiB artifact ceiling. The real Chromium privacy test compares a visible canary baseline with captured image regions and confirms sensitive pixels/serialized canaries are absent.",
+          "named_tests": [
+            {
+              "path": "tests/browser/test_debug_capture_privacy.py",
+              "name": "test_fixture_browser_failure_package_redacts_visual_and_serialized_canaries"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Sanitized DOM",
+          "review_status": "MISSING",
+          "observed_behavior": "_dom_snapshot(page) unconditionally returns status OMITTED_UNBOUNDED_EVALUATION for a page, empty element_counts and role_counts, and omission flags. It never captures page structure. The current unit test explicitly expects this omission and zero evaluations, proving the gap rather than closing it.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_failure_capture_contains_only_bounded_structural_and_hashed_data"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Current URL, console errors, network errors and current automation step",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "The adapter subscribes to error-level console, pageerror and requestfailed only when enabled. Events carry source, sanitized URL and process-keyed HMAC message fingerprint/length instead of raw browser text; URL removes credentials/query/fragment/path identifiers. The active allowed automation phase is persisted to metadata. Bounded event buffers keep the latest 50 entries.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_console_capture_ignores_non_error_messages"
+            },
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_debug_url_drops_credentials_query_fragment_and_identifiers"
+            },
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_fixed_application_trace_phases_are_allowed_in_failure_metadata"
+            },
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_event_buffer_and_capture_retention_are_bounded"
+            }
+          ]
+        },
+        {
+          "literal_criterion": "Retention limits",
+          "review_status": "IMPLEMENTED",
+          "observed_behavior": "Owned 32-hex attempt directories are pruned after 30 days and capped at 20 per application, preserving unknown paths. Duplicate capture IDs preserve earlier packages; metadata is an atomic final publication marker, and failed publication removes incomplete new capture directories.",
+          "named_tests": [
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_event_buffer_and_capture_retention_are_bounded"
+            },
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_duplicate_attempt_preserves_existing_capture_package"
+            },
+            {
+              "path": "tests/unit/test_browser_debug_capture.py",
+              "name": "test_failed_metadata_publication_removes_incomplete_capture"
+            }
+          ]
+        }
+      ],
+      "remaining_gaps": [
+        "Implement an actual bounded, privacy-preserving DOM snapshot while preserving total deadline/cancellation. Replace the test that only accepts omission with content, canary, size and timeout checks; unavailable-page failure can still be reported honestly as unavailable.",
+        "Current reviewed integration is the mock application adapter; external provider-wide capture support was not established and is not silently claimed."
+      ],
+      "required_execution_gates": [
+        "After repair, run browser debug capture unit/privacy plus fleet T12 budget/cancellation tests with real Chromium. Existing green omission tests cannot justify full literal acceptance."
+      ]
+    }
+  ],
+  "reviewed_file_sha256": {
+    "apps/api/main.py": "bb9c37053deb8edabe9044a70bd1a7729813d2899af71c0ef23d3a7d22f5af6d",
+    "apps/api/transient_retention.py": "ade2a798147b75b91d654f5bfdd32bfdf0137d2ac3b09454611f59e02dfe1c61",
+    "apps/web/src/main.tsx": "9c6ebd1e6099d1441a28de69653305564b61820d3669ba96c0bcb668e4dac451",
+    "apps/web/src/saved-search-schedule.tsx": "e9c39a8af042c294333fa15ffa789e8899f350784d2b01a1c5d00ccc45bbd64d",
+    "cli/provision_database.py": "f781dfbc18b6a3db18b736888dfeed9f41f36728ca3befe8b09dc20afcf307f8",
+    "cli/runtime_database.py": "ccc75c8fa94b5c6c19e17be9b71cd046103834a3b75c4d7f5c23e5734feb2e12",
+    "compose.yml": "1569c41b6ce0fb172cea971df860754f05c6fd84471e95473f7685cc28986365",
+    "migrations/versions/20261024dc01_core_database_constraints.py": "42c77d06c400f28c120ae34c09eea6bed10ce52b4ea552daf074e46aeeaba4b4",
+    "migrations/versions/20261025di01_database_indexes.py": "e9133c64a3397083f754dabce55e4d753f46665ae060b7cf430f643362a67bbf",
+    "packages/domain/operation_types.py": "a7187e6db2101b045bb4941caa87169a725b288a86f1baa6fd6255df791f685e",
+    "packages/persistence/models.py": "c6728f152274ddf9d59a0e32c3b6b89742789f6e897e39cf7dfe4f6b9b2a1924",
+    "packages/persistence/resume_workspace.py": "b6202d4cb3794e429513598d5ed652aa00fe3d151e7a4b3e9b4b7b43a3e54ae3",
+    "packages/persistence/store.py": "55c812ccc2baae4edb14524d7378966e9a5bae13e5dad6bb324de2742a6ca453",
+    "services/applications/browser_capture.py": "3c09a778860944b6f2ae598a48ef48a3e5a65cf6152d4beb55e49d2c0d3039cc",
+    "services/applications/debug_capture.py": "bfeb91e6f97e6a5286afa08f4be8aa3119148fd10d06f3e4559030ad782142a3",
+    "services/applications/mock_adapter.py": "42aaf2d86bd7dfdea8221f6ffa6217bb0d6b86bae00af5fc11dff328e02b7649",
+    "services/applications/run_requests.py": "ab78660766ac9dafa3b99e493f5a4c70a7e51e327ee880b1879554f16bc132e3",
+    "services/company_discovery/monitoring.py": "c9c42996faee3ca135aef1c218fe2569876208a541ed3f337cc6ab47df66eb80",
+    "services/company_discovery/monitoring_policy.py": "1367fd305fae71c266d3661ceed4ecf0b1f93d1a8b3f799cd2ba0a527095d669",
+    "services/company_discovery/public_client.py": "1b6147ac3e1a79c1685f6fd0ec0ff5167099202eb3c1173807cde42ac6a82f2b",
+    "services/company_discovery/sources.py": "1b347301f2e67a6c15837d826789163702d834b408ea26d25c994517c949e25e",
+    "services/company_discovery/triggers.py": "cd5d1c69dab59d785035893df4a178564c09b7d9f20b66e9c28fca1ecf3e10e2",
+    "services/dedupe/source_values.py": "405ed2f81b6d446c63e9976d43ca2202f8233a10f075e12f88ea9f90e2f1bdc0",
+    "services/discovery/company_feed.py": "48d94481b17be7a23c87b97906d1d45da88960136fe0c90e52091841e4cf78da",
+    "services/discovery/matching.py": "8d99a7e757111956bcdf5c52b7a89ca77687a512322baef0949bbffc390cc996",
+    "services/discovery/scheduler.py": "55fc6a8abd0bdc1abd23acba277815df9f6b5b307b8b835f3236f081e6a042ed",
+    "services/discovery/search_profiles.py": "0880b1875ef5014c9827ece647f8d035a671dde337080cbabe0254690a08e317",
+    "services/discovery/search_semantics.py": "e9330f2f5c2fbb3d11335d50878213a1e1ea0aac7e28ec1390ac57980e2bc4d3",
+    "services/discovery/sources/collect.py": "93f25d53d05e62050cdb6cfd3518deed4695cd76135e6ce0e80c2504e6ad89b7",
+    "services/discovery/sources/greenhouse.py": "858fd7def4ffecc2a50286693016db96db0490f975a3e3d39af810340f28cb82",
+    "services/privacy/retention_policy.py": "fc79b3c3d47ba3c8a923513283efcbcbabb5f61e1d422b810958ba739e306916",
+    "services/privacy/transient_retention.py": "9848306263f5f9ef0fe53ae569c738c2fe2d1f2ffbb9dc10e7a427328629a90f",
+    "tests/browser/test_debug_capture_privacy.py": "1125c0db12d587f9b50849fe138cfb259e633f97e83a333a69465083fa83b5cc",
+    "tests/browser/test_education_match_explanation.py": "cd27386445c24fb8051e422adaa3a6d1f7c7848024a4c153b9c9448bbdcecbbe",
+    "tests/browser/test_saved_search_filters.py": "297056d387d4aa43ecc896dd4aa87bd992d7a128024c670e53589ba6a79465b5",
+    "tests/browser/test_saved_search_schedule.py": "cd8a877ca83547bfd11d8f6b3122578965e5d4653e77bd44029fc6e213d26563",
+    "tests/integration/test_api_queue.py": "a209760efeb9f183ce9a968d652467ee7b3e5157e5944bf90dae77580b04ac6f",
+    "tests/integration/test_application_relational_rejections_164.py": "718b086ea6bb6660778e385e14f2dfd52c438e2260d3343574f0a8c3735a2f3c",
+    "tests/integration/test_application_run_requests.py": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef",
+    "tests/integration/test_company_discovery_idempotency.py": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca",
+    "tests/integration/test_company_monitoring_policy_runtime.py": "0e51d2491d77fb41188a263008014843681c9617e48d05891fced0ae2a963779",
+    "tests/integration/test_database_constraints_sustain_164.py": "85e6d511866266ffdd9b16feb2e7b38196a65b39ac200c7fd5910200702f14df",
+    "tests/integration/test_database_indexes_sustain_165.py": "b6dbd64bd5a829a0a3eb0fdcbbc973a2ad3b84b18d46c8b1bcbe1ec1f1d214fd",
+    "tests/integration/test_database_least_privilege.py": "74b68e24bee49c947ea9eb603113082a51d7053965007ad72027a3ef830c69d1",
+    "tests/integration/test_education_negation_public_intake.py": "04d2bfa76aaa400ac9a797c2ac08d50d6ac34713ca7d6cb7589fbf4bb5dbf4d8",
+    "tests/integration/test_operation_progress_lifecycle.py": "e6a288bed8fc4c50bf57e022697e7e4d2a60baa0c9135916e3ce8090b45c36fd",
+    "tests/integration/test_relative_posted_source_intake.py": "27afbc044829450d37b8bf2b0eee8d68e0b985977a831f72214cbb70f2934b1c",
+    "tests/integration/test_retention_policy.py": "9589d7dcc9609f8d73defc9b9aa6f775afbb18e02a060761d8f554abd3329f44",
+    "tests/integration/test_saved_search_filters.py": "b455c4a66c2ec453018fa3f3f8d25974888470f98362d6f16176aa82afb03dc4",
+    "tests/integration/test_saved_search_schedule_api.py": "ab5b6313d36949043a0cbb249965f80444b60f4fe672f59bab7f70e04cf2b69b",
+    "tests/integration/test_source_policy_cadence_sustain_021.py": "f2d7659363722269b2177b3b094cc0e4873f3a354f3b8a59037a895373104a3e",
+    "tests/integration/test_source_policy_scheduler.py": "d566870033f3db832bb29a2184892dd984fd322b778c2f8c11241cd73d8cd7ea",
+    "tests/integration/test_transient_retention.py": "bfef3ad31a2670a85e912253a01a4748034753d07367c97e3bddd5a28fd26f48",
+    "tests/integration/test_transient_retention_receipt_safety.py": "7ddfa4eee436d144f59f0937fd477adf753a544eadda042173b6b92106c24bee",
+    "tests/unit/test_browser_debug_capture.py": "74925994ebdb434b96e9ee43a2d22cbb7890dc703ed4fcf5d6b1520bee217bb2",
+    "tests/unit/test_database_provisioning.py": "04b894ac699a89f6e329c91c3203b81c1108806e4a8446b0144d9ba92cb80d71",
+    "tests/unit/test_education_requirement.py": "73dc7189bc462f5e2f8bc84ede617c67e3cf846a5a8bff98efda5bc29c7040df",
+    "tests/unit/test_generated_temporary_retention_171.py": "fd42efbc8f15e02f54c9db1e23ae70761e9aaa4ddaee8c217da97124bbaeaea5",
+    "tests/unit/test_operation_types.py": "f3f7b421a11a69176197d64c5f7a4932d19c218707d26d889ef6d5caafea8d32",
+    "tests/unit/test_relative_posted_timestamp.py": "0a86a01e84e06ba98faf8af2be72e1f69a412c004f7cca4e9de1359f00fa81e3",
+    "tests/unit/test_runtime_database.py": "64937556ab64488db10b860fd867a948ffc6a80affbece790828e8996c89ab0a",
+    "tests/unit/test_saved_search_scheduler.py": "0b8404659e92b810b1e8ba7ea73b50f17ad725678e144ae6c94aef460ac92a97",
+    "tests/unit/test_transient_retention.py": "6645f9f89e5b393cd49a04e2fafd51da08397f22e1ddba4cc4b3fd5e9cb61e3e",
+    "tests/unit/test_transient_retention_scheduler.py": "efd929767541f7d7bf2f3534d90036a848431545a4439c9401b9945fe4c79803",
+    "workers/dispatch.py": "299f96e5821369eba462ca9502c37a42c2fa3187a60e5760be44ff738367bc82",
+    "workers/operations.py": "0dab7f6a029c25375ecb68a5d93cec57a53e626268d02b8ce803d1396fff9e4e",
+    "workers/tasks.py": "17b7ee118ce19d7765c4458f8dee45cf0740203c79b549a3e91d95434803f77f",
+    "workers/transient_retention.py": "1a9c7f0d079fba9c251cc8fd1e4ed9a46cf24a8dba762554d80d6473031c3c4c"
+  }
+}

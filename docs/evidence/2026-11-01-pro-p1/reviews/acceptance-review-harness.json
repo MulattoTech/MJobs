@@ -1,0 +1,827 @@
+{
+  "schema_version": 1,
+  "reviewer": "ChatGPT-Web harness_delivery",
+  "base_revision": "53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+  "authored_commit": "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+  "integrated_commit_reported_by_root": "943af33a",
+  "final_source_reported_by_root": "a2a1e4e206013181e89feff738586c120bf30cbd",
+  "canonical_status_modified": false,
+  "scope": "Independent literal-criterion audit plus isolated functional regressions; root owns canonical acceptance and final exact-source CI.",
+  "test_runs": [
+    {
+      "id": "initial_harness",
+      "command": "python -m pytest -q tests/unit/test_dedupe_sustain_216.py tests/unit/test_dedupe_policy.py tests/unit/test_dedupe_signals.py tests/unit/test_company_resolution.py tests/unit/test_company_resolution_sustain_217.py tests/unit/test_answer_matching.py tests/unit/test_answer_matching_sustain_220.py tests/unit/test_application_attempt_state_contract_sustain_221.py tests/unit/test_company_source_contract_sustain_224.py tests/unit/test_application_form_field_security_227.py tests/integration/test_dedupe_ingestion_sustain_216.py",
+      "test_methods_passed": 116,
+      "subtests_passed": 98,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "/workspace/scratch/05fe891fa40c/harness-acceptance-initial-unrestricted.xml",
+      "artifact_sha256": "c2ae83b67fd0e691f92f8180109c2c31b8aedfb376308ca36fc439d3e8f299ec",
+      "notes": [],
+      "junit_summary": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "214",
+        "time": "4.026",
+        "timestamp": "2026-11-01T13:56:57.779097+09:00",
+        "hostname": "b218bdc3a869"
+      }
+    },
+    {
+      "id": "wwr_contract",
+      "command": "python -m pytest -q tests/unit/test_source_adapter_contract_223.py tests/integration/test_wwr.py -k 'not live_bounded'",
+      "test_methods_passed": 46,
+      "subtests_passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "/workspace/scratch/05fe891fa40c/harness-wwr-contract.xml",
+      "artifact_sha256": "2fb3cba628e7878d4746898a455d8fc1eea0bf9ddd38ed033a11efcd05409516",
+      "notes": [],
+      "deselected": 1,
+      "junit_summary": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "52",
+        "time": "4.341",
+        "timestamp": "2026-11-01T13:56:16.021538+09:00",
+        "hostname": "b218bdc3a869"
+      }
+    },
+    {
+      "id": "normalization_security_policy",
+      "command": "python -m pytest -q tests/unit/test_persistence_input_security_226.py tests/unit/test_normalization_contract.py tests/unit/test_ats_detection.py tests/unit/test_ai_structured_output.py tests/unit/test_company_fetch_policy.py tests/unit/test_structured_text_web_security_sustain_173.py tests/unit/test_live_application_policy_sustain_231.py",
+      "test_methods_passed": 63,
+      "subtests_passed": 123,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "/workspace/scratch/05fe891fa40c/harness-second-unit.xml",
+      "artifact_sha256": "bc230a5f80e289e0c2b8c90fb5ebe09c48787251b4176c5e9d5cad1ec828b379",
+      "notes": [],
+      "junit_summary": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "186",
+        "time": "1.538",
+        "timestamp": "2026-11-01T13:57:29.209332+09:00",
+        "hostname": "b218bdc3a869"
+      }
+    },
+    {
+      "id": "security_durable_consent",
+      "command": "python -m pytest -q tests/unit/test_mock_html_security.py tests/unit/test_public_company_client.py tests/integration/test_document_library.py tests/integration/test_live_submission_intent_admission.py tests/integration/test_wwr.py::WeWorkRemotelyTests::test_live_bounded_search_read_only tests/integration/test_remoteok.py::RemoteOKTests::test_live_bounded_search_read_only",
+      "test_methods_passed": 58,
+      "subtests_passed": 58,
+      "failed": 0,
+      "skipped": 2,
+      "artifact": "/workspace/scratch/05fe891fa40c/harness-security-live-policy.xml",
+      "artifact_sha256": "d86d2c71cb2a12d63374e6c1866d7a154122547b2ff3c31b14ca155787232758",
+      "notes": [
+        "Both skips are explicitly disabled real-source probes, not successes. No real-source acceptance claimed."
+      ],
+      "junit_summary": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "2",
+        "tests": "118",
+        "time": "11.338",
+        "timestamp": "2026-11-01T13:57:53.062954+09:00",
+        "hostname": "b218bdc3a869"
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "MJ-REQ-213",
+      "issue": 214,
+      "title": "Full Application E2E Test",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/discovery/pipeline.py",
+        "services/documents/generate.py",
+        "workers/tasks.py",
+        ".github/workflows/connected-acceptance.yml"
+      ],
+      "executed_runs": [],
+      "criteria": [
+        {
+          "criterion": "Job B normalized",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "Job B scored",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "resume generated",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "cover letter generated",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "application queued",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "mock ATS detected",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "Playwright opens form",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "fields populated",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "resume uploaded",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "questions answered",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "validated",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "submitted once to mock",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "confirmation detected",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "database updated and survives reopen",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "required CI-level demonstration",
+          "test": "tests/browser/test_full_application_e2e_213.py::FullApplicationE2EBrowserTests::test_job_b_to_reviewed_single_mock_confirmation_survives_reopen",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Full browser test was not executed by this subagent because local Chromium could not be installed. Root reported the existing test passed remotely; final required connected-acceptance gate must supply exact-head execution.",
+        "Source change adds this full journey to the required connected-acceptance job after production SPA build. The harness has temporary SQLite/local ATS only and asserts external submission remains disabled."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-214",
+      "issue": 215,
+      "title": "Unit Tests \u2014 Normalization",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/discovery/search_semantics.py",
+        "services/discovery/requirement_parsers.py",
+        "services/discovery/skill_taxonomy.py",
+        "services/normalization/jobs.py"
+      ],
+      "executed_runs": [
+        "normalization_security_policy"
+      ],
+      "criteria": [
+        {
+          "criterion": "titles",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_title_normalization_is_conservative_and_retains_original_text",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "companies",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_company_spelling_normalization_never_infers_alias_identity",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "locations",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_location_normalization_keeps_remote_restrictions_explicit",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "remote restrictions",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_location_normalization_keeps_remote_restrictions_explicit",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "salary",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_salary_normalization_preserves_source_text_and_rejects_malformed_values",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "dates",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_date_normalization_is_utc_deterministic_and_never_uses_implicit_now",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "employment type",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_employment_and_experience_normalization_have_explicit_unknowns",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "experience",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_employment_and_experience_normalization_have_explicit_unknowns",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "skills",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_skill_normalization_retains_mentions_and_rejects_unknown_labels",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "education",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_education_normalization_keeps_strength_evidence_and_unknowns",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "clearance",
+          "test": "tests/unit/test_normalization_contract.py::NormalizationContractTests::test_clearance_normalization_keeps_evidence_without_inferring_user_identity",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-215",
+      "issue": 216,
+      "title": "Unit Tests \u2014 Dedupe",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/dedupe/policy.py",
+        "services/dedupe/signals.py"
+      ],
+      "executed_runs": [
+        "initial_harness"
+      ],
+      "criteria": [
+        {
+          "criterion": "exact duplicate",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_exact_duplicate_is_auto_merge_eligible",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "same ATS requisition",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_same_ats_requisition_is_merge_eligible_despite_route_and_title_drift",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "slightly different title",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_slight_title_difference_without_strong_identity_requires_review",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "changed salary",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_changed_salary_does_not_split_same_ats_requisition",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "different job same company",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_different_jobs_at_same_company_remain_distinct",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "same title different city",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_different_city_changes_reason_when_other_dedupe_inputs_match",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "boilerplate-heavy descriptions",
+          "test": "tests/unit/test_dedupe_sustain_216.py::DedupeSustain216Tests::test_boilerplate_heavy_descriptions_cannot_create_an_automatic_merge",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "This literal requirement asks for unit tests; additional persisted-ingestion replay/reopen tests also passed but do not expand the acceptance claim."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-216",
+      "issue": 217,
+      "title": "Unit Tests \u2014 Company Resolution",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/company_discovery/resolution.py",
+        "services/company_discovery/aliases.py"
+      ],
+      "executed_runs": [
+        "initial_harness"
+      ],
+      "criteria": [
+        {
+          "criterion": "company aliases",
+          "test": "tests/unit/test_company_resolution_sustain_217.py::CompanyResolutionSustainTests::test_verified_alias_and_punctuation_variants_resolve_without_fuzzy_matching",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "different punctuation",
+          "test": "tests/unit/test_company_resolution_sustain_217.py::CompanyResolutionSustainTests::test_verified_alias_and_punctuation_variants_resolve_without_fuzzy_matching",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "subsidiaries",
+          "test": "tests/unit/test_company_resolution_sustain_217.py::CompanyResolutionSustainTests::test_subsidiary_name_and_domain_preserve_child_identity",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "similarly named unrelated companies",
+          "test": "tests/unit/test_company_resolution_sustain_217.py::CompanyResolutionSustainTests::test_similarly_named_unrelated_companies_are_not_fuzzy_merged",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "domain evidence",
+          "test": "tests/unit/test_company_resolution_sustain_217.py::CompanyResolutionSustainTests::test_verified_domain_and_subdomain_match_but_lookalike_or_unverified_do_not",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "ATS evidence",
+          "test": "tests/unit/test_company_resolution_sustain_217.py::CompanyResolutionSustainTests::test_exact_ats_tenant_resolves_but_unknown_or_ambiguous_tenant_does_not",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-217",
+      "issue": 218,
+      "title": "Unit Tests \u2014 ATS Detection",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/ats_detection/detector.py"
+      ],
+      "executed_runs": [
+        "normalization_security_policy"
+      ],
+      "criteria": [
+        {
+          "criterion": "direct ATS host",
+          "test": "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "custom branded domain",
+          "test": "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_custom_careers_domain_from_embedded_greenhouse_board",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "redirect",
+          "test": "tests/unit/test_ats_detection.py::ATSDetectionTests::test_uses_redirect_chain_and_vendor_url_structure",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "embedded ATS",
+          "test": "tests/unit/test_ats_detection.py::ATSDetectionTests::test_accepts_explicit_provider_configuration_and_structured_metadata",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "unknown portal",
+          "test": "tests/unit/test_ats_detection.py::ATSDetectionTests::test_unknown_custom_domain_is_not_guessed",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "ambiguous portal",
+          "test": "tests/unit/test_ats_detection.py::ATSDetectionTests::test_conflicting_vendor_signals_require_review",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-219",
+      "issue": 220,
+      "title": "Unit Tests \u2014 Answer Matching",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/documents/answers.py",
+        "services/answers/review.py",
+        "apps/api/application_answer_matching.py"
+      ],
+      "executed_runs": [
+        "initial_harness"
+      ],
+      "criteria": [
+        {
+          "criterion": "exact",
+          "test": "tests/unit/test_answer_matching_sustain_220.py::AnswerMatchingApiSustain220Tests::test_exact_normalized_fuzzy_and_semantic_methods_use_real_route",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "normalized",
+          "test": "tests/unit/test_answer_matching_sustain_220.py::AnswerMatchingApiSustain220Tests::test_exact_normalized_fuzzy_and_semantic_methods_use_real_route",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "fuzzy",
+          "test": "tests/unit/test_answer_matching_sustain_220.py::AnswerMatchingApiSustain220Tests::test_exact_normalized_fuzzy_and_semantic_methods_use_real_route",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "semantic",
+          "test": "tests/unit/test_answer_matching_sustain_220.py::AnswerMatchingApiSustain220Tests::test_exact_normalized_fuzzy_and_semantic_methods_use_real_route",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "ambiguous",
+          "test": "tests/unit/test_answer_matching_sustain_220.py::AnswerMatchingApiSustain220Tests::test_conflicting_answers_fail_closed_without_disclosing_either_value",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "sensitive",
+          "test": "tests/unit/test_answer_matching_sustain_220.py::AnswerMatchingApiSustain220Tests::test_sensitive_prompt_is_rejected_without_echoing_saved_sensitive_answer",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Semantic matching is the implemented curated semantic mechanism; no provider inference was invoked."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-220",
+      "issue": 221,
+      "title": "Unit Tests \u2014 Application State",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "packages/persistence/store.py",
+        "services/applications/attempt_history.py"
+      ],
+      "executed_runs": [
+        "initial_harness"
+      ],
+      "criteria": [
+        {
+          "criterion": "valid transitions",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_valid_compare_and_swap_transition_persists_state_and_trace",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "invalid transitions",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_invalid_expected_state_transition_leaves_state_and_audit_unchanged",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "retry",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_failed_attempt_requires_new_request_id_for_a_retry",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "CAPTCHA pause",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_captcha_pause_is_durable_user_intervention_not_confirmation",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "login pause",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_login_pause_is_durable_auth_required_not_confirmation",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "submission uncertainty",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_submission_uncertainty_blocks_blind_retry",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "confirmed submission",
+          "test": "tests/unit/test_application_attempt_state_contract_sustain_221.py::ApplicationAttemptStateContractTests::test_only_receipt_bearing_reconciliation_can_confirm_uncertain_submission",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-222",
+      "issue": 223,
+      "title": "Source Adapter Contract Tests",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/discovery/sources/registry.py",
+        "services/discovery/sources/greenhouse.py",
+        "services/discovery/sources/lever.py",
+        "services/discovery/sources/remotive.py",
+        "services/discovery/sources/wwr.py",
+        "services/discovery/sources/remoteok.py"
+      ],
+      "executed_runs": [
+        "wwr_contract"
+      ],
+      "criteria": [
+        {
+          "criterion": "returns jobs",
+          "test": "tests/unit/test_source_adapter_contract_223.py::test_source_search_returns_stable_jobs_and_valid_normalized_fields",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "stable source IDs",
+          "test": "tests/unit/test_source_adapter_contract_223.py::test_source_search_returns_stable_jobs_and_valid_normalized_fields",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "valid URLs",
+          "test": "tests/unit/test_source_adapter_contract_223.py::test_source_search_returns_stable_jobs_and_valid_normalized_fields",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "parses dates",
+          "test": "tests/unit/test_source_adapter_contract_223.py::test_source_search_returns_stable_jobs_and_valid_normalized_fields",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "parses descriptions",
+          "test": "tests/unit/test_source_adapter_contract_223.py::test_source_search_returns_stable_jobs_and_valid_normalized_fields",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "does not crash on missing fields",
+          "test": "tests/unit/test_source_adapter_contract_223.py::test_missing_optional_source_fields_preserve_identity_without_inventing_values",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Registry assertion covers all five built-in providers. Lever inventory exposes no publication timestamp; the contract requires explicit None, not an invented date. Other four fixtures assert exact parsed UTC timestamps.",
+        "New WWR safety regression first reproduced six real accepted-deceptive-URL failures. After exact HTTPS origin fix all 21 standardized contract cases passed."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-223",
+      "issue": 224,
+      "title": "Company Source Contract Tests",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/discovery/sources/registry.py",
+        "services/discovery/sources/greenhouse.py",
+        "services/discovery/sources/lever.py",
+        "services/company_discovery/ats_enrollment.py"
+      ],
+      "executed_runs": [
+        "initial_harness"
+      ],
+      "criteria": [
+        {
+          "criterion": "tenant",
+          "test": "tests/unit/test_company_source_contract_sustain_224.py::CompanySourceContractSustain224Tests::test_each_company_ats_has_canonical_identity_bounded_jobs_and_stable_urls",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "company identity",
+          "test": "tests/unit/test_company_source_contract_sustain_224.py::CompanySourceContractSustain224Tests::test_each_company_ats_has_canonical_identity_bounded_jobs_and_stable_urls",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "job enumeration",
+          "test": "tests/unit/test_company_source_contract_sustain_224.py::CompanySourceContractSustain224Tests::test_each_company_ats_has_canonical_identity_bounded_jobs_and_stable_urls",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "stable job IDs",
+          "test": "tests/unit/test_company_source_contract_sustain_224.py::CompanySourceContractSustain224Tests::test_each_company_ats_has_canonical_identity_bounded_jobs_and_stable_urls",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "application URL",
+          "test": "tests/unit/test_company_source_contract_sustain_224.py::CompanySourceContractSustain224Tests::test_each_company_ats_has_canonical_identity_bounded_jobs_and_stable_urls",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Exact registry coverage assertion distinguishes both supported company/ATS source adapters Greenhouse and Lever from the three global aggregators. Redirect, malformed identity, tenant mismatch and ambiguous enrollment tests also passed."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-225",
+      "issue": 226,
+      "title": "Security Tests",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/discovery/sources/structured_text.py",
+        "packages/persistence/store.py",
+        "services/documents/uploads.py",
+        "services/company_discovery/public_client.py",
+        "services/company_discovery/fetch_policy.py",
+        "services/ai/structured_output.py"
+      ],
+      "executed_runs": [
+        "normalization_security_policy",
+        "security_durable_consent"
+      ],
+      "criteria": [
+        {
+          "criterion": "XSS in description",
+          "test": "tests/unit/test_structured_text_web_security_sustain_173.py::StructuredTextWebSecurityTests::test_lever_normalize_sanitizes_untrusted_description_without_mutating_input",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "SQL injection-like strings",
+          "test": "tests/unit/test_persistence_input_security_226.py::test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "malicious filename",
+          "test": "tests/integration/test_document_library.py::DocumentLibraryTests::test_upload_security_contract_applies_to_every_document_kind",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "path traversal",
+          "test": "tests/integration/test_document_library.py::DocumentLibraryTests::test_upload_security_contract_applies_to_every_document_kind",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "oversized upload",
+          "test": "tests/integration/test_document_library.py::DocumentLibraryTests::test_upload_security_contract_applies_to_every_document_kind",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "invalid MIME",
+          "test": "tests/integration/test_document_library.py::DocumentLibraryTests::test_upload_security_contract_applies_to_every_document_kind",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "SSRF URL",
+          "test": "tests/unit/test_company_fetch_policy.py::CompanyFetchPolicyTests::test_forbidden_schemes_credentials_private_and_multicast_literals",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "malformed redirect",
+          "test": "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_unsupported_or_locationless_redirects_fail_closed",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "HTML injection",
+          "test": "tests/unit/test_mock_html_security.py::test_requisition_is_data_in_markup_and_route",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "AI malformed JSON",
+          "test": "tests/unit/test_ai_structured_output.py::AIStructuredOutputTests::test_parser_rejects_malformed_ambiguous_and_schema_invalid_json_safely",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Security test scope is the ten literal categories, not a claim of exhaustive product security. SQL-looking strings are stored through the real public Store API and survive reopen without query-scope/schema changes."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-226",
+      "issue": 227,
+      "title": "Application Form Security Tests",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "services/applications/controlled_dry_run.py"
+      ],
+      "executed_runs": [
+        "initial_harness"
+      ],
+      "criteria": [
+        {
+          "criterion": "quotes",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_special_application_values_remain_literal_field_data",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "Unicode",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_special_application_values_remain_literal_field_data",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "ampersands",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_special_application_values_remain_literal_field_data",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "hyphens",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_special_application_values_remain_literal_field_data",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "apostrophes",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_special_application_values_remain_literal_field_data",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "treat application fields as data",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_special_application_values_remain_literal_field_data",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "never construct executable commands from application input",
+          "test": "tests/unit/test_application_form_field_security_227.py::test_process_launch_sentinels_block_all_available_apis_without_child_start",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Controlled browser boundary uses an in-memory Playwright double, not a real employer. Production run_browser is exercised with every OS/subprocess launch API replaced by fail-closed sentinels. Values arrive unchanged at fill(), no process call occurs, and browser closure is asserted."
+      ],
+      "missing_source_paths": []
+    },
+    {
+      "id": "MJ-REQ-230",
+      "issue": 231,
+      "title": "Live Application Test Policy",
+      "recommendation": "Accept only after root verifies final exact-source gates and integrates evidence",
+      "sources": [
+        "packages/domain/safety.py",
+        "services/applications/submission_admission.py",
+        ".github/workflows/connected-acceptance.yml"
+      ],
+      "executed_runs": [
+        "normalization_security_policy",
+        "security_durable_consent"
+      ],
+      "criteria": [
+        {
+          "criterion": "actual user-intended job",
+          "test": "tests/unit/test_live_application_policy_sustain_231.py::LiveApplicationPolicyTests::test_external_enablement_cannot_stand_in_for_actual_job_intent",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "user-enabled real submission",
+          "test": "tests/unit/test_live_application_policy_sustain_231.py::LiveApplicationPolicyTests::test_live_submission_requires_every_independent_gate",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "validated materials",
+          "test": "tests/integration/test_live_submission_intent_admission.py::LiveSubmissionIntentAdmissionTests::test_missing_current_validated_materials_fail_all_material_gates",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "normal application policy",
+          "test": "tests/unit/test_live_application_policy_sustain_231.py::LiveApplicationPolicyTests::test_live_submission_requires_every_independent_gate",
+          "review": "Assertion inspected and maps to the literal clause."
+        },
+        {
+          "criterion": "use mock ATS for routine CI",
+          "test": "tests/unit/test_live_application_policy_sustain_231.py::LiveApplicationPolicyTests::test_mock_policy_does_not_require_or_infer_live_submission_consent",
+          "review": "Assertion inspected and maps to the literal clause."
+        }
+      ],
+      "limitations": [
+        "Policy/admission tests operate on synthetic state; no real submission is attempted. Disabled default, required per-job consent, expiry, job mismatch, single consumption/concurrent replay and independent material/policy gates all passed. Required connected workflow explicitly uses fixture mode."
+      ],
+      "missing_source_paths": []
+    }
+  ],
+  "unresolved": [
+    {
+      "id": "MJ-REQ-224",
+      "status": "INCOMPLETE",
+      "reason": "Eleven registered public application adapters intentionally declare live_form_interaction, document_upload, submission and confirmation unsupported. Existing contract tests prove route normalization/value-free analysis/fail-closed boundaries, not each full navigation/fill/upload/question/validation/confirmation fixture journey. Do not promote to PASS."
+    },
+    {
+      "id": "MJ-REQ-228",
+      "status": "INCOMPLETE",
+      "reason": "Bounded live probes from cloud environment failed direct DNS/network for Greenhouse, Remotive, WWR, RemoteOK. Optional tests now truthfully skip unless explicit MJOBS_ENABLE_LIVE_TESTS=1. No remote probe started; RDC write/start call remained pending then aborted."
+    },
+    {
+      "id": "MJ-REQ-229",
+      "status": "INCOMPLETE",
+      "reason": "No successful public careers-page + ATS + enumeration live evidence. Do not substitute controlled fixture tests or skipped live checks."
+    }
+  ],
+  "environment_findings": [
+    {
+      "finding": "Restricted Linux sandbox hangs Starlette TestClient at AnyIO blocking portal",
+      "evidence": "One exact test hung with 20s faulthandler trace under sandbox; same test passed 1/1 in 1.34s outside sandbox. Only owned test PID16556 was interrupted after command/cwd/starttime/kernel-handle verification. Full targeted list outside sandbox passed."
+    },
+    {
+      "finding": "Initial SQL test authoring error",
+      "evidence": "First new test used logical profiles alias with Store.count instead of real career_profiles table name; 3 tests failed. Corrected test to real canonical table and reran 63 tests successfully. No product fix was needed for SQL input handling."
+    },
+    {
+      "finding": "One mistyped pytest node selector",
+      "evidence": "WWRTests selector did not exist; no tests ran, exit4. Corrected to WeWorkRemotelyTests, final security batch 58 passed/2 explicit skips."
+    }
+  ],
+  "notes": [
+    "No canonical matrix, issue status or PR status modified by this agent. Root must bind accepted rows to its final exact-source runs/merge.",
+    "Counts are per executed command; overlapping modules must not be summed as distinct test coverage. Pytest JUnit tests include subtests; test_methods_passed and subtests_passed are separated."
+  ]
+}

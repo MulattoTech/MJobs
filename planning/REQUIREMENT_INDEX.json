@@ -810,7 +810,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "bookkeeping",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-021",
@@ -818,7 +818,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-022",
@@ -890,7 +890,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-031",
@@ -922,7 +922,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-035",
@@ -2258,7 +2258,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-158",
@@ -2274,7 +2274,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-160",
@@ -2306,7 +2306,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-164",
@@ -2314,7 +2314,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-165",
@@ -2362,7 +2362,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-171",
@@ -2746,7 +2746,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-214",
@@ -2754,7 +2754,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-215",
@@ -2762,7 +2762,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-216",
@@ -2770,7 +2770,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-217",
@@ -2778,7 +2778,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-218",
@@ -2794,7 +2794,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-220",
@@ -2802,7 +2802,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-221",
@@ -2818,7 +2818,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-223",
@@ -2826,7 +2826,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-224",
@@ -2842,7 +2842,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-226",
@@ -2850,7 +2850,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-227",
@@ -2858,7 +2858,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-228",
@@ -2866,7 +2866,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-229",
@@ -2874,7 +2874,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-230",
@@ -2882,7 +2882,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-231",
@@ -3074,7 +3074,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-255",
@@ -3082,7 +3082,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-256",
@@ -3090,7 +3090,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-257",
@@ -3106,7 +3106,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-259",
@@ -3114,7 +3114,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-260",
@@ -3122,7 +3122,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-261",
@@ -3130,7 +3130,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-262",
@@ -3138,7 +3138,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-263",
@@ -3210,7 +3210,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-272",
@@ -3234,7 +3234,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-275",
@@ -3266,7 +3266,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-279",
@@ -3274,7 +3274,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-280",
@@ -3282,7 +3282,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-281",
@@ -3290,7 +3290,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-282",
@@ -3298,7 +3298,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-283",
@@ -3306,7 +3306,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-284",
@@ -3314,7 +3314,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-285",
@@ -3322,7 +3322,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-286",
@@ -3330,7 +3330,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-287",
@@ -3338,7 +3338,7 @@
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-288",
@@ -3446,9 +3446,9 @@
     }
   ],
   "summary": {
-    "PARTIAL": 106,
-    "PASS": 141,
-    "NOT_RUN": 178
+    "PARTIAL": 96,
+    "PASS": 184,
+    "NOT_RUN": 145
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

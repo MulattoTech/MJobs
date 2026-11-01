@@ -1,0 +1,56 @@
+{
+  "revision": "e69638121e79a40632afdef80b70befa1de4ecfa",
+  "script_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+  "observed_at": "2026-11-01T05:42:10.959910+00:00",
+  "mode": "LIVE_CAPTURE_OFFLINE_PERSISTED_REPLAY",
+  "budgets": {
+    "live_gets_per_source": 1,
+    "source_wall_seconds": 20,
+    "source_request_timeout_seconds": 6,
+    "wire_and_decoded_bytes_per_source": 5000000,
+    "jobs_per_source": 1000,
+    "offline_seconds_per_pass": 120,
+    "careers_gets_including_robots": 2,
+    "careers_wall_seconds": 20
+  },
+  "external_submission_requests": 0,
+  "sources": [
+    {
+      "provider": "wwr",
+      "result": "FAIL",
+      "endpoint": "https://weworkremotely.com/remote-jobs.rss",
+      "capture_mode": "LIVE_CAPTURE",
+      "replay_mode": "IMMUTABLE_CAPTURE_WITH_NETWORK_DENIED",
+      "phase": "PERSIST_1",
+      "retained_capture_metadata": "outputs\\wwr-live-capture\\wwr-20261101T054213256531Z-2f484f11586a.json",
+      "capture": {
+        "get_requests": 1,
+        "external_get_requests": 1,
+        "response_status": 200,
+        "wire_bytes": 239856,
+        "wire_sha256": "2f484f11586aa304a8c1771f52e90cc956f466327317ea307c9def1d5122b333",
+        "jobs_returned": 99,
+        "source_health": "HEALTHY",
+        "company_identities": 64,
+        "unique_source_identities": 98,
+        "repeated_source_entries": 1,
+        "unique_posting_raw_snapshots": 99,
+        "conflicting_source_identities": 1,
+        "expected_source_identity_sha256": "490216b76e2eb5405a2b74d1e55055f39fd8ae7b4ee50f73544b4ea8ab00b2d7",
+        "expected_snapshots_sha256": "40be96660d3984fa5524629099739170c713da3366f68f323a5d5f576a22f33c",
+        "known_company_jobs": 99,
+        "jobs_with_description": 99,
+        "normalization_sha256": "2ad652872580a755c80ff3cfa788cac1c9f56dfdbfdcdcb9a96f49d6e8636970"
+      },
+      "error_type": "SourceError",
+      "error_code": "SOURCE_DUPLICATE_JOB_ID",
+      "live_get_attempts": 1,
+      "offline_egress_attempts": 0,
+      "duration_seconds": 37.64
+    }
+  ],
+  "company": {
+    "result": "NOT_RUN"
+  },
+  "dedupe_scope": "Exact captured posting replay retains canonical and source-copy identities; no cross-source coincidence claimed."
+}

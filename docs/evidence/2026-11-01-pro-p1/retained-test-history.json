@@ -1,0 +1,99 @@
+{
+  "scope": "Historical before/after and environment results; final acceptance uses final-revision execution records.",
+  "runs": [
+    {
+      "artifact": "harness-source-contract-before.xml",
+      "original_sha256": "13df950c77b1be6442945f5b58eb26cffd9852ac9fee1e8c60632a7961ac6f5d",
+      "suite_totals": {
+        "tests": 21,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 0
+      },
+      "case_nodes": 21,
+      "failed_case_nodes": [
+        {
+          "class": "tests.unit.test_source_adapter_contract_223",
+          "name": "test_wwr_rejects_deceptive_or_ambiguous_provider_urls[https://weworkremotely.com.attacker.invalid/remote-jobs/role]"
+        },
+        {
+          "class": "tests.unit.test_source_adapter_contract_223",
+          "name": "test_wwr_rejects_deceptive_or_ambiguous_provider_urls[https://notweworkremotely.com/remote-jobs/role]"
+        },
+        {
+          "class": "tests.unit.test_source_adapter_contract_223",
+          "name": "test_wwr_rejects_deceptive_or_ambiguous_provider_urls[https://@weworkremotely.com/remote-jobs/role]"
+        },
+        {
+          "class": "tests.unit.test_source_adapter_contract_223",
+          "name": "test_wwr_rejects_deceptive_or_ambiguous_provider_urls[https://weworkremotely.com:invalid/remote-jobs/role]"
+        },
+        {
+          "class": "tests.unit.test_source_adapter_contract_223",
+          "name": "test_wwr_rejects_deceptive_or_ambiguous_provider_urls[https://weworkremotely.com:444/remote-jobs/role]"
+        },
+        {
+          "class": "tests.unit.test_source_adapter_contract_223",
+          "name": "test_wwr_rejects_deceptive_or_ambiguous_provider_urls[https://weworkremotely.com/remote-jobs/role\\n]"
+        }
+      ]
+    },
+    {
+      "artifact": "harness-source-contract-after.xml",
+      "original_sha256": "aaef6abc803f1043cd6313ee9359f58c6998d03c98c7f8470c8158bf112b854d",
+      "suite_totals": {
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "case_nodes": 21,
+      "failed_case_nodes": []
+    },
+    {
+      "artifact": "harness-security-live-policy.xml",
+      "original_sha256": "d86d2c71cb2a12d63374e6c1866d7a154122547b2ff3c31b14ca155787232758",
+      "suite_totals": {
+        "tests": 118,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      },
+      "case_nodes": 60,
+      "failed_case_nodes": []
+    },
+    {
+      "artifact": "docs-integration-results.xml",
+      "original_sha256": "aa9c88227252cb48adcc1838596f8568558137b9549d5810d780b3130a4c3844",
+      "suite_totals": {
+        "tests": 286,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 13
+      },
+      "case_nodes": 233,
+      "failed_case_nodes": [
+        {
+          "class": "tests.integration.test_controlled_application_dry_run.ControlledApplicationDryRunTests",
+          "name": "test_both_providers_review_run_reload_and_replay_without_submission"
+        },
+        {
+          "class": "tests.integration.test_controlled_application_dry_run.ControlledApplicationDryRunTests",
+          "name": "test_file_locator_resolution_uses_fresh_remaining_budget"
+        },
+        {
+          "class": "tests.integration.test_controlled_application_dry_run.ControlledApplicationDryRunTests",
+          "name": "test_file_readback_obeys_remaining_operation_budget"
+        },
+        {
+          "class": "tests.integration.test_controlled_application_dry_run.ControlledApplicationDryRunTests",
+          "name": "test_selected_supporting_bytes_are_verified_and_public_selection_stays_closed"
+        },
+        {
+          "class": "tests.integration.test_controlled_application_dry_run.ControlledApplicationDryRunTests",
+          "name": "test_stale_worker_attempt_cannot_commit_receipt"
+        }
+      ]
+    }
+  ]
+}

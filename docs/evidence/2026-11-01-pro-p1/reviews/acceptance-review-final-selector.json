@@ -1,0 +1,36 @@
+{
+  "reviewed_commit": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+  "reviewer": "ChatGPT-Web pr_triage independent local read-only reviewer",
+  "reviewed_at": "2026-11-01T05:47:51.236391+00:00",
+  "verdict": "NO_BLOCKERS",
+  "source_integration_recommendation": "Ready for normal protected integration gates.",
+  "changed_file": "/workspace/scratch/05fe891fa40c/MJobs/tests/browser/test_uploaded_resume_comparison.py",
+  "change": "Two-line stale child-heading locator replaced by .job-list scoped exact native button accessible name built from the same fixture job company and title.",
+  "implementation_review": [
+    "SelectableCard renders a native button whose aria-labelledby explicitly joins companyId and titleId.",
+    "main.tsx passes job.company and job.title to SelectableCard within .job-list and activates showJob(job.id).",
+    "The fixture job is the same Store inventory entry used for the comparison assertions.",
+    "Exact role/name lookup remains strict: no first()/nth() selector relaxation.",
+    "The visibility assertion, click and all downstream document/comparison/recovery/privacy assertions are unchanged.",
+    "No production source or test acceptance condition changed."
+  ],
+  "validation": [
+    {
+      "command": "git diff --check ca1e62c6^ ca1e62c6",
+      "result": "PASS",
+      "executed_by": "pr_triage"
+    },
+    {
+      "command": "git diff --name-only e6963812 ca1e62c6 -- services/discovery services/company_discovery services/ats_detection services/dedupe packages/persistence migrations requirements.lock",
+      "result": "NO_CHANGES",
+      "executed_by": "pr_triage"
+    },
+    {
+      "command": "Windows Chromium tests/browser/test_uploaded_resume_comparison.py",
+      "result": "2 PASSED",
+      "execution_evidence": "Root report and exact commit validation trailer; not rerun by reviewer."
+    }
+  ],
+  "blocking_findings": [],
+  "source_or_canonical_mutations": false
+}
