@@ -11,6 +11,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from packages.domain.safety import Decision, Policy, SubmissionContext, evaluate_submission
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
+from services.applications.configuration import configured_submission_policy
 
 
 GRANTED = "LIVE_SUBMISSION_INTENT_GRANTED"
@@ -256,10 +257,12 @@ def _context(application: dict, match: dict, confidence: float, hourly: int,
 
 
 def authorize_submission(
-        store, application_id: str, confidence: float, policy: Policy = Policy(),
+        store, application_id: str, confidence: float, policy: Policy | None = None,
         *, intent_receipt_id: str | None = None, barrier: str | None = None,
         check=None) -> Decision:
     """Evaluate and claim one submission in a single database transaction."""
+    if policy is None:
+        policy = configured_submission_policy()
     timestamp = _utc_now()
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":

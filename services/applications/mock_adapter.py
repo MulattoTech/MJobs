@@ -10,7 +10,7 @@ import httpx
 from playwright.sync_api import sync_playwright
 from sqlalchemy import select, update
 
-from packages.domain.safety import Fact, Policy, select_verified_facts
+from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from services.discovery.pipeline import MockClient
 from services.audit_history import record_mock_application_submitted
@@ -200,7 +200,7 @@ def _receipt(client, application, requisition, *, observed_url=None,
     return receipt
 
 
-def _authorize(store, application_id, confidence, policy=Policy(), check=None):
+def _authorize(store, application_id, confidence, policy=None, check=None):
     return authorize_submission(
         store, application_id, confidence, policy, check=check)
 

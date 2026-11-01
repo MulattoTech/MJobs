@@ -12,6 +12,7 @@ from workers.dispatch import dispatch_pending
 from workers.operations import CATEGORIES, QUEUES, category_limit, timeout
 from workers.structured_logging import configure_operation_logger
 from services.applications.provider_registry import configured_application_registry
+from services.applications.configuration import configured_submission_policy
 from services.discovery.sources.registry import (
     configured_extension_registry_module,
     configured_source_registry,
@@ -31,6 +32,7 @@ def _worker_log_level():
 
 
 def main():
+    configured_submission_policy()
     log_level = _worker_log_level()
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
