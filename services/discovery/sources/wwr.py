@@ -396,11 +396,22 @@ class WeWorkRemotely:
             raise ValueError("SOURCE_INVALID_JOB_ID")
         self._reset_request_status()
         batch = self.search()
+        selected = None
         for item in batch.items:
+            self.check()
             posting_id = _posting_id_from_guid(item.raw.get("guid") or item.raw.get("link", ""))
             if posting_id == job_id:
-                self.normalize(item.raw)
-                return item.raw
+                if selected is not None and item.raw != selected:
+                    # Collection rejects different raw records for one identity.
+                    # Detail retrieval must not choose whichever record came first.
+                    with self._status_lock:
+                        self.status = "SOURCE_DUPLICATE_JOB_ID"
+                        self._request_failed = True
+                    raise SourceError("SOURCE_DUPLICATE_JOB_ID")
+                selected = item.raw
+        if selected is not None:
+            self.normalize(selected)
+            return selected
         raise SourceError("SOURCE_JOB_NOT_FOUND")
 
     def normalize(self, raw):

@@ -1,13 +1,15 @@
 """Integration and contract tests for the We Work Remotely global job-source adapter (MJ-REQ-017.S02)."""
 from pathlib import Path
+from copy import deepcopy
 import tempfile
 import threading
 import time
 import unittest
+from xml.etree import ElementTree
 
 import httpx
 from workers.operations import OperationCancelled
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -234,6 +236,79 @@ class WeWorkRemotelyTests(unittest.TestCase):
 
         with self.assertRaises(SourceError):
             adapter.fetch("nonexistent-job-slug-9999")
+
+    @staticmethod
+    def duplicate_fixture(rows):
+        root = ElementTree.Element('rss', version='2.0')
+        channel = ElementTree.SubElement(root, 'channel')
+        for row in rows:
+            item = ElementTree.SubElement(channel, 'item')
+            for key, value in row.items():
+                ElementTree.SubElement(item, key).text = value
+        return ElementTree.tostring(root, encoding='utf-8')
+
+    def test_fetch_rejects_conflicting_identity_independent_of_order(self):
+        base = {'title': 'Synthetic Acme: Engineer', 'description': 'Python systems.',
+                'guid': 'https://weworkremotely.com/remote-jobs/synthetic-identity',
+                'link': 'https://weworkremotely.com/remote-jobs/synthetic-identity'}
+        for key, value in [('title', 'Synthetic Acme: Different Engineer'),
+                           ('description', 'Different work.'), ('category', 'Different category')]:
+            for reverse in (False, True):
+                with self.subTest(field=key, reverse=reverse):
+                    rows = [base, {**base, key: value}]
+                    payload = self.duplicate_fixture(rows[::-1] if reverse else rows)
+                    adapter = WeWorkRemotely(transport=httpx.MockTransport(
+                        lambda _: httpx.Response(200, content=payload)))
+                    with self.assertRaises(SourceError) as failure:
+                        adapter.fetch('synthetic-identity')
+                    self.assertEqual(failure.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
+                    self.assertEqual(adapter.health(), 'SOURCE_DUPLICATE_JOB_ID')
+        payload = self.duplicate_fixture([base, deepcopy(base)])
+        adapter = WeWorkRemotely(transport=httpx.MockTransport(
+            lambda _: httpx.Response(200, content=payload)))
+        self.assertEqual(adapter.fetch('synthetic-identity')['description'], base['description'])
+        self.assertEqual(adapter.health(), 'HEALTHY')
+
+    def test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting(self):
+        base = {'title': 'Synthetic Acme: Engineer', 'description': 'Python systems.',
+                'guid': 'https://weworkremotely.com/remote-jobs/synthetic-identity',
+                'link': 'https://weworkremotely.com/remote-jobs/synthetic-identity'}
+        fresh = {**base, 'title': 'Synthetic Other: New role',
+                 'guid': 'https://weworkremotely.com/remote-jobs/new-synthetic-identity',
+                 'link': 'https://weworkremotely.com/remote-jobs/new-synthetic-identity'}
+        source = configure_source(self.store, 'default', provider='wwr')
+
+        def collect(rows):
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.job_sources).where(m.job_sources.c.id == source)
+                                   .values(last_attempt=None, backoff_until=None))
+            payload = self.duplicate_fixture(rows)
+            return collect_source(self.store, source, 'fixture', transport=httpx.MockTransport(
+                lambda _: httpx.Response(200, content=payload)))
+
+        def persisted_rows():
+            with self.store.engine.connect() as connection:
+                return {table.name: [dict(row) for row in connection.execute(
+                    select(table).order_by(table.c.id)).mappings()] for table in (
+                        m.companies, m.jobs, m.routes, m.postings, m.posting_snapshots,
+                        m.posting_value_candidates)}
+
+        collect([base])
+        before = persisted_rows()
+        for reverse in (False, True):
+            with self.subTest(reverse=reverse):
+                duplicate = [base, {**base, 'description': 'Conflicting work.'}]
+                with self.assertRaises(SourceError) as failure:
+                    collect([fresh, *(duplicate[::-1] if reverse else duplicate)])
+                self.assertEqual(failure.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
+                self.assertEqual(persisted_rows(), before)
+                with self.store.engine.connect() as connection:
+                    state = connection.execute(select(m.job_sources).where(
+                        m.job_sources.c.id == source)).mappings().one()
+                self.assertEqual(state['health_status'], 'FAILED')
+                self.assertEqual(state['last_error'], 'SOURCE_DUPLICATE_JOB_ID')
+        collect([base, deepcopy(base)])
+        self.assertEqual(self.store.count('job_postings'), 1)
 
     # ── Error handling ──────────────────────────────────────────────────
 
