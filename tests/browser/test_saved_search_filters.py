@@ -140,6 +140,11 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page = context.new_page()
                     page.set_default_timeout(8000)
                     filters = page.locator(".filters")
+                    job_list = page.locator(".job-list")
+                    python_card = job_list.get_by_role(
+                        "button", name="Example Systems Inc. Python Developer", exact=True)
+                    data_card = job_list.get_by_role(
+                        "button", name="Example Systems Inc. Data Engineer", exact=True)
                     created = context.request.put(origin + "/search-profiles", data={
                         "id": "limited-semantic", "profile_id": "fixture", "name": "Semantic Python only",
                         "enabled": False, "include_titles": ["Python Developer"], "remote": "ANY",
@@ -156,7 +161,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             "/jobs?" in response.url and "search_profile_id=limited-semantic" in response.url) as limited:
                         selected_search.select_option("limited-semantic")
                     self.assertEqual([job["title"] for job in limited.value.json()["jobs"]], ["Python Developer"])
-                    expect(page.get_by_role("heading", name="Python Developer", exact=True)).to_be_visible()
+                    expect(python_card).to_be_visible()
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("LAST_7_DAYS")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
@@ -321,8 +326,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Application provider", exact=True)).to_have_value("mock-ats")
                     expect(page.get_by_label("Job source", exact=True)).to_have_value(source_a)
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("company")
-                    expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
-                    expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
+                    expect(python_card).to_be_visible()
+                    expect(data_card).to_have_count(0)
 
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
