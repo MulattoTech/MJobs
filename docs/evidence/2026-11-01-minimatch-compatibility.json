@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-01T23:33:00Z",
+  "requirement": "dependency-security",
+  "advisory": "GHSA-g3hv-75wg-m249",
+  "dependabot_alert": 63,
+  "baseline_commit": "355a0b49efb83b56db4de6730e7332f85906db36",
+  "scope": "Repository-tested temporary override for the two inspected dev-tool consumers; not an upstream-declared semver-compatible release.",
+  "sources": [
+    "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+    "https://github.com/eslint/eslint/issues/21463",
+    "https://registry.npmjs.org/minimatch",
+    "https://registry.npmjs.org/eslint",
+    "https://registry.npmjs.org/@eslint%2fconfig-array"
+  ],
+  "compatibility_review": {
+    "consumers": [
+      "eslint@10.14.0",
+      "@eslint/config-array@0.23.5"
+    ],
+    "used_api": [
+      "new Minimatch(pattern, options)",
+      "match(path)",
+      "match(path, true)",
+      "pattern",
+      "dot option",
+      "flipNegate option"
+    ],
+    "removed_api_consumers_found": false,
+    "import_plugins_present": false,
+    "scope": "Inspected exact published consumer archives and locked dependency graph; all used APIs remain in minimatch11.0.3.",
+    "override": "Only the two exact parent package versions resolve minimatch to 11.0.3; no blanket transitive override."
+  },
+  "candidate_files_sha256": {
+    "apps/web/package.json": "9421f08777d6283013740c196f4fcc8848480da60f93031e51ea4f8c2ac91325",
+    "apps/web/package-lock.json": "2acf5987d423047d30ed4e19462edefca4c13798fbcaf4d92918004be031c195",
+    "apps/web/scripts/quality-checks.mjs": "9abf87f7b850da85313aa8a6eb7526d0a2fbc54ef7ceb29abad1f5f846291afe"
+  },
+  "runtime": {
+    "node": "24.21.0",
+    "npm": "11.19.0",
+    "image": "node:24-bookworm-slim",
+    "isolated_worktree": "work/pro-minimatch-20261101"
+  },
+  "executed": [
+    {
+      "command": "npm ci --no-audit --no-fund; npm run quality:test",
+      "revision": "baseline plus new behavioral regression",
+      "result": "PASS",
+      "tests": 6,
+      "skipped": 0
+    },
+    {
+      "command": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund; npm ci --no-audit --no-fund",
+      "result": "PASS",
+      "scope": "npm-generated lockfile; only minimatch11.0.3 and @isaacs/nonrecursive-glob-match1.0.3 resolution changes"
+    },
+    {
+      "command": "npm run lint",
+      "result": "PASS",
+      "files": 294
+    },
+    {
+      "command": "npm run format:check",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run quality:test",
+      "result": "PASS",
+      "tests": 6,
+      "skipped": 0
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "PASS"
+    },
+    {
+      "command": "npm test",
+      "result": "PASS",
+      "files": 153,
+      "tests": 1096,
+      "skipped": 0
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "retained_warning": "Existing bundle-size warning; 977.64kB JavaScript chunk before gzip."
+    },
+    {
+      "command": "npm ls minimatch",
+      "result": "PASS",
+      "versions": [
+        "11.0.3"
+      ],
+      "consumer_instances": 2
+    },
+    {
+      "command": "npm audit --json",
+      "result": "PASS",
+      "vulnerabilities": 0
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "retained_attempts": [
+    {
+      "command": "Baseline npm run format:check in Windows-mounted Node24 container",
+      "result": "FAIL",
+      "reason": "Four worktree files used Windows CRLF rather than the LF formatting expected by the Linux tool. Scoped Prettier normalization left only the intended quality-checks source diff; existing config/lint file Git blobs are unchanged."
+    }
+  ],
+  "limits": [
+    "Protected hosted checks and merged-tree proof are recorded in subsequent delivery evidence.",
+    "Dependabot alert closure is not claimed until GitHub reports it fixed.",
+    "Remove the temporary overrides when the parent packages declare a patched version and rerun the behavioral and web gates."
+  ]
+}
