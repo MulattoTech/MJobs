@@ -1,0 +1,856 @@
+{
+  "schema_version": 1,
+  "role": "independent_read_only_acceptance_reviewer",
+  "revision": "53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+  "no_tests_executed_by_reviewer": true,
+  "no_canonical_status_mutation": true,
+  "scope_note": "Static literal criterion review at immutable baseline. Commands are recommendations, not claimed executed results. Parent integrates and runs final-source tests/hosted gates. Files hashed using git show of reviewed revision, not concurrent working tree.",
+  "requirements": [
+    {
+      "id": "MJ-REQ-254",
+      "issue": 255,
+      "title": "[MJ-REQ-254] Ux Standard",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "The final system should feel:\n\n```text\nbuttery smooth\ncrisp\nintentional\npredictable\ntransparent\nrecoverable\n```\n\nThat means:\n\n```text\ngood defaults\nlittle unnecessary configuration\nfast filtering\nmeaningful progress\nclear automation state\nuseful errors\nsafe retry\npersistent operations\nexplanations\nno mysterious frozen screens\n```",
+      "review_verdict": "IMPLEMENTATION_GAP_BOUNDED_REQUEST_RECOVERY",
+      "criteria": [
+        {
+          "criterion": "Good defaults",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "AI settings default disabled, finite cost caps and meaningful profile defaults; first-run wizard exposes ten ordered setup steps. Submission remains explicitly gated.",
+          "meaningful_oracle": "apps/web/src/first-run-wizard.test.tsx; tests/browser/test_first_run_wizard.py and test_core_workflow_trial.py"
+        },
+        {
+          "criterion": "Little unnecessary configuration",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "First-run actions reuse saved profile, source, search and fact settings; absent optional AI credentials do not prevent the core workflow.",
+          "meaningful_oracle": "FirstRunWizardBrowserTests.test_wizard_runs_profile_scoped_saved_search_and_reads_back_history; CoreWorkflowTrialBrowserTests.test_import_capture_prepare_answers_track_and_reopen"
+        },
+        {
+          "criterion": "Fast filtering",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "main.tsx debounces filter-triggered loadJobs by 250ms, uses scoped job queries and sequence guards so stale responses cannot replace newer selections.",
+          "meaningful_oracle": "tests/browser/test_responsive_design_sustain_256.py verifies normal list/detail selection; core workflow and saved-search tests verify query behavior. No new numerical performance SLA is in the literal."
+        },
+        {
+          "criterion": "Meaningful progress",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Durable operations expose persisted state, current step and progress, polling and user-visible cancellation/readback; progress survives browser reload.",
+          "meaningful_oracle": "OperationProgressBrowserTests.test_saved_progress_is_safe_profile_scoped_and_survives_reload; FleetT11OperationRecoveryProgressBrowserTests.test_actual_recovery_reload_privacy_stale_profile_and_later_completion"
+        },
+        {
+          "criterion": "Clear automation state",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "main.tsx status panels and durable-ai-evaluation.tsx distinguish queued/running/terminal/uncertain states; external submission state is explicit.",
+          "meaningful_oracle": "tests/browser/test_operation_progress.py; apps/web/src/durable-ai-evaluation.test.tsx"
+        },
+        {
+          "criterion": "Useful errors",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "API errors preserve sanitized structured code and message, with meaningful generic fallback; supporting document and AI panels use stable action guidance.",
+          "meaningful_oracle": "ApplicationSupportingDocuments component tests exercise repeated generic failures and scoped retry; durable-ai-evaluation tests cover provider failures."
+        },
+        {
+          "criterion": "Safe retry",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Supporting document reads retain the same profile/application scope, serialize retries and ignore stale responses; durable mutations use persisted request identities and do not blindly replay uncertain outcomes.",
+          "meaningful_oracle": "apps/web/src/application-supporting-documents.test.tsx tests retries, concurrent lockout and stale profile/application scope; tests/browser/test_application_supporting_documents.py"
+        },
+        {
+          "criterion": "Persistent operations",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Operation ledger and worker recovery live server-side; UI reload reads saved operation identities and state.",
+          "meaningful_oracle": "tests/browser/test_fleet_t11_operation_recovery_progress.py; tests/integration/test_process_restart_recovery_sustain_275.py"
+        },
+        {
+          "criterion": "Explanations",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Job scoring components, source and route provenance, document generation details and AI outage states are represented in user-facing read models.",
+          "meaningful_oracle": "tests/browser/test_document_fact_trace.py; tests/browser/test_core_workflow_trial.py; apps/web/src/durable-ai-evaluation.test.tsx"
+        },
+        {
+          "criterion": "No mysterious frozen screens",
+          "static_verdict": "IMPLEMENTATION_GAP",
+          "implementation": "api.ts currently awaits fetch and response.json without a deadline. main.tsx action() clears global busy only after the promises settle. A hung fetch or response body can keep controls disabled indefinitely; uploadResume has the same gap.",
+          "meaningful_oracle": "Existing network rejection tests do not bound a never-settling request or response body. Add deadline/caller-cancellation regressions for JSON API and resume uploads."
+        }
+      ],
+      "implementation_paths": [
+        "apps/web/src/api.ts",
+        "apps/web/src/main.tsx",
+        "apps/web/src/first-run-wizard.tsx",
+        "apps/web/src/application-supporting-documents.tsx",
+        "apps/web/src/durable-ai-evaluation.tsx",
+        "workers/operations.py"
+      ],
+      "meaningful_tests": [
+        "apps/web/src/first-run-wizard.test.tsx",
+        "apps/web/src/application-supporting-documents.test.tsx",
+        "apps/web/src/durable-ai-evaluation.test.tsx",
+        "tests/browser/test_operation_progress.py",
+        "tests/browser/test_fleet_t11_operation_recovery_progress.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_core_workflow_trial.py",
+        "tests/browser/test_application_supporting_documents.py"
+      ],
+      "verification_commands": [
+        "npm --prefix apps/web test -- src/first-run-wizard.test.tsx src/application-supporting-documents.test.tsx src/durable-ai-evaluation.test.tsx",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_operation_progress.py tests/browser/test_fleet_t11_operation_recovery_progress.py tests/browser/test_first_run_wizard.py tests/browser/test_core_workflow_trial.py tests/browser/test_application_supporting_documents.py"
+      ],
+      "remaining_gaps": [
+        "Implement a bounded shared request deadline covering fetch and response body, stable actionable timeout error, caller signal propagation and cleanup; never auto-retry writes. Root assigned this reviewer a separate source branch after this report."
+      ],
+      "limitations": [
+        "Qualitative feel is operationalized by the ten listed literal behaviors, not a requirement to redesign aesthetics or invent a latency benchmark. Existing narrow responsive test does not itself certify every screen.",
+        "No tests executed by reviewer during this audit."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        "apps/web/src/api.ts": "26cb94907623e3916f66e15e900ead49a2b0c7298e6f074a557d08158fdfe491",
+        "apps/web/src/application-supporting-documents.test.tsx": "d3c7378ee2c8649a0f850172a1f4e50d1ed24df70bff3180958201dcc7365ff9",
+        "apps/web/src/application-supporting-documents.tsx": "246b5ac5800b2289e9cc39953358f6405f31e1db25370bac255417274bdd3c7b",
+        "apps/web/src/durable-ai-evaluation.test.tsx": "636d3742d6b8941a2b63440f04e9429875870be6b2bc0d15e041745691b722ce",
+        "apps/web/src/durable-ai-evaluation.tsx": "ebdf3274fcbf65ba70a243aa7393b61670b0379d6dc487ff226ad5ff62b11ca5",
+        "apps/web/src/first-run-wizard.test.tsx": "c9dd323987c581fa800766fdc134863e3e0bf7138299d92b748e58bf15cd50ee",
+        "apps/web/src/first-run-wizard.tsx": "096c9c00357f3a5cf165f6953396b69c056f5ae470e7aecf60758fdd866d6d2c",
+        "apps/web/src/main.tsx": "9c6ebd1e6099d1441a28de69653305564b61820d3669ba96c0bcb668e4dac451",
+        "tests/browser/test_application_supporting_documents.py": "cc781a4f75b28ce6630d99afb225a23622acbe150e0b6f47b94e540a082c2675",
+        "tests/browser/test_core_workflow_trial.py": "da7bf9d1102ad2acfd4951544990d332466f87d5bb7c6a78667f260197602f90",
+        "tests/browser/test_first_run_wizard.py": "97f4c901641f292721d803a5fd125cdde6d83e8965252d4b88679ccac517b77a",
+        "tests/browser/test_fleet_t11_operation_recovery_progress.py": "43b6256b58590e9a72b033eb481cca8782733dcade715b77ddf52a93d9952236",
+        "tests/browser/test_operation_progress.py": "9cec582a67106fb955301808d23295e23be37738fbc24e38ac9c0a5cee488412",
+        "workers/operations.py": "0dab7f6a029c25375ecb68a5d93cec57a53e626268d02b8ce803d1396fff9e4e"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/255"
+    },
+    {
+      "id": "MJ-REQ-255",
+      "issue": 256,
+      "title": "[MJ-REQ-255] Responsive Design",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Primary target:\n\n```text\ndesktop web\n```\n\nbut basic mobile/tablet usability should remain reasonable.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Primary target: desktop web",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Desktop app shell, sidebar and Jobs list/detail grid are the default layout.",
+          "meaningful_oracle": "ResponsiveJobsBrowserTests.test_jobs_fit_desktop_tablet_and_mobile_with_keyboard_selection at 1440px and 861px verifies two columns, visible controls, selected detail, and no horizontal document overflow."
+        },
+        {
+          "criterion": "Basic mobile/tablet usability remains reasonable",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Shared CSS collapses Jobs to one column at 860px, stacks source enrollment at 780px, wraps filters/text, and contains wide tables and pipelines with local horizontal scrolling.",
+          "meaningful_oracle": "Same connected Chromium test exercises 860px, 834px tablet and 390px phone, including Tab/Shift+Tab/Enter/Space activation; responsive-source-add.test.ts parses the actual mobile CSS rule."
+        }
+      ],
+      "implementation_paths": [
+        "apps/web/src/style.css",
+        "apps/web/src/main.tsx",
+        "apps/web/src/selectable-card.tsx"
+      ],
+      "meaningful_tests": [
+        "tests/browser/test_responsive_design_sustain_256.py",
+        "apps/web/src/responsive-source-add.test.ts",
+        "apps/web/src/selectable-card.test.tsx"
+      ],
+      "verification_commands": [
+        "npm --prefix apps/web test -- src/responsive-source-add.test.ts src/selectable-card.test.tsx",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_responsive_design_sustain_256.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Browser oracle covers Jobs list/detail and shared shell at five viewports; source form mobile stacking is CSSOM-tested. Do not claim a native mobile application or exhaustive device/browser audit.",
+        "Browser test requires built dist and Chromium; a skipped test is NOT_RUN."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        "apps/web/src/main.tsx": "9c6ebd1e6099d1441a28de69653305564b61820d3669ba96c0bcb668e4dac451",
+        "apps/web/src/responsive-source-add.test.ts": "5c3904e62ebc56a999c9082d9bd8bb548e92da2d3806eac2a9de003dcbc2e169",
+        "apps/web/src/selectable-card.test.tsx": "5b089be2a45833bb1fed72eae5fcba51af906903cd5437c38c2a2bdfe34fefdd",
+        "apps/web/src/selectable-card.tsx": "6ebb2e646a31bdaaa2c7ff0ede91b05cad3f0f522b906b89cebee23329b1f913",
+        "apps/web/src/style.css": "efcbdeb0292e9cbee7ba616b9bcb2e7b8971fdf110202d1737859f4588a93e66",
+        "tests/browser/test_responsive_design_sustain_256.py": "310eb201e96298a2ccf3137e0e218a15bcebc2a8cfb930d5e5b5b6c1e993dcd4"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/256"
+    },
+    {
+      "id": "MJ-REQ-256",
+      "issue": 257,
+      "title": "[MJ-REQ-256] Accessibility",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Use:\n\n```text\nsemantic HTML\nproper labels\nkeyboard access\nARIA where appropriate\n```\n\nThis also improves automated testing.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Semantic HTML",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Main navigation is a named nav, primary page a main, panels are sections with headings, forms retain native control semantics. Shared SelectableCard uses a native button with phrasing-only spans rather than invalid nested block elements.",
+          "meaningful_oracle": "selectable-card.test.tsx verifies named button, no block descendants, all three main card usages, and native click; first-run-wizard.test.tsx verifies semantic setup controls."
+        },
+        {
+          "criterion": "Proper labels",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Profile and source inputs are wrapped in visible labels; first-run, search suggestions and shared cards use explicit accessible names. SelectableCard ties company/title to aria-labelledby and details to aria-describedby.",
+          "meaningful_oracle": "Testing Library getByRole assertions in selectable-card.test.tsx; search-profile-suggestions.accessibility.test.tsx; real browser get_by_label profile and source controls in first-run wizard."
+        },
+        {
+          "criterion": "Keyboard access",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Interactive elements use native buttons, select and inputs; no custom keyboard emulation is required for list cards, and focus-visible styles remain available.",
+          "meaningful_oracle": "ResponsiveJobsBrowserTests runs Tab, Shift+Tab, Enter and Space at every tested viewport. FirstRunWizardBrowserTests tabs to Open profile, asserts visible focus, presses Enter and verifies no accidental navigation/form submission."
+        },
+        {
+          "criterion": "ARIA where appropriate",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Navigation current-page state, named regions, status/error live roles and descriptive card references are used alongside native semantics.",
+          "meaningful_oracle": "first-run browser asserts aria-current; first-run/selectable-card/search suggestions component tests check explicit ARIA relations and accessible names."
+        }
+      ],
+      "implementation_paths": [
+        "apps/web/src/main.tsx",
+        "apps/web/src/selectable-card.tsx",
+        "apps/web/src/first-run-wizard.tsx",
+        "apps/web/src/search-profile-suggestions.tsx",
+        "apps/web/src/style.css"
+      ],
+      "meaningful_tests": [
+        "apps/web/src/selectable-card.test.tsx",
+        "apps/web/src/first-run-wizard.test.tsx",
+        "apps/web/src/search-profile-suggestions.accessibility.test.tsx",
+        "tests/browser/test_responsive_design_sustain_256.py",
+        "tests/browser/test_first_run_wizard.py"
+      ],
+      "verification_commands": [
+        "npm --prefix apps/web test -- src/selectable-card.test.tsx src/first-run-wizard.test.tsx src/search-profile-suggestions.accessibility.test.tsx",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_responsive_design_sustain_256.py tests/browser/test_first_run_wizard.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "This accepts the four literal engineering practices in the exercised core UI; it does not assert WCAG certification, screen-reader interoperability or every possible contrast ratio.",
+        "No browser tests executed by reviewer."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        "apps/web/src/first-run-wizard.test.tsx": "c9dd323987c581fa800766fdc134863e3e0bf7138299d92b748e58bf15cd50ee",
+        "apps/web/src/first-run-wizard.tsx": "096c9c00357f3a5cf165f6953396b69c056f5ae470e7aecf60758fdd866d6d2c",
+        "apps/web/src/main.tsx": "9c6ebd1e6099d1441a28de69653305564b61820d3669ba96c0bcb668e4dac451",
+        "apps/web/src/search-profile-suggestions.accessibility.test.tsx": "a6b08bb31e4a34f5abaada0afafab28a9e34c7d48d71aa52c87e2be924212ce1",
+        "apps/web/src/search-profile-suggestions.tsx": "b0fbe899e02a07f48c6de219b5d5a1fd0c3632c0d82894e1d25f870f81472796",
+        "apps/web/src/selectable-card.test.tsx": "5b089be2a45833bb1fed72eae5fcba51af906903cd5437c38c2a2bdfe34fefdd",
+        "apps/web/src/selectable-card.tsx": "6ebb2e646a31bdaaa2c7ff0ede91b05cad3f0f522b906b89cebee23329b1f913",
+        "apps/web/src/style.css": "efcbdeb0292e9cbee7ba616b9bcb2e7b8971fdf110202d1737859f4588a93e66",
+        "tests/browser/test_first_run_wizard.py": "97f4c901641f292721d803a5fd125cdde6d83e8965252d4b88679ccac517b77a",
+        "tests/browser/test_responsive_design_sustain_256.py": "310eb201e96298a2ccf3137e0e218a15bcebc2a8cfb930d5e5b5b6c1e993dcd4"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/257"
+    },
+    {
+      "id": "MJ-REQ-258",
+      "issue": 259,
+      "title": "[MJ-REQ-258] Do Not Overengineer",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Do not introduce:\n\n```text\nKubernetes\nservice mesh\ndistributed consensus\ncomplex event sourcing\nmicroservice sprawl\nKafka\nenterprise orchestration\n```\n\nwithout genuine need.\n\nA clean Docker Compose architecture is sufficient initially.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Do not introduce Kubernetes without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "Do not introduce service mesh without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "Do not introduce distributed consensus without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "Do not introduce complex event sourcing without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "Do not introduce microservice sprawl without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "Do not introduce Kafka without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "Do not introduce enterprise orchestration without genuine need",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "The deployable product is one shared Python/web image plus PostgreSQL and Redis in Compose; API, scheduler and bounded queue workers are process roles sharing domain modules, not independent service platforms. No listed platform is declared in runtime dependencies, Compose or deployment image.",
+          "meaningful_oracle": "Read compose.yml, infra/docker, requirements.lock and architecture; tests/integration/test_primary_product_architecture.py exercises public API, normalized discovery, dedupe, scoring, documents and persistence using the modular boundaries."
+        },
+        {
+          "criterion": "A clean Docker Compose architecture is sufficient initially",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "compose.yml defines health-gated migrations/API/scheduler/worker roles with shared infrastructure, persisted data and optional isolated mock fixture. Architecture docs identify concrete subsystem ownership.",
+          "meaningful_oracle": "Connected synthetic workflow builds actual Compose and executes mock/UI/recovery; PrimaryProductArchitectureTests confirms interoperation without an external orchestration dependency."
+        }
+      ],
+      "implementation_paths": [
+        "compose.yml",
+        "infra/docker/Dockerfile",
+        "requirements.lock",
+        "docs/ARCHITECTURE.md",
+        ".github/workflows/connected-acceptance.yml"
+      ],
+      "meaningful_tests": [
+        "tests/integration/test_primary_product_architecture.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/integration/test_primary_product_architecture.py",
+        "Read actual same-revision Connected acceptance synthetic workflow result and outputs/ci-mock-e2e.json; verify declared Compose service set."
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Absence of unnecessary frameworks is primarily an architecture/dependency inspection, not a test pretending to measure complexity. Existing persisted operation/audit records are not complex event sourcing.",
+        "PostgreSQL cases in architecture suite require isolated service setup; do not count skips as evidence."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        ".github/workflows/connected-acceptance.yml": "b13294ca5b36516217de2e2c292e64216bc3d52db0ccc574c37c4f5358815c2e",
+        "compose.yml": "1569c41b6ce0fb172cea971df860754f05c6fd84471e95473f7685cc28986365",
+        "docs/ARCHITECTURE.md": "61d055335469b31abdfe77a26afe3a1529e36beaac4ca40c6176fa61b1bb9206",
+        "infra/docker/Dockerfile": "a332149e1f2b0b6cd750626ed4112a1cd86552c20cb35420b52da71de2282329",
+        "requirements.lock": "0d2b46f83633cea05c38e2c09f7ca1be4c675423e3b93e30edd722d0b373ef1e",
+        "tests/integration/test_primary_product_architecture.py": "8c98f53ff3e557cb99910912c0526c7c35cd4849964b45e951952e6a3d4bdfca"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/259"
+    },
+    {
+      "id": "MJ-REQ-267",
+      "issue": 268,
+      "title": "[MJ-REQ-267] Direct Employer Route Discovery Before Apply",
+      "canonical_before": "PARTIAL",
+      "authoritative_requirement": "Before an automatic submission through an aggregator:\n\nattempt lightweight resolution of whether that listing ultimately routes to the employer ATS.\n\nDo not delay indefinitely.",
+      "review_verdict": "PARTIAL_AUTOMATIC_PRE_SUBMISSION_HOOK_MISSING",
+      "criteria": [
+        {
+          "criterion": "Before an automatic submission through an aggregator, attempt lightweight resolution whether the listing routes to employer ATS",
+          "static_verdict": "IMPLEMENTATION_GAP",
+          "implementation": "plan_application_routes does a local exact-underlying-key verified-ATS sibling lookup for preparation; persist_route_choices writes PREPARATION_* and explicitly states submission admission must perform its own fresh bounded check. API /resolve can perform a public redirect probe and reviewed save adds an independently qualified route, but no automatic submission admission invocation was found.",
+          "meaningful_oracle": "ApplicationRouteTests validates verified sibling/unresolved/ambiguous preparation and user choice preservation; test_reviewed_employer_route_save validates explicit review flow. Neither demonstrates the literal automatic pre-submission boundary."
+        },
+        {
+          "criterion": "Do not delay indefinitely",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Public route probe uses an 8-second total timeout and inherited bounded public transport/redirect controls; local sibling lookup is finite. Transport failures are stable bounded outcomes.",
+          "meaningful_oracle": "tests/unit/test_direct_employer_route_redirects.py covers public redirect origin, tenant evidence, blocked/unresolved outcomes; this is supporting proof for the resolver only."
+        }
+      ],
+      "implementation_paths": [
+        "services/dedupe/routes.py",
+        "services/dedupe/route_redirects.py",
+        "services/documents/generate.py",
+        "apps/api/main.py"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_application_routes.py",
+        "tests/unit/test_direct_employer_route_redirects.py",
+        "tests/integration/test_reviewed_employer_route_save.py",
+        "tests/browser/test_application_route_preference.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_application_routes.py tests/unit/test_direct_employer_route_redirects.py tests/integration/test_reviewed_employer_route_save.py",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_application_route_preference.py"
+      ],
+      "remaining_gaps": [
+        "Need an actual safe automatic pre-submission invocation of a fresh bounded resolver and an ordering/failure regression; preparation and explicit manual resolution are insufficient. Real external submission must remain OFF unless separately authorized."
+      ],
+      "limitations": [
+        "No need to access a real aggregator or submit a real application to prove ordering: an injected/synthetic production-boundary test is sufficient.",
+        "Do not count disabled external submission as vacuous completion."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        "apps/api/main.py": "bb9c37053deb8edabe9044a70bd1a7729813d2899af71c0ef23d3a7d22f5af6d",
+        "services/dedupe/route_redirects.py": "23393077acea1a897dc2c8f8913b2e7d7b079982948ee5013e16172b1f40bde2",
+        "services/dedupe/routes.py": "17fbc795cf12eb044c1e045e53db5ce979a9f4e7b7857fdca7d46ec71e121ada",
+        "services/documents/generate.py": "58edb70119e8706ba79f3c0df7f37beede939f1b10b5a7c4423a4dfdfada4b92",
+        "tests/browser/test_application_route_preference.py": "3e59f790aea7020e8c8cf1829f43620ea8cb07701a8ba85f79e768dc5b870bb0",
+        "tests/integration/test_reviewed_employer_route_save.py": "89d963acce4ab257eab56bcb8cb2943e95f749b95f254da2d8bd69a0f1fb27a9",
+        "tests/unit/test_application_routes.py": "d40cc06acd0eb63e58c82a2d660a5c6241f3187612b4471e81ee62c63b531122",
+        "tests/unit/test_direct_employer_route_redirects.py": "f358332a07e713e3b6d957a564bf9189fe4644a731763883e15dc71bebb40ef5"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/268"
+    },
+    {
+      "id": "MJ-REQ-269",
+      "issue": 270,
+      "title": "[MJ-REQ-269] Document Fact Trace",
+      "canonical_before": "PARTIAL",
+      "authoritative_requirement": "For AI-generated documents, optionally retain references to the career facts used.\n\nThis improves explainability.",
+      "review_verdict": "PARTIAL_AI_GENERATED_QUALIFICATION_UNPROVEN",
+      "criteria": [
+        {
+          "criterion": "For AI-generated documents, optionally retain references to career facts used",
+          "static_verdict": "IMPLEMENTED_FOR_DETERMINISTIC_DOCS_AI_GENERATION_PATH_MISSING",
+          "implementation": "Document persistence records fact_ids, immutable profile_version, generation_model, checksums and context; history looks up original version facts and reports missing IDs without substituting edited profile facts. Current generating paths use deterministic-fact-copy and deterministic-job-evidence templates. services/documents contains no AITaskRouter invocation; the AI-reviewed preparation path scores jobs with AI and then creates deterministic documents.",
+          "meaningful_oracle": "DocumentProvenanceTests.test_three_formats_and_historical_provenance_survive_profile_changes and DocumentFactTraceBrowserTests.test_history_shows_only_facts_from_immutable_generation_snapshot prove full trace retention for existing deterministic generation; durable AI test_current_review_generates_documents_once_through_worker only proves AI scoring followed by deterministic docs."
+        },
+        {
+          "criterion": "Explainability",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Documents UI exposes original career fact text/source, approved/verified state and generation details; preview trace adds source fingerprints and matched terms without raw private text.",
+          "meaningful_oracle": "tests/unit/test_document_fact_trace_sustain_270.py validates trace references, stable fingerprints and rejection of missing/tampered sources; connected browser verifies old original facts remain visible after profile edit and unapproved facts stay absent."
+        }
+      ],
+      "implementation_paths": [
+        "services/documents/generate.py",
+        "services/documents/history.py",
+        "services/documents/cover_letter_preview.py",
+        "services/ai/durable_evaluation.py",
+        "services/ai/prompt_provenance.py",
+        "apps/web/src/main.tsx"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_document_fact_trace_sustain_270.py",
+        "tests/integration/test_document_provenance.py",
+        "tests/browser/test_document_fact_trace.py",
+        "tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_current_review_generates_documents_once_through_worker"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_document_fact_trace_sustain_270.py tests/integration/test_document_provenance.py tests/integration/test_durable_ai_evaluation.py",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_document_fact_trace.py"
+      ],
+      "remaining_gaps": [
+        "Literal AI-generated qualification is not established by deterministic documents alone. Identify an actual AI document generation path with career-fact references before full promotion, or keep current scope explicitly PARTIAL."
+      ],
+      "limitations": [
+        "The old matrix note requiring a live provider is too broad: a controlled fake provider on the actual AI generation path could prove retention, with no paid call. The missing distinction is production AI writing path, not paid-provider connectivity.",
+        "No new per-token attribution, opt-out UI or live mailbox integration is required by this literal."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        "apps/web/src/main.tsx": "9c6ebd1e6099d1441a28de69653305564b61820d3669ba96c0bcb668e4dac451",
+        "services/ai/durable_evaluation.py": "1e1da50c537e44ae174fe86bf74c6bf200c7f4a769f7e214b4ba6869adacbb54",
+        "services/ai/prompt_provenance.py": "ad9e112d35d9b05d0f3ce7aeccca0e4f747a4e5c7df45cd4382124eac37d050c",
+        "services/documents/cover_letter_preview.py": "82a8e0ca1b30e1abfcacfad9531599cb76f79857a317841de9aa00ff459cf941",
+        "services/documents/generate.py": "58edb70119e8706ba79f3c0df7f37beede939f1b10b5a7c4423a4dfdfada4b92",
+        "services/documents/history.py": "1c6b6f13249650929b862721bf6042627d634d60f94c015c7dcf96c9d416188d",
+        "tests/browser/test_document_fact_trace.py": "5f4ab99509906b1fea1715cf46617491e3d1377676ae54d4bd33035150a337a1",
+        "tests/integration/test_document_provenance.py": "c0e43ce6d6cfbf2b13dfdedd3e6d3874884bd5a9d624800577c9ba2043d56151",
+        "tests/integration/test_durable_ai_evaluation.py": "cf60ff00453d141a020302f496b9d60cfdfda49adfd00bc145f2829c46c8cac7",
+        "tests/unit/test_document_fact_trace_sustain_270.py": "7087bd1b3d73e5e43d833e18e3705a49d939b8cece88a394188038d8afbe7d63"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/270"
+    },
+    {
+      "id": "MJ-REQ-271",
+      "issue": 272,
+      "title": "[MJ-REQ-271] Ai Failure Behavior",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "AI outages must not stop discovery.\n\nExample:\n\n```text\njob discovery continues\ndeterministic scoring continues\nAI-dependent operations queue/retry\n```",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "AI outages must not stop job discovery",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Discovery pipeline and normalized source collectors do not call the AI router. DISCOVER and AI_EVALUATE are distinct durable operation kinds with separate queue worker roles; provider exceptions finalize only their own AI operation.",
+          "meaningful_oracle": "tests/integration/test_selected_search_ai.py::SelectedSearchAITests::test_provider_outage_leaves_deterministic_search_usable_without_partial_results plus tests/integration/test_primary_product_architecture.py::PrimaryProductArchitectureTests::test_02_search_service_normalization_resolution_dedup_and_scoring; inspect independent source-worker/ai-worker configuration."
+        },
+        {
+          "criterion": "Deterministic scoring continues",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Deterministic matching and saved search preview remain independent of AI advisory evaluation; failed provider results do not partially overwrite match/history data.",
+          "meaningful_oracle": "SelectedSearchAITests.test_provider_outage_leaves_deterministic_search_usable_without_partial_results compares candidate preview before/after failure and asserts empty published AI history; DurableAIEvaluationTests.test_saved_policy_selects_only_highest_candidate_and_leaves_deterministic_scores_unchanged."
+        },
+        {
+          "criterion": "AI-dependent operations queue/retry",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "AI requests are durably admitted before execution; safe pre-call expired leases requeue, staged responses are reused without a second provider call, and provider failures remain durable BLOCKED for explicit fresh intent after recovery. UI leaves non-AI work usable and explains the explicit safe retry; uncertain paid-call outcomes do not auto-replay.",
+          "meaningful_oracle": "DurableAIEvaluationTests.test_admission_reload_replay_worker_and_history, test_expired_before_provider_call_resumes_safely, test_result_publication_failure_rolls_back_completion_and_reuses_staged_response, test_expired_started_provider_call_is_never_replayed, test_provider_errors_are_durable_sanitized_and_never_publish_history. Provider-error test admits separate fresh intents after prior BLOCKED result."
+        }
+      ],
+      "implementation_paths": [
+        "services/discovery/pipeline.py",
+        "services/discovery/matching.py",
+        "services/ai/tasks.py",
+        "services/ai/durable_evaluation.py",
+        "workers/tasks.py",
+        "workers/operations.py",
+        "workers/dispatch.py",
+        "compose.yml",
+        "apps/web/src/durable-ai-evaluation.tsx"
+      ],
+      "meaningful_tests": [
+        "tests/integration/test_selected_search_ai.py",
+        "tests/integration/test_durable_ai_evaluation.py",
+        "tests/integration/test_primary_product_architecture.py",
+        "apps/web/src/durable-ai-evaluation.test.tsx"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/integration/test_selected_search_ai.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_primary_product_architecture.py",
+        "npm --prefix apps/web test -- src/durable-ai-evaluation.test.tsx"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Literal queue/retry does not require blind automatic repetition of an uncertain billable call. Explicit new intent plus safe pre-call/staged-result recovery satisfies retry with side-effect protection.",
+        "Existing outage regression checks deterministic candidate readback; independent source discovery is established by production separation and discovery test rather than one combined concurrent end-to-end outage test. A single focused combined regression would strengthen evidence, but no missing discovery dependency was found.",
+        "Local provider mocks/control transports are sufficient; no live paid provider is required."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        "apps/web/src/durable-ai-evaluation.test.tsx": "636d3742d6b8941a2b63440f04e9429875870be6b2bc0d15e041745691b722ce",
+        "apps/web/src/durable-ai-evaluation.tsx": "ebdf3274fcbf65ba70a243aa7393b61670b0379d6dc487ff226ad5ff62b11ca5",
+        "compose.yml": "1569c41b6ce0fb172cea971df860754f05c6fd84471e95473f7685cc28986365",
+        "services/ai/durable_evaluation.py": "1e1da50c537e44ae174fe86bf74c6bf200c7f4a769f7e214b4ba6869adacbb54",
+        "services/ai/tasks.py": "7f9c99fc4351a11d733876c8d6b49e49fcbbf5cebb91164f945b7356cb7d4069",
+        "services/discovery/matching.py": "8d99a7e757111956bcdf5c52b7a89ca77687a512322baef0949bbffc390cc996",
+        "services/discovery/pipeline.py": "29f02eb02f87c9cb8721ab63fdb27bfb4dacf897c48c4ac66f2c9c4e3f164393",
+        "tests/integration/test_durable_ai_evaluation.py": "cf60ff00453d141a020302f496b9d60cfdfda49adfd00bc145f2829c46c8cac7",
+        "tests/integration/test_primary_product_architecture.py": "8c98f53ff3e557cb99910912c0526c7c35cd4849964b45e951952e6a3d4bdfca",
+        "tests/integration/test_selected_search_ai.py": "b6840e3637fe30043b77f205b989273fcf8cef1ed91e38a1e12f7bf7a28d5d81",
+        "workers/dispatch.py": "299f96e5821369eba462ca9502c37a42c2fa3187a60e5760be44ff738367bc82",
+        "workers/operations.py": "0dab7f6a029c25375ecb68a5d93cec57a53e626268d02b8ce803d1396fff9e4e",
+        "workers/tasks.py": "17b7ee118ce19d7765c4458f8dee45cf0740203c79b549a3e91d95434803f77f"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/272"
+    },
+    {
+      "id": "MJ-REQ-274",
+      "issue": 275,
+      "title": "[MJ-REQ-274] Process Restart Recovery",
+      "canonical_before": "PARTIAL",
+      "authoritative_requirement": "On service restart:\n\n```text\nscheduler resumes\nworkers reconnect\npending discovery continues\ncompany sources persist\ndocuments persist\napplication state persists\nambiguous submissions remain ambiguous\n```",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Scheduler resumes",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Scheduler durable cadence/outbox state survives independent interpreter restart and avoids duplicate window admission; Compose recovery restart set explicitly includes scheduler.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_due_discovery_survives_store_restart_and_completes_once runs fresh scheduler and worker interpreters and verifies final NOT_DUE; test_compose_recovery_restarts_scheduler_service verifies actual command construction."
+        },
+        {
+          "criterion": "Workers reconnect",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Worker supervision restarts during Redis outage; durable outbox is retained and dispatched after Redis returns. Actual worker/horse recovery uses a fresh production RQ worker.",
+          "meaningful_oracle": "cli.compose_recovery run stops this fixture Redis/workers, observes worker restart-count increment, restores Redis and waits for queued discovery COMPLETED; RQWorkhorseRecovery connected tests exercise natural abandoned execution recovery."
+        },
+        {
+          "criterion": "Pending discovery continues",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Operation identity, attempt state and discovered domain effects survive crash; recovered worker performs production discovery again while deduplication prevents duplicate effects.",
+          "meaningful_oracle": "ProcessRestartRecoverySustain275Tests.test_crash_after_discovery_recovers_once_and_replay_does_not_add_attempt launches crash/finish subprocesses and contains a no-op negative-control oracle that must fail discovery observation."
+        },
+        {
+          "criterion": "Company sources persist",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Company source catalog is relational durable state and is included in the seven-domain persistence inventory checked via public API around the actual Compose restart.",
+          "meaningful_oracle": "PrimaryProductArchitectureTests.test_04_application_service_route_selection_and_idempotent_readback; cli.local_persistence_acceptance collect/compare in cli.compose_recovery, source count and digest must stay nonzero/identical."
+        },
+        {
+          "criterion": "Documents persist",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Generated resume and cover-letter metadata and PDF/DOCX/TXT downloads retain original hashes; uploaded resumes also included in public seven-domain comparison.",
+          "meaningful_oracle": "cli.local_persistence_acceptance.collect verifies stored hashes against downloaded bytes; actual synthetic ci-recovery.json must contain local_persistence.result PASS and all domain names."
+        },
+        {
+          "criterion": "Application state persists",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Confirmed application, original operation/request identity and independently persisted mock receipt survive restarted services; repeated same request is replayed with submission_count exactly one.",
+          "meaningful_oracle": "cli.compose_recovery.verify_recovered_application and actual repeated mock-run/read-only receipt check; primary architecture reopened-store test."
+        },
+        {
+          "criterion": "Ambiguous submissions remain ambiguous",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Unknown post-submit outcomes transition to SUBMISSION_UNCONFIRMED and receipt-only reconciliation. Restart does not convert them to success or relaunch the browser/submit while receipt unavailable.",
+          "meaningful_oracle": "tests/integration/test_application_worker_crash_postgres.py and RQWorkhorseRecovery test_abandoned_mock_submit_with_unavailable_receipt_remains_uncertain_without_resubmission; real isolated PostgreSQL/Redis prerequisites required."
+        }
+      ],
+      "implementation_paths": [
+        "services/discovery/scheduler.py",
+        "workers/operations.py",
+        "workers/main.py",
+        "workers/dispatch.py",
+        "cli/compose_recovery.py",
+        "cli/local_persistence_acceptance.py",
+        ".github/workflows/connected-acceptance.yml",
+        ".github/workflows/integration.yml",
+        "compose.yml"
+      ],
+      "meaningful_tests": [
+        "tests/integration/test_process_restart_recovery_sustain_275.py",
+        "tests/integration/test_source_policy_scheduler.py",
+        "tests/integration/test_primary_product_architecture.py",
+        "tests/integration/test_rq_workhorse_recovery.py",
+        "tests/integration/test_application_worker_crash_postgres.py",
+        "tests/integration/test_compose_recovery_target.py",
+        "tests/unit/test_compose_restart_observation.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/integration/test_process_restart_recovery_sustain_275.py tests/integration/test_source_policy_scheduler.py tests/integration/test_primary_product_architecture.py tests/integration/test_compose_recovery_target.py tests/unit/test_compose_restart_observation.py",
+        "With isolated disposable PostgreSQL and Redis as integration.yml configures: python -m pytest -q tests/integration/test_rq_workhorse_recovery.py tests/integration/test_application_worker_crash_postgres.py",
+        "On the exact candidate revision, require all Integration shards and Connected acceptance synthetic workflow SUCCESS; inspect integration JUnit no skips for connected recovery cases and synthetic-acceptance-json/ci-recovery.json with local_persistence and public_job_inventory_recovery both PASS."
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Do not substitute mocked cli.compose_recovery tests for actual Compose evidence or an in-memory reopened store for worker reconnection.",
+        "Fictional local ATS proves restart semantics without live employer writes, which are not required by the literal. General personal production deployment availability is a separate scope.",
+        "Actual hosted artifact inspection/execution belongs to root; this report does not claim same-revision success."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        ".github/workflows/connected-acceptance.yml": "b13294ca5b36516217de2e2c292e64216bc3d52db0ccc574c37c4f5358815c2e",
+        ".github/workflows/integration.yml": "4637dbbbd01c4ad1a435f223c2d56b19098d77862ff7543f637f04477ff62217",
+        "cli/compose_recovery.py": "e1c56cdb08793e54f933aa039b10829f243b8f438d33f2d671bb5ed16c7745cb",
+        "cli/local_persistence_acceptance.py": "e5fc03d33ac6be2f7ae6940332829adfecf13da879ec84d705d197f30c642a7f",
+        "compose.yml": "1569c41b6ce0fb172cea971df860754f05c6fd84471e95473f7685cc28986365",
+        "services/discovery/scheduler.py": "55fc6a8abd0bdc1abd23acba277815df9f6b5b307b8b835f3236f081e6a042ed",
+        "tests/integration/test_application_worker_crash_postgres.py": "b5bc631c78683d12f4a2e9cbfd7ee13a7bf934fb8c4e7e6572b7cd311671c94b",
+        "tests/integration/test_compose_recovery_target.py": "0d5a660010620f5efa0e47554f3af777065137808c6d9146077a7dcc6edc3337",
+        "tests/integration/test_primary_product_architecture.py": "8c98f53ff3e557cb99910912c0526c7c35cd4849964b45e951952e6a3d4bdfca",
+        "tests/integration/test_process_restart_recovery_sustain_275.py": "0137969016cb8237d66242eba016a3057594adccccca7b03c414d54ceffde1a4",
+        "tests/integration/test_rq_workhorse_recovery.py": "0f76665d29f76c1b10223506cba18bef671b916a774f07afb8f01237687d57a1",
+        "tests/integration/test_source_policy_scheduler.py": "d566870033f3db832bb29a2184892dd984fd322b778c2f8c11241cd73d8cd7ea",
+        "tests/unit/test_compose_restart_observation.py": "28c3a84e27a4f771f48ac736b6b04655af9f269d3e639169c440b0cbd72f9431",
+        "workers/dispatch.py": "299f96e5821369eba462ca9502c37a42c2fa3187a60e5760be44ff738367bc82",
+        "workers/main.py": "f5553b847ca7d6419b38d7f53f1ea6338685c004f7491033807656a9abeb7b0f",
+        "workers/operations.py": "0dab7f6a029c25375ecb68a5d93cec57a53e626268d02b8ce803d1396fff9e4e"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/275"
+    },
+    {
+      "id": "MJ-REQ-279",
+      "issue": 280,
+      "title": "[MJ-REQ-279] Python Quality",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Prefer:\n\n```text\nRuff\npytest\ntype hints\nmypy or pyright where practical\n```",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Prefer Ruff",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Pinned Ruff is installed from test requirements, pyproject sets Python 3.12 and generated/private exclusions; CI invokes ruff check on three practical backend modules.",
+          "meaningful_oracle": "Run actual python -m ruff check on configured three modules; test_python_quality_contract_sustain_280 checks wiring and exclusions but does not replace execution."
+        },
+        {
+          "criterion": "Prefer pytest",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Pinned pytest drives unit/integration shards and synthetic browser tests; public CI produces structured JUnit.",
+          "meaningful_oracle": "Run targeted Python quality test plus actual unit/integration gates on candidate revision."
+        },
+        {
+          "criterion": "Prefer type hints",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Maintained application multipage-state and operations workbench/actions modules expose typed interfaces; configuration validates Python target.",
+          "meaningful_oracle": "Ruff/mypy on actual selected modules; PythonQualityContractTests.test_supported_python_and_pytest_are_executable_and_typed_modules_compile."
+        },
+        {
+          "criterion": "mypy or pyright where practical",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "pyproject names three bounded public modules and mypy settings; CI actually runs mypy using this configuration.",
+          "meaningful_oracle": "python -m mypy; PythonQualityContractTests.test_ruff_and_practical_typecheck_configuration_is_wired only checks configuration and should be accompanied by tool output."
+        }
+      ],
+      "implementation_paths": [
+        "pyproject.toml",
+        ".github/test-requirements.txt",
+        ".github/workflows/ci.yml",
+        "apps/api/application_multipage_state.py",
+        "services/operations/pipeline_workbench.py",
+        "services/operations/pipeline_actions.py"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_python_quality_contract_sustain_280.py"
+      ],
+      "verification_commands": [
+        "python -m ruff check apps/api/application_multipage_state.py services/operations/pipeline_workbench.py services/operations/pipeline_actions.py",
+        "python -m mypy",
+        "python -m pytest -q tests/unit/test_python_quality_contract_sustain_280.py",
+        "Require actual backend lint/typecheck/unit CI steps to succeed at candidate revision."
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Literal says prefer and where practical; it does not require migrating every historic backend file to fully strict mypy or linting the entire repository.",
+        "Static configuration check alone does not prove Ruff/mypy ran successfully."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        ".github/test-requirements.txt": "5f14c748e0d7a7b3628223d847f5ad9fd04c4914833a6bf8a6da68c83338fe4f",
+        ".github/workflows/ci.yml": "091af2be7bf0a44669046fade4a123c39f316c342348566a25713b13b010cfcc",
+        "apps/api/application_multipage_state.py": "08e53bdb541c5ff44b234a7ef6ec6fbe0579c5502aa9e0516f93041fbada8b61",
+        "pyproject.toml": "8cc302001eb454fa558e382968a009bf5688d792ae2139a59305136f5c3a8aba",
+        "services/operations/pipeline_actions.py": "b2bf4626945aabd48959b35a9c12a369edac4af0cba92ec63dc12a8d1d46bb3d",
+        "services/operations/pipeline_workbench.py": "cffb0c38af828c5367caf55581fcfb075dc62767c4da2d76bb7e97e5c1ca8eba",
+        "tests/unit/test_python_quality_contract_sustain_280.py": "27ebf2f9f8c0f81f02fedd1892a6bd4bbabe1cd3ebb857a48fa95b2b1da0d90f"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/280"
+    },
+    {
+      "id": "MJ-REQ-280",
+      "issue": 281,
+      "title": "[MJ-REQ-280] Typescript Quality",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Use:\n\n```text\nstrict TypeScript\nESLint\nformatter\ncomponent tests\n```",
+      "review_verdict": "IMPLEMENTATION_GAP_ESLINT_AND_FORMATTER",
+      "criteria": [
+        {
+          "criterion": "Strict TypeScript",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "tsconfig has strict true and typecheck invokes tsc --noEmit; production build includes it.",
+          "meaningful_oracle": "npm --prefix apps/web run typecheck; npm --prefix apps/web run build"
+        },
+        {
+          "criterion": "ESLint",
+          "static_verdict": "IMPLEMENTATION_GAP",
+          "implementation": "At reviewed baseline package lint runs node scripts/lint.mjs, a custom regex/style safety checker. No ESLint dependency/config or invocation exists. A custom checker is not ESLint.",
+          "meaningful_oracle": "Dependency/script/config inspection at reviewed SHA; root is implementing actual ESLint in separate nonoverlapping package/config/CI files."
+        },
+        {
+          "criterion": "Formatter",
+          "static_verdict": "IMPLEMENTATION_GAP",
+          "implementation": "At reviewed baseline no formatter dependency/config/script is present. The custom lint checks whitespace patterns but does not provide a formatter.",
+          "meaningful_oracle": "Dependency/script/config inspection at reviewed SHA; root is implementing bounded formatter adoption."
+        },
+        {
+          "criterion": "Component tests",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Vitest with jsdom and Testing Library exercises real component rendering and interaction; scripts test invokes vitest run.",
+          "meaningful_oracle": "npm --prefix apps/web test, including selectable-card, application-supporting-documents, first-run-wizard and other component suites."
+        }
+      ],
+      "implementation_paths": [
+        "apps/web/package.json",
+        "apps/web/package-lock.json",
+        "apps/web/tsconfig.json",
+        "apps/web/scripts/lint.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "meaningful_tests": [
+        "apps/web/src/selectable-card.test.tsx",
+        "apps/web/src/application-supporting-documents.test.tsx",
+        "apps/web/src/first-run-wizard.test.tsx"
+      ],
+      "verification_commands": [
+        "After root source patch: npm --prefix apps/web run lint",
+        "After root source patch: npm --prefix apps/web run format:check (use final actual script name)",
+        "npm --prefix apps/web run typecheck",
+        "npm --prefix apps/web test",
+        "npm --prefix apps/web run build"
+      ],
+      "remaining_gaps": [
+        "Add real ESLint and a formatter, include actual executable CI gates, retain strict TypeScript/component coverage. Root owns this implementation; reviewer must not edit same files."
+      ],
+      "limitations": [
+        "Bounded initial formatting adoption is reasonable; do not require unrelated mass reformat. Explicit ESLint requirement cannot be relabeled satisfied by custom regex lint.",
+        "Verdict refers to immutable reviewed baseline, not root concurrent working changes."
+      ],
+      "source_sha256_at_reviewed_revision": {
+        ".github/workflows/ci.yml": "091af2be7bf0a44669046fade4a123c39f316c342348566a25713b13b010cfcc",
+        "apps/web/package-lock.json": "73cbe51a7dcf19d42267daccb64e545ff7f08289e83833a1c67e6c27b86d89fd",
+        "apps/web/package.json": "48fda0ecc1144d84f196e4d17d0ef28c3f438f6be2e1f4731f27f838a9eedcd3",
+        "apps/web/scripts/lint.mjs": "5572796240c17287d8c917df8d4324ad5d3a1429e2574a3b29c83ba340bca053",
+        "apps/web/src/application-supporting-documents.test.tsx": "d3c7378ee2c8649a0f850172a1f4e50d1ed24df70bff3180958201dcc7365ff9",
+        "apps/web/src/first-run-wizard.test.tsx": "c9dd323987c581fa800766fdc134863e3e0bf7138299d92b748e58bf15cd50ee",
+        "apps/web/src/selectable-card.test.tsx": "5b089be2a45833bb1fed72eae5fcba51af906903cd5437c38c2a2bdfe34fefdd",
+        "apps/web/tsconfig.json": "9656a96a73126479f79891b97457931285343a6d58a2f8d0c1da5843e9591685"
+      },
+      "missing_named_paths": [],
+      "github_source": "https://github.com/MulattoTech/MJobs/tree/53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/281"
+    }
+  ],
+  "recommendations": {
+    "ready_conditioned_on_execution": [
+      "MJ-REQ-255",
+      "MJ-REQ-256",
+      "MJ-REQ-258",
+      "MJ-REQ-271",
+      "MJ-REQ-274",
+      "MJ-REQ-279"
+    ],
+    "implementation_or_scope_gaps": [
+      "MJ-REQ-254",
+      "MJ-REQ-267",
+      "MJ-REQ-269",
+      "MJ-REQ-280"
+    ],
+    "parent_owned_patches": [
+      "MJ-REQ-280 actual ESLint/formatter"
+    ],
+    "reviewer_next_assigned_patch": [
+      "MJ-REQ-254 bounded API/upload deadlines in isolated branch"
+    ],
+    "acceptance_rule": "Never promote from this audit alone; execute commands, inspect same-revision required hosted gates and attach sanitized criterion evidence."
+  },
+  "implementation_followup": {
+    "requirement": "MJ-REQ-254",
+    "commit": "396f7a857e049036424300da1c96616a0d7e686a",
+    "branch": "chatgpt/p1-254-api-deadline-20261101",
+    "worktree": "/workspace/scratch/05fe891fa40c/MJobs-ux-deadline",
+    "files": [
+      "apps/web/src/api.ts",
+      "apps/web/src/api-deadline.test.ts"
+    ],
+    "changes": [
+      "30-second shared JSON request deadline including response body",
+      "60-second resume-upload deadline including response body",
+      "caller cancellation propagation with original reason",
+      "timer and listener cleanup",
+      "no automatic mutation retry; useful saved-state readback guidance"
+    ],
+    "executed_checks": [
+      {
+        "command": "npm --prefix apps/web test -- src/api.test.ts src/api-deadline.test.ts",
+        "result": "PASS",
+        "tests": 24
+      },
+      {
+        "command": "npm --prefix apps/web test",
+        "result": "PASS",
+        "files": 149,
+        "tests": 980
+      },
+      {
+        "command": "npm --prefix apps/web run typecheck",
+        "result": "PASS"
+      },
+      {
+        "command": "npm --prefix apps/web run lint",
+        "result": "PASS",
+        "note": "Existing baseline custom checker, not root new ESLint configuration"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.commit_provenance --commit HEAD",
+        "result": "PASS",
+        "source_files": 2
+      }
+    ],
+    "hosted_checks": "NOT_RUN; root will integrate and require exact candidate protected gates",
+    "acceptance_note": "This source patch closes the concrete never-settling API/upload gap; it does not alone promote all UX criteria. Baseline criterion audit above remains immutable."
+  }
+}

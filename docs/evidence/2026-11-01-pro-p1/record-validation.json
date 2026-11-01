@@ -1,0 +1,45 @@
+{
+  "observed_at": "2026-11-01T06:19:32.208690+00:00",
+  "scope": "Acceptance-record validation; product source unchanged from integrated PR875",
+  "source_merge": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+  "checks": [
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.ci.check_repository",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "tests": {
+    "command": "python -m pytest -q tests/unit/test_catalogue.py tests/unit/test_progress_journal.py tests/unit/test_progress_dashboard.py tests/unit/test_progress_card.py tests/unit/test_reconcile_planning.py",
+    "passed": 40,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit": "docs/evidence/2026-11-01-pro-p1/inputs/p1-record-validation.xml",
+    "junit_sha256": "2733d0387f8e02a816f4659dbb4269afdf427f45f354eae43fe232bb094131c8"
+  },
+  "canonical_record": {
+    "original_total": 366,
+    "p1_total": 116,
+    "p1_pass": 92,
+    "new_p1_pass": 43,
+    "reference_total": 59,
+    "reference_unchanged": true
+  },
+  "durable_evidence_path_replacements": 29
+}

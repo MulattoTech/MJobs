@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "reviewer": "ChatGPT-Web pr_triage independent literal-scope reviewer",
+  "reviewed_at": "2026-11-01T06:10:57.700263+00:00",
+  "reviewed_head": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+  "requirement_id": "MJ-REQ-020",
+  "decision": "EXACT_SKIPPED_NODE_IS_NON_REQUIRED_EXTRA_MODULE_COVERAGE",
+  "required_literal_coverage": "PASS_FROM_EXECUTED_NAMED_CRITERION_TESTS",
+  "skipped_node": "tests/integration/test_company_monitoring_recovery.py::CompanyMonitoringRecoveryTests::test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+  "observed_test_result": "SKIPPED",
+  "raw_module_result": "PARTIAL_SKIPPED",
+  "preserve_module_counts": {
+    "passed": 15,
+    "skipped": 1
+  },
+  "skip_reason": "STK01 requires frozen static audit and explicit disposable-stack resource grant",
+  "literal_requirement": {
+    "configurable_per_source_policy_fields": [
+      "enabled",
+      "poll_interval",
+      "concurrency",
+      "request_timeout",
+      "rate_limit",
+      "last_attempt",
+      "last_success",
+      "consecutive_failures",
+      "backoff_until",
+      "health_status",
+      "collection_strategy"
+    ],
+    "additional_clause": "One failed source must not stop the pipeline."
+  },
+  "scope_reasoning": [
+    "The literal requirement maintains eleven per-source configuration/observation fields and isolates one source failure. It contains no full-stack/container restart or residual-resource teardown acceptance clause.",
+    "The skipped test delegates to the opt-in STK01 run_stack scenario and asserts whole-stack result PASS plus no residual owned resources. That broader restart/resource-lifecycle scenario is not required by any literal020 clause.",
+    "The skipped node is not named by any criterion or requirement in this draft. Its module is selected only as supplemental evidence for MJ-REQ-020.",
+    "The exact executed sustain test configures healthy, rate-limited and disabled sources, collects the failure then the independent healthy source, reopens the Store and explicitly asserts all eleven policy fields and persisted success/failure observations.",
+    "The sustain test further proves the healthy source is scheduled while the failed source remains in backoff, the disabled source is not scheduled, and the failed source becomes eligible at its own later backoff boundary.",
+    "Executed scheduler capability/policy and company API-policy tests additionally verify accepted limits, adapter configuration and fresh-Store API readback.",
+    "Fifteen additional tests in the selected recovery module pass, including fresh scheduler/worker recovery, failure observations and queued-source disable/retarget guards. They do not turn the skipped whole-stack test into a pass.",
+    "This classification relies on complete literal020 evidence. Separate Compose recovery evidence for other requirements is not used as a substitute for the unexecuted STK01 scenario."
+  ],
+  "criterion_coverage": [
+    {
+      "criterion": "enabled",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "poll_interval",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "concurrency",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "request_timeout",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "rate_limit",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "last_attempt",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "last_success",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "consecutive_failures",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "backoff_until",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "health_status",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "collection_strategy",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    },
+    {
+      "criterion": "One failed source must not stop the pipeline.",
+      "result": "PASS",
+      "primary_executed_node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+    }
+  ],
+  "required_named_tests": [
+    {
+      "node": "tests/integration/test_company_monitoring_policy.py::CompanyMonitoringPolicyTests::test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy",
+      "result": "PASS",
+      "executions": [
+        {
+          "class": "tests.integration.test_company_monitoring_policy.CompanyMonitoringPolicyTests",
+          "name": "test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy",
+          "result": "passed",
+          "node": "tests/integration/test_company_monitoring_policy.py::CompanyMonitoringPolicyTests::test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy",
+          "junit_sha256": "1ec953e94d9dfbace469029ea93e558cf7686d63d9d36cf71b54e8a3095878c3"
+        }
+      ]
+    },
+    {
+      "node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source",
+      "result": "PASS",
+      "executions": [
+        {
+          "class": "tests.integration.test_source_policy_cadence_sustain_021.SourcePolicyCadenceSustainTests",
+          "name": "test_policy_survives_reopen_and_failure_cannot_block_independent_due_source",
+          "result": "passed",
+          "node": "tests/integration/test_source_policy_cadence_sustain_021.py::SourcePolicyCadenceSustainTests::test_policy_survives_reopen_and_failure_cannot_block_independent_due_source",
+          "junit_sha256": "1d6bb016986a38863268095329355c18e49135976d3e602f5765fe5efbf0ef33"
+        }
+      ]
+    },
+    {
+      "node": "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_source_declares_typed_capabilities_and_persists_complete_policy",
+      "result": "PASS",
+      "executions": [
+        {
+          "class": "tests.integration.test_source_policy_scheduler.SourcePolicySchedulerTests",
+          "name": "test_source_declares_typed_capabilities_and_persists_complete_policy",
+          "result": "passed",
+          "node": "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_source_declares_typed_capabilities_and_persists_complete_policy",
+          "junit_sha256": "1ec953e94d9dfbace469029ea93e558cf7686d63d9d36cf71b54e8a3095878c3"
+        }
+      ]
+    }
+  ],
+  "exact_observed_skip": {
+    "class": "tests.integration.test_company_monitoring_recovery.CompanyMonitoringRecoveryTests",
+    "name": "test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+    "result": "skipped",
+    "message": "STK01 requires frozen static audit and explicit disposable-stack resource grant",
+    "node": "tests/integration/test_company_monitoring_recovery.py::CompanyMonitoringRecoveryTests::test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+    "junit_sha256": "fdbff36f1a9e761cfdaf5680955a30b97aba8077bb3f38b30683ef5d874c544f"
+  },
+  "binding_inputs": [
+    {
+      "path": "/workspace/scratch/05fe891fa40c/hosted-41278248903.json",
+      "sha256": "05f1d71d3158c7ada644f5bbe80fd2657dfecf3723a8f48e14246e90493e593c",
+      "run_id": 41278248903,
+      "head": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41278248903"
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/p1-reviewed-draft.json",
+      "sha256": "daaea10990db66e29e971795aa0cd44c864fd9d369d8692bd64aa9730544a486",
+      "module_owners": [
+        "MJ-REQ-020"
+      ]
+    }
+  ],
+  "source_bindings": [
+    {
+      "path": "tests/integration/test_company_monitoring_recovery.py",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "sha256": "69843f856545a3beb742ed76dd25e7d6bf408ef0e7c8a2ae9a2bce8cf29dfe0e"
+    },
+    {
+      "path": "fixtures/company_monitoring_stack.py",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "sha256": "0cd8710a2386b8841bd3e51f41d6787ed336d50cb10be38e61ffe2b05ee07582"
+    },
+    {
+      "path": "tests/integration/test_company_monitoring_policy.py",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "sha256": "2bae01b6b427cbab2438c04b089990f98bce2b7e941caa747a43b38ebe0da529"
+    },
+    {
+      "path": "tests/integration/test_source_policy_cadence_sustain_021.py",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "sha256": "f2d7659363722269b2177b3b094cc0e4873f3a354f3b8a59037a895373104a3e"
+    },
+    {
+      "path": "tests/integration/test_source_policy_scheduler.py",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "sha256": "d566870033f3db832bb29a2184892dd984fd322b778c2f8c11241cd73d8cd7ea"
+    },
+    {
+      "path": "planning/ISSUE_SEED.jsonl",
+      "revision": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+      "sha256": "e7d430ec2b86a8d6a030987168ef7753b81ff24d2b4ad5df6c7c25f78c74914a"
+    }
+  ],
+  "classification_limits": [
+    "Keep this exact test SKIPPED and the raw module PARTIAL_SKIPPED; never change the module to blanket PASS.",
+    "Do not generalize this decision to other skipped tests, other owners or requirements with explicit restart/stack criteria.",
+    "No STK01 stack execution, resource grant, physical host restart or residual-resource cleanup is claimed.",
+    "No test, grant, source implementation or canonical acceptance file is changed by this review."
+  ],
+  "remaining_literal020_gaps": []
+}

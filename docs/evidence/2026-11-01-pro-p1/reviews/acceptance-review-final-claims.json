@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "reviewer": "ChatGPT-Web /root/docs_delivery",
+  "reviewed_git_sha": "e69638121e79a40632afdef80b70befa1de4ecfa",
+  "repository": "/workspace/scratch/05fe891fa40c/MJobs",
+  "scope": "Final claim-wording and literal-scope audit of 41 proposed new-PASS candidates, with MJ-REQ-254 excluded and retained PARTIAL. This is an audit record, not canonical acceptance.",
+  "candidate_count": 41,
+  "candidate_ids": [
+    "MJ-REQ-020",
+    "MJ-REQ-021",
+    "MJ-REQ-030",
+    "MJ-REQ-034",
+    "MJ-REQ-157",
+    "MJ-REQ-159",
+    "MJ-REQ-163",
+    "MJ-REQ-164",
+    "MJ-REQ-170",
+    "MJ-REQ-213",
+    "MJ-REQ-214",
+    "MJ-REQ-215",
+    "MJ-REQ-216",
+    "MJ-REQ-217",
+    "MJ-REQ-219",
+    "MJ-REQ-220",
+    "MJ-REQ-222",
+    "MJ-REQ-223",
+    "MJ-REQ-225",
+    "MJ-REQ-226",
+    "MJ-REQ-227",
+    "MJ-REQ-230",
+    "MJ-REQ-255",
+    "MJ-REQ-256",
+    "MJ-REQ-258",
+    "MJ-REQ-259",
+    "MJ-REQ-260",
+    "MJ-REQ-261",
+    "MJ-REQ-262",
+    "MJ-REQ-271",
+    "MJ-REQ-274",
+    "MJ-REQ-278",
+    "MJ-REQ-279",
+    "MJ-REQ-280",
+    "MJ-REQ-281",
+    "MJ-REQ-282",
+    "MJ-REQ-283",
+    "MJ-REQ-284",
+    "MJ-REQ-285",
+    "MJ-REQ-286",
+    "MJ-REQ-287"
+  ],
+  "draft_notes_path": "/workspace/scratch/05fe891fa40c/p1_acceptance_notes.json",
+  "draft_notes_sha256_at_persistence": "e6263780f2b305a36865725a06d959be03975e8e730c40dd06c6202b840e9de1",
+  "conclusion": "No additional literal implementation blocker identified in the 41 candidates after MJ-REQ-225/MJ-REQ-226 wording corrections. Acceptance remains conditional on root verifying relevant tests and exact-revision required hosted gates and artifacts.",
+  "method": "Compared authoritative ISSUE_SEED literals with draft notes and existing per-criterion audit reports; reviewed relevant production/test boundaries and supplemented company-feed coverage. Does not claim a fresh full code audit or fresh test execution for all 41 objectives.",
+  "wording_corrections": [
+    {
+      "id": "MJ-REQ-225",
+      "status": "CORRECTED_BY_ROOT",
+      "correction": "Describe all ten literal unsafe-input categories; credential handling is not a separately listed literal criterion. Security-test acceptance does not certify every broader security parent."
+    },
+    {
+      "id": "MJ-REQ-226",
+      "status": "CORRECTED_BY_ROOT",
+      "correction": "Describe production controlled form-fill tests with an in-memory Playwright double: special characters reach fill() unchanged, with fail-closed OS/process sentinels. Do not describe this regression as executed real Chromium."
+    }
+  ],
+  "MJ-REQ-223_supplement": {
+    "purpose": "Include generic first-party RSS/Atom/JSON employer-feed evidence alongside the registered Greenhouse/Lever company-ATS contract. These are existing implementation/tests, not a new implementation gap.",
+    "existing_registered_contract": "tests/unit/test_company_source_contract_sustain_224.py",
+    "supplemental_evidence": [
+      {
+        "test_path": "tests/unit/test_company_job_endpoints.py",
+        "source_paths": [
+          "services/company_discovery/endpoints.py"
+        ],
+        "evidence": "Exercises the production RSS, Atom and JSON-feed parser; rejects unsafe or unsupported endpoint links, cross-origin links, malformed endpoints, entity expansion and non-job items; endpoint selection is deterministic.",
+        "test_nodes": [
+          "tests/unit/test_company_job_endpoints.py::CompanyJobEndpointTests::test_parses_bounded_rss_atom_and_json_feed_jobs",
+          "tests/unit/test_company_job_endpoints.py::CompanyJobEndpointTests::test_rejects_unsafe_invalid_and_unsupported_links_while_deduplicating_stably",
+          "tests/unit/test_company_job_endpoints.py::CompanyJobEndpointTests::test_rejects_entity_expansion_and_non_job_items"
+        ],
+        "test_sha256": "04a3c2c05dca8e5e752fdd5f22d387103c63b53d3ca721d0f056a549aefc8a09"
+      },
+      {
+        "test_path": "tests/integration/test_company_feed_quality.py",
+        "source_paths": [
+          "services/discovery/company_feed.py",
+          "services/discovery/feed_items.py",
+          "services/company_discovery/sources.py",
+          "services/company_discovery/quality.py"
+        ],
+        "evidence": "Tests company/source identity rejection before writes, canonical endpoint matching, exact relative application-URL resolution, rejected endpoint changes, malformed-row enumeration/acceptance counts, rollback and later retry. Production _validate_source_identity binds company, provider, tenant, endpoint and collection strategy to the persisted source.",
+        "test_nodes": [
+          "tests/integration/test_company_feed_quality.py::CompanyFeedQualityTests::test_source_identity_mismatch_writes_nothing",
+          "tests/integration/test_company_feed_quality.py::CompanyFeedQualityTests::test_canonical_equivalent_endpoint_preserves_relative_url_resolution",
+          "tests/integration/test_company_feed_quality.py::CompanyFeedQualityTests::test_different_endpoint_path_or_query_is_rejected",
+          "tests/integration/test_company_feed_quality.py::CompanyFeedQualityTests::test_partial_rows_record_enumerated_and_accepted_metrics",
+          "tests/integration/test_company_feed_quality.py::CompanyFeedQualityTests::test_failure_is_observed_after_rollback_and_retry_can_reopen"
+        ],
+        "test_sha256": "58fee8fa868e1eba871a8bfefeb224469739a9d4f9c54cba7fa88e4766a4304f"
+      },
+      {
+        "test_path": "tests/integration/test_company_discovery.py",
+        "source_paths": [
+          "services/company_discovery/flywheel.py",
+          "services/company_discovery/endpoints.py",
+          "services/discovery/company_feed.py",
+          "services/discovery/feed_items.py"
+        ],
+        "evidence": "Traverses a controlled employer page, careers page and RSS feed through production discovery. Three enumerated rows yield two accepted jobs; repeating discovery still leaves two canonical jobs and two postings. Asserts stable python-role/support-role requisitions, exact employer application URL, source provider and deterministic matching. The javascript URL row is rejected. This is fixture evidence, not live company-career acceptance.",
+        "test_nodes": [
+          "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_first_party_feed_jobs_enter_the_canonical_job_and_match_pipeline"
+        ],
+        "test_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3"
+      }
+    ],
+    "source_sha256": {
+      "services/company_discovery/endpoints.py": "9dd93fb5c20a78068a2bcbd6e96d69d4f223cf5cca17ed8c7e431b70080c7a58",
+      "services/company_discovery/flywheel.py": "f0830d23748c8aca785cf59d5f94f1fba1bc8525c84123d5756518ad6a3eff38",
+      "services/company_discovery/quality.py": "db3a1cb13bcef5dcce9f5e92b9a00fa39419e1eb835a6bb4d35bc4563afbd6a4",
+      "services/company_discovery/sources.py": "1b347301f2e67a6c15837d826789163702d834b408ea26d25c994517c949e25e",
+      "services/discovery/company_feed.py": "48d94481b17be7a23c87b97906d1d45da88960136fe0c90e52091841e4cf78da",
+      "services/discovery/feed_items.py": "b81f84d84f92c17a97b288f65eaf44f356f4f43460bf1fa099925a4044bc5e6e"
+    },
+    "execution_caveat": "Test node names and hashes are resolved against the reviewed revision; tests were not rerun for this audit. Root must attach actual successful relevant execution."
+  },
+  "MJ-REQ-254": {
+    "disposition": "PARTIAL",
+    "excluded_from_new_pass_candidates": true,
+    "implemented_scope": "Shared api/upload complete-response deadlines and five migrated direct-fetch paths; independent review found no blockers in that bounded patch.",
+    "remaining_gap": "21 active UI modules contain 32 unbounded injected-fetch dispatch sites; one further unbounded helper has no active UI importer. Navigation cancellation and finite polling counts do not provide elapsed request/body deadlines.",
+    "inventory_path": "/workspace/scratch/05fe891fa40c/acceptance-review-ui-deadline-gaps.json",
+    "follow_up": "Separate coherent change to preserve injected transports while migrating every relevant fetch/body reader to the existing complete-response primitive. No further implementation authorized in this audit."
+  },
+  "pending_execution_and_scope_caveats": [
+    {
+      "ids": [
+        "MJ-REQ-213",
+        "MJ-REQ-274",
+        "MJ-REQ-278"
+      ],
+      "condition": "Root must verify actual final-revision required Chromium, Compose recovery and hosted CI results/artifacts. Workflow configuration or test presence alone is insufficient."
+    },
+    {
+      "ids": [
+        "MJ-REQ-159",
+        "MJ-REQ-163",
+        "MJ-REQ-164"
+      ],
+      "condition": "PostgreSQL claims need executed PostgreSQL cases at the accepted revision; skipped cases do not supply evidence."
+    },
+    {
+      "ids": [
+        "MJ-REQ-222"
+      ],
+      "condition": "Keep explicit unknown timestamps where the adapter inventory supplies no date, including Lever. Do not imply an invented timestamp or date parsing verified from absent data."
+    },
+    {
+      "ids": [
+        "MJ-REQ-227"
+      ],
+      "condition": "Resource evidence uses synthetic reservations/claims and fake AI calls; do not imply hundreds of actual browser or provider executions."
+    },
+    {
+      "ids": [
+        "MJ-REQ-255",
+        "MJ-REQ-256"
+      ],
+      "condition": "Five-viewpoint Jobs/shell and keyboard evidence supports the stated bounded layout/accessibility claims, not every device/browser or a broad accessibility certification."
+    },
+    {
+      "ids": [
+        "MJ-REQ-260",
+        "MJ-REQ-261",
+        "MJ-REQ-262"
+      ],
+      "condition": "Optional local email classification does not claim Gmail/Outlook account integration or employer receipt; source/provider identity distinction does not claim every live integration; the literal graph requires data-model support, not graph editing."
+    },
+    {
+      "ids": [
+        "MJ-REQ-271"
+      ],
+      "condition": "Safe pre-call/staged-result recovery and explicit fresh intent are the retry evidence; do not imply automatic repetition of uncertain paid provider calls."
+    },
+    {
+      "ids": [
+        "MJ-REQ-279",
+        "MJ-REQ-280"
+      ],
+      "condition": "Practical bounded Python typing and adopted formatter coverage are accurately scoped; do not describe them as whole-repository strict typing or a completed frontend-wide reformat."
+    }
+  ],
+  "broader_parent_boundary": "Passing a named test/contract requirement must not promote broader parents. MJ-REQ-224 public adapter journeys, MJ-REQ-228 live-source dedupe/persistence and MJ-REQ-229 live company-career discovery require their own evidence. Root separately handles live-source execution; company-career redirect blockage remains unresolved in the reviewed evidence.",
+  "supporting_audit_paths": [
+    "/workspace/scratch/05fe891fa40c/acceptance-review-data-search.json",
+    "/workspace/scratch/05fe891fa40c/acceptance-review-docs.json",
+    "/workspace/scratch/05fe891fa40c/acceptance-review-harness.json",
+    "/workspace/scratch/05fe891fa40c/acceptance-review-operations.json",
+    "/workspace/scratch/05fe891fa40c/acceptance-review-operations-2.json",
+    "/workspace/scratch/05fe891fa40c/acceptance-review-ui-deadline-gaps.json"
+  ],
+  "tests_rerun_for_this_audit": false,
+  "hosted_gates_verified_by_this_reviewer": false,
+  "hosted_gates_pending_root_verification": true,
+  "canonical_acceptance_modified": false,
+  "repository_source_modified": false,
+  "github_or_issue_state_modified": false,
+  "final_execution_and_evidence_integration_owner": "/root"
+}

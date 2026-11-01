@@ -1,0 +1,352 @@
+{
+  "observed_at": "2026-11-01T05:57:02.813312+00:00",
+  "repository": "MulattoTech/MJobs",
+  "total": 43,
+  "closed": 9,
+  "issues": [
+    {
+      "requirement_id": "MJ-REQ-020",
+      "number": 21,
+      "title": "[MJ-REQ-020] Source Policy",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/21"
+    },
+    {
+      "requirement_id": "MJ-REQ-021",
+      "number": 22,
+      "title": "[MJ-REQ-021] Continuous Scheduling",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/22"
+    },
+    {
+      "requirement_id": "MJ-REQ-030",
+      "number": 31,
+      "title": "[MJ-REQ-030] Date Filtering",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/31"
+    },
+    {
+      "requirement_id": "MJ-REQ-034",
+      "number": 35,
+      "title": "[MJ-REQ-034] Education Requirement Parsing",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/35"
+    },
+    {
+      "requirement_id": "MJ-REQ-157",
+      "number": 158,
+      "title": "[MJ-REQ-157] Operation Types",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/158"
+    },
+    {
+      "requirement_id": "MJ-REQ-159",
+      "number": 160,
+      "title": "[MJ-REQ-159] Task Idempotency",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/160"
+    },
+    {
+      "requirement_id": "MJ-REQ-163",
+      "number": 164,
+      "title": "[MJ-REQ-163] Database Constraints",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/164"
+    },
+    {
+      "requirement_id": "MJ-REQ-164",
+      "number": 165,
+      "title": "[MJ-REQ-164] Database Indexes",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/165"
+    },
+    {
+      "requirement_id": "MJ-REQ-170",
+      "number": 171,
+      "title": "[MJ-REQ-170] Retention",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/171"
+    },
+    {
+      "requirement_id": "MJ-REQ-213",
+      "number": 214,
+      "title": "[MJ-REQ-213] Full Application E2E Test",
+      "state": "CLOSED",
+      "closedAt": "2026-10-30T06:36:12Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/214"
+    },
+    {
+      "requirement_id": "MJ-REQ-214",
+      "number": 215,
+      "title": "[MJ-REQ-214] Unit Tests — Normalization",
+      "state": "CLOSED",
+      "closedAt": "2026-10-23T07:34:50Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/215"
+    },
+    {
+      "requirement_id": "MJ-REQ-215",
+      "number": 216,
+      "title": "[MJ-REQ-215] Unit Tests — Dedupe",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/216"
+    },
+    {
+      "requirement_id": "MJ-REQ-216",
+      "number": 217,
+      "title": "[MJ-REQ-216] Unit Tests — Company Resolution",
+      "state": "CLOSED",
+      "closedAt": "2026-10-25T00:55:39Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/217"
+    },
+    {
+      "requirement_id": "MJ-REQ-217",
+      "number": 218,
+      "title": "[MJ-REQ-217] Unit Tests — Ats Detection",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/218"
+    },
+    {
+      "requirement_id": "MJ-REQ-219",
+      "number": 220,
+      "title": "[MJ-REQ-219] Unit Tests — Answer Matching",
+      "state": "CLOSED",
+      "closedAt": "2026-10-30T12:04:19Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/220"
+    },
+    {
+      "requirement_id": "MJ-REQ-220",
+      "number": 221,
+      "title": "[MJ-REQ-220] Unit Tests — Application State",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/221"
+    },
+    {
+      "requirement_id": "MJ-REQ-222",
+      "number": 223,
+      "title": "[MJ-REQ-222] Source Adapter Contract Tests",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/223"
+    },
+    {
+      "requirement_id": "MJ-REQ-223",
+      "number": 224,
+      "title": "[MJ-REQ-223] Company Source Contract Tests",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/224"
+    },
+    {
+      "requirement_id": "MJ-REQ-225",
+      "number": 226,
+      "title": "[MJ-REQ-225] Security Tests",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/226"
+    },
+    {
+      "requirement_id": "MJ-REQ-226",
+      "number": 227,
+      "title": "[MJ-REQ-226] Application Form Security Tests",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/227"
+    },
+    {
+      "requirement_id": "MJ-REQ-227",
+      "number": 228,
+      "title": "[MJ-REQ-227] Test Resource Limits",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/228"
+    },
+    {
+      "requirement_id": "MJ-REQ-228",
+      "number": 229,
+      "title": "[MJ-REQ-228] Live Source Testing",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/229"
+    },
+    {
+      "requirement_id": "MJ-REQ-229",
+      "number": 230,
+      "title": "[MJ-REQ-229] Live Company Discovery Test",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/230"
+    },
+    {
+      "requirement_id": "MJ-REQ-230",
+      "number": 231,
+      "title": "[MJ-REQ-230] Live Application Test Policy",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/231"
+    },
+    {
+      "requirement_id": "MJ-REQ-255",
+      "number": 256,
+      "title": "[MJ-REQ-255] Responsive Design",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/256"
+    },
+    {
+      "requirement_id": "MJ-REQ-256",
+      "number": 257,
+      "title": "[MJ-REQ-256] Accessibility",
+      "state": "CLOSED",
+      "closedAt": "2026-10-23T05:55:04Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/257"
+    },
+    {
+      "requirement_id": "MJ-REQ-258",
+      "number": 259,
+      "title": "[MJ-REQ-258] Do Not Overengineer",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/259"
+    },
+    {
+      "requirement_id": "MJ-REQ-259",
+      "number": 260,
+      "title": "[MJ-REQ-259] Future-Proof Without Building Everything Now",
+      "state": "CLOSED",
+      "closedAt": "2026-10-24T13:49:29Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/260"
+    },
+    {
+      "requirement_id": "MJ-REQ-260",
+      "number": 261,
+      "title": "[MJ-REQ-260] Optional Email Status Ingestion",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/261"
+    },
+    {
+      "requirement_id": "MJ-REQ-261",
+      "number": 262,
+      "title": "[MJ-REQ-261] Source Vs Ats Separation",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/262"
+    },
+    {
+      "requirement_id": "MJ-REQ-262",
+      "number": 263,
+      "title": "[MJ-REQ-262] Source Relationship Graph",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/263"
+    },
+    {
+      "requirement_id": "MJ-REQ-271",
+      "number": 272,
+      "title": "[MJ-REQ-271] Ai Failure Behavior",
+      "state": "CLOSED",
+      "closedAt": "2026-10-29T19:01:43Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/272"
+    },
+    {
+      "requirement_id": "MJ-REQ-274",
+      "number": 275,
+      "title": "[MJ-REQ-274] Process Restart Recovery",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/275"
+    },
+    {
+      "requirement_id": "MJ-REQ-278",
+      "number": 279,
+      "title": "[MJ-REQ-278] Ci",
+      "state": "CLOSED",
+      "closedAt": "2026-10-30T16:11:37Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/279"
+    },
+    {
+      "requirement_id": "MJ-REQ-279",
+      "number": 280,
+      "title": "[MJ-REQ-279] Python Quality",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/280"
+    },
+    {
+      "requirement_id": "MJ-REQ-280",
+      "number": 281,
+      "title": "[MJ-REQ-280] Typescript Quality",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/281"
+    },
+    {
+      "requirement_id": "MJ-REQ-281",
+      "number": 282,
+      "title": "[MJ-REQ-281] Repository Structure",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/282"
+    },
+    {
+      "requirement_id": "MJ-REQ-282",
+      "number": 283,
+      "title": "[MJ-REQ-282] Source Adapter Development Guide",
+      "state": "CLOSED",
+      "closedAt": "2026-10-25T02:25:39Z",
+      "url": "https://github.com/MulattoTech/MJobs/issues/283"
+    },
+    {
+      "requirement_id": "MJ-REQ-283",
+      "number": 284,
+      "title": "[MJ-REQ-283] Company Source Development Guide",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/284"
+    },
+    {
+      "requirement_id": "MJ-REQ-284",
+      "number": 285,
+      "title": "[MJ-REQ-284] Application Adapter Development Guide",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/285"
+    },
+    {
+      "requirement_id": "MJ-REQ-285",
+      "number": 286,
+      "title": "[MJ-REQ-285] Architecture Document",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/286"
+    },
+    {
+      "requirement_id": "MJ-REQ-286",
+      "number": 287,
+      "title": "[MJ-REQ-286] Database Documentation",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/287"
+    },
+    {
+      "requirement_id": "MJ-REQ-287",
+      "number": 288,
+      "title": "[MJ-REQ-287] Troubleshooting Guide",
+      "state": "OPEN",
+      "closedAt": null,
+      "url": "https://github.com/MulattoTech/MJobs/issues/288"
+    }
+  ]
+}

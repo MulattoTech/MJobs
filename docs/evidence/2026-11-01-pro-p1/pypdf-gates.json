@@ -1,0 +1,874 @@
+{
+  "observed_at": "2026-11-01T06:28:39.299492+00:00",
+  "repository": "MulattoTech/MJobs",
+  "pr": 876,
+  "head": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/876",
+  "pr_state": "open",
+  "mergeable": true,
+  "merge_state_status": "CLEAN",
+  "commits": {
+    "head": {
+      "sha": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+      "tree": "f88661b0430a55165d802468e8f2a16261c6e3b8",
+      "parents": [
+        "07eab582dbce29de49cde2180a39b031c3ad5ab2"
+      ]
+    },
+    "base": {
+      "sha": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+      "tree": "130fc988fe56d7c18f1bf39977e54f700deaf727",
+      "parents": [
+        "53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+        "ca1e62c6dc64ef4149bba577f02973684e259e16"
+      ]
+    },
+    "proposed_merge": {
+      "sha": "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b",
+      "tree": "f88661b0430a55165d802468e8f2a16261c6e3b8",
+      "parents": [
+        "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+        "7aa6190500f771a3ab231ca54795582d4f5cee06"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "Python / unit and integrity",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124768766123"
+    },
+    {
+      "name": "Disposable Compose / mock end-to-end",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648499/job/124768766056"
+    },
+    {
+      "name": "Dependencies / introduced vulnerabilities",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648504/job/124768766030"
+    },
+    {
+      "name": "Integration / shard 0",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124768766267"
+    },
+    {
+      "name": "Security / secret scan",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648496/job/124768765951"
+    },
+    {
+      "name": "Integration / shard 1",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124768766007"
+    },
+    {
+      "name": "Integration / shard 2",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124768766206"
+    },
+    {
+      "name": "Web / Vitest and production build",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124768766135"
+    },
+    {
+      "name": "Integration / PostgreSQL and Redis",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124772312947"
+    },
+    {
+      "name": "Repository / policy and docs",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124768765871"
+    },
+    {
+      "name": "CI / required",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124769727554"
+    },
+    {
+      "name": "CodeQL",
+      "status": "COMPLETED",
+      "conclusion": "NEUTRAL",
+      "detailsUrl": "https://github.com/MulattoTech/MJobs/runs/124768752365"
+    }
+  ],
+  "required_checks": [
+    "CI / required",
+    "Dependencies / introduced vulnerabilities",
+    "Disposable Compose / mock end-to-end",
+    "Integration / PostgreSQL and Redis",
+    "Security / secret scan"
+  ],
+  "missing_required_success": [],
+  "source_tree_equals_proposed_merge": true,
+  "runs": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-01T06:09:10Z",
+      "event": "pull_request",
+      "headSha": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+      "status": "completed",
+      "updatedAt": "2026-11-01T06:13:58Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500",
+      "run_id": 41279648500,
+      "jobs": [
+        {
+          "databaseId": 124768765871,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124768765871",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m pip install -r .github/test-requirements.txt -r .github/docs-requirements.txt",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m tools.ci.check_repository",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m tools.site.build",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Whitespace check",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "44bce4a6ced2799766e22d1b239236e5d7ae1589a0237ffb791574ca571be857",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": []
+        },
+        {
+          "databaseId": 124768766123,
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124768766123",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m pip install -r requirements.lock -r .github/test-requirements.txt",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check bounded Python quality",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Execute unit regressions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate acceptance catalogues and contribution skills",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test summary",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "8fb069619cf6b9d034c46ff9b54647194cc848148e00bca8e52339f3e6961038",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": [
+            "Python / unit and integrity\tUNKNOWN STEP\t2026-11-01T06:13:44.3216711Z 3147 passed, 51 skipped, 3477 subtests passed in 242.30s (0:04:02)",
+            "Python / unit and integrity\tUNKNOWN STEP\t2026-11-01T06:13:46.6840076Z | Report | Tests | Failures | Errors | Skipped |"
+          ]
+        },
+        {
+          "databaseId": 124768766135,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124768766135",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --prefix apps/web --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Lint frontend source policy",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check frontend formatter and quality-tool rejection cases",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Type-check frontend",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test trusted automated-review policy and rejection cases",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm test --prefix apps/web",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run build --prefix apps/web",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "84cf698028a270f91d6ef3b22e5f98686b8bda4246a0ed44054de3dfc1169053",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": [
+            "Web / Vitest and production build\tUNKNOWN STEP\t2026-11-01T06:09:34.9953831Z  Test Files  151 passed (151)",
+            "Web / Vitest and production build\tUNKNOWN STEP\t2026-11-01T06:09:34.9959394Z       Tests  1000 passed (1000)"
+          ]
+        },
+        {
+          "databaseId": 124769727554,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648500/job/124769727554",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Require every gate to have actually succeeded",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "0808f1b82ef33ae7a4bbd420fa95f51b1b8cea2f0c8f74d576c12183cead5c74",
+          "actual_checkout_commits": [],
+          "result_excerpts": [
+            "CI / required\tUNKNOWN STEP\t2026-11-01T06:13:57.1064258Z print('All required fast gates passed.')",
+            "CI / required\tUNKNOWN STEP\t2026-11-01T06:13:57.2034397Z All required fast gates passed."
+          ]
+        }
+      ]
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-01T06:09:10Z",
+      "event": "pull_request",
+      "headSha": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+      "status": "completed",
+      "updatedAt": "2026-11-01T06:26:50Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579",
+      "run_id": 41279648579,
+      "jobs": [
+        {
+          "databaseId": 124768766007,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124768766007",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Initialize containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m pip install -r requirements.lock -r .github/test-requirements.txt",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build the same SPA mounted by production API integration tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Create disposable recovery acceptance databases",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install controlled browser dependency for worker tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Execute each integration test file in exactly one isolated shard",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test summary",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Stop containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "ea135d2dd4afb58404a7cfb1c318b8cc8e3d7c01d347a15af1fc451947bdfe74",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": [
+            "Integration / shard 1\tUNKNOWN STEP\t2026-11-01T06:21:18.2226815Z 777 passed, 2 skipped, 4 warnings, 494 subtests passed in 635.88s (0:10:35)",
+            "Integration / shard 1\tUNKNOWN STEP\t2026-11-01T06:21:21.4626137Z | Report | Tests | Failures | Errors | Skipped |"
+          ]
+        },
+        {
+          "databaseId": 124768766206,
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124768766206",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Initialize containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m pip install -r requirements.lock -r .github/test-requirements.txt",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build the same SPA mounted by production API integration tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Create disposable recovery acceptance databases",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install controlled browser dependency for worker tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Execute each integration test file in exactly one isolated shard",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test summary",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Stop containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "606ddf67d93cff47f3df44523b91ff90d4a3737d48d2305103f42e700e68ee4b",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": [
+            "Integration / shard 2\tUNKNOWN STEP\t2026-11-01T06:22:23.8070891Z 854 passed, 31 skipped, 1 warning, 514 subtests passed in 716.81s (0:11:56)",
+            "Integration / shard 2\tUNKNOWN STEP\t2026-11-01T06:22:27.0729932Z | Report | Tests | Failures | Errors | Skipped |"
+          ]
+        },
+        {
+          "databaseId": 124768766267,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124768766267",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Initialize containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run python -m pip install -r requirements.lock -r .github/test-requirements.txt",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build the same SPA mounted by production API integration tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Create disposable recovery acceptance databases",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install controlled browser dependency for worker tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Execute each integration test file in exactly one isolated shard",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test summary",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Stop containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "07996cbbbcc3199b8d55c2d6aa7c283722aed1af2e6fe95de3de75c5ff08b821",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": [
+            "Integration / shard 0\tUNKNOWN STEP\t2026-11-01T06:26:35.4385685Z 783 passed, 2 skipped, 17 warnings, 364 subtests passed in 973.23s (0:16:13)",
+            "Integration / shard 0\tUNKNOWN STEP\t2026-11-01T06:26:38.3343664Z | Report | Tests | Failures | Errors | Skipped |"
+          ]
+        },
+        {
+          "databaseId": 124772312947,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648579/job/124772312947",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Require all integration shards to have passed",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "a123fb4b85953a858bf805a736a2675ed990cfc306588f62ef008ccff25d14ec",
+          "actual_checkout_commits": [],
+          "result_excerpts": [
+            "Integration / PostgreSQL and Redis\tUNKNOWN STEP\t2026-11-01T06:26:47.9898414Z echo 'Every integration shard passed with isolated PostgreSQL and Redis.'",
+            "Integration / PostgreSQL and Redis\tUNKNOWN STEP\t2026-11-01T06:26:48.0634594Z Every integration shard passed with isolated PostgreSQL and Redis."
+          ]
+        }
+      ]
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-01T06:09:10Z",
+      "event": "pull_request",
+      "headSha": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+      "status": "completed",
+      "updatedAt": "2026-11-01T06:16:17Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648499",
+      "run_id": 41279648499,
+      "jobs": [
+        {
+          "databaseId": 124768766056,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41279648499/job/124768766056",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Python dependencies",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install headless Chromium for isolated UI checks",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Generate disposable synthetic secrets",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Assign a disposable, recovery-guard-compliant Compose project",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build and start disposable fixture stack through the Linux launcher",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Controlled mock source + ATS end-to-end",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Browser-integrated UI acceptance",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Same-profile onboarding and saved-search UI acceptance",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify the full application journey, settings and recovery in Chromium",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Restart and persistence recovery",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Fresh-project backup restore and independent receipt replay",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload bounded fictional result summaries",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload settings browser acceptance",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Remove disposable GitHub-runner containers",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "raw_log_sha256": "7a61cc0d9732e78e1531b6ed637147330fa3f4e15ba22aacf4d2ac115ce74e4b",
+          "actual_checkout_commits": [
+            "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b"
+          ],
+          "result_excerpts": [
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-11-01T06:10:29.9302877Z #17 13.29  Test Files  151 passed (151)",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-11-01T06:10:29.9303252Z #17 13.30       Tests  1000 passed (1000)",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-11-01T06:13:36.6118433Z 5 passed in 34.13s"
+          ]
+        }
+      ]
+    }
+  ],
+  "all_required_passed": true
+}

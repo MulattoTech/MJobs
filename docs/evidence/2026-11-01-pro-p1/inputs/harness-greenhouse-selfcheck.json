@@ -1,0 +1,89 @@
+{
+  "revision": "e2cc88b02ecd06e6dc8ea888db493291dc4339f7",
+  "script_sha256": "7efc889ef2ab0bccd1e26d5db45a7e1db344579f4c086eb24d860c1909933655",
+  "helper_sha256": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+  "observed_at": "2026-11-01T05:49:39.195119+00:00",
+  "mode": "FIXTURE_SELF_CHECK",
+  "budgets": {
+    "live_gets": 2,
+    "live_seconds": 20,
+    "request_timeout_seconds": 6,
+    "concurrency": 1,
+    "request_start_spacing_seconds": 1,
+    "wire_and_decoded_bytes_per_response": 5000000,
+    "max_jobs": 1000,
+    "offline_seconds_per_pass": 120
+  },
+  "source": {
+    "provider": "greenhouse",
+    "tenant": "greenhouse",
+    "result": "PASS",
+    "capture_mode": "FIXTURE_SELF_CHECK",
+    "external_submission_requests": 0,
+    "phase": "COMPLETE",
+    "capture_manifest": "/workspace/scratch/05fe891fa40c/greenhouse-probe-fixture-captures/manifest-20261101T054939824191Z.json",
+    "responses": [
+      {
+        "endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse",
+        "status": 200,
+        "wire_bytes": 40,
+        "wire_sha256": "6842226605977a973993e2b17ee768952ae1f7aa386162949a4d9c366545643a"
+      },
+      {
+        "endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs?content=true",
+        "status": 200,
+        "wire_bytes": 667,
+        "wire_sha256": "8fb31e3df33a9be7ee31e3fd7af3079d34ded0aa060e80a2336f1099e810e538"
+      }
+    ],
+    "capture": {
+      "jobs_returned": 2,
+      "source_health": "HEALTHY",
+      "unique_source_identities": 2,
+      "unique_posting_raw_snapshots": 2,
+      "company_id_sha256": "8cdaaacabc82a5fcbe45894160e44ff34a7986eb7fb40098dd1f436f9d788401",
+      "company_name_sha256": "63bd06aa6fbb08910a667d4839646acb215329400467d2aabc424a5088181014",
+      "normalization_sha256": "38a306e006b09cd039b081072f95b6f939c23ef9e2d5590363aacd045aee512a",
+      "expected_source_identity_sha256": "28aa7ae8b21b7768941d0719dd70f1c781b765b065d8445b1653b8abc8631022",
+      "expected_snapshots_sha256": "d9aa3a835c129269f03c7b4dba37aadead47ede4ae86ac37640ae58f2480f6b4"
+    },
+    "persisted_pass_1": {
+      "canonical_jobs": 2,
+      "source_copies": 2,
+      "posting_snapshots": 2,
+      "companies": 1,
+      "canonical_sha256": "fb324b7f7ee966e6f7b4a2a136749ade3933963ed23dc9431a43736cbbfe7eb7",
+      "source_copies_sha256": "33ab28d7b5644aa161b72ba8cca54a72a2dc7dcf9e49ad79233ef6b7099afaca",
+      "snapshots_sha256": "d9aa3a835c129269f03c7b4dba37aadead47ede4ae86ac37640ae58f2480f6b4",
+      "companies_sha256": "7f3f47c016c21519f0b00cceaabb0755d5b421a9a0aad66b8edacaa8cbca912d",
+      "source_identity_sha256": "28aa7ae8b21b7768941d0719dd70f1c781b765b065d8445b1653b8abc8631022",
+      "company_ids_sha256": "216931520fccf978f6d3a66b1e0f6e507bbedb1e5ae882c6e986c80af2a60811",
+      "source_health": "HEALTHY",
+      "source_jobs_seen": 2,
+      "application_records": 0,
+      "application_attempts": 0
+    },
+    "persisted_pass_2": {
+      "canonical_jobs": 2,
+      "source_copies": 2,
+      "posting_snapshots": 2,
+      "companies": 1,
+      "canonical_sha256": "fb324b7f7ee966e6f7b4a2a136749ade3933963ed23dc9431a43736cbbfe7eb7",
+      "source_copies_sha256": "33ab28d7b5644aa161b72ba8cca54a72a2dc7dcf9e49ad79233ef6b7099afaca",
+      "snapshots_sha256": "d9aa3a835c129269f03c7b4dba37aadead47ede4ae86ac37640ae58f2480f6b4",
+      "companies_sha256": "7f3f47c016c21519f0b00cceaabb0755d5b421a9a0aad66b8edacaa8cbca912d",
+      "source_identity_sha256": "28aa7ae8b21b7768941d0719dd70f1c781b765b065d8445b1653b8abc8631022",
+      "company_ids_sha256": "216931520fccf978f6d3a66b1e0f6e507bbedb1e5ae882c6e986c80af2a60811",
+      "source_health": "HEALTHY",
+      "source_jobs_seen": 2,
+      "application_records": 0,
+      "application_attempts": 0
+    },
+    "collector_passes": 2,
+    "database_reopens": 2,
+    "temporary_database_removed": true,
+    "external_get_attempts": 0,
+    "offline_egress_attempts": 0
+  },
+  "duration_seconds": 0.885
+}

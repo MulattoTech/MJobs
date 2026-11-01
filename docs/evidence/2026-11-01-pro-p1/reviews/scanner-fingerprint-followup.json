@@ -1,0 +1,105 @@
+{
+  "schema_version": "triage-finding/v0",
+  "reviewer": "ChatGPT-Web /root/pr_triage independent read-only reviewer",
+  "reviewed_at": "2026-11-01T06:36:13.313764+00:00",
+  "repository": {
+    "path": "/workspace/scratch/05fe891fa40c/MJobs",
+    "revision": "8975b8fa6837919915973881ae10fdb0f463e8e8"
+  },
+  "verdict": "NO_BLOCKERS_FOR_EXACT_FOURTEENTH_FINGERPRINT",
+  "verification": {
+    "finding_path": "docs/evidence/2026-11-01-pro-p1-delivery.json",
+    "finding_line": 400,
+    "finding_commit": "8975b8fa6837919915973881ae10fdb0f463e8e8",
+    "proposed_fingerprint": "8975b8fa6837919915973881ae10fdb0f463e8e8:docs/evidence/2026-11-01-pro-p1-delivery.json:generic-api-key:400",
+    "named_source_path": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json",
+    "named_source_revision": "8975b8fa6837919915973881ae10fdb0f463e8e8",
+    "git_blob_oid": "94fe8e004d86f0e5be470fe505b173d98a392a64",
+    "blob_byte_count": 66510,
+    "recorded_sha256": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670",
+    "recomputed_sha256": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670",
+    "original_scratch_report_unchanged": true,
+    "manifest_sha256": "14d2804bd37da61699485efc7e6b88f49a8aae6eb3925108fe7e6f787927fda7",
+    "exact_fingerprint_policy_match": true,
+    "already_ignored_at_reported_revision": false
+  },
+  "findings": [
+    {
+      "triage_item_id": "triage-014",
+      "input_id": "8975b8fa6837919915973881ae10fdb0f463e8e8:docs/evidence/2026-11-01-pro-p1-delivery.json:generic-api-key:400",
+      "source_type": "freeform",
+      "title": "Reported heuristic match in acceptance artifact manifest",
+      "normalized_input": {
+        "vulnerable_component": "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "claimed_source": "Committed acceptance artifact digest",
+        "claimed_sink": "Public Git history",
+        "claimed_control": "Required credential-scanning gate",
+        "affected_version_or_path": "8975b8fa6837919915973881ae10fdb0f463e8e8:docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "preconditions": [
+          "The reported manifest value would have to be an actual credential."
+        ],
+        "impact": "Potential exposure; defeated for this exact occurrence by recomputed artifact digest.",
+        "references": [
+          "https://github.com/MulattoTech/MJobs/actions/runs/41281312282",
+          "https://github.com/MulattoTech/MJobs/pull/877"
+        ]
+      },
+      "verdict": "not_actionable",
+      "confidence": "high",
+      "affected_locations": [
+        {
+          "label": "reported finding",
+          "path": "docs/evidence/2026-11-01-pro-p1-delivery.json",
+          "lines": "400",
+          "detail": "Artifact manifest records the SHA-256 of the retained independent review."
+        },
+        {
+          "label": "digest preimage",
+          "path": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json",
+          "lines": "whole Git blob",
+          "detail": "The exact committed report is unchanged from the previously reviewed scratch artifact."
+        }
+      ],
+      "reachable_path": [
+        "Complete retained review Git blob.",
+        "Deterministic SHA-256 computation.",
+        "Digest stored in the primary artifact manifest."
+      ],
+      "boundary_assessment": {
+        "product_surface": "docs",
+        "source_trust": "trusted_developer_config",
+        "boundary_crossed": false,
+        "policy_basis": "Root SECURITY.md prohibits exposed credentials; .gitleaksignore and tests/unit/test_p0_evidence_secret_fingerprints.py allow only reviewed immutable finding exceptions. The value is reproducible integrity metadata."
+      },
+      "exploitability_stack_rank": {
+        "rank_queue": null,
+        "rank": null,
+        "rationale": "Not actionable: exact artifact digest, independently recomputed.",
+        "drivers": []
+      },
+      "evidence": [
+        "Read the exact reported manifest line from the reported Git commit.",
+        "Recomputed SHA-256 of the named complete committed report and matched the recorded digest.",
+        "Confirmed the original scratch review still has the identical digest.",
+        "Confirmed the proposed fingerprint conforms to the existing exact-finding policy and is not already present at the reported revision."
+      ],
+      "counterevidence": [
+        "The value is an artifact-integrity digest with an identified, independently hashed preimage."
+      ],
+      "proof_gaps": [],
+      "recommended_next_step": "Add only this exact fourteenth fingerprint with a concise reviewed artifact-digest rationale; rerun the unchanged required scanner.",
+      "fix_finding_handoff": null
+    }
+  ],
+  "conditions": [
+    "Only this exact commit/path/rule/line exception is covered.",
+    "Preserve the original review and its existing manifest digest unchanged.",
+    "No scanner, workflow, broad rule, wildcard or directory exemption.",
+    "Required scanner success remains a separate integration gate."
+  ],
+  "review_limits": [
+    "Static immutable Git-object review only. No repository edits, scanner execution, tests, runtime probes or remote-desktop use.",
+    "The scanner run and coordinate were supplied by the parent; the affected Git line and its digest were independently verified."
+  ],
+  "blocking_findings": []
+}

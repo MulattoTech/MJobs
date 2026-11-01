@@ -1,0 +1,784 @@
+{
+  "schema_version": 1,
+  "role": "Independent static acceptance reviewer; root executes verification and adjudicates",
+  "revision": "53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+  "no_tests_executed_by_reviewer": true,
+  "no_canonical_status_mutation": true,
+  "requirements": [
+    {
+      "id": "MJ-REQ-020",
+      "issue": 21,
+      "title": "[MJ-REQ-020] Source Policy",
+      "canonical_before": "PARTIAL",
+      "authoritative_requirement": "Maintain configurable per-source policy:\n\n```text\nenabled\npoll_interval\nconcurrency\nrequest_timeout\nrate_limit\nlast_attempt\nlast_success\nconsecutive_failures\nbackoff_until\nhealth_status\ncollection_strategy\n```\n\nOne failed source must not stop the pipeline.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "enabled",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "services/discovery/sources/collect.py configure_source validates and persists the global policy; services/company_discovery/monitoring.py configure_monitoring supports reviewed company-feed policy with CAS. Transport uses the accepted limits.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_source_declares_typed_capabilities_and_persists_complete_policy; CompanyMonitoringPolicyTests.test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy; company policy runtime/transport boundary tests"
+        },
+        {
+          "criterion": "poll_interval",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "services/discovery/sources/collect.py configure_source validates and persists the global policy; services/company_discovery/monitoring.py configure_monitoring supports reviewed company-feed policy with CAS. Transport uses the accepted limits.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_source_declares_typed_capabilities_and_persists_complete_policy; CompanyMonitoringPolicyTests.test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy; company policy runtime/transport boundary tests"
+        },
+        {
+          "criterion": "concurrency",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "services/discovery/sources/collect.py configure_source validates and persists the global policy; services/company_discovery/monitoring.py configure_monitoring supports reviewed company-feed policy with CAS. Transport uses the accepted limits.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_source_declares_typed_capabilities_and_persists_complete_policy; CompanyMonitoringPolicyTests.test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy; company policy runtime/transport boundary tests"
+        },
+        {
+          "criterion": "request_timeout",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "services/discovery/sources/collect.py configure_source validates and persists the global policy; services/company_discovery/monitoring.py configure_monitoring supports reviewed company-feed policy with CAS. Transport uses the accepted limits.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_source_declares_typed_capabilities_and_persists_complete_policy; CompanyMonitoringPolicyTests.test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy; company policy runtime/transport boundary tests"
+        },
+        {
+          "criterion": "rate_limit",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "services/discovery/sources/collect.py configure_source validates and persists the global policy; services/company_discovery/monitoring.py configure_monitoring supports reviewed company-feed policy with CAS. Transport uses the accepted limits.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_source_declares_typed_capabilities_and_persists_complete_policy; CompanyMonitoringPolicyTests.test_company_feed_accepts_configurable_per_source_transport_and_jitter_policy; company policy runtime/transport boundary tests"
+        },
+        {
+          "criterion": "last_attempt",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global collector persists execution observations; company monitoring persists corresponding last_attempt/last_success/failure_count/next_due/status with operation identity and revision fences. These observation fields are not arbitrary user overrides.",
+          "meaningful_oracle": "SourcePolicyCadenceSustainTests.test_policy_survives_reopen_and_failure_cannot_block_independent_due_source; company monitoring recovery/runtime tests"
+        },
+        {
+          "criterion": "last_success",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global collector persists execution observations; company monitoring persists corresponding last_attempt/last_success/failure_count/next_due/status with operation identity and revision fences. These observation fields are not arbitrary user overrides.",
+          "meaningful_oracle": "SourcePolicyCadenceSustainTests.test_policy_survives_reopen_and_failure_cannot_block_independent_due_source; company monitoring recovery/runtime tests"
+        },
+        {
+          "criterion": "consecutive_failures",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global collector persists execution observations; company monitoring persists corresponding last_attempt/last_success/failure_count/next_due/status with operation identity and revision fences. These observation fields are not arbitrary user overrides.",
+          "meaningful_oracle": "SourcePolicyCadenceSustainTests.test_policy_survives_reopen_and_failure_cannot_block_independent_due_source; company monitoring recovery/runtime tests"
+        },
+        {
+          "criterion": "backoff_until",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global collector persists execution observations; company monitoring persists corresponding last_attempt/last_success/failure_count/next_due/status with operation identity and revision fences. These observation fields are not arbitrary user overrides.",
+          "meaningful_oracle": "SourcePolicyCadenceSustainTests.test_policy_survives_reopen_and_failure_cannot_block_independent_due_source; company monitoring recovery/runtime tests"
+        },
+        {
+          "criterion": "health_status",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global collector persists execution observations; company monitoring persists corresponding last_attempt/last_success/failure_count/next_due/status with operation identity and revision fences. These observation fields are not arbitrary user overrides.",
+          "meaningful_oracle": "SourcePolicyCadenceSustainTests.test_policy_survives_reopen_and_failure_cannot_block_independent_due_source; company monitoring recovery/runtime tests"
+        },
+        {
+          "criterion": "collection_strategy",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global source strategy is persisted from typed adapter capabilities, not caller-selected spoofed strategy. Company sources retain declared collection_strategy and source-version binding.",
+          "meaningful_oracle": "SourcePolicySchedulerTests.test_source_declares_typed_capabilities_and_persists_complete_policy plus company monitoring policy/recovery tests"
+        },
+        {
+          "criterion": "One failed source must not stop the pipeline",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Independent durable source operations and failure/backoff records; monitoring respects each source independently.",
+          "meaningful_oracle": "SourcePolicyCadenceSustainTests.test_policy_survives_reopen_and_failure_cannot_block_independent_due_source; SourceAtsFailureContinuity tests; company monitor sibling-source runtime test"
+        }
+      ],
+      "implementation_paths": [
+        "services/discovery/sources/collect.py",
+        "services/discovery/sources/contract.py",
+        "services/discovery/sources/registry.py",
+        "services/discovery/sources/greenhouse.py",
+        "services/discovery/scheduler.py",
+        "services/company_discovery/monitoring.py",
+        "services/company_discovery/monitoring_policy.py",
+        "services/company_discovery/public_client.py"
+      ],
+      "meaningful_tests": [
+        "tests/integration/test_source_policy_scheduler.py",
+        "tests/integration/test_source_policy_cadence_sustain_021.py",
+        "tests/integration/test_company_monitoring_policy.py",
+        "tests/integration/test_company_monitoring_policy_runtime.py",
+        "tests/integration/test_company_monitoring_policy_transport.py",
+        "tests/integration/test_company_monitoring_policy_migration.py",
+        "tests/integration/test_company_monitoring_recovery.py",
+        "tests/integration/test_source_ats_failure_continuity.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/integration/test_source_policy_scheduler.py tests/integration/test_source_policy_cadence_sustain_021.py tests/integration/test_company_monitoring_policy.py tests/integration/test_company_monitoring_policy_runtime.py tests/integration/test_company_monitoring_policy_transport.py tests/integration/test_company_monitoring_policy_migration.py tests/integration/test_company_monitoring_recovery.py tests/integration/test_source_ats_failure_continuity.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Canonical note records a historical company-feed 422 policy gap. Current code includes that repair; do not accept using only global-source evidence.",
+        "No live job-site requests are needed; transport acceptance uses controlled local endpoints.",
+        "A retained PARTIAL note is historical evidence, not an immutable extra acceptance condition."
+      ],
+      "source_sha256": {
+        "services/company_discovery/monitoring.py": "c9c42996faee3ca135aef1c218fe2569876208a541ed3f337cc6ab47df66eb80",
+        "services/company_discovery/monitoring_policy.py": "1367fd305fae71c266d3661ceed4ecf0b1f93d1a8b3f799cd2ba0a527095d669",
+        "services/company_discovery/public_client.py": "1b6147ac3e1a79c1685f6fd0ec0ff5167099202eb3c1173807cde42ac6a82f2b",
+        "services/discovery/scheduler.py": "55fc6a8abd0bdc1abd23acba277815df9f6b5b307b8b835f3236f081e6a042ed",
+        "services/discovery/sources/collect.py": "93f25d53d05e62050cdb6cfd3518deed4695cd76135e6ce0e80c2504e6ad89b7",
+        "services/discovery/sources/contract.py": "f9a0d473a017fdf7d3efca5fa2b002e107207c27db34f758a6c075f1401cdf9c",
+        "services/discovery/sources/greenhouse.py": "858fd7def4ffecc2a50286693016db96db0490f975a3e3d39af810340f28cb82",
+        "services/discovery/sources/registry.py": "3043d1c43c64ba011382439f577d35c9b4f5e110159b4a355514f2b30b990e40",
+        "tests/integration/test_company_monitoring_policy.py": "2bae01b6b427cbab2438c04b089990f98bce2b7e941caa747a43b38ebe0da529",
+        "tests/integration/test_company_monitoring_policy_migration.py": "dde3ecf163b65b1c803cc690b706de9345f204541aeb3e3dda684da138b2f6f8",
+        "tests/integration/test_company_monitoring_policy_runtime.py": "0e51d2491d77fb41188a263008014843681c9617e48d05891fced0ae2a963779",
+        "tests/integration/test_company_monitoring_policy_transport.py": "9a111f7c2f0329eb58d5c5db748e84ccd1e8462b74d43550fcd1a4b8be688c81",
+        "tests/integration/test_company_monitoring_recovery.py": "69843f856545a3beb742ed76dd25e7d6bf408ef0e7c8a2ae9a2bce8cf29dfe0e",
+        "tests/integration/test_source_ats_failure_continuity.py": "0ae742c5f8f528b6ed9b2a2e4bc2f8391fc8bdf9102fa49045bbd1d385df5da8",
+        "tests/integration/test_source_policy_cadence_sustain_021.py": "f2d7659363722269b2177b3b094cc0e4873f3a354f3b8a59037a895373104a3e",
+        "tests/integration/test_source_policy_scheduler.py": "d566870033f3db832bb29a2184892dd984fd322b778c2f8c11241cd73d8cd7ea"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-227",
+      "issue": 228,
+      "title": "[MJ-REQ-227] Test Resource Limits",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Do not run:\n\n```text\nhundreds of browsers\nunbounded worker pools\nunbounded AI calls\n```\n\nduring testing.\n\nFunctional verification is sufficient.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "No hundreds of browsers during testing",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Shared application admission holds conservative category capacity before launching browsers.",
+          "meaningful_oracle": "test_two_browser_reservations_bound_hundreds_of_synthetic_attempts: 200 attempts produce 2 reservations, 198 denials, zero browser launches."
+        },
+        {
+          "criterion": "No unbounded worker pools during testing",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Worker startup validates all five category ceilings; durable claims serialize admission.",
+          "meaningful_oracle": "test_invalid_or_oversized_worker_category_fails_before_worker_start; test_runtime_worker_categories_have_small_independent_maxima; test_durable_claim_gate_bounds_two_hundred_queued_workers."
+        },
+        {
+          "criterion": "No unbounded AI calls during testing",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "AI candidate consumer honors explicit max_ai_candidates and API rejects invalid/oversized limits.",
+          "meaningful_oracle": "test_ai_execution_caps_two_hundred_candidates_to_three_fake_calls; test_ai_cost_policy_model_rejects_invalid_or_oversized_limits."
+        },
+        {
+          "criterion": "Functional verification is sufficient",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "All stress inputs are synthetic; no real provider/browser/RQ work is created.",
+          "meaningful_oracle": "Entire test module deliberately uses fake provider calls, mock browser launch sentinel and isolated SQLite."
+        }
+      ],
+      "implementation_paths": [
+        "workers/operations.py",
+        "workers/main.py",
+        "services/ai/cost_controls.py",
+        "services/ai/consumer.py"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_resource_limits_sustain_228.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_resource_limits_sustain_228.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "This requirement is about bounded functional testing; no expensive live-provider load test is needed."
+      ],
+      "source_sha256": {
+        "services/ai/consumer.py": "07df2d58630502a909f334a0ee3e18e81ae19b06a114e156b38a0a6bd24f7f27",
+        "services/ai/cost_controls.py": "6e725bac052c39934bad71aaf410327955bc4dbd25837884b9ffdcd55df5e910",
+        "tests/unit/test_resource_limits_sustain_228.py": "c910426eb4fab018b83e4b18aab486edd60ad616906a9d6e82a2b739e32c73e9",
+        "workers/main.py": "f5553b847ca7d6419b38d7f53f1ea6338685c004f7491033807656a9abeb7b0f",
+        "workers/operations.py": "0dab7f6a029c25375ecb68a5d93cec57a53e626268d02b8ce803d1396fff9e4e"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-278",
+      "issue": 279,
+      "title": "[MJ-REQ-278] Ci",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Create CI that runs without external job websites.\n\nAt minimum:\n\n```text\nbackend lint\nbackend type check\nbackend tests\nfrontend lint\nfrontend type check\nfrontend tests\nfrontend build\nmock E2E\n```",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_EXACT_REVISION_HOSTED_GATES",
+      "criteria": [
+        {
+          "criterion": "backend lint",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "python -m ruff check apps/api/application_multipage_state.py services/operations/pipeline_workbench.py services/operations/pipeline_actions.py runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "backend type check",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "python -m mypy --config-file pyproject.toml runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "backend tests",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "python -m pytest -q tests/unit runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "frontend lint",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "npm run lint --prefix apps/web runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "frontend type check",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "npm run typecheck --prefix apps/web runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "frontend tests",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "npm test --prefix apps/web runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "frontend build",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "npm run build --prefix apps/web runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "mock E2E",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json runs in a required hosted workflow.",
+          "meaningful_oracle": "PublicCITests.test_required_ci_contract_accepts_all_eight_offline_boundaries; test_required_ci_contract_rejects_each_missing_boundary; exact candidate hosted job/step conclusion."
+        },
+        {
+          "criterion": "CI runs without external job websites",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Connected workflow uses disposable Compose FIXTURE mode and MJOBS_COMPOSE_MOCK=1. Required contract rejects split fixture/execution and false shell/tool gates.",
+          "meaningful_oracle": "test_required_ci_contract_rejects_split_mock_and_fixture_jobs, test_required_ci_contract_rejects_non_gating_commands, test_required_ci_contract_rejects_skipped_or_non_gating_workflow_paths; exact candidate synthetic acceptance artifact."
+        }
+      ],
+      "implementation_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/connected-acceptance.yml",
+        "apps/web/package.json",
+        "apps/web/scripts/lint.mjs",
+        "tools/ci/check_repository.py",
+        "pyproject.toml"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_public_ci_tools.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_public_ci_tools.py",
+        "python -m tools.ci.check_repository",
+        "Inspect exact candidate CI - fast and Connected acceptance - synthetic workflow job steps; all eight boundaries must succeed."
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Backend lint/typecheck are deliberately bounded to repository-configured source scope; do not describe them as whole-repository static analysis.",
+        "GitHub #279 was closed by existing merged work, but canonical matrix is NOT_RUN. Closure must reconcile current execution evidence, not use issue state as proof.",
+        "Historical #874 PR head e1abe7870b401f91cf5ce48dd18bf6aa366fd647 has all five workflows SUCCESS; new candidate must obtain its own gates."
+      ],
+      "source_sha256": {
+        ".github/workflows/ci.yml": "091af2be7bf0a44669046fade4a123c39f316c342348566a25713b13b010cfcc",
+        ".github/workflows/connected-acceptance.yml": "b13294ca5b36516217de2e2c292e64216bc3d52db0ccc574c37c4f5358815c2e",
+        "apps/web/package.json": "48fda0ecc1144d84f196e4d17d0ef28c3f438f6be2e1f4731f27f838a9eedcd3",
+        "apps/web/scripts/lint.mjs": "5572796240c17287d8c917df8d4324ad5d3a1429e2574a3b29c83ba340bca053",
+        "pyproject.toml": "8cc302001eb454fa558e382968a009bf5688d792ae2139a59305136f5c3a8aba",
+        "tests/unit/test_public_ci_tools.py": "abcc701d479ac6afa109695bcc4eb782a038888e7b1c845435d04e7778713aec",
+        "tools/ci/check_repository.py": "1176afa79e06de9d998146165ba22d9839316fb1ece53613a1a443e3243307d4"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-259",
+      "issue": 260,
+      "title": "[MJ-REQ-259] Future-Proof Without Building Everything Now",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Architecture should permit future additions:\n\n```text\nemail parsing\nGmail integration\nOutlook integration\nrecruiter tracking\ninterview scheduling\ninterview prep\nsalary negotiation\nbrowser extension\nnative desktop wrapper\nmobile notifications\nadditional ATS providers\nadditional job sources\n```\n\nThese must not block core completion.",
+      "review_verdict": "NEEDS_SMALL_SOURCE_LINKED_ARCHITECTURE_MAPPING_THEN_EXECUTION",
+      "criteria": [
+        {
+          "criterion": "email parsing",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Existing local classify_email_status text/EML boundary, with separate reviewed persistence adapter.",
+          "meaningful_oracle": "EmailStatusTests and EmailStatusApiTests."
+        },
+        {
+          "criterion": "Gmail integration",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Future authorized Gmail fetch can call existing bounded local classification/review service; credentials can remain in separate vault; core startup has no Gmail dependency.",
+          "meaningful_oracle": "Architecture mapping required; no Gmail connector implementation claimed."
+        },
+        {
+          "criterion": "Outlook integration",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Future authorized Outlook fetch can call existing bounded local classification/review service; core startup has no Outlook dependency.",
+          "meaningful_oracle": "Architecture mapping required; no Outlook connector implementation claimed."
+        },
+        {
+          "criterion": "recruiter tracking",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Append-only per-profile application tracking already includes RECRUITER_CONTACT plus scoped notes/history; recruiter classification module is separate.",
+          "meaningful_oracle": "Existing application pipeline tests; document future richer contact records as separate extension, not invented implementation."
+        },
+        {
+          "criterion": "interview scheduling",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Tracking already models INTERVIEW/TECHNICAL_INTERVIEW/FINAL_INTERVIEW; future calendar boundary can consume a reviewed event without coupling discovery to calendar availability.",
+          "meaningful_oracle": "No scheduling adapter exists; source-based extension mapping should state the proposed reviewed boundary."
+        },
+        {
+          "criterion": "interview prep",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Existing scoped career_profile/interview_preparation service and API/router are independent additions.",
+          "meaningful_oracle": "tests/integration/test_interview_preparation_api.py and router mount tests."
+        },
+        {
+          "criterion": "salary negotiation",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Existing document/draft services can be extended using approved job/profile facts; no salary-negotiation generator is claimed.",
+          "meaningful_oracle": "Needs source-linked extension mapping, including no automatic sending."
+        },
+        {
+          "criterion": "browser extension",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Versioned/domain-scoped HTTP routes separate React from durable services; extension can remain a separate authenticated client without changing core server requirement.",
+          "meaningful_oracle": "Needs boundary mapping preserving origin/auth restrictions; do not weaken CORS to pretend an extension is complete."
+        },
+        {
+          "criterion": "native desktop wrapper",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Built UI/HTTP API boundary permits a separate client wrapper; startup does not import desktop dependencies.",
+          "meaningful_oracle": "Needs source-linked wrapper boundary mapping; no desktop installer required."
+        },
+        {
+          "criterion": "mobile notifications",
+          "static_verdict": "ARCHITECTURE_SUPPORT_PRESENT_NEEDS_DOCUMENTED_MAPPING",
+          "implementation": "Safe notification settings and audit/tracking events provide inputs for a future explicit opt-in delivery service; delivery is absent today.",
+          "meaningful_oracle": "Needs source-linked delivery boundary mapping; do not claim a working notification provider."
+        },
+        {
+          "criterion": "additional ATS providers",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Immutable ApplicationAdapterRegistry accepts validated isolated extension factories and is injected across admission/worker revalidation.",
+          "meaningful_oracle": "test_application_registry_isolated_snapshot_and_fail_closed_factory_admission; test_custom_application_registry_is_used_for_route_and_read_only_form_analysis; API/worker runtime injection tests."
+        },
+        {
+          "criterion": "additional job sources",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Immutable SourceAdapterRegistry accepts validated isolated factories and reaches configure_source/collector runtime without global mutation.",
+          "meaningful_oracle": "test_source_registry_isolated_snapshot_and_fail_closed_factory_admission; test_configure_source_uses_the_supplied_registry_without_global_mutation; API/worker runtime injection tests."
+        },
+        {
+          "criterion": "Future additions do not block core completion",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Default registries need no extensions; optional adapters import lazily; email/calendar/mobile credentials not required by core startup.",
+          "meaningful_oracle": "test_optional_adapter_modules_do_not_block_registry_startup_in_subprocess; default registry tests; ordinary synthetic core flow."
+        }
+      ],
+      "implementation_paths": [
+        "services/discovery/sources/registry.py",
+        "services/applications/provider_registry.py",
+        "services/tracking/email_status.py",
+        "services/tracking/email_status_store.py",
+        "services/tracking/applications.py",
+        "services/career_profile/interview_preparation.py",
+        "apps/api/main.py",
+        "services/credentials/vault.py"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_extension_point_contracts.py",
+        "tests/unit/test_email_status.py",
+        "tests/integration/test_email_status.py",
+        "tests/integration/test_interview_preparation_api.py",
+        "tests/integration/test_application_pipeline.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_extension_point_contracts.py tests/unit/test_email_status.py tests/integration/test_email_status.py tests/integration/test_interview_preparation_api.py tests/integration/test_application_pipeline.py"
+      ],
+      "remaining_gaps": [
+        "No durable source-linked map currently covers all 12 named future additions. Docs agent notified; recommended brief architecture extension map only, without building new integrations."
+      ],
+      "limitations": [
+        "Literal requirement is architectural permission for future additions, not implementation of all 12 products.",
+        "Existing concrete source/ATS expansion and several optional service modules support the architecture. A concise mapping must distinguish implemented boundaries from future consumers."
+      ],
+      "source_sha256": {
+        "apps/api/main.py": "bb9c37053deb8edabe9044a70bd1a7729813d2899af71c0ef23d3a7d22f5af6d",
+        "services/applications/provider_registry.py": "b43d6f2b7c465968aa360e4731514f4d14fb96499fea31c43a5651673b9ec6cd",
+        "services/career_profile/interview_preparation.py": "96bcd2538ccb2e93f8a1358bc8d4d18d2e80d8573480c81daa196c4f1a50ae2e",
+        "services/credentials/vault.py": "024f8e290ca86e3fb0956a0608105ba9a0b0859b6d9716a06d27701ab73e1e42",
+        "services/discovery/sources/registry.py": "3043d1c43c64ba011382439f577d35c9b4f5e110159b4a355514f2b30b990e40",
+        "services/tracking/applications.py": "d761247c539560831e61f6bcb464a23a51ec61ff0fa68db2cf3b66c2360eedde",
+        "services/tracking/email_status.py": "891a258d2a93cd2ea9bd7eb12cc292fe4d748aecfea99d4874b6cb0eba631e17",
+        "services/tracking/email_status_store.py": "1ceaedd19e9ea649e86445277e74004085b140089564dc8c29faba6ffe4121a9",
+        "tests/integration/test_application_pipeline.py": "6a58c39c96db6cc7cfb542137d68f9228afad063a06437b34980ba2023584516",
+        "tests/integration/test_email_status.py": "12d0ed318094356c89915fd020d6ff3475d35058d179421ff72d0da779240c09",
+        "tests/integration/test_interview_preparation_api.py": "8238e9b57b99b731f4d5f923d96e51fda9fe6bb3ab8b9b5bb4e9152558de319f",
+        "tests/unit/test_email_status.py": "e8c129dfcca099ef7c070dfd786dba276acea6244e2c706224454d3de9196c85",
+        "tests/unit/test_extension_point_contracts.py": "ab74da808df19996381d248a7aeef6a0326452c139ec69b3d6b37362ba55e064"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-260",
+      "issue": 261,
+      "title": "[MJ-REQ-260] Optional Email Status Ingestion",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "If straightforward, architecture may include an email integration boundary for detecting:\n\n```text\napplication confirmation\nrejection\ninterview invitation\nrecruiter outreach\noffer\n```\n\nDo not make this mandatory for the initial complete workflow.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "application confirmation",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Bounded deterministic plain-text/EML classifier returns fixed category/status/hash, then scoped explicit-review endpoint applies an attributed tracking event.",
+          "meaningful_oracle": "EmailStatusTests.test_explicit_status_messages_map_to_fixed_categories_and_statuses covers all five categories; integration/browser verify preview/review/persistence."
+        },
+        {
+          "criterion": "rejection",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Bounded deterministic plain-text/EML classifier returns fixed category/status/hash, then scoped explicit-review endpoint applies an attributed tracking event.",
+          "meaningful_oracle": "EmailStatusTests.test_explicit_status_messages_map_to_fixed_categories_and_statuses covers all five categories; integration/browser verify preview/review/persistence."
+        },
+        {
+          "criterion": "interview invitation",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Bounded deterministic plain-text/EML classifier returns fixed category/status/hash, then scoped explicit-review endpoint applies an attributed tracking event.",
+          "meaningful_oracle": "EmailStatusTests.test_explicit_status_messages_map_to_fixed_categories_and_statuses covers all five categories; integration/browser verify preview/review/persistence."
+        },
+        {
+          "criterion": "recruiter outreach",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Bounded deterministic plain-text/EML classifier returns fixed category/status/hash, then scoped explicit-review endpoint applies an attributed tracking event.",
+          "meaningful_oracle": "EmailStatusTests.test_explicit_status_messages_map_to_fixed_categories_and_statuses covers all five categories; integration/browser verify preview/review/persistence."
+        },
+        {
+          "criterion": "offer",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Bounded deterministic plain-text/EML classifier returns fixed category/status/hash, then scoped explicit-review endpoint applies an attributed tracking event.",
+          "meaningful_oracle": "EmailStatusTests.test_explicit_status_messages_map_to_fixed_categories_and_statuses covers all five categories; integration/browser verify preview/review/persistence."
+        },
+        {
+          "criterion": "Not mandatory for initial complete workflow",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Email import is optional per-application action; core prepare/discovery/mock flow succeeds before any preview/import; no Gmail/Outlook login or network dependency.",
+          "meaningful_oracle": "EmailStatusApiTests.setUp prepares a complete application without email; browser flow starts from existing prepared app; tests assert no submit or external request."
+        }
+      ],
+      "implementation_paths": [
+        "services/tracking/email_status.py",
+        "services/tracking/email_status_store.py",
+        "apps/api/email_status.py",
+        "apps/web/src/email-status-review.tsx",
+        "apps/api/main.py"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_email_status.py",
+        "tests/integration/test_email_status.py",
+        "tests/browser/test_email_status.py",
+        "apps/web/src/email-status-review.test.tsx"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_email_status.py tests/integration/test_email_status.py",
+        "npm --prefix apps/web test -- src/email-status-review.test.tsx",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_email_status.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Exact requirement permits an optional email boundary; live Gmail/Outlook fetching is not required.",
+        "Confirmation imported from email is attributed USER_REPORTED_EMAIL and does not mutate durable employer submission confirmation.",
+        "Full browser test requires built dist and Chromium. A skip is not acceptance."
+      ],
+      "source_sha256": {
+        "apps/api/email_status.py": "405157ad2b949ceeedc203c40cbb503f7f538e67190822f474af64426464453c",
+        "apps/api/main.py": "bb9c37053deb8edabe9044a70bd1a7729813d2899af71c0ef23d3a7d22f5af6d",
+        "apps/web/src/email-status-review.test.tsx": "7fd961ff5de88a708a612acce0eb9bd2f89231472cfd2bf667d4ee482820f445",
+        "apps/web/src/email-status-review.tsx": "75379206f0133b2ac6ece77532799c32799684fb78096d983193ed1b03029dfb",
+        "services/tracking/email_status.py": "891a258d2a93cd2ea9bd7eb12cc292fe4d748aecfea99d4874b6cb0eba631e17",
+        "services/tracking/email_status_store.py": "1ceaedd19e9ea649e86445277e74004085b140089564dc8c29faba6ffe4121a9",
+        "tests/browser/test_email_status.py": "225c0d74a8f654a019e34e90828f1fbefea941ffbb8e9cab9cd3811d04922b41",
+        "tests/integration/test_email_status.py": "12d0ed318094356c89915fd020d6ff3475d35058d179421ff72d0da779240c09",
+        "tests/unit/test_email_status.py": "e8c129dfcca099ef7c070dfd786dba276acea6244e2c706224454d3de9196c85"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-261",
+      "issue": 262,
+      "title": "[MJ-REQ-261] Source Vs Ats Separation",
+      "canonical_before": "PARTIAL",
+      "authoritative_requirement": "Always preserve:\n\n```text\nDISCOVERY SOURCE\n```\n\nversus:\n\n```text\nAPPLICATION PROVIDER\n```\n\nExample:\n\n```text\nDiscovered:\nHiringCafe\n\nApplication:\nGreenhouse\n\nEmployer:\nAcme\n```\n\nThese are different concepts.",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Preserve discovery source",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "job_postings.source and source_url are independent from application route identity; graph exposes safe discovery metadata.",
+          "meaningful_oracle": "test_postings_preserve_discovery_source_separately_from_application_ats; browser provenance readback/reload."
+        },
+        {
+          "criterion": "Preserve application provider",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "application_routes.provider/tenant/requisition preserved; job route provider and verified ATS filters are separate.",
+          "meaningful_oracle": "test_public_filters_and_graph_keep_direct_employer_distinct_after_sqlite_reopen checks raw route-provider filter versus verified company/tenant ATS filter."
+        },
+        {
+          "criterion": "Keep employer separate from both",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "companies and company_job_sources/ATS tenant references bind employer identity; rejects missing or cross-company ATS binding.",
+          "meaningful_oracle": "test_missing_or_cross_company_ats_bindings_fail_without_writes; test_repeats_are_stable_and_profile_scope_prevents_cross_company_edges."
+        }
+      ],
+      "implementation_paths": [
+        "packages/persistence/models.py",
+        "services/operations/source_relationship_graph.py",
+        "services/company_discovery/sources.py",
+        "packages/persistence/store.py",
+        "apps/web/src/main.tsx"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_source_vs_ats_separation_sustain_262.py",
+        "tests/browser/test_job_source_ats_separation.py",
+        "tests/integration/test_source_ats_failure_continuity.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_source_vs_ats_separation_sustain_262.py tests/integration/test_source_ats_failure_continuity.py",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_job_source_ats_separation.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Historical canonical note predates added sustained tests; it is not evidence of a current gap.",
+        "This requirement does not require every real-world aggregator/ATS integration. Controlled HiringCafe versus Greenhouse versus Acme records are sufficient to prove model/API distinction."
+      ],
+      "source_sha256": {
+        "apps/web/src/main.tsx": "9c6ebd1e6099d1441a28de69653305564b61820d3669ba96c0bcb668e4dac451",
+        "packages/persistence/models.py": "c6728f152274ddf9d59a0e32c3b6b89742789f6e897e39cf7dfe4f6b9b2a1924",
+        "packages/persistence/store.py": "55c812ccc2baae4edb14524d7378966e9a5bae13e5dad6bb324de2742a6ca453",
+        "services/company_discovery/sources.py": "1b347301f2e67a6c15837d826789163702d834b408ea26d25c994517c949e25e",
+        "services/operations/source_relationship_graph.py": "05eedd50e2f7c2cac4d2f84a31cd6d091ceb212396411dd2c082e4afe7a3518d",
+        "tests/browser/test_job_source_ats_separation.py": "4f2d0f83438732528e430b70f8eee9b1b7f1cdb7a21306afe1b28f6cbe7fda45",
+        "tests/integration/test_source_ats_failure_continuity.py": "0ae742c5f8f528b6ed9b2a2e4bc2f8391fc8bdf9102fa49045bbd1d385df5da8",
+        "tests/unit/test_source_vs_ats_separation_sustain_262.py": "1590c3440d9c0d96cefd600ded4b143a58778b157d77eb518b79781d1c99fefe"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-262",
+      "issue": 263,
+      "title": "[MJ-REQ-262] Source Relationship Graph",
+      "canonical_before": "PARTIAL",
+      "authoritative_requirement": "The data model should effectively support:\n\n```text\nCompany\n   \u2502\n   \u251c\u2500\u2500 CompanyJobSource\n   \u2502       \u2502\n   \u2502       \u2514\u2500\u2500 JobPosting\n   \u2502\nCanonicalJob\n   \u2502\n   \u251c\u2500\u2500 JobPosting\n   \u2502\n   \u2514\u2500\u2500 ApplicationRoute\n           \u2502\n           \u2514\u2500\u2500 Application\n```",
+      "review_verdict": "READY_FOR_FULL_ACCEPTANCE_AFTER_LISTED_TESTS_AND_GATES",
+      "criteria": [
+        {
+          "criterion": "Company -> CompanyJobSource",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "company_job_sources.company_id foreign key; read_source_relationship_graph projects durable links.",
+          "meaningful_oracle": "Unit test test_graph_preserves_scoped_relationships_and_excludes_private_metadata and API test test_persisted_company_source_job_route_application_graph_is_read_only assert exact required nodes and all 5 edges."
+        },
+        {
+          "criterion": "CompanyJobSource -> JobPosting",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "posting_value_candidates links company_source_id to posting_id and its exact snapshot/quality observation; read_source_relationship_graph projects durable links.",
+          "meaningful_oracle": "Unit test test_graph_preserves_scoped_relationships_and_excludes_private_metadata and API test test_persisted_company_source_job_route_application_graph_is_read_only assert exact required nodes and all 5 edges."
+        },
+        {
+          "criterion": "CanonicalJob -> JobPosting",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "job_postings.job_id foreign key; read_source_relationship_graph projects durable links.",
+          "meaningful_oracle": "Unit test test_graph_preserves_scoped_relationships_and_excludes_private_metadata and API test test_persisted_company_source_job_route_application_graph_is_read_only assert exact required nodes and all 5 edges."
+        },
+        {
+          "criterion": "CanonicalJob -> ApplicationRoute",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "application_routes.job_id foreign key; read_source_relationship_graph projects durable links.",
+          "meaningful_oracle": "Unit test test_graph_preserves_scoped_relationships_and_excludes_private_metadata and API test test_persisted_company_source_job_route_application_graph_is_read_only assert exact required nodes and all 5 edges."
+        },
+        {
+          "criterion": "ApplicationRoute -> Application",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "applications.route_id foreign key plus application/job consistency filtering; read_source_relationship_graph projects durable links.",
+          "meaningful_oracle": "Unit test test_graph_preserves_scoped_relationships_and_excludes_private_metadata and API test test_persisted_company_source_job_route_application_graph_is_read_only assert exact required nodes and all 5 edges."
+        }
+      ],
+      "implementation_paths": [
+        "packages/persistence/models.py",
+        "services/operations/source_relationship_graph.py",
+        "apps/api/source_relationship_graph.py",
+        "apps/web/src/source-relationship-graph.tsx"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_source_relationship_graph.py",
+        "tests/integration/test_source_relationship_graph.py",
+        "tests/browser/test_source_relationship_graph.py",
+        "apps/web/src/source-relationship-graph.test.tsx"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_source_relationship_graph.py tests/integration/test_source_relationship_graph.py",
+        "npm --prefix apps/web test -- src/source-relationship-graph.test.tsx",
+        "npm --prefix apps/web run build",
+        "python -m pytest -q tests/browser/test_source_relationship_graph.py"
+      ],
+      "remaining_gaps": [],
+      "limitations": [
+        "Authoritative literal requires data-model support, not graph editing. Existing canonical note saying broader graph editing/lineage remains partial adds scope absent from the literal. Do not require graph editing for this original requirement.",
+        "Graph is intentionally profile-scoped and read-only; tests also cover deterministic output, empty/missing profiles and private metadata exclusion."
+      ],
+      "source_sha256": {
+        "apps/api/source_relationship_graph.py": "2cf28cc3b56d1c894009cb9b917b75fc75b7f00abafbcf4221ba412f02ae2aaa",
+        "apps/web/src/source-relationship-graph.test.tsx": "275fe3851be24e750e02cde3ccfb5e5e906a0f91154710141f3a50dfc277fa63",
+        "apps/web/src/source-relationship-graph.tsx": "795e93cef1bd790d325292f3b456e6dd77439eb1c675c83080150a14f6dc0fca",
+        "packages/persistence/models.py": "c6728f152274ddf9d59a0e32c3b6b89742789f6e897e39cf7dfe4f6b9b2a1924",
+        "services/operations/source_relationship_graph.py": "05eedd50e2f7c2cac4d2f84a31cd6d091ceb212396411dd2c082e4afe7a3518d",
+        "tests/browser/test_source_relationship_graph.py": "1b4bba988840ec53a6b64821ec6fde8d8552a2cb8dd97a61a3a21945c8405ffa",
+        "tests/integration/test_source_relationship_graph.py": "2453844b01a8077784f29c40ae8c0cecb609cf9aa502b0fd81c512e8b71de8f4",
+        "tests/unit/test_source_relationship_graph.py": "9a4bc00ec9c693c0edc4de193e25aff9d615635753c5ed06f6f0a5a24bf57fee"
+      },
+      "missing_named_paths": []
+    },
+    {
+      "id": "MJ-REQ-275",
+      "issue": 276,
+      "title": "[MJ-REQ-275] Configuration",
+      "canonical_before": "NOT_RUN",
+      "authoritative_requirement": "Do not require source-code editing for ordinary settings.\n\nUI/environment configuration should cover:\n\n```text\nAI\nsources\nsource intervals\ncompany discovery\nmatch thresholds\napplication rules\napplication limits\nbrowser profiles\ndocuments\nnotifications\nlogging\n```",
+      "review_verdict": "NOT_READY_KEEP_INCOMPLETE",
+      "criteria": [
+        {
+          "criterion": "AI",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "AI task/provider configuration UI and scoped saved API settings; provider credentials remain vault-backed.",
+          "meaningful_oracle": "test_settings_are_profile_scoped_and_survive_a_store_reopen; AI task frontend/browser tests."
+        },
+        {
+          "criterion": "sources",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global /sources and company source enable/watch controls.",
+          "meaningful_oracle": "Source policy API and company-source UI tests."
+        },
+        {
+          "criterion": "source intervals",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Global source policy and reviewed company source monitoring cadence.",
+          "meaningful_oracle": "SourcePolicySchedulerTests and company monitoring API/browser controls."
+        },
+        {
+          "criterion": "company discovery",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Saved company-discovery policy and UI.",
+          "meaningful_oracle": "test_policy_saves_and_survives_reload_without_external_requests."
+        },
+        {
+          "criterion": "match thresholds",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "AI cost minimum score, role/match configuration and search controls have saved UI/API surfaces.",
+          "meaningful_oracle": "AI cost policy API, matching configuration frontend and integration tests."
+        },
+        {
+          "criterion": "application rules",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Saved employer/search rules and sensitive-answer policy UI; actual submission remains separately disabled.",
+          "meaningful_oracle": "Employer-search-rules and sensitive-answer policy tests."
+        },
+        {
+          "criterion": "application limits",
+          "static_verdict": "IMPLEMENTATION_GAP",
+          "implementation": "Daily limit exists only in controlled-dry-run API/rehearsal store; no frontend daily_limit consumer and no ordinary environment mapping found. Worker concurrency alone is not the daily application limit.",
+          "meaningful_oracle": "Existing unit/API tests prove backend controls but do not satisfy the requested UI/environment settings surface."
+        },
+        {
+          "criterion": "browser profiles",
+          "static_verdict": "UNPROVEN_CONFIGURATION_SURFACE",
+          "implementation": "Profiles are automatically derived per application/attempt under output root and manual sign-in/recovery UI exists; no explicit ordinary profile-setting/readback contract found.",
+          "meaningful_oracle": "Manual-auth path safety tests must be preserved; do not add arbitrary user-supplied filesystem paths."
+        },
+        {
+          "criterion": "documents",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Document preferences, selected facts, style/page count and supporting-document UI are saved settings.",
+          "meaningful_oracle": "Existing document preference/selection and browser workflows."
+        },
+        {
+          "criterion": "notifications",
+          "static_verdict": "IMPLEMENTED_PENDING_EXECUTION",
+          "implementation": "Strict MJOBS_NOTIFICATIONS_ENABLED 0/1 environment switch forwarded by Compose and exposed via /settings.",
+          "meaningful_oracle": "test_notifications_default_to_disabled_in_app_delivery_without_external_side_effects; strict invalid inputs; rendered Compose readback tests."
+        },
+        {
+          "criterion": "logging",
+          "static_verdict": "IMPLEMENTATION_GAP",
+          "implementation": "workers/main.py accepts MJOBS_WORKER_LOG_LEVEL; current compose.yml does not forward that variable to runtime containers.",
+          "meaningful_oracle": "ConfigurationContractSustain276Tests proves parser and worker argument, but deployed .env passthrough needs correction and regression."
+        }
+      ],
+      "implementation_paths": [
+        "apps/api/main.py",
+        "workers/main.py",
+        "compose.yml",
+        ".env.example",
+        "services/applications/rehearsal_store.py",
+        "apps/api/controlled_application_dry_run.py",
+        "services/applications/manual_auth.py",
+        "packages/domain/safety.py"
+      ],
+      "meaningful_tests": [
+        "tests/unit/test_configuration_surface_sustain_276.py",
+        "tests/unit/test_configuration_contract_sustain_276.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/browser/test_company_discovery_policy.py",
+        "tests/unit/test_application_rehearsal_controls_fleet_t16_b.py",
+        "tests/integration/test_fleet_t16_application_controls.py"
+      ],
+      "verification_commands": [
+        "python -m pytest -q tests/unit/test_configuration_surface_sustain_276.py tests/unit/test_configuration_contract_sustain_276.py",
+        "After implementation: add deployed Compose readback test for MJOBS_WORKER_LOG_LEVEL, UI/persistence/no-side-effect test for application limits, and explicit safe browser-profile config contract acceptance."
+      ],
+      "remaining_gaps": [
+        "Pass MJOBS_WORKER_LOG_LEVEL through Compose common environment and document allowed values/default.",
+        "Expose usable application limit control through UI or real ordinary environment config, using existing strict/persisted controls and preserving submission OFF.",
+        "Establish safe browser-profile configuration contract and meaningful tests; current fixed private ownership plus OUTPUT_DIR may support a documented automatic-management design, but evidence is presently absent."
+      ],
+      "limitations": [
+        "Do not equate a notification toggle with external delivery; this original only requires configuration.",
+        "Browser profile configuration must preserve private deterministic ownership, path confinement and no imported cookies/credentials."
+      ],
+      "source_sha256": {
+        ".env.example": "0f9839970391883a2fdf40aae72ad393f7e14a5c183c934e986e20c6d9bb65fe",
+        "apps/api/controlled_application_dry_run.py": "b331d8c07c572068822b02fdb1c70fa0715ff309365291bc48ae9aa348d3cb2c",
+        "apps/api/main.py": "bb9c37053deb8edabe9044a70bd1a7729813d2899af71c0ef23d3a7d22f5af6d",
+        "compose.yml": "1569c41b6ce0fb172cea971df860754f05c6fd84471e95473f7685cc28986365",
+        "packages/domain/safety.py": "91f52390a6a1f0e3888800a963ed2d5dc98b43207f97e5f573d3ee010f172090",
+        "services/applications/manual_auth.py": "68c867d79b6b0f18214d4659613be42c9f51950143437abd0f933f1e86268378",
+        "services/applications/rehearsal_store.py": "4b4b4bb607b9b630786f5808657ecb507dd9c5a64b05cecf03c543a1b4512ec1",
+        "tests/browser/test_company_discovery_policy.py": "bf3b66c820353c59effac5d07d9f2247ddb3f31825ab35fe45c0003d669b8365",
+        "tests/integration/test_ai_task_settings_api.py": "0cf833b5e246586b5e34896df55828e8c948d26d2fb29d78948e4a833fd5d4ca",
+        "tests/integration/test_fleet_t16_application_controls.py": "a7ad7f4891cd0eec263be388b488812fc9b8e487488736cbab51015b6080a4c1",
+        "tests/unit/test_application_rehearsal_controls_fleet_t16_b.py": "b132600e00f3ffec23a92636986a49e10a3f0a74bab5fa2e07ec7b779c54efdc",
+        "tests/unit/test_configuration_contract_sustain_276.py": "82297c741eef55bf36a419a317d8bc3b5046b364756081ca9d106cef84784f2c",
+        "tests/unit/test_configuration_surface_sustain_276.py": "0414bdd33cf8911ec1e03ac5ccc3f404c90e8b4a78c77d46f0f8a0c1d1067598",
+        "workers/main.py": "f5553b847ca7d6419b38d7f53f1ea6338685c004f7491033807656a9abeb7b0f"
+      },
+      "missing_named_paths": []
+    }
+  ],
+  "recommendations": {
+    "first_full_closure": "MJ-REQ-227",
+    "ready_ids": [
+      "MJ-REQ-020",
+      "MJ-REQ-227",
+      "MJ-REQ-278",
+      "MJ-REQ-260",
+      "MJ-REQ-261",
+      "MJ-REQ-262"
+    ],
+    "small_documentation_completion": [
+      "MJ-REQ-259"
+    ],
+    "implementation_gaps": [
+      "MJ-REQ-275"
+    ],
+    "acceptance_is_conditional": "No recommendation is a PASS declaration. Root must execute applicable tests against exact integration candidate, resolve failures/skips, obtain required hosted checks, integrate, record canonical evidence, and then close issues."
+  }
+}

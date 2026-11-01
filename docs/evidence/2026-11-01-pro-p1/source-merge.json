@@ -1,0 +1,11 @@
+{
+  "sha": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+  "merged": true,
+  "message": "Pull Request successfully merged",
+  "repository": "MulattoTech/MJobs",
+  "pr_number": 875,
+  "expected_head_sha": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+  "tested_proposed_merge": "f68edc8cce2013f4ccfc5df209862dc40651fb9e",
+  "merged_at": "2026-11-01T06:08:02Z",
+  "git_tree": "130fc988fe56d7c18f1bf39977e54f700deaf727"
+}

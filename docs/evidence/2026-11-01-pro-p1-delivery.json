@@ -1,0 +1,468 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-01T06:12:03.759437+00:00",
+  "scope": "User-authorized P1 verified delivery; original requirements only",
+  "overall_result": "PARTIAL",
+  "whole_product_release_readiness": "UNKNOWN",
+  "external_submission_enabled": false,
+  "paid_ai_calls": 0,
+  "emergency_cutoff_percent": 7,
+  "source": {
+    "head": "ca1e62c6dc64ef4149bba577f02973684e259e16",
+    "proposed_merge": "f68edc8cce2013f4ccfc5df209862dc40651fb9e",
+    "merged_commit": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+    "git_tree": "130fc988fe56d7c18f1bf39977e54f700deaf727",
+    "pr": "https://github.com/MulattoTech/MJobs/pull/875"
+  },
+  "acceptance_record_integration": "Protected PR877 records this checkpoint after source PR875 and dependency PR876; require its exact proposed-merge gates before merging.",
+  "original_denominator": 366,
+  "reference_denominator": 59,
+  "p1_denominator": 116,
+  "p1_before": {
+    "PARTIAL": 28,
+    "PASS": 49,
+    "NOT_RUN": 39
+  },
+  "p1_after": {
+    "PARTIAL": 18,
+    "PASS": 92,
+    "NOT_RUN": 6
+  },
+  "new_p1_pass_count": 43,
+  "newly_accepted": [
+    {
+      "id": "MJ-REQ-020",
+      "title": "[MJ-REQ-020] Source Policy",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-021",
+      "title": "[MJ-REQ-021] Continuous Scheduling",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-030",
+      "title": "[MJ-REQ-030] Date Filtering",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-034",
+      "title": "[MJ-REQ-034] Education Requirement Parsing",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-157",
+      "title": "[MJ-REQ-157] Operation Types",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-159",
+      "title": "[MJ-REQ-159] Task Idempotency",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-163",
+      "title": "[MJ-REQ-163] Database Constraints",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-164",
+      "title": "[MJ-REQ-164] Database Indexes",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-170",
+      "title": "[MJ-REQ-170] Retention",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-213",
+      "title": "[MJ-REQ-213] Full Application E2E Test",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-214",
+      "title": "[MJ-REQ-214] Unit Tests — Normalization",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-215",
+      "title": "[MJ-REQ-215] Unit Tests — Dedupe",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-216",
+      "title": "[MJ-REQ-216] Unit Tests — Company Resolution",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-217",
+      "title": "[MJ-REQ-217] Unit Tests — Ats Detection",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-219",
+      "title": "[MJ-REQ-219] Unit Tests — Answer Matching",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-220",
+      "title": "[MJ-REQ-220] Unit Tests — Application State",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-222",
+      "title": "[MJ-REQ-222] Source Adapter Contract Tests",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-223",
+      "title": "[MJ-REQ-223] Company Source Contract Tests",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-225",
+      "title": "[MJ-REQ-225] Security Tests",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-226",
+      "title": "[MJ-REQ-226] Application Form Security Tests",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-227",
+      "title": "[MJ-REQ-227] Test Resource Limits",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-228",
+      "title": "[MJ-REQ-228] Live Source Testing",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-229",
+      "title": "[MJ-REQ-229] Live Company Discovery Test",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-230",
+      "title": "[MJ-REQ-230] Live Application Test Policy",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-255",
+      "title": "[MJ-REQ-255] Responsive Design",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-256",
+      "title": "[MJ-REQ-256] Accessibility",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-258",
+      "title": "[MJ-REQ-258] Do Not Overengineer",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-259",
+      "title": "[MJ-REQ-259] Future-Proof Without Building Everything Now",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-260",
+      "title": "[MJ-REQ-260] Optional Email Status Ingestion",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-261",
+      "title": "[MJ-REQ-261] Source Vs Ats Separation",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-262",
+      "title": "[MJ-REQ-262] Source Relationship Graph",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-271",
+      "title": "[MJ-REQ-271] Ai Failure Behavior",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-274",
+      "title": "[MJ-REQ-274] Process Restart Recovery",
+      "previous": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-278",
+      "title": "[MJ-REQ-278] Ci",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-279",
+      "title": "[MJ-REQ-279] Python Quality",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-280",
+      "title": "[MJ-REQ-280] Typescript Quality",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-281",
+      "title": "[MJ-REQ-281] Repository Structure",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-282",
+      "title": "[MJ-REQ-282] Source Adapter Development Guide",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-283",
+      "title": "[MJ-REQ-283] Company Source Development Guide",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-284",
+      "title": "[MJ-REQ-284] Application Adapter Development Guide",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-285",
+      "title": "[MJ-REQ-285] Architecture Document",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-286",
+      "title": "[MJ-REQ-286] Database Documentation",
+      "previous": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-287",
+      "title": "[MJ-REQ-287] Troubleshooting Guide",
+      "previous": "NOT_RUN"
+    }
+  ],
+  "partial_evidence_only": [
+    "MJ-REQ-254"
+  ],
+  "p0_unchanged": {
+    "PARTIAL": 4,
+    "PASS": 12,
+    "NOT_RUN": 10
+  },
+  "remaining_p1": [
+    {
+      "id": "MJ-REQ-015",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-017",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-018",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-019",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-155",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-160",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-161",
+      "result": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-162",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-167",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-171",
+      "result": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-172",
+      "result": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-174",
+      "result": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-175",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-179",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-208",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-209",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-210",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-211",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-224",
+      "result": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-254",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-267",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-269",
+      "result": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-275",
+      "result": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-288",
+      "result": "PARTIAL"
+    }
+  ],
+  "criteria_path": "docs/evidence/2026-11-01-pro-p1/criteria.json",
+  "execution_path": "docs/evidence/2026-11-01-pro-p1/hosted-execution.json",
+  "artifact_sha256": {
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-data-search.json": "0e3c28dd8c57a4b82c1bb745e75aaba1009eae0dd5ef3ec085a1067852493662",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-docs.json": "5c60e4e2ff92a77c67e1fc06c419142e6f55b0e9967a69e40efb32f31fac5749",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-harness.json": "dba6fce740c1db68092eda47284b4c083690a92cb5f9d6850d3a095108c70211",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-operations.json": "de9e4c021a5d2cc9a58a234d2928e20a35d1780cf73c66650d57995bf4789b5f",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-operations-2.json": "c82bd877e51fa78c9a7a6f520046d484eec6051040723aa57c087c10625ee955",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-final-claims.json": "204124420e3c01f610d6e7cdc2cab264eae1f3c7b94e21114515ddc6aace4676",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-ui-deadline-gaps.json": "b083e1d190719cdc615312d96b5105c0b966d939b8ad16d3d3ebbdd562dce63f",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-live.json": "7f178c5c06cb0f3fa16ae316a51e4b5ce1de4922555023cbfb1ca84deddf0000",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-final-selector.json": "ddbf521b12637491767acfdb65689b55f03d76e7ffb46bae5f48dd45f778b46b",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-greenhouse-probe.json": "8f7cfdb1d17ca160f84a79b0b0a8804e15a0a5e7df29397d4315843ab04d5877",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-executions.json": "48859ea0c1de3479de69431a12be6c84e7954946e3e4412d4c9baa15f7cf0f62",
+    "docs/evidence/2026-11-01-pro-p1/live/harness-live-read-evidence.json": "b109b47e517a0a8728ae6bc599a8b0d693f3b956fac6ce106c9fa4693cbd7e64",
+    "docs/evidence/2026-11-01-pro-p1/live/harness-live-persistence-evidence.json": "ec67de6ca8f64991b7d1e6a77fc691f79d9231e51aee77654a790b549deff6a6",
+    "docs/evidence/2026-11-01-pro-p1/live/harness-wwr-live-followup.json": "ba5c63fb03456f06899bf2d52f1f021222aad20857e9e38aab8c02f860336d95",
+    "docs/evidence/2026-11-01-pro-p1/live/harness-greenhouse-live-evidence.json": "1f36a96042bf30fe8fbfda0e429d6763e1f1070f3053fce7c622d290c9e18421",
+    "docs/evidence/2026-11-01-pro-p1/repro/harness_live_read_probe.py": "99ab3a46f965c71e50ad37c67e6ff8019fea56e323c008588b91fc23b2d42714",
+    "docs/evidence/2026-11-01-pro-p1/repro/harness_live_persistence_probe.py": "4b9d77eed4483cc21fd6972f4c5086eab91ec8b18fd76d669f876d1a01bd003a",
+    "docs/evidence/2026-11-01-pro-p1/repro/harness_greenhouse_persistence_probe.py": "7efc889ef2ab0bccd1e26d5db45a7e1db344579f4c086eb24d860c1909933655",
+    "docs/evidence/2026-11-01-pro-p1/repro/p1-live-persistence-b22ea2de.py": "b22ea2de1c6dbb71587bbacec77a378e7722333a09c5f48a4d5b271371b7e7b0",
+    "docs/evidence/2026-11-01-pro-p1/source-gates.json": "9a951e6c0af67a44dbb6116b1ed04b2a59d0460e523789243a73306b6ed86bbc",
+    "docs/evidence/2026-11-01-pro-p1/source-merge.json": "2993c2787d705307360fb5741e2bfaea92700bdea8f859ec24cf4e7763905584",
+    "docs/evidence/2026-11-01-pro-p1/windows-browser.json": "169d4fa2c3b599db5d104154776aeaba93bbf24fb3ed051d4faee4b179b58a07",
+    "docs/evidence/2026-11-01-pro-p1/issues-before.json": "2af4e5f4c4a80002150dbd0f74ff1dd83dc1e0dc0f98ee31a575150f9f402c57",
+    "docs/evidence/2026-11-01-pro-p1/criteria.json": "11170543b3bcf76463a0608c0dc8ae3b7d30c6ca4b02eba35674de98f1b13dc1",
+    "docs/evidence/2026-11-01-pro-p1/hosted-execution.json": "03c8c768c5d80ebdd07fab0d65d36d415794ba089f1d25c359b35cd2553e6fec",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-020-stk01-skip-scope.json": "82848bf7c4130f01527eb6e0e8a610086e44260740ec28cb211388f5b59ac460",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recording-script.json": "bba61fb73bf6563e69c42196815e7734e61808e9ac0954c0a29d3f05367407b9",
+    "docs/evidence/2026-11-01-pro-p1/repro/record_p1_acceptance.py": "0076baffadb41585b50a18542b6d42ba271b906daa0f7496d7ba525b9d5d12e4",
+    "docs/evidence/2026-11-01-pro-p1/repro/p1_assemble_review.py": "77399100531418fbbcb807cf720f776b58bc3f6c962e6316f9ae92c62564cc92",
+    "docs/evidence/2026-11-01-pro-p1/repro/p1_gate_proof.py": "a2eca4f7db40b79775678c3e7394fb4a73c413c25f24bd5577cb1ed3364373a2",
+    "docs/evidence/2026-11-01-pro-p1/assembly-summary.json": "f371abc36651592cd5a183b14df8db8eb5544ae47d8cfbdeaffe8e8f09beca93",
+    "docs/evidence/2026-11-01-pro-p1/retained-test-history.json": "7a700c57bd98cbbd99ef237faa03813840c26685e6a4bec72d2059c5db14af43",
+    "docs/evidence/2026-11-01-pro-p1/inputs/harness-acceptance-initial-unrestricted.xml": "c2ae83b67fd0e691f92f8180109c2c31b8aedfb376308ca36fc439d3e8f299ec",
+    "docs/evidence/2026-11-01-pro-p1/inputs/harness-greenhouse-selfcheck.json": "db3452216128f796baec31a2d66ba7c79badb7c1879f43e07f4ce3fd98e285a6",
+    "docs/evidence/2026-11-01-pro-p1/inputs/harness-persistence-selfcheck.json": "379fa7ef95e61b274f65c830a31721caf50e122b153aee3c7bd8c9e32e9d5afe",
+    "docs/evidence/2026-11-01-pro-p1/inputs/harness-security-live-policy.xml": "d86d2c71cb2a12d63374e6c1866d7a154122547b2ff3c31b14ca155787232758",
+    "docs/evidence/2026-11-01-pro-p1/inputs/harness-source-contract-after.xml": "aaef6abc803f1043cd6313ee9359f58c6998d03c98c7f8470c8158bf112b854d",
+    "docs/evidence/2026-11-01-pro-p1/inputs/harness-wwr-contract.xml": "2fb3cba628e7878d4746898a455d8fc1eea0bf9ddd38ed033a11efcd05409516",
+    "docs/evidence/2026-11-01-pro-p1/inputs/p1-record-validation.xml": "2733d0387f8e02a816f4659dbb4269afdf427f45f354eae43fe232bb094131c8",
+    "docs/evidence/2026-11-01-pro-p1/record-validation.json": "0f90caa44ccff6cb748a9d7bf750986cdd454c8df21647d635e3462d7ff1109e",
+    "docs/evidence/2026-11-01-pro-p1/inputs/source-gates.original.json.gz": "9a94696c694e1658002881d19c4af0b49f92b07780441705c97bbf700fb25aa2",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json": "a2a5ecec9ffb4b0ceb09b3020d3fe837e5dd909cfb80cab9b34c68acffb4ee22",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670",
+    "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json": "ec2e42ea7c3ea3a4087974316505f2014c22cf4801bf2fae2a5fc5ce687cd831",
+    "docs/evidence/2026-11-01-pro-p1/inputs/pypdf-gates.original.json.gz": "e8fea5e625e8fc7645dad8e32625fc194d8cc9c2b04be0bbb2b1c1eeffafa8b9",
+    "docs/evidence/2026-11-01-pro-p1/reviews/scanner-fingerprint-followup.json": "6a4d33d17e4e1070ea2285c20d5faed335a9924d14adffd3cd39bcd31dc6ba24"
+  },
+  "known_limitations": [
+    "MJ-REQ-254 remains PARTIAL: 21 active UI modules contain 32 unbounded injected-fetch dispatch sites.",
+    "WWR live batch FAILS SOURCE_DUPLICATE_JOB_ID for conflicting content under one native identity. Both failed attempts are retained; 228 is supported by Remotive, RemoteOK and Greenhouse.",
+    "Live source replay proves same-capture dedupe and persistence in isolated SQLite; it does not claim coincidental cross-provider jobs or external employer submissions.",
+    "Windows, Linux and hosted executions have distinct scopes. Skips are recorded explicitly and never counted as passes.",
+    "The onboarding synthetic artifact remains PARTIAL for its real-provider clause; all performed synthetic actions passed. Live provider requirements have separate explicit evidence.",
+    "Original 366 and additive 59 acceptance authorities remain separate and retain their denominators.",
+    "Production deployment and post-merge issue readback are verified separately after this protected acceptance PR.",
+    "The additional opt-in STK01 full-stack lifecycle case remains SKIPPED; its supporting module records 15 passed / 1 skipped. The independent literal requirement 020 review establishes all required policy-field/isolation assertions passed without claiming the extra stack scenario ran.",
+    "A newly reported minimatch development-dependency advisory (GHSA-g3hv-75wg-m249) remains for follow-up; its fixed major version requires a separate compatibility change. This is not a claim of a vulnerability-free release."
+  ],
+  "github_issue_baseline": {
+    "selected": 43,
+    "already_closed": 9,
+    "open": 34,
+    "evidence": "docs/evidence/2026-11-01-pro-p1/issues-before.json"
+  },
+  "artifact_transformations": [
+    {
+      "readable_path": "docs/evidence/2026-11-01-pro-p1/source-gates.json",
+      "transformation": "CRLF to LF only, for the repository text policy; parsed JSON equality verified",
+      "original_compressed_path": "docs/evidence/2026-11-01-pro-p1/inputs/source-gates.original.json.gz",
+      "original_uncompressed_sha256": "d2521907da8be0db4ade834e3023644cfc21116f1ae8ec11aafffdf4638ef2b6",
+      "readable_sha256": "9a951e6c0af67a44dbb6116b1ed04b2a59d0460e523789243a73306b6ed86bbc"
+    },
+    {
+      "readable_path": "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json",
+      "transformation": "CRLF to LF only; parsed JSON equality verified",
+      "original_compressed_path": "docs/evidence/2026-11-01-pro-p1/inputs/pypdf-gates.original.json.gz",
+      "original_uncompressed_sha256": "a6d527b26763e550eccf5cd7c6ab3753bd183ee268f82b2e71a217b33790c994",
+      "readable_sha256": "ec2e42ea7c3ea3a4087974316505f2014c22cf4801bf2fae2a5fc5ce687cd831"
+    }
+  ],
+  "final_record_review": {
+    "result": "NO_BLOCKERS",
+    "path": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json",
+    "scope": "Canonical decisions, source and evidence integrity, durable active references, retained limitations and privacy. This final link/manifest addition follows the reviewed snapshot; it changes no acceptance decision."
+  },
+  "secret_scan_triage": {
+    "initial_run": "https://github.com/MulattoTech/MJobs/actions/runs/41280686033",
+    "initial_result": "FAIL: 13 generic-api-key candidates",
+    "review": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json",
+    "verified_source_digest_matches": 13,
+    "exact_history_fingerprint_exceptions": 14,
+    "scanner_rules_changed": false,
+    "required_scanner_rerun": "Required on the final protected PR revision before integration",
+    "followup_run": "https://github.com/MulattoTech/MJobs/actions/runs/41281312282",
+    "followup_result": "FAIL: review-report checksum flagged by the generic credential rule",
+    "followup_review": "docs/evidence/2026-11-01-pro-p1/reviews/scanner-fingerprint-followup.json",
+    "verified_review_digest_matches": 1
+  },
+  "integrated_dependency_followup": {
+    "pr": "https://github.com/MulattoTech/MJobs/pull/876",
+    "source_head": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+    "tested_proposed_merge": "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b",
+    "merged_commit": "25e3f25968ce8e6148ede67fae6e029414567567",
+    "git_tree": "f88661b0430a55165d802468e8f2a16261c6e3b8",
+    "change": "requirements.txt: pypdf 6.21.2 to 6.21.4",
+    "purpose": "Patched versions for seven newly reported high-severity pypdf advisories; alert-state closure is checked separately after dependency graph refresh.",
+    "required_gates": "PASS 5/5 on the actual proposed merge",
+    "evidence": "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json",
+    "original_acceptance_source": "The original criterion proofs remain bound to ca1e62c6. Final acceptance PR checks also execute with the integrated patched dependency."
+  }
+}

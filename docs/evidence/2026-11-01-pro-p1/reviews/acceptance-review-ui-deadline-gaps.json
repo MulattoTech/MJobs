@@ -1,0 +1,627 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-254",
+  "reviewer": "ChatGPT-Web /root/docs_delivery",
+  "reviewed_at_utc": "2026-11-01T05:33:47.793728+00:00",
+  "reviewed_git_sha": "e74eeed806bdd3feb497abc8a11901bc76f44ed0",
+  "current_root_git_sha_at_report": "e69638121e79a40632afdef80b70befa1de4ecfa",
+  "frontend_source_unchanged_between_these_revisions": true,
+  "repository": "/workspace/scratch/05fe891fa40c/MJobs",
+  "canonical_status_modified": false,
+  "production_files_modified_for_this_inventory": false,
+  "literal_requirement": "<!-- mj-requirement:MJ-REQ-254 -->\n\n## Requirement\n**MJ-REQ-254 \u2014 UX STANDARD**\n\n- Priority: `P1`\n- Type: `frontend`\n- Area: `operations_ux_ci`\n- Source: `docs/spec/source/MJobs_Startup_Prompt.original.md` lines 6518-6547\n- Working spec: `docs/spec/areas/operations_ux_ci.md`\n\n## Authoritative requirement text\n\nThe final system should feel:\n\n```text\nbuttery smooth\ncrisp\nintentional\npredictable\ntransparent\nrecoverable\n```\n\nThat means:\n\n```text\ngood defaults\nlittle unnecessary configuration\nfast filtering\nmeaningful progress\nclear automation state\nuseful errors\nsafe retry\npersistent operations\nexplanations\nno mysterious frozen screens\n```\n\n---\n\n## Delivery contract\n\n- Implement this requirement only in a coherent PR that preserves all higher-priority safety/truthfulness constraints.\n- Add or update automated tests when the behavior is testable.\n- Do not claim `PASS` from code presence alone; execute the relevant validation.\n- Update `planning/IMPLEMENTATION_STATE.json` and the PR queue entry when work begins and when verified.\n- If blocked, classify the blocker rather than weakening the requirement.\n\n## Traceability\nRequirement-ID: `MJ-REQ-254`\n",
+  "judgment": "PARTIAL",
+  "reason": "The literal no-mysterious-frozen-screens criterion remains unmet: active UI clients bypass the complete-response deadline. The shared API and five newly migrated paths are real improvements, not whole-frontend coverage.",
+  "counts": {
+    "production_fetch_referencing_modules": 23,
+    "active_unbounded_modules": 21,
+    "active_unbounded_dispatch_sites": 32,
+    "dormant_unbounded_modules": 1,
+    "dormant_unbounded_dispatch_sites": 1,
+    "bounded_transport_modules": 1,
+    "bounded_transport_dispatch_sites": 1
+  },
+  "method": [
+    "Enumerated production JS/TS source references to fetch, fetcher, fetchImpl, requestClient, XMLHttpRequest, axios, sendBeacon, EventSource and WebSocket under apps/web, excluding tests/dependencies/build output. No alternative network transport was found.",
+    "Traced relative imports from main.tsx and manually confirmed runtime construction, renders or calls. The separate interview-preparation-client.ts has no runtime importer.",
+    "Read all listed dispatches, corresponding response readers and timer/cancellation use. Navigation cancellation, scope checks, finite polling counts and object-URL timers do not impose elapsed request deadlines.",
+    "No new runtime test executed for this inventory. This is source evidence of indefinitely awaited fetch/body promises, not a claim of 32 freshly reproduced runtime failures."
+  ],
+  "active_unbounded_clients": [
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-answer-matching-client.ts",
+      "relative_path": "apps/web/src/application-answer-matching-client.ts",
+      "sha256": "f1cd5a7af18b2e9a2dc73040e6e891ff01f66cfbeb91d45b218e8196e536249e",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 151,
+          "source": "response=await fetcher("
+        }
+      ],
+      "symbols": [
+        "matchApplicationAnswers"
+      ],
+      "operations": "POST advisory answer suggestions; JSON",
+      "active_importers": [
+        "main.tsx",
+        "application-answer-matching.tsx"
+      ],
+      "existing_guards": "Current-scope checks before/after awaits; no elapsed deadline.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-confirmation-recovery.tsx",
+      "relative_path": "apps/web/src/application-confirmation-recovery.tsx",
+      "sha256": "b93af2579c923d9c0577dac726dec1f434709814ed3f4ec912991b7dcd83dba8",
+      "dispatch_count": 2,
+      "dispatch_sites": [
+        {
+          "line": 32,
+          "source": "const response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/confirmation-check/latest`, {"
+        },
+        {
+          "line": 51,
+          "source": "response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/confirmation-check`, {"
+        }
+      ],
+      "symbols": [
+        "loadLatestApplicationConfirmation",
+        "checkApplicationConfirmation"
+      ],
+      "operations": "GET latest receipt check; POST receipt-only check; success/error JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "Scope/unmount controller; stable scope can remain loading/busy. Preserve fixed uncertainty messages and saved request ID.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-form-review-connected.tsx",
+      "relative_path": "apps/web/src/application-form-review-connected.tsx",
+      "sha256": "2eed5d6beb0b160809b7b2e84364e450abf0a29f9cefe2fc07b679f2c607dde9",
+      "dispatch_count": 2,
+      "dispatch_sites": [
+        {
+          "line": 36,
+          "source": "const response = await fetcher("
+        },
+        {
+          "line": 108,
+          "source": "response = await fetcher("
+        }
+      ],
+      "symbols": [
+        "createApplicationFormReviewCapabilityClient",
+        "createApplicationFormReviewClient"
+      ],
+      "operations": "GET capability and latest inspection; JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "Scope/unmount controller and current-scope checks. Separate inspection admission already uses bounded api().",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-multipage-workspace.tsx",
+      "relative_path": "apps/web/src/application-multipage-workspace.tsx",
+      "sha256": "4313d969d2671a25a8124aad381de276b51d545f85ab5bcaf114a8920b77e241",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 113,
+          "source": "response = await fetcher(path, { ...init, signal });"
+        }
+      ],
+      "symbols": [
+        "createApplicationMultipageClient"
+      ],
+      "operations": "Shared GET saved progress and POST transition; JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "Scope/unmount controller and strict profile/application checks; no deadline.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-priority-client.ts",
+      "relative_path": "apps/web/src/application-priority-client.ts",
+      "sha256": "cd5b582c6ca9443511067bbf269ed766cb6dbdda2f8d90cb1bcb80b4eb5bda85",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 202,
+          "source": "response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });"
+        }
+      ],
+      "symbols": [
+        "createApplicationPriorityClient"
+      ],
+      "operations": "GET priority explanation; JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No timeout/signal in client; retain typed fixed errors.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-rehearsal.tsx",
+      "relative_path": "apps/web/src/application-rehearsal.tsx",
+      "sha256": "8f9d356df7f6d39cfa401db478242cf6deeee9acffe40224a5c1a3b84fe772c0",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 148,
+          "source": "response = await fetcher(path, { ...init, credentials: 'same-origin', signal });"
+        }
+      ],
+      "symbols": [
+        "createApplicationRehearsalClient"
+      ],
+      "operations": "Shared GET rehearsal with JSON and POST acknowledgement with status-only success",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "Scope/unmount controller. Helper returns Response and GET caller consumes JSON outside it.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-review-answers.tsx",
+      "relative_path": "apps/web/src/application-review-answers.tsx",
+      "sha256": "ef81f9fa989b500ab1b8dfdf56df4c4bc4e4ab8c882541df28ae726fe18db078",
+      "dispatch_count": 2,
+      "dispatch_sites": [
+        {
+          "line": 98,
+          "source": "await resumeResponseValue(await request(endpoint,{"
+        },
+        {
+          "line": 103,
+          "source": "const response=await request(`${endpoint}/${encodeURIComponent(input.request_id)}`,{method:'GET'});"
+        }
+      ],
+      "symbols": [
+        "createApplicationAnswerResumeClient"
+      ],
+      "operations": "POST resume admission and GET validation polling; success/error/202 JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "600 polls with 100 ms waits bound completed-request count, not stalled fetch/body or wall-clock duration.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/data-export.tsx",
+      "relative_path": "apps/web/src/data-export.tsx",
+      "sha256": "9f3f76900f72876eb11fabc073ef64bc11dd3ec0d1e87a3f862e59ef852442bb",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 46,
+          "source": "response = await request(path, {"
+        }
+      ],
+      "symbols": [
+        "fetchDataExport"
+      ],
+      "operations": "GET jobs/applications CSV or profile/backup JSON; response.blob()",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No deadline; Preparing export waits for completion. Keep fixed private-content-safe errors and local CSV handling.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/dynamic-application-form-client.ts",
+      "relative_path": "apps/web/src/dynamic-application-form-client.ts",
+      "sha256": "0cd95dafe1bef0ec84f122f2997ed781ac0cbee80ad55d843b575b59ac4f12c0",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 195,
+          "source": "response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/dynamic-fields${query}`, {"
+        }
+      ],
+      "symbols": [
+        "createDynamicApplicationFieldsClient"
+      ],
+      "operations": "GET dynamic fields; JSON",
+      "active_importers": [
+        "dynamic-application-form-connected.tsx"
+      ],
+      "existing_guards": "Caller signal and late-scope check; no elapsed limit.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/interview-preparation-connected.tsx",
+      "relative_path": "apps/web/src/interview-preparation-connected.tsx",
+      "sha256": "62d024ca0f0223f2a1c36181ec4a15433c74fe829e50f02f5ea3f7a9fbbcc833",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 85,
+          "source": "void fetcher(`/profiles/${encodeURIComponent(profileId)}/career-stories`)"
+        }
+      ],
+      "symbols": [
+        "InterviewPreparationConnected"
+      ],
+      "operations": "GET approved career stories; JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "Effect active flag ignores late results but neither aborts nor times out. Initial loading can wait forever.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/interview-preparation.tsx",
+      "relative_path": "apps/web/src/interview-preparation.tsx",
+      "sha256": "aedcd08016e0dfa6ca3a8d03d223fd2616b1c0f1e68ec551b8fb9b3f202f550a",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 69,
+          "source": "const response = await fetcher(url, {"
+        }
+      ],
+      "symbols": [
+        "requestJson",
+        "loadInterviewPrepPacks",
+        "loadInterviewPrepPack",
+        "createInterviewPrepPack"
+      ],
+      "operations": "Shared GET history/exact pack and POST creation; success/error JSON",
+      "active_importers": [
+        "interview-preparation-connected.tsx"
+      ],
+      "existing_guards": "No timeout. Creation, exact readback and history are distinct requests; never auto-repeat a mutation.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/job-comparison-client.ts",
+      "relative_path": "apps/web/src/job-comparison-client.ts",
+      "sha256": "91cc2c38f4291c3763449c0f84f15f8826ac26bc521c935391d7fe8bdf4aa661",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 413,
+          "source": "response = await fetchImpl(url, {"
+        }
+      ],
+      "symbols": [
+        "createJobComparisonClient"
+      ],
+      "operations": "POST comparison; success/error JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No timeout/signal; preserve typed HTTP errors and scope validation.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/match-feedback-client.ts",
+      "relative_path": "apps/web/src/match-feedback-client.ts",
+      "sha256": "d0714e36ea69794640e0f0df42043151cf8f2bb2402e1a71b2b186d744958d0d",
+      "dispatch_count": 6,
+      "dispatch_sites": [
+        {
+          "line": 262,
+          "source": "try { response = await fetchImpl(path, { headers: { accept: 'application/json' } }); }"
+        },
+        {
+          "line": 271,
+          "source": "response = await fetchImpl(`/profiles/${encodeURIComponent(profileId)}/match-preferences`, {"
+        },
+        {
+          "line": 286,
+          "source": "response = await fetchImpl(path, {"
+        },
+        {
+          "line": 306,
+          "source": "try { readbackResponse = await fetchImpl(path, { headers: { accept: 'application/json' } }); }"
+        },
+        {
+          "line": 325,
+          "source": "postResponse = await fetchImpl(path, {"
+        },
+        {
+          "line": 338,
+          "source": "readbackResponse = await fetchImpl(path, {"
+        }
+      ],
+      "symbols": [
+        "createMatchFeedbackClient"
+      ],
+      "operations": "GET feedback; GET preferences; POST preference; GET preference readback; POST feedback; GET feedback readback; JSON",
+      "active_importers": [
+        "main.tsx",
+        "match-feedback.tsx"
+      ],
+      "existing_guards": "Six dispatch sites. Preserve request IDs, typed safe errors and exact write/readback pairs; no write autoretry.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/matching-explanation-client.ts",
+      "relative_path": "apps/web/src/matching-explanation-client.ts",
+      "sha256": "b876eda6532b473e74783590a9a48f08125096cc9bd40d83182f7626ea217d12",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 285,
+          "source": "response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });"
+        }
+      ],
+      "symbols": [
+        "createMatchingExplanationClient"
+      ],
+      "operations": "GET matching explanation; JSON",
+      "active_importers": [
+        "main.tsx",
+        "matching-explanation-workflow.tsx"
+      ],
+      "existing_guards": "No timeout/signal.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/mock-run-client.ts",
+      "relative_path": "apps/web/src/mock-run-client.ts",
+      "sha256": "78ad6dac3f22134db0c37bdba813a45c761bb22ff768e44bed4b682da80085b5",
+      "dispatch_count": 3,
+      "dispatch_sites": [
+        {
+          "line": 56,
+          "source": "return receipt(await request(mockRunEndpoint(scope),{method:'POST',headers:{'Content-Type':'application/json'},"
+        },
+        {
+          "line": 60,
+          "source": "const response=await request(`${mockRunEndpoint(scope)}s/${encodeURIComponent(intent.requestId)}`,{method:'GET'});"
+        },
+        {
+          "line": 66,
+          "source": "const response=await request(`/operations/${encodeURIComponent(operationId)}/cancel`,{method:'POST'});"
+        }
+      ],
+      "symbols": [
+        "postMockRun",
+        "lookupMockRun",
+        "cancelMockRun",
+        "resumeMockDryRun"
+      ],
+      "operations": "POST mock run with receipt JSON; GET saved run (404 skips body); POST cancellation (error JSON, success status only)",
+      "active_importers": [
+        "main.tsx",
+        "mock-run-controls.tsx"
+      ],
+      "existing_guards": "No timeout. Preserve persistent intent IDs, explicit retry and reconciliation. resumeMockDryRun delegates to these sites.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/resume-workspace-client.ts",
+      "relative_path": "apps/web/src/resume-workspace-client.ts",
+      "sha256": "f780b8018c142d88edf0f154d3f2498e7d220bb8e903ea5fdd06d80a3ff91271",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 23,
+          "source": "const response = await fetcher(base + path, { ...init, headers: { ...(init?.body ? { 'content-type': 'application/json' } : {}), ...init?.headers } });"
+        }
+      ],
+      "symbols": [
+        "createResumeWorkspaceClient"
+      ],
+      "operations": "Shared GET revisions; POST preview; PUT save; JSON",
+      "active_importers": [
+        "resume-workspace-connected.tsx"
+      ],
+      "existing_guards": "No timeout. Helper returns Response; callers consume JSON later, so a fetch-only timeout is insufficient.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/retention-policy.tsx",
+      "relative_path": "apps/web/src/retention-policy.tsx",
+      "sha256": "c5e71aee06d1c1d687eb5a2149d389805d6fb49912f3741d8009517d7e4cdf4c",
+      "dispatch_count": 2,
+      "dispatch_sites": [
+        {
+          "line": 144,
+          "source": "const response = await fetcher('/retention/policy', {"
+        },
+        {
+          "line": 152,
+          "source": "const response = await fetcher('/retention/policy', {"
+        }
+      ],
+      "symbols": [
+        "loadRetentionPolicy",
+        "saveRetentionPolicy"
+      ],
+      "operations": "GET settings; PUT reviewed settings; success/error JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No timeout. Preserve revision/config conflicts, administrator ceilings and fixed error-code allowlist.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/role-scoring-preview-client.ts",
+      "relative_path": "apps/web/src/role-scoring-preview-client.ts",
+      "sha256": "929ed4d6c006691b58bca69b08e71088e85412b34d46d5d59735fdba1fa8b0fc",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 86,
+          "source": "response=await (fetchImpl??fetch)(`/profiles/${encodeURIComponent(profileId)}/search-profiles/${encodeURIComponent(searchProfileId)}/role-scoring-profile/preview`,{"
+        }
+      ],
+      "symbols": [
+        "createScoringPreviewClient"
+      ],
+      "operations": "POST ranking preview; success/error JSON",
+      "active_importers": [
+        "role-scoring-preview.tsx"
+      ],
+      "existing_guards": "Caller signal aborts obsolete preview but no elapsed limit. Preserve read-only and unsupported/conflict semantics.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/role-scoring-profile-client.ts",
+      "relative_path": "apps/web/src/role-scoring-profile-client.ts",
+      "sha256": "376b0896f690cfef00a92d20c6a24d3dd28b9a43d9159550f2024ce8a34f1285",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 232,
+          "source": "response = await fetchImpl(url, init);"
+        }
+      ],
+      "symbols": [
+        "createRoleScoringProfileClient"
+      ],
+      "operations": "Shared GET/load/readback and PUT save; success/error JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No timeout. Preserve version conflicts and exact saved-profile readback.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/search-history-client.ts",
+      "relative_path": "apps/web/src/search-history-client.ts",
+      "sha256": "2bc6ad7d59acca034b0dd31c9c2f9dd5a60e3d61656b432e814d060ea0703365",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 190,
+          "source": "response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });"
+        }
+      ],
+      "symbols": [
+        "createSearchHistoryClient"
+      ],
+      "operations": "GET cursor-paged history; JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No timeout/signal.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    },
+    {
+      "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/source-candidate-review-client.ts",
+      "relative_path": "apps/web/src/source-candidate-review-client.ts",
+      "sha256": "b6530776d66a4e9747262319fcb318421ce0136cf51574ef892793879fdd41a5",
+      "dispatch_count": 1,
+      "dispatch_sites": [
+        {
+          "line": 282,
+          "source": "response = await fetchImpl(url, init);"
+        }
+      ],
+      "symbols": [
+        "createSourceCandidateReviewClient"
+      ],
+      "operations": "Shared GET candidates and PUT review; JSON",
+      "active_importers": [
+        "main.tsx"
+      ],
+      "existing_guards": "No timeout. Preserve scope validation, fixed typed errors and review request ID.",
+      "fetch_deadline": false,
+      "consumed_response_body_deadline": false
+    }
+  ],
+  "dormant_unbounded_client": {
+    "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/interview-preparation-client.ts",
+    "sha256": "4a59b78b9bc19d1c968ba76b34a9faf335425c63cd3b46dc3f4d398ef643cf10",
+    "dispatch_line": 80,
+    "symbol": "requestJson; exported interview-preparation load/save helpers",
+    "active_ui_importers": [],
+    "judgment": "Not an active UI blocker at this revision; document and migrate if retained for future use."
+  },
+  "bounded_implementation": {
+    "helper": "apps/web/src/api.ts::requestWithDeadline",
+    "dispatch_line": 31,
+    "mechanism": "Private AbortController, caller cancellation, timer/Promise.race, body-reader callback, post-fetch/post-body abort guards, cleanup. Ordinary requests 30 seconds, uploadResume 60 seconds. No automatic write retry.",
+    "entrypoints": [
+      "api including success/error JSON",
+      "uploadResume including success/error JSON",
+      "email-status-review readJson with fixed private-content-safe errors",
+      "application-attempt-history load with scope cancellation",
+      "resume-comparison saved readback preserving 404 absence",
+      "main readiness preserving 503 body and serialized polling",
+      "main optional answer TXT preserving response.text and loading release"
+    ],
+    "files": [
+      {
+        "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/api.ts",
+        "sha256": "1d93d02b2e0928053e48d4681c6d00d9ec424a93bac184e81907a08e149ae18f"
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/email-status-review.tsx",
+        "sha256": "f2b99664438752a1b89cbcbbb588f749ebe67454f1cb9ebdb51d599537e877d2"
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/application-attempt-history.tsx",
+        "sha256": "189a0d48b0ae4aa7269b0b458e9d4f252e3bc178fb26caf649645e8828f0ed79"
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/resume-comparison.tsx",
+        "sha256": "0ea56684d4aab166386c341163e92ae766832894b106ab2aadb4db1a17612027"
+      },
+      {
+        "path": "/workspace/scratch/05fe891fa40c/MJobs/apps/web/src/main.tsx",
+        "sha256": "83e0b52f400232d54c67d19e69e879f9e4d4554f365781347d02bc45b9c4b545"
+      }
+    ]
+  },
+  "prior_verified_fix": {
+    "authored_commit": "88ac9e500c0880bf0fb81133d9cca45d32938b8b",
+    "integrated_commit": "e74eeed806bdd3feb497abc8a11901bc76f44ed0",
+    "authored_revision_results": "151 test files / 1000 tests passed; ESLint 292 files, adopted formatter check, strict TypeScript and Vite build passed.",
+    "focused_regressions": "Existing 24 API cases retained; 15 mounted deadline component cases plus 5 real-App deadline cases added.",
+    "execution_limit": "Those executions were on the authored revision. Root owns final integrated-revision gates. This reviewer ran no Chromium: local prerequisite unavailable. Independent pr_triage review of a2a1e4e2..88ac found no blockers and did not reexecute tests.",
+    "log": "/tmp/mjobs-deadline-coverage-88ac-frontend.log"
+  },
+  "smallest_coherent_follow_up": {
+    "decision": "Deferred by root; do not broaden the validated five-path patch.",
+    "production_scope": "Add optional injected fetch-compatible transport to requestWithDeadline; migrate all 21 active modules (22 production files including api.ts). Including the dormant helper would make 23.",
+    "transport_signature": "Path-string and RequestInit to Promise<Response> accepts native fetch, existing typeof-fetch injections and narrower DataExportRequest. Preserve existing helper arguments.",
+    "body_rule": "Move all consumed JSON/text/blob and status-specific error readers inside the deadline callback. Do not return Response from a fetch-only timeout; resume-workspace and rehearsal require a reader boundary. Preserve intentional 404/status-only branches without forcing JSON.",
+    "invariants": [
+      "Keep profile/application checks, caller cancellation and rejection of late results.",
+      "Retain fixed private-content-safe messages, typed statuses/codes, durable request IDs and uncertain-write recovery. No automatic write repeat.",
+      "Also bound answer-resume polling by elapsed time; its 600 completed polls are not a wall-clock limit.",
+      "Maintain exact readback semantics for feedback/preferences, resume revisions, scoring profiles and interview packs."
+    ],
+    "verification": [
+      "Stalled injected fetch and stalled consumed body at every transport boundary, including error JSON and blob download.",
+      "Mounted busy/loading release, stale-scope/late-response and privacy regressions for representative client families; shared cancellation and non-cooperative transport tests.",
+      "Full existing frontend tests, ESLint, formatter check, strict TypeScript, build; affected connected Chromium journeys on root-hosted/remote environment."
+    ],
+    "effort_estimate": "Separate medium frontend change, roughly 2-4 hours for implementation, focused regressions and independent review plus CI/Chromium wait. Estimate only."
+  },
+  "note_correction": "Describe bounded api/upload plus five migrated UI paths; remove all frontend fetch consumers claim and retain PARTIAL until every relevant active path is covered and verified.",
+  "limits": [
+    "No live provider/employer/account calls.",
+    "No GitHub, canonical acceptance, issue or repository source edits.",
+    "Scope is request/body deadlines; this inventory alone does not certify every other UX criterion."
+  ]
+}

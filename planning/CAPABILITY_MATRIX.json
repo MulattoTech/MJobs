@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-26T03:22:16+00:00",
+  "timestamp": "2026-11-01T06:12:03.759437+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -310,25 +310,29 @@
     },
     {
       "requirement_id": "MJ-REQ-020",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-01-source-policy-scheduler.json",
-        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Historical checkpoint (preserved): Per-source enablement, cadence, concurrency, timeout, request rate, jitter, health, timestamps, failure/backoff and strategy are persisted/configurable; source failures remain isolated durable operations. Current audit: Current whole-source adjudication: company-feed monitoring accepts cadence but rejects configurable request_timeout,rate_limit,concurrency (public422 versus global200 controls). Its fixed client safety budgets do not satisfy the literal per-source configuration contract. Known per-source recovery evidence is retained; no cross-source failure leak is asserted.",
+      "note": "Historical checkpoint (preserved): Per-source enablement, cadence, concurrency, timeout, request rate, jitter, health, timestamps, failure/backoff and strategy are persisted/configurable; source failures remain isolated durable operations. Current audit: Current whole-source adjudication: company-feed monitoring accepts cadence but rejects configurable request_timeout,rate_limit,concurrency (public422 versus global200 controls). Its fixed client safety budgets do not satisfy the literal per-source configuration contract. Known per-source recovery evidence is retained; no cross-source failure leak is asserted. 2026-11-01 verified checkpoint: All eleven source-policy fields are represented by validated configuration or durable runtime observations. Global and company sources retain independent cadence, transport limits, health, backoff and strategy; failure-isolation and reopen tests exercise actual admission and transport.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-021",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-01-source-policy-scheduler.json",
-        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Historical checkpoint (preserved): A persistent scheduler service independently evaluates source cadence/backoff/jitter and enqueues idempotent durable work. Three successive live read-only scheduler operations completed at the configured five-minute cadence. Current audit: Current whole-source adjudication: company-feed monitoring has independent cadence and retry/backoff, but its next_due calculation has no jitter. Global source scheduler proof does not certify this separate producer. Full requirement remainsPARTIAL pending company-path coverage.",
+      "note": "Historical checkpoint (preserved): A persistent scheduler service independently evaluates source cadence/backoff/jitter and enqueues idempotent durable work. Three successive live read-only scheduler operations completed at the configured five-minute cadence. Current audit: Current whole-source adjudication: company-feed monitoring has independent cadence and retry/backoff, but its next_due calculation has no jitter. Global source scheduler proof does not certify this separate producer. Full requirement remainsPARTIAL pending company-path coverage. 2026-11-01 verified checkpoint: All listed intervals and custom intervals are supported independently. Public saved-search controls persist cadence; source and company scheduling enforce retry, backoff, stable bounded jitter and rate reservations without shortening source intervals.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -424,13 +428,15 @@
     },
     {
       "requirement_id": "MJ-REQ-030",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-01-experience-salary-date.json",
         "docs/evidence/2026-10-18-acceptance-status-correction.json",
-        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Historical checkpoint (preserved): Corrected unsupported historical PASS: the literal relative-timestamp clause has an independently reproduced public intake counterexample on integrated e6b9e702 source, unchanged by the test-only PR730 merge. A synthetic Remotive posting reported as 2 hours ago persists reported_posted_at=null; the LAST_HOUR saved search incorrectly returns it using recent first_seen. Existing absolute-date/window behavior remains proven within its scope. PR734 is an unmerged fix candidate, not whole-contract acceptance. The original acceptance record and false-PASS interval are preserved; the scoped evidence contains the exact public regression source, execution, failing assertion and source hashes. Current audit: Current adjudication after mergedPR734 on43af (same listed product inputs at955): scoped API/storage proof PASS,20tests+42subtests and seven public date-window boundary/reopen checks. Whole030 remainsPARTIAL because UI lacks last-hour,today,custom date controls. Historical false-PASS and public RED retained; merged fix does not retroactively certify them.",
+      "note": "Historical checkpoint (preserved): Corrected unsupported historical PASS: the literal relative-timestamp clause has an independently reproduced public intake counterexample on integrated e6b9e702 source, unchanged by the test-only PR730 merge. A synthetic Remotive posting reported as 2 hours ago persists reported_posted_at=null; the LAST_HOUR saved search incorrectly returns it using recent first_seen. Existing absolute-date/window behavior remains proven within its scope. PR734 is an unmerged fix candidate, not whole-contract acceptance. The original acceptance record and false-PASS interval are preserved; the scoped evidence contains the exact public regression source, execution, failing assertion and source hashes. Current audit: Current adjudication after mergedPR734 on43af (same listed product inputs at955): scoped API/storage proof PASS,20tests+42subtests and seven public date-window boundary/reopen checks. Whole030 remainsPARTIAL because UI lacks last-hour,today,custom date controls. Historical false-PASS and public RED retained; merged fix does not retroactively certify them. 2026-11-01 verified checkpoint: All seven date windows are implemented with explicit UTC custom bounds. Source intake normalizes relative dates and retains reported, first-seen and last-seen values through replay and reopen. Public API boundary tests and the corrected Chromium saved-filter journey verify user-visible behavior.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -470,12 +476,14 @@
     },
     {
       "requirement_id": "MJ-REQ-034",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-01-skill-title-education.json",
-        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Historical checkpoint (preserved): Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009 Current audit: Current955 product counterexample: public Greenhouse admission/direct execute_operation with synthetic HTTP andSQLite reopen still persists Bachelor's degree not required asBACHELORS_REQUIRED; required filter returns negative4102 with positive4101. Exact retainedd25 oracle:1expectedFAIL/1PASS/0skip. Historical positive education evidence remains; pending product repair is not acceptance.",
+      "note": "Historical checkpoint (preserved): Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009 Current audit: Current955 product counterexample: public Greenhouse admission/direct execute_operation with synthetic HTTP andSQLite reopen still persists Bachelor's degree not required asBACHELORS_REQUIRED; required filter returns negative4102 with positive4101. Exact retainedd25 oracle:1expectedFAIL/1PASS/0skip. Historical positive education evidence remains; pending product repair is not acceptance. 2026-11-01 verified checkpoint: The five literal education categories remain distinct from source intake through storage, filters and matching. Negation, conflicting clauses, equivalent experience and original wording have public API and Chromium evidence.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -1931,9 +1939,12 @@
     },
     {
       "requirement_id": "MJ-REQ-157",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The immutable operation-type contract validates creators, persistence, dispatch and worker admission. Real queued and inline lifecycles run; illustrative names without registered handlers are deliberately rejected rather than represented as twelve new executable handlers.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -1954,11 +1965,13 @@
     },
     {
       "requirement_id": "MJ-REQ-159",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open 2026-11-01 verified checkpoint: Deterministic intent identities preserve one durable operation across concurrent admission, replay, queue interruption and restart. Profile/candidate isolation, terminal receipts, immutable application inputs and uncertain-submission fences are exercised in SQLite and PostgreSQL.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -1997,18 +2010,24 @@
     },
     {
       "requirement_id": "MJ-REQ-163",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Real foreign-key, unique, not-null and state/score checks reject invalid writes atomically. Populated migration rollback/retry and valid writer-derived states are verified against SQLite and isolated PostgreSQL.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-164",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Actual selective production queries have reviewed index shapes and query-plan evidence, including PostgreSQL. Populated upgrade/downgrade/reupgrade preserves rows and useful plans; no claim is made that every suggested JSON filter has an independent index.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2079,12 +2098,14 @@
     },
     {
       "requirement_id": "MJ-REQ-170",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-07-live-feedback-retention.json",
-        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "A bounded transient-file service, fixed-scope read-only API preview, protected-file checks, and explicit-config scheduler are integrated locally. Connected browser preview/reload and 14 focused service/API/browser tests pass. Default behavior is no-op/dry-run; whole-host retention coverage remains PARTIAL.",
+      "note": "A bounded transient-file service, fixed-scope read-only API preview, protected-file checks, and explicit-config scheduler are integrated locally. Connected browser preview/reload and 14 focused service/API/browser tests pass. Default behavior is no-op/dry-run; whole-host retention coverage remains PARTIAL. 2026-11-01 verified checkpoint: Scheduled bounded transient retention uses persisted opt-in policy and administrator ceilings. Expired allowlisted files are removed while core history, unknown paths, symlinks and unsafe receipt destinations are preserved; interruption and repeated-run results are verified.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2588,48 +2609,62 @@
     },
     {
       "requirement_id": "MJ-REQ-213",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-09-30-ci-370.json"
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open 2026-11-01 verified checkpoint: The complete Job B journey is now an executed required hosted Chromium test: normalization, scoring, both documents, queued application, actual mock form filling/upload/questions, validation, submission, independent confirmation and durable database readback.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-214",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Executed normalization units cover all eleven literal categories: titles, companies, locations, remote restrictions, salary, dates, employment type, experience, skills, education and clearance. Invalid inputs and provider-origin wording have concrete behavioral assertions.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-215",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Dedupe units exercise exact duplicates, shared ATS requisitions, altered titles and salary, distinct jobs and cities, and boilerplate-heavy descriptions. Persisted source-copy identity and replay tests verify canonical results.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-216",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Company-resolution units cover aliases, punctuation, subsidiaries, unrelated similar names, domain evidence and ATS evidence with conservative identity decisions.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-217",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: ATS-detection units exercise direct hosts, custom branded domains, redirects, embedded ATS data, unknown portals and ambiguous portals through actual detection boundaries.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -2648,18 +2683,24 @@
     },
     {
       "requirement_id": "MJ-REQ-219",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Answer-matching units cover exact, normalized, fuzzy and approved semantic matches plus ambiguous and sensitive questions. Unsupported answers remain blocked for explicit profile-scoped review.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-220",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Application-state units exercise valid and invalid transitions, retry, CAPTCHA/login pauses, uncertain outcomes and confirmed mock submission with durable no-replay safeguards.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -2677,18 +2718,24 @@
     },
     {
       "requirement_id": "MJ-REQ-222",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: A standardized contract covers every registered built-in source adapter and detects registry growth. It checks returned jobs, stable IDs, valid URLs, date/description parsing and missing-field handling. WWR deceptive origins reproduced six failures before the exact-origin production fix.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-223",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Company-source contract tests verify stable employer/provider/tenant identity, safe URLs, enumeration, normalized jobs and bounded missing/malformed data behavior across the supported company adapters.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -2704,56 +2751,73 @@
     },
     {
       "requirement_id": "MJ-REQ-225",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Executed security tests cover all ten literal unsafe-input categories through production parsing, API and persistence boundaries. New SQL-looking and Unicode value regressions prove parameter binding, scoped lookup and intact tables after reopen. This test requirement does not claim that every broader security parent is complete.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-226",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Production form-worker tests use a controlled Playwright double and verify that quotes, Unicode, ampersands, hyphens and apostrophes reach fill() unchanged. Fail-closed OS/process sentinels prove these application values are not executed as commands.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-227",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Two hundred synthetic browser attempts admit only two reservations; two hundred queued operations remain bounded by four claims; two hundred AI candidates make only three fake calls. Invalid worker/cost ceilings fail before work starts.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-228",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-30-user-testing.md"
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open",
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources—Remotive, RemoteOK and Greenhouse—have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-229",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The official Greenhouse careers page returned HTTP 200 through bounded public reads; production ATS detection and structural board links identified the greenhouse tenant. That tenant is explicitly bound to the separately recorded 19-job public inventory approximately seven minutes earlier. The actual a2a1e4e2/e6963812 observations and code-identical source bridge are preserved; no application was submitted. The earlier career-board REDIRECT_BLOCKED attempt remains failed historical evidence. Full acceptance is contingent on final source integration and required hosted gates.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-230",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Routine CI uses the mock ATS, including actual browser submission and independent receipt verification. Public application adapters remain incapable of random real-employer submission; employer intent, explicit enablement, validated materials and normal policy are not bypassed by the test harness.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3006,27 +3070,36 @@
     },
     {
       "requirement_id": "MJ-REQ-254",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: PARTIAL: defaults, filtering, durable progress, automation state, explanations and explicit safe retry have executed component and Chromium evidence. Shared JSON/upload helpers and five direct-fetch paths now bound fetch and response-body waits, but 21 active modules still have 32 unbounded injected-client dispatch sites. The full UX objective remains open.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-255",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Desktop remains the primary layout. Actual Chromium checks five desktop/tablet/phone widths, list/detail selection, wrapped controls and absence of document overflow.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-256",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Native semantic controls, accessible names, labels, appropriate ARIA and visible keyboard focus are verified by component tests and actual Tab/Shift+Tab/Enter/Space navigation across five viewports. No broad accessibility certification is claimed.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3044,49 +3117,62 @@
     },
     {
       "requirement_id": "MJ-REQ-258",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The actual deployment remains a modular shared application image with PostgreSQL, Redis and bounded process roles in Docker Compose. Full synthetic interoperation and recovery run without the unnecessary distributed platforms named by the requirement.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-259",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The architecture now maps all twelve named future additions to concrete extension boundaries. Immutable registry injection, optional-import startup and existing domain services are tested; future Gmail, Outlook, calendar, mobile and desktop products are not claimed as implemented.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-260",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The optional local email-text/EML classifier and explicit review workflow support the required status categories, persist scoped evidence and remain independent of core operation. No Gmail/Outlook account integration or employer receipt is inferred.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-261",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-08-source-ats-separation.json"
+        "docs/evidence/2026-10-08-source-ats-separation.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Bounded connected Jobs provenance slice integrated at local source e337115700a23b0d5d7b1e50abb1ffc26983e292: persisted discovery sources appear separately from the application-route provider; route filter has a truthful Application provider label; route strings do not qualify ATS filtering without separate persisted evidence. API/browser 2/2, frontend 124/124 and build PASS. Parent MJ-PR-071 remains QUEUED behind MJ-PR-070 and MJ-PR-063; no detector, collection or application side effects. PostgreSQL/live providers/full suite/hosted checks NOT_RUN.",
+      "note": "Bounded connected Jobs provenance slice integrated at local source e337115700a23b0d5d7b1e50abb1ffc26983e292: persisted discovery sources appear separately from the application-route provider; route filter has a truthful Application provider label; route strings do not qualify ATS filtering without separate persisted evidence. API/browser 2/2, frontend 124/124 and build PASS. Parent MJ-PR-071 remains QUEUED behind MJ-PR-070 and MJ-PR-063; no detector, collection or application side effects. PostgreSQL/live providers/full suite/hosted checks NOT_RUN. 2026-11-01 verified checkpoint: Employer company, collection source and ATS provider remain distinct persisted identities and user-facing filters. Public API and Chromium readback preserve their separation through reload.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-262",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Profile-scoped company/source/job/route/application relationship graph is exposed through a read-only API and connected Sources UI with selection, refresh, empty/error states, and durable browser readback. Broader graph editing/lineage acceptance remains PARTIAL.",
+      "note": "Profile-scoped company/source/job/route/application relationship graph is exposed through a read-only API and connected Sources UI with selection, refresh, empty/error states, and durable browser readback. Broader graph editing/lineage acceptance remains PARTIAL. 2026-11-01 verified checkpoint: The literal source-relationship graph is represented by six node types and five relationship types with scoped API and Chromium evidence. Graph editing is not added to the original acceptance criterion.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3186,9 +3272,12 @@
     },
     {
       "requirement_id": "MJ-REQ-271",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: AI provider outage leaves discovery and deterministic scoring usable. AI intent remains durable, safe pre-call interruption can resume, staged responses avoid duplicate calls, and uncertain provider outcomes require explicit review rather than automatic paid replay.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3217,13 +3306,15 @@
     },
     {
       "requirement_id": "MJ-REQ-274",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-09-30-ci-370.json",
-        "docs/evidence/2026-10-08-scheduled-source-restart.json"
+        "docs/evidence/2026-10-08-scheduled-source-restart.json",
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open. Additional scoped PASS at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6: due source scheduling and worker completion verified across actual scheduler/worker process restarts on temporary SQLite with no network; focused module 6 PASS. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json. Compose/PostgreSQL restart remain BLOCKED_ENVIRONMENT/NOT_RUN; broader requirement remains PARTIAL.",
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open. Additional scoped PASS at main 7d91b3104a2e21d400bdc1a2f59de289e5bbc2b6: due source scheduling and worker completion verified across actual scheduler/worker process restarts on temporary SQLite with no network; focused module 6 PASS. Evidence docs/evidence/2026-10-08-scheduled-source-restart.json. Compose/PostgreSQL restart remain BLOCKED_ENVIRONMENT/NOT_RUN; broader requirement remains PARTIAL. 2026-11-01 verified checkpoint: Exact-revision Compose recovery demonstrates scheduler/worker restart, Redis outage recovery and queued discovery continuation. Seven nonempty persisted domains and public job/source-copy hashes survive restart; PostgreSQL/RQ crash cases preserve ambiguous submissions without resubmission.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3262,90 +3353,120 @@
     },
     {
       "requirement_id": "MJ-REQ-278",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Required hosted CI executes all eight literal boundaries: backend lint/type/tests, frontend lint/type/tests/build, and mock end-to-end. The complete synthetic application journey is a required CI step and does not depend on external job websites.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-279",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Pinned Ruff, pytest, practical typed modules and mypy run in required CI. The claim is bounded practical Python typing, as the literal permits, rather than universal repository-wide strict typing.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-280",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: Strict TypeScript, real AST-based ESLint, a pinned Prettier formatter and component tests run successfully. CI checks adopted formatter/tooling files; the documented whole-frontend format command is available without forcing a mass reformat.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-281",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The repository ownership map now matches implemented paths and is linked from development documentation and README. Fictional or obsolete layout descriptions were replaced with verified source boundaries.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-282",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The source-adapter guide covers interface, normalization, rate limits, health, fixtures and tests, with source-verified behavior and curated CI existence/local-link checks.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-283",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The previously missing company-source guide now covers company resolution, career discovery, ATS detection, tenant extraction and job enumeration, with a network-free executable example verified against current code.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-284",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The previously missing application-adapter guide now covers detection, navigation, field mapping, uploads, questions, validation, controlled submission, confirmation and tests. Its offline example executes while public submission stays disabled.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-285",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The architecture document covers all specified domains, actual ownership, topology and recovery diagrams, and the twelve future-extension boundaries. Links and examples are checked against the source revision.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-286",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The database document provides an ER-equivalent child/parent/nullability table. All twenty-four declared foreign-key relationships were checked against current SQLAlchemy metadata, with logical relationships clearly separated.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-287",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "docs/evidence/2026-11-01-pro-p1/criteria.json"
+      ],
+      "note": "Not implemented or verified in current milestones 2026-11-01 verified checkpoint: The troubleshooting guide covers all eleven literal failure categories with concrete observations, recovery steps and escalation boundaries. README/development navigation and curated CI links make it discoverable.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "bookkeeping"
@@ -4094,5 +4215,5 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "delivery_policy_note": "No requirement result promoted by local-only budget cutover. Hosted verification is disabled by current user; exact local scope/evidence remains distinct. Additive #517 slice on dbc9e573680fcf32498131afe3bee75e72213371 is locally verified PARTIAL; it is not an original or MJ-REF requirement and does not change either denominator. See docs/evidence/2026-10-08-source-candidate-issue-link.json. Hosted/PostgreSQL checks remain NOT_RUN. Bounded MJ-REQ-190 Newest sorting is ACTIVE under issue #191; no capability status is promoted until exact acceptance passes, and MJ-PR-052 dependencies remain unchanged."
+  "delivery_policy_note": "2026-11-01 user-authorized protected GitHub-hosted delivery: source PR875 passed exact-head required checks and was merged; this separately reviewed acceptance record promotes 43 original P1 requirements with criterion-specific executed evidence. Whole product remains PARTIAL; external submissions OFF. Historical policy checkpoints remain in version history."
 }

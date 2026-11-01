@@ -1,0 +1,277 @@
+{
+  "baseline": "53203ea28c4708366a17e6f8d8dd1842e9c581fb",
+  "branch": "work/p1-docs-20261101",
+  "worktree": "/workspace/scratch/05fe891fa40c/MJobs-docs",
+  "source_commit": "7314e6c526b043fb88f8dc176bc3472aa9137fe5",
+  "integration": "NOT_RUN: root-only protected PR/merge/canonical update pending",
+  "requirements": [
+    {
+      "id": "MJ-REQ-281",
+      "issue": 282,
+      "title": "Repository Structure",
+      "criteria": [
+        "Clear implemented repository structure; original example permits existing conventions"
+      ],
+      "sources": [
+        "docs/REPO_MAP.md",
+        "docs/DEVELOPMENT.md",
+        "README.md"
+      ],
+      "findings": [
+        "Replaced historical intended/nonexistent packages and worker subdirectories with current ownership table and actual path links.",
+        "Mapped services, persistence, flat workers, tests, fixtures, infrastructure, CLI and tools; identified exact source of runtime topology."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    },
+    {
+      "id": "MJ-REQ-282",
+      "issue": 283,
+      "title": "Source Adapter Development Guide",
+      "criteria": [
+        "docs/ADDING_JOB_SOURCE.md",
+        "Adapter interface",
+        "Normalization",
+        "Rate limiting",
+        "Health",
+        "Fixtures",
+        "Tests"
+      ],
+      "sources": [
+        "docs/ADDING_JOB_SOURCE.md",
+        "services/discovery/sources/contract.py",
+        "services/discovery/sources/registry.py",
+        "services/discovery/sources/collect.py"
+      ],
+      "findings": [
+        "Existing full guide covers all six topics. Reviewed source contract, registry, collector and adapter tests.",
+        "Promoted guide into curated CI local-link/existence checks; development/repository navigation makes it discoverable."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    },
+    {
+      "id": "MJ-REQ-283",
+      "issue": 284,
+      "title": "Company Source Development Guide",
+      "criteria": [
+        "docs/ADDING_COMPANY_SOURCE.md",
+        "Company resolution",
+        "Career discovery",
+        "ATS detection",
+        "Tenant extraction",
+        "Job enumeration"
+      ],
+      "sources": [
+        "docs/ADDING_COMPANY_SOURCE.md",
+        "services/company_discovery/resolution.py",
+        "services/company_discovery/public_resolution.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "services/company_discovery/ats_enrollment.py",
+        "services/ats_detection/board_links.py"
+      ],
+      "findings": [
+        "Created previously missing guide from current production boundaries.",
+        "Documents verified/candidate identity, public transport, authorized discovery, Greenhouse/Lever region-qualified tenants, bounded collector reuse, idempotent import and monitoring.",
+        "Executable local parser example passes with network/process sentinels."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    },
+    {
+      "id": "MJ-REQ-284",
+      "issue": 285,
+      "title": "Application Adapter Development Guide",
+      "criteria": [
+        "docs/ADDING_APPLICATION_ADAPTER.md",
+        "ATS detection",
+        "Navigation",
+        "Field mapping",
+        "Uploads",
+        "Questions",
+        "Validation",
+        "Submission",
+        "Confirmation",
+        "Tests"
+      ],
+      "sources": [
+        "docs/ADDING_APPLICATION_ADAPTER.md",
+        "services/applications/provider_registry.py",
+        "services/applications/form_review_providers.py",
+        "services/applications/adapters/greenhouse.py",
+        "services/applications/adapters/lever.py",
+        "services/applications/upload_integrity.py",
+        "services/applications/preflight.py",
+        "services/applications/confirmation_recovery.py"
+      ],
+      "findings": [
+        "Created previously missing guide documenting actual duck-typed registry/call-site contract without inventing a universal live-submit base class.",
+        "Separates offline form analysis, local browser fixture, mock upload, controlled dry run, mock submission and receipt reconciliation.",
+        "Describes all nine required subjects, conservative capabilities and privacy boundaries; executable offline route example passes with network/process sentinels."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    },
+    {
+      "id": "MJ-REQ-285",
+      "issue": 286,
+      "title": "Architecture Document",
+      "criteria": [
+        "docs/ARCHITECTURE.md",
+        "Services",
+        "Database",
+        "Workers",
+        "Queues",
+        "Source pipeline",
+        "Company discovery",
+        "Dedupe",
+        "Matching",
+        "Documents",
+        "Application automation",
+        "Recovery",
+        "Security",
+        "Useful diagrams"
+      ],
+      "sources": [
+        "docs/ARCHITECTURE.md",
+        "compose.yml"
+      ],
+      "findings": [
+        "Existing architecture covers every required domain with source links and Mermaid topology/recovery diagrams.",
+        "Updated source-layout reference and added explicit future-extension map covering all twelve MJ-REQ-259 optional additions without claiming they are implemented."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    },
+    {
+      "id": "MJ-REQ-286",
+      "issue": 287,
+      "title": "Database Documentation",
+      "criteria": [
+        "ER diagram or equivalent"
+      ],
+      "sources": [
+        "docs/DATABASE.md",
+        "packages/persistence/models.py",
+        "packages/persistence/resume_workspace.py"
+      ],
+      "findings": [
+        "Existing ER-equivalent child/parent/nullability table has 24 relationships; each verified against current SQLAlchemy metadata.",
+        "Removed stale baseline-only wording so source links describe the checked-in contracts.",
+        "Retained logical/non-FK distinctions, least privilege, guarded migrations and recovery limits."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    },
+    {
+      "id": "MJ-REQ-287",
+      "issue": 288,
+      "title": "Troubleshooting Guide",
+      "criteria": [
+        "Source broke",
+        "Company discovery failed",
+        "ATS changed",
+        "Browser will not launch",
+        "Login expired",
+        "CAPTCHA",
+        "Resume extraction failed",
+        "AI unavailable",
+        "Database unavailable",
+        "Queue unavailable",
+        "Worker stalled"
+      ],
+      "sources": [
+        "docs/TROUBLESHOOTING.md"
+      ],
+      "findings": [
+        "Existing guide has all eleven required sections with observations, recovery boundaries, stop/escalation and linked implementation.",
+        "Added guide to README/development navigation and curated CI link/existence coverage."
+      ],
+      "recommendation": "PASS after final exact-head protected integration and root evidence review",
+      "known_requirement_gaps": []
+    }
+  ],
+  "scope_limits": [
+    "Documentation requirements only; does not certify every documented provider/user flow.",
+    "No live ATS, personal data, external applications, Codex fleet or quota settings used/modified.",
+    "Canonical matrices and GitHub issue status left unchanged for root integration owner."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_public_site.py tests/unit/test_company_resolution.py tests/unit/test_company_resolution_sustain_217.py tests/unit/test_company_source_contract_sustain_224.py tests/unit/test_application_adapter_contract.py tests/unit/test_extension_point_contracts.py tests/unit/test_application_form_review_providers.py tests/unit/test_greenhouse_application_adapter.py tests/unit/test_lever_application_adapter.py tests/unit/test_application_upload_integrity.py tests/unit/test_database_provisioning.py tests/unit/test_runtime_database.py",
+      "result": "PASS",
+      "passed": 156,
+      "subtests_passed": 134,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "/workspace/scratch/05fe891fa40c/docs-unit-results.xml"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_public_ci_tools.py",
+      "result": "PASS",
+      "passed": 19,
+      "subtests_passed": 41,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "/workspace/scratch/05fe891fa40c/docs-ci-results.xml"
+    },
+    {
+      "command": "python -m tools.ci.check_repository",
+      "result": "PASS: 0 errors, 17 curated documents"
+    },
+    {
+      "command": "python -m tools.site.build",
+      "result": "PASS: 7 allowlisted pages and 3 reviewed screenshots"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "CURRENT; canonical acceptance unchanged"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Execute Python code fences in ADDING_COMPANY_SOURCE.md and ADDING_APPLICATION_ADAPTER.md with socket/process sentinels",
+      "result": "PASS: 2 examples, no network/process side effects"
+    },
+    {
+      "command": "Compare DATABASE.md relational table to imported models + resume_workspace SQLAlchemy metadata",
+      "result": "PASS: all 24 FK targets and nullability agree"
+    },
+    {
+      "command": "Validate documented pytest paths in four provider/database guides",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_greenhouse.py tests/integration/test_remotive.py tests/integration/test_wwr.py tests/integration/test_remoteok.py tests/integration/test_source_adapter_connect_cancellation.py tests/integration/test_source_http_socket_budget.py tests/unit/test_lever_source.py tests/unit/test_remotive_url_contract.py tests/integration/test_public_company_discovery.py tests/integration/test_company_sources.py tests/integration/test_company_discovery_sitemaps.py tests/integration/test_company_discovery_sitemap_safety.py tests/integration/test_application_form_review_flow.py tests/integration/test_controlled_application_dry_run.py tests/integration/test_application_confirmation_recovery.py",
+      "result": "ENVIRONMENT_PREREQUISITE_FAILURE",
+      "passed": 216,
+      "failed": 6,
+      "skipped": 13,
+      "subtests_passed": 51,
+      "reason": "Missing Playwright Chromium executable (6 failures including2 subtest failures); isolated PostgreSQL URL unconfigured (13 skipped). All failures/skips from test_controlled_application_dry_run.py. Root plans Windows/hosted rerun; not passed locally.",
+      "evidence": "/workspace/scratch/05fe891fa40c/docs-integration-results.xml"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS: complete provenance for1 source file"
+    }
+  ],
+  "initial_environment_failures": [
+    "Two restricted-sandbox pytest runs stalled at local AnyIO/TestClient/loopback boundaries; not counted as passed. Exact owned PIDs 18433 and 18807 were stopped only after command/cwd/creation-tick checks. Unit rerun outside restricted namespace completed successfully; integration rerun completed with missing Chromium failures and PostgreSQL skips recorded below.",
+    "Initial ad hoc schema probe omitted the separate resume_workspace model import, then asserted an incorrect expected row count; corrected probe imported both documented schema modules and checked the actual 24 rows. No product failure or code workaround was involved."
+  ],
+  "independent_review": {
+    "MJ-REQ-259": "pr_triage read-only reviewer confirmed all12 literal future additions and optional startup separation mapped; immutable registry tests appropriate oracle. Final root exact-head gates pending."
+  }
+}

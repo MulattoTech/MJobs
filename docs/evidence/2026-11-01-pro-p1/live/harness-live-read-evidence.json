@@ -1,0 +1,166 @@
+{
+  "revision": "a2a1e4e206013181e89feff738586c120bf30cbd",
+  "observed_at": "2026-11-01T05:29:21.197304+00:00",
+  "mode": "PUBLIC_READ_ONLY",
+  "external_submission_requests": 0,
+  "sources": [
+    {
+      "provider": "greenhouse",
+      "tenant": "greenhouse",
+      "result": "PASS",
+      "endpoint": "https://boards-api.greenhouse.io/v1/boards/greenhouse/jobs",
+      "jobs_returned": 19,
+      "examples": [
+        {
+          "id": "8126988",
+          "title": "Commercial Counsel",
+          "company": "Greenhouse",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "ea981f245d5a7400dc0ed47979c2470a68fb4b1db453e8879e78d777c3ac85ff",
+          "application_url_available": true
+        },
+        {
+          "id": "8279752",
+          "title": "Enterprise Account Executive",
+          "company": "Greenhouse",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "6a6ef323f5e198258167b2e82aa5b109c889cb75ae1251df55187c6b5f289bee",
+          "application_url_available": true
+        },
+        {
+          "id": "8234044",
+          "title": "Enterprise Sales Development Representative",
+          "company": "Greenhouse",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "72c2e283d474fa3bb4bdca5fe13c9d42a6acd1c75af5bfe9e70059c5f672c53b",
+          "application_url_available": true
+        }
+      ],
+      "health": "HEALTHY",
+      "duration_seconds": 1.98
+    },
+    {
+      "provider": "remotive",
+      "tenant": "default",
+      "result": "PASS",
+      "endpoint": "https://remotive.com/api/remote-jobs",
+      "jobs_returned": 13,
+      "examples": [
+        {
+          "id": "2091165",
+          "title": "Full-Stack Developer",
+          "company": "Fluence International, Inc.",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "c23a28aee3f7ac95579dd7c703b3469ac45b0e64535b24bfa546d7d3768b9d2e",
+          "application_url_available": true
+        },
+        {
+          "id": "2091135",
+          "title": "Senior Back-end Developer",
+          "company": "Lemon.io",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "b7b7a9e719234464af9e60a274415eef5f48749d01100a183a19ab30dc25e135",
+          "application_url_available": true
+        },
+        {
+          "id": "2091134",
+          "title": "Head of Engineering",
+          "company": "Lemon.io",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "c48937c714f3d468cb50013800e54b806582f57c58abc32078d33bc7f6e99048",
+          "application_url_available": true
+        }
+      ],
+      "health": "HEALTHY",
+      "duration_seconds": 0.69
+    },
+    {
+      "provider": "wwr",
+      "tenant": "default",
+      "result": "PASS",
+      "endpoint": "https://weworkremotely.com/remote-jobs.rss",
+      "jobs_returned": 3,
+      "examples": [
+        {
+          "id": "anduril-industries-senior-ta-operations-specialist",
+          "title": "Senior TA Operations Specialist",
+          "company": "Anduril Industries",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "b2a1aef56c31f8b3dc0932aceb337bfc2a97e3cab77f2232ade25894be755fd0",
+          "application_url_available": true
+        },
+        {
+          "id": "teksynap-application-database-administrator-w-secret-clearance",
+          "title": "Application Database Administrator w/Secret Clearance",
+          "company": "TekSynap",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "53fb888c34030cba6f902588155814d7101115fc03ebaf32b92175d07a28bfcd",
+          "application_url_available": true
+        },
+        {
+          "id": "axon-sr-technical-support-representative",
+          "title": "Sr Technical Support Representative",
+          "company": "Axon",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "8c2cfe6a32175fe436290ee31942e0aa609458eb4b3f51f0a0627950e5563208",
+          "application_url_available": true
+        }
+      ],
+      "health": "HEALTHY",
+      "duration_seconds": 1.12
+    },
+    {
+      "provider": "remoteok",
+      "tenant": "default",
+      "result": "PASS",
+      "endpoint": "https://remoteok.com/api",
+      "jobs_returned": 3,
+      "examples": [
+        {
+          "id": "1137608",
+          "title": "Scientific Account Executive",
+          "company": "Adaptyv",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "3e0f08814ba895440072787d79c57040c384b1d8ab3d2f5a69d9d59088a6d49b",
+          "application_url_available": true
+        },
+        {
+          "id": "1137607",
+          "title": "Contract Recruiter",
+          "company": "CAI",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "e5c094c22820c888d9e1d19397ad39ad77ede851485137f535ea18f695260664",
+          "application_url_available": true
+        },
+        {
+          "id": "1137606",
+          "title": "AWS Cloud Solutions Architect",
+          "company": "Cloudary SAS",
+          "normalization": "PASS",
+          "same_posting_dedupe": "SAME_APPLICATION_ROUTE",
+          "raw_sha256": "22b5ee07b51204a54222626678cf54ec6a9275709d9dc704cb95e746f935c088",
+          "application_url_available": true
+        }
+      ],
+      "health": "HEALTHY",
+      "duration_seconds": 1.27
+    }
+  ],
+  "company": {
+    "career_url": "https://job-boards.greenhouse.io/greenhouse",
+    "result": "FAIL",
+    "error_type": "PublicFetchError",
+    "error_code": "REDIRECT_BLOCKED"
+  }
+}
