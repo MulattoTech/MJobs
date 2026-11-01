@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-01T21:03:41+00:00",
+  "requirement_id": "MJ-REQ-275",
+  "result": "PARTIAL",
+  "canonical_acceptance": "PENDING_PROTECTED_INTEGRATION",
+  "source_files": [
+    {
+      "path": "compose.yml",
+      "sha256": "b7b67aa12741087c6760e86263dea0330a6de798c0a5d7714fdd3a3f7683c119"
+    },
+    {
+      "path": ".env.example",
+      "sha256": "c85c4efae3316114594f6bfb310595a6987a7dd4ebc816adc4051eeba6f6fe6d"
+    },
+    {
+      "path": "workers/main.py",
+      "sha256": "f5553b847ca7d6419b38d7f53f1ea6338685c004f7491033807656a9abeb7b0f"
+    },
+    {
+      "path": "tests/unit/test_configuration_contract_sustain_276.py",
+      "sha256": "82297c741eef55bf36a419a317d8bc3b5046b364756081ca9d106cef84784f2c"
+    }
+  ],
+  "change": "Forward the supported MJOBS_WORKER_LOG_LEVEL through the shared Compose runtime environment, default WARNING, and document its five accepted values in .env.example.",
+  "consumer": "workers/main.py validates and normalizes the level and passes it to RQ Worker.work(logging_level=...). Structured operation logging remains independently configured.",
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_configuration_contract_sustain_276.py",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 3
+    },
+    {
+      "command": "docker compose --env-file .env.example -f compose.yml config --format json",
+      "scope": "Only rendered worker log-level keys inspected; synthetic required environment values, no containers started.",
+      "checks": [
+        {
+          "override": "DEBUG",
+          "worker_levels": {
+            "worker": "DEBUG",
+            "source-worker": "DEBUG",
+            "company-discovery-worker": "DEBUG",
+            "ai-worker": "DEBUG",
+            "document-worker": "DEBUG"
+          },
+          "result": "PASS"
+        },
+        {
+          "override": "ERROR",
+          "worker_levels": {
+            "worker": "ERROR",
+            "source-worker": "ERROR",
+            "company-discovery-worker": "ERROR",
+            "ai-worker": "ERROR",
+            "document-worker": "ERROR"
+          },
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "remaining_criteria": [
+    {
+      "category": "notifications",
+      "finding": "The flag is validated and returned by /settings but no notification behavior consumer was found in frontend/API/services/workers."
+    },
+    {
+      "category": "browser profiles",
+      "finding": "Mock submission and manual auth use the fixed per-application browser-profile directory; no ordinary UI/environment profile configuration is connected."
+    },
+    {
+      "category": "application limits",
+      "finding": "Submission admission uses immutable Policy defaults (3/hour, 10/day, 1/company). Controlled-dry-run controls provide a separate per-application per-UTC-day API limit, without a UI/environment setting."
+    }
+  ],
+  "limits": [
+    "This narrow deployment configuration fix does not close whole MJ-REQ-275.",
+    "No paid providers, external application submissions, or production settings were invoked.",
+    "Private environment overlays remain separately protected; the existing backup nonsecret runtime allowlist is unchanged."
+  ]
+}
