@@ -396,7 +396,8 @@
     "docs/evidence/2026-11-01-pro-p1/inputs/p1-record-validation.xml": "2733d0387f8e02a816f4659dbb4269afdf427f45f354eae43fe232bb094131c8",
     "docs/evidence/2026-11-01-pro-p1/record-validation.json": "0f90caa44ccff6cb748a9d7bf750986cdd454c8df21647d635e3462d7ff1109e",
     "docs/evidence/2026-11-01-pro-p1/inputs/source-gates.original.json.gz": "9a94696c694e1658002881d19c4af0b49f92b07780441705c97bbf700fb25aa2",
-    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json": "a2a5ecec9ffb4b0ceb09b3020d3fe837e5dd909cfb80cab9b34c68acffb4ee22"
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json": "a2a5ecec9ffb4b0ceb09b3020d3fe837e5dd909cfb80cab9b34c68acffb4ee22",
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670"
   },
   "known_limitations": [
     "MJ-REQ-254 remains PARTIAL: 21 active UI modules contain 32 unbounded injected-fetch dispatch sites.",
@@ -427,5 +428,14 @@
     "result": "NO_BLOCKERS",
     "path": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json",
     "scope": "Canonical decisions, source and evidence integrity, durable active references, retained limitations and privacy. This final link/manifest addition follows the reviewed snapshot; it changes no acceptance decision."
+  },
+  "secret_scan_triage": {
+    "initial_run": "https://github.com/MulattoTech/MJobs/actions/runs/41280686033",
+    "initial_result": "FAIL: 13 generic-api-key candidates",
+    "review": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json",
+    "verified_source_digest_matches": 13,
+    "exact_history_fingerprint_exceptions": 13,
+    "scanner_rules_changed": false,
+    "required_scanner_rerun": "Required on the final protected PR revision before integration"
   }
 }
