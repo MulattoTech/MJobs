@@ -2,6 +2,15 @@
 
 Use one active integration owner. Open the repository root in VS Code or Codex CLI; temporary PR branches are not persistent multi-agent lanes.
 
+## Find the right boundary
+
+The [repository map](REPO_MAP.md) describes the implemented layout and ownership.
+Use the [job source guide](ADDING_JOB_SOURCE.md),
+[company source guide](ADDING_COMPANY_SOURCE.md), or
+[application adapter guide](ADDING_APPLICATION_ADAPTER.md) when extending a provider.
+The [architecture](ARCHITECTURE.md), [database relationships](DATABASE.md) and
+[troubleshooting guide](TROUBLESHOOTING.md) explain shared runtime boundaries.
+
 ## Reproducible tools
 
 Python 3.12, Node.js 24 and Docker with Linux containers match CI. Keep tools project-scoped and leave existing personal application volumes untouched.
@@ -16,6 +25,9 @@ npm ci --prefix apps/web
 On Linux, use `.venv/bin/python` and install Chromium system dependencies with `python -m playwright install --with-deps chromium`. Do not replace an existing environment unnecessarily.
 
 ## Fast feedback
+
+The [frontend quality guide](FRONTEND_QUALITY.md) covers strict TypeScript, ESLint,
+Prettier and component checks.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q tests/unit

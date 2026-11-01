@@ -4,9 +4,9 @@ MJobs is a self-hosted, review-first job discovery and application-preparation s
 This document maps the implemented boundaries required by MJ-REQ-285; it is not a
 claim that every provider or user flow has passed acceptance. The deployment source
 of truth for the default stack is [compose.yml](../compose.yml), with the optional
-protected-preview topology described in the [deployment runbook](../infra/deploy/README.md),
-not the illustrative layout in
-[REPO_MAP.md](REPO_MAP.md). Provider behavior belongs behind adapters; the browser UI
+protected-preview topology described in the [deployment runbook](../infra/deploy/README.md).
+The implemented source layout is mapped in [REPO_MAP.md](REPO_MAP.md).
+Provider behavior belongs behind adapters; the browser UI
 is not the authority for durable workflow state.
 
 ## Services
@@ -228,6 +228,42 @@ leaves an uncertain submission `SUBMISSION_UNCONFIRMED`, not a fabricated succes
 or proof of non-submission. See [the application area contract](../services/applications/AREA.md).
 
 The [Lever markup analyzer](../services/applications/adapters/lever_markup.py) performs bounded, value-free static control extraction. Recognized challenge markers produce `UNKNOWN`. Recognized interactive ARIA roles or non-false `contenteditable` inside the form, including on native form controls, also produce `UNKNOWN`. These are conservative parser outcomes, not CAPTCHA or access-control bypasses.
+
+## Optional extensions and core independence
+
+MJ-REQ-259 calls for room to add the following capabilities without making them
+prerequisites for the core application. The boundaries below separate current
+behavior from future integration work. They are extension locations, not claims
+that a mailbox connector, mobile client or live ATS submission is installed.
+
+| Addition | Existing boundary to reuse | Further work remains isolated here |
+| --- | --- | --- |
+| Email parsing | [Local classifier](../services/tracking/email_status.py) and [preview/apply API](../apps/api/email_status.py) | Add bounded parsers while retaining explicit review before durable status changes |
+| Gmail integration | The same local email-status pipeline | An optional authorized Gmail transport; core startup needs no Google account, OAuth token or mailbox SDK |
+| Outlook integration | The same local email-status pipeline | An optional authorized Outlook transport with its own credential and retry policy |
+| Recruiter tracking | [Scoped recruiter classification](../apps/api/recruiter_classification.py) and [application tracking](../services/tracking/applications.py) | Reviewed contact/interaction models and migrations without changing source or ATS identity |
+| Interview scheduling | Profile/application identity and modular [API routers](../apps/api/) | An optional calendar adapter and separately authorized event writes |
+| Interview prep | [Persisted preparation packs](../services/career_profile/interview_preparation.py) and [their API](../apps/api/interview_preparation.py) | Extend pack content against approved career stories rather than inventing experience |
+| Salary negotiation | [Career-profile services](../services/career_profile/) and [document generation](../services/documents/) | New reviewed draft workflows and transparent source facts; no dependency in collection or application preparation |
+| Browser extension | Existing typed HTTP routes and server-side profile/job scope | A separately packaged client with explicit origin/authentication review; no privileged bypass of the server's gates |
+| Native desktop wrapper | The built [web client](../apps/web/) and API | A separately packaged shell and supported local-service lifecycle; durable state remains server-owned |
+| Mobile notifications | Stored application/operation state and [runtime health](../services/runtime_health.py) | An opt-in delivery adapter and device credentials; avoid exporting applicant data in notification payloads |
+| Additional ATS providers | [Immutable application registry](../services/applications/provider_registry.py) | Isolated adapter factories and declared capabilities; see [the application guide](ADDING_APPLICATION_ADAPTER.md) |
+| Additional job sources | [Immutable source registry](../services/discovery/sources/registry.py) and common collector | Isolated parsers/transports and synthetic contracts; see [the source guide](ADDING_JOB_SOURCE.md) |
+
+Source and application factories load optional implementations lazily. The selected
+registry is a process-local immutable snapshot; extension IDs cannot replace
+built-ins, and unknown or disabled providers fail closed. The deployment module
+selector is trusted startup configuration, not user- or page-supplied code.
+[Registry contract tests](../tests/unit/test_extension_point_contracts.py) exercise
+isolation, optional-module absence and consistent API/worker selection.
+
+New integrations should reuse the existing domain and durable operation boundaries
+and add focused migrations only when they need new persistent entities. They must
+not add import-time network calls, required optional credentials or new services
+to the default core startup path. A separate connector can remain unavailable
+without making local discovery, review, document preparation or mock testing wait
+for it. Actual external writes still require their own consent and safety gates.
 
 ## Recovery
 

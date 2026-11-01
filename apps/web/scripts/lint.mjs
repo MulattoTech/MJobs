@@ -1,6 +1,6 @@
-import {readdirSync, readFileSync} from 'node:fs';
-import {extname, join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import { readdirSync, readFileSync } from 'node:fs';
+import { extname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const webRoot = fileURLToPath(new URL('../', import.meta.url));
 const roots = [join(webRoot, 'src'), join(webRoot, 'vite.config.ts')];
@@ -15,8 +15,9 @@ const rules = [
 
 function files(path) {
   if (extname(path)) return extensions.has(extname(path)) ? [path] : [];
-  return readdirSync(path, {withFileTypes: true}).flatMap(entry =>
-    files(join(path, entry.name)));
+  return readdirSync(path, { withFileTypes: true }).flatMap((entry) =>
+    files(join(path, entry.name)),
+  );
 }
 
 const targets = roots.flatMap(files).sort();

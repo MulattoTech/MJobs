@@ -219,7 +219,6 @@ export function ApplicationMultipageReview({profileId,applicationId,pages,initia
     }).finally(()=>{if(active)setPending(false);});
     return ()=>{active=false;};
   // Refresh local form state when the selected application or configured page sequence changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[profileId,applicationId,pageKey]);
 
   const reload=async()=>{

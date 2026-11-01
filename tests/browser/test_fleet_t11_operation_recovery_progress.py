@@ -86,7 +86,7 @@ class FleetT11OperationRecoveryProgressBrowserTests(unittest.TestCase):
                         assert_pending(panel)
                         # A fresh HTTP page request and DB connection read the same
                         # durable intent, without starting or completing the worker.
-                        flow.store.engine.dispose()
+                        flow.reopen_connections()
                         panel = open_activity()
                         assert_pending(panel)
                         public = page.request.get(origin + progress_path).json()

@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import {requestWithDeadline} from './api';
 
 export type ApplicationAttempt = {
   attempt_id: string; application_id: string; state: string;
@@ -59,9 +60,10 @@ export function ApplicationAttemptHistory({profileId, applicationId}: {profileId
     const controller = new AbortController();
     setHistory(null); setError(''); setLoading(true);
     const path = `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/attempt-history`;
-    void fetch(path, {signal: controller.signal}).then(async response => {
+    void requestWithDeadline(path, {signal: controller.signal}, async response => {
       if (!response.ok) throw new Error('History unavailable');
-      const value = await response.json() as AttemptHistory;
+      return await response.json() as AttemptHistory;
+    }).then(value => {
       if (value.profile_id !== profileId || value.application_id !== applicationId || !Array.isArray(value.attempts)) {
         throw new Error('History scope mismatch');
       }

@@ -2,7 +2,7 @@ import {AIJobSourceEvidence,type AIJobEvidence,AIProviderAccess,type AIProviderA
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import {initializeTheme, ThemeControl} from './theme';
-import { api, eligible, terminal } from './api';
+import { api, eligible, requestWithDeadline, terminal } from './api';
 import {DurableAIEvaluation} from './durable-ai-evaluation';
 import {MockRunControls} from './mock-run-controls';
 import {resumeMockDryRun} from './mock-run-client';
@@ -358,6 +358,7 @@ function App() {
   const [companyDiscoveryQueueError,setCompanyDiscoveryQueueError] = useState(false);
   const companyDiscoveryQueueSequence = useRef(0);
   const [ready,setReady] = useState<{status:string;checks:Record<string,boolean>}|null>(null);
+  const readinessRequest = useRef<AbortController|null>(null);
   const [q,setQ] = useState(''); const [title,setTitle]=useState(''); const [company,setCompany]=useState(''); const [locationText,setLocationText]=useState(''); const [salaryMin,setSalaryMin]=useState(''); const [salaryMax,setSalaryMax]=useState(''); const [minMatchScore,setMinMatchScore]=useState(''); const [experienceLevel,setExperienceLevel]=useState<ExperienceLevel|''>(''); const [employmentType,setEmploymentType]=useState<EmploymentType|''>(''); const [skillId,setSkillId]=useState(''); const [educationRequirement,setEducationRequirement]=useState<EducationRequirement|''>(''); const [clearanceLevel,setClearanceLevel]=useState<ClearanceLevel|''>(''); const [applicationLinkStatus,setApplicationLinkStatus]=useState<ApplicationLinkStatusFilter>(''); const [applicationPipelineStatus,setApplicationPipelineStatus]=useState<ApplicationPipelineStatusFilterValue>(''); const [applicationCapability,setApplicationCapability]=useState<ApplicationCapabilityFilterValue>(''); const [skillOptions,setSkillOptions]=useState<SearchSkill[]>([]); const [dateWindow,setDateWindow]=useState<DateWindowControl>(''); const [dateStart,setDateStart]=useState(''); const [dateEnd,setDateEnd]=useState(''); const [atsProvider,setAtsProvider]=useState<'greenhouse'|'lever'|'mock-ats'|''>(''); const [jobSourceId,setJobSourceId]=useState(''); const [remote,setRemote]=useState(''); const [provider,setProvider]=useState(''); const [sort,setSort]=useState('score');
   const [detail,setDetail]=useState<Job|null>(null);
   const [applicationRouteSelection,setApplicationRouteSelection]=useState<{profileId:string;jobId:string;routeId:string}|null>(null);
@@ -689,9 +690,19 @@ function App() {
     });
   }
   async function readiness() {
-    try { const response=await fetch('/readiness');setReady(await response.json()); } catch {setReady({status:'unavailable',checks:{api:false}});}
+    // A slow poll must finish or time out before another poll can replace it.
+    if(readinessRequest.current)return;
+    const controller=new AbortController();readinessRequest.current=controller;
+    try {
+      const result=await requestWithDeadline('/readiness',{signal:controller.signal},response=>response.json());
+      if(!controller.signal.aborted)setReady(result);
+    } catch {
+      if(!controller.signal.aborted)setReady({status:'unavailable',checks:{api:false}});
+    } finally {
+      if(readinessRequest.current===controller)readinessRequest.current=null;
+    }
   }
-  useEffect(() => {void api<{skills:SearchSkill[]}>('/search-skills').then(r=>setSkillOptions(r.skills)).catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
+  useEffect(() => {void api<{skills:SearchSkill[]}>('/search-skills').then(r=>setSkillOptions(r.skills)).catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>{clearInterval(timer);readinessRequest.current?.abort();readinessRequest.current=null;};},[]);
   useEffect(()=>{if(tab==='Activity'){void loadDeadLetters(profileId).catch(e=>setError(String(e)));void loadAuditHistory(profileId).catch(e=>setError(String(e)));void loadCompanyDiscoveryActivity(profileId);void loadCompanyDiscoveryQueue(profileId);}},[tab,profileId]);
   useEffect(()=>{
     let current=true;
@@ -984,7 +995,7 @@ function App() {
     if(sequence!==appSequence.current||selected!==profileRef.current||(selected&&application.profile_id!==selected))return;
     const answerExport=documents.documents.filter(document=>document.kind==='application-answer-export').sort((left,right)=>right.version-left.version)[0];
     let answerText:string|null=null;
-    if(answerExport?.files.txt){try{const response=await fetch(`/profiles/${encodeURIComponent(selected)}/documents/${encodeURIComponent(answerExport.id)}/txt`);if(response.ok)answerText=await response.text();}catch{answerText=null;}}
+    if(answerExport?.files.txt){try{answerText=await requestWithDeadline(`/profiles/${encodeURIComponent(selected)}/documents/${encodeURIComponent(answerExport.id)}/txt`,{},async response=>response.ok?await response.text():null);}catch{answerText=null;}}
     if(sequence!==appSequence.current||selected!==profileRef.current)return;
     localStorage.setItem(`mjobs-selected-application:${selected}`,id);applicationRestoreProfile.current=selected;
     const sameEditScope=selectedAppRef.current?.id===id&&selectedAppRef.current?.profile_id===selected;

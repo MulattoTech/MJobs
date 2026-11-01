@@ -443,9 +443,13 @@ class WeWorkRemotely:
         url = raw.get("link") or raw.get("guid") or ""
         try:
             parsed = urlsplit(url)
-            if parsed.scheme != "https" or "weworkremotely.com" not in (parsed.hostname or ""):
-                url = ""
-            if parsed.username or parsed.password:
+            # Accept only the official HTTPS origin. Substring host checks and
+            # parser-normalized control characters can promote deceptive links.
+            if (parsed.scheme != "https" or parsed.hostname != "weworkremotely.com"
+                    or parsed.username is not None or parsed.password is not None
+                    or parsed.port not in (None, 443)
+                    or "\\" in url
+                    or any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in url)):
                 url = ""
         except ValueError:
             url = ""

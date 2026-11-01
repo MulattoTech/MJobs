@@ -12,6 +12,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ['README.md', 'AGENTS.md', 'CODEX_START.md', 'CONTRIBUTING.md', 'SECURITY.md',
         'docs/INSTALLATION.md', 'docs/DEVELOPMENT.md', 'docs/ARCHITECTURE.md',
+        'docs/REPO_MAP.md', 'docs/ADDING_JOB_SOURCE.md',
+        'docs/ADDING_COMPANY_SOURCE.md', 'docs/ADDING_APPLICATION_ADAPTER.md',
+        'docs/DATABASE.md', 'docs/TROUBLESHOOTING.md',
         'docs/maintainers/AUTOMATION.md', 'docs/maintainers/RELEASES.md',
         'docs/maintainers/PUBLIC_REPOSITORY_MODERNIZATION.md']
 PIN = re.compile(r'^[\w.-]+/[\w./-]+@[a-f0-9]{40}$')

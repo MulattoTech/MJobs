@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {api,terminal} from './api';
+import {api,requestWithDeadline,terminal} from './api';
 import type {GeneratedDocument} from './document-history';
 
 type Fact={fact_id:string;kind:string;text:string};
@@ -100,10 +100,13 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     try{
       while(!controller.signal.aborted){
         if(!operation){
-          const response=await fetch(url+'?'+params,{signal:controller.signal});
-          if(response.status===404)return;
-          if(!response.ok)throw new Error('Saved comparison is unavailable. Check the selected revisions and try again.');
-          operation=await response.json() as ComparisonOperation;
+          const saved=await requestWithDeadline(url+'?'+params,{signal:controller.signal},async response=>{
+            if(response.status===404)return null;
+            if(!response.ok)throw new Error('Saved comparison is unavailable. Check the selected revisions and try again.');
+            return await response.json() as ComparisonOperation;
+          });
+          if(saved===null)return;
+          operation=saved;
         }
         if(controller.signal.aborted||comparisonController.current!==controller)return;
         operationRef.current={url,id:operation.operation_id};

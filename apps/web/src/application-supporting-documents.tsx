@@ -78,7 +78,6 @@ export function ApplicationSupportingDocuments({profileId, applicationId, disabl
     setSelectedIds([]);
     void load();
     // Scope keys intentionally restart the read when this panel is reused.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope]);
 
   function toggle(revisionId: string, checked: boolean) {
