@@ -93,6 +93,17 @@ def _recovered_attempt_is_fenced(connection, application, running_attempt):
     terminal_state = operation["state"]
     terminal_error = "SUBMISSION_UNCONFIRMED" if terminal_state == "BLOCKED" else None
     expected_terminal_metadata = {"action": "MANUAL_REVIEW"} if terminal_state == "BLOCKED" else {"action": "NONE"}
+    terminal_payload = {"state": terminal_state, "error": terminal_error, "attempt_count": 2}
+    # Support the two exact producer formats without treating extra recovery
+    # data as authority. New blocked records must agree across metadata/audit;
+    # historical records retain their original category-free proof.
+    metadata = operation.get("recovery_metadata")
+    if terminal_state == "BLOCKED" and isinstance(metadata, dict) and "error_category" in metadata:
+        expected_terminal_metadata["error_category"] = terminal_error
+        terminal_payload["error_category"] = terminal_error
+    valid_terminal_payloads = (terminal_payload,)
+    if terminal_state == "COMPLETED":
+        valid_terminal_payloads += ({**terminal_payload, "error_category": None},)
     if (operation.get("error") != terminal_error
             or operation.get("recovery_metadata") != expected_terminal_metadata
             or (terminal_state == "BLOCKED" and operation.get("current_step") != "FINALIZING")
@@ -148,9 +159,7 @@ def _recovered_attempt_is_fenced(connection, application, running_attempt):
     replay_fenced = any(
         event["action"] == "OPERATION_ATTEMPT_FINISHED"
         and isinstance(event["payload"], dict)
-        and event["payload"] == {
-            "state": terminal_state, "error": terminal_error, "attempt_count": 2,
-        }
+        and event["payload"] in valid_terminal_payloads
         for event in operation_events
     )
     return recovered_before_replay and replay_claimed and replay_fenced

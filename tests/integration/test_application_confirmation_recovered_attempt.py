@@ -116,11 +116,53 @@ class RecoveredApplicationAttemptProofTests(unittest.TestCase):
             finish = connection.execute(select(m.audit).where(
                 m.audit.c.entity_id == self.operation_id,
                 m.audit.c.action == "OPERATION_ATTEMPT_FINISHED")).mappings().one()
-            connection.execute(update(m.audit).where(m.audit.c.id == finish["id"]).values(
-                payload={"state": "COMPLETED", "error": None, "attempt_count": 2}))
+        for category in ({}, {"error_category": None}):
+            with self.subTest(category=category):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.audit).where(m.audit.c.id == finish["id"]).values(
+                        payload={"state": "COMPLETED", "error": None, "attempt_count": 2, **category}))
+                self._guard()
+                history = read_attempt_history(self.store, self.profile_id, self.application_id)
+                self.assertEqual(history["attempts"][0]["state"], "RUNNING")
+
+    def test_historical_category_free_proof_remains_readable(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == self.operation_id).values(
+                    recovery_metadata={"action": "MANUAL_REVIEW"}))
+            finish = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == self.operation_id,
+                m.audit.c.action == "OPERATION_ATTEMPT_FINISHED")).mappings().one()
+            payload = dict(finish["payload"])
+            payload.pop("error_category")
+            connection.execute(update(m.audit).where(m.audit.c.id == finish["id"]).values(payload=payload))
         self._guard()
-        history = read_attempt_history(self.store, self.profile_id, self.application_id)
-        self.assertEqual(history["attempts"][0]["state"], "RUNNING")
+
+    def test_mismatched_or_extra_category_evidence_keeps_attempt_reserved(self):
+        with self.store.engine.connect() as connection:
+            finish = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == self.operation_id,
+                m.audit.c.action == "OPERATION_ATTEMPT_FINISHED")).mappings().one()
+        original_metadata = self._operation()["recovery_metadata"]
+        original_payload = finish["payload"]
+        cases = [
+            ({**original_metadata, "error_category": "DOCUMENT_ERROR"}, original_payload),
+            (original_metadata, {**original_payload, "error_category": "DOCUMENT_ERROR"}),
+            ({"action": "MANUAL_REVIEW"}, original_payload),
+            (original_metadata, {key: value for key, value in original_payload.items()
+                                 if key != "error_category"}),
+            ({**original_metadata, "extra": True}, original_payload),
+            (original_metadata, {**original_payload, "extra": True}),
+        ]
+        for index, (metadata, payload) in enumerate(cases):
+            with self.subTest(case=index):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(
+                        m.operations.c.id == self.operation_id).values(recovery_metadata=metadata))
+                    connection.execute(update(m.audit).where(
+                        m.audit.c.id == finish["id"]).values(payload=payload))
+                with self.assertRaisesRegex(ConfirmationConflict, "EXECUTION_STILL_RESERVED"):
+                    self._guard()
 
     def test_live_operation_is_never_authorized_by_stale_attempt_proof(self):
         with self.store.engine.begin() as connection:
