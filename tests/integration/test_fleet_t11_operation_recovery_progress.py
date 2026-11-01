@@ -1,4 +1,5 @@
 """Actual DISCOVER admission, lease recovery, worker retry and public readback."""
+from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
 import json
 from unittest.mock import patch
@@ -21,6 +22,7 @@ class RecoveryProgressFixture:
     def __init__(self, root):
         self.root = root
         self.database_url = f"sqlite:///{(root / 'recovery.db').as_posix()}"
+        self.cleanup = ExitStack()
         self.environment = patch.dict("os.environ", {
             "MJOBS_DATABASE_URL": self.database_url, "MJOBS_OPERATION_MODE": "FIXTURE",
             "MJOBS_OUTPUT_DIR": str(root), "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
@@ -29,7 +31,7 @@ class RecoveryProgressFixture:
 
     def __enter__(self):
         self.environment.start()
-        self.store = Store(self.database_url)
+        self.store = self.new_store()
         try:
             self.store.migrate()
             self.store.bind_workspace_mode("FIXTURE")
@@ -78,10 +80,21 @@ class RecoveryProgressFixture:
         return TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
                                     "redis://127.0.0.1:1/0", operation_mode="FIXTURE"))
 
+    def new_store(self):
+        store = Store(self.database_url)
+        self.cleanup.callback(store.engine.dispose)
+        return store
+
+    def reopen_connections(self):
+        # A live API reader can return a connection after Engine.dispose has
+        # replaced its pool. Retain that pool for cleanup once readers stop.
+        self.cleanup.callback(self.store.engine.pool.dispose)
+        self.store.engine.dispose()
+
     def reopen(self):
         self.client.close()
-        self.store.engine.dispose()
-        self.store = Store(self.database_url)
+        self.reopen_connections()
+        self.store = self.new_store()
         self.client = self.new_client()
 
     def queue(self, profile_id, request_id, query=None):
@@ -98,10 +111,14 @@ class RecoveryProgressFixture:
         return {row["operation_id"]: row for row in response.json()["operations"]}
 
     def __exit__(self, *_args):
-        if hasattr(self, "client"):
-            self.client.close()
-        self.store.engine.dispose()
-        self.environment.stop()
+        try:
+            if hasattr(self, "client"):
+                self.client.close()
+        finally:
+            try:
+                self.cleanup.close()
+            finally:
+                self.environment.stop()
 
 
 def test_real_recovery_and_worker_retry_project_durable_vocabulary_after_reopen(tmp_path):
