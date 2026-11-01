@@ -81,7 +81,7 @@ describe('job comparison client', () => {
     expect(fetchImpl).toHaveBeenCalledExactlyOnceWith(
       '/profiles/profile%207/search-profiles/search%20%232/jobs/compare',
       {
-        method: 'POST',
+        method: 'POST', signal: expect.any(AbortSignal),
         headers: { accept: 'application/json', 'content-type': 'application/json' },
         body: JSON.stringify({ job_ids: jobIds }),
       },

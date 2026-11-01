@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ApplicationMultipageReview,
@@ -97,45 +98,47 @@ export function createApplicationMultipageClient(
     requestApplicationId: string,
     init: RequestInit,
   ): Promise<ApplicationMultipageState> => {
-    assertCurrent();
-    if (requestProfileId !== profileId || requestApplicationId !== applicationId) {
-      throw new ApplicationMultipageWorkspaceError(
-        'STALE_SCOPE',
-        'The selected profile or application changed. Reload before continuing.',
-      );
-    }
-    if (!profileId.trim() || !applicationId.trim()) {
-      throw new ApplicationMultipageWorkspaceError('INVALID_REQUEST', 'Choose a profile and application first.');
-    }
-    const path = `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/multipage-state`;
-    let response: Response;
-    try {
-      response = await fetcher(path, { ...init, signal });
-    } catch {
+    return withRequestDeadline(async fetcher => {
       assertCurrent();
-      throw new ApplicationMultipageWorkspaceError(
-        'NETWORK_ERROR',
-        'Could not load or save application progress. Check the local service and retry.',
-      );
-    }
-    assertCurrent();
-    if (!response.ok) {
-      throw new ApplicationMultipageWorkspaceError(
-        'REQUEST_FAILED',
-        response.status === 404
-          ? 'This application is unavailable for the selected profile.'
-          : 'Application progress could not be saved. Reload and retry.',
-      );
-    }
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
+      if (requestProfileId !== profileId || requestApplicationId !== applicationId) {
+        throw new ApplicationMultipageWorkspaceError(
+          'STALE_SCOPE',
+          'The selected profile or application changed. Reload before continuing.',
+        );
+      }
+      if (!profileId.trim() || !applicationId.trim()) {
+        throw new ApplicationMultipageWorkspaceError('INVALID_REQUEST', 'Choose a profile and application first.');
+      }
+      const path = `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/multipage-state`;
+      let response: Response;
+      try {
+        response = await fetcher(path, { ...init, signal });
+      } catch {
+        assertCurrent();
+        throw new ApplicationMultipageWorkspaceError(
+          'NETWORK_ERROR',
+          'Could not load or save application progress. Check the local service and retry.',
+        );
+      }
       assertCurrent();
-      throw invalidResponse();
-    }
-    assertCurrent();
-    return parseState(body, requestProfileId, requestApplicationId, pages);
+      if (!response.ok) {
+        throw new ApplicationMultipageWorkspaceError(
+          'REQUEST_FAILED',
+          response.status === 404
+            ? 'This application is unavailable for the selected profile.'
+            : 'Application progress could not be saved. Reload and retry.',
+        );
+      }
+      let body: unknown;
+      try {
+        body = await response.json();
+      } catch {
+        assertCurrent();
+        throw invalidResponse();
+      }
+      assertCurrent();
+      return parseState(body, requestProfileId, requestApplicationId, pages);
+    }, fetcher, { signal }).catch(error => { assertCurrent(); throw error; });
   };
 
   return {

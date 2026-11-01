@@ -50,7 +50,7 @@ describe('retention policy controls', () => {
 
     await expect(loadRetentionPolicy(fetcher)).resolves.toEqual(policy);
     expect(fetcher).toHaveBeenCalledExactlyOnceWith('/retention/policy', {
-      method: 'GET',
+      method: 'GET', signal: expect.any(AbortSignal),
       headers: { Accept: 'application/json' },
     });
   });
@@ -68,7 +68,7 @@ describe('retention policy controls', () => {
     const saved = await saveRetentionPolicy(fetcher, values);
 
     expect(fetcher).toHaveBeenCalledExactlyOnceWith('/retention/policy', {
-      method: 'PUT',
+      method: 'PUT', signal: expect.any(AbortSignal),
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
     });

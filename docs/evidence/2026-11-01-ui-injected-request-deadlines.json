@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-01T20:36:17.309617+00:00",
+  "scope": "MJ-REQ-004 frontend deadline slice and MJ-REQ-254 final identified request gaps",
+  "base_commit": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+  "local_result": "PASS",
+  "acceptance_result": "PENDING_PROTECTED_INTEGRATION",
+  "deployment_result": "NOT_RUN",
+  "whole_product_readiness": "UNKNOWN",
+  "external_submissions": 0,
+  "paid_ai_calls": 0,
+  "implementation": {
+    "active_modules": 21,
+    "active_dispatch_sites": 32,
+    "additional_unused_client": "interview-preparation-client.ts",
+    "default_deadline_ms": 30000,
+    "resume_validation_total_budget_ms": 60000,
+    "boundary": "Complete request and response parsing; chained writes/readbacks share a finite operation budget. No automatic write retries.",
+    "lifecycle": "Export, interview, retention and resume polling propagate cancellation and suppress late side effects. Other inspected reads retain existing stale-result fences and finite deadlines.",
+    "cleanup": "Abort on timeout/caller cancellation; release unread unlocked bodies and remove timer/signal listeners. Successful nested calls do not abort their parent."
+  },
+  "validation": {
+    "frontend": {
+      "command": "npm --prefix apps/web test -- --reporter=json --outputFile=C:/Tools/Dev/mjobs-pro-ui-stable.json --maxWorkers=4",
+      "passed": 1096,
+      "failed": 0,
+      "skipped": 0,
+      "new_direct_deadline_cases": 82,
+      "new_mounted_lifecycle_cases": 14,
+      "report_sha256": "ff109759af96fa0dd8e591402490bda12d0315b0f86dda9fbc4ef621db50e396"
+    },
+    "browser": {
+      "command": "python -m pytest -q tests/browser/test_first_run_wizard.py tests/browser/test_core_workflow_trial.py tests/browser/test_document_fact_trace.py tests/browser/test_operation_progress.py tests/browser/test_fleet_t11_operation_recovery_progress.py",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Isolated SQLite/fictional fixtures and real Chromium using final production build; no authenticated public or production acceptance claimed.",
+      "test_cases": [
+        {
+          "classname": "tests.browser.test_first_run_wizard.FirstRunWizardBrowserTests",
+          "name": "test_wizard_runs_profile_scoped_saved_search_and_reads_back_history",
+          "time": "35.763"
+        },
+        {
+          "classname": "tests.browser.test_core_workflow_trial.CoreWorkflowTrialBrowserTests",
+          "name": "test_import_capture_prepare_answers_track_and_reopen",
+          "time": "18.721"
+        },
+        {
+          "classname": "tests.browser.test_document_fact_trace.DocumentFactTraceBrowserTests",
+          "name": "test_history_shows_only_facts_from_immutable_generation_snapshot",
+          "time": "7.723"
+        },
+        {
+          "classname": "tests.browser.test_operation_progress.OperationProgressBrowserTests",
+          "name": "test_saved_progress_is_safe_profile_scoped_and_survives_reload",
+          "time": "7.153"
+        },
+        {
+          "classname": "tests.browser.test_fleet_t11_operation_recovery_progress.FleetT11OperationRecoveryProgressBrowserTests",
+          "name": "test_actual_recovery_reload_privacy_stale_profile_and_later_completion",
+          "time": "8.021"
+        }
+      ],
+      "report_sha256": "55260b3e5aa3d150e3093c16fc234282fa7ee65b8af60093f6fa03ae3c33157f"
+    },
+    "static": [
+      "npm --prefix apps/web run lint: PASS",
+      "npm --prefix apps/web run typecheck: PASS",
+      "npm --prefix apps/web run build: PASS",
+      "npm --prefix apps/web run quality:test: PASS",
+      "npm --prefix apps/web run format:check: PASS after four unchanged checkout files were normalized from CRLF to their exact tracked LF bytes; no Git diff in those files.",
+      "git diff --check: PASS"
+    ]
+  },
+  "independent_review": {
+    "kind": "Read-only internal source review, not a human approval or hosted gate",
+    "result": "No remaining blocking source finding",
+    "corrected_findings": [
+      "Nested success must not abort its parent",
+      "Explicit RequestInit.signal:null overrides inherited Request signal",
+      "Matching read timeout must retain explicit Retry",
+      "Confirmation timeout must retain uncertainty and do-not-resubmit guidance"
+    ],
+    "helper_probes": "Nested sequential reads and explicit-null override passed."
+  },
+  "failure_history": [
+    {
+      "local_report": "C:\\Tools\\Dev\\mjobs-pro-ui-first-failures.json",
+      "sha256": "86bfa2c0dc83fd3619e941db56b351b19c7b3ce1031967f6f8ba3ae64ecd4518",
+      "total": 1000,
+      "passed": 971,
+      "failed": 29,
+      "skipped": 0,
+      "failed_cases": [
+        "JSON API bounded requests returns normal JSON and removes both deadline and caller cancellation listener",
+        "resume upload bounded requests returns normal JSON and removes both deadline and caller cancellation listener",
+        "application answer matching API client discards a response if the active scope changes while fetching",
+        "application multipage workspace discards a response after the selected profile or application changes",
+        "application multipage workspace discards an in-flight response after workspace unmount aborts its request",
+        "application review answer editor uses the bound resume API and polls to an exact completed validation",
+        "DataExport fetches the profile jobs CSV attachment and never returns its contents to the UI",
+        "DataExport uses the attachment routes for applications CSV, profile JSON, and complete backup",
+        "DataExport maps capability identifiers to profile-scoped download routes and checks HTTP errors safely",
+        "interview preparation API client loads only the profile/job-scoped history from the collection GET",
+        "interview preparation review reads an exact persisted version and uses a stable versioned download name",
+        "job comparison client posts only the selected scope and preserves stored scores, contributions, provenance, and unknowns",
+        "job comparison client-to-view recovery contract discards a late result from the prior profile/search/selection scope",
+        "match feedback client posts once then confirms the same scoped category through collection readback",
+        "match feedback client applies only after explicit request and confirms the profile-scoped preference by readback",
+        "durable mock run client status recovery is a scoped GET and never a POST",
+        "durable mock run client network loss followed by resend retains exactly the same request body",
+        "durable mock run client cancels only the acknowledged operation and surfaces a reconciliation conflict",
+        "separate non-submitting manual-auth resume recovers QUEUED without posting or changing identity",
+        "separate non-submitting manual-auth resume recovers RUNNING without posting or changing identity",
+        "separate non-submitting manual-auth resume recovers COMPLETED without posting or changing identity",
+        "separate non-submitting manual-auth resume never replays an unresolved submission intent from the non-submitting resume button",
+        "retention policy controls loads the saved path-free policy from the settings API",
+        "retention policy controls saves only explicit bounded ages and scheduled-cleanup consent",
+        "workspace readback stalled during fetch releases application loading when optional saved-answer text cannot finish",
+        "workspace readback stalled during fetch turns stalled readiness into unavailable without overlapping or permanently replacing the poll",
+        "workspace readback stalled during body releases application loading when optional saved-answer text cannot finish",
+        "workspace readback stalled during body turns stalled readiness into unavailable without overlapping or permanently replacing the poll",
+        "retains non-success JSON readiness details and reads saved answers as plain text"
+      ]
+    },
+    {
+      "local_report": "C:\\Tools\\Dev\\mjobs-pro-ui-second.json",
+      "sha256": "a0c18663cfa261b11c16ba04b531b7c48cea872e4d01330e1d6819e59546dbf1",
+      "total": 1082,
+      "passed": 1078,
+      "failed": 4,
+      "skipped": 0,
+      "failed_cases": [
+        "application multipage workspace discards an in-flight response after workspace unmount aborts its request",
+        "application review answer editor resumes only through a fresh exact-scope current PASS validation and answer readback",
+        "interview preparation API client loads only the profile/job-scoped history from the collection GET",
+        "interview preparation review reads an exact persisted version and uses a stable versioned download name"
+      ]
+    },
+    {
+      "local_report": "C:\\Tools\\Dev\\mjobs-pro-ui-focused.json",
+      "sha256": "2f49a8bdfcc44cce814b7ea8d7ad0a395e9ac634a8fa303479d4375fc43113a7",
+      "total": 72,
+      "passed": 69,
+      "failed": 3,
+      "skipped": 0,
+      "failed_cases": [
+        "mounted recovery during stalled headers ends confirmation loading without changing the uncertain submission state",
+        "mounted recovery during stalled body releases both form-review loading states through their resolved error contracts",
+        "mounted recovery during stalled body ends confirmation loading without changing the uncertain submission state"
+      ]
+    },
+    {
+      "local_report": "C:\\Tools\\Dev\\mjobs-pro-ui-final.json",
+      "sha256": "83e26a01c11ff231ac3cc7122dc60f93c9dd7da9913f7be48bd3ea8165908abf",
+      "total": 1096,
+      "passed": 1091,
+      "failed": 5,
+      "skipped": 0,
+      "failed_cases": [
+        "workspace readback stalled during fetch releases application loading when optional saved-answer text cannot finish",
+        "workspace readback stalled during fetch turns stalled readiness into unavailable without overlapping or permanently replacing the poll",
+        "workspace readback stalled during body releases application loading when optional saved-answer text cannot finish",
+        "workspace readback stalled during body turns stalled readiness into unavailable without overlapping or permanently replacing the poll",
+        "retains non-success JSON readiness details and reads saved answers as plain text"
+      ]
+    },
+    {
+      "local_report": "C:\\Tools\\Dev\\mjobs-pro-ui-workspace-recheck.json",
+      "sha256": "0027054080d073c32b1d48c0aef45a075c58c013b0518ef7e960f2f434a73bd6",
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "failed_cases": []
+    }
+  ],
+  "failure_resolution": [
+    "Request factories start synchronously, preserving prior dispatch timing.",
+    "Payload assertions are retained while checking composed AbortSignal behavior.",
+    "Full-App cold import exceeded a five-second behavioral case under contention. Compile/import now runs in a bounded 30-second beforeAll hook with real clocks and a stable per-case transport dispatcher; behavioral test budgets remain five seconds.",
+    "Mounted sentinel tests use separate one-use Response streams."
+  ],
+  "source_file_sha256": {
+    "apps/web/src/api.ts": "0b4e242fd52b26e51b3c2c322a4d5990cadc8bba1979c4e61f09ae22149b826f",
+    "apps/web/src/application-answer-matching-client.ts": "4187f18cb622879adc2057e1a433d6591e9efc7846b30f8d183774204774796a",
+    "apps/web/src/application-confirmation-recovery.tsx": "ad7032045bd167f75965cdcd0bc4010cb9a5e158c8cbdae6c3327efaa18d5502",
+    "apps/web/src/application-form-review-connected.tsx": "47f1d9c259531af7d109f74a399b0c6905d1b56778a959a35d7cb6d1c8fb5f14",
+    "apps/web/src/application-multipage-workspace.test.tsx": "af2ab87299e88fadfc92f874cb833f12b169796ae57b87c85c229d80cf205af3",
+    "apps/web/src/application-multipage-workspace.tsx": "c8749be02169d68d5ae0d9cc6803209f194119fe8d999fa23a8a6c200e7d7d2f",
+    "apps/web/src/application-priority-client.ts": "4a74c415814b4bfa403f11b049fae9d936c9252a11f60c08c7c323956d380933",
+    "apps/web/src/application-rehearsal.tsx": "f1cd8fe5ec9c079fc15037d9af669b70c8b0ddc7a28ca8c927ff95d5144bde30",
+    "apps/web/src/application-review-answers.test.tsx": "42ab31aae900e5759de19fe21442b07adf67809f839b62db1832168cf6f8b659",
+    "apps/web/src/application-review-answers.tsx": "297c6c11d801126542a0995b54ea4d21072879be46b2a442082b1693c7106696",
+    "apps/web/src/data-export.test.tsx": "d9b48a5a76fb1aa8378846e8fee4b674f75410f099ee1ce08d31624297fc845b",
+    "apps/web/src/data-export.tsx": "4056be564e0d1b29e357580c7529e4299e5edc996f9227185afd9ab824b09dbf",
+    "apps/web/src/dynamic-application-form-client.ts": "0dde5d528861dbea5033a8464b9466aacc8aefb0aa94ce0c0ff961a21c4be1cf",
+    "apps/web/src/interview-preparation-client.test.ts": "da4b8654f1840d334961b756c0cade45fddb6854cfe6fdd0393f9e86e49a6259",
+    "apps/web/src/interview-preparation-client.ts": "3ed40e9609e7fd987ecb631aabbb2ea36610c042f25d14651a73b15f5d0afbb0",
+    "apps/web/src/interview-preparation-connected.tsx": "7ee6635770281168c6d99432d53c58d2fcd3960914fed65651f096e992657adb",
+    "apps/web/src/interview-preparation.test.tsx": "f13f1ce2b938855e587f9eaa3671645b61b26d20c5cfc81995e79a1434bace68",
+    "apps/web/src/interview-preparation.tsx": "30986abd5255244c51d4892a1c701a111af350b67d594bd854885a06fce76215",
+    "apps/web/src/job-comparison-client.test.ts": "071ddd80748f6b83b5d5922a755ada1a897a2988dc8251601fcf16eaec258ef8",
+    "apps/web/src/job-comparison-client.ts": "ff9ca4e1d25d33d997f7d256fb241d5637a195653bed1fc2c9581a5df0e9fe13",
+    "apps/web/src/match-feedback-client.test.ts": "d01a11b7dc93d05065cae1d2e920d597c4fea95d1fb1c8643ea0eccbbd3443b1",
+    "apps/web/src/match-feedback-client.ts": "e7e0aada1dfdedbced48dfc56de307aca9c97d824bd23c2dd77282e298380823",
+    "apps/web/src/matching-explanation-client.ts": "d1c01aa8e7b3ec72a48dd96ebbbacba6e94bd5f854003bfd1231a838768b57ae",
+    "apps/web/src/mock-run-client.test.ts": "762e24121fdc071b94df0e95671f2fcf464a72d1c059777d49ad08cead2c8f91",
+    "apps/web/src/mock-run-client.ts": "57c28852ad0f6932c10a962314a051857369ca12b571121cba4d3790f0c2122f",
+    "apps/web/src/resume-workspace-client.ts": "58371a0a9691890ad92fd30de58feac283379e4e25b77c1a03846964da3f8431",
+    "apps/web/src/retention-policy.test.tsx": "c9fa182d6fe1fafb68591472ed486afa71b1ea206e51d02d72d6ca5fbd8bc83f",
+    "apps/web/src/retention-policy.tsx": "e22f80f558c397fd856668dd70efef5d3a22ce3b95ff8cd5575ac057f2bfe61c",
+    "apps/web/src/role-scoring-preview-client.ts": "57239e94c328f296ca3c5d542d70d1accece640652ada5caea193df730eb5c1d",
+    "apps/web/src/role-scoring-profile-client.ts": "1ed64594b2a749b3a61d55d6719f0d5710a4b0e605c13581db79c67d5833fa3f",
+    "apps/web/src/search-history-client.ts": "533ab5f8b7525fc2772b84fdcbccdfef065907aabdf787feac21b27f242ea667",
+    "apps/web/src/source-candidate-review-client.ts": "9f576d264573dcc7f87f2b96c6cfdb9effd85a8bdeff1b06b4adf80662a1db60",
+    "apps/web/src/workspace-request-deadline.test.tsx": "052a1e523b484e650ddad70f87e90a5a6bf722086152cc84e013c37e059da51c",
+    "apps/web/src/injected-request-deadlines.test.ts": "8b91b11555de69e88de9f553aad8b8263702b5e39a57559f5c5747062931d643",
+    "apps/web/src/injected-request-lifecycle.test.tsx": "7fe499498c01bc7ede89b48dbcc51e5670520218c224f2eed007facbfb4f40bf"
+  },
+  "known_limitations": [
+    "MJ-REQ-004 remains PARTIAL; this is frontend evidence, not whole-backend timeout/cancellation acceptance.",
+    "MJ-REQ-254 acceptance requires exact proposed-merge gates and retained earlier per-criterion evidence.",
+    "Windows host uses Node27 alpha and emits an npm compatibility warning; protected CI uses pinned Node24.",
+    "Existing bundle size warning and minimatch moderate development advisory remain; dependency pins were not changed."
+  ]
+}

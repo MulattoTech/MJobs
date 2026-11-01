@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import {useEffect, useRef, useState} from 'react';
 
 export type ConfirmationCheck = {
@@ -28,51 +29,55 @@ function isConfirmationCheck(value: unknown, profileId: string, applicationId: s
 
 export async function loadLatestApplicationConfirmation(profileId: string, applicationId: string,
   fetcher: typeof fetch = fetch, signal?: AbortSignal): Promise<ConfirmationCheck | null> {
-  try {
-    const response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/confirmation-check/latest`, {
-      method: 'GET', signal, cache: 'no-store', credentials: 'same-origin',
-    });
-    if (!response.ok) throw invalidSavedEvidence();
-    const body: unknown = await response.json();
-    if (typeof body !== 'object' || body === null || !('result' in body)) throw invalidSavedEvidence();
-    const result = (body as {result: unknown}).result;
-    if (result === null) return null;
-    if (!isConfirmationCheck(result, profileId, applicationId)) throw invalidSavedEvidence();
-    return result;
-  } catch {
-    throw invalidSavedEvidence();
-  }
+  return withRequestDeadline(async fetcher => {
+    try {
+      const response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/confirmation-check/latest`, {
+        method: 'GET', signal, cache: 'no-store', credentials: 'same-origin',
+      });
+      if (!response.ok) throw invalidSavedEvidence();
+      const body: unknown = await response.json();
+      if (typeof body !== 'object' || body === null || !('result' in body)) throw invalidSavedEvidence();
+      const result = (body as {result: unknown}).result;
+      if (result === null) return null;
+      if (!isConfirmationCheck(result, profileId, applicationId)) throw invalidSavedEvidence();
+      return result;
+    } catch {
+      throw invalidSavedEvidence();
+    }
+  }, fetcher, { signal, timeoutMessage: 'Saved receipt evidence could not be loaded in time. Submission remains uncertain; do not resubmit.' });
 }
 
 export async function checkApplicationConfirmation(profileId: string, applicationId: string, requestId: string,
   fetcher: typeof fetch = fetch, signal?: AbortSignal): Promise<ConfirmationCheck> {
-  let response: Response;
-  try {
-    response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/confirmation-check`, {
-      method: 'POST', signal, cache: 'no-store', credentials: 'same-origin',
-      headers: {'Content-Type': 'application/json'}, body: JSON.stringify({request_id: requestId}),
-    });
-  } catch {
-    throw new Error('The receipt check could not complete. Submission remains uncertain; do not resubmit.');
-  }
-  let value: unknown = null;
-  try { value = await response.json(); } catch { /* use the fixed error below */ }
-  if (!response.ok) {
-    const code = typeof value === 'object' && value !== null
-      ? (value as {detail?: {code?: unknown}}).detail?.code : undefined;
-    if (code === 'CONFIRMATION_EXECUTION_STILL_RESERVED') {
-      throw new Error('A worker or unfinished browser attempt still owns this run. Its reservation was not changed.');
+  return withRequestDeadline(async fetcher => {
+    let response: Response;
+    try {
+      response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/confirmation-check`, {
+        method: 'POST', signal, cache: 'no-store', credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json'}, body: JSON.stringify({request_id: requestId}),
+      });
+    } catch {
+      throw new Error('The receipt check could not complete. Submission remains uncertain; do not resubmit.');
     }
-    throw new Error('The receipt check could not complete. Submission remains uncertain; do not resubmit.');
-  }
-  if (typeof value !== 'object' || value === null) {
-    throw new Error('The receipt check returned an unexpected result. Reload the application before proceeding.');
-  }
-  const check = value as Record<string, unknown>;
-  if (!isConfirmationCheck(check, profileId, applicationId)) {
-    throw new Error('The receipt check returned an unexpected result. Reload the application before proceeding.');
-  }
-  return check as unknown as ConfirmationCheck;
+    let value: unknown = null;
+    try { value = await response.json(); } catch { /* use the fixed error below */ }
+    if (!response.ok) {
+      const code = typeof value === 'object' && value !== null
+        ? (value as {detail?: {code?: unknown}}).detail?.code : undefined;
+      if (code === 'CONFIRMATION_EXECUTION_STILL_RESERVED') {
+        throw new Error('A worker or unfinished browser attempt still owns this run. Its reservation was not changed.');
+      }
+      throw new Error('The receipt check could not complete. Submission remains uncertain; do not resubmit.');
+    }
+    if (typeof value !== 'object' || value === null) {
+      throw new Error('The receipt check returned an unexpected result. Reload the application before proceeding.');
+    }
+    const check = value as Record<string, unknown>;
+    if (!isConfirmationCheck(check, profileId, applicationId)) {
+      throw new Error('The receipt check returned an unexpected result. Reload the application before proceeding.');
+    }
+    return check as unknown as ConfirmationCheck;
+  }, fetcher, { signal, timeoutMessage: 'The receipt check timed out. Submission remains uncertain; do not resubmit.' });
 }
 
 export function ConfirmationCheckResult({result}: {result: ConfirmationCheck}) {

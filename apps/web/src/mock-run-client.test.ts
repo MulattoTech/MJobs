@@ -38,7 +38,7 @@ describe('durable mock run client',()=>{
   });
   it('status recovery is a scoped GET and never a POST',async()=>{
     const send=request();expect(await lookupMockRun(scope,intent,send)).toEqual(queued);
-    expect(send).toHaveBeenCalledExactlyOnceWith('/profiles/fixture/applications/app-1/mock-runs/reviewed-run-1',{method:'GET'});
+    expect(send).toHaveBeenCalledExactlyOnceWith('/profiles/fixture/applications/app-1/mock-runs/reviewed-run-1',{method:'GET',signal:expect.any(AbortSignal)});
   });
   it('a missing acknowledgement is explicit and keeps the pending intent',async()=>{
     const local=storage();saveMockRunIntent(local,scope,intent);
@@ -51,7 +51,7 @@ describe('durable mock run client',()=>{
     await expect(postMockRun(scope,intent,lost)).rejects.toThrow('network lost');
     const retry=request({...queued,replayed:true});
     expect((await postMockRun(scope,loadMockRunIntent(local,scope)!,retry)).replayed).toBe(true);
-    expect(retry.mock.calls[0][1]).toEqual({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:intent.requestId,submit:false})});
+    expect(retry.mock.calls[0][1]).toEqual({method:'POST',signal:expect.any(AbortSignal),headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:intent.requestId,submit:false})});
   });
   it('never forgets an unresolved or still-running request',()=>{
     for(const result of [null,queued,{...queued,state:'RUNNING'}]) {
@@ -75,7 +75,7 @@ describe('durable mock run client',()=>{
   });
   it('cancels only the acknowledged operation and surfaces a reconciliation conflict',async()=>{
     const send=request({state:'CANCELLED'});await cancelMockRun('operation-1',send);
-    expect(send).toHaveBeenCalledExactlyOnceWith('/operations/operation-1/cancel',{method:'POST'});
+    expect(send).toHaveBeenCalledExactlyOnceWith('/operations/operation-1/cancel',{method:'POST',signal:expect.any(AbortSignal)});
     await expect(cancelMockRun('operation-1',request({detail:{code:'RECONCILIATION_REQUIRED'}},409))).rejects.toThrow('RECONCILIATION_REQUIRED');
     await expect(cancelMockRun('../bad',send)).rejects.toThrow('Invalid');
   });
@@ -107,7 +107,7 @@ describe('separate non-submitting manual-auth resume',()=>{
     const send=request({...queued,state});
     expect((await resumeMockDryRun(scope,local,send,()=>{throw new Error('new ID allocated');})).state).toBe(state);
     expect(send).toHaveBeenCalledTimes(1);
-    expect(send.mock.calls[0][1]).toEqual({method:'GET'});
+    expect(send.mock.calls[0][1]).toEqual({method:'GET',signal:expect.any(AbortSignal)});
     expect(loadMockRunIntent(local,scope)).toEqual(intent);
   });
   it('reuses the identical dry-run request when admission is not yet found',async()=>{
@@ -128,7 +128,7 @@ describe('separate non-submitting manual-auth resume',()=>{
       const send=missing?request({},404):request(queued);
       await expect(resumeMockDryRun(scope,local,send)).rejects.toThrow('Resolve the saved submission request');
       expect(send).toHaveBeenCalledTimes(1);
-      expect(send.mock.calls[0][1]).toEqual({method:'GET'});
+      expect(send.mock.calls[0][1]).toEqual({method:'GET',signal:expect.any(AbortSignal)});
       expect(loadMockRunIntent(local,scope)?.submit).toBe(true);
     }
   });

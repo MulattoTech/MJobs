@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import { withRequestDeadline } from './api';
 import {InterviewPreparation, type InterviewPrepStoryOption} from './interview-preparation';
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -75,6 +76,7 @@ export function InterviewPreparationConnected({
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     setState(previous => ({
       scope,
       loading: true,
@@ -82,12 +84,12 @@ export function InterviewPreparationConnected({
       error: '',
       stories: previous.scope === scope ? previous.stories : [],
     }));
-    void fetcher(`/profiles/${encodeURIComponent(profileId)}/career-stories`)
-      .then(async response => {
+    void withRequestDeadline(async request => {
+        const response = await request(`/profiles/${encodeURIComponent(profileId)}/career-stories`);
         const payload = await response.json().catch(() => null);
         if (!response.ok) throw new Error(`Career story request failed (${response.status}).`);
         return selectInterviewPrepStories(profileId, payload);
-      })
+      }, fetcher, { signal: controller.signal })
       .then(rows => {
         if (active) setState({scope, loading: false, ready: true, error: '', stories: rows});
       })
@@ -100,7 +102,7 @@ export function InterviewPreparationConnected({
           stories: [],
         });
       });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [attempt, fetcher, jobId, profileId, scope]);
 
   if (!ready) return <p role="status">Loading approved interview stories…</p>;

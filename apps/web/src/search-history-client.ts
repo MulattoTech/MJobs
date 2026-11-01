@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import type { SearchHistoryPanelProps, SearchHistoryRecord, SearchHistoryResponse } from './search-history-panel';
 
 export type SearchHistoryClientErrorKind =
@@ -180,28 +181,30 @@ export function createSearchHistoryClient(
 
   return {
     async loadHistory(profileId: string, page: SearchHistoryPageOptions = {}): Promise<SearchHistoryResponse> {
-      const selectedProfile = requireProfileId(profileId);
-      const { limit, cursor } = validatePageOptions(page);
-      const query = new URLSearchParams({ limit: String(limit) });
-      if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
-      const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}/search-history?${query.toString()}`;
-      let response: Response;
-      try {
-        response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
-      } catch {
-        throw new SearchHistoryClientError(
-          'NETWORK', null, true,
-          'Search history service could not be reached. Retry when the connection is available.',
-        );
-      }
-      if (!response.ok) throw httpError(response.status);
-      let body: unknown;
-      try {
-        body = await response.json() as unknown;
-      } catch {
-        throw invalidResponse();
-      }
-      return normalizeResponse(body, selectedProfile, limit, cursor);
+      return withRequestDeadline(async fetchImpl => {
+        const selectedProfile = requireProfileId(profileId);
+        const { limit, cursor } = validatePageOptions(page);
+        const query = new URLSearchParams({ limit: String(limit) });
+        if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+        const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}/search-history?${query.toString()}`;
+        let response: Response;
+        try {
+          response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
+        } catch {
+          throw new SearchHistoryClientError(
+            'NETWORK', null, true,
+            'Search history service could not be reached. Retry when the connection is available.',
+          );
+        }
+        if (!response.ok) throw httpError(response.status);
+        let body: unknown;
+        try {
+          body = await response.json() as unknown;
+        } catch {
+          throw invalidResponse();
+        }
+        return normalizeResponse(body, selectedProfile, limit, cursor);
+      }, fetchImpl);
     },
   };
 }

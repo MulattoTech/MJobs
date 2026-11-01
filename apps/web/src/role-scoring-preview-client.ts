@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 /** Read-only draft-ranking transport with scope, version and score-shape checks. */
 import type {RoleScoringProfileDraft} from './role-scoring-profile-client';
 import type {MatchExplanationContribution} from './matching-explanation';
@@ -77,29 +78,31 @@ export function validatePreview(value:unknown,request:PreviewRequest):ScoringPre
 
 export function createScoringPreviewClient(fetchImpl?:typeof fetch):PreviewClient {
   return async request=>{
-    const {profileId,searchProfileId,draft,expectedVersion,signal}=request;
-    for(const id of [profileId,searchProfileId]) {
-      if(!text(id,128)||id!==id.trim()||id==='.'||id==='..'||/[\\/\u0000-\u001f\u007f]/.test(id)) throw invalid();
-    }
-    let response:Response;
-    try {
-      response=await (fetchImpl??fetch)(`/profiles/${encodeURIComponent(profileId)}/search-profiles/${encodeURIComponent(searchProfileId)}/role-scoring-profile/preview`,{
-        method:'POST',headers:{accept:'application/json','content-type':'application/json'},signal,
-        body:JSON.stringify({expected_version:expectedVersion,profile:draft}),
-      });
-    } catch(error) {
-      if(signal?.aborted) throw error;
-      throw new Error('The ranking preview could not be reached. Retry when connected; nothing was saved.');
-    }
-    if(!response.ok) {
-      let code='';
-      try {const body=await response.json();code=body?.detail?.code??'';} catch { /* Never echo raw responses. */ }
-      if(code==='SCORING_PREVIEW_FILTERS_UNSUPPORTED') throw new Error('This preview does not support the saved advanced workspace filters. Use a separate search without those filters; existing filters were not changed.');
-      if(code==='SCORING_PREVIEW_VERSION_CONFLICT') throw new Error('The saved weights changed. Reload the saved profile before previewing again; your draft was not saved.');
-      throw new Error('The ranking preview was unavailable or rejected. Check the selected profile, search and draft; nothing was saved.');
-    }
-    let body:unknown;
-    try {body=await response.json();} catch {throw invalid();}
-    return validatePreview(body,request);
+    return withRequestDeadline(async boundedFetch => {
+      const {profileId,searchProfileId,draft,expectedVersion,signal}=request;
+      for(const id of [profileId,searchProfileId]) {
+        if(!text(id,128)||id!==id.trim()||id==='.'||id==='..'||/[\\/\u0000-\u001f\u007f]/.test(id)) throw invalid();
+      }
+      let response:Response;
+      try {
+        response=await boundedFetch(`/profiles/${encodeURIComponent(profileId)}/search-profiles/${encodeURIComponent(searchProfileId)}/role-scoring-profile/preview`,{
+          method:'POST',headers:{accept:'application/json','content-type':'application/json'},signal,
+          body:JSON.stringify({expected_version:expectedVersion,profile:draft}),
+        });
+      } catch(error) {
+        if(signal?.aborted) throw error;
+        throw new Error('The ranking preview could not be reached. Retry when connected; nothing was saved.');
+      }
+      if(!response.ok) {
+        let code='';
+        try {const body=await response.json();code=body?.detail?.code??'';} catch { /* Never echo raw responses. */ }
+        if(code==='SCORING_PREVIEW_FILTERS_UNSUPPORTED') throw new Error('This preview does not support the saved advanced workspace filters. Use a separate search without those filters; existing filters were not changed.');
+        if(code==='SCORING_PREVIEW_VERSION_CONFLICT') throw new Error('The saved weights changed. Reload the saved profile before previewing again; your draft was not saved.');
+        throw new Error('The ranking preview was unavailable or rejected. Check the selected profile, search and draft; nothing was saved.');
+      }
+      let body:unknown;
+      try {body=await response.json();} catch {throw invalid();}
+      return validatePreview(body,request);
+    }, fetchImpl ?? fetch, { signal: request.signal });
   };
 }

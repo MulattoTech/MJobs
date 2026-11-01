@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import { withRequestDeadline } from './api';
+import React, {useEffect, useRef, useState} from 'react';
 
 export type InterviewPrepSource = string;
 
@@ -66,15 +67,17 @@ function collectionPath(profileId: string, jobId: string) {
 }
 
 async function requestJson<T>(url: string, init: RequestInit, fetcher: JsonFetcher): Promise<T> {
-  const response = await fetcher(url, {
-    ...init,
-    headers: {'Content-Type': 'application/json', ...init.headers},
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(typeof data.detail === 'string' ? data.detail : `Interview prep request rejected (${response.status}).`);
-  }
-  return data as T;
+  return withRequestDeadline(async fetcher => {
+    const response = await fetcher(url, {
+      ...init,
+      headers: {'Content-Type': 'application/json', ...init.headers},
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(typeof data.detail === 'string' ? data.detail : `Interview prep request rejected (${response.status}).`);
+    }
+    return data as T;
+  }, fetcher, { signal: init.signal });
 }
 
 export async function loadInterviewPrepPacks(
@@ -137,52 +140,71 @@ export function InterviewPreparation({profileId, jobId, jobTitle, companyName, a
   const [loading, setLoading] = useState(!initialPacks);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const scope = useRef<AbortController | null>(null);
+  const action = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    scope.current = controller;
+    setCreating(false);
+    setSelectedStoryIds([]);
+    setActivePack(null);
+    setPacks([]);
     setLoading(true);
     setError('');
-    void loadInterviewPrepPacks(profileId, jobId, fetcher).then(async history => {
-      if (cancelled) return;
-      setPacks(history);
+    void withRequestDeadline(async request => {
+      const history = await loadInterviewPrepPacks(profileId, jobId, request);
       const latest = history[0];
-      if (latest) {
-        const exact = await loadInterviewPrepPack(profileId, jobId, latest.pack_id, fetcher);
-        if (!cancelled) setActivePack(exact);
-      } else if (!cancelled) {
-        setActivePack(null);
-      }
+      const exact = latest ? await loadInterviewPrepPack(profileId, jobId, latest.pack_id, request) : null;
+      return { history, exact };
+    }, fetcher, { signal: controller.signal }).then(({ history, exact }) => {
+      if (cancelled) return;
+      setPacks(history); setActivePack(exact);
     }).catch(failure => {
       if (!cancelled) setError(failure instanceof Error ? failure.message : String(failure));
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
-    return () => {cancelled = true;};
+    return () => { cancelled = true; controller.abort(); action.current?.abort(); action.current = null; };
   }, [profileId, jobId, fetcher]);
 
   async function openVersion(packId: string) {
+    if (scope.current?.signal.aborted || creating) return;
+    action.current?.abort();
+    const controller = new AbortController(); action.current = controller;
     setError('');
     try {
-      setActivePack(await loadInterviewPrepPack(profileId, jobId, packId, fetcher));
+      const pack = await withRequestDeadline(request => loadInterviewPrepPack(profileId, jobId, packId, request),
+        fetcher, { signal: controller.signal });
+      if (!controller.signal.aborted && action.current === controller) setActivePack(pack);
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure));
+      if (!controller.signal.aborted && action.current === controller) setError(failure instanceof Error ? failure.message : String(failure));
     }
   }
 
   async function createPack() {
+    if (scope.current?.signal.aborted || creating) return;
+    action.current?.abort();
+    const controller = new AbortController(); action.current = controller;
     setCreating(true);
     setError('');
     try {
-      const created = await createInterviewPrepPack(profileId, jobId, selectedStoryIds, fetcher);
-      // Confirm the immutable row through its exact-readback route before showing it as saved.
-      const saved = await loadInterviewPrepPack(profileId, jobId, created.pack_id, fetcher);
+      const { saved, history } = await withRequestDeadline(async request => {
+        const created = await createInterviewPrepPack(profileId, jobId, selectedStoryIds, request);
+        // Confirm the immutable row through its exact-readback route before showing it as saved.
+        const saved = await loadInterviewPrepPack(profileId, jobId, created.pack_id, request);
+        const history = await loadInterviewPrepPacks(profileId, jobId, request);
+        return { saved, history };
+      }, fetcher, { signal: controller.signal });
+      if (controller.signal.aborted || action.current !== controller) return;
       setActivePack(saved);
-      setPacks(await loadInterviewPrepPacks(profileId, jobId, fetcher));
+      setPacks(history);
       setSelectedStoryIds([]);
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure));
+      if (!controller.signal.aborted && action.current === controller) setError(failure instanceof Error ? failure.message : String(failure));
     } finally {
-      setCreating(false);
+      if (!controller.signal.aborted && action.current === controller) setCreating(false);
     }
   }
 

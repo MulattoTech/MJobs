@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 /** Profile-scoped HTTP adapter for the source-candidate review component. */
 
 export type SourceCandidateState =
@@ -277,18 +278,20 @@ export function createSourceCandidateReviewClient(
   const fetchImpl = options.fetchImpl ?? fetch;
 
   const request = async (url: string, init: RequestInit): Promise<unknown> => {
-    let response: Response;
-    try {
-      response = await fetchImpl(url, init);
-    } catch {
-      throw new SourceCandidateReviewClientError(null, 'Source candidate service could not be reached. Retry with the same review details.');
-    }
-    if (!response.ok) throw new SourceCandidateReviewClientError(response.status, errorMessage(response.status));
-    try {
-      return await response.json() as unknown;
-    } catch {
-      throw new SourceCandidateReviewClientError(response.status, 'Source candidate service returned an invalid response.');
-    }
+    return withRequestDeadline(async fetchImpl => {
+      let response: Response;
+      try {
+        response = await fetchImpl(url, init);
+      } catch {
+        throw new SourceCandidateReviewClientError(null, 'Source candidate service could not be reached. Retry with the same review details.');
+      }
+      if (!response.ok) throw new SourceCandidateReviewClientError(response.status, errorMessage(response.status));
+      try {
+        return await response.json() as unknown;
+      } catch {
+        throw new SourceCandidateReviewClientError(response.status, 'Source candidate service returned an invalid response.');
+      }
+    }, fetchImpl);
   };
 
   return {

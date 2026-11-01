@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import React, { useEffect, useRef, useState } from 'react';
 
 export type ApplicationRehearsalField = {
@@ -141,7 +142,7 @@ export function createApplicationRehearsalClient(
     if (signal?.aborted || !isScopeCurrent()) throw new ApplicationRehearsalClientError('STALE');
   };
   const url = `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/rehearsal`;
-  const request = async (path: string, init: RequestInit) => {
+  const request = async (fetcher: typeof fetch, path: string, init: RequestInit) => {
     assertScope();
     let response: Response;
     try {
@@ -159,26 +160,30 @@ export function createApplicationRehearsalClient(
 
   return {
     async load(): Promise<ApplicationRehearsalSnapshot> {
-      const response = await request(url, { method: 'GET', cache: 'no-store' });
-      let body: unknown;
-      try {
-        body = await response.json();
-      } catch {
+      return withRequestDeadline(async fetcher => {
+        const response = await request(fetcher, url, { method: 'GET', cache: 'no-store' });
+        let body: unknown;
+        try {
+          body = await response.json();
+        } catch {
+          assertScope();
+          throw new ApplicationRehearsalClientError('INVALID_RESPONSE');
+        }
         assertScope();
-        throw new ApplicationRehearsalClientError('INVALID_RESPONSE');
-      }
-      assertScope();
-      return parseSnapshot(body, profileId, applicationId);
+        return parseSnapshot(body, profileId, applicationId);
+      }, fetcher, { signal });
     },
     async recordReview(input: ApplicationRehearsalReviewRequest): Promise<void> {
-      if (!isId(input.request_id) || !isFingerprint(input.fingerprint) || input.acknowledged !== true) {
-        throw new ApplicationRehearsalClientError('INVALID_REQUEST');
-      }
-      await request(`${url}/reviews`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
-      });
+      return withRequestDeadline(async fetcher => {
+        if (!isId(input.request_id) || !isFingerprint(input.fingerprint) || input.acknowledged !== true) {
+          throw new ApplicationRehearsalClientError('INVALID_REQUEST');
+        }
+        await request(fetcher, `${url}/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+        });
+      }, fetcher, { signal });
     },
   };
 }

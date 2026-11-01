@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import type { DynamicApplicationField } from './dynamic-application-form';
 
 export type DynamicApplicationFields = {
@@ -189,23 +190,25 @@ export function createDynamicApplicationFieldsClient(fetcher: typeof fetch = glo
   return {
     async load(profileId: string, applicationId: string, signal?: AbortSignal,
       expectedFingerprint?: string): Promise<DynamicApplicationFields> {
-      const query = expectedFingerprint ? `?expected_fingerprint=${encodeURIComponent(expectedFingerprint)}` : '';
-      let response: Response;
-      try {
-        response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/dynamic-fields${query}`, {
-          method: 'GET', cache: 'no-store', signal,
-        });
-      } catch {
+      return withRequestDeadline(async fetcher => {
+        const query = expectedFingerprint ? `?expected_fingerprint=${encodeURIComponent(expectedFingerprint)}` : '';
+        let response: Response;
+        try {
+          response = await fetcher(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/dynamic-fields${query}`, {
+            method: 'GET', cache: 'no-store', signal,
+          });
+        } catch {
+          if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+          throw new DynamicApplicationFieldsClientError('UNAVAILABLE');
+        }
+        if (response.status === 409) throw new DynamicApplicationFieldsClientError('STALE');
+        if (!response.ok) throw new DynamicApplicationFieldsClientError('UNAVAILABLE');
+        let body: unknown;
+        try { body = await response.json(); }
+        catch { throw new DynamicApplicationFieldsClientError('INVALID_RESPONSE'); }
         if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-        throw new DynamicApplicationFieldsClientError('UNAVAILABLE');
-      }
-      if (response.status === 409) throw new DynamicApplicationFieldsClientError('STALE');
-      if (!response.ok) throw new DynamicApplicationFieldsClientError('UNAVAILABLE');
-      let body: unknown;
-      try { body = await response.json(); }
-      catch { throw new DynamicApplicationFieldsClientError('INVALID_RESPONSE'); }
-      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-      return parseDynamicApplicationFields(body, profileId, applicationId);
+        return parseDynamicApplicationFields(body, profileId, applicationId);
+      }, fetcher, { signal });
     },
   };
 }
