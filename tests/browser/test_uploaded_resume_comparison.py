@@ -112,8 +112,8 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     page = context.new_page()
                     page.goto(origin, wait_until='domcontentloaded')
                     page.get_by_label('Active profile', exact=True).select_option('fixture')
-                    job_card = page.get_by_role('button').filter(
-                        has=page.get_by_role('heading', name=job['title'], exact=True))
+                    job_card = page.locator('.job-list').get_by_role(
+                        'button', name=f"{job['company']} {job['title']}", exact=True)
                     expect(job_card).to_be_visible()
                     job_card.click()
                     page.get_by_label('Order approved skills for this job', exact=True).check()
