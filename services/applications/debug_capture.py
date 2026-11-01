@@ -1,4 +1,5 @@
 """Bounded, content-minimizing browser failure diagnostics for local automation."""
+import asyncio
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
@@ -20,6 +21,10 @@ MAX_CAPTURES_PER_APPLICATION = 20
 MAX_DIAGNOSTIC_EVENTS = 50
 MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 SCREENSHOT_TIMEOUT_MS = 2000
+DOM_TIMEOUT_MS = 300
+MAX_DOM_NODES = 160
+MAX_DOM_DEPTH = 8
+MAX_DOM_BYTES = 8192
 _ATTEMPT_RE = re.compile(r"^[a-f0-9]{32}$")
 _SAFE_ERROR_TYPE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,63}$")
 _FINGERPRINT_KEY = secrets.token_bytes(32)
@@ -31,6 +36,32 @@ _ALLOWED_STEPS = {
     "RECONCILE_CONFIRMATION", "CHALLENGE_DETECTED", "UNKNOWN",
 }
 _ALLOWED_SOURCES = {"console", "pageerror", "requestfailed"}
+_ALLOWED_ELEMENTS = frozenset((
+    "html", "head", "body", "main", "header", "footer", "nav", "section", "article",
+    "aside", "div", "span", "p", "h1", "h2", "h3", "h4", "h5", "h6", "form",
+    "fieldset", "legend", "label", "input", "textarea", "select", "option", "optgroup",
+    "button", "a", "ul", "ol", "li", "table", "thead", "tbody", "tr", "th", "td",
+    "details", "summary", "dialog", "iframe", "img", "canvas", "svg", "video",
+))
+_ALLOWED_ROLES = frozenset((
+    "alert", "alertdialog", "button", "checkbox", "combobox", "dialog", "document",
+    "form", "group", "heading", "link", "list", "listbox", "listitem", "main",
+    "navigation", "option", "progressbar", "radio", "radiogroup", "region", "search",
+    "searchbox", "slider", "spinbutton", "status", "switch", "tab", "table", "tablist",
+    "tabpanel", "textbox", "tree", "treeitem",
+))
+
+
+class _DomDeadlineExpired(TimeoutError):
+    pass
+
+
+class _DomCancellationFailed(Exception):
+    """The installed transport did not honor its verified cancellation contract."""
+
+
+class _CaptureControlSignal(Exception):
+    """Keep a caller checkpoint failure outside the best-effort DOM boundary."""
 
 
 def sanitize_debug_url(value):
@@ -76,22 +107,209 @@ def _atomic_json(path, value):
     """Write a complete JSON artifact or leave no partial destination behind."""
     temporary = path.with_name(f".{path.name}.{secrets.token_hex(8)}.tmp")
     try:
-        temporary.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+        temporary.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8", newline="\n")
         os.replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
 
 
-def _dom_snapshot(page):
-    """Keep the package schema without an unbounded renderer evaluation."""
+def _omitted_dom(status):
     return {
-        "status": "OMITTED_UNBOUNDED_EVALUATION" if page is not None else "UNAVAILABLE",
+        "status": status,
         "element_counts": {},
         "role_counts": {},
         "text_omitted": True,
         "attributes_omitted": True,
         "control_values_omitted": True,
     }
+
+
+def _sanitize_dom(root, checkpoint):
+    """Retain topology and fixed tag/role enums, never raw CDP content."""
+    if not isinstance(root, dict) or root.get("nodeType") != 9:
+        raise ValueError("Invalid diagnostic document")
+    nodes = []
+    pending = [(iter((root,)), None, 0)]
+    visited = 0
+    truncated = False
+    while pending and visited < MAX_DOM_NODES:
+        checkpoint()
+        siblings, parent, depth = pending[-1]
+        try:
+            node = next(siblings)
+        except StopIteration:
+            pending.pop()
+            continue
+        visited += 1
+        if not isinstance(node, dict):
+            raise ValueError("Invalid diagnostic node")
+        child_parent = parent
+        if node.get("nodeType") == 1:
+            name = node.get("nodeName")
+            tag = name.lower() if isinstance(name, str) and len(name) <= 16 else "other"
+            if tag not in _ALLOWED_ELEMENTS:
+                tag = "other"
+            item = {"parent": parent, "tag": tag}
+            attributes = node.get("attributes", [])
+            if isinstance(attributes, list):
+                # Attribute names/values may be arbitrarily large or numerous.
+                # Inspect only a bounded prefix and retain an exact fixed role.
+                for offset in range(0, min(len(attributes) - 1, 64), 2):
+                    if attributes[offset] == "role":
+                        role = attributes[offset + 1]
+                        if isinstance(role, str) and len(role) <= 16 and role in _ALLOWED_ROLES:
+                            item["role"] = role
+                        break
+            child_parent = len(nodes)
+            nodes.append(item)
+        children = node.get("children", [])
+        if not isinstance(children, list):
+            raise ValueError("Invalid diagnostic children")
+        child_count = node.get("childNodeCount", 0)
+        if type(child_count) is int and child_count > len(children):
+            truncated = True
+        if children:
+            if depth < MAX_DOM_DEPTH:
+                pending.append((iter(children), child_parent, depth + 1))
+            else:
+                truncated = True
+    truncated = truncated or bool(pending)
+    snapshot = {
+        **_omitted_dom("CAPTURED"),
+        "nodes": nodes,
+        "truncated": truncated,
+        "node_limit": MAX_DOM_NODES,
+        "byte_limit": MAX_DOM_BYTES,
+        "depth_limit": MAX_DOM_DEPTH,
+        "subframes_omitted": True,
+        "shadow_roots_omitted": True,
+    }
+    while True:
+        checkpoint()
+        elements, roles = {}, {}
+        for node in nodes:
+            elements[node["tag"]] = elements.get(node["tag"], 0) + 1
+            if "role" in node:
+                roles[node["role"]] = roles.get(node["role"], 0) + 1
+        snapshot.update(element_counts=elements, role_counts=roles)
+        # Match _atomic_json's actual on-disk encoding, including whitespace.
+        if len((json.dumps(snapshot, indent=2) + "\n").encode("utf-8")) <= MAX_DOM_BYTES:
+            return snapshot
+        if not nodes:
+            raise ValueError("Diagnostic envelope exceeds its byte limit")
+        nodes.pop()
+        snapshot["truncated"] = True
+
+
+def _dom_snapshot(page, *, deadline, checkpoint):
+    """Bound all native CDP awaits, including session creation and cleanup.
+
+    Sync CDP calls expose no timeout. Use Playwright's guarded sync-to-async
+    bridge with finite waits for both work and cancellation. Playwright's first
+    cancellation waits for an abort acknowledgement, so a second, delivered
+    cancellation must terminate that wait. An unexpected nonterminal task stops
+    publication. The owner still closes its browser context after failure,
+    including any session whose creation was interrupted.
+    CDP replies are decoded before the retained topology/byte limits are applied.
+    """
+    if page is None:
+        return _omitted_dom("UNAVAILABLE")
+    sync = getattr(page, "_sync", None)
+    implementation = getattr(page, "_impl_obj", None)
+    context = getattr(implementation, "context", None)
+    create_session = getattr(context, "new_cdp_session", None)
+    if not callable(sync) or not callable(create_session):
+        return _omitted_dom("OMITTED_UNSUPPORTED_TRANSPORT")
+    dom_deadline = min(deadline, time.monotonic() + DOM_TIMEOUT_MS / 1000)
+    # Reserve a slice for detach; both work and cleanup share the same deadline.
+    work_deadline = dom_deadline - min(.025, max(0, dom_deadline - time.monotonic()) / 10)
+
+    def check_owner():
+        try:
+            checkpoint()
+        except Exception as error:
+            raise _CaptureControlSignal() from error
+
+    def check_dom():
+        check_owner()
+        if time.monotonic() >= dom_deadline:
+            raise _DomDeadlineExpired()
+
+    def consume_terminal(task):
+        if not task.done():
+            raise _DomCancellationFailed()
+        try:
+            task.result()
+        except (asyncio.CancelledError, Exception):
+            pass
+
+    async def cancel_owned(task, limit):
+        task.cancel("MJobs diagnostic deadline")
+        # Deliver the first cancellation into Channel._abort before a second
+        # cancellation. Two immediate cancel() calls can coalesce and hang.
+        await asyncio.wait({task}, timeout=min(.005, max(0, limit - time.monotonic()) / 2))
+        if not task.done():
+            task.cancel("MJobs diagnostic abort deadline")
+            # Even timeout=0 yields one scheduler turn to deliver cancellation.
+            # Never replace this with await task or wait_for(task, ...).
+            await asyncio.wait({task}, timeout=max(0, limit - time.monotonic()))
+        if not task.done():
+            task.add_done_callback(consume_terminal)
+            raise _DomCancellationFailed()
+        consume_terminal(task)
+
+    async def bounded_call(factory, limit):
+        check_owner()
+        remaining = limit - time.monotonic()
+        if remaining < .001:
+            raise _DomDeadlineExpired()
+        # Leave cancellation time inside this call's existing absolute limit.
+        cancel_reserve = min(.01, remaining / 4)
+        task = asyncio.create_task(factory(), name="mjobs-debug-dom-operation")
+        try:
+            done, _ = await asyncio.wait({task}, timeout=remaining - cancel_reserve)
+        except BaseException:
+            await cancel_owned(task, limit)
+            raise
+        if not done:
+            await cancel_owned(task, limit)
+            raise _DomDeadlineExpired()
+        if time.monotonic() >= limit:
+            consume_terminal(task)
+            raise _DomDeadlineExpired()
+        value = task.result()
+        check_owner()
+        if time.monotonic() >= limit:
+            raise _DomDeadlineExpired()
+        return value
+
+    async def capture():
+        session = None
+        interrupted = False
+        try:
+            session = await bounded_call(lambda: create_session(implementation), work_deadline)
+            result = await bounded_call(lambda: session.send(
+                "DOM.getDocument", {"depth": MAX_DOM_DEPTH, "pierce": False}), work_deadline)
+        except (_CaptureControlSignal, _DomCancellationFailed):
+            interrupted = True
+            raise
+        finally:
+            if session is not None and not interrupted:
+                await bounded_call(session.detach, dom_deadline)
+        return result
+
+    try:
+        result = sync(capture())
+        check_dom()
+        return _sanitize_dom(result.get("root") if isinstance(result, dict) else None, check_dom)
+    except _CaptureControlSignal:
+        raise
+    except _DomCancellationFailed as error:
+        raise _CaptureControlSignal() from error
+    except _DomDeadlineExpired:
+        return _omitted_dom("OMITTED_TIMEOUT")
+    except (asyncio.CancelledError, Exception):
+        return _omitted_dom("OMITTED_CAPTURE_FAILED")
 
 
 def prune_debug_captures(capture_root, *, now=None, checkpoint=None):
@@ -146,8 +364,8 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
                             events=(), now=None, check=None):
     """Capture diagnostics under one caller-derived, capped monotonic budget.
 
-    Optional DOM evaluation is omitted because synchronous evaluate has no
-    timeout. Native screenshot work shares this deadline. Phase checkpoints
+    Native DOM protocol work and the screenshot share this deadline. DOM
+    capture does not evaluate page JavaScript. Phase checkpoints
     preserve caller cancellation; existing local OS I/O remains synchronous.
     Diagnostics are best-effort and never replace the primary browser error.
     """
@@ -218,7 +436,8 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
             })
 
         checkpoint()
-        dom = _dom_snapshot(page)
+        dom = _dom_snapshot(page, deadline=deadline, checkpoint=checkpoint)
+        checkpoint()
         screenshot_status = "UNAVAILABLE"
         if page is not None:
             screenshot = target / "screenshot.png"

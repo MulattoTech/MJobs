@@ -1,6 +1,8 @@
 """Synthetic browser-to-package privacy checks for failure diagnostics."""
+import asyncio
 import json
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -12,6 +14,7 @@ from playwright.sync_api import sync_playwright
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.applications import mock_adapter
+from services.applications import debug_capture as debug_capture_module
 from services.applications.mock_adapter import apply_mock
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
@@ -102,6 +105,10 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
                 serialized = metadata_path.read_text(encoding="utf-8")
                 serialized += dom_path.read_text(encoding="utf-8")
                 metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                dom = json.loads(dom_path.read_text(encoding="utf-8"))
+                self.assertEqual(dom["status"], "CAPTURED")
+                self.assertGreater(dom["element_counts"].get("form", 0), 0)
+                self.assertGreater(dom["element_counts"].get("input", 0), 0)
                 for canary in canaries + ("SYNTHETIC_EXCEPTION_TOKEN_3f65a2",):
                     self.assertNotIn(canary, serialized)
                 self.assertNotIn("<html", serialized.lower())
@@ -144,6 +151,93 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
                             self.assertFalse(self._fully_masked_black(one_pixel_leak))
             finally:
                 store.engine.dispose()
+
+    def test_native_dom_snapshot_has_bounded_topology_without_private_attributes(self):
+        marker = "SYNTHETIC_PRIVATE_DOM_72b1"
+        html = f'''<main role="main"><form id="{marker}" action="/{marker}?token={marker}">
+          <input name="{marker}" value="{marker}" type="password" role="textbox">
+          <textarea>{marker}</textarea><x-private-dom-72b1 role="{marker}">{marker}</x-private-dom-72b1>
+          </form>{'<section role="progressbar"></section>' * 1000}</main>'''
+        with tempfile.TemporaryDirectory() as directory, sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True, args=["--disable-gpu"])
+            try:
+                page = browser.new_page()
+                page.set_content(html)
+                capture = debug_capture_module.capture_browser_failure(
+                    page, Path(directory), attempt_id="2" * 32, step="VALIDATE",
+                    configured_url="https://fixture.invalid/apply", error=RuntimeError(marker))
+                self.assertIsNotNone(capture)
+                raw = (capture / "dom.json").read_bytes()
+                dom = json.loads(raw)
+                self.assertEqual(dom["status"], "CAPTURED")
+                self.assertTrue(dom["truncated"])
+                self.assertLessEqual(len(raw), debug_capture_module.MAX_DOM_BYTES)
+                self.assertLessEqual(len(dom["nodes"]), debug_capture_module.MAX_DOM_NODES)
+                self.assertEqual(dom["role_counts"].get("textbox"), 1)
+                self.assertNotIn(marker, raw.decode())
+                self.assertNotIn("x-private-dom-72b1", raw.decode())
+                self.assertNotIn("password", raw.decode())
+                self.assertEqual(sum(dom["element_counts"].values()), len(dom["nodes"]))
+                for index, node in enumerate(dom["nodes"]):
+                    self.assertTrue(node["parent"] is None or 0 <= node["parent"] < index)
+            finally:
+                browser.close()
+
+    def test_unacknowledged_native_dom_abort_is_bounded_and_transport_recovers(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True, args=["--disable-gpu"])
+            try:
+                page = browser.new_page()
+                page.set_content("<main><form><input role='textbox'></form></main>")
+                connection = page._impl_obj._connection
+                transport = connection._transport
+                original_send = transport.send
+                blocked = []
+                aborts = []
+                guards = []
+
+                def release_callback(identity):
+                    callback = connection._callbacks.get(identity)
+                    if callback is not None and not callback.future.done():
+                        callback.future.cancel()
+
+                def withhold_owned_dom_reply(message):
+                    params = message.get("params", {})
+                    if message.get("method") == "send" and params.get("method") == "DOM.getDocument":
+                        blocked.append(message["id"])
+                        # Fail promptly under the old unbounded abort behavior.
+                        guards.append(connection._loop.call_later(1.5, release_callback, message["id"]))
+                        return
+                    if message.get("method") == "__abort__" and params.get("id") in blocked:
+                        aborts.append(params["id"])
+                        return
+                    original_send(message)
+
+                try:
+                    with patch.object(transport, "send", side_effect=withhold_owned_dom_reply):
+                        started = time.monotonic()
+                        dom = debug_capture_module._dom_snapshot(
+                            page, deadline=started + .6, checkpoint=lambda: None)
+                        elapsed = time.monotonic() - started
+                finally:
+                    for guard in guards:
+                        guard.cancel()
+                self.assertEqual(dom["status"], "OMITTED_TIMEOUT")
+                self.assertLess(elapsed, 1)
+                self.assertEqual(len(blocked), 1)
+                self.assertEqual(aborts, blocked)
+                self.assertTrue(connection._callbacks[blocked[0]].future.cancelled())
+                self.assertFalse(transport.on_error_future.done())
+
+                async def remaining_owned_tasks():
+                    return sum(task.get_name() == "mjobs-debug-dom-operation" for task in asyncio.all_tasks())
+
+                self.assertEqual(page._sync(remaining_owned_tasks()), 0)
+                recovered = debug_capture_module._dom_snapshot(
+                    page, deadline=time.monotonic() + .6, checkpoint=lambda: None)
+                self.assertEqual(recovered["status"], "CAPTURED")
+            finally:
+                browser.close()
 
     @staticmethod
     def _uniformly_redacted_or_blank(image):

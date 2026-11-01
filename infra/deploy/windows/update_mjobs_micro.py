@@ -32,6 +32,55 @@ WRITERS = ('api', 'worker', 'source-worker', 'document-worker', 'ai-worker',
            'company-discovery-worker', 'scheduler')
 PORT = '18801'
 PUBLIC_HOST = 'mjobs.m-techlabs.com'
+MAX_BACKUP_DIAGNOSTIC_BYTES = 8192
+BACKUP_REFUSALS = {
+    'BACKUP_POSTGRES_NOT_RUNNING': ('PostgreSQL must be running for a logical backup',),
+    'BACKUP_ENV_MISSING': ('Project-local .env is missing; run python -m cli.init_env first',),
+    'BACKUP_DESTINATION_EXISTS': (
+        'Backup destination already exists; choose a new path',
+        'Backup destination appeared during capture; refusing overwrite',
+    ),
+    'BACKUP_DESTINATION_UNSAFE': ('Backup destination contains an unsafe link',),
+    'BACKUP_DESTINATION_PARENT_MISSING': ('Backup parent directory does not exist',),
+    'BACKUP_RUNTIME_CONFIGURATION_INVALID': (
+        'Backup runtime configuration is invalid',
+        'Backup runtime configuration does not match its workspace mode',
+        'Backup runtime configuration contains unsupported settings',
+        'Backup runtime configuration has an invalid mock mode',
+        'Backup runtime configuration contains an invalid setting',
+        'API runtime configuration could not be safely captured',
+        'Backup runtime configuration exceeds its size limit',
+        'Backup runtime configuration is not valid JSON',
+    ),
+    'BACKUP_DATABASE_METADATA_INVALID': (
+        'Database backup metadata is missing or ambiguous',
+        'Database operation mode is not bound',
+    ),
+    'BACKUP_CONTAINER_OWNERSHIP_MISMATCH': ('Container belongs to another project',),
+    'BACKUP_ARCHIVE_INVALID': (
+        'Backup inventory could not be read',
+        'Backup directory is a symbolic link',
+        'Backup directory is missing or is a symbolic link',
+        'Backup document directory is missing or unsafe',
+        'Backup manifest is missing or is a symbolic link',
+        'Backup manifest is not valid JSON',
+        'Unsupported backup manifest version',
+        'Backup contains unlisted or missing files',
+        'Backup configuration snapshot is incomplete',
+        'Archived Compose source does not match its recorded hash',
+    ),
+}
+BACKUP_ACTIONS = {
+    'Inspect project services': 'INSPECT_SERVICES',
+    'Locate api container': 'LOCATE_API',
+    'Locate mock container': 'LOCATE_MOCK',
+    'Check container ownership': 'CHECK_OWNERSHIP',
+    'Read database backup metadata': 'READ_DATABASE_METADATA',
+    'Dump PostgreSQL': 'DATABASE_DUMP',
+    'Copy project documents': 'COPY_DOCUMENTS',
+    'Inspect API runtime configuration': 'INSPECT_RUNTIME_CONFIGURATION',
+    'Copy fixture provider receipts': 'COPY_FIXTURE_RECEIPTS',
+}
 
 def log(message):
     HOME.mkdir(parents=True, exist_ok=True)
@@ -41,13 +90,51 @@ def log(message):
     with LOG.open('a', encoding='utf-8') as stream:
         stream.write(f'{timestamp} {message}\n')
 
-def command(args, *, cwd=None, env=None, timeout=120, label='command'):
-    proc = subprocess.run(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          text=True, errors='replace', timeout=timeout,
-                          creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+def backup_failure_code(stderr):
+    """Recognize fixed legacy CLI refusals; never retain child output or paths."""
+    fallback = 'BACKUP_FAILURE_UNCLASSIFIED'
+    if (not isinstance(stderr, str) or len(stderr) > MAX_BACKUP_DIAGNOSTIC_BYTES
+            or len(stderr.encode('utf-8', errors='replace')) > MAX_BACKUP_DIAGNOSTIC_BYTES):
+        return fallback
+    # Accept one normal CLI line ending, but no extra lines, prefixes or suffixes.
+    message = stderr.removesuffix('\n').removesuffix('\r')
+    prefix = 'Backup refused: '
+    if not message.startswith(prefix) or '\n' in message or '\r' in message:
+        return fallback
+    detail = message[len(prefix):]
+    for code, messages in BACKUP_REFUSALS.items():
+        if detail in messages:
+            return code
+    for service in (*WRITERS, 'migrate'):
+        if detail == f'Stop {service} before backing up the database and documents':
+            return 'BACKUP_WRITER_' + service.upper().replace('-', '_') + '_NOT_STOPPED'
+    if detail == 'Stop mock before backing up fixture receipts':
+        return 'BACKUP_FIXTURE_NOT_STOPPED'
+    for service in ('api', 'mock'):
+        if detail == f'Exactly one {service} container is required':
+            return 'BACKUP_' + service.upper() + '_CONTAINER_AMBIGUOUS'
+    for action, code in BACKUP_ACTIONS.items():
+        if detail == f'{action} could not complete; inspect Docker state':
+            return f'BACKUP_{code}_UNAVAILABLE'
+        if detail == f'{action} exceeded the captured-output limit':
+            return f'BACKUP_{code}_OUTPUT_LIMIT'
+        if re.fullmatch(re.escape(action) + r' failed with exit code -?[0-9]{1,10}; inspect Docker logs', detail):
+            return f'BACKUP_{code}_FAILED'
+    return fallback
+
+def command(args, *, cwd=None, env=None, timeout=120, label='command', backup_diagnostics=False):
+    try:
+        proc = subprocess.run(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              text=True, errors='replace', timeout=timeout,
+                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    except subprocess.TimeoutExpired:
+        if backup_diagnostics:
+            raise RuntimeError(f'{label} timed out [BACKUP_COMMAND_TIMEOUT]') from None
+        raise
     if proc.returncode:
-        raise RuntimeError(f'{label} failed (exit {proc.returncode})')
+        diagnostic = f' [{backup_failure_code(proc.stderr)}]' if backup_diagnostics else ''
+        raise RuntimeError(f'{label} failed (exit {proc.returncode})' + diagnostic)
     return proc.stdout.strip()
 
 def main_sha():
@@ -292,10 +379,10 @@ def run_update():
                    MJOBS_OPERATION_MODE='PERSONAL', MJOBS_COMPOSE_MOCK='0')
         command([str(OPS_PYTHON), '-m', 'cli.local_backup', 'backup',
                  '--project', 'mjobs-micro', '--archive', str(archive)],
-                cwd=old_source, env=env, timeout=900, label='quiescent backup')
+                cwd=old_source, env=env, timeout=900, label='quiescent backup', backup_diagnostics=True)
         command([str(OPS_PYTHON), '-m', 'cli.local_backup', 'verify',
                  '--archive', str(archive)], cwd=old_source, timeout=180,
-                label='verify backup')
+                label='verify backup', backup_diagnostics=True)
         log('Protected database and document backup verified; switching MJobs only')
         compose(source, sha, image, 'up', '-d', '--no-build', timeout=600)
         ready(sha)

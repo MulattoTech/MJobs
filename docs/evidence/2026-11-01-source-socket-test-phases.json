@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-01T21:36:59.731317+00:00",
+  "result": "PASS",
+  "scope": "Source socket integration test phase boundaries; no production source change",
+  "requirements": [
+    "MJ-REQ-004"
+  ],
+  "tested_source_base": "77dc9b61d400759e81be7330da628f2882b841c6",
+  "source_files": [
+    {
+      "path": "tests/integration/test_source_http_socket_budget.py",
+      "sha256": "b88d719b8080c849f177ad60969cc212ea7cd090b7fc050b628f21283e533104"
+    }
+  ],
+  "historical_failure": {
+    "revision": "40ba8eda5701a38fc2d6b641f6678e78bf9c3113",
+    "run": "https://github.com/MulattoTech/MJobs/actions/runs/41349901366",
+    "job": "https://github.com/MulattoTech/MJobs/actions/runs/41349901366/job/124977621367",
+    "case": "SourceHttpSocketBudgetTests.test_worker_deadline_under_continuous_sub_64k_body_and_header_stall / header-stall",
+    "summary": "783 passed, 2 skipped, 1 failed subtest, 363 passed subtests",
+    "assertion": "Real loopback TCP operation did not engage",
+    "deployment_result": "Deployment candidate blocked; previous healthy production image retained",
+    "causal_limit": "CI output does not establish the exact scheduling delay. Controlled reproduction establishes two faulty test phase boundaries, not a production deadline violation."
+  },
+  "before_reproduction": {
+    "command": "SourceHttpSocketBudgetTests().run_source(\"header-stall\", worker_entry_delay=1.1)",
+    "result": "EXPECTED_ASSERTION_REPRODUCED",
+    "log": "Traceback (most recent call last):\n  File \"<stdin>\", line 6, in <module>\n  File \"C:\\Tools\\Dev\\MJobs-pro-fixtures-20261101\\tests\\integration\\test_source_http_socket_budget.py\", line 352, in run_source\n    self.assertTrue(engaged.wait(3 if mode == \"positive-hostname\" else 1),\n  File \"C:\\Users\\Dylan\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\unittest\\case.py\", line 727, in assertTrue\n    raise self.failureException(msg)\nAssertionError: False is not true : Real loopback TCP operation did not engage\n"
+  },
+  "changes": [
+    "Keep the fixture listener alive under owned cleanup until accept; start existing 3-second connection lifetime only after accept.",
+    "Wait for actual transport entry before the existing 1-second engagement check for affected header/body modes.",
+    "Inject 1.1-second pre-worker delay into header-stall timeout and cancellation cases.",
+    "Add a bounded real HTTP request after 3.1 seconds of idle listener time."
+  ],
+  "unchanged_guards": [
+    "0.8-second production worker budget",
+    "1-second engagement wait after transport entry",
+    "1.1-second worker completion bound after engagement",
+    "0.35-second public cancellation bound",
+    "Socket closure and owned thread/process cleanup",
+    "Durable timeout/cancel classification after reopen",
+    "Single attempt; no retry; no source-health damage or jobs persisted"
+  ],
+  "verification": [
+    {
+      "platform": "Windows 11 / Python 3.12",
+      "command": "python -m pytest tests/integration/test_source_http_socket_budget.py -q",
+      "passed": 16,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 11,
+      "log": "................                                              [100%]\n16 passed, 11 subtests passed in 38.06s\n"
+    },
+    {
+      "platform": "Linux production dependency image / owned disposable container",
+      "command": "unittest full tests.integration.test_source_http_socket_budget module",
+      "passed": 16,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 11,
+      "network": "none",
+      "source_mount": "readonly",
+      "cpus": 1,
+      "memory_mb": 1536,
+      "image_id": "sha256:22601bd363d879a9f96b194aebf1d08682c08688f4a1be43c2196dd3c3e57f55",
+      "log": "test_connect_stall_oracle_starts_after_worker_setup (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_connect_stall_oracle_starts_after_worker_setup) ... OWNED_SOURCE_BUDGET mode=connect-stall cancel=True latency=0.070s\nok\ntest_default_transport_preserves_source_trust_env_false (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_default_transport_preserves_source_trust_env_false) ... ok\ntest_dns_capacity_wait_is_bounded_without_spawning_an_extra_resolver (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_dns_capacity_wait_is_bounded_without_spawning_an_extra_resolver) ... ok\ntest_dns_launch_failure_is_classified_and_releases_capacity (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_dns_launch_failure_is_classified_and_releases_capacity) ... ok\ntest_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads) ... ok\ntest_pending_first_address_preserves_other_address_opportunity_and_closes_losers (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_pending_first_address_preserves_other_address_opportunity_and_closes_losers) ... ok\ntest_positive_public_worker_source_uses_owned_localhost_dns (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_positive_public_worker_source_uses_owned_localhost_dns) ... OWNED_SOURCE_BUDGET mode=positive-hostname cancel=False latency=0.179s\nok\ntest_positive_public_worker_source_uses_real_socket (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_positive_public_worker_source_uses_real_socket) ... OWNED_SOURCE_BUDGET mode=positive cancel=False latency=0.055s\nok\ntest_public_cancel_during_real_tcp_connect_stall (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_public_cancel_during_real_tcp_connect_stall) ... OWNED_SOURCE_BUDGET mode=connect-stall cancel=True latency=0.073s\nok\ntest_public_cancel_during_real_tls_handshake_stall (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_public_cancel_during_real_tls_handshake_stall) ... OWNED_SOURCE_BUDGET mode=tls-stall cancel=True latency=0.069s\nok\ntest_public_cancel_under_continuous_sub_64k_body_and_header_stall (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_public_cancel_under_continuous_sub_64k_body_and_header_stall) ... OWNED_SOURCE_BUDGET mode=body-drip cancel=True latency=0.042s\nOWNED_SOURCE_BUDGET mode=header-drip cancel=True latency=0.039s\nOWNED_SOURCE_BUDGET mode=header-stall cancel=True latency=0.071s\nok\ntest_real_tls_preserves_certificate_and_hostname_verification (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_real_tls_preserves_certificate_and_hostname_verification) ... ok\ntest_source_fixture_lifetime_starts_after_connection (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_source_fixture_lifetime_starts_after_connection) ... ok\ntest_worker_deadline_during_real_tcp_connect_stall (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_worker_deadline_during_real_tcp_connect_stall) ... OWNED_SOURCE_BUDGET mode=connect-stall cancel=False latency=1.642s transport=0.819s\nok\ntest_worker_deadline_during_real_tls_handshake_stall (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_worker_deadline_during_real_tls_handshake_stall) ... OWNED_SOURCE_BUDGET mode=tls-stall cancel=False latency=2.740s transport=0.788s\nok\ntest_worker_deadline_under_continuous_sub_64k_body_and_header_stall (tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests.test_worker_deadline_under_continuous_sub_64k_body_and_header_stall) ... OWNED_SOURCE_BUDGET mode=body-drip cancel=False latency=0.835s\nOWNED_SOURCE_BUDGET mode=header-drip cancel=False latency=0.840s\nOWNED_SOURCE_BUDGET mode=header-stall cancel=False latency=1.940s\nok\n\n----------------------------------------------------------------------\nRan 16 tests in 31.332s\n\nOK\nLINUX_SOCKET_SUMMARY {\"tests\": 16, \"failed\": 0, \"errors\": 0, \"skipped\": 0, \"subtests_passed\": 11, \"subtests_failed\": 0, \"test_sha256\": \"2c36d41526039253b46771388330bca3eea79ef23b7ca489547db456ca2fdd48\"}\n"
+    }
+  ],
+  "independent_review": "Test-only repair approved; no production budget relaxation; exact updated file hash reviewed.",
+  "acceptance_limit": "MJ-REQ-004 remains PARTIAL; protected proposed-merge and post-merge checks still required for this revision.",
+  "post_verification_formatting": "Removed extra blank line at EOF to satisfy git diff --check; executable code unchanged. Linux log retains the exact bytes tested before this formatting change."
+}

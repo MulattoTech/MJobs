@@ -101,8 +101,10 @@ def tcp_source(mode, *, tls_context=None, hold_tls_peer_observer=False):
     def serve():
         connection = None
         try:
-            deadline = time.monotonic() + 3
-            while not stop.is_set() and time.monotonic() < deadline:
+            # API/profile admission can delay the worker's first TCP connection.
+            # Cleanup owns the idle listener; only an accepted connection
+            # starts the existing bounded response lifetime.
+            while not stop.is_set():
                 try:
                     connection, _ = listener.accept()
                     break
@@ -110,6 +112,7 @@ def tcp_source(mode, *, tls_context=None, hold_tls_peer_observer=False):
                     continue
             if connection is None:
                 return
+            deadline = time.monotonic() + 3
             state["connection"] = connection
             if tls_context is not None:
                 connection.settimeout(2)
@@ -333,7 +336,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         worker.start()
                         try:
                             transport_elapsed = None
-                            if mode == "connect-stall":
+                            if mode in {"connect-stall", "body-drip", "header-drip", "header-stall"}:
+                                # Setup precedes the existing engagement/deadline clocks.
                                 self.assertTrue(transport_entered.wait(3),
                                                 "Worker did not reach source HTTP transport")
                             if mode == "tls-stall" and not cancel:
@@ -476,6 +480,15 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
     def test_positive_public_worker_source_uses_real_socket(self):
         self.run_source("positive")
 
+    def test_source_fixture_lifetime_starts_after_connection(self):
+        with tcp_source("positive") as (endpoint, _engaged, state):
+            # Exceed the old server-start lifetime before any client connects.
+            time.sleep(3.1)
+            with httpx.Client(transport=http_transport.SourceTransport(lambda: None),
+                              timeout=.5, trust_env=False) as client:
+                self.assertEqual(client.get(endpoint).json(), {"jobs": []})
+            self.assertEqual(state["requests"], 1)
+
     def test_positive_public_worker_source_uses_owned_localhost_dns(self):
         # DNS uses the real owned subprocess; keep production source timeout.
         self.run_source("positive-hostname", worker_budget=30)
@@ -483,12 +496,14 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
     def test_worker_deadline_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
-                self.run_source(mode, log_context_delay=.8 if mode == "header-drip" else 0)
+                self.run_source(mode, log_context_delay=.8 if mode == "header-drip" else 0,
+                                worker_entry_delay=1.1 if mode == "header-stall" else 0)
 
     def test_public_cancel_under_continuous_sub_64k_body_and_header_stall(self):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
-                self.run_source(mode, cancel=True, log_context_delay=.8 if mode == "body-drip" else 0)
+                self.run_source(mode, cancel=True, log_context_delay=.8 if mode == "body-drip" else 0,
+                                worker_entry_delay=1.1 if mode == "header-stall" else 0)
 
     def test_public_cancel_during_real_tcp_connect_stall(self):
         # Valid production operation budget; the source's minimum supported

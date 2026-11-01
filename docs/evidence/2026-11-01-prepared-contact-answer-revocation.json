@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-01T21:13:37+00:00",
+  "scope": "Prepared contact immutability and revoked-answer browser admission regression",
+  "requirement_id": "MJ-REQ-224",
+  "result": "PARTIAL",
+  "production_code_changed": false,
+  "baseline_revision": "e9bbfefea95950a7b056418bc0fd8e4f7c62d7ea",
+  "baseline_reproduction": {
+    "command": "python -m pytest -q tests/browser/test_mock_application.py::MockApplicationTests::test_changed_profile_does_not_change_prepared_contact_or_answers",
+    "result": "FAIL",
+    "failed": 1,
+    "reason": "The historical test deleted every approved answer while expecting DRY_RUN_COMPLETE. Production correctly returned REVIEW_REQUIRED with CHANGED_ANSWER.",
+    "intentional_gate_source_commit": "c609a80c89595de30b20ff88b96e164c56e92821"
+  },
+  "repair": [
+    "Retain the original test selector and change only contact details, preserving currently approved answers. Observe actual DOM-filled old name/email/answer and retained profile version.",
+    "Add a separate revoked-answer regression with submit=True; assert REVIEW_REQUIRED/CHANGED_ANSWER, UNKNOWN preflight, no browser startup, zero review/submit requests, and no receipt."
+  ],
+  "validation": {
+    "command": "python -m pytest -q tests/browser/test_mock_application.py::MockApplicationTests::test_changed_profile_does_not_change_prepared_contact_or_answers tests/browser/test_mock_application.py::MockApplicationTests::test_revoked_answers_stop_before_browser_or_submission tests/integration/test_fleet_t13_worker_review.py",
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0
+  },
+  "source_files": [
+    {
+      "path": "tests/browser/test_mock_application.py",
+      "sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66"
+    }
+  ],
+  "limitations": [
+    "No supported real-employer adapter was added or exercised; MJ-REQ-224 remains incomplete.",
+    "Only fictional local data was used; no external application was submitted."
+  ]
+}
