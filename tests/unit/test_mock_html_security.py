@@ -37,16 +37,16 @@ def review(client, requisition):
 
 
 @pytest.mark.parametrize('requisition', PAYLOADS)
-@pytest.mark.parametrize('phase', ['application', 'auth', 'review'])
+@pytest.mark.parametrize('phase', ['application', 'auth', 'review', 'onepage'])
 def test_requisition_is_data_in_markup_and_route(requisition, phase):
     with TestClient(create_mock_app()) as client:
         if phase == 'review':
             response = review(client, requisition)
             target = '/ats/submit/'
         else:
-            suffix = '?auth_expired=true' if phase == 'auth' else ''
+            suffix = '?auth_expired=true' if phase == 'auth' else '?flow=onepage' if phase == 'onepage' else ''
             response = client.get('/ats/apply/' + quote(requisition, safe='') + suffix)
-            target = '/ats/login/' if phase == 'auth' else '/ats/review/'
+            target = '/ats/login/' if phase == 'auth' else '/ats/onepage/' if phase == 'onepage' else '/ats/review/'
         assert response.status_code == 200
         markup = assert_inert(response.text)
         links = [attrs.get('action') or attrs.get('href') for _, attrs in markup.elements
@@ -134,7 +134,7 @@ def test_restored_receipt_reference_is_encoded_at_output(tmp_path):
     import json
     reference = '<svg onload=window.pwned=1>"&'
     receipt_file = tmp_path / 'receipts.json'
-    receipt_file.write_text(json.dumps({'fixture-123': {'reference_number': reference}}))
+    receipt_file.write_text(json.dumps({'fixture-123': {'reference_number': reference, 'requisition': 'A'}}))
     with TestClient(create_mock_app(receipt_file)) as client:
         response = client.post('/ats/submit/A', data={
             'application_id': 'fixture-123', 'answer': 'Controlled fictional test application.',

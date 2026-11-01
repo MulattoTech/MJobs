@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-01T20:58:08+00:00",
+  "scope": "Literal local source/company/ATS fixture environments and guarded-updater backup diagnostics",
+  "base_revision": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+  "source_identity": "Source paths and SHA256 below identify the tested uncommitted content; protected merge evidence is recorded separately after publication.",
+  "source_files": [
+    {
+      "path": "fixtures/AREA.md",
+      "sha256": "69fc2d0ce12608621c525ae88fc7fd6dc55c2ad533ad391f23207d4b33dec5b6"
+    },
+    {
+      "path": "fixtures/mock_server.py",
+      "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7"
+    },
+    {
+      "path": "infra/deploy/windows/update_mjobs_micro.py",
+      "sha256": "1729f447d1ba7a4a2c5256eb07ed30c01522276188c588a9ddf9a5bc7e49896f"
+    },
+    {
+      "path": "tests/unit/test_mock_html_security.py",
+      "sha256": "cd23fbdaba275d7cbac1e4c8a734cc311e9b80c47aa1aeb06b55e44670ea527f"
+    },
+    {
+      "path": "tests/browser/test_mock_environment_coverage.py",
+      "sha256": "2eb573c5636893ef2277583168390bd74fcf27f9f7194527c6ea07785767c2ad"
+    },
+    {
+      "path": "tests/integration/test_mock_company_environment.py",
+      "sha256": "019de7198983000ecb946639641efa11493a999d2dbd4f3b8af5c8f653710bc5"
+    },
+    {
+      "path": "tests/unit/test_mock_environment_coverage.py",
+      "sha256": "21729226baef1b65de3a77df403431168e7a85fd4598ab6c26aa4802e8f73b57"
+    },
+    {
+      "path": "tests/unit/test_windows_micro_backup_diagnostics.py",
+      "sha256": "6fa5968323b35a89d0455130e0baa19922ff3c8f1dafcb06a8fb0d2168d5b176"
+    }
+  ],
+  "implementation_result": "PASS",
+  "canonical_acceptance": "PENDING_PROTECTED_INTEGRATION",
+  "requirements": [
+    {
+      "id": "MJ-REQ-209",
+      "local_result": "PASS",
+      "criteria": {
+        "fake_job_board_multiple_jobs": "Explicit coverage scenario exposes requisitions A, B and C; default board remains compatible.",
+        "duplicate_postings": "A has two distinct source posting IDs with the same application route; duplicate metadata remains visible.",
+        "salary_and_remote_variants": "Annual and hourly ranges, missing salary, REMOTE/HYBRID/ONSITE/UNKNOWN variants are asserted.",
+        "application_redirects": "Each board apply path redirects to its same-origin ATS route.",
+        "unknown_company": "C has explicit absent company, website and tenant; no employer identity is invented."
+      }
+    },
+    {
+      "id": "MJ-REQ-210",
+      "local_result": "PASS",
+      "criteria": {
+        "fictional_employer": "Exact named employer Example Systems Inc. is asserted.",
+        "homepage_careers_portal_redirect": "HTTP and Chromium follow homepage, careers navigation, ATS redirect and career portal.",
+        "multiple_postings": "Portal exposes distinct jobs A/B; production fixture discovery twice preserves two jobs, four posting copies and one company source after database reopen."
+      }
+    },
+    {
+      "id": "MJ-REQ-211",
+      "local_result": "PASS",
+      "criteria": {
+        "one_page_and_multi_page": "New explicit flow=onepage provides a single form; existing review/submit flow remains multiple pages.",
+        "documents_and_controls": "Resume and cover letter PDF uploads, dropdown, radio, checkbox and custom question are asserted.",
+        "conditional_questions": "Country change reveals, hides, clears and toggles required state; server validates the active branch.",
+        "validation": "Missing required fields, wrong fictional answer, missing/invalid/oversize PDFs and unconfirmed requests are rejected without receipts.",
+        "confirmation": "Successful controlled local submissions create durable confirmations; restart/replay preserves original receipt and count=1; cross-job receipt reuse fails closed."
+      }
+    },
+    {
+      "id": "MJ-REQ-167",
+      "local_result": "PARTIAL",
+      "criteria": {
+        "diagnostic_retention": "Backup creation/verification failures retain fixed safe category codes in update.log, including timeout.",
+        "privacy": "Only complete allowlisted legacy CLI messages and bounded numeric action failures classify; unknown, multiline, oversized or secret-bearing text produces a fixed fallback.",
+        "rollback": "Backup/verify exit and timeout simulations restore the old image and never write new deployment state.",
+        "archive_regressions": "Existing archive inventory, restore snapshot, credential configuration and fixture-receipt tests pass; platform-specific skips are recorded."
+      },
+      "remaining": "Historical exit-2 cause was discarded and cannot be recovered. Full operational backup acceptance, protected secret/config recovery and live guarded deployment are not proven by unit simulations."
+    }
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_mock_environment_coverage.py tests/unit/test_mock_html_security.py tests/unit/test_mock_discovery_client.py tests/integration/test_mock_company_environment.py tests/integration/test_spine.py tests/unit/test_windows_micro_cd.py tests/unit/test_windows_micro_backup_diagnostics.py tests/unit/test_local_backup.py tests/unit/test_backup_restore_snapshot.py tests/unit/test_backup_config_snapshot.py tests/unit/test_backup_credential_restore.py tests/unit/test_backup_fixture_receipts.py --junitxml=C:/Tools/Dev/mjobs-pro-fixture-backup-focused.xml",
+      "result": "PASS_WITH_RECORDED_SKIPS",
+      "passed": 132,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 3,
+      "subtests_passed": 66,
+      "report": {
+        "filename": "mjobs-pro-fixture-backup-focused.xml",
+        "sha256": "aa8d578d6acd0b72813c74de19b1302ae390dc9ac142ab03975719262b542b1b"
+      },
+      "log": {
+        "filename": "mjobs-pro-fixture-backup-focused.log",
+        "sha256": "525f0d99d32945e7ab057f14342a3aa274f5412e0234164dec420de01aab4e13"
+      }
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_mock_environment_coverage.py tests/browser/test_mock_application.py tests/browser/test_mock_dynamic_review.py tests/browser/test_mock_html_security.py tests/unit/test_mock_environment_coverage.py tests/unit/test_mock_html_security.py --junitxml=C:/Tools/Dev/mjobs-pro-fixture-browser-final.xml",
+      "result": "PASS",
+      "passed": 56,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 0,
+      "report": {
+        "filename": "mjobs-pro-fixture-browser-final.xml",
+        "sha256": "afdfd7d1178e8804bedfcad85e9253461a52d0c7f4ac283c5a07d504f8c0f0b9"
+      },
+      "log": {
+        "filename": "mjobs-pro-fixture-browser-final.log",
+        "sha256": "9f20afdf280006c8cbbc586711cc0f46e491fb4595383d32f787fc31bef50ad3"
+      }
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "validation_notes": [
+    "The two successful commands overlap; their passed counts must not be added as unique tests.",
+    "All eight selected Chromium journeys passed in the final 56-test command.",
+    "The three Windows skips are two symlink-privilege fixtures and one POSIX FIFO fixture; none is counted PASS.",
+    "The final Chromium/HTTP/security run includes the explicit country label fix; backup source was unchanged from the combined focused run.",
+    "A separate internal Linux review ran existing/new updater tests: 31 passed, zero skipped. This is not a human approval or a protected gate."
+  ],
+  "resolved_intermediate_failures": [
+    {
+      "report": "mjobs-pro-fixture-focused.xml",
+      "passed": 54,
+      "errors": 4,
+      "cause": "Two parametrized oversized upload payloads produced enormous automatic test IDs and exceeded the Windows environment variable limit during setup/teardown.",
+      "resolution": "Explicit invalid-magic and over-limit parameter IDs; payload validation assertions remain unchanged."
+    },
+    {
+      "report": "mjobs-pro-fixture-browser.xml",
+      "passed": 6,
+      "failed": 2,
+      "cause": "Country selector lacked a stable exact accessible label.",
+      "resolution": "Explicit label-for/select-id pairing; final Chromium journeys all pass."
+    }
+  ],
+  "review": {
+    "kind": "Independent internal source and regression review",
+    "result": "PASS",
+    "limits": "Does not substitute for required hosted checks or human review."
+  },
+  "safety": {
+    "external_submission_enabled": false,
+    "paid_ai_calls": false,
+    "fixtures": "Fictional data and local ASGI/127.0.0.1 only",
+    "live_database_restore": false,
+    "unrelated_workstation_processes_modified": false
+  },
+  "limitations": [
+    "Coverage scenario C proves unknown-company fixture exposure only; successful ingestion of absent company identity is outside this requirement slice.",
+    "These mock environments do not close MJ-REQ-224 supported production ATS adapter contracts.",
+    "Generic subprocess output capture remains unchanged; this slice bounds retained backup diagnostics, not all subprocess output.",
+    "No canonical acceptance status is changed in this source commit.",
+    "Hosted protected checks, exact merge revision, production rollout and post-deployment checks are pending in this source evidence."
+  ]
+}
