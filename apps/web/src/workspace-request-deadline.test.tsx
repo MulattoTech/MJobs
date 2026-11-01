@@ -2,7 +2,7 @@
 import React, { act, type ReactElement, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { fireEvent, getByRole, queryByRole } from '@testing-library/dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Capture only the entrypoint mount; render the real App and its real children.
 const entrypoint = vi.hoisted(() => ({ element: undefined as ReactElement<{children: ReactNode}> | undefined }));
@@ -64,8 +64,19 @@ function stalled(phase: 'fetch' | 'body') {
 
 let container: HTMLDivElement;
 let root: Root;
+let activeFetch: typeof fetch = async () => { throw new Error('Test transport not configured.'); };
+const dispatchFetch: typeof fetch = (input, init) => activeFetch(input, init);
+beforeAll(async () => {
+  // Compile the full application outside the five-second behavioral cases and
+  // fake clocks. Module-level clients retain this dispatcher, not an old case's transport.
+  vi.stubGlobal('fetch', dispatchFetch);
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false, addEventListener() {}, removeEventListener() {} })));
+  await import('./main');
+}, 30_000);
 beforeEach(async () => {
   vi.useFakeTimers();
+  activeFetch = async () => { throw new Error('Test transport not configured.'); };
+  vi.stubGlobal('fetch', dispatchFetch);
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false, addEventListener() {}, removeEventListener() {} })));
   localStorage.clear();
@@ -84,7 +95,6 @@ afterEach(async () => {
 });
 async function mount(populated = false) {
   if (populated) localStorage.setItem('mjobs-profile', 'fixture');
-  await import('./main');
   await act(async () => root.render(entrypoint.element!.props.children));
 }
 async function advance(ms: number) { await act(async () => { await vi.advanceTimersByTimeAsync(ms); }); }
@@ -97,7 +107,7 @@ describe.each(['fetch', 'body'] as const)('workspace readback stalled during %s'
     const pending = stalled(phase);
     const fetcher = vi.fn<typeof fetch>((url) => String(url).endsWith('/documents/answers-a/txt')
       ? pending.promise : Promise.resolve(fixtureResponse(String(url), true)));
-    vi.stubGlobal('fetch', fetcher);
+    activeFetch = fetcher;
     await mount(true);
     await click('Applications 1');
     await click('Synthetic company Synthetic role');
@@ -126,7 +136,7 @@ describe.each(['fetch', 'body'] as const)('workspace readback stalled during %s'
       }
       return Promise.resolve(fixtureResponse(String(url), false));
     });
-    vi.stubGlobal('fetch', fetcher);
+    activeFetch = fetcher;
     await mount();
     expect(container.textContent).toContain('Services checking');
     await advance(15_000);
@@ -146,7 +156,7 @@ describe.each(['fetch', 'body'] as const)('workspace readback stalled during %s'
 
 it('retains non-success JSON readiness details and reads saved answers as plain text', async () => {
   const saved = 'Question: Why this role?\nAnswer: <b>Literal reviewed answer</b>';
-  vi.stubGlobal('fetch', vi.fn<typeof fetch>((url) => {
+  activeFetch = vi.fn<typeof fetch>((url) => {
     if (String(url) === '/readiness') return Promise.resolve(Response.json({
       status: 'degraded', checks: { api: true, redis: false },
     }, { status: 503 }));
@@ -154,7 +164,7 @@ it('retains non-success JSON readiness details and reads saved answers as plain 
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     }));
     return Promise.resolve(fixtureResponse(String(url), true));
-  }));
+  });
   await mount(true);
   expect(container.textContent).toContain('Services degraded');
   await click('Applications 1');

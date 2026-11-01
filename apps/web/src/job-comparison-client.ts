@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 /** Read-only, profile/search-scoped client for comparing selected saved matches. */
 
 export type JobComparisonProvenance = {
@@ -396,36 +397,38 @@ export function createJobComparisonClient(
 ): JobComparisonClient {
   return {
     async compare(profileId, searchProfileId, jobIds) {
-      const selectedProfile = requireIdentifier(profileId, 'profile identifier');
-      const selectedSearch = requireIdentifier(searchProfileId, 'saved-search identifier');
-      if (!Array.isArray(jobIds) || jobIds.length < MIN_SELECTED_JOBS ||
-          jobIds.length > MAX_SELECTED_JOBS) {
-        throw fail('INVALID_REQUEST', 'Select between two and ten jobs to compare.');
-      }
-      const selectedJobs = jobIds.map(jobId => requireIdentifier(jobId, 'job identifier'));
-      if (new Set(selectedJobs).size !== selectedJobs.length) {
-        throw fail('INVALID_REQUEST', 'Selected job identifiers must be unique.');
-      }
-      const url = `/profiles/${encodeURIComponent(selectedProfile)}` +
-        `/search-profiles/${encodeURIComponent(selectedSearch)}/jobs/compare`;
-      let response: Response;
-      try {
-        response = await fetchImpl(url, {
-          method: 'POST',
-          headers: { accept: 'application/json', 'content-type': 'application/json' },
-          body: JSON.stringify({ job_ids: selectedJobs }),
-        });
-      } catch {
-        throw fail('NETWORK', 'Job comparison service could not be reached.', null, 'RETRY', true);
-      }
-      if (!response.ok) throw await httpError(response);
-      let body: unknown;
-      try {
-        body = await response.json() as unknown;
-      } catch {
-        throw invalidResponse();
-      }
-      return normalizeResult(body, selectedProfile, selectedSearch, selectedJobs);
+      return withRequestDeadline(async fetchImpl => {
+        const selectedProfile = requireIdentifier(profileId, 'profile identifier');
+        const selectedSearch = requireIdentifier(searchProfileId, 'saved-search identifier');
+        if (!Array.isArray(jobIds) || jobIds.length < MIN_SELECTED_JOBS ||
+            jobIds.length > MAX_SELECTED_JOBS) {
+          throw fail('INVALID_REQUEST', 'Select between two and ten jobs to compare.');
+        }
+        const selectedJobs = jobIds.map(jobId => requireIdentifier(jobId, 'job identifier'));
+        if (new Set(selectedJobs).size !== selectedJobs.length) {
+          throw fail('INVALID_REQUEST', 'Selected job identifiers must be unique.');
+        }
+        const url = `/profiles/${encodeURIComponent(selectedProfile)}` +
+          `/search-profiles/${encodeURIComponent(selectedSearch)}/jobs/compare`;
+        let response: Response;
+        try {
+          response = await fetchImpl(url, {
+            method: 'POST',
+            headers: { accept: 'application/json', 'content-type': 'application/json' },
+            body: JSON.stringify({ job_ids: selectedJobs }),
+          });
+        } catch {
+          throw fail('NETWORK', 'Job comparison service could not be reached.', null, 'RETRY', true);
+        }
+        if (!response.ok) throw await httpError(response);
+        let body: unknown;
+        try {
+          body = await response.json() as unknown;
+        } catch {
+          throw invalidResponse();
+        }
+        return normalizeResult(body, selectedProfile, selectedSearch, selectedJobs);
+      }, fetchImpl);
     },
   };
 }

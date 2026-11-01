@@ -47,6 +47,7 @@ describe('interview preparation API client', () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(fetcher).toHaveBeenCalledWith('/profiles/profile-a/jobs/job-a/interview-prep-packs', {
       headers: {'Content-Type': 'application/json'},
+      signal: expect.any(AbortSignal),
     });
   });
 

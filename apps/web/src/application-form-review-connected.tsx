@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import React, { useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import {
@@ -31,27 +32,29 @@ export function createApplicationFormReviewCapabilityClient(
   const current = () => !signal?.aborted && isScopeCurrent();
   return {
     async load(): Promise<ReviewCapability> {
-      if (!profileId.trim() || !applicationId.trim() || !current()) return capabilityError();
-      try {
-        const response = await fetcher(
-          `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-review-capabilities`,
-          { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal },
-        );
-        if (!current() || !response.ok) return capabilityError();
-        const body: unknown = await response.json();
-        if (!current() || typeof body !== 'object' || body === null || Array.isArray(body)) return capabilityError();
-        const value = body as Record<string, unknown>;
-        if (value.schema_version !== 1 || value.profile_id !== profileId || value.application_id !== applicationId
-            || value.read_only !== true || value.submission_supported !== false
-            || typeof value.review_supported !== 'boolean') return capabilityError();
-        if (!value.review_supported) {
-          return value.provider === null ? { status: 'unsupported', provider: null } : capabilityError();
+      return withRequestDeadline<ReviewCapability>(async fetcher => {
+        if (!profileId.trim() || !applicationId.trim() || !current()) return capabilityError();
+        try {
+          const response = await fetcher(
+            `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-review-capabilities`,
+            { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal },
+          );
+          if (!current() || !response.ok) return capabilityError();
+          const body: unknown = await response.json();
+          if (!current() || typeof body !== 'object' || body === null || Array.isArray(body)) return capabilityError();
+          const value = body as Record<string, unknown>;
+          if (value.schema_version !== 1 || value.profile_id !== profileId || value.application_id !== applicationId
+              || value.read_only !== true || value.submission_supported !== false
+              || typeof value.review_supported !== 'boolean') return capabilityError();
+          if (!value.review_supported) {
+            return value.provider === null ? { status: 'unsupported', provider: null } : capabilityError();
+          }
+          if (typeof value.provider !== 'string' || !/^[a-z][a-z0-9_]{0,63}$/.test(value.provider)) return capabilityError();
+          return { status: 'supported', provider: value.provider };
+        } catch {
+          return capabilityError();
         }
-        if (typeof value.provider !== 'string' || !/^[a-z][a-z0-9_]{0,63}$/.test(value.provider)) return capabilityError();
-        return { status: 'supported', provider: value.provider };
-      } catch {
-        return capabilityError();
-      }
+      }, fetcher, { signal }).catch(() => capabilityError());
     },
   };
 }
@@ -100,27 +103,29 @@ export function createApplicationFormReviewClient(
 ) {
   return {
     async load(): Promise<ApplicationFormReviewSnapshot> {
-      if (!profileId.trim() || !applicationId.trim() || signal?.aborted || !isScopeCurrent()) {
-        return emptySnapshot('error');
-      }
-      let response: Response;
-      try {
-        response = await fetcher(
-          `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-reviews/latest`,
-          { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal },
-        );
-      } catch {
-        return emptySnapshot('error');
-      }
-      if (signal?.aborted || !isScopeCurrent() || !response.ok) return emptySnapshot('error');
-      let body: unknown;
-      try {
-        body = await response.json();
-      } catch {
-        return emptySnapshot('error');
-      }
-      if (signal?.aborted || !isScopeCurrent()) return emptySnapshot('error');
-      return parseApplicationFormReviewSnapshot(body, profileId, applicationId);
+      return withRequestDeadline(async fetcher => {
+        if (!profileId.trim() || !applicationId.trim() || signal?.aborted || !isScopeCurrent()) {
+          return emptySnapshot('error');
+        }
+        let response: Response;
+        try {
+          response = await fetcher(
+            `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-reviews/latest`,
+            { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal },
+          );
+        } catch {
+          return emptySnapshot('error');
+        }
+        if (signal?.aborted || !isScopeCurrent() || !response.ok) return emptySnapshot('error');
+        let body: unknown;
+        try {
+          body = await response.json();
+        } catch {
+          return emptySnapshot('error');
+        }
+        if (signal?.aborted || !isScopeCurrent()) return emptySnapshot('error');
+        return parseApplicationFormReviewSnapshot(body, profileId, applicationId);
+      }, fetcher, { signal }).catch(() => emptySnapshot('error'));
     },
   };
 }

@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 /** Profile- and job-scoped client for the persisted interview-preparation API. */
 export type InterviewPrepQuestion = {
   id: string;
@@ -75,33 +76,35 @@ async function requestJson<T>(
   fetcher: Fetcher,
   stage: Stage,
 ): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetcher(url, {
-      ...init,
-      headers: {'Content-Type': 'application/json', ...init.headers},
-    });
-  } catch (failure) {
-    throw new ClientFailure(
-      'transport_error', stage,
-      failure instanceof Error ? failure.message : String(failure),
-    );
-  }
+  return withRequestDeadline(async fetcher => {
+    let response: Response;
+    try {
+      response = await fetcher(url, {
+        ...init,
+        headers: {'Content-Type': 'application/json', ...init.headers},
+      });
+    } catch (failure) {
+      throw new ClientFailure(
+        'transport_error', stage,
+        failure instanceof Error ? failure.message : String(failure),
+      );
+    }
 
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    throw new ClientFailure('invalid_response', stage, 'Interview preparation API returned invalid JSON.');
-  }
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      throw new ClientFailure('invalid_response', stage, 'Interview preparation API returned invalid JSON.');
+    }
 
-  if (!response.ok) {
-    const detail = isRecord(body) ? body.detail : undefined;
-    const code = isRecord(detail) && typeof detail.code === 'string' ? detail.code : undefined;
-    const message = typeof detail === 'string' ? detail : `Interview preparation request failed (${response.status}).`;
-    throw new ClientFailure('http_error', stage, message, response.status, code);
-  }
-  return body as T;
+    if (!response.ok) {
+      const detail = isRecord(body) ? body.detail : undefined;
+      const code = isRecord(detail) && typeof detail.code === 'string' ? detail.code : undefined;
+      const message = typeof detail === 'string' ? detail : `Interview preparation request failed (${response.status}).`;
+      throw new ClientFailure('http_error', stage, message, response.status, code);
+    }
+    return body as T;
+  }, fetcher, { signal: init.signal });
 }
 
 function validatePack(

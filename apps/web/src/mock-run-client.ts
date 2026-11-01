@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 export type MockRunScope = {profileId:string; applicationId:string};
 export type MockRunIntent = {version:1; requestId:string; submit:boolean};
 export type MockRunReceipt = {
@@ -53,18 +54,24 @@ async function receipt(response:Response):Promise<MockRunReceipt> {
   return row as MockRunReceipt;
 }
 export async function postMockRun(scope:MockRunScope,intent:MockRunIntent,request:typeof fetch=fetch):Promise<MockRunReceipt> {
-  return receipt(await request(mockRunEndpoint(scope),{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({request_id:intent.requestId,submit:intent.submit})}));
+  return withRequestDeadline(async request => {
+    return receipt(await request(mockRunEndpoint(scope),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({request_id:intent.requestId,submit:intent.submit})}));
+  }, request);
 }
 export async function lookupMockRun(scope:MockRunScope,intent:MockRunIntent,request:typeof fetch=fetch):Promise<MockRunReceipt|null> {
-  const response=await request(`${mockRunEndpoint(scope)}s/${encodeURIComponent(intent.requestId)}`,{method:'GET'});
-  if(response.status===404)return null;
-  return receipt(response);
+  return withRequestDeadline(async request => {
+    const response=await request(`${mockRunEndpoint(scope)}s/${encodeURIComponent(intent.requestId)}`,{method:'GET'});
+    if(response.status===404)return null;
+    return receipt(response);
+  }, request);
 }
 export async function cancelMockRun(operationId:string,request:typeof fetch=fetch):Promise<void> {
-  if(!requestPattern.test(operationId))throw new Error('Invalid operation identity.');
-  const response=await request(`/operations/${encodeURIComponent(operationId)}/cancel`,{method:'POST'});
-  if(!response.ok)throw safeError(response,await response.json());
+  return withRequestDeadline(async request => {
+    if(!requestPattern.test(operationId))throw new Error('Invalid operation identity.');
+    const response=await request(`/operations/${encodeURIComponent(operationId)}/cancel`,{method:'POST'});
+    if(!response.ok)throw safeError(response,await response.json());
+  }, request);
 }
 
 /** Separate user-requested manual-auth resume; never inherits submission consent. */

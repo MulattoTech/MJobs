@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 /** Typed, saved-search-scoped client for editable role-scoring profiles. */
 
 export type RoleScoringProfileDraft = {
@@ -227,20 +228,22 @@ export function createRoleScoringProfileClient(
   };
 
   const request = async (url: string, init: RequestInit): Promise<unknown> => {
-    let response: Response;
-    try {
-      response = await fetchImpl(url, init);
-    } catch {
-      throw fail(
-        'NETWORK', 'Role-scoring profile service could not be reached.', null, 'RETRY', true,
-      );
-    }
-    if (!response.ok) throw await mapHttpError(response);
-    try {
-      return await response.json() as unknown;
-    } catch {
-      throw invalidResponse();
-    }
+    return withRequestDeadline(async fetchImpl => {
+      let response: Response;
+      try {
+        response = await fetchImpl(url, init);
+      } catch {
+        throw fail(
+          'NETWORK', 'Role-scoring profile service could not be reached.', null, 'RETRY', true,
+        );
+      }
+      if (!response.ok) throw await mapHttpError(response);
+      try {
+        return await response.json() as unknown;
+      } catch {
+        throw invalidResponse();
+      }
+    }, fetchImpl);
   };
 
   const load = async (profileId: string,

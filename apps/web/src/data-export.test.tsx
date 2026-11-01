@@ -18,7 +18,7 @@ describe('DataExport', () => {
 
     const result = await runDataExport('jobs-csv', 'profile 1', fetchExport, download);
 
-    expect(fetchExport).toHaveBeenCalledExactlyOnceWith('profile 1', 'jobs-csv');
+    expect(fetchExport).toHaveBeenCalledExactlyOnceWith('profile 1', 'jobs-csv', expect.any(AbortSignal));
     expect(await downloadedText(download)).toContain('Northwind Engineer');
     expect(download.mock.calls[0][1]).toBe('mjobs-jobs-profile-1.csv');
     expect(JSON.stringify(result)).not.toContain('Northwind');
@@ -38,7 +38,7 @@ describe('DataExport', () => {
       .resolves.toEqual({ status: 'downloaded' });
 
     expect(fetchExport.mock.calls).toEqual([
-      ['p', 'applications-csv'], ['p', 'profile-json'], ['p', 'backup-json'],
+      ['p', 'applications-csv', expect.any(AbortSignal)], ['p', 'profile-json', expect.any(AbortSignal)], ['p', 'backup-json', expect.any(AbortSignal)],
     ]);
     expect(download.mock.calls.map(([, filename]) => filename)).toEqual([
       'mjobs-applications-p.csv', 'mjobs-profile-p.json', 'mjobs-backup-p.json',
@@ -49,7 +49,7 @@ describe('DataExport', () => {
     const request = vi.fn(async (path: string) => new Response('synthetic-file', { status: 200 }));
     const blob = await fetchDataExport('profile /1', 'backup-json', request);
     expect(request).toHaveBeenCalledExactlyOnceWith('/profiles/profile%20%2F1/exports/backup.json', {
-      method: 'GET', headers: { Accept: 'application/json' },
+      method: 'GET', headers: { Accept: 'application/json' }, signal: expect.any(AbortSignal),
     });
     expect(await blob.text()).toBe('synthetic-file');
 

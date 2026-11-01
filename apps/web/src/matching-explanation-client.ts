@@ -1,3 +1,4 @@
+import { isRequestTimeout, withRequestDeadline } from './api';
 /** Read-only client for a persisted, profile/search/job-scoped match explanation. */
 
 export type MatchExplanationResolution = 'CURRENT' | 'LEGACY_DEFAULT';
@@ -274,28 +275,34 @@ export function createMatchingExplanationClient(
 
   return {
     async load(profileId, searchProfileId, jobId) {
-      const selectedProfile = requireIdentifier(profileId, 'profile identifier');
-      const selectedSearch = requireIdentifier(searchProfileId, 'saved-search identifier');
-      const selectedJob = requireIdentifier(jobId, 'job identifier');
-      const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}` +
-        `/search-profiles/${encodeURIComponent(selectedSearch)}` +
-        `/jobs/${encodeURIComponent(selectedJob)}/match-explanation`;
-      let response: Response;
-      try {
-        response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
-      } catch {
-        throw fail(
-          'NETWORK', 'Match explanation service could not be reached.', null, 'RETRY', true,
-        );
-      }
-      if (!response.ok) throw httpError(response.status);
-      let body: unknown;
-      try {
-        body = await response.json() as unknown;
-      } catch {
-        throw invalidResponse();
-      }
-      return normalizeExplanation(body, selectedProfile, selectedSearch, selectedJob);
+      return withRequestDeadline(async fetchImpl => {
+        const selectedProfile = requireIdentifier(profileId, 'profile identifier');
+        const selectedSearch = requireIdentifier(searchProfileId, 'saved-search identifier');
+        const selectedJob = requireIdentifier(jobId, 'job identifier');
+        const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}` +
+          `/search-profiles/${encodeURIComponent(selectedSearch)}` +
+          `/jobs/${encodeURIComponent(selectedJob)}/match-explanation`;
+        let response: Response;
+        try {
+          response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
+        } catch {
+          throw fail(
+            'NETWORK', 'Match explanation service could not be reached.', null, 'RETRY', true,
+          );
+        }
+        if (!response.ok) throw httpError(response.status);
+        let body: unknown;
+        try {
+          body = await response.json() as unknown;
+        } catch {
+          throw invalidResponse();
+        }
+        return normalizeExplanation(body, selectedProfile, selectedSearch, selectedJob);
+      }, fetchImpl).catch(error => {
+        if (isRequestTimeout(error)) throw fail('NETWORK',
+          'Match explanation request timed out. Retry when the connection is available.', null, 'RETRY', true);
+        throw error;
+      });
     },
   };
 }

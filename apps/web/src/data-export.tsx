@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { withRequestDeadline } from './api';
 
 export type DataExportKind = 'jobs-csv' | 'applications-csv' | 'profile-json' | 'backup-json';
 export type DataExportResult =
@@ -6,7 +7,7 @@ export type DataExportResult =
   | { status: 'empty' }
   | { status: 'error' };
 export type DataExportDownload = (blob: Blob, filename: string) => void;
-export type DataExportFetch = (profileId: string, kind: DataExportKind) => Promise<Blob>;
+export type DataExportFetch = (profileId: string, kind: DataExportKind, signal?: AbortSignal) => Promise<Blob>;
 export type DataExportRequest = (input: string, init?: RequestInit) => Promise<Response>;
 
 const EXPORT_ROUTES: Record<DataExportKind, string> = {
@@ -39,23 +40,24 @@ export async function fetchDataExport(
   profileId: string,
   kind: DataExportKind,
   request: DataExportRequest = fetch,
+  signal?: AbortSignal,
 ): Promise<Blob> {
-  const path = `/profiles/${encodeURIComponent(profileId)}/exports/${EXPORT_ROUTES[kind]}`;
-  let response: Response;
   try {
-    response = await request(path, {
-      method: 'GET', headers: { Accept: isCsv(kind) ? 'text/csv' : 'application/json' },
-    });
-  } catch {
-    throw new Error('DATA_EXPORT_FAILED');
-  }
-  if (!response.ok) throw new Error('DATA_EXPORT_FAILED');
-  try {
-    return await response.blob();
+    return await withRequestDeadline(async client => {
+      const path = `/profiles/${encodeURIComponent(profileId)}/exports/${EXPORT_ROUTES[kind]}`;
+      const response = await client(path, {
+        method: 'GET', headers: { Accept: isCsv(kind) ? 'text/csv' : 'application/json' },
+      });
+      if (!response.ok) throw new Error('DATA_EXPORT_FAILED');
+      return response.blob();
+    }, (input, init) => request(String(input), init), { signal });
   } catch {
     throw new Error('DATA_EXPORT_FAILED');
   }
 }
+
+const defaultDataExport: DataExportFetch = (profileId, kind, signal) =>
+  fetchDataExport(profileId, kind, fetch, signal);
 
 function downloadInBrowser(blob: Blob, filename: string): void {
   const href = URL.createObjectURL(blob);
@@ -89,18 +91,22 @@ function csvRecordCount(text: string): number {
 export async function runDataExport(
   kind: DataExportKind,
   profileId: string,
-  fetchExport: DataExportFetch = fetchDataExport,
+  fetchExport: DataExportFetch = defaultDataExport,
   download: DataExportDownload = downloadInBrowser,
+  signal?: AbortSignal,
 ): Promise<DataExportResult> {
   if (!profileId.trim()) return { status: 'error' };
   try {
-    const blob = await fetchExport(profileId, kind);
-    if (!(blob instanceof Blob) || blob.size === 0) return { status: 'error' };
-    if (isCsv(kind) && csvRecordCount(await blob.text()) === 0) {
-      return { status: 'empty' };
-    }
-    download(blob, filename(kind, profileId));
-    return { status: 'downloaded' };
+    return await withRequestDeadline<DataExportResult>(async (_request, activeSignal) => {
+      const blob = await fetchExport(profileId, kind, activeSignal);
+      activeSignal.throwIfAborted();
+      if (!(blob instanceof Blob) || blob.size === 0) return { status: 'error' };
+      const empty = isCsv(kind) && csvRecordCount(await blob.text()) === 0;
+      activeSignal.throwIfAborted();
+      if (empty) return { status: 'empty' };
+      download(blob, filename(kind, profileId));
+      return { status: 'downloaded' };
+    }, fetch, { signal });
   } catch {
     // Fetch errors can contain server data; expose only a fixed result status.
     return { status: 'error' };
@@ -120,16 +126,25 @@ export type DataExportProps = {
   busy?: boolean;
 };
 
-export function DataExport({ profileId, fetchExport = fetchDataExport, download, busy = false }: DataExportProps) {
+export function DataExport({ profileId, fetchExport = defaultDataExport, download, busy = false }: DataExportProps) {
   const [exporting, setExporting] = useState<DataExportKind | null>(null);
   const [feedback, setFeedback] = useState<{ kind: 'status' | 'alert'; message: string } | null>(null);
   const locked = busy || exporting !== null || !profileId;
+  const pending = useRef<AbortController | null>(null);
+  useEffect(() => {
+    setExporting(null); setFeedback(null);
+    return () => { pending.current?.abort(); pending.current = null; };
+  }, [profileId, fetchExport, download]);
 
   const startExport = async (kind: DataExportKind) => {
-    if (!profileId || locked) return;
+    if (!profileId || locked || pending.current) return;
+    const controller = new AbortController();
+    pending.current = controller;
     setExporting(kind);
     setFeedback({ kind: 'status', message: 'Preparing export…' });
-    const result = await runDataExport(kind, profileId, fetchExport, download);
+    const result = await runDataExport(kind, profileId, fetchExport, download, controller.signal);
+    if (controller.signal.aborted || pending.current !== controller) return;
+    pending.current = null;
     setFeedback({
       kind: result.status === 'error' ? 'alert' : 'status',
       message: resultMessage(result),

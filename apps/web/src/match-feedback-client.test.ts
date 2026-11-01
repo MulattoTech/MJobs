@@ -63,7 +63,7 @@ describe('match feedback client', () => {
       1,
       '/profiles/profile%201/jobs/job%2F2/match-feedback',
       {
-        method: 'POST',
+        method: 'POST', signal: expect.any(AbortSignal),
         headers: { accept: 'application/json', 'content-type': 'application/json' },
         body: JSON.stringify({ category, request_id: 'request-stable' }),
       },
@@ -71,7 +71,7 @@ describe('match feedback client', () => {
     expect(fetchImpl).toHaveBeenNthCalledWith(
       2,
       '/profiles/profile%201/jobs/job%2F2/match-feedback',
-      { method: 'GET', headers: { accept: 'application/json' } },
+      { method: 'GET', headers: { accept: 'application/json' }, signal: expect.any(AbortSignal) },
     );
     expect(JSON.stringify(result.items)).not.toContain('request-stable');
   });
@@ -140,7 +140,7 @@ describe('match feedback client', () => {
     expect(result).toEqual([appliedPreference]);
     expect(fetchImpl).toHaveBeenNthCalledWith(1,
       '/profiles/profile%201/match-preferences', {
-        method: 'POST',
+        method: 'POST', signal: expect.any(AbortSignal),
         headers: { accept: 'application/json', 'content-type': 'application/json' },
         body: JSON.stringify({
           feedback_id: feedback.id, dimension: 'salary', direction: 'increase', request_id: 'apply-stable',
@@ -148,7 +148,7 @@ describe('match feedback client', () => {
       });
     expect(fetchImpl).toHaveBeenNthCalledWith(2,
       '/profiles/profile%201/match-preferences',
-      { headers: { accept: 'application/json' } });
+      { headers: { accept: 'application/json' }, signal: expect.any(AbortSignal) });
   });
 
   it('does not report preference success when durable readback omits the posted event', async () => {

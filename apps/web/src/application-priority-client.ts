@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 /** Read-only adapter for the selected profile/job's advisory priority projection. */
 
 export type ApplicationPriorityFactorStatus = 'KNOWN' | 'UNKNOWN';
@@ -193,27 +194,29 @@ export function createApplicationPriorityClient(
 
   return {
     async load(profileId: string, jobId: string): Promise<ApplicationPriority> {
-      const selectedProfile = requireIdentifier(profileId, 'profile identifier');
-      const selectedJob = requireIdentifier(jobId, 'job identifier');
-      const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}` +
-        `/jobs/${encodeURIComponent(selectedJob)}/application-priority`;
-      let response: Response;
-      try {
-        response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
-      } catch {
-        throw new ApplicationPriorityClientError(
-          'NETWORK', null, 'RETRY', true,
-          'Application priority service could not be reached. Retry when the connection is available.',
-        );
-      }
-      if (!response.ok) throw httpError(response.status);
-      let body: unknown;
-      try {
-        body = await response.json() as unknown;
-      } catch {
-        throw invalidResponse();
-      }
-      return normalizePriority(body, selectedProfile, selectedJob);
+      return withRequestDeadline(async fetchImpl => {
+        const selectedProfile = requireIdentifier(profileId, 'profile identifier');
+        const selectedJob = requireIdentifier(jobId, 'job identifier');
+        const url = `${baseUrl}/profiles/${encodeURIComponent(selectedProfile)}` +
+          `/jobs/${encodeURIComponent(selectedJob)}/application-priority`;
+        let response: Response;
+        try {
+          response = await fetchImpl(url, { method: 'GET', headers: { accept: 'application/json' } });
+        } catch {
+          throw new ApplicationPriorityClientError(
+            'NETWORK', null, 'RETRY', true,
+            'Application priority service could not be reached. Retry when the connection is available.',
+          );
+        }
+        if (!response.ok) throw httpError(response.status);
+        let body: unknown;
+        try {
+          body = await response.json() as unknown;
+        } catch {
+          throw invalidResponse();
+        }
+        return normalizePriority(body, selectedProfile, selectedJob);
+      }, fetchImpl);
     },
   };
 }

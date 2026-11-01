@@ -92,6 +92,7 @@ describe('interview preparation review',()=>{
 
     expect(fetcher).toHaveBeenCalledWith('/profiles/profile-a/jobs/job-a/interview-prep-packs/pack%2F2',{
       headers:{'Content-Type':'application/json'},
+      signal:expect.any(AbortSignal),
     });
     expect(saved).toEqual(pack);
     expect(interviewPrepExportFilename(saved)).toBe('interview-preparation-v2.txt');

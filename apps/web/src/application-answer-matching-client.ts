@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import {isSensitiveAnswerQuestion} from './answer-matching';
 
 export type ApplicationAnswerMatchMethod='EXACT_NORMALIZATION'|'FUZZY'|'CURATED_SEMANTIC';
@@ -133,58 +134,60 @@ export async function matchApplicationAnswers(
   getActiveScope:()=>ApplicationAnswerMatchScope,
   fetcher:typeof fetch=globalThis.fetch,
 ):Promise<LoadedApplicationAnswerMatchResponse> {
-  if(!isText(scope?.profileId)||!isText(scope?.applicationId)||!isText(scope?.question))
-    throw new AnswerMatchClientError('INVALID_REQUEST','Choose an application and enter a question before requesting suggestions.');
-  if(isSensitiveAnswerQuestion(scope.question))
-    throw new AnswerMatchClientError('SENSITIVE_QUESTION','Sensitive or legally significant questions do not receive reusable answer suggestions.');
+  return withRequestDeadline(async fetcher => {
+    if(!isText(scope?.profileId)||!isText(scope?.applicationId)||!isText(scope?.question))
+      throw new AnswerMatchClientError('INVALID_REQUEST','Choose an application and enter a question before requesting suggestions.');
+    if(isSensitiveAnswerQuestion(scope.question))
+      throw new AnswerMatchClientError('SENSITIVE_QUESTION','Sensitive or legally significant questions do not receive reusable answer suggestions.');
 
-  const assertCurrentScope=()=>{
-    let activeScope:ApplicationAnswerMatchScope;
-    try { activeScope=getActiveScope(); }
-    catch { throw staleScope(); }
-    if(!activeScope||!sameScope(scope,activeScope))throw staleScope();
-  };
-  assertCurrentScope();
-
-  let response:Response;
-  try {
-    response=await fetcher(
-      `/profiles/${encodeURIComponent(scope.profileId)}/applications/${encodeURIComponent(scope.applicationId)}/answers/match`,
-      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:scope.question})},
-    );
-  } catch {
+    const assertCurrentScope=()=>{
+      let activeScope:ApplicationAnswerMatchScope;
+      try { activeScope=getActiveScope(); }
+      catch { throw staleScope(); }
+      if(!activeScope||!sameScope(scope,activeScope))throw staleScope();
+    };
     assertCurrentScope();
-    throw new AnswerMatchClientError('NETWORK_ERROR','Could not reach application answer matching. Try again.');
-  }
-  assertCurrentScope();
 
-  if(!response.ok)throw new AnswerMatchClientError('REQUEST_FAILED',requestFailureMessage(response.status));
-
-  let payload:unknown;
-  try { payload=await response.json(); }
-  catch {
+    let response:Response;
+    try {
+      response=await fetcher(
+        `/profiles/${encodeURIComponent(scope.profileId)}/applications/${encodeURIComponent(scope.applicationId)}/answers/match`,
+        {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:scope.question})},
+      );
+    } catch {
+      assertCurrentScope();
+      throw new AnswerMatchClientError('NETWORK_ERROR','Could not reach application answer matching. Try again.');
+    }
     assertCurrentScope();
-    throw invalidResponse();
-  }
-  assertCurrentScope();
 
-  if(!isRecord(payload)||!isText(payload.profile_id)||!isText(payload.application_id)||!isText(payload.question))
-    throw invalidResponse();
-  if(payload.profile_id!==scope.profileId||payload.application_id!==scope.applicationId||payload.question!==scope.question)
-    throw staleScope();
-  if(!Array.isArray(payload.candidates)||payload.candidates.length>maxCandidates||!payload.candidates.every(isCandidate))
-    throw invalidResponse();
-  if(!isStoryReferenceList(payload.story_references))throw invalidResponse();
+    if(!response.ok)throw new AnswerMatchClientError('REQUEST_FAILED',requestFailureMessage(response.status));
 
-  assertCurrentScope();
-  return {
-    scope:{...scope},
-    profile_id:payload.profile_id,
-    application_id:payload.application_id,
-    question:payload.question,
-    candidates:payload.candidates,
-    story_references:payload.story_references,
-  };
+    let payload:unknown;
+    try { payload=await response.json(); }
+    catch {
+      assertCurrentScope();
+      throw invalidResponse();
+    }
+    assertCurrentScope();
+
+    if(!isRecord(payload)||!isText(payload.profile_id)||!isText(payload.application_id)||!isText(payload.question))
+      throw invalidResponse();
+    if(payload.profile_id!==scope.profileId||payload.application_id!==scope.applicationId||payload.question!==scope.question)
+      throw staleScope();
+    if(!Array.isArray(payload.candidates)||payload.candidates.length>maxCandidates||!payload.candidates.every(isCandidate))
+      throw invalidResponse();
+    if(!isStoryReferenceList(payload.story_references))throw invalidResponse();
+
+    assertCurrentScope();
+    return {
+      scope:{...scope},
+      profile_id:payload.profile_id,
+      application_id:payload.application_id,
+      question:payload.question,
+      candidates:payload.candidates,
+      story_references:payload.story_references,
+    };
+  }, fetcher);
 }
 
 /** Explicit click handler helper: returns only a bound, unreviewed draft proposal. */

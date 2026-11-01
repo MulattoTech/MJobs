@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { withRequestDeadline } from './api';
 
 export type RetentionPolicyRule = {
   id: string;
@@ -140,21 +141,25 @@ async function readResponse(response: Response): Promise<unknown> {
   return body;
 }
 
-export async function loadRetentionPolicy(fetcher: Fetcher = globalThis.fetch): Promise<RetentionPolicy> {
-  const response = await fetcher('/retention/policy', {
+export async function loadRetentionPolicy(fetcher: Fetcher = globalThis.fetch, signal?: AbortSignal): Promise<RetentionPolicy> {
+  return withRequestDeadline(async request => {
+  const response = await request('/retention/policy', {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
   return await readResponse(response) as RetentionPolicy;
+  }, fetcher, { signal });
 }
 
-export async function saveRetentionPolicy(fetcher: Fetcher, update: RetentionPolicyUpdate): Promise<RetentionPolicy> {
-  const response = await fetcher('/retention/policy', {
+export async function saveRetentionPolicy(fetcher: Fetcher, update: RetentionPolicyUpdate, signal?: AbortSignal): Promise<RetentionPolicy> {
+  return withRequestDeadline(async request => {
+  const response = await request('/retention/policy', {
     method: 'PUT',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(update),
   });
   return await readResponse(response) as RetentionPolicy;
+  }, fetcher, { signal });
 }
 
 export type RetentionPolicyEditorProps = {
@@ -262,13 +267,17 @@ export function RetentionPolicyControls({ fetcher = globalThis.fetch }: Retentio
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [reloadSequence, setReloadSequence] = useState(0);
+  const scope = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let current = true;
+    const controller = new AbortController();
+    scope.current = controller;
     setLoading(true);
+    setSaving(false);
     setErrorCode(null);
     setStatusMessage(null);
-    void loadRetentionPolicy(fetcher).then(value => {
+    void loadRetentionPolicy(fetcher, controller.signal).then(value => {
       if (!current) return;
       setPolicy(value);
       setAges(Object.fromEntries(value.rules.map(rule => [rule.id, rule.max_age_days])));
@@ -282,11 +291,12 @@ export function RetentionPolicyControls({ fetcher = globalThis.fetch }: Retentio
       setErrorCode(code);
       setLoading(false);
     });
-    return () => { current = false; };
+    return () => { current = false; controller.abort(); };
   }, [fetcher, reloadSequence]);
 
   const save = async () => {
-    if (!policy || saving) return;
+    const controller = scope.current;
+    if (!policy || saving || !controller || controller.signal.aborted) return;
     if (!confirmed || (enabled && (!policy.pruning_allowed || policy.rules.length === 0))) return;
     if (!policy.rules.every(rule => Number.isInteger(ages[rule.id]) && ages[rule.id] >= 1 && ages[rule.id] <= 365)) return;
     setSaving(true);
@@ -299,7 +309,8 @@ export function RetentionPolicyControls({ fetcher = globalThis.fetch }: Retentio
         enabled,
         max_age_days_by_rule: Object.fromEntries(policy.rules.map(rule => [rule.id, ages[rule.id]])),
         confirmed: true,
-      });
+      }, controller.signal);
+      if (controller.signal.aborted || scope.current !== controller) return;
       setPolicy(updated);
       setAges(Object.fromEntries(updated.rules.map(rule => [rule.id, rule.max_age_days])));
       setEnabled(updated.enabled);
@@ -308,9 +319,10 @@ export function RetentionPolicyControls({ fetcher = globalThis.fetch }: Retentio
         ? 'Retention settings saved. Scheduled cleanup is enabled for configured transient data only.'
         : 'Retention settings saved. Cleanup remains off and preview remains dry-run.');
     } catch (error) {
+      if (controller.signal.aborted || scope.current !== controller) return;
       setErrorCode(error instanceof RetentionPolicyRequestError ? error.code : 'RETENTION_POLICY_READ_FAILED');
     } finally {
-      setSaving(false);
+      if (!controller.signal.aborted && scope.current === controller) setSaving(false);
     }
   };
 

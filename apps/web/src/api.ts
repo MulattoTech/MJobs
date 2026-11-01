@@ -2,44 +2,99 @@ const API_REQUEST_TIMEOUT_MS = 30_000;
 const RESUME_UPLOAD_TIMEOUT_MS = 60_000;
 const API_REQUEST_TIMEOUT_MESSAGE = 'Request timed out. Check the saved status before trying again; the request may have completed.';
 
-/** Keep response consumption inside the deadline, including non-JSON readers. */
-export async function requestWithDeadline<T>(path: string, init: RequestInit,
-  readResponse: (response: Response) => Promise<T>,
-  timeoutMs = API_REQUEST_TIMEOUT_MS, timeoutMessage = API_REQUEST_TIMEOUT_MESSAGE): Promise<T> {
-  const callerSignal = init.signal;
-  if (callerSignal?.aborted) throw callerSignal.reason;
+type RequestDeadlineOptions = {
+  signal?: AbortSignal | null;
+  timeoutMs?: number;
+  timeoutMessage?: string;
+};
 
+export function isRequestTimeout(error: unknown): error is Error & { code: 'REQUEST_TIMEOUT' } {
+  return error instanceof Error && 'code' in error && error.code === 'REQUEST_TIMEOUT';
+}
+
+/** Bound a complete request/readback operation, including response-body readers.
+ * Return parsed values, never an unconsumed Response. Writes are dispatched once.
+ */
+export async function withRequestDeadline<T>(
+  operation: (request: typeof fetch, signal: AbortSignal) => Promise<T>,
+  fetcher: typeof fetch = globalThis.fetch,
+  { signal, timeoutMs = API_REQUEST_TIMEOUT_MS,
+    timeoutMessage = API_REQUEST_TIMEOUT_MESSAGE }: RequestDeadlineOptions = {},
+): Promise<T> {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new RangeError('Request deadline must be finite and positive.');
+  signal?.throwIfAborted();
   const controller = new AbortController();
+  const listeners = new Map<AbortSignal, () => void>();
+  const responses = new Set<Response>();
+  let closed = false;
   let rejectInterrupted!: (reason: unknown) => void;
   const interrupted = new Promise<never>((_, reject) => { rejectInterrupted = reject; });
   function interrupt(reason: unknown) {
-    if (controller.signal.aborted) return;
-    controller.abort(reason);
+    if (closed || controller.signal.aborted) return;
     rejectInterrupted(reason);
+    controller.abort(reason);
   }
-  const cancel = () => interrupt(callerSignal?.reason);
-  callerSignal?.addEventListener('abort', cancel, { once: true });
+  function observe(value?: AbortSignal | null) {
+    if (!value || listeners.has(value)) return;
+    if (value.aborted) { interrupt(value.reason); return; }
+    const cancel = () => interrupt(value.reason);
+    listeners.set(value, cancel);
+    value.addEventListener('abort', cancel, { once: true });
+  }
+  function assertActive() {
+    controller.signal.throwIfAborted();
+    if (closed) throw new DOMException('Request operation has ended.', 'AbortError');
+  }
+  function releaseUnreadBody(response: Response) {
+    try {
+      if (response.body && !response.bodyUsed && !response.body.locked) {
+        void response.body.cancel().catch(() => undefined);
+      }
+    } catch { /* Best-effort cleanup must not replace the request outcome. */ }
+  }
+  const request: typeof fetch = async (input, init) => {
+    assertActive();
+    observe(init?.signal === null ? null : init?.signal ??
+      (typeof Request !== 'undefined' && input instanceof Request ? input.signal : undefined));
+    assertActive();
+    const response = await fetcher(input, { ...init, signal: controller.signal });
+    if (closed || controller.signal.aborted) releaseUnreadBody(response);
+    assertActive();
+    responses.add(response);
+    return response;
+  };
+  observe(signal);
   const timer = setTimeout(() => interrupt(Object.assign(new Error(timeoutMessage), {
     name: 'TimeoutError', code: 'REQUEST_TIMEOUT',
   })), timeoutMs);
-
   try {
-    // The deadline covers both headers and body. The race also releases callers
-    // when a transport fails to settle after receiving the abort signal.
     return await Promise.race([
       (async () => {
-        const response = await fetch(path, { ...init, signal: controller.signal });
-        controller.signal.throwIfAborted();
-        const data = await readResponse(response);
-        controller.signal.throwIfAborted();
-        return data;
+        assertActive();
+        const value = await operation(request, controller.signal);
+        assertActive();
+        return value;
       })(),
       interrupted,
     ]);
   } finally {
+    closed = true;
     clearTimeout(timer);
-    callerSignal?.removeEventListener('abort', cancel);
+    for (const [value, cancel] of listeners) value.removeEventListener('abort', cancel);
+    listeners.clear();
+    // Do not abort a successful nested operation's signal: its parent may still
+    // be consuming a later readback. Dispose only bodies we did not consume.
+    for (const response of responses) releaseUnreadBody(response);
   }
+}
+
+/** Keep response consumption inside the deadline, including non-JSON readers. */
+export async function requestWithDeadline<T>(path: string, init: RequestInit,
+  readResponse: (response: Response) => Promise<T>,
+  timeoutMs = API_REQUEST_TIMEOUT_MS, timeoutMessage = API_REQUEST_TIMEOUT_MESSAGE,
+  fetcher: typeof fetch = globalThis.fetch): Promise<T> {
+  return withRequestDeadline(async request => readResponse(await request(path, init)),
+    fetcher, { signal: init.signal, timeoutMs, timeoutMessage });
 }
 
 function requestJSON(path: string, init: RequestInit, timeoutMs: number, timeoutMessage: string) {

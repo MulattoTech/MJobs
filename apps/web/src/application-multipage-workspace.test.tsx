@@ -96,7 +96,8 @@ describe('application multipage workspace',()=>{
     resolveResponse(Response.json(state));
 
     await expect(pending).rejects.toMatchObject({code:'STALE_SCOPE'});
-    expect(fetcher.mock.calls[0][1]?.signal).toBe(controller.signal);
+    expect(fetcher.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+    expect(fetcher.mock.calls[0][1]?.signal?.aborted).toBe(true);
   });
 
   it('asks for a selected profile and application before rendering a saved workspace',()=>{

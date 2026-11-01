@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ApplicationAnswerReview = {
@@ -43,7 +44,7 @@ export type AnswerResumeValidation = {
 export type ApplicationAnswerReviewClient = {
   load:(profileId:string,applicationId:string,questionId:string)=>Promise<ApplicationAnswerReview>;
   saveToAnswerBank:(profileId:string,applicationId:string,input:{question_id:string;question:string;text:string;save_to_answer_bank:true;reviewed:true;expected_profile_version:string},operationId:string)=>Promise<AnswerSaveReadback>;
-  resumeAndValidate:(profileId:string,applicationId:string,input:{request_id:string;question_id:string;question_fingerprint:string;form_fingerprint:string;answer_id:string;expected_profile_version:string})=>Promise<AnswerResumeValidation>;
+  resumeAndValidate:(profileId:string,applicationId:string,input:{request_id:string;question_id:string;question_fingerprint:string;form_fingerprint:string;answer_id:string;expected_profile_version:string},signal?:AbortSignal)=>Promise<AnswerResumeValidation>;
 };
 
 type ResumeClient = Pick<ApplicationAnswerReviewClient,'resumeAndValidate'>;
@@ -88,26 +89,37 @@ function decodeResumeValidation(value:unknown):AnswerResumeValidation {
   return value as AnswerResumeValidation;
 }
 
+function waitForValidationPoll(milliseconds:number,signal?:AbortSignal):Promise<void> {
+  signal?.throwIfAborted();
+  return new Promise((resolve,reject)=>{
+    const cancel=()=>{clearTimeout(timer);reject(signal?.reason);};
+    const timer=setTimeout(()=>{signal?.removeEventListener('abort',cancel);resolve();},milliseconds);
+    signal?.addEventListener('abort',cancel,{once:true});
+  });
+}
+
 export function createApplicationAnswerResumeClient(
   request:typeof fetch=fetch,
-  wait:(milliseconds:number)=>Promise<void>=(milliseconds)=>new Promise(resolve=>setTimeout(resolve,milliseconds)),
+  wait:(milliseconds:number,signal?:AbortSignal)=>Promise<void>=waitForValidationPoll,
   maxPolls=600,
 ):ResumeClient {
-  return {resumeAndValidate:async(profileId,applicationId,input)=>{
-    const endpoint=resumeEndpoint(profileId,applicationId);
-    await resumeResponseValue(await request(endpoint,{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),
-    }));
-    for(let poll=0;poll<maxPolls;poll+=1) {
-      await wait(100);
-      const response=await request(`${endpoint}/${encodeURIComponent(input.request_id)}`,{method:'GET'});
-      if(response.status===202) {
-        await resumeResponseValue(response);
-        continue;
+  return {resumeAndValidate:async(profileId,applicationId,input,signal)=>{
+    return withRequestDeadline(async (request,activeSignal) => {
+      const endpoint=resumeEndpoint(profileId,applicationId);
+      await resumeResponseValue(await request(endpoint,{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),
+      }));
+      for(let poll=0;poll<maxPolls;poll+=1) {
+        await wait(100,activeSignal);
+        const response=await request(`${endpoint}/${encodeURIComponent(input.request_id)}`,{method:'GET'});
+        if(response.status===202) {
+          await resumeResponseValue(response);
+          continue;
+        }
+        return decodeResumeValidation(await resumeResponseValue(response));
       }
-      return decodeResumeValidation(await resumeResponseValue(response));
-    }
-    throw new Error('The resumed application did not complete fresh validation.');
+      throw new Error('The resumed application did not complete fresh validation.');
+    }, request, { signal, timeoutMs: 60_000, timeoutMessage: 'Validation is still pending. Check saved application progress before continuing; the request may have completed.' });
   }};
 }
 
@@ -153,7 +165,9 @@ export async function resumeAndRevalidateAnswer(
   review:ApplicationAnswerReview,
   saved:AnswerSaveReadback,
   requestId:string,
+  signal?:AbortSignal,
 ):Promise<ReviewedAnswer> {
+  signal?.throwIfAborted();
   if(!hasBoundReviewScope(review,profileId,applicationId,review.question.question_id))
     throw new Error('Continue requires an exact application and question review binding. Reload before continuing.');
   if(!hasExactReviewedAnswerReadback(review,saved,saved.answer.text))
@@ -165,7 +179,8 @@ export async function resumeAndRevalidateAnswer(
     form_fingerprint:review.form_fingerprint,
     answer_id:saved.answer.id,
     expected_profile_version:saved.profile_version,
-  });
+  },signal);
+  signal?.throwIfAborted();
   const exact=result.request_id===requestId
     &&result.profile_id===profileId
     &&result.application_id===applicationId
@@ -193,10 +208,12 @@ export async function continueAfterFreshValidation(
   saved:AnswerSaveReadback,
   requestId:string,
   onContinue:(answer:ReviewedAnswer)=>void,
+  signal?:AbortSignal,
 ):Promise<void> {
   const answer=await resumeAndRevalidateAnswer(
-    client,profileId,applicationId,review,saved,requestId,
+    client,profileId,applicationId,review,saved,requestId,signal,
   );
+  signal?.throwIfAborted();
   onContinue(answer);
 }
 
@@ -298,11 +315,13 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
   const [loadError,setLoadError]=useState('');
   const [saveError,setSaveError]=useState('');
   const sequence=useRef(0);
+  const pendingResume=useRef<AbortController|null>(null);
   const operationId=useRef('');
   const clientRef=useRef(client);
   clientRef.current=client;
 
   const loadReview=useCallback(async(preserveDraft=false)=>{
+    pendingResume.current?.abort(); pendingResume.current=null;
     const current=++sequence.current;
     setLoading(true);setBusy(false);setLoadError('');setSaveError('');setReview(null);setSavedReadback(null);if(!preserveDraft){setDraftText('');operationId.current='';}setReviewed(false);
     try{
@@ -315,7 +334,7 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
     finally{if(current===sequence.current)setLoading(false);}
   },[applicationId,profileId,questionId]);
 
-  useEffect(()=>{void loadReview();return()=>{sequence.current+=1;};},[loadReview]);
+  useEffect(()=>{void loadReview();return()=>{sequence.current+=1;pendingResume.current?.abort();};},[loadReview]);
 
   function updateDraft(value:string) {
     setDraftText(value);setReviewed(false);setSavedReadback(null);setSaveError('');operationId.current='';
@@ -341,11 +360,14 @@ export function ApplicationReviewAnswers({profileId,applicationId,questionId,cli
   async function continueReview() {
     if(!review||!savedReadback||busy)return;
     const continueSequence=sequence.current;
+    const controller=new AbortController(); pendingResume.current=controller;
     const requestId=globalThis.crypto?.randomUUID?.()||`resume-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     setBusy(true);setSaveError('');
     try{
       await continueAfterFreshValidation(
-        clientRef.current,profileId,applicationId,review,savedReadback,requestId,onContinue,
+        clientRef.current,profileId,applicationId,review,savedReadback,requestId,
+        answer=>{if(continueSequence===sequence.current&&!controller.signal.aborted)onContinue(answer);},
+        controller.signal,
       );
     }catch(error){
       if(continueSequence===sequence.current)setSaveError(errorMessage(error));

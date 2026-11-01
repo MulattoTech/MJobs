@@ -1,3 +1,4 @@
+import { withRequestDeadline } from './api';
 export const MATCH_FEEDBACK_CATEGORIES = [
   'GOOD_MATCH',
   'BAD_MATCH',
@@ -256,108 +257,116 @@ function checkResponse(response: Response): void {
 export function createMatchFeedbackClient(fetchImpl: typeof fetch = fetch): MatchFeedbackSubmitter {
   return {
     async load(profileId, jobId) {
-      if (!isScopeId(profileId) || !isScopeId(jobId)) throw invalidRequest();
-      const path = `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/match-feedback`;
-      let response: Response;
-      try { response = await fetchImpl(path, { headers: { accept: 'application/json' } }); }
-      catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
-      checkResponse(response);
-      return normalizeReadback(await readJson(response), profileId, jobId);
+      return withRequestDeadline(async fetchImpl => {
+        if (!isScopeId(profileId) || !isScopeId(jobId)) throw invalidRequest();
+        const path = `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/match-feedback`;
+        let response: Response;
+        try { response = await fetchImpl(path, { headers: { accept: 'application/json' } }); }
+        catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+        checkResponse(response);
+        return normalizeReadback(await readJson(response), profileId, jobId);
+      }, fetchImpl);
     },
     async loadPreferences(profileId) {
-      if (!isScopeId(profileId)) throw invalidRequest();
-      let response: Response;
-      try {
-        response = await fetchImpl(`/profiles/${encodeURIComponent(profileId)}/match-preferences`, {
-          headers: { accept: 'application/json' },
-        });
-      } catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
-      checkResponse(response);
-      return normalizePreferenceHistory(await readJson(response), profileId);
+      return withRequestDeadline(async fetchImpl => {
+        if (!isScopeId(profileId)) throw invalidRequest();
+        let response: Response;
+        try {
+          response = await fetchImpl(`/profiles/${encodeURIComponent(profileId)}/match-preferences`, {
+            headers: { accept: 'application/json' },
+          });
+        } catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+        checkResponse(response);
+        return normalizePreferenceHistory(await readJson(response), profileId);
+      }, fetchImpl);
     },
     async applyPreference(profileId, feedbackId, dimension, direction, requestId) {
-      if (!isScopeId(profileId) || !isText(feedbackId, 256)
-        || !['overall', 'seniority', 'technology', 'location', 'salary', 'company'].includes(dimension)
-        || !['increase', 'decrease'].includes(direction)
-        || !/^[A-Za-z0-9._:-]{1,128}$/.test(requestId)) throw invalidRequest();
-      const path = `/profiles/${encodeURIComponent(profileId)}/match-preferences`;
-      let response: Response;
-      try {
-        response = await fetchImpl(path, {
-          method: 'POST',
-          headers: { accept: 'application/json', 'content-type': 'application/json' },
-          body: JSON.stringify({
-            feedback_id: feedbackId, dimension, direction, request_id: requestId,
-          }),
-        });
-      } catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
-      checkResponse(response);
-      const posted = await readJson(response);
-      const preference = isRecord(posted) ? posted.preference : null;
-      if (!isRecord(posted) || posted.profile_id !== profileId || typeof posted.replayed !== 'boolean'
-        || !isAppliedMatchPreference(preference)
-        || preference.feedback_id !== feedbackId
-        || preference.dimension !== dimension
-        || preference.direction !== direction.toUpperCase()) {
-        throw new MatchFeedbackClientError('SCOPE_MISMATCH', null, false);
-      }
+      return withRequestDeadline(async fetchImpl => {
+        if (!isScopeId(profileId) || !isText(feedbackId, 256)
+          || !['overall', 'seniority', 'technology', 'location', 'salary', 'company'].includes(dimension)
+          || !['increase', 'decrease'].includes(direction)
+          || !/^[A-Za-z0-9._:-]{1,128}$/.test(requestId)) throw invalidRequest();
+        const path = `/profiles/${encodeURIComponent(profileId)}/match-preferences`;
+        let response: Response;
+        try {
+          response = await fetchImpl(path, {
+            method: 'POST',
+            headers: { accept: 'application/json', 'content-type': 'application/json' },
+            body: JSON.stringify({
+              feedback_id: feedbackId, dimension, direction, request_id: requestId,
+            }),
+          });
+        } catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+        checkResponse(response);
+        const posted = await readJson(response);
+        const preference = isRecord(posted) ? posted.preference : null;
+        if (!isRecord(posted) || posted.profile_id !== profileId || typeof posted.replayed !== 'boolean'
+          || !isAppliedMatchPreference(preference)
+          || preference.feedback_id !== feedbackId
+          || preference.dimension !== dimension
+          || preference.direction !== direction.toUpperCase()) {
+          throw new MatchFeedbackClientError('SCOPE_MISMATCH', null, false);
+        }
 
-      let readbackResponse: Response;
-      try { readbackResponse = await fetchImpl(path, { headers: { accept: 'application/json' } }); }
-      catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
-      checkResponse(readbackResponse);
-      const readback = normalizePreferenceHistory(await readJson(readbackResponse), profileId);
-      if (!readback.some(item => item.id === preference.id
-        && item.feedback_id === feedbackId && item.dimension === dimension
-        && item.direction === direction.toUpperCase())) {
-        throw new MatchFeedbackClientError('READBACK_NOT_CONFIRMED', null, true);
-      }
-      return readback;
+        let readbackResponse: Response;
+        try { readbackResponse = await fetchImpl(path, { headers: { accept: 'application/json' } }); }
+        catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+        checkResponse(readbackResponse);
+        const readback = normalizePreferenceHistory(await readJson(readbackResponse), profileId);
+        if (!readback.some(item => item.id === preference.id
+          && item.feedback_id === feedbackId && item.dimension === dimension
+          && item.direction === direction.toUpperCase())) {
+          throw new MatchFeedbackClientError('READBACK_NOT_CONFIRMED', null, true);
+        }
+        return readback;
+      }, fetchImpl);
     },
     async submit(profileId, jobId, category, requestId) {
-      if (!isScopeId(profileId) || !isScopeId(jobId) || !isCategory(category)
-        || !/^[A-Za-z0-9._:-]{1,128}$/.test(requestId)) {
-        throw invalidRequest();
-      }
-      const path = `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/match-feedback`;
-      let postResponse: Response;
-      try {
-        postResponse = await fetchImpl(path, {
-          method: 'POST',
-          headers: { accept: 'application/json', 'content-type': 'application/json' },
-          body: JSON.stringify({ category, request_id: requestId }),
-        });
-      } catch {
-        throw new MatchFeedbackClientError('NETWORK_ERROR', null, true);
-      }
-      checkResponse(postResponse);
-      const posted = normalizePostResponse(await readJson(postResponse), profileId, jobId, category);
+      return withRequestDeadline(async fetchImpl => {
+        if (!isScopeId(profileId) || !isScopeId(jobId) || !isCategory(category)
+          || !/^[A-Za-z0-9._:-]{1,128}$/.test(requestId)) {
+          throw invalidRequest();
+        }
+        const path = `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/match-feedback`;
+        let postResponse: Response;
+        try {
+          postResponse = await fetchImpl(path, {
+            method: 'POST',
+            headers: { accept: 'application/json', 'content-type': 'application/json' },
+            body: JSON.stringify({ category, request_id: requestId }),
+          });
+        } catch {
+          throw new MatchFeedbackClientError('NETWORK_ERROR', null, true);
+        }
+        checkResponse(postResponse);
+        const posted = normalizePostResponse(await readJson(postResponse), profileId, jobId, category);
 
-      let readbackResponse: Response;
-      try {
-        readbackResponse = await fetchImpl(path, {
-          method: 'GET',
-          headers: { accept: 'application/json' },
-        });
-      } catch {
-        throw new MatchFeedbackClientError('NETWORK_ERROR', null, true);
-      }
-      checkResponse(readbackResponse);
-      const readback = normalizeReadback(
-        await readJson(readbackResponse), profileId, jobId, posted.feedback,
-      );
-      const feedback = readback.items.find(item => item.id === posted.feedback.id
-        && item.category === posted.feedback.category);
-      if (!feedback) throw new MatchFeedbackClientError('READBACK_NOT_CONFIRMED', null, true);
-      return {
-        profile_id: profileId,
-        job_id: jobId,
-        feedback,
-        items: readback.items,
-        latest: readback.latest,
-        replayed: posted.replayed,
-        preference_proposal: posted.preferenceProposal,
-      };
+        let readbackResponse: Response;
+        try {
+          readbackResponse = await fetchImpl(path, {
+            method: 'GET',
+            headers: { accept: 'application/json' },
+          });
+        } catch {
+          throw new MatchFeedbackClientError('NETWORK_ERROR', null, true);
+        }
+        checkResponse(readbackResponse);
+        const readback = normalizeReadback(
+          await readJson(readbackResponse), profileId, jobId, posted.feedback,
+        );
+        const feedback = readback.items.find(item => item.id === posted.feedback.id
+          && item.category === posted.feedback.category);
+        if (!feedback) throw new MatchFeedbackClientError('READBACK_NOT_CONFIRMED', null, true);
+        return {
+          profile_id: profileId,
+          job_id: jobId,
+          feedback,
+          items: readback.items,
+          latest: readback.latest,
+          replayed: posted.replayed,
+          preference_proposal: posted.preferenceProposal,
+        };
+      }, fetchImpl);
     },
   };
 }

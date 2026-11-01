@@ -118,7 +118,7 @@ describe('application review answer editor',()=>{
     expect(client.resumeAndValidate).toHaveBeenCalledWith('profile-a','application-a',{
       request_id:'resume-1',question_id:'q-azure',question_fingerprint:'question-v1',
       form_fingerprint:'form-v1',answer_id:'answer-1',expected_profile_version:'profile-v2',
-    });
+    },undefined);
   });
 
   it.each([
@@ -213,8 +213,8 @@ describe('application review answer editor',()=>{
       request_id:'resume-http',question_id:'q-azure',question_fingerprint:'question-v1',
       form_fingerprint:'form-v1',answer_id:'answer-1',expected_profile_version:'profile-v2',
     });
-    expect(request).toHaveBeenNthCalledWith(2,base+'/resume-http',{method:'GET'});
-    expect(request).toHaveBeenNthCalledWith(3,base+'/resume-http',{method:'GET'});
+    expect(request).toHaveBeenNthCalledWith(2,base+'/resume-http',{method:'GET',signal:expect.any(AbortSignal)});
+    expect(request).toHaveBeenNthCalledWith(3,base+'/resume-http',{method:'GET',signal:expect.any(AbortSignal)});
     expect(wait).toHaveBeenCalledTimes(2);
   });
 
