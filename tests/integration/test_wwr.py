@@ -385,8 +385,8 @@ class WeWorkRemotelyTests(unittest.TestCase):
     def test_live_bounded_search_read_only(self):
         """Bounded live read-only verification against WWR public RSS feed when enabled."""
         import os
-        if not os.environ.get("MJOBS_ENABLE_LIVE_TESTS"):
-            return
+        if os.environ.get("MJOBS_ENABLE_LIVE_TESTS") != "1":
+            self.skipTest("NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1")
         adapter = WeWorkRemotely(request_timeout=15)
         batch = adapter.search(limit=3)
         self.assertGreater(len(batch.items), 0)

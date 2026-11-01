@@ -158,6 +158,27 @@ and private configuration; recovery is a separate reviewed operator action. Fres
 catalog-proven empty bootstrap and validated already-current provisioning remain
 supported; a populated pending upgrade cannot bypass this guarded path.
 
+## Required application and source acceptance
+
+The required synthetic connected-acceptance job runs
+`tests/browser/test_full_application_e2e_213.py` after building the production
+web app. This follows fictional Job B through scoring, generated documents,
+answer review, a validated dry-run, one explicitly approved mock submission,
+and database reopen. It uses temporary SQLite storage and the local mock ATS;
+no real employer application is submitted.
+
+`tests/unit/test_source_adapter_contract_223.py` applies the same read-only
+contract assertions to every registered source adapter: stable job identity,
+normalized descriptions, valid URLs, dates or explicit missing-date values,
+and safe handling of missing fields. WWR links must retain the exact official
+HTTPS origin; deceptive hosts, credentials, nonstandard ports and ambiguous
+control characters produce an unavailable application link.
+
+Optional live WWR and Remote OK checks run only when
+`MJOBS_ENABLE_LIVE_TESTS=1`. Otherwise they are reported as skipped / NOT_RUN,
+not as successful public-source checks. Provider failures must remain visible;
+never bypass their rate limits or repeat them until they happen to pass.
+
 ## Executable verification
 
 Development checks use the pinned Python environment and installed Playwright

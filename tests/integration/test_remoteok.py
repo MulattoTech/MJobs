@@ -299,8 +299,8 @@ class RemoteOKTests(unittest.TestCase):
     def test_live_bounded_search_read_only(self):
         """Bounded live read-only verification against Remote OK public API when enabled."""
         import os
-        if not os.environ.get("MJOBS_ENABLE_LIVE_TESTS"):
-            return
+        if os.environ.get("MJOBS_ENABLE_LIVE_TESTS") != "1":
+            self.skipTest("NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1")
         adapter = RemoteOK(request_timeout=15)
         batch = adapter.search(tag="engineer", limit=3)
         self.assertGreater(len(batch.items), 0)
