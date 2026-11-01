@@ -68,6 +68,10 @@ jobs:
       - run: npm ci --prefix apps/web --no-audit --no-fund
       - name: Lint frontend source policy
         run: npm run lint --prefix apps/web
+      - name: Check frontend formatter and quality-tool rejection cases
+        run: |
+          npm run format:check --prefix apps/web
+          npm run quality:test --prefix apps/web
       - name: Type-check frontend
         run: npm run typecheck --prefix apps/web
       - name: Test trusted automated-review policy and rejection cases

@@ -26,6 +26,9 @@ On Linux, use `.venv/bin/python` and install Chromium system dependencies with `
 
 ## Fast feedback
 
+The [frontend quality guide](FRONTEND_QUALITY.md) covers strict TypeScript, ESLint,
+Prettier and component checks.
+
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q tests/unit
 npm test --prefix apps/web
