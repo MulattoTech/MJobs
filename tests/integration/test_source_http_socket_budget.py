@@ -262,7 +262,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                     return original_log_context(*args, **kwargs)
 
                 def observe_connect_tcp(backend, *args, **kwargs):
-                    transport_entry["at"] = time.monotonic()
+                    transport_entry.setdefault("at", time.monotonic())
+                    transport_entry["connects"] = transport_entry.get("connects", 0) + 1
                     transport_entered.set()
                     try:
                         return original_connect_tcp(backend, *args, **kwargs)
@@ -438,6 +439,9 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                     worker.join(timeout=3 if mode == "positive-hostname" else 1.1)
                                 self.assertFalse(worker.is_alive(),
                                                  f"Operation deadline ignored during {mode} for {time.monotonic()-started:.3f}s")
+                            if mode in {"body-drip", "header-drip", "header-stall"}:
+                                self.assertEqual(transport_entry["connects"], 1,
+                                                 "A reconnect must not reset the HTTP deadline oracle")
                             if mode == "tls-stall":
                                 self.assertTrue(tls_exited.is_set(),
                                                 "TLS transport did not exit before peer observation")
