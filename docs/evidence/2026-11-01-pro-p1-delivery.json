@@ -399,7 +399,8 @@
     "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json": "a2a5ecec9ffb4b0ceb09b3020d3fe837e5dd909cfb80cab9b34c68acffb4ee22",
     "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670",
     "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json": "ec2e42ea7c3ea3a4087974316505f2014c22cf4801bf2fae2a5fc5ce687cd831",
-    "docs/evidence/2026-11-01-pro-p1/inputs/pypdf-gates.original.json.gz": "e8fea5e625e8fc7645dad8e32625fc194d8cc9c2b04be0bbb2b1c1eeffafa8b9"
+    "docs/evidence/2026-11-01-pro-p1/inputs/pypdf-gates.original.json.gz": "e8fea5e625e8fc7645dad8e32625fc194d8cc9c2b04be0bbb2b1c1eeffafa8b9",
+    "docs/evidence/2026-11-01-pro-p1/reviews/scanner-fingerprint-followup.json": "6a4d33d17e4e1070ea2285c20d5faed335a9924d14adffd3cd39bcd31dc6ba24"
   },
   "known_limitations": [
     "MJ-REQ-254 remains PARTIAL: 21 active UI modules contain 32 unbounded injected-fetch dispatch sites.",
@@ -444,9 +445,13 @@
     "initial_result": "FAIL: 13 generic-api-key candidates",
     "review": "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json",
     "verified_source_digest_matches": 13,
-    "exact_history_fingerprint_exceptions": 13,
+    "exact_history_fingerprint_exceptions": 14,
     "scanner_rules_changed": false,
-    "required_scanner_rerun": "Required on the final protected PR revision before integration"
+    "required_scanner_rerun": "Required on the final protected PR revision before integration",
+    "followup_run": "https://github.com/MulattoTech/MJobs/actions/runs/41281312282",
+    "followup_result": "FAIL: review-report checksum flagged by the generic credential rule",
+    "followup_review": "docs/evidence/2026-11-01-pro-p1/reviews/scanner-fingerprint-followup.json",
+    "verified_review_digest_matches": 1
   },
   "integrated_dependency_followup": {
     "pr": "https://github.com/MulattoTech/MJobs/pull/876",

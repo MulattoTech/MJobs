@@ -279,3 +279,7 @@ c9dd86fd8e65b9d9686d4cdf902073de74ac18f3:docs/evidence/2026-11-01-pro-p1/criteri
 c9dd86fd8e65b9d9686d4cdf902073de74ac18f3:docs/evidence/2026-11-01-pro-p1/criteria.json:generic-api-key:7013
 c9dd86fd8e65b9d9686d4cdf902073de74ac18f3:docs/evidence/2026-11-01-pro-p1/criteria.json:generic-api-key:7039
 c9dd86fd8e65b9d9686d4cdf902073de74ac18f3:docs/evidence/2026-11-01-pro-p1/criteria.json:generic-api-key:7049
+
+# Independently recomputed digest of the immutable review report itself.
+# Proof: docs/evidence/2026-11-01-pro-p1/reviews/scanner-fingerprint-followup.json
+8975b8fa6837919915973881ae10fdb0f463e8e8:docs/evidence/2026-11-01-pro-p1-delivery.json:generic-api-key:400
