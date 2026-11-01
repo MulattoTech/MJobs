@@ -26,13 +26,17 @@ KEYS = ("MJOBS_SUBMISSION_HOURLY_LIMIT", "MJOBS_SUBMISSION_DAILY_LIMIT",
 
 
 class ConfiguredSubmissionLimitTests(unittest.TestCase):
+    def _new_store(self):
+        store = Store(f"sqlite:///{(self.root / 'caps.db').as_posix()}")
+        store.migrate()
+        return store
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-submission-caps-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.store = Store(f"sqlite:///{(self.root / 'caps.db').as_posix()}")
+        self.store = self._new_store()
         self.addCleanup(self.store.engine.dispose)
-        self.store.migrate()
         self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(dict(PROFILE))
         with fixture_server() as origin:
@@ -108,6 +112,14 @@ class ConfiguredSubmissionLimitTests(unittest.TestCase):
         self.assertFalse(decision.allowed)
         self.assertIn("EXTERNAL_SUBMISSION_DISABLED", decision.reasons)
         self.assertEqual(self.store.application(identifier)["state"], "READY_TO_SUBMIT")
+
+
+@unittest.skipUnless(os.environ.get("MJOBS_TEST_POSTGRES_URL"),
+                     "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database")
+class ConfiguredSubmissionLimitPostgresTests(ConfiguredSubmissionLimitTests):
+    from tests.integration.test_lever_form_review_flow import LeverFormReviewPostgresFlowTests as _Fixture
+    _new_store = _Fixture._new_store
+    _drop_schema = _Fixture._drop_schema
 
 
 if __name__ == "__main__":
