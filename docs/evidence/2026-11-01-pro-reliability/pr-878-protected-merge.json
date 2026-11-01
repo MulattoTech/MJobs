@@ -1,0 +1,137 @@
+{
+  "timestamp": "2026-11-01T21:01:49.423013+00:00",
+  "pr": {
+    "baseRefOid": "b0c5724e517749dd00a73a7e9fc4b8f277a736dc",
+    "headRefOid": "e9bbfefea95950a7b056418bc0fd8e4f7c62d7ea",
+    "mergeStateStatus": "CLEAN",
+    "state": "OPEN",
+    "url": "https://github.com/MulattoTech/MJobs/pull/878"
+  },
+  "tested_merge_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+  "tested_merge_tree": "7021c8e808bb4ae4840b1e9dbfe80dd83b665e20",
+  "required_checks": [
+    {
+      "link": "https://github.com/MulattoTech/MJobs/actions/runs/41348135308/job/124977080891",
+      "name": "Integration / PostgreSQL and Redis",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/MulattoTech/MJobs/actions/runs/41348135316/job/124973380005",
+      "name": "CI / required",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/MulattoTech/MJobs/actions/runs/41348135320/job/124972403022",
+      "name": "Disposable Compose / mock end-to-end",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/MulattoTech/MJobs/actions/runs/41348135311/job/124972272801",
+      "name": "Dependencies / introduced vulnerabilities",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/MulattoTech/MJobs/actions/runs/41348135312/job/124972272918",
+      "name": "Security / secret scan",
+      "state": "SUCCESS"
+    }
+  ],
+  "source_jobs": [
+    {
+      "run_id": 41348135316,
+      "job_id": 124972273536,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135316/job/124972273536",
+      "name": "Python / unit and integrity",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [
+        "2026-11-01T20:45:36.9996538Z 3147 passed, 51 skipped, 3477 subtests passed in 216.45s (0:03:36)"
+      ],
+      "summary_line_count": 1
+    },
+    {
+      "run_id": 41348135316,
+      "job_id": 124972273373,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135316/job/124972273373",
+      "name": "Web / Vitest and production build",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [
+        "2026-11-01T20:41:44.2341631Z ^[[2m Test Files ^[[22m ^[[1m^[[32m153 passed^[[39m^[[22m^[[90m (153)^[[39m",
+        "2026-11-01T20:41:44.2346573Z ^[[2m      Tests ^[[22m ^[[1m^[[32m1096 passed^[[39m^[[22m^[[90m (1096)^[[39m"
+      ],
+      "summary_line_count": 2
+    },
+    {
+      "run_id": 41348135316,
+      "job_id": 124972273214,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135316/job/124972273214",
+      "name": "Repository / policy and docs",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [],
+      "summary_line_count": 0
+    },
+    {
+      "run_id": 41348135308,
+      "job_id": 124972401851,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135308/job/124972401851",
+      "name": "Integration / shard 0",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [
+        "2026-11-01T21:00:17.6328955Z 783 passed, 2 skipped, 15 warnings, 364 subtests passed in 1021.26s (0:17:01)"
+      ],
+      "summary_line_count": 1
+    },
+    {
+      "run_id": 41348135308,
+      "job_id": 124972402218,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135308/job/124972402218",
+      "name": "Integration / shard 1",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [
+        "2026-11-01T20:52:18.9095835Z 777 passed, 2 skipped, 4 warnings, 494 subtests passed in 556.96s (0:09:16)"
+      ],
+      "summary_line_count": 1
+    },
+    {
+      "run_id": 41348135308,
+      "job_id": 124972402168,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135308/job/124972402168",
+      "name": "Integration / shard 2",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [
+        "2026-11-01T20:55:20.3245213Z 854 passed, 31 skipped, 2 warnings, 514 subtests passed in 741.23s (0:12:21)"
+      ],
+      "summary_line_count": 1
+    },
+    {
+      "run_id": 41348135320,
+      "job_id": 124972403022,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41348135320/job/124972403022",
+      "name": "Disposable Compose / mock end-to-end",
+      "conclusion": "success",
+      "checked_out_revision": "c80dbb642e9d150dd43ef3c923032e15d5486fdf",
+      "summary_lines": [
+        "2026-11-01T20:43:05.7984257Z #16 12.36 ^[[2m Test Files ^[[22m ^[[1m^[[32m153 passed^[[39m^[[22m^[[90m (153)^[[39m",
+        "2026-11-01T20:43:05.7984717Z #16 12.36 ^[[2m      Tests ^[[22m ^[[1m^[[32m1096 passed^[[39m^[[22m^[[90m (1096)^[[39m",
+        "2026-11-01T20:46:05.1390300Z 5 passed in 34.63s"
+      ],
+      "summary_line_count": 3
+    }
+  ],
+  "protected_merge": {
+    "mergeCommit": {
+      "oid": "40ba8eda5701a38fc2d6b641f6678e78bf9c3113"
+    },
+    "mergedAt": "2026-11-01T21:02:22Z",
+    "state": "MERGED",
+    "url": "https://github.com/MulattoTech/MJobs/pull/878",
+    "main_sha_verified": "40ba8eda5701a38fc2d6b641f6678e78bf9c3113",
+    "tree_equals_tested_merge": true,
+    "verified_at": "2026-11-01T21:02:25.409235+00:00"
+  }
+}

@@ -1,26 +1,23 @@
-# MJobs current checkpoint — 2026-11-01
+# MJobs current checkpoint — 2026-11-01 Pro reliability sprint
 
-## Verified acceptance
+## Verified source acceptance
 
-This checkpoint records **92/116 P1 PASS**, up 43 from 49; 18 remain PARTIAL and 6 NOT_RUN. Original acceptance is 165/366; the separate reference authority remains 19/59. Whole-product readiness remains UNKNOWN/PARTIAL.
+**P0: 12/26 PASS** (4 PARTIAL, 10 NOT_RUN), unchanged. **P1: 96/116 PASS** (16 PARTIAL, 4 NOT_RUN), four new full acceptances. Original acceptance is **169/366 PASS**; the separate reference authority remains **19/59 PASS**, byte-for-byte unchanged. Whole-product readiness remains UNKNOWN/PARTIAL.
 
-Source: `ca1e62c6dc64ef4149bba577f02973684e259e16`, protected [PR #875](https://github.com/MulattoTech/MJobs/pull/875), merged as `07eab582dbce29de49cde2180a39b031c3ad5ab2`. Every source-testing required job checked out proposed merge `f68edc8cce2013f4ccfc5df209862dc40651fb9e`; its tree equals the integrated source tree.
+Exact integrated source: `9993b184f90c6e46210dc441d28bdd61bd20b321`, protected [PR #879](https://github.com/MulattoTech/MJobs/pull/879). The seven source jobs checked out tested merge `9463bd886ec20c2643f0b32306f25c46b01db20d`; its recorded tree equals the integrated source tree. All five required checks succeeded. [Delivery evidence](../docs/evidence/2026-11-01-pro-reliability-delivery.json) links immutable merge proof, source hashes, criterion mappings, executed records, retained failures/skips and remaining limits.
 
-[Primary evidence](../docs/evidence/2026-11-01-pro-p1-delivery.json) contains the exact 43 IDs, per-criterion records, retained failures, hashes, run links and review limits. Publish this record through [PR #877](https://github.com/MulattoTech/MJobs/pull/877), then attach the issue-closure and deployment receipts to that PR. Verify those receipts before claiming deployment.
+MJ-REQ-209, 210, 211 and 254 are PASS. MJ-REQ-224 and 275 advance from NOT_RUN to PARTIAL. MJ-REQ-004, 008, 167, 179, 267 and 269 stay PARTIAL. Fixture coverage does not imply every adapter, and this checkpoint does not close interruption/restart acceptance.
 
-Dependency follow-up: [PR #876](https://github.com/MulattoTech/MJobs/pull/876) merged at `25e3f25968ce8e6148ede67fae6e029414567567` after all five required gates on proposed merge `7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b`. It upgrades pypdf to 6.21.4 for seven new high-severity advisories. A separate minimatch development-dependency advisory remains. The final acceptance PR must pass again against this integrated base.
+## Publication and deployment
 
-## Executed verification
+Publish the acceptance documents through the protected PR from `work/pro-acceptance-20261101`. The final publication receipt follows separately; this file does not self-reference a future publication SHA. The portable owned checkpoint is [pro-p0p1-20261101](agent_handoffs/pro-p0p1-20261101.json).
 
-- Fast CI: 3,147 passed / 51 skipped. Integration: 2,414 passed / 35 skipped. No failures; subtests are reported separately in evidence.
-- All 196 named acceptance nodes and 17 mandatory real PostgreSQL/RQ cases passed. The additional opt-in STK01 case remains SKIPPED, with its narrow scope decision retained.
-- Frontend: 1,000 passed. Required hosted browser: 5 passed. Final Windows criterion browser: 15 passed plus 5 subtests. The uploaded-comparison module also passed 2 tests on the final source.
-- Remotive (13 jobs), RemoteOK (99) and Greenhouse (19) passed live capture plus two production collections and two database reopens. Official Greenhouse careers/ATS/tenant discovery passed. No employer submissions or paid AI calls.
+The last reported production revision remains `b0c5724e517749dd00a73a7e9fc4b8f277a736dc`. Deployment of the source above, exact deployed SHA and post-deployment `/ready` health are **unverified** until a separate guarded-release receipt. Authenticated public browser smoke is **BLOCKED by Cloudflare login**. Local fixture Chromium results do not establish public authentication or production behavior.
 
-## Remaining work
+## Remaining work and operating boundaries
 
-Prioritize MJ-REQ-254 (21 modules / 32 unbounded injected-fetch dispatches), 275 (configuration surfaces), 179 (bounded DOM capture), 267 (fresh employer-route discovery), 224 (application-adapter journeys), and 269 (AI-generated document fact trace). WWR's live feed has conflicting content for one native identity; its `SOURCE_DUPLICATE_JOB_ID` failure remains recorded. P0 remains 12 PASS / 4 PARTIAL / 10 NOT_RUN.
+Finish the supported-adapter contract matrix, ordinary notification/profile/submission-limit configuration, complete external-operation and diagnostic bounds, fresh automatic pre-submission route discovery, and an AI-document generation consumer with fact references. Preserve the interruption/recovery and protected backup/restore limits recorded in the criteria. Existing failed attempts and dependency follow-up remain linked in delivery evidence.
 
-## Operating boundaries
+Retained blockers: WWR returned conflicting upstream content for one native identity (`SOURCE_DUPLICATE_JOB_ID`); that failure is not counted as live-source PASS. Minimatch alert #63 remains unresolved because its proposed major-version-11 fix is unsupported in the current dependency baseline. Preserve the dependency follow-up's exact compatibility evidence.
 
-The 7% emergency cutoff and standalone/fleet isolation are unchanged. Preserve all unrelated work, sessions, volumes and backups. Use one integration owner and normal protected PRs. MJobs micro rollout uses the existing verified-main updater, quiescent backup and previous-image rollback; verify the exact deployed commit and `/ready` before reporting deployment. The previous release at this checkpoint was `53203ea2` and healthy.
+Use one integration owner and normal protected checks. Keep real employer submissions OFF and paid AI calls at zero for this sprint. Preserve unrelated sessions, files, volumes and backups; no host restart or unrelated process termination is authorized by this checkpoint.
