@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-01T21:16:18+00:00",
+  "requirement_id": "MJ-REQ-179",
+  "result": "PARTIAL",
+  "related_parent": "MJ-REQ-004",
+  "base_revision": "40ba8eda5701a38fc2d6b641f6678e78bf9c3113",
+  "scope": "Opt-in structural DOM diagnostics for the tested local browser automation failure path",
+  "source_files": [
+    {
+      "path": "services/applications/debug_capture.py",
+      "sha256": "d2a6510e45ffe357abfa05b0a240a79685dddb9ed99401b0b0da442a2abfb7bf"
+    },
+    {
+      "path": "tests/unit/test_browser_debug_capture.py",
+      "sha256": "8617133ddf51f3a8759c365f2c1c460a0a689cb5d0fb81753633922a6606eeba"
+    },
+    {
+      "path": "tests/unit/test_fleet_t12_debug_capture_budget.py",
+      "sha256": "16e6e8f2274a20b72d440c1c8501458e53086a825843b31f44f0dad4f3751b7c"
+    },
+    {
+      "path": "tests/browser/test_debug_capture_privacy.py",
+      "sha256": "e7d3958902a14814a9cf5c2e4c6bcf351960d1a32d2baf4dffb3ee872cac03a1"
+    }
+  ],
+  "implementation": {
+    "transport": "Native DOM.getDocument through the pinned Playwright 1.63.0 sync-to-async bridge.",
+    "time": "300 ms DOM sub-budget within the original caller-derived capture deadline capped at 2 seconds; creation, send, detach and cancellation use remaining absolute time.",
+    "cancellation": "Explicit owned tasks and finite waits; first cancellation enters Playwright abort, a delivered second cancellation ends an unacknowledged abort wait. Unexpected nonterminal cleanup stops package publication.",
+    "retained_artifact": "At most 160 visited nodes, depth 8 and 8192 bytes of actual LF-encoded formatted JSON. Only allowlisted tag/role enums and parent relationships remain.",
+    "privacy": "Text, input values, IDs, names, URLs, arbitrary attributes, custom tag names, subframe and shadow-root content are omitted. Large role values are length-checked before lookup.",
+    "existing_guards": "Screenshot uses remaining original budget; cancellation removes incomplete packages. Retention stays 30 days and 20 captures per application."
+  },
+  "validation": {
+    "command": "python -m pytest -q tests/unit/test_browser_debug_capture.py tests/unit/test_fleet_t12_debug_capture_budget.py tests/browser/test_debug_capture_privacy.py --junitxml=C:/Tools/Dev/mjobs-pro-dom-final.xml",
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "subtests_passed": 11,
+    "report": {
+      "filename": "mjobs-pro-dom-final.xml",
+      "sha256": "4941dcf4d7b6e93cdedc7d08f4f229d01d62cd17bc95cc90fd01c1c6b9b1a813"
+    },
+    "real_browser": "Three Chromium cases require captured form/input topology, complete visual/serialized redaction, 1000-node retained caps, and bounded omitted capture plus successful subsequent capture when owned DOM/abort acknowledgements are withheld.",
+    "native_protocol": "Installed Channel._inner_send, Connection._abort and ProtocolCallback are used for stalled creation/send/detach regressions; owned callback is canceled, shared transport future untouched, zero pending operation tasks.",
+    "independent_review": "Source and actual pinned-method review PASS; no remaining blocking source finding. This is internal review, not human approval."
+  },
+  "resolved_intermediate_findings": [
+    {
+      "finding": "Initial asyncio.wait_for could wait indefinitely for Playwright abort acknowledgement.",
+      "resolution": "Explicit finite two-phase task cancellation, verified against the actual installed protocol and real Chromium transport."
+    },
+    {
+      "finding": "Initial Windows JSON file was 8628 bytes despite an 8192-byte LF estimate.",
+      "resolution": "Atomic JSON writer now forces LF; the actual disk-byte regression and Chromium size assertion pass."
+    },
+    {
+      "finding": "Broader local browser run exposed a historical changed-profile test that revoked all answers but expected automation to continue.",
+      "resolution": "Baseline failure reproduced; separate frozen-contact and revoked-answer cases pass with production safety unchanged.",
+      "evidence": "docs/evidence/2026-11-01-prepared-contact-answer-revocation.json"
+    }
+  ],
+  "historical_combined_run": {
+    "report": "mjobs-pro-batch2-final.xml",
+    "passed": 148,
+    "failed": 2,
+    "skipped": 3,
+    "subtests_passed": 75,
+    "status": "SUPERSEDED_FOR_CHANGED_CASES_BY_EXECUTED_TARGETED_RERUNS"
+  },
+  "limitations": [
+    "MJ-REQ-179 remains PARTIAL; complete browser-automation and real-adapter coverage is not established.",
+    "Raw CDP response bytes are decoded before retained node/byte limits; this is not a raw transport-size cap.",
+    "Synchronous filesystem operations are checkpointed but not hard-preempted.",
+    "The existing failure owner closes its browser context; no global connection/process teardown was added.",
+    "No external employer submission, paid AI call or live database restore was performed."
+  ],
+  "canonical_acceptance": "PENDING_PROTECTED_INTEGRATION"
+}

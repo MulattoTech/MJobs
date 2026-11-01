@@ -250,7 +250,7 @@ def test_omitted_dom_primary_error_metadata_and_healthy_next_capture_readback(tm
     assert metadata["screenshot"]["status"] == "FAILED"
     assert not (first / "screenshot.png").exists()
     assert dom == {
-        "status": "OMITTED_UNBOUNDED_EVALUATION",
+        "status": "OMITTED_UNSUPPORTED_TRANSPORT",
         "element_counts": {},
         "role_counts": {},
         "text_omitted": True,
