@@ -203,13 +203,15 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Posted within", exact=True).select_option("CUSTOM")
                     expect(page.get_by_label("Posted after (UTC)", exact=True)).to_be_visible()
                     expect(page.get_by_label("Posted before (UTC)", exact=True)).to_be_visible()
-                    page.get_by_label("Posted after (UTC)", exact=True).fill("2026-10-01T00:00:00")
+                    # Native datetime-local values omit a zero seconds component;
+                    # utcDateBound restores it for the unchanged UTC API bounds.
+                    page.get_by_label("Posted after (UTC)", exact=True).fill("2026-10-01T00:00")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
                             and "date_window=CUSTOM" in response.url
                             and "date_start=2026-10-01T00%3A00%3A00Z" in response.url
                             and "date_end=2026-10-02T00%3A00%3A00Z" in response.url) as custom:
-                        page.get_by_label("Posted before (UTC)", exact=True).fill("2026-10-02T00:00:00")
+                        page.get_by_label("Posted before (UTC)", exact=True).fill("2026-10-02T00:00")
                     self.assertEqual(custom.value.status, 200)
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
