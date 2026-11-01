@@ -14,7 +14,7 @@
     "git_tree": "130fc988fe56d7c18f1bf39977e54f700deaf727",
     "pr": "https://github.com/MulattoTech/MJobs/pull/875"
   },
-  "acceptance_record_integration": "This record requires its own protected PR; code integration above is already complete.",
+  "acceptance_record_integration": "Protected PR877 records this checkpoint after source PR875 and dependency PR876; require its exact proposed-merge gates before merging.",
   "original_denominator": 366,
   "reference_denominator": 59,
   "p1_denominator": 116,
@@ -397,7 +397,9 @@
     "docs/evidence/2026-11-01-pro-p1/record-validation.json": "0f90caa44ccff6cb748a9d7bf750986cdd454c8df21647d635e3462d7ff1109e",
     "docs/evidence/2026-11-01-pro-p1/inputs/source-gates.original.json.gz": "9a94696c694e1658002881d19c4af0b49f92b07780441705c97bbf700fb25aa2",
     "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-recorded-p1-diff.json": "a2a5ecec9ffb4b0ceb09b3020d3fe837e5dd909cfb80cab9b34c68acffb4ee22",
-    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670"
+    "docs/evidence/2026-11-01-pro-p1/reviews/acceptance-review-secret-fingerprints.json": "d4e24e640f09b73aa8fbe9715b8d40925bfd05dab2f217befb70d6b0251d0670",
+    "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json": "ec2e42ea7c3ea3a4087974316505f2014c22cf4801bf2fae2a5fc5ce687cd831",
+    "docs/evidence/2026-11-01-pro-p1/inputs/pypdf-gates.original.json.gz": "e8fea5e625e8fc7645dad8e32625fc194d8cc9c2b04be0bbb2b1c1eeffafa8b9"
   },
   "known_limitations": [
     "MJ-REQ-254 remains PARTIAL: 21 active UI modules contain 32 unbounded injected-fetch dispatch sites.",
@@ -407,7 +409,8 @@
     "The onboarding synthetic artifact remains PARTIAL for its real-provider clause; all performed synthetic actions passed. Live provider requirements have separate explicit evidence.",
     "Original 366 and additive 59 acceptance authorities remain separate and retain their denominators.",
     "Production deployment and post-merge issue readback are verified separately after this protected acceptance PR.",
-    "The additional opt-in STK01 full-stack lifecycle case remains SKIPPED; its supporting module records 15 passed / 1 skipped. The independent literal requirement 020 review establishes all required policy-field/isolation assertions passed without claiming the extra stack scenario ran."
+    "The additional opt-in STK01 full-stack lifecycle case remains SKIPPED; its supporting module records 15 passed / 1 skipped. The independent literal requirement 020 review establishes all required policy-field/isolation assertions passed without claiming the extra stack scenario ran.",
+    "A newly reported minimatch development-dependency advisory (GHSA-g3hv-75wg-m249) remains for follow-up; its fixed major version requires a separate compatibility change. This is not a claim of a vulnerability-free release."
   ],
   "github_issue_baseline": {
     "selected": 43,
@@ -422,6 +425,13 @@
       "original_compressed_path": "docs/evidence/2026-11-01-pro-p1/inputs/source-gates.original.json.gz",
       "original_uncompressed_sha256": "d2521907da8be0db4ade834e3023644cfc21116f1ae8ec11aafffdf4638ef2b6",
       "readable_sha256": "9a951e6c0af67a44dbb6116b1ed04b2a59d0460e523789243a73306b6ed86bbc"
+    },
+    {
+      "readable_path": "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json",
+      "transformation": "CRLF to LF only; parsed JSON equality verified",
+      "original_compressed_path": "docs/evidence/2026-11-01-pro-p1/inputs/pypdf-gates.original.json.gz",
+      "original_uncompressed_sha256": "a6d527b26763e550eccf5cd7c6ab3753bd183ee268f82b2e71a217b33790c994",
+      "readable_sha256": "ec2e42ea7c3ea3a4087974316505f2014c22cf4801bf2fae2a5fc5ce687cd831"
     }
   ],
   "final_record_review": {
@@ -437,5 +447,17 @@
     "exact_history_fingerprint_exceptions": 13,
     "scanner_rules_changed": false,
     "required_scanner_rerun": "Required on the final protected PR revision before integration"
+  },
+  "integrated_dependency_followup": {
+    "pr": "https://github.com/MulattoTech/MJobs/pull/876",
+    "source_head": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+    "tested_proposed_merge": "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b",
+    "merged_commit": "25e3f25968ce8e6148ede67fae6e029414567567",
+    "git_tree": "f88661b0430a55165d802468e8f2a16261c6e3b8",
+    "change": "requirements.txt: pypdf 6.21.2 to 6.21.4",
+    "purpose": "Patched versions for seven newly reported high-severity pypdf advisories; alert-state closure is checked separately after dependency graph refresh.",
+    "required_gates": "PASS 5/5 on the actual proposed merge",
+    "evidence": "docs/evidence/2026-11-01-pro-p1/pypdf-gates.json",
+    "original_acceptance_source": "The original criterion proofs remain bound to ca1e62c6. Final acceptance PR checks also execute with the integrated patched dependency."
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-01T06:12:03.759437+00:00",
+  "generated_at": "2026-11-01T06:31:43.869016+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -8,8 +8,8 @@
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
     "current_verified_local_state": "Owned source worktree verified at ca1e62c6; primary Windows main retained clean during isolated execution. Source integrated at 07eab582; acceptance records follow through their own protected PR.",
-    "current_verified_github_state": "PR #875 merged at 07eab582 after all five required gates on proposed merge f68edc8c. The 43 literal P1 requirements have independently reconciled execution evidence; this checkpoint records 92/116.",
-    "current_verified_at": "2026-11-01T06:12:03.759437+00:00"
+    "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
+    "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
   "current_milestone": "PRO-P1-VERIFIED-DELIVERY-20261101",
   "current_objective": "Continue from verified 92/116 P1 acceptance; complete remaining UX, source-quality and application-readiness gaps",
@@ -675,11 +675,11 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "utc": "2026-11-01T06:12:03.759437+00:00",
-    "source_commit": "ca1e62c6dc64ef4149bba577f02973684e259e16",
-    "tested_head": "f68edc8cce2013f4ccfc5df209862dc40651fb9e",
-    "main": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
-    "pr": 875,
+    "utc": "2026-11-01T06:31:43.869016+00:00",
+    "source_commit": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+    "tested_head": "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b",
+    "main": "25e3f25968ce8e6148ede67fae6e029414567567",
+    "pr": 876,
     "required_gates": "PASS 5/5",
     "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
   },
@@ -1063,17 +1063,18 @@
         "The onboarding synthetic artifact remains PARTIAL for its real-provider clause; all performed synthetic actions passed. Live provider requirements have separate explicit evidence.",
         "Original 366 and additive 59 acceptance authorities remain separate and retain their denominators.",
         "Production deployment and post-merge issue readback are verified separately after this protected acceptance PR.",
-        "The additional opt-in STK01 full-stack lifecycle case remains SKIPPED; its supporting module records 15 passed / 1 skipped. The independent literal requirement 020 review establishes all required policy-field/isolation assertions passed without claiming the extra stack scenario ran."
+        "The additional opt-in STK01 full-stack lifecycle case remains SKIPPED; its supporting module records 15 passed / 1 skipped. The independent literal requirement 020 review establishes all required policy-field/isolation assertions passed without claiming the extra stack scenario ran.",
+        "A newly reported minimatch development-dependency advisory (GHSA-g3hv-75wg-m249) remains for follow-up; its fixed major version requires a separate compatibility change. This is not a claim of a vulnerability-free release."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+        "git_commit": "25e3f25968ce8e6148ede67fae6e029414567567",
         "evidence_path": "docs/evidence/2026-11-01-pro-p1-delivery.json"
       }
     }
   ],
   "current_phase": "P1_ACCEPTANCE_RECORDED",
   "last_safe_checkpoint": {
-    "git_commit": "07eab582dbce29de49cde2180a39b031c3ad5ab2",
+    "git_commit": "25e3f25968ce8e6148ede67fae6e029414567567",
     "evidence_path": "docs/evidence/2026-11-01-pro-p1-delivery.json"
   },
   "live_integrations_tested": [
@@ -1634,7 +1635,8 @@
       "MJ-REQ-286",
       "MJ-REQ-287"
     ],
-    "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
+    "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json",
+    "acceptance_pr": 877
   },
   "historical_control_snapshots": [
     {
@@ -3062,7 +3064,7 @@
   },
   "updated_at": "2026-10-14T21:47:49.717359+00:00",
   "current_verified_local_state": "Owned source worktree verified at ca1e62c6; primary Windows main retained clean during isolated execution. Source integrated at 07eab582; acceptance records follow through their own protected PR.",
-  "current_verified_github_state": "PR #875 merged at 07eab582 after all five required gates on proposed merge f68edc8c. The 43 literal P1 requirements have independently reconciled execution evidence; this checkpoint records 92/116.",
+  "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
   "next_candidates": [
     {
       "issue": 255,

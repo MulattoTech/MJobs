@@ -6,7 +6,9 @@ This checkpoint records **92/116 P1 PASS**, up 43 from 49; 18 remain PARTIAL and
 
 Source: `ca1e62c6dc64ef4149bba577f02973684e259e16`, protected [PR #875](https://github.com/MulattoTech/MJobs/pull/875), merged as `07eab582dbce29de49cde2180a39b031c3ad5ab2`. Every source-testing required job checked out proposed merge `f68edc8cce2013f4ccfc5df209862dc40651fb9e`; its tree equals the integrated source tree.
 
-[Primary evidence](../docs/evidence/2026-11-01-pro-p1-delivery.json) contains the exact 43 IDs, per-criterion records, retained failures, hashes, run links and review limits. Publish this record through its own protected acceptance PR, then attach the issue-closure and deployment receipts to that PR. Verify those receipts before claiming deployment.
+[Primary evidence](../docs/evidence/2026-11-01-pro-p1-delivery.json) contains the exact 43 IDs, per-criterion records, retained failures, hashes, run links and review limits. Publish this record through [PR #877](https://github.com/MulattoTech/MJobs/pull/877), then attach the issue-closure and deployment receipts to that PR. Verify those receipts before claiming deployment.
+
+Dependency follow-up: [PR #876](https://github.com/MulattoTech/MJobs/pull/876) merged at `25e3f25968ce8e6148ede67fae6e029414567567` after all five required gates on proposed merge `7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b`. It upgrades pypdf to 6.21.4 for seven new high-severity advisories. A separate minimatch development-dependency advisory remains. The final acceptance PR must pass again against this integrated base.
 
 ## Executed verification
 
