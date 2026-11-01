@@ -1,7 +1,11 @@
 const API_REQUEST_TIMEOUT_MS = 30_000;
 const RESUME_UPLOAD_TIMEOUT_MS = 60_000;
+const API_REQUEST_TIMEOUT_MESSAGE = 'Request timed out. Check the saved status before trying again; the request may have completed.';
 
-async function requestJSON(path: string, init: RequestInit, timeoutMs: number, timeoutMessage: string) {
+/** Keep response consumption inside the deadline, including non-JSON readers. */
+export async function requestWithDeadline<T>(path: string, init: RequestInit,
+  readResponse: (response: Response) => Promise<T>,
+  timeoutMs = API_REQUEST_TIMEOUT_MS, timeoutMessage = API_REQUEST_TIMEOUT_MESSAGE): Promise<T> {
   const callerSignal = init.signal;
   if (callerSignal?.aborted) throw callerSignal.reason;
 
@@ -26,9 +30,9 @@ async function requestJSON(path: string, init: RequestInit, timeoutMs: number, t
       (async () => {
         const response = await fetch(path, { ...init, signal: controller.signal });
         controller.signal.throwIfAborted();
-        const data = await response.json();
+        const data = await readResponse(response);
         controller.signal.throwIfAborted();
-        return { response, data };
+        return data;
       })(),
       interrupted,
     ]);
@@ -38,11 +42,16 @@ async function requestJSON(path: string, init: RequestInit, timeoutMs: number, t
   }
 }
 
+function requestJSON(path: string, init: RequestInit, timeoutMs: number, timeoutMessage: string) {
+  return requestWithDeadline(path, init,
+    async response => ({ response, data: await response.json() }), timeoutMs, timeoutMessage);
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const { response, data } = await requestJSON(path,
     { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } },
     API_REQUEST_TIMEOUT_MS,
-    'Request timed out. Check the saved status before trying again; the request may have completed.');
+    API_REQUEST_TIMEOUT_MESSAGE);
   if (!response.ok) throw Object.assign(new Error(typeof data.detail === 'string' ? data.detail : typeof data.detail?.message === 'string' ? data.detail.message : `Request rejected (${response.status}). Check the fields and try again.`), { status: response.status, code: typeof data.detail?.code === 'string' ? data.detail.code : undefined });
   return data as T;
 }

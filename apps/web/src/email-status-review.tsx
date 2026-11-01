@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { requestWithDeadline } from './api';
 
 export const EMAIL_STATUS_MAX_BYTES = 256 * 1024;
 
@@ -163,23 +164,24 @@ function requestId(): string {
 }
 
 async function readJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  return requestWithDeadline(path, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
+  }, async response => {
+    let body: unknown = null;
+    try { body = await response.json(); } catch { /* Keep fixed safe errors below. */ }
+    if (!response.ok) {
+      const candidate = body && typeof body === 'object' ? body as { code?: unknown; detail?: unknown } : {};
+      const nestedCode = candidate.detail && typeof candidate.detail === 'object'
+        ? (candidate.detail as { code?: unknown }).code : undefined;
+      const code = typeof candidate.code === 'string' ? candidate.code : nestedCode;
+      const error = new Error('Email status request failed.') as Error & { status: number; code?: string };
+      error.status = response.status;
+      if (typeof code === 'string') error.code = code;
+      throw error;
+    }
+    return body as T;
   });
-  let body: unknown = null;
-  try { body = await response.json(); } catch { /* Keep fixed safe errors below. */ }
-  if (!response.ok) {
-    const candidate = body && typeof body === 'object' ? body as { code?: unknown; detail?: unknown } : {};
-    const nestedCode = candidate.detail && typeof candidate.detail === 'object'
-      ? (candidate.detail as { code?: unknown }).code : undefined;
-    const code = typeof candidate.code === 'string' ? candidate.code : nestedCode;
-    const error = new Error('Email status request failed.') as Error & { status: number; code?: string };
-    error.status = response.status;
-    if (typeof code === 'string') error.code = code;
-    throw error;
-  }
-  return body as T;
 }
 
 function path(profileId: string, applicationId: string, suffix = ''): string {
@@ -361,11 +363,12 @@ export function EmailStatusReview({ profileId, applicationId, onStatusChanged }:
     const key = scopeKey;
     const profile = profileId;
     const application = applicationId;
+    const controller = new AbortController();
     let active = true;
     fileReadSequence.current += 1;
     retryRequest.current = null;
     setState(initialState(key, true));
-    void readJson<EmailStatusHistory>(path(profile, application)).then(result => {
+    void readJson<EmailStatusHistory>(path(profile, application), { signal: controller.signal }).then(result => {
       if (!active || requestScope.current !== key) return;
       if (!result || !Array.isArray(result.items)) throw new Error('Invalid history response.');
       setState(current => current.scopeKey === key ? { ...current, history: result, loading: false } : current);
@@ -374,7 +377,7 @@ export function EmailStatusReview({ profileId, applicationId, onStatusChanged }:
         setState(current => current.scopeKey === key ? { ...current, loading: false, error: 'history' } : current);
       }
     });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [scopeKey]);
 
   useEffect(() => () => {
