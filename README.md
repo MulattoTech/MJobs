@@ -104,6 +104,8 @@ Start with [DEVELOPMENT.md](docs/DEVELOPMENT.md), [CONTRIBUTING.md](CONTRIBUTING
 | Need | Go here |
 |---|---|
 | User walkthrough and known limits | [Local user testing](docs/USER_TESTING.md) |
+| Repository layout and provider development | [Repository map](docs/REPO_MAP.md) and [development guides](docs/DEVELOPMENT.md#find-the-right-boundary) |
+| Runtime failures and recovery boundaries | [Troubleshooting](docs/TROUBLESHOOTING.md) |
 | Product acceptance | [Evidence-backed dashboard](docs/PROGRESS_DASHBOARD.md) |
 | Priority work and security backlog | [GitHub Project](https://github.com/users/MulattoTech/projects/1) |
 | Current implementation handoff | [Session handoff](planning/SESSION_HANDOFF.md) |

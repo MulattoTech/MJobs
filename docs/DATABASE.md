@@ -1,7 +1,7 @@
 # Database guide
 
 Scope: **MJ-REQ-286 / [issue #287](https://github.com/MulattoTech/MJobs/issues/287)**.
-This guide describes the source contract at `8ad5d3841cb7f67ce0e204c7e169bd9ebf3e0ece`;
+This guide describes the checked-in schema and storage contracts linked below;
 it is not evidence that a particular running database is current or recoverable.
 The relational map below is the ER-diagram equivalent and remains readable without
 a diagram renderer. Recheck source and migration heads when upgrading.
