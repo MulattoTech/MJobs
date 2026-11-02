@@ -20,6 +20,7 @@ import urllib.request
 from packages.persistence import models
 from packages.persistence.store import Store
 from services.credentials.vault import CredentialCipher, CredentialConfigurationError
+from services.applications.configuration import configured_submission_policy
 
 
 PROJECT = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
@@ -56,6 +57,11 @@ RUNTIME_SETTING_NAMES = frozenset((
     "MJOBS_COMPOSE_MOCK",
     *RUNTIME_SETTING_BOUNDS.keys(),
 ))
+SUBMISSION_SETTING_NAMES = frozenset((
+    "MJOBS_SUBMISSION_HOURLY_LIMIT", "MJOBS_SUBMISSION_DAILY_LIMIT",
+    "MJOBS_SUBMISSION_COMPANY_LIMIT",
+))
+RUNTIME_SETTING_NAMES_V2 = RUNTIME_SETTING_NAMES | SUBMISSION_SETTING_NAMES
 
 
 def require_stopped_writers(states: dict[str, str]) -> None:
@@ -128,11 +134,12 @@ def _validate_runtime_configuration(snapshot: object, operation_mode: str) -> No
             or not isinstance(snapshot, dict)
             or set(snapshot) != {"schema_version", "operation_mode", "settings"}):
         raise BackupError("Backup runtime configuration is invalid")
-    if (type(snapshot.get("schema_version")) is not int or snapshot.get("schema_version") != 1
+    if (type(snapshot.get("schema_version")) is not int or snapshot.get("schema_version") not in (1, 2)
             or snapshot.get("operation_mode") != operation_mode):
         raise BackupError("Backup runtime configuration does not match its workspace mode")
     settings = snapshot.get("settings")
-    if not isinstance(settings, dict) or set(settings) != RUNTIME_SETTING_NAMES:
+    expected_names = RUNTIME_SETTING_NAMES_V2 if snapshot["schema_version"] == 2 else RUNTIME_SETTING_NAMES
+    if not isinstance(settings, dict) or set(settings) != expected_names:
         raise BackupError("Backup runtime configuration contains unsupported settings")
     if settings["MJOBS_OPERATION_MODE"] != operation_mode:
         raise BackupError("Backup runtime configuration does not match its workspace mode")
@@ -144,6 +151,11 @@ def _validate_runtime_configuration(snapshot: object, operation_mode: str) -> No
         if (not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]{0,6}", value)
                 or not minimum <= int(value) <= maximum):
             raise BackupError("Backup runtime configuration contains an invalid setting")
+    if snapshot["schema_version"] == 2:
+        try:
+            configured_submission_policy(settings)
+        except ValueError:
+            raise BackupError("Backup runtime configuration contains an invalid setting") from None
 
 
 def _runtime_configuration_snapshot(container: str, operation_mode: str) -> dict:
@@ -157,14 +169,14 @@ def _runtime_configuration_snapshot(container: str, operation_mode: str) -> dict
         environment: dict[str, str] = {}
         for item in entries:
             name, value = item.split("=", 1)
-            if name in RUNTIME_SETTING_NAMES:
+            if name in RUNTIME_SETTING_NAMES_V2:
                 if name in environment:
                     raise ValueError("duplicate allowlisted setting")
                 environment[name] = value
     except (UnicodeError, json.JSONDecodeError, ValueError):
         raise BackupError("API runtime configuration could not be safely captured") from None
     snapshot = {
-        "schema_version": 1,
+        "schema_version": 2 if SUBMISSION_SETTING_NAMES.intersection(environment) else 1,
         "operation_mode": operation_mode,
         "settings": environment,
     }
