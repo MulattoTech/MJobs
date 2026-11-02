@@ -1,0 +1,43 @@
+{
+  "milestone_id": "PRO-BOUNDARIES-PUBLICATION-FOLLOWUP-20261102",
+  "timestamp": "2026-11-02T19:41:58.439688+00:00",
+  "current_phase": "PR891 census fixture correction verified; fresh protected publication checks required",
+  "completed_steps": [
+    "Published PR891 with priority fix and verified015/174 acceptance;264 remains corrected PARTIAL.",
+    "Reproduced hosted census failure and replaced stale status assumption with all canonical/Project combinations; anti-inflation behavior remains enforced.",
+    "Diagnosed separate native test database reuse; retained original failure and prior synthetic row, then passed all ten retry cases in a fresh owned database."
+  ],
+  "files_added": [
+    "docs/evidence/2026-11-02-pro-boundaries/publication-followup.json"
+  ],
+  "files_modified": [
+    "tests/unit/test_acceptance_integrity.py",
+    "planning/PR_QUEUE.json",
+    "planning/SESSION_HANDOFF.md"
+  ],
+  "tests_completed": [
+    "Current census file: Linux118PASS/3WindowsSKIP; nativeWindows118PASS/3symlinkSKIP. The complementary platform cases pass in the other environment.",
+    "Independent review and Ruff PASS.",
+    "Initial proposed merge93PASS/1fixture-setupFAIL/2RedisSKIP/73subtests; fresh isolated retry follow-up10PASS/0SKIP/6subtests, not additive."
+  ],
+  "tests_remaining": [
+    "Updated exact proposed-merge checks and all protected gates; earlier-head checks cannot satisfy the updated PR.",
+    "Protected publication, guarded deployment and issue synchronization.",
+    "Final containing PR receipt supplies future exact revisions, CI and delivery readback."
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [],
+  "known_errors": [
+    "Hosted41510608116: one stale-canonical-assumption unit failure retained; corrected source needs fresh CI.",
+    "Native proposed-merge fixture reused a fixed terminal operation identity; fresh database follow-up passed.",
+    "Earlier source and fixture failures remain preserved."
+  ],
+  "known_limitations": [
+    "P0/P1 counts unchanged:12/26 and107/116; two new P1 acceptances minus one prior correction.",
+    "Broader004/008/018/264/292 and171/172/224/269 gaps remain as previously recorded."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+  }
+}

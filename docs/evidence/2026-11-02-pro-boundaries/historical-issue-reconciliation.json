@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-02",
+  "receipt_type": "HISTORICAL_PASS_OPEN_ISSUE_RECONCILIATION",
+  "status": "DELIVERY_VERIFIED_PENDING_PROTECTED_PUBLICATION_AND_ISSUE_SYNC",
+  "reviewed_source_commit": "616968326f2d781a9b67843444e3f6ed0f9ed9b8",
+  "artifact_context_head": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "issue_inventory": {
+    "observed_at": "2026-11-02T18:42:39Z",
+    "source": "Authenticated open-issue inventory supplied by the integration owner; not fetched again by this reviewer."
+  },
+  "scope": "Read-only comparison of original criteria, current implementation and retained canonical acceptance evidence. This file supports later status synchronization and does not create fresh acceptance.",
+  "criteria_authority": "planning/ISSUE_SEED.jsonl",
+  "acceptance_authority": "planning/CAPABILITY_MATRIX.json",
+  "historical_acceptance_credit": {
+    "P0": 0,
+    "P1": 0
+  },
+  "fresh_test_runs": 0,
+  "fresh_production_probes": 0,
+  "fresh_public_source_requests": 0,
+  "canonical_results_changed_by_reviewer": false,
+  "github_issues_changed_by_reviewer": false,
+  "eligible_historical_issues": [
+    {
+      "requirement_id": "MJ-REQ-011",
+      "issue": 12,
+      "title": "Preferred Technology Stack",
+      "priority": "P0",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Prefer Python 3.12+, FastAPI, Pydantic, SQLAlchemy 2.x and Alembic; TypeScript/React/Next.js or another mature React architecture; PostgreSQL; a durable Redis-backed queue such as RQ; Playwright/Chromium; Docker Compose. pg_trgm and pgvector are optional where useful.",
+      "evidence_paths": [
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+      ],
+      "implementation_pointers": [
+        "requirements.lock",
+        "apps/web/package.json",
+        "infra/docker/Dockerfile",
+        "compose.yml"
+      ],
+      "why_no_remaining_original_gap": "The selected and exercised stack covers every required technology category. React/Vite fits the explicit mature React architecture allowance; Redis/RQ fits the queue options.",
+      "qualification": "The receipt records exact-head Actions runs 36786495249 and 36786496324. Its overall PARTIAL concerns broader architecture 010; its explicit 011 result is PASS. This does not establish full-product readiness."
+    },
+    {
+      "requirement_id": "MJ-REQ-012",
+      "issue": 13,
+      "title": "Service Architecture",
+      "priority": "P0",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "A reasonable deployment may contain frontend/backend/scheduler, general/source/company-discovery/AI/application-browser workers, PostgreSQL and Redis. Initial consolidation is allowed, but logical queues must remain separate and browser workers should not block job discovery.",
+      "evidence_paths": [
+        "docs/evidence/2026-09-30-pr004-local-restart.json",
+        "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
+        "docs/evidence/2026-09-30-ci-430.json"
+      ],
+      "implementation_pointers": [
+        "compose.yml",
+        "workers/operations.py",
+        "workers/main.py",
+        "tests/unit/test_worker_queue_binding.py"
+      ],
+      "why_no_remaining_original_gap": "Application, source-discovery, company-discovery, document and AI work have separate queue bindings and worker processes. Binding tests ensure each worker consumes only its configured queue; retained deployed evidence exercises the services.",
+      "qualification": "Historical host-restart limitations concern separate startup/recovery criteria. The literal service list permits consolidation."
+    },
+    {
+      "requirement_id": "MJ-REQ-016",
+      "issue": 17,
+      "title": "Global Job Sources",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Provide a first-class adapter interface with search, fetch, normalize, health and capabilities, or a cleaner equivalent. Keep source-specific scraping logic out of application consumers.",
+      "evidence_paths": [
+        "docs/evidence/2026-09-30-user-testing.md",
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-09-30-source-adapter-foundation.json",
+        "docs/evidence/2026-09-30-ci-429.json"
+      ],
+      "implementation_pointers": [
+        "services/discovery/sources/contract.py",
+        "services/discovery/sources/registry.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_greenhouse.py"
+      ],
+      "why_no_remaining_original_gap": "The five-operation contract is consumed by the registry and generic collection/persistence path. Provider parsing remains in adapter modules. Retained tests exercise the interface, refusal of legacy direct collection and multi-company posting attribution.",
+      "qualification": "The historical 'only Greenhouse' statement describes the earlier registry. Broader source coverage and strategy preference remain under incomplete 017/018. Local mock-harness parsing is not live global-source scraping."
+    },
+    {
+      "requirement_id": "MJ-REQ-212",
+      "issue": 213,
+      "title": "Automatic Company Discovery Test",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "An automated mock journey must find Example Systems Job A at an aggregator, identify the previously unknown company's official site and career page, detect its ATS, create CompanyJobSource, fetch employer jobs, match duplicate A and discover employer-only B.",
+      "evidence_paths": [
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-09-30-ci-370.json"
+      ],
+      "implementation_pointers": [
+        "tests/integration/test_spine.py",
+        "services/discovery/pipeline.py",
+        "services/company_discovery/flywheel.py",
+        "fixtures/mock_server.py"
+      ],
+      "why_no_remaining_original_gap": "The controlled HTTP flywheel begins with an unknown fixture company, follows employer/career/ATS evidence, enrolls its source and persists four postings as two canonical jobs including employer-only B. Retained deployed CI executes this journey.",
+      "qualification": "The literal criterion explicitly requests a mock automated journey. This does not accept general live-provider or whole-product discovery completeness."
+    },
+    {
+      "requirement_id": "MJ-REQ-218",
+      "issue": 219,
+      "title": "Unit Tests — Matching",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Test required, preferred and missing skills; remote, salary and seniority mismatches; and preferred versus required education.",
+      "evidence_paths": [
+        "planning/CAPABILITY_MATRIX.json"
+      ],
+      "evidence_selector": "MJ-REQ-218 evidence entries: corrected source/test blobs and hosted run 40263302872, job 121380111200, nine target cases with zero failures/errors/skips.",
+      "implementation_pointers": [
+        "tests/unit/test_matching_requirements_sustain_219.py",
+        "services/matching/components.py"
+      ],
+      "reviewed_current_blob_ids": {
+        "tests/unit/test_matching_requirements_sustain_219.py": "693992bf701b711c2456b74bcd613c316a7afb4f",
+        "services/matching/components.py": "8246237c4ba8506441a1fe1c54fc8d5e9637a4a5"
+      },
+      "why_no_remaining_original_gap": "Every enumerated distinction is tested, including canonical ONSITE versus REMOTE. Both current blobs exactly match the corrected blobs named by the historical hosted receipt.",
+      "qualification": "This establishes the enumerated unit cases, not broader matcher, API, UI or provider behavior. The reviewer did not rerun those cases."
+    },
+    {
+      "requirement_id": "MJ-REQ-250",
+      "issue": 251,
+      "title": "First-Run Wizard",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Provide the ten-step flow: create profile; upload resume; review extracted facts; configure desired jobs, location/remote preferences, application preferences and AI; enable sources; choose automation level; run first search.",
+      "evidence_paths": [
+        "docs/evidence/2026-10-09-first-run-wizard.json",
+        "docs/evidence/2026-10-09-first-run-positive-search.json",
+        "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
+      ],
+      "decisive_evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json",
+      "implementation_pointers": [
+        "apps/web/src/first-run-wizard.tsx",
+        "apps/web/src/main.tsx",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/integration/test_first_run_search.py"
+      ],
+      "why_no_remaining_original_gap": "The final retained Chromium receipt covers all ten steps from a fresh profile, actual synthetic PDF extraction and explicit approval through saved preferences, AI-disabled/manual-review choices, source/search enrollment and a positive persisted search result visible after reload. The current browser test retains those steps.",
+      "qualification": "The final fresh-profile receipt supersedes earlier PARTIAL receipts and expressly identifies the open issue as pending source synchronization. Synthetic provider transport and browser-local acknowledgments remain disclosed scope limits; no live-provider claim is added."
+    },
+    {
+      "requirement_id": "MJ-REQ-251",
+      "issue": 252,
+      "title": "First-Run Resume Review",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Do not start automatic applications before the user has had the opportunity to verify imported career facts.",
+      "evidence_paths": [
+        "docs/evidence/2026-10-09-first-run-resume-review.json"
+      ],
+      "implementation_pointers": [
+        "apps/web/src/main.tsx",
+        "apps/web/src/first-run-wizard.tsx",
+        "services/career_profile/extraction.py",
+        "tests/integration/test_profile_import.py",
+        "tests/browser/test_first_run_wizard.py"
+      ],
+      "why_no_remaining_original_gap": "Imported facts remain pending; first-run exposes them for explicit verification and approval; persisted approval determines review completion. The retained connected receipt verifies API readback and reload with external submission disabled.",
+      "qualification": "The historical note that the broader wizard remained incomplete is superseded by later 250 evidence and is not an unresolved 251 criterion."
+    },
+    {
+      "requirement_id": "MJ-REQ-265",
+      "issue": 266,
+      "title": "Configurable Company-Discovery Thresholds",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Provide conceptual settings company_discovery_enabled, minimum_match_for_discovery, priority_match_for_discovery and max_new_company_discoveries_per_hour.",
+      "evidence_paths": [
+        "docs/evidence/2026-10-09-company-discovery-policy.json"
+      ],
+      "implementation_pointers": [
+        "packages/domain/profile.py",
+        "services/company_discovery/requests.py",
+        "apps/web/src/company-discovery-policy.tsx",
+        "tests/integration/test_company_discovery_policy.py",
+        "tests/browser/test_company_discovery_policy.py"
+      ],
+      "why_no_remaining_original_gap": "All four settings are validated profile preferences, editable through the connected UI, persistent across reload and consumed by discovery policy. Retained tests cover defaults, invalid bounds, enablement, thresholds and the hourly cap.",
+      "qualification": "The separate 264 priority-promotion defect does not remove these configuration settings. This closure must not be used to close 264. Concurrent priority implementation is outside this receipt's acceptance scope."
+    },
+    {
+      "requirement_id": "MJ-REQ-268",
+      "issue": 269,
+      "title": "Application Status Tracking",
+      "priority": "P1",
+      "canonical_result": "PASS",
+      "literal_criterion_summary": "Allow manual Applied, Recruiter Contact, Interview, Offer, Rejected and Withdrawn statuses. Automatic email-based updates can be added later.",
+      "evidence_paths": [
+        "docs/evidence/2026-10-09-application-status-tracking.json"
+      ],
+      "implementation_pointers": [
+        "services/tracking/applications.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_application_pipeline.py",
+        "tests/browser/test_application_status_tracking.py"
+      ],
+      "why_no_remaining_original_gap": "All six statuses are exposed and persist with USER_REPORTED attribution, ordered history, profile isolation and reload/readback coverage. Applied remains distinct from employer submission confirmation.",
+      "qualification": "Email updates are expressly optional. The historical broader workflow stopped before status assertions, while the focused connected status journey passed independently."
+    }
+  ],
+  "excluded_requirement": {
+    "requirement_id": "MJ-REQ-264",
+    "issue": 265,
+    "title": "Priority Company Discovery",
+    "issue_disposition": "REMAIN_OPEN",
+    "observed_historical_canonical_result": "PASS",
+    "planned_canonical_result": "PARTIAL",
+    "reason": "The separate integration-owner patch addresses durable priority promotion and claim ordering. This receipt does not accept that patch or resolve the complete original priority-discovery criterion.",
+    "interpretation_boundary": "A durable discovery request awaiting origin review is distinct from a runnable worker operation. Verified-origin safety gates must remain; the original criterion must be reconciled without inventing an eligible-only exception."
+  },
+  "wwr_retained_disposition": {
+    "provider": "wwr",
+    "result": "RETAIN_UPSTREAM_CONFLICT_NO_NEW_PATCH_OR_PUBLIC_FETCH",
+    "evidence_paths": [
+      "docs/evidence/2026-11-02-wwr-upstream-conflicts.json",
+      "docs/evidence/2026-11-02-pro-resume/wwr-bounded-replay.json"
+    ],
+    "existing_observation": "The 2026-11-02 15:48 UTC receipt records one bounded public GET, 100 entries and 98 identities. Both conflicting groups have identical full GUID and link strings. One differs in description; the other in description and type.",
+    "existing_verification": "The later captured-feed replay refuses SOURCE_DUPLICATE_JOB_ID in both original and reversed order, preserving full rows and digests across six affected job tables and recording failed source health. This supplies rollback verification missing from the earlier observer-error receipt.",
+    "code_review": "Exact parsed-raw repeats are already accepted by detail lookup and collection; conflicting raw variants are rejected. The equal full GUID/link strings rule out an observed normalization collision. No authoritative winner or safe identity rewrite is supported by the retained evidence.",
+    "qualification": "No new test run, live request or source availability PASS is claimed. Preserve the live WWR failure and existing historical evidence; parent 017 remains PARTIAL."
+  },
+  "remaining_actions_owned_by_integration_owner": [
+    "Complete final guarded deployment and retain exact SHA, image and runtime evidence.",
+    "Reconfirm the nine issue states, then synchronize only stale historical PASS issues using their original scoped evidence.",
+    "Keep issue #265 open and record the separately planned MJ-REQ-264 PARTIAL reconciliation.",
+    "Accept MJ-REQ-015 and MJ-REQ-174 only after their guarded deployment and probe gates; do not count historical issue cleanup as new acceptance."
+  ],
+  "expected_status_only_effect": {
+    "stale_P0_open_issues": 2,
+    "stale_P1_open_issues": 7,
+    "new_PASS_credit": 0
+  },
+  "delivery_evidence": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+}

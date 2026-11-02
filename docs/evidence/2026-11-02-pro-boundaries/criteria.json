@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "status": "VERIFIED_SOURCE_ACCEPTANCE_PENDING_PROTECTED_PUBLICATION",
+  "candidate_head": "616968326f2d781a9b67843444e3f6ed0f9ed9b8",
+  "acceptance_authority": "planning/CAPABILITY_MATRIX.json",
+  "requirements": {
+    "MJ-REQ-015": {
+      "title": "Domain Model — Core Concepts",
+      "literal_source": "docs/spec/areas/core_search_model.md#15-domain-model--core-concepts",
+      "interpretation": "Original criterion requires nineteen distinguished concepts, not nineteen new tables. Sixteen separate relational entities and three separately validated durable concepts satisfy the architecture distinction. No definition was changed.",
+      "criteria": [
+        {
+          "concept": "User / CareerProfile",
+          "implementation": "career_profiles, immutable profile_versions and career_facts",
+          "execution": "tests/unit/test_profile_orm_reads.py"
+        },
+        {
+          "concept": "SearchProfile",
+          "implementation": "separately owned search_profiles criteria and source selection",
+          "execution": "tests/integration/test_prefilter_search_profile_contract.py"
+        },
+        {
+          "concept": "Company",
+          "implementation": "companies identity",
+          "execution": "tests/unit/test_company_resolution.py"
+        },
+        {
+          "concept": "CompanyAlias",
+          "implementation": "company_aliases identity evidence",
+          "execution": "tests/unit/test_company_resolution.py"
+        },
+        {
+          "concept": "CompanyDomain",
+          "implementation": "company_domains verification evidence",
+          "execution": "tests/unit/test_company_resolution.py"
+        },
+        {
+          "concept": "JobSource",
+          "implementation": "job_sources approved collector policy and capabilities",
+          "execution": "tests/unit/test_source_strategy_admission.py"
+        },
+        {
+          "concept": "CompanyJobSource",
+          "implementation": "company_job_sources employer endpoints and authority",
+          "execution": "tests/integration/test_company_sources.py"
+        },
+        {
+          "concept": "CanonicalJob",
+          "implementation": "canonical_jobs distinct from attributed postings",
+          "execution": "tests/integration/test_spine.py"
+        },
+        {
+          "concept": "JobPosting",
+          "implementation": "job_postings raw source identity and provenance",
+          "execution": "tests/integration/test_source_value_integrity.py"
+        },
+        {
+          "concept": "ApplicationRoute",
+          "implementation": "application_routes independently bound employer/provider route",
+          "execution": "tests/integration/test_spine.py"
+        },
+        {
+          "concept": "JobMatch",
+          "implementation": "job_matches bound to profile/version",
+          "execution": "tests/integration/test_spine.py"
+        },
+        {
+          "concept": "Document",
+          "implementation": "documents versioned artifacts and hashes",
+          "execution": "tests/integration/test_spine.py"
+        },
+        {
+          "concept": "Application",
+          "implementation": "applications durable preparation/submission state",
+          "execution": "tests/integration/test_application_relational_rejections_164.py"
+        },
+        {
+          "concept": "ApplicationAttempt",
+          "implementation": "application_attempts individual execution/receipt identity",
+          "execution": "tests/integration/test_application_attempt_history.py"
+        },
+        {
+          "concept": "AnswerBankEntry",
+          "implementation": "AnswerInput plus independently reviewed reusable answers in immutable profile_versions.answers",
+          "execution": "tests/integration/test_reviewed_application_answer_durability.py"
+        },
+        {
+          "concept": "BrowserProfile",
+          "implementation": "application-isolated browser directory and pinned bounded selection manifest",
+          "execution": "tests/integration/test_named_browser_profile.py"
+        },
+        {
+          "concept": "AutomationRule",
+          "implementation": "immutable SavedSearchRule shared by settings admission, transfer and scheduler execution",
+          "execution": "tests/unit/test_saved_search_scheduler.py"
+        },
+        {
+          "concept": "WorkerOperation",
+          "implementation": "worker_operations claims/state separate from attempts",
+          "execution": "tests/unit/test_operation_control_reads.py"
+        },
+        {
+          "concept": "AuditEvent",
+          "implementation": "audit_events immutable scoped history",
+          "execution": "tests/integration/test_audit_history.py"
+        }
+      ],
+      "result": "PASS"
+    },
+    "MJ-REQ-174": {
+      "title": "Security — Database",
+      "literal_source": "docs/spec/areas/orchestration_data_security.md#174-security--database",
+      "criteria": [
+        {
+          "criterion": "ORM",
+          "implementation": "Production Store._profile_on executes mapped CareerProfileRecord/ProfileVersionRecord/CareerFactRecord over existing migration-owned Tables.",
+          "tests": [
+            "tests/unit/test_profile_orm_reads.py",
+            "tests/integration/test_database_least_privilege.py"
+          ]
+        },
+        {
+          "criterion": "Parameterized queries",
+          "implementation": "ORM predicates and existing Core DML bind all user/job values; injection-shaped profile IDs and text round-trip only as data.",
+          "tests": [
+            "tests/unit/test_profile_orm_reads.py",
+            "tests/unit/test_persistence_input_security_226.py"
+          ]
+        },
+        {
+          "criterion": "Least-privileged credentials",
+          "implementation": "Dedicated runtime login, effective ACL rejection, restricted DML and migration-bookkeeping protections; container entrypoint fails closed on unsafe credential sources.",
+          "tests": [
+            "tests/integration/test_database_least_privilege.py"
+          ],
+          "production_probe": "docs/evidence/2026-11-02-pro-boundaries/production_orm_probe.py"
+        },
+        {
+          "criterion": "Never concatenate raw job content into SQL",
+          "implementation": "Reviewed collector/persistence paths bind raw payload/description/identity as values. Dynamic statements use metadata identifiers or validated integer controls, not job content.",
+          "tests": [
+            "tests/unit/test_persistence_input_security_226.py",
+            "tests/integration/test_source_value_integrity.py"
+          ]
+        }
+      ],
+      "result": "PASS"
+    }
+  },
+  "retained_evidence": [
+    "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+    "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json"
+  ],
+  "pending": [
+    "Exact proposed-merge verification and all protected checks for the priority/publication branch",
+    "Protected publication merge and final guarded deployment",
+    "Close new issues16/175 and reconcile nine historical statuses only after publication; keep265 open",
+    "Containing PR final receipt records its future exact merge SHA, deployment and issue readback"
+  ],
+  "explicit_non_acceptance": {
+    "MJ-REQ-004": "PARTIAL: bounded control-query/request-clock progress does not prove all acquisition, network, recovery and finalization bounds.",
+    "MJ-REQ-018": "PARTIAL: approved strategy/admission and corroborated feed fallback do not prove universal ladder preference or all desired sources.",
+    "MJ-REQ-264": "Acceptance correction: historical PASS was overstated. The original enqueue criterion does not contain the earlier note's extra eligible-origin qualification. A high-match job with no direct employer source, no verified origin and no narrow corroborated native link still creates NEEDS_ORIGIN_REVIEW with zero queued discovery operations. Retain original evidence and downgrade to PARTIAL. This publication also fixes in-place NORMAL-to-HIGH promotion and stale Redis-delivery claim ordering, preserving authorization, identity, queue age, retry/backoff and cancellation state; both PostgreSQL race orders pass. It does not complete automatic origin discovery or preempt running work."
+  },
+  "protected_source_merge": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "exact_source_receipt": "docs/evidence/2026-11-02-pro-boundaries/pr890-protected-merge.json",
+  "source_review": {
+    "sql_dynamic_statements": [
+      "workers/operations.py restores an integer SQLite PRAGMA from a driver-reported integer.",
+      "packages/persistence/store.py locks declared metadata table identifiers for backup; no raw job content is interpolated."
+    ],
+    "raw_job_paths": "Raw source identity, description, payload and job attributes remain SQLAlchemy bound values. Exact-source injection-shaped persistence regressions passed."
+  },
+  "verified_at": "2026-11-02T19:25:56.674927+00:00",
+  "delivery_evidence": "docs/evidence/2026-11-02-pro-boundaries/deployment.json",
+  "fresh_readiness": "docs/evidence/2026-11-02-pro-boundaries/full-readiness.json"
+}

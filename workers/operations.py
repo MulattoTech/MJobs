@@ -228,6 +228,21 @@ def claim(store, operation_id):
         if active >= limit(kind) or _application_browser_busy(connection, category, kind, row["entity_id"]):
             return None
         timestamp = now()
+        if (kind == "COMPANY_DISCOVER" and isinstance(row["params"], dict)
+                and row["params"].get("dispatch_priority") != "HIGH"):
+            # A normal delivery may already be ahead in RQ when another request
+            # gains priority. Defer without consuming an attempt; the outbox can
+            # redeliver it after high-priority discovery has been claimed.
+            pending_high = connection.execute(select(m.operations.c.id).where(
+                m.operations.c.kind == "COMPANY_DISCOVER",
+                m.operations.c.state == "QUEUED",
+                m.operations.c.cancel_requested.is_(False),
+                m.operations.c.params["dispatch_priority"].as_string() == "HIGH",
+                or_(m.operations.c.next_attempt_at.is_(None),
+                    m.operations.c.next_attempt_at <= timestamp),
+            ).limit(1)).scalar_one_or_none()
+            if pending_high is not None:
+                return None
         if kind == "PREPARE":
             from services.matching.preparation_priority import scheduling_key
             candidates = connection.execute(select(m.operations).where(

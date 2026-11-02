@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T19:41:58.439688+00:00",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/891",
+  "base_head": "5d6cc9ce2921a46a384f64734f71a593dab0ad43",
+  "result": "SCOPED_TEST_FIX_VERIFIED_PENDING_UPDATED_HEAD_CI",
+  "initial_hosted_failure": {
+    "run": 41510608116,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41510608116",
+    "head": "5d6cc9ce2921a46a384f64734f71a593dab0ad43",
+    "result": "FAILURE",
+    "tests_passed": 3440,
+    "tests_failed": 1,
+    "skipped": 53,
+    "subtests_passed": 3776,
+    "junit_sha256": "59a8aedb18bc55e3b66ab1c05120b1113f1f55bd9f65c953fcfd235e6bac2d7c",
+    "failed_case": "tests/unit/test_acceptance_integrity.py::test_census_covers_all425_without_promoting_historical_results",
+    "cause": "Census test read the evolving canonical matrix but hard-coded MJ-REQ-174 NOT_RUN; legitimate deployed acceptance is now PASS.",
+    "warning": "Retained unawaited DOM capture coroutine warning from another test; no new warning resolution claimed."
+  },
+  "fix": {
+    "source": "tests/unit/test_acceptance_integrity.py",
+    "sha256": "e4328604eaac1f63bfd0945558b86af81574e7da6d0b6c89d19598337c72ea40",
+    "behavior": [
+      "Use test-only read-boundary snapshots for canonical/index NOT_RUN, PARTIAL and PASS, crossed with Project NOT_RUN/PASS.",
+      "Assert Project metadata cannot promote or demote canonical state; surface acceptance drift explicitly.",
+      "Keep all425 fresh_acceptance values NOT_RUN, all original/reference/P0 denominator assertions and original issue-contract comparison.",
+      "No production census implementation, requirement criteria or canonical result is changed by this correction."
+    ]
+  },
+  "verification": {
+    "local_linux": {
+      "passed": 118,
+      "skipped": 3,
+      "duration_seconds": 7.92,
+      "junit_sha256": "f18812dddf19892575b4e2e0ca9f8d0db38114bbcaaa5ac1d83f8134fa83b22d",
+      "skips": "Three Windows-specific case/junction checks; subsequently PASS on native Windows."
+    },
+    "native_windows": {
+      "passed": 118,
+      "skipped": 3,
+      "duration_seconds": 35.53,
+      "junit_sha256": "1057d38c1c7cbdc3aeb1e55c6b0f2d188883fd350d4d0527f70c3c2399319b88",
+      "skips": "Three privileged symlink checks; PASS on local Linux. Skips remain separate historical outcomes."
+    },
+    "independent_review": "NO_BLOCKING_FINDINGS: anti-inflation checks preserved and strengthened; in-memory test objects only; no production or canonical mutation.",
+    "ruff": "PASS"
+  },
+  "initial_proposed_merge": {
+    "sha": "d5a0928591b04e326ddfb655293aeaf35ba8c8f2",
+    "tree": "81250c7ba2796e7547f4ac4f9c7bae34f608b5be",
+    "native": {
+      "passed": 93,
+      "failed": 1,
+      "skipped": 2,
+      "subtests_passed": 73,
+      "duration_seconds": 62.83,
+      "junit_sha256": "c662c6ffba4c74cc787437a2afd9255c5004f104ac152fc7081935fda682e8c0"
+    },
+    "failure_classification": "VERIFICATION_SETUP_REUSED_PRIOR_SYNTHETIC_TERMINAL_IDENTITY",
+    "failure_case": "PostgreSQLOperationRetryTests.test_apply_mock_failure_ignores_concurrent_cancel_for_retry_precedence",
+    "proof": "The test uses fixed entity synthetic-application and submit:true. The same deterministic operation was already DEAD_LETTERED at2026-11-02T19:18:30.134108+00:00 from the earlier successful run. Its next enqueue correctly preserved terminal state; no production defect inferred.",
+    "correction": "Verify exact owned container/label and no active sessions; preserve prior test DB by renaming it, create fresh isolated mjobs_retry_validation. No production DB or existing evidence changed.",
+    "retry_followup": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 6,
+      "duration_seconds": 4.28,
+      "junit_sha256": "fd4812ce8e66ad14acfc0e723e8bb65533bf4ad6a936bdc9fd31e6b73516d151"
+    },
+    "remaining_skips": "Two priority Redis worker tests require isolated Redis; hosted exact-head results required separately.",
+    "accounting": "The follow-up overlaps prior cases. Do not sum the two run totals or relabel the original failure."
+  },
+  "remaining": [
+    "Updated exact proposed-merge checks and all protected gates; earlier-head checks cannot satisfy the updated PR.",
+    "Protected publication, guarded deployment and issue synchronization.",
+    "Final containing PR receipt supplies future exact revisions, CI and delivery readback."
+  ],
+  "acceptance_counts_unchanged": true
+}

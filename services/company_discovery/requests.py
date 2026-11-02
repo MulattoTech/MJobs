@@ -300,6 +300,43 @@ def _queue(connection, request, website, authorization, evidence, *, audit_detai
     return {'status': 'QUEUED', 'operation_id': operation_id, 'revision': revision}
 
 
+def _promote_queued_priority(connection, request):
+    """Raise existing outbox priority without replacing its reviewed authority."""
+    if (request['state'] != 'QUEUED' or not request['operation_id']
+            or 'HIGH_MATCH_JOB' not in request['reasons']):
+        return
+    # Serialize with claim/cancellation. A worker that already claimed the task
+    # keeps its snapshot; rescoring never creates another execution attempt.
+    operation = connection.execute(select(m.operations).where(
+        m.operations.c.id == request['operation_id'],
+        m.operations.c.kind == 'COMPANY_DISCOVER',
+        m.operations.c.state == 'QUEUED',
+        m.operations.c.cancel_requested.is_(False),
+    ).with_for_update()).mappings().one_or_none()
+    if operation is None:
+        return
+    params = operation['params']
+    if (not isinstance(params, dict) or not isinstance(params.get('candidate'), dict)
+            or params.get('discovery_request_id') != request['id']
+            or params.get('discovery_request_revision') != request['revision']
+            or params.get('profile_id') != request['profile_id']
+            or params.get('profile_version') != request['profile_version']
+            or params['candidate'].get('company_website') != request['selected_website']
+            or (request['authorization'] != 'USER_CANDIDATE'
+                and operation['entity_id'] != request['company_id'])
+            or params.get('dispatch_priority', 'NORMAL') != 'NORMAL'):
+        return
+    # An unverified USER_CANDIDATE intentionally has a separate resolved company
+    # identity. The same request/revision/profile/origin binding remains required;
+    # the worker still revalidates that identity and all authority before egress.
+    # Preserve queue age, backoff, attempts, cancellation and authorization.
+    # Existing Redis deliveries use the company claim priority gate as well.
+    connection.execute(update(m.operations).where(m.operations.c.id == operation['id'])
+        .values(params={**params, 'dispatch_priority': 'HIGH'}))
+    _audit(connection, request, 'COMPANY_DISCOVERY_REQUEST_PRIORITY_PROMOTED',
+           operation_id=operation['id'], previous_priority='NORMAL', dispatch_priority='HIGH')
+
+
 def record_discovery_requests(connection, job_ids, profile=None, *, new_company_ids=()):
     """Acquire coalesced request locks in one order after all job/match writes."""
     keys = []
@@ -419,6 +456,8 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
             if proof:
                 _source(connection, request)
                 _queue(connection, request, proof['website'], CANDIDATE, [proof])
+    else:
+        _promote_queued_priority(connection, request)
     return request_id
 
 

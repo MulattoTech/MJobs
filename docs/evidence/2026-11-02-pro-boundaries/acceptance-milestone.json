@@ -1,0 +1,71 @@
+{
+  "milestone_id": "PRO-BOUNDARIES-ACCEPTED-20261102",
+  "timestamp": "2026-11-02T19:25:56.674927+00:00",
+  "current_phase": "Deployed domain/database acceptance and priority correction ready for protected publication",
+  "completed_steps": [
+    "PASS after literal criterion review of all nineteen distinguished domain concepts. The final missing explicit automation concept is an immutable SavedSearchRule shared by API/transfer admission and scheduler execution; malformed persisted rules cannot create outbox or audit writes. Existing relational identities, reviewed answers and browser profiles remain distinct. All concept test files executed on the exact proposed merge; populated PostgreSQL persistence, protected CI, isolated full functional verification and guarded deployed identity/health readback passed. No requirement definition was changed.",
+    "PASS: production profile/version/fact reads now execute SQLAlchemy ORM mappings over migration-owned Tables; caller transactions, savepoints, repeatable-read snapshots and plain return contracts are preserved. ORM/Core predicates bind data, including injection-shaped values; reviewed dynamic SQL uses metadata identifiers or validated integer controls. Dedicated runtime credentials and effective least privilege passed PostgreSQL tests and an actual deployed read-only probe. Production is empty: its missing-profile ORM path and runtime ACLs were exercised; populated/versioned/reopened paths were verified in isolated PostgreSQL, not invented production data.",
+    "Acceptance correction: historical PASS was overstated. The original enqueue criterion does not contain the earlier note's extra eligible-origin qualification. A high-match job with no direct employer source, no verified origin and no narrow corroborated native link still creates NEEDS_ORIGIN_REVIEW with zero queued discovery operations. Retain original evidence and downgrade to PARTIAL. This publication also fixes in-place NORMAL-to-HIGH promotion and stale Redis-delivery claim ordering, preserving authorization, identity, queue age, retry/backoff and cancellation state; both PostgreSQL race orders pass. It does not complete automatic origin discovery or preempt running work.",
+    "Source PR890 protected-merged; actual tree equals tested proposed tree. Main independent gates and image candidate passed; guarded updater verified backup and deployed exact e67c5dfc.",
+    "Nine historical PASS/open issue mismatches independently reviewed; no new acceptance credit. WWR is a retained upstream content conflict, not a normalization collision."
+  ],
+  "files_added": [
+    "docs/evidence/2026-11-02-pro-boundaries/criteria.json",
+    "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
+    "docs/evidence/2026-11-02-pro-boundaries/deployment.json",
+    "docs/evidence/2026-11-02-pro-boundaries/full-readiness.json",
+    "docs/evidence/2026-11-02-pro-boundaries/pr890-protected-merge.json",
+    "docs/evidence/2026-11-02-pro-boundaries/priority-promotion.json",
+    "docs/evidence/2026-11-02-pro-boundaries/production_orm_probe.py",
+    "docs/evidence/2026-11-02-pro-boundaries/historical-issue-reconciliation.json",
+    "docs/evidence/2026-11-02-pro-boundaries/sprint-baseline.json"
+  ],
+  "files_modified": [
+    "services/company_discovery/requests.py",
+    "workers/operations.py",
+    "tests/integration/test_company_discovery_policy.py",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/REQUIREMENT_INDEX.json",
+    "planning/PR_QUEUE.json",
+    "planning/SESSION_HANDOFF.md"
+  ],
+  "tests_completed": [
+    "PR890 exact proposed merge: native285PASS/2platformSKIP/275subtests; both platform counterparts PASS in hosted Linux unit report.",
+    "PR890 all five protected gates plus CodeQL PASS. Unit7270 JUnit cases including subtests/53SKIP; integration4091 cases including subtests/39SKIP; zero failures/errors. Skips are not acceptance passes.",
+    "Priority source: native70PASS/26environmentSKIP/67subtests, including14 actual PostgreSQL policy/race cases with zero failures/skips.",
+    "Dedicated PostgreSQL follow-up24PASS/2RedisSKIP/6subtests; earlier environment skips remain historical and are not relabelled.",
+    "Independent priority review13PASS/0SKIP/22subtests; no blocking finding; no external workers.",
+    "Actual deployed read-only ORM/runtime-role probe PASS with NO_PROFILE_ROWS; seven image identities match; backup verify PASS; prior image retained.",
+    "Fresh FULL readiness PASS: before/after exact source identity and all13 isolated synthetic functional checks, including dry-run0 and one mock-only confirmation with duplicate replay held at1; cleanup PASS.",
+    "Public Brave session loads Services ready/External submission OFF and exact deployment SHA; unauthenticated CLI GET denied403, no302/login-flow claim."
+  ],
+  "tests_remaining": [
+    "Exact proposed-merge verification and all protected checks for the priority/publication branch",
+    "Protected publication merge and final guarded deployment",
+    "Close new issues16/175 and reconcile nine historical statuses only after publication; keep265 open",
+    "Containing PR final receipt records its future exact merge SHA, deployment and issue readback"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Actual empty PERSONAL PostgreSQL role/ORM read-only boundary",
+    "Origin readiness and public Brave existing-session readback",
+    "Guarded updater and backup integrity; no live restore"
+  ],
+  "known_errors": [
+    "Retained source/fixture/Chromium failures remain in implementation.json and review-followup.json; subsequent scoped results do not erase them.",
+    "Priority reproduction failed NORMAL vs HIGH and stale normal claim before fixes; a negative test fixture initially treated the string profile-version hash as an integer and was corrected.",
+    "WWR SOURCE_DUPLICATE_JOB_ID remains: equal full GUID/link with conflicting description/type; exact duplicates already work and no safe winner is justified."
+  ],
+  "known_limitations": [
+    "004 remains PARTIAL for broader acquisition/connect/network/finalization bounds.",
+    "018 remains PARTIAL for complete strategy ladder and source breadth.",
+    "264 is honestly PARTIAL for unverified-origin automatic enqueue; running tasks are not preempted.",
+    "008 host restart and292 complete original journey remain unverified;171/172/224/269 remain open.",
+    "Production workspace is empty; no populated personal-data or employer-application journey is claimed.",
+    "Priority publication and its final protected merge/deployment remain pending in this commit; see containing PR final receipt."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+  }
+}

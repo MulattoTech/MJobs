@@ -1,0 +1,186 @@
+{
+  "result": "PASS",
+  "recorded_at": "2026-11-02T19:20:39.762798+00:00",
+  "deployed_sha": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "deployment_state_recorded_at": "2026-11-02T19:20:19.522038+00:00",
+  "origin_deployment": {
+    "commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "version": "0.1.0-dev",
+    "operation_mode": "PERSONAL"
+  },
+  "readiness": {
+    "status": "ready",
+    "checks": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "worker": true,
+      "scheduler": true,
+      "workers": {
+        "mjobs-ai": true,
+        "mjobs-application": true,
+        "mjobs-company-discovery": true,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      },
+      "schema": true
+    },
+    "db_backend": "postgresql"
+  },
+  "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+  "services": [
+    {
+      "id": "a292628deaaef2452ed4a12531fe9f5ba7827c99c49e812c7824dc30513623ef",
+      "name": "/mjobs-micro-document-worker-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "document-worker"
+    },
+    {
+      "id": "94e4914cccecd99e187599718b371266939da3ec55409ef8cce744d9c4c08987",
+      "name": "/mjobs-micro-ai-worker-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "ai-worker"
+    },
+    {
+      "id": "914d5749721b4b2cb357836c1fe5696139bf6735a8078d27b1a4341c660fbbbe",
+      "name": "/mjobs-micro-api-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "api"
+    },
+    {
+      "id": "387587d37cc116b48d8e1daea3b182358cb20967417c86dcd3a4dd820148ff0f",
+      "name": "/mjobs-micro-company-discovery-worker-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "company-discovery-worker"
+    },
+    {
+      "id": "2048280f3e04cd7f5b232f13f1589e94c53cf7d27c8af1bb76eab08d2a505148",
+      "name": "/mjobs-micro-source-worker-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "source-worker"
+    },
+    {
+      "id": "449b214643bc68ce7ae61b6ad074668b59b299364f14d4842b1f8b1d8a3a5290",
+      "name": "/mjobs-micro-scheduler-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "scheduler"
+    },
+    {
+      "id": "6aa239ce060702110e8e83c8e275dee1588c6ad3769e00f3e3f2c5c4787efef9",
+      "name": "/mjobs-micro-worker-1",
+      "image_id": "sha256:ec17fe04f1517daae18bb97b2c11998b2b11da8f458786afb53bf8f6a0fd7c05",
+      "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "running": true,
+      "service": "worker"
+    }
+  ],
+  "orm_probe": {
+    "result": "PASS",
+    "recorded_at": "2026-11-02T19:20:38.970784+00:00",
+    "deployed_sha": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "transaction_read_only": "on",
+    "transaction_isolation": "repeatable read",
+    "authenticated_runtime_login": true,
+    "runtime_role_flags": {
+      "rolsuper": false,
+      "rolcreatedb": false,
+      "rolcreaterole": false,
+      "rolreplication": false,
+      "rolbypassrls": false
+    },
+    "unexpected_effective_authority": false,
+    "role_membership_or_ownership": false,
+    "temporary_or_migration_write_authority": false,
+    "profile_read": "NO_PROFILE_ROWS",
+    "observed_orm_classes": [
+      "CareerProfileRecord"
+    ],
+    "caller_transaction_preserved": true,
+    "application_rows_read": false,
+    "application_values_retained": false,
+    "production_writes": false,
+    "credentials_retained": false,
+    "scope_note": "Production has no profile rows. The actual deployed mapper, safe missing-row behavior and runtime ACLs passed read-only verification; populated current/versioned/reopened and repeatable-read cases passed on isolated PostgreSQL. No personal profile was created for verification."
+  },
+  "source_clean": true,
+  "image_tag": "mjobs-micro:sha-e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "backup": {
+    "result": "PASS",
+    "archive": "%LOCALAPPDATA%/MJobsMicro/backups/20261102T192008Z-0112ac4d5f62",
+    "manifest_sha256": "d72ae27daa79eb2adaa4804d3de1a00fa6123a1342df485b4ec63fde83d1e90c",
+    "verification": "Backup verified: 3 files; mode PERSONAL\nConfiguration snapshot: configuration/runtime.json (manual review only; settings are not applied)",
+    "live_restore_executed": false
+  },
+  "rollback": {
+    "previous_sha": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+    "previous_image_id": "sha256:daec9cfd1e7d65b979f1ba5114d844f9ea1c32352af356de94edfe7f43223a88",
+    "previous_image_retained": true
+  },
+  "public_route": {
+    "authenticated_browser": {
+      "result": "PASS_READ_ONLY_EXISTING_SESSION",
+      "browser": "Brave",
+      "url": "https://mjobs.m-techlabs.com",
+      "deployment_endpoint": "https://mjobs.m-techlabs.com/__deployment",
+      "observed_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+      "services_ready": true,
+      "external_submission_off": true,
+      "workspace_empty": true,
+      "login_flow_exercised": false,
+      "production_writes": false
+    },
+    "unauthenticated_status": 403,
+    "access_redirect": false,
+    "unauthenticated_interpretation": "The unauthenticated command-line GET was denied with HTTP403. A 302 Access redirect/login flow was not observed in this probe."
+  },
+  "production_application_writes": false,
+  "credentials_retained": false,
+  "main_ci": {
+    "head_sha": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "checks": [
+      {
+        "name": "CI / required",
+        "result": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41505403916"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "result": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41505403681"
+      },
+      {
+        "name": "Deployment / candidate",
+        "result": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41505403957"
+      },
+      {
+        "name": "Security / secret scan",
+        "result": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41505403865"
+      },
+      {
+        "name": "CodeQL",
+        "result": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41505403277"
+      }
+    ]
+  },
+  "guarded_updater": {
+    "result": "PASS",
+    "source_sha256": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+    "migration_source_changes": false,
+    "rollback_triggered": false
+  }
+}
