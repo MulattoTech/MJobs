@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:31:31.513618+00:00",
+  "result": "PASS",
+  "deployment": {
+    "commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "version": "0.1.0-dev",
+    "operation_mode": "PERSONAL"
+  },
+  "http_statuses": {
+    "/health": 200,
+    "/ready": 200,
+    "/readiness": 200,
+    "/__deployment": 200,
+    "/settings": 200
+  },
+  "health": {
+    "status": "ok",
+    "check": "liveness",
+    "mode": "LOCAL_FIRST",
+    "operation_mode": "PERSONAL",
+    "external_submission_enabled": false
+  },
+  "ready": {
+    "status": "ready",
+    "checks": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "worker": true,
+      "scheduler": true,
+      "workers": {
+        "mjobs-ai": true,
+        "mjobs-application": true,
+        "mjobs-company-discovery": true,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      },
+      "schema": true
+    },
+    "db_backend": "postgresql"
+  },
+  "readiness": {
+    "status": "ready",
+    "checks": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "worker": true,
+      "scheduler": true,
+      "workers": {
+        "mjobs-ai": true,
+        "mjobs-application": true,
+        "mjobs-company-discovery": true,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      },
+      "schema": true
+    },
+    "db_backend": "postgresql"
+  },
+  "settings": {
+    "mode": "LOCAL_FIRST",
+    "operation_mode": "PERSONAL",
+    "external_submission_enabled": false,
+    "submission_limits": {
+      "hourly": 3,
+      "daily": 10,
+      "company": 1
+    },
+    "browser_workers": 0,
+    "worker_limits": {
+      "DISCOVER": 2,
+      "COMPANY_DISCOVER": 1,
+      "AI_EVALUATE_QUEUED": 1,
+      "COMPANY_SOURCE_REFRESH": 1,
+      "PREPARE": 1,
+      "RESUME_EXTRACT_QUEUED": 1,
+      "UPLOADED_RESUME_COMPARE_QUEUED": 1,
+      "APPLY_MOCK": 1,
+      "APPLICATION_FORM_REVIEW": 1,
+      "APPLICATION_DRY_RUN": 1
+    },
+    "notifications": {
+      "enabled": false,
+      "delivery": "IN_APP"
+    },
+    "browser_profile": {
+      "name": "default",
+      "scope": "PER_APPLICATION",
+      "existing_sessions": "PINNED"
+    }
+  },
+  "application_containers": [
+    {
+      "name": "/mjobs-micro-api-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": "0"
+    },
+    {
+      "name": "/mjobs-micro-worker-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": null
+    },
+    {
+      "name": "/mjobs-micro-company-discovery-worker-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": null
+    },
+    {
+      "name": "/mjobs-micro-document-worker-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": null
+    },
+    {
+      "name": "/mjobs-micro-source-worker-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": null
+    },
+    {
+      "name": "/mjobs-micro-ai-worker-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": null
+    },
+    {
+      "name": "/mjobs-micro-scheduler-1",
+      "running": true,
+      "health": "healthy",
+      "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "image_id": "sha256:92d059980e84655f1be1b5b8405b95c0a2ffe6b72d3369d4b678947a623557cc",
+      "configuration": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "notifications_enabled": null
+    }
+  ],
+  "settings_compose_agreement": true,
+  "production_writes": false,
+  "private_profile_rows_read": false
+}

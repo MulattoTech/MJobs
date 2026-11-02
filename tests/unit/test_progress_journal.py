@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from tools.verification import progress
 from tools.verification.progress import (
     AUTHORITATIVE_FIELDS,
     DEFAULT_OUTPUT_JOURNAL,
@@ -46,6 +47,72 @@ class ProgressJournalTests(unittest.TestCase):
                 "evidence_path": "docs/evidence/checkpoint.json",
             },
         }
+
+    def run_cli(self, *arguments):
+        # Run the real module entrypoint with __file__/ROOT inside this owned
+        # repository, so the parser and all writes are exercised safely.
+        package = self.root / "tools/verification"
+        package.mkdir(parents=True, exist_ok=True)
+        (self.root / "tools/__init__.py").write_text("", encoding="utf-8")
+        (package / "__init__.py").write_text("", encoding="utf-8")
+        (package / "progress.py").write_bytes(Path(progress.__file__).read_bytes())
+        return subprocess.run(
+            [sys.executable, "-B", "-m", "tools.verification.progress", *map(str, arguments)],
+            cwd=self.root, capture_output=True, text=True, check=False, timeout=10,
+        )
+
+    def test_record_cli_appends_once_writes_output_and_returns_success(self):
+        entry_path = self.root / "docs/evidence/entry.json"
+        entry_path.write_text(json.dumps(self.entry), encoding="utf-8")
+
+        completed = self.run_cli("record", "--entry", entry_path)
+
+        restored = json.loads(self.state_path.read_text(encoding="utf-8"))
+        self.assertEqual(restored["milestone_journal"], [self.entry])
+        output = json.loads((self.root / DEFAULT_OUTPUT_JOURNAL).read_text(encoding="utf-8"))
+        self.assertEqual(output, {**self.entry, "schema_version": 1})
+        self.assertEqual(validate_journal(self.root), [])
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout, "Progress journal validation: PASS\n")
+        self.assertEqual(completed.stderr, "")
+
+    def test_record_cli_duplicate_refusal_preserves_the_single_append_and_output(self):
+        entry_path = self.root / "docs/evidence/entry.json"
+        entry_path.write_text(json.dumps(self.entry), encoding="utf-8")
+        completed = self.run_cli("record", "--entry", entry_path)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        output_path = self.root / DEFAULT_OUTPUT_JOURNAL
+        before = self.state_path.read_bytes(), output_path.read_bytes()
+
+        duplicate = self.run_cli("record", "--entry", entry_path)
+
+        self.assertNotEqual(duplicate.returncode, 0)
+        self.assertIn("Duplicate milestone", duplicate.stderr)
+        self.assertEqual((self.state_path.read_bytes(), output_path.read_bytes()), before)
+        self.assertEqual(json.loads(self.state_path.read_text())["milestone_journal"], [self.entry])
+        self.assertEqual(validate_journal(self.root), [])
+
+    def test_validate_cli_uses_explicit_state_and_remains_read_only(self):
+        append_milestone(self.state_path, self.entry)
+        alternate = self.root / "planning/alternate.json"
+        alternate.write_bytes(self.state_path.read_bytes())
+        self.state_path.write_text("not JSON", encoding="utf-8")
+        output_path = self.root / DEFAULT_OUTPUT_JOURNAL
+        canonical_before = self.state_path.read_bytes(), output_path.read_bytes()
+
+        completed = self.run_cli("validate", "--state", alternate)
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout, "Progress journal validation: PASS\n")
+        self.assertEqual(completed.stderr, "")
+        alternate.write_text(json.dumps({"milestone_journal": []}), encoding="utf-8")
+        invalid_before = alternate.read_bytes()
+        refused = self.run_cli("validate", "--state", alternate)
+        self.assertEqual(refused.returncode, 1, refused.stderr)
+        self.assertIn("Progress journal validation: FAIL", refused.stdout)
+        self.assertEqual(refused.stderr, "")
+        self.assertEqual(alternate.read_bytes(), invalid_before)
+        self.assertEqual((self.state_path.read_bytes(), output_path.read_bytes()), canonical_before)
 
     def test_append_is_durable_and_resumable(self):
         append_milestone(self.state_path, self.entry)

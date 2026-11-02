@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "task_id": "pro-resume-delivery-20261102",
+  "objective": "Complete protected publication of seven literal P1 acceptances from verified deployed d86 source, with reviewed deployment-gate and progress-record corrections.",
+  "owner": "ChatGPT-Web/gpt-6-astra",
+  "branch": "work/pro-resume-closeout-20261102",
+  "head_sha": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+  "routing_state": "INTEGRATE",
+  "next_action": "Pass exact proposed-merge native and hosted gates, merge through protection, verify guarded final rollout and public commands, close seven mapped issues, then read the containing PR final receipt before starting P0004.",
+  "created_at": "2026-11-02T16:38:02.910941+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source PR886 native406/4skip/372subtests; PR887 native164/0skip/166subtests; PR888 native144/3skip/150subtests; all source protected checks and CodeQL passed with tested-tree equality.",
+      "result": "PASS"
+    },
+    {
+      "command": "Clean deployed d86 public DRY_RUN11/FULL13 exit0, source/deployment identity and owned cleanup; read-only production50tables/84FK and7 healthy app services.",
+      "result": "PASS"
+    },
+    {
+      "command": "Local standard-library regression modules: deployment gate30/0skip and progress journal14/0skip; reproduced pre-fix controls, safe diagnostics, actual CLI exactly-once journal writes.",
+      "result": "PASS"
+    },
+    {
+      "command": "Containing publication exact proposed-merge native/hosted gates and its later final rollout are pending in this source checkpoint; their final facts are recorded in its PR description.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Authenticated public Browser observation unavailable: originating connected browser context missing. Complete P0004/008/292, P1171/172/174, physical restart and real-provider journeys remain open.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "milestone_id": "PRO-RESUME-VERIFIED-DELIVERY-20261102"
+}

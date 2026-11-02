@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-02T02:34:15.944248+00:00",
+  "timestamp": "2026-11-02T16:38:42.091786+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2021,11 +2021,16 @@
     },
     {
       "requirement_id": "MJ-REQ-162",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+        "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. The deployed relational model has 50 required tables and 84 verified foreign keys, migrated with Alembic and validated read-only under the least-privilege runtime role. Native and hosted constraints, durable reopening, indexes, SQLite/PostgreSQL migration failure/retry and ownership tests pass. Section 162 permits different illustrative table names; this does not accept the separate ORM/security requirement 174. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2079,7 +2084,7 @@
     },
     {
       "requirement_id": "MJ-REQ-167",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
@@ -2089,9 +2094,14 @@
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
         "docs/evidence/2026-11-01-pro-reliability-delivery.json",
-        "docs/evidence/2026-11-02-pro-ops-delivery.json"
+        "docs/evidence/2026-11-02-pro-ops-delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/backup-criteria.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-artifacts.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json"
       ],
-      "note": "Quiescent database/document backup and fresh restore verified with 385 files/eight identical database inventories and encrypted credentials. Schema-2 archive now captures exact Compose plus strict nonsecret runtime allowlist. Secrets, private custom configuration and override recovery remain separately operator-protected; broader operational backup acceptance remains open.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: Backup runtime schema 2 preserves validated non-secret submission caps; strict schema 1 archives remain supported. The guarded deployment created an integrity-verified quiescent archive and preserved the previous release/image. Historical Nov1 backup exit-2 detail was discarded and cannot be recovered. Protected configuration and browser-authentication recovery remain incomplete; no destructive live restore was performed.",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. Public backup/verify/fresh-restore tooling covers database, uploaded and generated documents, plus important configuration. The ordinary archive preserves public Compose and non-secret settings; the separate AES-256-GCM companion restores exact private .env/Compose bytes with an independent key. Native SQLite/PostgreSQL recovery decrypts unchanged stored credential ciphertext. Fresh disposable restore and no-clobber/corruption/ownership controls pass. Browser cookies are excluded with documented fresh authentication; no destructive production restore was performed. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2180,12 +2190,16 @@
     },
     {
       "requirement_id": "MJ-REQ-175",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-06-least-data-profile-access.json",
-        "docs/evidence/2026-10-07-provider-credential-store.json"
+        "docs/evidence/2026-10-07-provider-credential-store.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/backup-criteria.json"
       ],
-      "note": "Scoped provider-secret storage verified for MJ-REF-028: profile-bound AES-256-GCM ciphertext, API/UI masked metadata, synthetic database/backup theft checks, profile isolation and rotation/deletion are evidenced at docs/evidence/2026-10-07-provider-credential-store.json. The broader PII/security requirement remains PARTIAL.",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. Provider secrets use profile-bound encrypted server-side storage, masked metadata and private configuration. Allowlisted API exceptions and SQLAlchemy parameter hiding prevent synthetic credential canaries escaping through API, browser or logs. Native credential/cleanup tests, controlled Chromium, PostgreSQL and protected secret scans pass. This accepts the literal secret-management requirement and leaves broader PII/web/database security 171/172/174 open. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2585,15 +2599,19 @@
     },
     {
       "requirement_id": "MJ-REQ-208",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-ci-370.json",
         "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
         "docs/evidence/2026-10-13-controlled-multipage-preparation.json",
-        "docs/evidence/2026-10-13-pipeline-scoring-dry-run.json"
+        "docs/evidence/2026-10-13-pipeline-scoring-dry-run.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-dry-run-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open Controlled DRY_RUN now has scoped cancellation, serialized active admission and acknowledged fresh retry with prior-attempt UI readback. Separate-process receipt/crash recovery avoids browser replay. SQLite/PostgreSQL/browser/Linux queue/full Compose restart/fresh restore PASS; full umbrella remains PARTIAL. Reviewed two-page controlled preparation verifies contact and selected document bytes, persists value-free page proof, and survives cancellation/crash/retry. This local fixture slice does not promote the original pipeline requirement. Pipeline now connects profile-wide score refresh, durable document preparation, and reviewed local dry-run. SQLite/PostgreSQL admission races and connected browser recovery prove this fixture journey with zero submissions; broader original acceptance remains PARTIAL.",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. The public --dry-run --fixture command executed all 11 current checks from clean delivered source: fresh global/company discovery, changed-profile scoring, real generated documents, Chromium navigation/fill/upload/validation, durable DRY_RUN_COMPLETE and zero final submissions/receipts. Parent-side database/audit/document corroboration and owned process-tree cleanup pass. All inputs and targets are explicitly controlled fixtures. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3286,16 +3304,19 @@
     },
     {
       "requirement_id": "MJ-REQ-267",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-09-direct-employer-route-discovery.json",
         "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
         "docs/evidence/2026-10-09-reviewed-employer-route-save.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json"
       ],
-      "note": "The explicit save action rechecks the bounded redirect, validates current employer/ATS identity evidence, persists an idempotent selectable route and readback, and leaves the existing user selection unchanged. Verified locally on main at b2413668e11b8af84ad4ba0c1d81527b27c3691e. Automatic pre-submission integration is not exercised while external submission is OFF; requirement remains PARTIAL.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Only explicit resolve/save API actions call resolve_aggregator_redirect. Preparation selects stored routes and may record an already-known ATS-sibling lookup as PREPARATION_*; this is not a fresh automatic pre-submission probe. The missing automatic consumer remains. External submission being OFF does not make the requirement vacuously complete. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. Automatic pre-submission admission attempts fresh bounded employer/ATS resolution, validates current employer/domain/tenant evidence, durably records the resolution status and candidate URL hash, preserves the selected route, and revalidates application/profile/documents, cancellation, consent, policy and caps before claiming submission. Encoded-path ambiguity and shared Workable-host authority regressions pass. An unresolved probe is a completed attempt, not proof of an employer route. External submissions remain OFF; broader database/deadline bounds remain requirement004. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3387,15 +3408,19 @@
     },
     {
       "requirement_id": "MJ-REQ-275",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-11-01-worker-logging-configuration.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
         "docs/evidence/2026-11-01-pro-reliability-delivery.json",
-        "docs/evidence/2026-11-02-pro-ops-delivery.json"
+        "docs/evidence/2026-11-02-pro-ops-delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+        "docs/evidence/2026-11-02-pro-resume/production-runtime-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: Strict hourly/daily/company environment caps are enforced by actual transactional admission and read back safely. All seven application services use identical verified numeric values. Zero denies; empty/invalid values fail startup; the external-submission gate remains OFF. Notification behavior and browser-profile selection remain incomplete.",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. All 11 original categories have exercised ordinary UI/environment controls: AI, sources, source intervals, company discovery, match thresholds, application rules, application limits, browser profiles, documents, notifications and logging. Controlled browser/component tests and persistent settings behavior pass; seven deployed application services agree with the safe settings readback. No source edit or production user-setting mutation is required. Authenticated public browser observation was unavailable and is recorded separately. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3545,12 +3570,16 @@
     },
     {
       "requirement_id": "MJ-REQ-288",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-11-six-team-integration.json",
-        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-full-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json"
       ],
-      "note": "Historical checkpoint: Live verification command reports observed configuration, actual PostgreSQL migration heads, Redis, scheduler freshness and each exact worker queue; stopped/malformed/stale dependencies fail closed. Full source/application/deep-check summary remains incomplete. Current verified campaign closeout: Current campaign final verifier e17 executes actual Windows synthetic connected command12/12 checks plus retained-Job zero-active/reaped-host/workspace-removed cleanup, current45tests/5subtests and51affectedtests/16subtests. Post-confirmation/tamper negatives retain truthful prior proof. Linux functional verification NOT_RUN/fail-closed; synthetic SQLite/inline executor is not deployed PostgreSQL/Redis/RQ/scheduler readiness. Historical TEMP failure/skips preserved in consolidated record; whole parent remains PARTIAL.",
+      "note": "2026-11-02T16:31:30.298740+00:00 verified literal acceptance at delivered source d86a5bf79e883fdd40b750ad843a363960f35c43, protected source PRs #886/#887/#888. The public --full --fixture command reports fresh production PostgreSQL/Redis/scheduler/worker/schema readiness before and after 13 actual controlled functional checks, including dry-run, mock confirmation and duplicate protection. Source revision and aggregate input digest match before/child/after, both source snapshots are clean, deployed identity stays equal and owned cleanup passes. Runtime readiness and isolated synthetic SQLite/inline functional proof remain separate scopes; Linux correctly blocks the Windows-only retained-process containment path. Historical PARTIAL notes and evidence are preserved in docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json; this current acceptance supersedes those prospective notes. Acceptance publication and its final deployment are independently gated in the containing PR.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "major-feature"
@@ -4287,5 +4316,5 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "delivery_policy_note": "2026-11-01 user-authorized protected GitHub-hosted delivery: source PR875 passed exact-head required checks and was merged; this separately reviewed acceptance record promotes 43 original P1 requirements with criterion-specific executed evidence. Whole product remains PARTIAL; external submissions OFF. Historical policy checkpoints remain in version history.\n\n2026-11-02: Protected PRs #881/#882/#883 and exact guarded production delivery support three new original P1 acceptances. Overall product remains PARTIAL, reference authority unchanged and external submissions OFF. This record is published through its own protected acceptance PR."
+  "delivery_policy_note": "2026-11-01 user-authorized protected GitHub-hosted delivery: source PR875 passed exact-head required checks and was merged; this separately reviewed acceptance record promotes 43 original P1 requirements with criterion-specific executed evidence. Whole product remains PARTIAL; external submissions OFF. Historical policy checkpoints remain in version history.\n\n2026-11-02: Protected PRs #881/#882/#883 and exact guarded production delivery support three new original P1 acceptances. Overall product remains PARTIAL, reference authority unchanged and external submissions OFF. This record is published through its own protected acceptance PR.\n\n2026-11-02 resumed delivery: protected PRs #886/#887/#888 and exact guarded deployment/command receipts support seven additional original P1 acceptances (162,167,175,208,267,275,288). P0 and the separate 59-item reference authority remain unchanged. Final publication and its exact deployed identity are recorded in the containing protected PR; no future SHA is invented in this commit."
 }

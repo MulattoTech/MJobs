@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:33:46.415158+00:00",
+  "scope": "Small deployment gate reliability extension; no original P0 acceptance claimed.",
+  "source_base": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+  "reviewed_files": [
+    {
+      "path": "tools/deploy/wait_for_checks.py",
+      "sha256": "889fc6aefb7dcd6838ae2b9f41ca5716eb4b170333bd82673c81abbe042486f0"
+    },
+    {
+      "path": "tests/unit/test_deployment_checks.py",
+      "sha256": "75e86709157e48dbf68431f3b2a4d833b9ecd70a4eecb43c1c2ba05654a29503"
+    }
+  ],
+  "observed_failure": {
+    "run": 41478359557,
+    "job": 125389779209,
+    "attempt": 1,
+    "stage": "Wait for independent exact-main checks, before image build",
+    "exception_type": "HTTPError",
+    "http_status": "NOT_RETAINED_BY_OLD_DIAGNOSTIC",
+    "transient_cause_proven": false
+  },
+  "recovery": {
+    "action": "A single failed-job rerun after independent gates completed and fresh successful read-only API lookups",
+    "attempt": 2,
+    "job": 125401413005,
+    "result": "PASS",
+    "source_and_threshold_changes_for_rerun": false,
+    "evidence": "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json"
+  },
+  "implementation": [
+    "At most three consecutive retries for recognized transient read-only HTTP/transport errors; no deadline reset.",
+    "Request timeout min(15 seconds, remaining budget); poll/retry sleeps clipped to remaining budget; late returned successes refused.",
+    "Retry-After honored; conservative 60-second wait for429 without it; malformed Retry-After stops safely.",
+    "Permanent/auth/certificate/DNS/malformed errors and actual failed gates stop immediately. Exception type and validated status are retained; body, token, URL and arbitrary exception messages are omitted.",
+    "Only exact named github-actions checks with requested head_sha qualify; entire pagination restarts after a read failure.",
+    "Highest validated run ID supersedes older states even when new started_at is null; conflicting duplicate states are rejected irrespective of order."
+  ],
+  "review_and_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python -m unittest tests.unit.test_deployment_checks -v",
+    "environment": "Local Linux, standard library, no network",
+    "passed": 30,
+    "skipped": 0,
+    "duration_seconds": 0.036,
+    "diff_check": "PASS",
+    "independent_source_review": "Completed against both listed file hashes; no remaining concrete blocker.",
+    "pre_fix_controls": [
+      "First recoverable503 exited immediately.",
+      "Page request timeout could exceed remaining budget.",
+      "Newest queued rerun could hide behind old success.",
+      "Conflicting duplicate check rows could produce order-dependent false success."
+    ]
+  },
+  "publication_gates": "Native exact proposed-merge tests and protected hosted checks for this two-file source change are separate; final results recorded in containing PR before authorized merge.",
+  "limits": [
+    "Original failure HTTP status is unknown; this does not prove that particular error was transient.",
+    "Inherited urllib DNS/body reads are not forcibly interrupted by an absolute transport deadline. Admission, waits, timeout values and late-result rejection are bounded, but MJ-REQ-004 remains PARTIAL."
+  ]
+}

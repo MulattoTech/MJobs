@@ -1,0 +1,699 @@
+{
+  "schema_version": 1,
+  "status": "EXECUTED_CONFIGURATION_AND_SCHEMA_COVERAGE_WITH_VERIFIED_DELIVERY",
+  "canonical_acceptance_changed": false,
+  "scope": "MJ-REQ-162 and MJ-REQ-275 evidence assembly from supplied actual native, hosted and read-only production receipts; no tests or production probes rerun for this file.",
+  "assembly_source": {
+    "receipt_bundle": "mjobs-delivery-base-receipts.json",
+    "receipt_bundle_sha256": "ff9278805d3f31a4b7e5bd9a0c6c2163721ee12902ec48be2ced6e6f60f4c95d",
+    "delivery_branch_base": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+    "receipt_keys": {
+      "config_native": [
+        "outputs/exact-resume-manifest.json",
+        "outputs/config-criterion-coverage.json",
+        "outputs/hosted-886-coverage.json"
+      ],
+      "production_9a": [
+        "outputs/production-schema-9a040029.json",
+        "outputs/production-runtime-9a040029.json"
+      ]
+    },
+    "verification": "Duplicate native manifest objects agree; declared categories, XML outcomes, cross-platform skip results, deployment identities and shared settings/image values checked while assembling.",
+    "additional_sources": [
+      {
+        "path": "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+        "sha256": "fd69d0bb93263928b074be9bec8837d40d536ef98dd2a2ef02dc593a0d840c21",
+        "purpose": "Later exact native migration-recovery execution"
+      },
+      {
+        "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41453489191/job/125304265998",
+        "purpose": "Integration-owner-observed checkout and notification/Web test results"
+      }
+    ]
+  },
+  "native_execution": {
+    "workspace": "C:\\Tools\\Dev\\MJobs-pro-resume-mergecheck-20261102",
+    "manifest": {
+      "tested_revision": "219bc9ebc36e064d55fc5137abb8164adf872a08",
+      "source_parent": "a4f90d51eb28deaa9a7a5a6e300472ab915b91e4",
+      "tree": "d463755c3e2cb9cdfe601e1dab813f3d5ee54996",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_browser_profile_configuration.py",
+        "tests/unit/test_browser_debug_capture.py",
+        "tests/unit/test_configuration_surface_sustain_276.py",
+        "tests/unit/test_configuration_contract_sustain_276.py",
+        "tests/unit/test_backup_config_snapshot.py",
+        "tests/unit/test_backup_restore_snapshot.py",
+        "tests/unit/test_backup_credential_restore.py",
+        "tests/unit/test_submission_limit_configuration.py",
+        "tests/unit/test_manual_auth_path_security.py",
+        "tests/unit/test_manual_auth_host.py",
+        "tests/unit/test_manual_auth_deadline.py",
+        "tests/unit/test_database_provisioning.py",
+        "tests/unit/test_runtime_database.py",
+        "tests/unit/test_persistence_input_security_226.py",
+        "tests/integration/test_database_constraints_sustain_164.py",
+        "tests/integration/test_database_indexes_sustain_165.py",
+        "tests/integration/test_database_least_privilege.py",
+        "tests/integration/test_spine.py",
+        "tests/integration/test_ai_task_settings_api.py",
+        "tests/integration/test_source_policy_cadence_sustain_021.py",
+        "tests/integration/test_company_discovery_policy.py",
+        "tests/integration/test_ai_cost_policy_api.py",
+        "tests/integration/test_sensitive_answer_policy.py",
+        "tests/integration/test_configured_submission_limits.py",
+        "tests/integration/test_cover_letter_workflow.py",
+        "tests/integration/test_named_browser_profile.py",
+        "tests/integration/test_skill_order.py",
+        "tests/browser/test_operation_notifications.py",
+        "tests/browser/test_debug_capture_privacy.py",
+        "tests/browser/test_fleet_t12_debug_capture_budget.py",
+        "tests/browser/test_debug_capture_consumers.py",
+        "tests/browser/test_application_route_preference.py",
+        "tests/integration/test_submission_route_preflight.py",
+        "tests/integration/test_live_submission_intent_admission.py",
+        "tests/unit/test_direct_employer_route_redirects.py",
+        "tests/integration/test_ai_tls_recovery.py",
+        "tests/unit/test_ai_tls_handshake.py",
+        "tests/unit/test_discovery_scheduler_logging.py",
+        "tests/unit/test_discovery_scheduler_health.py",
+        "tests/unit/test_transient_retention_scheduler.py",
+        "tests/integration/test_source_policy_scheduler.py",
+        "tests/integration/test_company_monitoring_recovery.py",
+        "tests/unit/test_credential_store.py",
+        "tests/unit/test_credential_connection_bounds.py",
+        "tests/integration/test_provider_credentials_api.py",
+        "tests/integration/test_profile_ai_credentials.py",
+        "tests/integration/test_profile_ai_credentials_postgres.py",
+        "tests/integration/test_backup_credential_recoverability_postgres.py",
+        "tests/browser/test_profile_ai_credentials.py",
+        "tests/browser/test_provider_credentials.py",
+        "--junitxml=outputs/exact-resume-native.xml"
+      ],
+      "all_external_providers": "CONTROLLED_FIXTURES_ONLY",
+      "database_container": "mjobs-pro-config-db-20261102"
+    },
+    "xml_receipt": "outputs/exact-resume-native.xml",
+    "xml_sha256": "f6bc659b31e913a9949588ed3bccb95bf405f58cfba311b96d7c62b6f41d8735",
+    "junit_suite_attributes": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "4",
+      "tests": "782",
+      "time": "314.116",
+      "timestamp": "2026-11-02T07:31:40.041837-06:00",
+      "hostname": "MulattoTechBox"
+    },
+    "counting_note": "The XML reports 782 entries, including subtest reporting, and four skips. This bundle does not contain an independently parsed test-method/subtest split; do not treat 782 as 782 unique test methods or add overlapping category counts."
+  },
+  "requirements": {
+    "MJ-REQ-162": {
+      "title": "Database Design",
+      "issue": 163,
+      "literal_scope": "Use a proper relational model; listed likely tables are illustrative and exact names may differ.",
+      "native_coverage": [
+        {
+          "path": "tests/integration/test_database_constraints_sustain_164.py",
+          "observed_junit_rows": 8,
+          "failed_rows": 0,
+          "native_skips": [],
+          "requested_cases_missing": []
+        },
+        {
+          "path": "tests/integration/test_spine.py",
+          "observed_junit_rows": 5,
+          "failed_rows": 0,
+          "native_skips": [],
+          "requested_cases_missing": []
+        },
+        {
+          "path": "tests/integration/test_database_least_privilege.py",
+          "observed_junit_rows": 1,
+          "failed_rows": 0,
+          "native_skips": [],
+          "requested_cases_missing": []
+        },
+        {
+          "path": "tests/integration/test_database_indexes_sustain_165.py",
+          "observed_junit_rows": 9,
+          "failed_rows": 0,
+          "native_skips": [],
+          "requested_cases_missing": []
+        },
+        {
+          "path": "tests/integration/test_migration_recovery.py",
+          "observed_junit_rows": 0,
+          "failed_rows": 0,
+          "native_skips": [],
+          "requested_cases_missing": []
+        }
+      ],
+      "hosted_migration_recovery": [
+        {
+          "receipt": "outputs\\hosted-886\\integration\\integration-results-0\\integration-0.xml",
+          "name": "test_interrupted_postgresql_protected_credential_migration_preserves_data_and_resumes",
+          "status": "SKIP"
+        },
+        {
+          "receipt": "outputs\\hosted-886\\integration\\integration-results-0\\integration-0.xml",
+          "name": "test_interrupted_postgresql_upgrade_preserves_data_and_can_resume",
+          "status": "SKIP"
+        },
+        {
+          "receipt": "outputs\\hosted-886\\integration\\integration-results-0\\integration-0.xml",
+          "name": "test_interrupted_sqlite_protected_credential_migration_preserves_data_and_resumes",
+          "status": "PASS"
+        },
+        {
+          "receipt": "outputs\\hosted-886\\integration\\integration-results-0\\integration-0.xml",
+          "name": "test_interrupted_sqlite_upgrade_preserves_data_and_can_resume",
+          "status": "PASS"
+        }
+      ],
+      "coverage_boundary": "Relational constraints, indexes, ownership and durable reopen have native coverage at 219bc9/tree d463. The original native run did not include test_migration_recovery.py; hosted SQLite cases passed and two PostgreSQL cases skipped. The later PR887 native run at 82a1f59b/tree 653905a7 executed all four SQLite/PostgreSQL migration-recovery cases and supplies the missing PostgreSQL coverage. The two tested trees are preserved separately.",
+      "later_native_migration_recovery": {
+        "record": "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+        "record_sha256": "fd69d0bb93263928b074be9bec8837d40d536ef98dd2a2ef02dc593a0d840c21",
+        "tested_revision": "82a1f59b9ec7105a699dffb2945d91570bfcbbee",
+        "tested_tree": "653905a78296402c424d0356518d84a65eca3e26",
+        "xml_receipt": "outputs/exact-security-final-native.xml",
+        "xml_sha256": "ff081327254314af049fa331b23dd6570523a8cf3ef695f8d590e1c8e53c48c7",
+        "run": {
+          "result": "PASS",
+          "tests": 164,
+          "subtests": 166,
+          "skips": 0,
+          "seconds": 209.33
+        },
+        "coverage_provenance": "Integration owner verified all four migration-recovery cases executed in the exact native XML; companion record binds the complete run manifest, result and XML hash.",
+        "cases": [
+          {
+            "name": "test_interrupted_postgresql_protected_credential_migration_preserves_data_and_resumes",
+            "status": "PASS"
+          },
+          {
+            "name": "test_interrupted_postgresql_upgrade_preserves_data_and_can_resume",
+            "status": "PASS"
+          },
+          {
+            "name": "test_interrupted_sqlite_protected_credential_migration_preserves_data_and_resumes",
+            "status": "PASS"
+          },
+          {
+            "name": "test_interrupted_sqlite_upgrade_preserves_data_and_can_resume",
+            "status": "PASS"
+          }
+        ],
+        "scope": "Synthetic data, controlled endpoints and fresh isolated schemas in disposable loopback PostgreSQL; earlier hosted skips remain historical skips."
+      }
+    },
+    "MJ-REQ-275": {
+      "title": "Configuration",
+      "issue": 276,
+      "literal_scope": "Ordinary settings require no source edits; UI/environment covers all eleven original categories.",
+      "categories_with_executed_native_coverage": 11,
+      "categories": [
+        {
+          "category": "AI",
+          "modules": [
+            {
+              "path": "tests/integration/test_ai_task_settings_api.py",
+              "observed_junit_rows": 7,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "sources",
+          "modules": [
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "observed_junit_rows": 7,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/integration/test_source_policy_cadence_sustain_021.py",
+              "observed_junit_rows": 1,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "source intervals",
+          "modules": [
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "observed_junit_rows": 7,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/integration/test_source_policy_cadence_sustain_021.py",
+              "observed_junit_rows": 1,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "company discovery",
+          "modules": [
+            {
+              "path": "tests/integration/test_company_discovery_policy.py",
+              "observed_junit_rows": 5,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "match thresholds",
+          "modules": [
+            {
+              "path": "tests/integration/test_ai_cost_policy_api.py",
+              "observed_junit_rows": 7,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "application rules",
+          "modules": [
+            {
+              "path": "tests/integration/test_sensitive_answer_policy.py",
+              "observed_junit_rows": 4,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/browser/test_application_route_preference.py",
+              "observed_junit_rows": 1,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "application limits",
+          "modules": [
+            {
+              "path": "tests/integration/test_configured_submission_limits.py",
+              "observed_junit_rows": 10,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/unit/test_submission_limit_configuration.py",
+              "observed_junit_rows": 45,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "browser profiles",
+          "modules": [
+            {
+              "path": "tests/unit/test_browser_profile_configuration.py",
+              "observed_junit_rows": 25,
+              "failed_rows": 0,
+              "native_skips": [
+                {
+                  "name": "test_symlinked_profile_cannot_reuse_another_session",
+                  "reason": "Creating directory symlinks is unavailable on this test host"
+                },
+                {
+                  "name": "test_special_file_selection_is_rejected_before_open",
+                  "reason": "POSIX FIFO fixture"
+                }
+              ],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/integration/test_named_browser_profile.py",
+              "observed_junit_rows": 1,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "documents",
+          "modules": [
+            {
+              "path": "tests/integration/test_cover_letter_workflow.py",
+              "observed_junit_rows": 3,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/integration/test_skill_order.py",
+              "observed_junit_rows": 5,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "notifications",
+          "modules": [
+            {
+              "path": "tests/unit/test_configuration_surface_sustain_276.py",
+              "observed_junit_rows": 12,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/browser/test_operation_notifications.py",
+              "observed_junit_rows": 2,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "apps/web/src/operation-notifications.test.tsx",
+              "observed_junit_rows": 0,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        },
+        {
+          "category": "logging",
+          "modules": [
+            {
+              "path": "tests/unit/test_configuration_contract_sustain_276.py",
+              "observed_junit_rows": 4,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            },
+            {
+              "path": "tests/unit/test_backup_config_snapshot.py",
+              "observed_junit_rows": 13,
+              "failed_rows": 0,
+              "native_skips": [],
+              "requested_cases_missing": []
+            }
+          ]
+        }
+      ],
+      "browser_evidence": {
+        "notifications": "tests/browser/test_operation_notifications.py: two observed rows, no failures or skips; nominated criterion cases missing: none.",
+        "named_profile": "tests/integration/test_named_browser_profile.py: one observed row, no failures or skips; nominated criterion cases missing: none.",
+        "route_preference": "tests/browser/test_application_route_preference.py: one observed row, no failures or skips; nominated criterion cases missing: none.",
+        "scope": "Actual controlled Chromium fixtures, not live authenticated production UI."
+      },
+      "coverage_boundary": "All eleven categories have executed native coverage. The zero Python XML rows for operation-notifications.test.tsx are supplemented by three passing tests in the hosted Web job at the exact 219bc9 checkout. The full Web job reports 154 passing files and 1102 passing tests. Repeated module rows across categories overlap, and these hosted counts are not added to native totals.",
+      "hosted_web_coverage": {
+        "source": "GitHub job log read by the integration owner",
+        "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41453489191/job/125304265998",
+        "tested_checkout": "219bc9ebc36e064d55fc5137abb8164adf872a08",
+        "test_file": "apps/web/src/operation-notifications.test.tsx",
+        "test_file_log_path": "src/operation-notifications.test.tsx",
+        "test_file_tests_passed": 3,
+        "web_suite_files_passed": 154,
+        "web_suite_tests_passed": 1102,
+        "result": "PASS",
+        "scope": "Hosted Vitest execution; separate from the Python XML and controlled-browser fixtures. No live authenticated production UI claim."
+      }
+    }
+  },
+  "hosted_pr886_coverage": {
+    "run_ids": [
+      "41453489191",
+      "41453489259"
+    ],
+    "artifacts": [
+      {
+        "path": "outputs\\hosted-886\\integration\\integration-results-0\\integration-0.xml",
+        "sha256": "3adb24a5a3a829b936e2a546dfca0130f63ffea367a7c4212bd0840dd7434b10"
+      },
+      {
+        "path": "outputs\\hosted-886\\integration\\integration-results-1\\integration-1.xml",
+        "sha256": "9eff76c0bc05430b6d8139738b762bf739bf30466c032849284c261ff57f5f8e"
+      },
+      {
+        "path": "outputs\\hosted-886\\integration\\integration-results-2\\integration-2.xml",
+        "sha256": "50c37ec953ab57df98838fe6991a8b4b8c68c8ca343444019b56165059970a92"
+      },
+      {
+        "path": "outputs\\hosted-886\\unit\\unit-results\\unit.xml",
+        "sha256": "419bfe7b072a9a1cedd4a332e63e881186a8ff5d78db2afaa62bb9172d0d725b"
+      }
+    ],
+    "native_platform_skips_with_executed_linux_pass": [
+      {
+        "classname": "tests.unit.test_browser_profile_configuration",
+        "name": "test_symlinked_profile_cannot_reuse_another_session",
+        "native_skip": "Creating directory symlinks is unavailable on this test host",
+        "hosted": [
+          {
+            "receipt": "outputs\\hosted-886\\unit\\unit-results\\unit.xml",
+            "status": "PASS"
+          }
+        ]
+      },
+      {
+        "classname": "tests.unit.test_browser_profile_configuration",
+        "name": "test_special_file_selection_is_rejected_before_open",
+        "native_skip": "POSIX FIFO fixture",
+        "hosted": [
+          {
+            "receipt": "outputs\\hosted-886\\unit\\unit-results\\unit.xml",
+            "status": "PASS"
+          }
+        ]
+      },
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_unlisted_special_archive_node_is_rejected_before_restore",
+        "native_skip": "Native FIFO fixture requires POSIX",
+        "hosted": [
+          {
+            "receipt": "outputs\\hosted-886\\unit\\unit-results\\unit.xml",
+            "status": "PASS"
+          }
+        ]
+      }
+    ],
+    "still_skipped": [
+      {
+        "classname": "tests.integration.test_company_monitoring_recovery.CompanyMonitoringRecoveryTests",
+        "name": "test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+        "native_skip": "STK01 requires frozen static audit and explicit disposable-stack resource grant",
+        "hosted": [
+          {
+            "receipt": "outputs\\hosted-886\\integration\\integration-results-0\\integration-0.xml",
+            "status": "SKIP"
+          }
+        ]
+      }
+    ],
+    "scope": "Three Windows platform skips have distinct executed Linux PASS evidence. The disposable full-stack restart/monitoring case remains SKIP; MJ-REQ-292 is not closed. These artifact observations do not alone assert all protected PR gates or tested-tree equivalence."
+  },
+  "historical_production_observation": {
+    "scope": "Read-only observation of release 9a040029 at the receipt timestamps. This is not a current or final deployment claim for later source, the delivery branch, or the acceptance publication.",
+    "schema_receipt": "outputs/production-schema-9a040029.json",
+    "schema": {
+      "result": "PASS",
+      "transaction_read_only": "on",
+      "schema_policy": 1,
+      "required_tables": 50,
+      "observed_required_tables": 50,
+      "required_foreign_keys": 84,
+      "observed_foreign_keys": 84,
+      "required_signature_sha256": "2faa7fd215686cfeba100e7f8a745f9c4d1262abaeceb7ccbe1e02590fc64b7b",
+      "observed_signature_sha256": "55dfc891bc2bf8248f90b7299696b9a6622f70da7e6630ab72b5638443c1aeca",
+      "migration_heads": [
+        "20261025di01"
+      ],
+      "runtime_role_flags": {
+        "rolsuper": false,
+        "rolcreatedb": false,
+        "rolcreaterole": false,
+        "rolreplication": false,
+        "rolbypassrls": false
+      },
+      "timestamp": "2026-11-02T14:25:45.326161+00:00",
+      "deployment": {
+        "commit": "9a040029ecd5515da20c0b8fd1ef4c412c5fec1d",
+        "version": "0.1.0-dev",
+        "operation_mode": "PERSONAL"
+      },
+      "application_rows_read": false,
+      "production_writes": false,
+      "credentials_retained": false
+    },
+    "signature_note": "The required and observed signature hashes differ and are retained exactly as recorded. The schema validator reported PASS; hash equality is not asserted.",
+    "runtime_receipt": "outputs/production-runtime-9a040029.json",
+    "runtime_timestamp": "2026-11-02T14:28:34.889026+00:00",
+    "runtime_result": "PASS",
+    "deployment": {
+      "commit": "9a040029ecd5515da20c0b8fd1ef4c412c5fec1d",
+      "version": "0.1.0-dev",
+      "operation_mode": "PERSONAL"
+    },
+    "http_statuses": {
+      "/health": 200,
+      "/ready": 200,
+      "/readiness": 200,
+      "/__deployment": 200,
+      "/settings": 200
+    },
+    "health": {
+      "status": "ok",
+      "check": "liveness",
+      "mode": "LOCAL_FIRST",
+      "operation_mode": "PERSONAL",
+      "external_submission_enabled": false
+    },
+    "ready": {
+      "status": "ready",
+      "checks": {
+        "configuration": true,
+        "database": true,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-ai": true,
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": true
+      },
+      "db_backend": "postgresql"
+    },
+    "readiness": {
+      "status": "ready",
+      "checks": {
+        "configuration": true,
+        "database": true,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-ai": true,
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": true
+      },
+      "db_backend": "postgresql"
+    },
+    "settings": {
+      "mode": "LOCAL_FIRST",
+      "operation_mode": "PERSONAL",
+      "external_submission_enabled": false,
+      "submission_limits": {
+        "hourly": 3,
+        "daily": 10,
+        "company": 1
+      },
+      "browser_workers": 0,
+      "worker_limits": {
+        "DISCOVER": 2,
+        "COMPANY_DISCOVER": 1,
+        "AI_EVALUATE_QUEUED": 1,
+        "COMPANY_SOURCE_REFRESH": 1,
+        "PREPARE": 1,
+        "RESUME_EXTRACT_QUEUED": 1,
+        "UPLOADED_RESUME_COMPARE_QUEUED": 1,
+        "APPLY_MOCK": 1,
+        "APPLICATION_FORM_REVIEW": 1,
+        "APPLICATION_DRY_RUN": 1
+      },
+      "notifications": {
+        "enabled": false,
+        "delivery": "IN_APP"
+      },
+      "browser_profile": {
+        "name": "default",
+        "scope": "PER_APPLICATION",
+        "existing_sessions": "PINNED"
+      }
+    },
+    "application_containers": {
+      "count": 7,
+      "names": [
+        "/mjobs-micro-api-1",
+        "/mjobs-micro-worker-1",
+        "/mjobs-micro-company-discovery-worker-1",
+        "/mjobs-micro-document-worker-1",
+        "/mjobs-micro-source-worker-1",
+        "/mjobs-micro-ai-worker-1",
+        "/mjobs-micro-scheduler-1"
+      ],
+      "all_running": true,
+      "all_healthy": true,
+      "shared_image": "mjobs-micro:sha-9a040029ecd5515da20c0b8fd1ef4c412c5fec1d",
+      "shared_image_id": "sha256:55a5cd4fa40d5e0d9f09a7b672dc6a2105d559bc89408f2a3983628cce160940",
+      "all_seven_shared_environment_values": {
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_BROWSER_PROFILE": "default",
+        "MJOBS_SUBMISSION_HOURLY_LIMIT": "3",
+        "MJOBS_SUBMISSION_DAILY_LIMIT": "10",
+        "MJOBS_SUBMISSION_COMPANY_LIMIT": "1"
+      },
+      "api_notification_environment": {
+        "MJOBS_NOTIFICATIONS_ENABLED": "0"
+      }
+    },
+    "settings_compose_agreement": true,
+    "production_writes": false,
+    "private_profile_rows_read": false
+  },
+  "remaining_delivery_and_truth_boundaries": [
+    "Final source d86 protected integration, guarded rollout, runtime image/schema and backup/rollback evidence are now attached through final_delivery. The containing acceptance publication still has its own exact gates and final receipt.",
+    "No canonical matrix, issue state, priority, denominator or P0 acceptance is changed by this record.",
+    "The full-stack restart/monitoring case remains skipped. The earlier hosted PostgreSQL migration-recovery skips are preserved; later native PR887 execution supplies separate passing PostgreSQL coverage.",
+    "No live authenticated production browser interaction or production user-setting mutation is established by the controlled browser fixtures and read-only settings observations.",
+    "No paid AI/provider inference or real employer submission is established; native provider interactions were controlled fixtures only.",
+    "No original-byte SHA256 for the individual JSON receipt files was supplied; the input bundle SHA256, native XML SHA256 and hosted XML SHA256 values preserve the available provenance."
+  ],
+  "final_delivery": {
+    "source": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "runtime": "docs/evidence/2026-11-02-pro-resume/production-runtime-d86.json",
+    "schema": "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json",
+    "guarded_rollout": "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json",
+    "historical_observation_preserved": true
+  },
+  "native_count_resolution": {
+    "receipt": "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+    "tests_passed": 406,
+    "subtests_passed": 372,
+    "skipped": 4,
+    "xml_entries": 782,
+    "note": "The original 782 XML-entry inventory is now split by the exact native execution receipt; entries are not 782 independent test methods."
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T15:48:18.444191+00:00",
+  "source_revision": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+  "source_tree": "653905a78296402c424d0356518d84a65eca3e26",
+  "endpoint": "https://weworkremotely.com/remote-jobs.rss",
+  "public_get_attempts": 1,
+  "max_response_bytes": 5000000,
+  "absolute_network_budget_seconds": 30,
+  "production_data_writes": false,
+  "external_submissions": false,
+  "result": "UPSTREAM_CONFLICT_REFUSED_WITH_VERIFIED_ROLLBACK",
+  "source_sha256": [
+    {
+      "path": "services/discovery/sources/wwr.py",
+      "sha256": "e30a71f743a440734c0803dcd2feb62972df6b29b074ff01f69af5b103674b9f"
+    },
+    {
+      "path": "services/discovery/sources/collect.py",
+      "sha256": "93f25d53d05e62050cdb6cfd3518deed4695cd76135e6ce0e80c2504e6ad89b7"
+    }
+  ],
+  "http_status": 200,
+  "network_seconds": 0.922,
+  "raw_capture_sha256": "c3d63f9397df927f8ee9ee092a1ae2db47b0e444e17b8e3c603011a1fc05c6cf",
+  "raw_capture_bytes": 987348,
+  "entries": 100,
+  "identities": 98,
+  "conflicts": [
+    {
+      "identity_sha256": "907549eceb5b5a282417cb950e32b4775c16f48fd517cbb88754a43c93f719c1",
+      "records": 2,
+      "guid_equal": true,
+      "link_equal": true,
+      "differing_fields": [
+        "description"
+      ],
+      "record_sha256": [
+        "cc3122194c4fdb8b3a8d70a2532fd782a899b96e0895ebce6588bcc173b147e4",
+        "ffa3e7443ab8069db3023200639576c0a71c31fd2bc36a2559d40843aad30392"
+      ]
+    },
+    {
+      "identity_sha256": "0cdf0f444b9038c991913496e65260e66744593229d8b2b743071f490fb11ee3",
+      "records": 2,
+      "guid_equal": true,
+      "link_equal": true,
+      "differing_fields": [
+        "description",
+        "type"
+      ],
+      "record_sha256": [
+        "01355c750940512f6794bba17e57a4aae2bef910881f92d36ef7e14b75821ad6",
+        "e2f12789fa108c34cf681ae2877811efd374c61bc01ae01648d73b9247a514bd"
+      ]
+    }
+  ],
+  "replay": [
+    {
+      "status": "REFUSED",
+      "code": "SOURCE_DUPLICATE_JOB_ID",
+      "order": "original",
+      "controlled_replay_requests": 1,
+      "before_counts": {
+        "companies": 3,
+        "canonical_jobs": 3,
+        "application_routes": 3,
+        "job_postings": 3,
+        "posting_snapshots": 3,
+        "posting_value_candidates": 3
+      },
+      "after_counts": {
+        "companies": 3,
+        "canonical_jobs": 3,
+        "application_routes": 3,
+        "job_postings": 3,
+        "posting_snapshots": 3,
+        "posting_value_candidates": 3
+      },
+      "rows_unchanged": true,
+      "before_rows_sha256": "a5cf3b7d40cbd006c00f4dd023eb693615d4e4512c7ad8d30d0af57a2496a846",
+      "after_rows_sha256": "a5cf3b7d40cbd006c00f4dd023eb693615d4e4512c7ad8d30d0af57a2496a846",
+      "source_health": "FAILED",
+      "last_error": "SOURCE_DUPLICATE_JOB_ID"
+    },
+    {
+      "status": "REFUSED",
+      "code": "SOURCE_DUPLICATE_JOB_ID",
+      "order": "reversed",
+      "controlled_replay_requests": 1,
+      "before_counts": {
+        "companies": 3,
+        "canonical_jobs": 3,
+        "application_routes": 3,
+        "job_postings": 3,
+        "posting_snapshots": 3,
+        "posting_value_candidates": 3
+      },
+      "after_counts": {
+        "companies": 3,
+        "canonical_jobs": 3,
+        "application_routes": 3,
+        "job_postings": 3,
+        "posting_snapshots": 3,
+        "posting_value_candidates": 3
+      },
+      "rows_unchanged": true,
+      "before_rows_sha256": "a5cf3b7d40cbd006c00f4dd023eb693615d4e4512c7ad8d30d0af57a2496a846",
+      "after_rows_sha256": "a5cf3b7d40cbd006c00f4dd023eb693615d4e4512c7ad8d30d0af57a2496a846",
+      "source_health": "FAILED",
+      "last_error": "SOURCE_DUPLICATE_JOB_ID"
+    }
+  ],
+  "observer_sha256": "47451dfebffd77b702d2cb86e997c586dc5649f2cb4fcab78df9c778b7517258",
+  "observer_retained": "outputs/wwr-bounded-replay-observer.py in the owned native evidence worktree",
+  "method": [
+    "One public GET through an absolute-deadline guard; no redirects, proxies, compression or retry; 5MB maximum.",
+    "Parse with unchanged production WWR adapter; retain only identity/record hashes and differing field names.",
+    "Seed three synthetic pre-existing records, then replay the exact capture and reversed item order through the production collector using MockTransport.",
+    "Compare full rows and digests across all six affected tables, not only row counts; verify source health and error code independently.",
+    "Dispose the temporary SQLite store; retain sanitized receipt and raw public capture only in the owned evidence workspace."
+  ],
+  "canonical_acceptance": "Unchanged; source safety succeeds, upstream operational conflict remains."
+}

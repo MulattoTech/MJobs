@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "scope": "Native command and readback receipts copied after verifying original bytes, then only CRLF normalized to LF for Git. Embedded command stdout digests refer to original native bytes; published file digests are listed separately. Original native files remain in the owned outputs directory.",
+  "files": [
+    {
+      "path": "delivered-dry-run-d86.json",
+      "native_original_sha256": "8de6e82a93eeb42042b7d03f522b829f1b70068d3c04f313a8040c6549b4d370",
+      "published_lf_sha256": "0e14b7c737ca2bfd72b9655bd20d066fb1c28deed98830db1ba9589066a4bd14",
+      "crlf_pairs": 109
+    },
+    {
+      "path": "delivered-full-d86.json",
+      "native_original_sha256": "5aceababd28e8fbf300c18983672c4c3e2de2b948bb3b53cc610f18c18fab423",
+      "published_lf_sha256": "c4051279aa6016911b0dc3ae5426161fefe700171dce1b879d7b0662684e1dd4",
+      "crlf_pairs": 191
+    },
+    {
+      "path": "delivered-command-manifest-d86.json",
+      "native_original_sha256": "005efb5ce42d390043050e1a8146c71a7fd719d6eb5b2511c2a67b61a63a6e48",
+      "published_lf_sha256": "49983afeddc8f8ff3c065844e85ef5c32f9730d3b54c3eef4f0025b35d29049c",
+      "crlf_pairs": 23
+    },
+    {
+      "path": "production-schema-d86.json",
+      "native_original_sha256": "db5cdc52779735fa2894025ea32363b4c2eb351f9446692ed468a67adc4a34f4",
+      "published_lf_sha256": "75a7a9de5fa9b04409d4203b39bed3ddbdb10afd29e9088065e39b7283363b46",
+      "crlf_pairs": 30
+    },
+    {
+      "path": "production-runtime-d86.json",
+      "native_original_sha256": "50f10a743b4f287d4c3ca78dcf6cadc0acb0cc61de6fd16f096420e22612f977",
+      "published_lf_sha256": "23d4f258cb2138939d531c3855afa2ee8a594bbbf5f44ce82abba99b37075189",
+      "crlf_pairs": 204
+    },
+    {
+      "path": "guarded-delivery-d86.json",
+      "native_original_sha256": "06ce858305930b66666a51651e51842964d8db686f5f97ce5c2c094bb4b17a30",
+      "published_lf_sha256": "3664582069a1f27f7797c7a1e73f7a1b8241f92e0acac678f5960c196b8d578d",
+      "crlf_pairs": 82
+    }
+  ],
+  "nearby_pre_switch_backup_metadata": [
+    {
+      "name": "20261102T035227Z-2e0f3df8f695",
+      "schema_version": 2,
+      "files": 3,
+      "mode": "PERSONAL"
+    },
+    {
+      "name": "20261102T050214Z-da589aefa1c3",
+      "schema_version": 2,
+      "files": 3,
+      "mode": "PERSONAL"
+    },
+    {
+      "name": "20261102T142048Z-8c9c097fbc94",
+      "schema_version": 2,
+      "files": 3,
+      "mode": "PERSONAL"
+    },
+    {
+      "name": "20261102T160226Z-9a040029ecd5",
+      "schema_version": 2,
+      "files": 3,
+      "mode": "PERSONAL"
+    },
+    {
+      "name": "20261102T163102Z-2c6a93f3eeec",
+      "schema_version": 2,
+      "files": 3,
+      "mode": "PERSONAL"
+    }
+  ]
+}

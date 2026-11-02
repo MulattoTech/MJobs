@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:31:11.854Z",
+  "scope": "Read-only Cloudflare topology and access policy observation; not application commit identity or authenticated UI evidence.",
+  "requests": "GET only",
+  "dns": [
+    {
+      "name": "mjobs.m-techlabs.com",
+      "type": "CNAME",
+      "proxied": true,
+      "content": "ddb113a0-e987-40aa-b849-b96b3c4bb0a1.cfargotunnel.com"
+    }
+  ],
+  "tunnel": {
+    "name": "mjobs-windows-docker",
+    "status": "healthy",
+    "connections": 4
+  },
+  "ingress": {
+    "version": 1,
+    "rules": [
+      {
+        "hostname": "mjobs.m-techlabs.com",
+        "service": "http://api:8000"
+      },
+      {
+        "service": "http_status:404"
+      }
+    ]
+  },
+  "access": {
+    "domain": "mjobs.m-techlabs.com",
+    "type": "self_hosted",
+    "session_duration": "12h",
+    "policy_count": 2,
+    "policy_pagination": {
+      "page": 1,
+      "per_page": 200,
+      "count": 2,
+      "total_count": 2,
+      "total_pages": 1
+    },
+    "policies": [
+      {
+        "decision": "allow",
+        "include_rule_types": [
+          [
+            "email"
+          ]
+        ],
+        "exclude_rule_types": [],
+        "require_rule_types": [],
+        "includes_everyone": false
+      },
+      {
+        "decision": "allow",
+        "include_rule_types": [
+          [
+            "external_evaluation"
+          ]
+        ],
+        "exclude_rule_types": [],
+        "require_rule_types": [],
+        "includes_everyone": false
+      }
+    ]
+  },
+  "identities_or_credentials_retained": false,
+  "changes_made": false,
+  "public_authenticated_browser": {
+    "result": "NOT_RUN",
+    "reason": "Browser access requires the originating browser context. Open ChatGPT in the browser with the connected extension and try again.",
+    "scope": "The attempted connected Browser initialization was unavailable. Controlled native Chromium fixtures and direct local production observations are recorded separately; no authenticated public UI visit is claimed."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:38:42.091786+00:00",
+  "scope": "Required progress recording command dispatch repair; no new acceptance claimed.",
+  "failure": {
+    "command": "python -m tools.verification.progress record --entry docs/evidence/2026-11-02-pro-resume/milestone.json",
+    "actual_exit": 1,
+    "exception": "AttributeError: Namespace object has no attribute state",
+    "checkpoint_and_output_written_before_exception": true,
+    "original_milestone_count": 1,
+    "real_record_command_retried": false
+  },
+  "fix": "The final validation reads args.state only for validate; record validates its just-written default journal.",
+  "reviewed_files": [
+    {
+      "path": "tools/verification/progress.py",
+      "sha256": "e70704795127795f7d6af9fce274948476b66355ac28e91f1ead95fbec191196"
+    },
+    {
+      "path": "tests/unit/test_progress_journal.py",
+      "sha256": "d77988fdb14a167a43b9da9448de15cbafa55fff46608d39759bea5bd1c8b1fa"
+    }
+  ],
+  "regression_execution": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python -m unittest tests.unit.test_progress_journal -v",
+    "tests_passed": 14,
+    "skipped": 0,
+    "duration_seconds": 0.344,
+    "scope": "14-test progress-journal module, including three actual CLI regression tests in owned temporary repositories: exact single append/output equality/successful exit, duplicate refusal preserving both files, and alternate-state validation read-only.",
+    "pre_fix_failure_reproduced": true,
+    "actual_cli_regressions": 3
+  },
+  "native_and_protected_publication": "Exact proposed-merge native execution and hosted gates are recorded separately in the containing PR before merge."
+}

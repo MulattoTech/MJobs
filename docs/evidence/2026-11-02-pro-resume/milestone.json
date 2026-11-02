@@ -1,0 +1,91 @@
+{
+  "milestone_id": "PRO-RESUME-VERIFIED-DELIVERY-20261102",
+  "timestamp": "2026-11-02T16:38:42.091786+00:00",
+  "current_phase": "Verified resumed source delivery and seven additional original P1 acceptances",
+  "completed_steps": [
+    "Protected source PRs886/887/888 merged with exact tested-tree equality and all source gates/CodeQL PASS.",
+    "Guarded d86 production rollout and fresh public DRY_RUN11/FULL13 verified; safe schema/configuration/image readback, backup and rollback preservation recorded.",
+    "Seven literal P1 acceptances prepared for protected publication; P1 99 to106, P0 unchanged12, separate reference authority byte-for-byte unchanged.",
+    "Ownership-verified cleanup preserves unrelated fleet edits; fresh WWR capture/replay proves conflicting upstream data cannot change persisted job rows."
+  ],
+  "files_added": [
+    "docs/evidence/2026-11-02-pro-resume/README.md",
+    "docs/evidence/2026-11-02-pro-resume/backup-criteria.json",
+    "docs/evidence/2026-11-02-pro-resume/cloudflare-and-browser.json",
+    "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+    "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+    "docs/evidence/2026-11-02-pro-resume/delivered-dry-run-d86.json",
+    "docs/evidence/2026-11-02-pro-resume/delivered-full-d86.json",
+    "docs/evidence/2026-11-02-pro-resume/delivery.json",
+    "docs/evidence/2026-11-02-pro-resume/dependency-followup.json",
+    "docs/evidence/2026-11-02-pro-resume/deployment-gate-recovery.json",
+    "docs/evidence/2026-11-02-pro-resume/environment-cleanup.json",
+    "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json",
+    "docs/evidence/2026-11-02-pro-resume/milestone.json",
+    "docs/evidence/2026-11-02-pro-resume/native-receipt-provenance.json",
+    "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+    "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+    "docs/evidence/2026-11-02-pro-resume/pr888-artifacts.json",
+    "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+    "docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json",
+    "docs/evidence/2026-11-02-pro-resume/production-runtime-d86.json",
+    "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json",
+    "docs/evidence/2026-11-02-pro-resume/progress-record-recovery.json",
+    "docs/evidence/2026-11-02-pro-resume/wwr-bounded-replay.json",
+    "planning/agent_handoffs/pro-resume-delivery-20261102.json"
+  ],
+  "files_modified": [
+    "docs/PROGRESS_CARD.json",
+    "docs/PROGRESS_CARD.svg",
+    "docs/PROGRESS_DASHBOARD.md",
+    "planning/CAPABILITY_MATRIX.json",
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "planning/REQUIREMENT_INDEX.json",
+    "planning/SESSION_HANDOFF.md",
+    "tests/unit/test_deployment_checks.py",
+    "tests/unit/test_progress_journal.py",
+    "tools/deploy/wait_for_checks.py",
+    "tools/verification/progress.py"
+  ],
+  "tests_completed": [
+    "Exact proposed merge native406/164/144; subtests/skips and overlap explicitly recorded.",
+    "All five protected source gates and CodeQL for three PRs; source and merged trees equal.",
+    "PR888 unit3385/53skip/3724subtests and integration2545/39skip/1495subtests; platform-specific cases separately reconciled.",
+    "Delivered dry-run11/FULL13 exit0, clean matching identity and owned cleanup; production50tables/84FK and7 application containers healthy.",
+    "Local deployment-gate30 tests and progress-journal14 tests PASS, zero skips; pre-fix failure controls reproduced; native exact publication and hosted gates remain separately pending.",
+    "Catalogue, planning reconciliation, progress journal, generated dashboard, portable checkpoint and whitespace validators PASS."
+  ],
+  "tests_remaining": [
+    "Containing acceptance/source-hardening PR exact proposed merge native and hosted gates, final guarded rollout and command readback.",
+    "Full P0004/008/292 and P1171/172/174 literal acceptance; no substitute from narrow delivered scopes."
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Existing guarded MJobs Micro updater, exact release/image, PostgreSQL/Redis/RQ/scheduler readiness, read-only schema and safe configuration.",
+    "One bounded official WWR read plus two controlled production-collector replays; upstream conflict refusal and unchanged persisted job rows verified.",
+    "Cloudflare tunnel/DNS/Access inspected read-only; public authenticated browser context unavailable."
+  ],
+  "known_errors": [
+    "Route and browser regression failures, stale TLS/TestClient fixture failures and their focused reproductions remain in PR886 evidence.",
+    "PR887 first native database setup refused non-empty shared test targets before pytest. Separate owned schemas were used; no existing data was reset.",
+    "Two PR887 hosted timing failures remain recorded. Collection before timed fixture setup stabilizes its harness; automatic GC, production deadlines and assertions remain enabled. Exact final 164 native tests and hosted source gates pass.",
+    "Protected backup initially exposed Windows cross-API ctime differences and a correctly refused non-private Temp ancestor; fixed same-API checks and owned private test parent were independently reviewed.",
+    "FULL source identity review reproduced transient-edit and clean-checkout false positives; before/child/after source binding now rejects both.",
+    "Main d86 candidate run41478359557 attempt1 failed on HTTPError during a GitHub read, before image build. HTTP status was unavailable. A single diagnosed job rerun followed completed independent gates and fresh successful reads. Both outcomes are retained.",
+    "Historical November 1 backup exit-2 detail was discarded and cannot be reconstructed.",
+    "Required progress record invocation appended exactly once and wrote matching output, then exited1 due to missing args.state in post-write validation. The one-line dispatch fix has14 progress-journal tests passed, including three actual-CLI regression tests; the real record command was not repeated."
+  ],
+  "known_limitations": [
+    "External employer submissions remain OFF; fixture confirmation is not a real application.",
+    "No paid AI calls, destructive production restore, host reboot, unrelated process termination, or fleet launch was performed.",
+    "Public authenticated Browser observation is NOT_RUN because the originating connected browser context was unavailable; no access policy was weakened.",
+    "WWR still has two conflicting groups among 100 entries/98 identities. Both replay orders safely reject without changing six persisted job tables.",
+    "P0 004/008/292 remain PARTIAL. P1 171/172/174 remain NOT_RUN. Database design does not imply ORM/security completeness; secret handling does not imply all PII protection.",
+    "Disposable test container/volume/private Temp and 33 owned dirty local files were cleaned only after ownership and published-blob verification. Unrelated fleet worktree changes were preserved."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "evidence_path": "docs/evidence/2026-11-02-pro-resume/delivery.json"
+  }
+}

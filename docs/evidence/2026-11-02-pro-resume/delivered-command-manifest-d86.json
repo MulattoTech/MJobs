@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "result": "PASS",
+  "source": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+  "clean_before": true,
+  "clean_after": true,
+  "commands": {
+    "dry-run": {
+      "command": "-m cli.verify_readiness --dry-run --fixture --json",
+      "exit_code": 0,
+      "started_at": "2026-11-02T16:31:13.543496+00:00",
+      "finished_at": "2026-11-02T16:31:21.415781+00:00",
+      "sha256": "8de6e82a93eeb42042b7d03f522b829f1b70068d3c04f313a8040c6549b4d370"
+    },
+    "full": {
+      "command": "-m cli.verify_readiness --full --fixture --api http://127.0.0.1:18801 --json",
+      "exit_code": 0,
+      "started_at": "2026-11-02T16:31:21.415781+00:00",
+      "finished_at": "2026-11-02T16:31:30.321525+00:00",
+      "sha256": "5aceababd28e8fbf300c18983672c4c3e2de2b948bb3b53cc610f18c18fab423"
+    }
+  }
+}

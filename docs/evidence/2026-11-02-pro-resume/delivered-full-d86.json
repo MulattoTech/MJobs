@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "mode": "FULL",
+  "started_at": "2026-11-02T16:31:21.600452+00:00",
+  "finished_at": "2026-11-02T16:31:30.298740+00:00",
+  "status": "PASS",
+  "exit_code": 0,
+  "runtime_before": {
+    "ready": true,
+    "checks": {
+      "Configuration valid": "PASS",
+      "Database schema current": "PASS",
+      "PostgreSQL reachable": "PASS",
+      "Redis reachable": "PASS",
+      "Scheduler healthy": "PASS",
+      "Application worker": "PASS",
+      "Company discovery worker": "PASS",
+      "Discovery worker": "PASS",
+      "Document worker": "PASS",
+      "All required workers": "PASS",
+      "Deployment identity": "PASS"
+    },
+    "observed_at": "2026-11-02T16:31:22.177514+00:00",
+    "scope": "observed API runtime readiness",
+    "api_origin": "http://127.0.0.1:18801",
+    "deployment": {
+      "commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "version": "0.1.0-dev",
+      "operation_mode": "PERSONAL"
+    }
+  },
+  "runtime_after": {
+    "ready": true,
+    "checks": {
+      "Configuration valid": "PASS",
+      "Database schema current": "PASS",
+      "PostgreSQL reachable": "PASS",
+      "Redis reachable": "PASS",
+      "Scheduler healthy": "PASS",
+      "Application worker": "PASS",
+      "Company discovery worker": "PASS",
+      "Discovery worker": "PASS",
+      "Document worker": "PASS",
+      "All required workers": "PASS",
+      "Deployment identity": "PASS"
+    },
+    "observed_at": "2026-11-02T16:31:30.163442+00:00",
+    "scope": "observed API runtime readiness",
+    "api_origin": "http://127.0.0.1:18801",
+    "deployment": {
+      "commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "version": "0.1.0-dev",
+      "operation_mode": "PERSONAL"
+    }
+  },
+  "functional": {
+    "schema_version": 2,
+    "scope": "isolated synthetic FIXTURE; not deployment readiness",
+    "execution_mode": "CONNECTED",
+    "invocation_id": "36637e0832944c47a06d36f188f72b2a",
+    "revision": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "source_sha256": "00686df075542e6b5e47d653a5a5fcc02a8f375ad98d04869b6f430fd53ac9a4",
+    "started_at": "2026-11-02T16:31:22.262606+00:00",
+    "external_submission_enabled": false,
+    "checks": {
+      "adapter registry": {
+        "status": "PASS",
+        "reason": "registry source identity and normalized job tenant/provider matched the isolated fixture"
+      },
+      "mock global source": {
+        "status": "PASS",
+        "reason": "API discovery operation executed; two jobs and four postings persisted"
+      },
+      "mock company discovery": {
+        "status": "PASS",
+        "reason": "API company-discovery operation fetched the owned careers/ATS feed and persisted its source"
+      },
+      "ATS detector": {
+        "status": "PASS",
+        "reason": "real detector matched synthetic Lever signature and rejected mock-only page with NO_MATCH; no provider fetch"
+      },
+      "Scoring functional": {
+        "status": "PASS",
+        "reason": "explicit API scoring operation persisted current-profile scores and required Python/SQL evidence"
+      },
+      "Document engine healthy": {
+        "status": "PASS",
+        "reason": "API preparation executed; generated resume/letter PDF and DOCX bytes parsed and hashes verified"
+      },
+      "Browser worker healthy": {
+        "status": "PASS",
+        "reason": "isolated Playwright Chromium launched; production worker heartbeat is not covered"
+      },
+      "Dry-run mode functional": {
+        "status": "PASS",
+        "reason": "API mock-run filled/reviewed in Chromium and stopped before submit; no receipt and zero submissions"
+      },
+      "mock application fill": {
+        "status": "PASS",
+        "reason": "browser validation and mock server review succeeded after standard/custom field fill"
+      },
+      "mock upload": {
+        "status": "PASS",
+        "reason": "real browser selected generated files; mock server accepted multipart review and adapter verified bytes"
+      },
+      "mock confirmation": {
+        "status": "PASS",
+        "reason": "API mock submit executed in Chromium; confirmation matches owned mock receipt"
+      },
+      "duplicate-submission protection": {
+        "status": "PASS",
+        "reason": "API retry reused operation; real adapter replay preserved confirmation and submit count stayed one"
+      },
+      "durable readback": {
+        "status": "PASS",
+        "reason": "fresh database connection and on-disk mock receipt retain one confirmed application"
+      }
+    },
+    "observations": {
+      "registry_requests": [
+        "/v1/boards/fixture",
+        "/v1/boards/fixture/jobs"
+      ],
+      "registry_company": "Synthetic employer",
+      "registry_job_requisition": "288",
+      "registry_provider": "greenhouse",
+      "registry_tenant": "fixture",
+      "fixture_origin": "http://127.0.0.1:60303",
+      "profile_id": "verification-36637e0832944c47a06d36f188f72b2a",
+      "company_operation_id": "549d22341114c277a4cbfc7066581d86cb886180accc7632f994034a6dfecc68",
+      "company_id": "f6e19ad681ec896f14466c156533e4f5f646eab98fa34348a6b594b92dbd6e79",
+      "canonical_jobs": 2,
+      "discovery_operation_id": "e9b125c77e9e6e33555d53c15dc0e1fcedce83dfe06918408e47e1c5123c2abc",
+      "discovery_audit_id": "02481dfff9bc4d0a8b64f96b6602f261",
+      "discovery_prior_audit_ids": [
+        "4dc68b2a08bf4371807a939645dff104"
+      ],
+      "scoring_operation_id": "6643c59fce7f57589a9e3847ffe55818dddab3cd1a155930cd53f0442a50df37",
+      "scored_profile_version": "ac7e144e753d261b1712592fb7d3391415f25b94a224822292343ff540a22f94",
+      "scoring_previous_version": "031f6dc4a8c1e6b6526154f371518f2f77a9a34c0d5de27d36c8051684671172",
+      "scores_before_rescore": 0,
+      "scored_job_id": "ae1bbe347181ce468443c5981e7b886f2127f9dc212bf9b0ed72bb573fe1b76b",
+      "score": 100.0,
+      "dry_run_submission_count": 0,
+      "application_id": "f339111241c114ac90083936307262afdd8627d963ba896c27ffcb20cbb3e4f1",
+      "submission_count": 1,
+      "confirmation_operation_id": "b649e797c6e3bb1669cfde0a01ff47f2e437c918701fb24095b9ae9e420d9524",
+      "duplicate_retry_operation_id": "b649e797c6e3bb1669cfde0a01ff47f2e437c918701fb24095b9ae9e420d9524",
+      "duplicate_retry_confirmation_matches": true,
+      "duplicate_retry_submission_count": 1,
+      "persisted_state": "CONFIRMED"
+    },
+    "workspace": "C:\\Users\\Dylan\\AppData\\Local\\Temp\\mjobs-connected-verification-u7z9hgks\\fixture",
+    "runtime": {
+      "pid": 38104,
+      "parent_pid": 11420,
+      "python": "3.12.10",
+      "platform": "win32",
+      "database": "owned temporary SQLite",
+      "execution": "API + inline durable operation executor",
+      "dependencies": {
+        "httpx": "0.28.1",
+        "fastapi": "0.142.1",
+        "SQLAlchemy": "2.1.1",
+        "playwright": "1.63.0",
+        "python-docx": "1.2.0",
+        "pypdf": "6.19.0",
+        "reportlab": "5.0.1"
+      }
+    },
+    "finished_at": "2026-11-02T16:31:29.356585+00:00",
+    "cleanup": {
+      "status": "PASS",
+      "reason": "retained Job has zero active members; original host reaped and owned workspace removed"
+    }
+  },
+  "revision_identity": {
+    "status": "PASS",
+    "working_tree_clean": true,
+    "source_before": {
+      "revision": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "source_sha256": "00686df075542e6b5e47d653a5a5fcc02a8f375ad98d04869b6f430fd53ac9a4"
+    },
+    "source_after": {
+      "revision": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "source_sha256": "00686df075542e6b5e47d653a5a5fcc02a8f375ad98d04869b6f430fd53ac9a4"
+    },
+    "functional_inputs_match": true,
+    "reason": "same deployment and clean source revision/input digest before and after functional execution"
+  }
+}

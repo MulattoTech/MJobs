@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T15:37:28.980695+00:00",
+  "pr": {
+    "baseRefOid": "9a040029ecd5515da20c0b8fd1ef4c412c5fec1d",
+    "headRefOid": "ce6b7119ea9b5b861a2d280d4c035a929ea65e63",
+    "mergeStateStatus": "CLEAN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:20:04Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858374/job/125360267215",
+        "name": "Python / unit and integrity",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469846831/job/125360230879",
+        "name": "Analyze (actions)",
+        "startedAt": "2026-11-02T15:15:49Z",
+        "status": "COMPLETED",
+        "workflowName": "CodeQL"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:23:55Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858384/job/125360268878",
+        "name": "Disposable Compose / mock end-to-end",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Connected acceptance \u00e2\u20ac\u201d synthetic"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:00Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858378/job/125360266366",
+        "name": "Dependencies / introduced vulnerabilities",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Dependency review"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:30:28Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858330/job/125360266118",
+        "name": "Integration / shard 0",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:08Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858411/job/125360264433",
+        "name": "Security / secret scan",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Secret scan - reviewed history"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:45Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469846831/job/125360231570",
+        "name": "Analyze (javascript-typescript)",
+        "startedAt": "2026-11-02T15:15:57Z",
+        "status": "COMPLETED",
+        "workflowName": "CodeQL"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:35:18Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858330/job/125360266376",
+        "name": "Integration / shard 1",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:17:23Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469846831/job/125360231216",
+        "name": "Analyze (python)",
+        "startedAt": "2026-11-02T15:15:49Z",
+        "status": "COMPLETED",
+        "workflowName": "CodeQL"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:29:01Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858330/job/125360265896",
+        "name": "Integration / shard 2",
+        "startedAt": "2026-11-02T15:15:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:30Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858374/job/125360267100",
+        "name": "Web / Vitest and production build",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:35:26Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858330/job/125371366312",
+        "name": "Integration / PostgreSQL and Redis",
+        "startedAt": "2026-11-02T15:35:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:06Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858374/job/125360267192",
+        "name": "Repository / policy and docs",
+        "startedAt": "2026-11-02T15:15:54Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:20:10Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41469858374/job/125362662645",
+        "name": "CI / required",
+        "startedAt": "2026-11-02T15:20:06Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:16:22Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/runs/125360528424",
+        "name": "CodeQL",
+        "startedAt": "2026-11-02T15:16:19Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "url": "https://github.com/MulattoTech/MJobs/pull/887"
+  },
+  "tested_merge_revision": "82a1f59b9ec7105a699dffb2945d91570bfcbbee",
+  "tested_merge_tree": "653905a78296402c424d0356518d84a65eca3e26",
+  "native": {
+    "manifest": {
+      "candidate": "82a1f59b9ec7105a699dffb2945d91570bfcbbee",
+      "tree": "653905a78296402c424d0356518d84a65eca3e26",
+      "source_head": "ce6b7119ea9b5b861a2d280d4c035a929ea65e63",
+      "started_at": "2026-11-02T15:33:09.500700+00:00",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "tests/integration/test_credential_error_privacy.py",
+        "tests/unit/test_database_exception_privacy.py",
+        "tests/integration/test_provider_credentials_api.py",
+        "tests/unit/test_credential_store.py",
+        "tests/unit/test_credential_connection_bounds.py",
+        "tests/integration/test_profile_ai_credentials.py",
+        "tests/integration/test_profile_ai_credentials_postgres.py",
+        "tests/integration/test_backup_credential_recoverability_postgres.py",
+        "tests/integration/test_provider_credentials_migration.py",
+        "tests/integration/test_provider_credential_connection_bounds.py",
+        "tests/integration/test_provider_credential_timeout_api.py",
+        "tests/unit/test_backup_credential_restore.py",
+        "tests/unit/test_structured_logging.py",
+        "tests/unit/test_worker_startup_logging.py",
+        "tests/unit/test_secret_scan_sustain_176.py",
+        "tests/browser/test_profile_ai_credentials.py",
+        "tests/browser/test_provider_credentials.py",
+        "tests/integration/test_ai_tls_recovery.py",
+        "tests/integration/test_durable_ai_evaluation.py",
+        "tests/integration/test_source_http_socket_budget.py",
+        "tests/integration/test_migration_recovery.py",
+        "--junitxml=outputs/exact-security-final-native.xml",
+        "--maxfail=2"
+      ],
+      "owned_new_databases": [],
+      "fresh_isolated_schemas": [
+        {
+          "database": "mjobs_migration_recovery",
+          "schema": "pro_resume_82a1f59b_ordinary"
+        },
+        {
+          "database": "mjobs_protected_config_recovery",
+          "schema": "pro_resume_82a1f59b_protected"
+        }
+      ],
+      "source_sha256": [
+        {
+          "path": "apps/api/credential_errors.py",
+          "sha256": "c0c86754e237f0ef615d2e534e883d28231b04d3f0ce6aea09d333c93944f67a"
+        },
+        {
+          "path": "apps/api/main.py",
+          "sha256": "24e8fe7710b7506941971e80091cfb3cf5f16bde6ec56aa06210966d592b90a1"
+        },
+        {
+          "path": "packages/persistence/store.py",
+          "sha256": "6cf79656fb2a4557459ff328a0e55ec05c0b26d5764f3c3324fa4b94c39c1746"
+        },
+        {
+          "path": "tests/integration/test_durable_ai_evaluation.py",
+          "sha256": "0d1b5a7aae764f79c85955115168d346b806b3adfc748601979387723c9d361e"
+        },
+        {
+          "path": "tests/integration/test_source_http_socket_budget.py",
+          "sha256": "023ee69141347c036b7c2dbd1786d2d37539feae1fcf1568d5723ddcc4b4e699"
+        },
+        {
+          "path": "tests/integration/test_migration_recovery.py",
+          "sha256": "e3d276d4e0880f3bd9a727590907700bed37447c462110ede8c7efe416bc0061"
+        }
+      ],
+      "external_data": "synthetic only; controlled endpoints; disposable loopback PostgreSQL",
+      "setup_note": "First setup refused existing database before pytest; isolated fresh schemas created, existing contents preserved."
+    },
+    "result": "PASS",
+    "tests": 164,
+    "subtests": 166,
+    "skips": 0,
+    "seconds": 209.33,
+    "xml_sha256": "ff081327254314af049fa331b23dd6570523a8cf3ef695f8d590e1c8e53c48c7"
+  },
+  "prior_failures_retained": "docs/evidence/2026-11-02-pro-secret-errors/timing-review.json",
+  "merge_result": {
+    "merged_commit": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+    "merged_at": "2026-11-02T15:37:31Z",
+    "tree": "653905a78296402c424d0356518d84a65eca3e26",
+    "tree_matches_tested_merge": true,
+    "main_readback": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310"
+  }
+}

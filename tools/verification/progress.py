@@ -396,7 +396,7 @@ def main() -> int:
     elif args.command == "resume":
         print(json.dumps(resume_snapshot(ROOT, source_path=args.source), indent=2, ensure_ascii=False))
         return 0
-    errors = validate_journal(ROOT, journal_path=args.state)
+    errors = validate_journal(ROOT, journal_path=args.state if args.command == "validate" else None)
     for error in errors:
         print(error)
     print(f"Progress journal validation: {'FAIL' if errors else 'PASS'}")
