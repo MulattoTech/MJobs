@@ -126,6 +126,41 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
             run_browser.call_args.args[0], run_browser.call_args.kwargs["application_root"]),
             self.application_root / "debug-captures")
 
+    def test_diagnostic_root_is_recontained_after_attempt_resolution(self):
+        self.profile.mkdir()
+        resolve_attempt = manual_auth._resolve_auth_attempt
+        realpath = os.path.realpath
+        for destination in (
+            self.root,
+            self.root.with_name(self.root.name + "-outside") / APPLICATION_ID,
+            self.root.parent / "outside-output" / APPLICATION_ID,
+        ):
+            with self.subTest(destination=destination):
+                attempt_resolved = False
+
+                def resolve_then_redirect(*args, **kwargs):
+                    nonlocal attempt_resolved
+                    result = resolve_attempt(*args, **kwargs)
+                    self.assertIsNotNone(result)
+                    attempt_resolved = True
+                    return result
+
+                def redirected_realpath(path, *args, **kwargs):
+                    # Model a changed canonical destination only after the
+                    # real persisted-attempt/session validation has succeeded.
+                    if attempt_resolved and Path(path) == self.application_root:
+                        return str(destination)
+                    return realpath(path, *args, **kwargs)
+
+                with patch.object(manual_auth, "_resolve_auth_attempt", side_effect=resolve_then_redirect), \
+                        patch.object(manual_auth.os.path, "realpath", side_effect=redirected_realpath), \
+                        patch.dict(os.environ, {"MJOBS_BROWSER_DEBUG_CAPTURE": "1"}), \
+                        patch.object(manual_auth, "run_browser", return_value="BROWSER_STARTED") as run_browser:
+                    result = self._open()
+                self.assertEqual(result, manual_auth.STALE)
+                run_browser.assert_not_called()
+        self.assertFalse(list(self.root.rglob("debug-captures")))
+
     def test_named_profile_diagnostics_keep_the_validated_application_root(self):
         for label in ("review", "browser-profile"):
             with self.subTest(label=label), tempfile.TemporaryDirectory(dir=self.root) as directory:

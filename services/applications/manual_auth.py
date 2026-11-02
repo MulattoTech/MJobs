@@ -414,6 +414,23 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
         return STALE
     route, profile = resolved
 
+    try:
+        configured_root = Path(output_dir)
+        configured_application_root = configured_root / application_path_id
+        configured_paths = (configured_root, configured_application_root)
+        if any(_has_reparse_component(path) for path in configured_paths):
+            return STALE
+        root = os.path.realpath(configured_root)
+        application_root = os.path.realpath(configured_application_root)
+        root_prefix = root.rstrip(os.sep) + os.sep
+        # Bind the diagnostics root independently of the earlier session
+        # lookup, including an alias introduced between validation and use.
+        if (any(_has_reparse_component(path) for path in configured_paths)
+                or not application_root.startswith(root_prefix)):
+            return STALE
+    except (OSError, RuntimeError, TypeError, ValueError):
+        return STALE
+
     client = None
     try:
         client = MockClient(mock_origin, check=check)
@@ -433,7 +450,7 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
         return OPEN_UNAVAILABLE
     return run_browser(profile, login_url, client, check=check, on_process=on_process,
                        debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1",
-                       application_root=Path(output_dir) / application_path_id)
+                       application_root=Path(application_root))
 
 
 def _diagnostic_capture_root(profile: Path, application_root: Path | None) -> Path | None:
