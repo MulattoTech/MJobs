@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T04:29:57Z",
+  "requirement_id": "MJ-REQ-175",
+  "title": "Security — Secret Management",
+  "canonical_result": "PARTIAL",
+  "acceptance_unchanged": true,
+  "status": "NATIVE_VERIFIED_AWAITING_PROTECTED_MERGE_AND_DEPLOYMENT",
+  "defect": "Scheduler tick exceptions were rendered into ERROR logs with their messages, causes, notes, types and tracebacks. Synthetic exception canaries reproduce this boundary; no actual credential exposure is asserted.",
+  "change": "Retain ERROR severity and the existing retry/heartbeat/retention/cleanup flow; emit only the fixed SCHEDULER_TICK_FAILED diagnostic without exception arguments or traceback.",
+  "source_sha256": {
+    "services/discovery/scheduler.py": "45ecc4f85eb0fb9aca9514f361f51924a0ea372e62552113ce7444801f599349",
+    "tests/unit/test_discovery_scheduler_logging.py": "58ee2209c6348a334692a27a5de24e60a643825c21e7b91c6a80e098c00205bf"
+  },
+  "native_baseline": {
+    "revision": "2ad3add314a63895cf59003102234a9991daabd0",
+    "command": "python -m pytest -q outputs/test_scheduler_baseline_reproduction.py --junitxml=outputs/scheduler-baseline-reproduction.xml",
+    "result": "EXPECTED_FAILURE_REPRODUCED",
+    "passed": 1,
+    "failed": 2,
+    "skipped": 0
+  },
+  "native_candidate": {
+    "command": "python -m pytest -q tests/unit/test_discovery_scheduler_logging.py tests/unit/test_discovery_scheduler_health.py tests/unit/test_transient_retention_scheduler.py tests/integration/test_source_policy_scheduler.py tests/integration/test_company_monitoring_recovery.py --junitxml=outputs/scheduler-safe-logging.xml",
+    "source_identity": "Uncommitted candidate bound by the two SHA-256 file digests above; final proposed-merge receipt is separate",
+    "file": "outputs/scheduler-safe-logging.xml",
+    "sha256": "4695f0c5555810e40c1796ed78dee9d2594c8bc6bc6db346e0fffe96bbe75f95",
+    "summary": "31 passed, 1 skipped in 42.24s",
+    "counts_from_pytest_summary": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 1,
+      "errors": 0,
+      "subtests_passed": 0
+    },
+    "junit_suites": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "1",
+        "tests": "32",
+        "time": "42.245",
+        "timestamp": "2026-11-01T22:28:16.329685-06:00",
+        "hostname": "MulattoTechBox"
+      }
+    ],
+    "skips": [
+      {
+        "class": "tests.integration.test_company_monitoring_recovery.CompanyMonitoringRecoveryTests",
+        "name": "test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+        "reason": "STK01 requires frozen static audit and explicit disposable-stack resource grant"
+      }
+    ],
+    "failed_cases": []
+  },
+  "independent_review": {
+    "author": "Internal read-only audit and scoped implementation",
+    "integrator_review": "Root reviewed the actual loop change and new tests; no control flow change outside fixed logging",
+    "scope": "Retry after failure, no false heartbeat, retention and sleep cadence, shutdown cleanup, safe log record and healthy control"
+  },
+  "remaining_criteria": [
+    "Whole secret-management acceptance spans server storage, browser output, all operational sinks and full-revision Git scanning; this logging fix alone does not establish all criteria.",
+    "The separately gated STK01 disposable-stack restart test remains SKIP; it is not a PostgreSQL connection skip."
+  ],
+  "external_employer_submissions": "OFF",
+  "paid_ai_calls": false
+}
