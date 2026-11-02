@@ -407,6 +407,14 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             if not event.wait(timeout):
                                 self.fail(message + "; " + phase_diagnostic())
 
+                        # Reclaim closed API fixture cycles before the strict
+                        # socket/worker timing window. Do not disable GC or
+                        # charge prior tests' deferred collection to this worker.
+                        import gc
+                        gc_started = time.monotonic()
+                        collected = gc.collect()
+                        phases["fixture_gc_complete_at"] = time.monotonic()
+                        gc_setup_seconds = phases["fixture_gc_complete_at"] - gc_started
                         started = time.monotonic()
                         worker = threading.Thread(target=execute, name="mjobs-owned-source-worker", daemon=True)
                         worker.start()
@@ -523,7 +531,9 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             self.assertGreaterEqual(context_uses[0], phases["deadline_configured_at"])
                             saved = client.get(f"/operations/{identifier}").json()
                             expected = "COMPLETED" if mode.startswith("positive") else "CANCELLED" if cancel else "DEAD_LETTERED"
-                            self.assertEqual(saved["state"], expected, saved)
+                            if saved["state"] != expected:
+                                self.fail(f"Expected {expected}; {saved}; {phase_diagnostic()}; "
+                                          f"fixture_gc={gc_setup_seconds:.3f}s/{collected} objects")
                             if expected != "COMPLETED":
                                 self.assertEqual(saved["error"], "CANCEL_REQUESTED" if cancel else "OPERATION_TIMEOUT")
                             self.assertEqual(saved["attempt_count"], 1)

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "status": "IMPLEMENTED_NATIVE_VERIFIED_PENDING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+  "requirements": {
+    "MJ-REQ-175": "Candidate for full acceptance after exact merged revision, secret scan and deployment verification",
+    "MJ-REQ-004": "Scoped cancellation/probe lifetime improvement; parent remains PARTIAL",
+    "MJ-REQ-171": "Scoped database exception privacy; no whole-requirement acceptance",
+    "MJ-REQ-174": "SQLAlchemy parameter privacy only; literal ORM criterion remains unmet"
+  },
+  "source_parent": "c31e90e050113ed0633af6d7d631f730841524b8",
+  "source_sha256": [
+    {
+      "path": "apps/api/credential_errors.py",
+      "sha256": "c0c86754e237f0ef615d2e534e883d28231b04d3f0ce6aea09d333c93944f67a"
+    },
+    {
+      "path": "apps/api/main.py",
+      "sha256": "24e8fe7710b7506941971e80091cfb3cf5f16bde6ec56aa06210966d592b90a1"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "sha256": "6cf79656fb2a4557459ff328a0e55ec05c0b26d5764f3c3324fa4b94c39c1746"
+    },
+    {
+      "path": "tests/integration/test_credential_error_privacy.py",
+      "sha256": "f66d2276c8582d66443c4afc04ad8e24b0fde8269208d259ebbc76a81112db1c"
+    },
+    {
+      "path": "tests/unit/test_database_exception_privacy.py",
+      "sha256": "41fa2b47fb56af8e6781fe620bea209a6a250e54f4a4d0d15d31ade669f0c109"
+    }
+  ],
+  "reviewed_at": "2026-11-02T13:42:36.894875+00:00",
+  "literal_175": "Secrets belong in environment variables, secret files, appropriate server-side stores; not source code, browser HTML, logs, Git fixtures.",
+  "implementation": [
+    "Four credential endpoints reconstruct only allowlisted status/code responses; arbitrary encryption/store/driver/probe exception values never reach public response or handled error tracebacks.",
+    "Cancellation is preserved before metadata publication, including first cancellation during watcher teardown; completed probe tasks retrieve late exceptions and retain capacity through cleanup.",
+    "Probe setup completes before capacity reservation. SQLAlchemy engines hide bound-parameter formatting; driver-provided details still require the endpoint boundary."
+  ],
+  "native_runs": [
+    {
+      "receipt": "outputs/security-before.xml",
+      "result": "REPRODUCED",
+      "failed": 11,
+      "passed": 2,
+      "detail": "Original cipher/store/probe error reflection, cancellation loss and SQL parameter disclosure, with synthetic private canary only.",
+      "sha256": "364337390d1a3c6cd9c040224a5e44a12a261d0944209282d962ca9b993f3c26"
+    },
+    {
+      "receipt": "outputs/security-cancel-before.xml",
+      "result": "REPRODUCED",
+      "failed": 2,
+      "passed": 0,
+      "deselected": 7,
+      "detail": "Independent review found successful probe cleanup plus metadata failure, and cancellation first delivered during watcher cleanup. Both fail before final fix.",
+      "sha256": "7de5bf44b4dc68d5743a4e89ef6be915d7f3b4b55807ec3e8d56dcd436e5f188"
+    },
+    {
+      "receipt": "outputs/security-after.xml",
+      "result": "PASS_INTERMEDIATE",
+      "passed": 25,
+      "subtests_passed": 13,
+      "skipped": 0,
+      "sha256": "1ee87cb54eb06a07b2ece1008edad70b5e933ebae234a61a886f174e56c100f9"
+    },
+    {
+      "receipt": "outputs/security-reviewed.xml",
+      "result": "PASS",
+      "passed": 106,
+      "subtests_passed": 135,
+      "skipped": 0,
+      "duration_seconds": 94.9,
+      "sha256": "6c5fee9d80f5b811750a2f2791ae8a8ae7ed6da836c065ab13bb4c42df688f86",
+      "manifest": "outputs/security-reviewed-manifest.json",
+      "coverage": "SQLite plus isolated loopback PostgreSQL17 schemas, actual PG server error canary, API cancellation and rollback, bounded connections, encrypted persistence/migrations/reopen/backup, actual AI adapter synthetic transport, Chromium HTML/storage privacy, structured logging and TLS recovery"
+    }
+  ],
+  "independent_review": {
+    "result": "Two lifecycle findings fixed and regression-tested; scoped boundary/callback/allowlist design otherwise approved",
+    "scope": "Read-only code and literal 175 review; execution owned by integration owner"
+  },
+  "acceptance_unchanged": true,
+  "limitations": [
+    "No paid provider call or real employer submission executed. Synthetic fixture credentials only.",
+    "No claim that hide_parameters removes PostgreSQL driver DETAIL; actual driver-error endpoint test proves fixed public response.",
+    "Required hosted checks and exact production verification pending; canonical 175 is not advanced by this record."
+  ]
+}

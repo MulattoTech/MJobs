@@ -67,7 +67,8 @@ from services.applications.provider_registry import (
 from services.ai.providers import AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter, fallback_capabilities
 from services.ai.cost_controls import AICostPolicy, CandidateScore
-from services.credentials.vault import CredentialCipher, CredentialConfigurationError
+from apps.api.credential_errors import credential_error_boundary
+from services.credentials.vault import CredentialCipher
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.sources import (list_company_job_sources, set_company_source_watch,
     list_company_source_view, set_company_source_pin, set_company_source_enabled)
@@ -1054,97 +1055,112 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/profiles/{profile_id}/provider-credentials")
     def list_provider_credentials(profile_id: str):
-        return {"profile_id": profile_id, "credentials": store.provider_credentials(profile_id)}
+        with credential_error_boundary():
+            return {"profile_id": profile_id, "credentials": store.provider_credentials(profile_id)}
 
     @app.put("/profiles/{profile_id}/provider-credentials/{provider}")
     def save_provider_credential(profile_id: str, provider: str, value: ProviderCredentialInput):
-        if provider not in ("openai", "anthropic"):
-            raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
-        try:
+        with credential_error_boundary():
+            if provider not in ("openai", "anthropic"):
+                raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
             cipher = CredentialCipher.from_environment()
             encrypted = cipher.encrypt(profile_id, provider, value.secret.get_secret_value())
-        except CredentialConfigurationError as error:
-            raise HTTPException(503, {"code": error.code}) from None
-        metadata = store.save_provider_credential(profile_id, provider, encrypted)
-        return {"profile_id": profile_id, "provider": provider, **metadata}
+            metadata = store.save_provider_credential(profile_id, provider, encrypted)
+            return {"profile_id": profile_id, "provider": provider, **metadata}
 
     @app.delete("/profiles/{profile_id}/provider-credentials/{provider}")
     def delete_provider_credential(profile_id: str, provider: str):
-        if provider not in ("openai", "anthropic"):
-            raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
-        if not store.delete_provider_credential(profile_id, provider):
-            raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
-        return {"profile_id": profile_id, "provider": provider, "deleted": True}
+        with credential_error_boundary():
+            if provider not in ("openai", "anthropic"):
+                raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
+            if not store.delete_provider_credential(profile_id, provider):
+                raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
+            return {"profile_id": profile_id, "provider": provider, "deleted": True}
 
     @app.post("/profiles/{profile_id}/provider-credentials/{provider}/test")
     async def test_provider_credential(profile_id: str, provider: str, request: Request):
-        if provider not in ("openai", "anthropic"):
-            raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
-        encrypted = store.encrypted_provider_credential(profile_id, provider)
-        if encrypted is None:
-            raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
-        try:
+        with credential_error_boundary():
+            if provider not in ("openai", "anthropic"):
+                raise HTTPException(422, {"code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
+            encrypted = store.encrypted_provider_credential(profile_id, provider)
+            if encrypted is None:
+                raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
             secret = CredentialCipher.from_environment().decrypt(profile_id, provider, encrypted)
-        except CredentialConfigurationError as error:
-            raise HTTPException(503, {"code": error.code}) from None
-        from services.credentials.connection import (
-            provider_connection_deadline, test_provider_connection,
-        )
+            from services.credentials.connection import (
+                provider_connection_deadline, test_provider_connection,
+            )
 
-        probe_slots = app.state.credential_probe_slots
-        if not probe_slots.acquire(blocking=False):
-            raise HTTPException(503, {"code": "CREDENTIAL_PROVIDER_BUSY"})
+            cancellation_event = threading.Event()
+            watcher_stopping = asyncio.Event()
+            probe_deadline = provider_connection_deadline()
+            probe_slots = app.state.credential_probe_slots
+            if not probe_slots.acquire(blocking=False):
+                raise HTTPException(503, {"code": "CREDENTIAL_PROVIDER_BUSY"})
 
-        cancellation_event = threading.Event()
-        watcher_stopping = asyncio.Event()
-        probe_deadline = provider_connection_deadline()
+            async def watch_disconnect():
+                while not cancellation_event.is_set() and not watcher_stopping.is_set():
+                    if await request.is_disconnected():
+                        cancellation_event.set()
+                        return
+                    await asyncio.sleep(0.025)
 
-        async def watch_disconnect():
-            while not cancellation_event.is_set() and not watcher_stopping.is_set():
-                if await request.is_disconnected():
+            try:
+                probe = asyncio.create_task(asyncio.to_thread(
+                    test_provider_connection, provider, secret,
+                    cancellation_event=cancellation_event, deadline=probe_deadline))
+            except BaseException:
+                probe_slots.release()
+                raise
+            # Keep capacity reserved through worker-thread cleanup even if the
+            # ASGI task is cancelled while awaiting the shielded probe.
+            def probe_finished(completed):
+                try:
+                    # Repeated request cancellation may abandon this shielded task.
+                    # Retrieve late exceptions without formatting or logging them.
+                    if not completed.cancelled():
+                        completed.exception()
+                finally:
+                    probe_slots.release()
+
+            probe.add_done_callback(probe_finished)
+            disconnect_watcher = asyncio.create_task(watch_disconnect())
+            request_cancelled = False
+            try:
+                # Shield the owned thread: ASGI task cancellation must signal the
+                # probe and wait for its bounded transport cleanup, not orphan it.
+                try:
+                    result = await asyncio.shield(probe)
+                except asyncio.CancelledError:
+                    request_cancelled = True
                     cancellation_event.set()
-                    return
-                await asyncio.sleep(0.025)
-
-        try:
-            probe = asyncio.create_task(asyncio.to_thread(
-                test_provider_connection, provider, secret,
-                cancellation_event=cancellation_event, deadline=probe_deadline))
-        except BaseException:
-            probe_slots.release()
-            raise
-        # Keep capacity reserved through worker-thread cleanup even if the
-        # ASGI task is cancelled while awaiting the shielded probe.
-        probe.add_done_callback(lambda _completed: probe_slots.release())
-        disconnect_watcher = asyncio.create_task(watch_disconnect())
-        request_cancelled = False
-        try:
-            # Shield the owned thread: ASGI task cancellation must signal the
-            # probe and wait for its bounded transport cleanup, not orphan it.
-            try:
-                result = await asyncio.shield(probe)
-            except asyncio.CancelledError:
-                request_cancelled = True
-                cancellation_event.set()
-                result = await asyncio.shield(probe)
-        finally:
-            # Starlette's non-blocking is_disconnected probe can absorb a raw
-            # task cancellation while its receive cancel-scope unwinds. Give
-            # the watcher an explicit exit condition before cancelling it.
-            watcher_stopping.set()
-            disconnect_watcher.cancel()
-            try:
-                await disconnect_watcher
-            except asyncio.CancelledError:
-                pass
-        metadata = store.record_provider_credential_test(profile_id, provider, result["status"])
-        if metadata is None:
-            raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
-        if request_cancelled:
-            raise asyncio.CancelledError
-        return {"profile_id": profile_id, "provider": provider,
-                "status": result["status"], "code": result["code"],
-                "last_tested_at": metadata["last_tested_at"]}
+                    try:
+                        result = await asyncio.shield(probe)
+                    except Exception:
+                        # Cleanup failures cannot turn request cancellation into
+                        # a response or disclose a late transport exception.
+                        raise asyncio.CancelledError from None
+            finally:
+                # Starlette's non-blocking is_disconnected probe can absorb a raw
+                # task cancellation while its receive cancel-scope unwinds. Give
+                # the watcher an explicit exit condition before cancelling it.
+                watcher_stopping.set()
+                disconnect_watcher.cancel()
+                try:
+                    await disconnect_watcher
+                except asyncio.CancelledError:
+                    pass
+            # Request cancellation can arrive during either probe cleanup or
+            # watcher teardown. Do not publish metadata or let a store failure
+            # replace cancellation with an HTTP response.
+            current_task = asyncio.current_task()
+            if request_cancelled or (current_task is not None and current_task.cancelling()):
+                raise asyncio.CancelledError
+            metadata = store.record_provider_credential_test(profile_id, provider, result["status"])
+            if metadata is None:
+                raise HTTPException(404, {"code": "CREDENTIAL_NOT_FOUND"})
+            return {"profile_id": profile_id, "provider": provider,
+                    "status": result["status"], "code": result["code"],
+                    "last_tested_at": metadata["last_tested_at"]}
 
     @app.get("/profiles/{profile_id}/ai-cost-policy")
     def ai_cost_policy(profile_id: str):
