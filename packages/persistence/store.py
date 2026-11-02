@@ -50,7 +50,7 @@ class Store:
     def __init__(self, url):
         self.url = url
         options = {"connect_args": {"check_same_thread": False, "timeout": 15}} if url.startswith("sqlite:") else {"connect_args": {"connect_timeout": 10}}
-        self.engine = create_engine(url, pool_pre_ping=True, **options)
+        self.engine = create_engine(url, pool_pre_ping=True, hide_parameters=True, **options)
         if url.startswith("sqlite:"):
             @event.listens_for(self.engine, "connect")
             def foreign_keys(dbapi_connection, _):
