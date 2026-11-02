@@ -2,13 +2,12 @@
 import hashlib
 import json
 import os
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import pytest
 
 from tools.verification import acceptance_integrity as audit
-
 
 # Exact public issue175 dated context captured2026-10-18; never acceptance proof.
 ISSUE175_PREFIX = (
@@ -370,12 +369,30 @@ def test_lineage_does_not_confuse_parent_with_dotted_child_or_infer_acceptance()
     assert linked[0]["head_sha"] == "a" * 40
 
 
-def test_census_covers_all425_without_promoting_historical_results():
-    from pathlib import Path
+@pytest.mark.parametrize("recorded_state", ["NOT_RUN", "PARTIAL", "PASS"])
+@pytest.mark.parametrize("project_state", ["NOT_RUN", "PASS"])
+def test_census_covers_all425_without_promoting_historical_results(
+        monkeypatch, recorded_state, project_state):
+    # Freeze the historical state in this test's read boundary. A legitimate
+    # later acceptance must not invalidate the census's no-promotion contract,
+    # and stale Project metadata must not become acceptance authority.
+    read_local_json = audit.read_local_json
+
+    def read_snapshot(root, relative):
+        document = read_local_json(root, relative)
+        if relative == "planning/CAPABILITY_MATRIX.json":
+            next(row for row in document["requirements"]
+                 if row["requirement_id"] == "MJ-REQ-174")["result"] = recorded_state
+        elif relative == "planning/REQUIREMENT_INDEX.json":
+            next(row for row in document["requirements"]
+                 if row["id"] == "MJ-REQ-174")["status"] = recorded_state
+        return document
+
+    monkeypatch.setattr(audit, "read_local_json", read_snapshot)
     seed = issue175_seed()
     provider_body = ISSUE175_PREFIX + seed.replace("\n", "\r\n")
     project_item = item(175)
-    for field, value in zip(project_item["fieldValues"]["nodes"], ("Todo", "NOT_RUN", "P1")):
+    for field, value in zip(project_item["fieldValues"]["nodes"], ("Todo", project_state, "P1")):
         field["name"] = value
     report = audit.build_census(Path(__file__).resolve().parents[2], {
         "issues": [{"number": 175, "body": provider_body, "state": "open", "labels": []}],
@@ -383,7 +400,8 @@ def test_census_covers_all425_without_promoting_historical_results():
     })
     row = next(row for row in report["requirements"] if row["id"] == "MJ-REQ-174")
     assert "ISSUE_CONTRACT_DIFFERS" not in row["flags"]
-    assert row["status"] == row["proposed_state"] == "NOT_RUN"
+    assert row["status"] == row["proposed_state"] == recorded_state
+    assert ("PROJECT_ACCEPTANCE_DRIFT" in row["flags"]) == (project_state != recorded_state)
     assert len(report["requirements"]) == 425
     assert sum(report["summary"]["original"].values()) == 366
     assert sum(report["summary"]["supplemental"].values()) == 59

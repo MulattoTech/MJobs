@@ -4,7 +4,7 @@
 
 Source [PR890](https://github.com/MulattoTech/MJobs/pull/890) is protected-merged and guarded-deployed at **`e67c5dfcb14bfb126a93170819e2f5bd875665ec`**. Tested proposed merge `c7e3e7c0142c719110ab488bb03562d207451f4e` and actual merge share tree `c2eb3694105ad1d86b176ba9d6de319ac42d9b88`. All five protected source gates, CodeQL, independent main gates and the deployment image candidate passed. [Delivery evidence](../docs/evidence/2026-11-02-pro-boundaries/deployment.json) records the image, seven services, verified backup, retained rollback image, runtime ACL/ORM probe and public readback.
 
-The branch **`work/pro-boundaries-acceptance-20261102`** contains the final priority fix and canonical publication. **Read its containing PR's final description before resuming**: it records the future publication head/merge, exact proposed-merge checks, final deployment SHA and issue readback that cannot be self-contained in this commit. Requery current GitHub main and `/__deployment`; do not assume the source checkpoint is still final.
+The branch **`work/pro-boundaries-acceptance-20261102`** contains the final priority fix and canonical publication. **Read [PR891's final description](https://github.com/MulattoTech/MJobs/pull/891) before resuming**: it records the future publication head/merge, exact proposed-merge checks, final deployment SHA and issue readback that cannot be self-contained in this commit. Requery current GitHub main and `/__deployment`; do not assume the source checkpoint is still final.
 
 ## Acceptance and accounting
 
@@ -27,6 +27,8 @@ Exact PR890 native suite: **285 PASS /2 platform SKIP /275 subtests**; both plat
 Fresh FULL readiness at source/deploymente67 passes all13 isolated functional checks and verifies before/after live readiness/exact clean source. Dry-run has zero submissions; one confirmation is confined to the owned mock, repeat remainsone, cleanupPASS. Public Brave session reads Services ready, External submission OFF and exact SHA. Unauthenticated CLI read returned403; no302/login-flow claim. No production profile creation, live restore, paid inference or real employer submission occurred.
 
 Initial failed regressions, environment failures and corrected fixtures are retained in [implementation](../docs/evidence/2026-11-02-pro-boundaries/implementation.json), [review follow-up](../docs/evidence/2026-11-02-pro-boundaries/review-followup.json), and [priority evidence](../docs/evidence/2026-11-02-pro-boundaries/priority-promotion.json). WWR remains SOURCE_DUPLICATE_JOB_ID: the later bounded replay proves equal complete GUID/link with conflicting description/type, both input orders refused and stored rows unchanged. Exact repeats already work. Do not choose an unsupported winner or redo this investigation without new evidence.
+
+Publication follow-up: initial PR891 fast CI failed one census test that hard-coded174 NOT_RUN. Controlled canonical/Project state fixtures now preserve the anti-inflation assertions across all states; Linux118PASS/3WindowsSKIP and Windows118PASS/3symlinkSKIP. The initial native proposed merge had a separately diagnosed fixed-identity fixture collision after database reuse; its original failure is retained and all10 retry cases passed in a fresh owned database. [Follow-up evidence](../docs/evidence/2026-11-02-pro-boundaries/publication-followup.json) distinguishes those runs. Updated-head protected gates and delivery are still required; final PR891 receipt records them.
 
 ## Workstation and next execution
 

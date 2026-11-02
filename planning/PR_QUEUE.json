@@ -6110,8 +6110,9 @@
       "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
       "branch": "work/pro-boundaries-acceptance-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
-      "notes": "Only015/174 newly accepted;264 corrected PASS toPARTIAL with a verified priority slice. Final containing-PR receipt supplies its own future head/merge/gates/deployment and issue synchronization. No criterion or denominator changes."
+      "notes": "Only015/174 newly accepted;264 corrected PASS toPARTIAL with a verified priority slice. Final containing-PR receipt supplies its own future head/merge/gates/deployment and issue synchronization. No criterion or denominator changes. PR891 initial fast CI exposed a stale census test assumption; publication-followup.json preserves failure, corrected fixture and native setup correction. Updated head requires fresh protected checks.",
+      "pr_number": 891
     }
   ],
-  "generated_at": "2026-11-02T18:19:27.308764+00:00"
+  "generated_at": "2026-11-02T19:41:58.439688+00:00"
 }
