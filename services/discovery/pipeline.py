@@ -20,6 +20,7 @@ from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
+from services.company_discovery.capabilities import fixture_source_capabilities
 from services.company_discovery.flywheel import directly_monitored, discover_company_source
 from services.company_discovery.resolution import resolve_company
 from services.company_discovery.domains import record_company_domain
@@ -311,7 +312,9 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
                     record_match_scored(connection, profile_id, job_id, profile["version"])
                     upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
                         "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
-            store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {"sources": len(sources), "raw_postings": len(all_rows)})
+            store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {
+                "sources": len(sources), "raw_postings": len(all_rows),
+                "source_capabilities": fixture_source_capabilities().as_dict()})
         if capture_only:
             return {"job_ids": sorted(captured_job_ids), "postings_captured": len(all_rows)}
         return store.jobs(profile_id)

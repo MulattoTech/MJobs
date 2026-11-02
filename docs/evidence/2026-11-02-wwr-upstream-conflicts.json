@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T00:34:04.724825+00:00",
+  "result": "UPSTREAM_CONFLICT_RETAINED",
+  "canonical_acceptance": "MJ-REQ-017 remains PARTIAL; existing MJ-REQ-017.S02 PASS unchanged",
+  "original_capture": {
+    "timestamp": "2026-11-01T23:41:49.164882+00:00",
+    "endpoint": "https://weworkremotely.com/remote-jobs.rss",
+    "public_get_attempts": 1,
+    "real_submission": false,
+    "fetch": {
+      "result": "FAIL",
+      "type": "KeyError"
+    },
+    "parsed_feed_sha256": "e9768134dc404e07faf9ccc7b308b822240ad5dca54358b94149975c0cde413c",
+    "entries": 100,
+    "identities": 98,
+    "conflicts": [
+      {
+        "identity_sha256": "907549eceb5b5a282417cb950e32b4775c16f48fd517cbb88754a43c93f719c1",
+        "records": 2,
+        "guid_equal": true,
+        "link_equal": true,
+        "differing_fields": [
+          "description"
+        ],
+        "record_sha256": [
+          "8dc1187bfb6866007dec29dc99fe9968fcc6de4ab57b5e085d2169a6ff58e718",
+          "0e030a7b882aafc40428ba2be8897be904963f7c4b8d8c66e152bf4d23bd7b32"
+        ]
+      },
+      {
+        "identity_sha256": "0cdf0f444b9038c991913496e65260e66744593229d8b2b743071f490fb11ee3",
+        "records": 2,
+        "guid_equal": true,
+        "link_equal": true,
+        "differing_fields": [
+          "description",
+          "type"
+        ],
+        "record_sha256": [
+          "e62d35193f4bcff4569d307c075b63bdfb14fbade2c2e5274e701630c7112294",
+          "95427ffdcbd184afb14418807d621316892e32a24a18d89836667d9372e128a5"
+        ]
+      }
+    ],
+    "adapter_health": "HEALTHY",
+    "collector": {
+      "result": "FAIL",
+      "code": "SOURCE_DUPLICATE_JOB_ID"
+    }
+  },
+  "original_capture_sha256": "b594ab43e67c59862d76653d15962fb22fd1dea27bed682636060c69623ea562",
+  "observer_sha256": "bf8377ccb74730c03f89f19fafc47a320b8074d30193cfbce6039790a475afc2",
+  "execution_revision_at_capture": "NOT_RECORDED",
+  "interpretation": {
+    "public_fetch_and_parse": "Observed completed before the later bookkeeping error:100 parsed records with98 identities and two conflicting groups.",
+    "upstream_identity": "Within both conflicting groups, GUID and link strings are equal; this observation is not an identity-normalization collision.",
+    "collection": "Exact captured batch replay in an isolated temporary SQLite store refused SOURCE_DUPLICATE_JOB_ID.",
+    "harness_failure": "After refusal, unsupported Store.count('jobs') raised KeyError. An outer handler mistakenly overwrote fetch.result with this error. The original record is preserved verbatim above.",
+    "persisted_row_count": "NOT_VERIFIED_BY_THIS_CAPTURE; synthetic rollback tests separately exercise no partial writes.",
+    "retained_failure": "The live source is not promoted to PASS. No new GUID normalization or silent conflict merge is introduced."
+  },
+  "public_get_attempts": 1,
+  "production_data_writes": false,
+  "live_restore_performed": false
+}

@@ -31,5 +31,13 @@
     "vite": "8.3.3",
     "vitest": "5.0.3"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "overrides": {
+    "eslint@10.14.0": {
+      "minimatch": "11.0.3"
+    },
+    "@eslint/config-array@0.23.5": {
+      "minimatch": "11.0.3"
+    }
+  }
 }

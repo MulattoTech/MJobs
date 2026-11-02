@@ -1,8 +1,10 @@
 """Source-specific confidence, provenance, and explicit operator controls."""
 import copy
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
@@ -13,15 +15,25 @@ from packages.persistence.store import Store, upsert
 from services.company_discovery import sources
 from services.company_discovery.domains import record_company_domain
 from services.discovery.company_feed import import_company_feed_jobs
+from services.company_discovery.capabilities import feed_capabilities, fixture_source_capabilities
+from services.discovery.pipeline import discover
+from fixtures.mock_server import fixture_server
+from services.discovery.sources.collect import configure_source
+from services.discovery.sources.contract import CollectionStrategy, SourceCapabilities, SourceCapability
+from services.discovery.sources.registry import SourceAdapterRegistry
 from tests.integration.test_spine import PROFILE
 
 
 class CompanySourceViewTests(unittest.TestCase):
+    def _new_store(self):
+        store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        store.migrate()
+        return store
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
-        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
-        self.store.migrate()
+        self.store = self._new_store()
         self.store.bind_workspace_mode('FIXTURE')
         self.store.save_profile(copy.deepcopy(PROFILE))
         with self.store.engine.begin() as c:
@@ -224,6 +236,117 @@ class CompanySourceViewTests(unittest.TestCase):
             self.assertEqual(client.get('/company-sources/view?profile_id=missing').status_code, 404)
             self.assertEqual(client.get('/company-sources/view', headers={'sec-fetch-site':'cross-site'}).status_code, 403)
 
+    def test_feed_capabilities_survive_api_readback_and_disabled_legacy_sources(self):
+        rss = self.source()
+        json_feed = self.source('json', provider='json_feed', collection_strategy='PUBLIC_JSON')
+        legacy = self.source('legacy', tenant_identifier='legacy-tenant', collection_strategy='PUBLIC_JSON')
+        unsupported = self.source('html', provider='unsupported', collection_strategy='PUBLIC_HTML')
+        sources.set_company_source_enabled(self.store, rss['id'], enabled=False)
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, 'http://127.0.0.1:8090', self.root,
+                                       operation_mode='FIXTURE')) as client:
+                response = client.get('/company-sources/view')
+                self.assertEqual(response.status_code, 200, response.text)
+                rows = {row['id']: row for row in response.json()['company_sources']}
+            self.assertEqual(rows[rss['id']]['capabilities'], feed_capabilities('RSS').as_dict())
+            self.assertFalse(rows[rss['id']]['enabled'])
+            for source in (json_feed, legacy):
+                self.assertEqual(rows[source['id']]['capabilities'], feed_capabilities('PUBLIC_JSON').as_dict())
+            self.assertTrue(rows[json_feed['id']]['monitoring_supported'])
+            self.assertFalse(rows[legacy['id']]['monitoring_supported'])
+            self.assertEqual(rows[unsupported['id']]['capabilities'], feed_capabilities(None).as_dict())
+            self.assertEqual(reopened.count('company_source_monitoring'), 0)
+            with reopened.engine.connect() as connection:
+                self.assertEqual(list(connection.execute(select(m.operations.c.id)).scalars()), [])
+        finally:
+            reopened.engine.dispose()
+
+    def test_real_feed_imports_record_the_declaration_and_supported_job_fields(self):
+        for provider, strategy in (('rss', 'RSS'), ('json_feed', 'PUBLIC_JSON')):
+            with self.subTest(provider=provider):
+                source = self.source('declaration-'+provider, provider=provider, collection_strategy=strategy)
+                item = {'id':provider+'-one', 'guid':provider+'-one', 'title':'Python Engineer',
+                        'description':'Remote Python role. Salary $120,000 - $150,000 per year.',
+                        'location':'Remote, United States',
+                        'link':'https://careers.example/jobs/'+provider,
+                        'url':'https://careers.example/jobs/'+provider}
+                self.assertEqual(import_company_feed_jobs(self.store, company_id='acme', source_id=source['id'],
+                    provider=provider, tenant='acme', endpoint=source['endpoint'], strategy=strategy,
+                    items=[item], profile_id='fixture'), 1)
+                with self.store.engine.connect() as connection:
+                    posting = connection.execute(select(m.postings).where(
+                        m.postings.c.source=='company-feed:'+source['id'])).mappings().one()
+                    job = connection.execute(select(m.jobs).where(m.jobs.c.id==posting['job_id'])).mappings().one()
+                    event = connection.execute(select(m.audit.c.payload).where(
+                        m.audit.c.action=='COMPANY_FEED_IMPORT_COMPLETE',
+                        m.audit.c.payload['company_source_id'].as_string()==source['id'])).scalar_one()
+                row = next(row for row in self.view() if row['id']==source['id'])
+                self.assertEqual(event['source_capabilities'], row['capabilities'])
+                self.assertEqual(row['jobs_found'], 1)
+                self.assertIn('Remote Python role.', job['description'])
+                self.assertEqual(job['attributes']['salary_min'], 120000)
+                self.assertEqual(job['attributes']['salary_max'], 150000)
+                self.assertTrue(job['attributes']['remote_indicated'])
+                self.assertEqual(posting['application_url'], item['url'])
+                self.assertFalse(row['capabilities']['direct_application'])
+                self.assertFalse(row['capabilities']['application_status'])
+
+    def test_local_fixture_discovery_declares_its_actual_source_and_read_only_scope(self):
+        with fixture_server() as origin:
+            discover(self.store, origin, 'fixture')
+        with TestClient(self.app) as client:
+            response = client.get('/company-sources/view')
+            self.assertEqual(response.status_code, 200, response.text)
+            rows = response.json()['company_sources']
+        fixtures = [row for row in rows if row['provider']=='mock-ats']
+        self.assertTrue(fixtures)
+        for row in fixtures:
+            self.assertEqual(row['collection_strategy'], 'FIXTURE')
+            self.assertEqual(row['capabilities'], fixture_source_capabilities().as_dict())
+            self.assertFalse(row['monitoring_supported'])
+        self.assertGreater(self.store.count('canonical_jobs'), 0)
+        with self.store.engine.connect() as connection:
+            event = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.action=='MOCK_DISCOVERY_COMPLETE')).scalar_one()
+        self.assertEqual(event['source_capabilities'], fixtures[0]['capabilities'])
+
+    def test_linked_builtin_and_extension_declarations_reopen_without_factories(self):
+        extension_declaration = SourceCapabilities(CollectionStrategy.PUBLIC_JSON,
+                                                   frozenset({SourceCapability.DISCOVERY}))
+        class Extension:
+            def capabilities(self):
+                return extension_declaration
+        registry = SourceAdapterRegistry([('fixture_extension', lambda source, **kwargs: Extension())])
+        expected = {}
+        for provider in registry.providers():
+            tenant = 'global:acme' if provider == 'lever' else 'acme'
+            identifier = configure_source(self.store, tenant, provider=provider, registry=registry)
+            with self.store.engine.connect() as connection:
+                collector = dict(connection.execute(select(m.job_sources).where(
+                    m.job_sources.c.id == identifier)).mappings().one())
+            source = self.source('linked-'+provider, provider=provider, tenant_identifier=tenant,
+                                 collection_strategy=collector['strategy'], discovered_automatically=False)
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.company_sources).where(m.company_sources.c.id == source['id'])
+                                   .values(collector_source_id=identifier))
+            expected[source['id']] = collector['capabilities']
+        reopened = Store(self.store.url)
+        try:
+            with patch('services.discovery.sources.registry.SourceAdapterRegistry.create',
+                       side_effect=AssertionError('Readback must not construct an adapter')):
+                with TestClient(create_app(reopened, 'http://127.0.0.1:8090', self.root,
+                                           operation_mode='FIXTURE')) as client:
+                    response = client.get('/company-sources/view')
+                    self.assertEqual(response.status_code, 200, response.text)
+                    rows = response.json()['company_sources']
+            self.assertEqual({row['id']:row['capabilities'] for row in rows}, expected)
+            self.assertFalse(next(row for row in rows if row['provider']=='wwr')['capabilities']['salary'])
+            self.assertEqual(next(row for row in rows if row['provider']=='fixture_extension')['capabilities'],
+                             extension_declaration.as_dict())
+        finally:
+            reopened.engine.dispose()
+
     def test_controls_require_strict_boolean_and_existing_source(self):
         source=self.source()
         with TestClient(self.app) as client:
@@ -232,6 +355,26 @@ class CompanySourceViewTests(unittest.TestCase):
                     self.assertEqual(client.put(f"/company-sources/{source['id']}/{action}", json={field:bad}).status_code, 422)
                 self.assertEqual(client.put(f'/company-sources/missing/{action}', json={field:True}).status_code, 404)
                 self.assertEqual(client.put(f"/company-sources/{source['id']}/{action}", json={field:True}, headers={'origin':'https://outside.example'}).status_code, 403)
+
+
+@unittest.skipUnless(os.environ.get('MJOBS_TEST_POSTGRES_URL'),
+                     'Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database')
+class CompanySourceCapabilityPostgresTests(unittest.TestCase):
+    from tests.integration.test_lever_form_review_flow import LeverFormReviewPostgresFlowTests as _Fixture
+    _new_store = _Fixture._new_store
+    _drop_schema = _Fixture._drop_schema
+    setUp = CompanySourceViewTests.setUp
+    tearDown = CompanySourceViewTests.tearDown
+    source = CompanySourceViewTests.source
+    view = CompanySourceViewTests.view
+    test_feed_capabilities_survive_api_readback_and_disabled_legacy_sources = (
+        CompanySourceViewTests.test_feed_capabilities_survive_api_readback_and_disabled_legacy_sources)
+    test_linked_builtin_and_extension_declarations_reopen_without_factories = (
+        CompanySourceViewTests.test_linked_builtin_and_extension_declarations_reopen_without_factories)
+    test_real_feed_imports_record_the_declaration_and_supported_job_fields = (
+        CompanySourceViewTests.test_real_feed_imports_record_the_declaration_and_supported_job_fields)
+    test_local_fixture_discovery_declares_its_actual_source_and_read_only_scope = (
+        CompanySourceViewTests.test_local_fixture_discovery_declares_its_actual_source_and_read_only_scope)
 
 
 if __name__ == '__main__':

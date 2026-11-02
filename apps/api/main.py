@@ -744,6 +744,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                operation_mode="PERSONAL", *,
                source_registry: SourceAdapterRegistry = DEFAULT_SOURCE_ADAPTER_REGISTRY,
                application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
+    from services.applications.configuration import configured_submission_policy
+    submission_policy = configured_submission_policy()
     if (source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY
             or application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY):
         registry_module = configured_extension_registry_module()
@@ -987,6 +989,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def settings():
         return {"mode": "LOCAL_FIRST", "operation_mode": operation_mode,
                 "external_submission_enabled": False,
+                "submission_limits": {"hourly": submission_policy.hourly_limit,
+                                      "daily": submission_policy.daily_limit,
+                                      "company": submission_policy.company_limit},
                 "browser_workers": limit("APPLY_MOCK") if operation_mode == "FIXTURE" else 0,
                 "worker_limits": {kind: limit(kind) for kind in QUEUES},
                 "notifications": {"enabled": notifications_enabled, "delivery": "IN_APP"}}

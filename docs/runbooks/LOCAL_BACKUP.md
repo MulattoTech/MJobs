@@ -52,6 +52,13 @@ settings to Compose during restore. Review the snapshot manually after restore
 if those non-secret settings matter to the operator. Schema 1 archives remain
 verifiable and restorable without a configuration snapshot.
 
+The runtime snapshot has its own version. Runtime version 2 also records the
+hourly, daily, and company submission limits, including a zero cap. Readers
+continue to accept the original version 1 snapshots. Version 2 requires all
+three caps and validates the same decimal bounds used by admission; incomplete,
+invalid, or unknown settings are rejected. These values are retained for manual
+review and are never applied automatically during restore.
+
 For FIXTURE projects, also stop `mock` before backup. Schema 3 captures and
 checksums only `mock/receipts.json`, the fictional provider's independent
 confirmation history. It verifies every confirmed MOCK application's receipt

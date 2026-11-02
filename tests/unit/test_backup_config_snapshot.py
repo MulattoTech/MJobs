@@ -20,9 +20,48 @@ SAFE_SETTINGS = {
     "MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS": "86400",
 }
 PRIVATE_SENTINEL = "synthetic-never-archive-secret"
+SUBMISSION_SETTINGS = {
+    "MJOBS_SUBMISSION_HOURLY_LIMIT": "0",
+    "MJOBS_SUBMISSION_DAILY_LIMIT": "12",
+    "MJOBS_SUBMISSION_COMPANY_LIMIT": "2",
+}
 
 
 class BackupConfigurationSnapshotTests(unittest.TestCase):
+    def test_runtime_v2_records_submission_caps_without_private_values(self):
+        settings = {**SAFE_SETTINGS, **SUBMISSION_SETTINGS}
+        raw_environment = [f"{name}={value}" for name, value in settings.items()]
+        raw_environment.append("MJOBS_CREDENTIAL_ENCRYPTION_KEY=" + PRIVATE_SENTINEL)
+        with patch.object(local_backup, "_run", return_value=json.dumps(raw_environment).encode()):
+            snapshot = local_backup._runtime_configuration_snapshot("synthetic-api-container", "PERSONAL")
+        self.assertEqual(snapshot, {
+            "schema_version": 2, "operation_mode": "PERSONAL", "settings": settings})
+        self.assertNotIn(PRIVATE_SENTINEL, json.dumps(snapshot))
+
+    def test_runtime_v2_requires_all_caps_and_rejects_invalid_or_secret_fields(self):
+        valid = {**SAFE_SETTINGS, **SUBMISSION_SETTINGS}
+        variants = [
+            {key: value for key, value in valid.items() if key != "MJOBS_SUBMISSION_DAILY_LIMIT"},
+            {**valid, "MJOBS_CREDENTIAL_ENCRYPTION_KEY": PRIVATE_SENTINEL},
+            *({**valid, "MJOBS_SUBMISSION_HOURLY_LIMIT": value}
+              for value in ("", "-1", "10001", "1.5", PRIVATE_SENTINEL, None, True)),
+        ]
+        for index, settings in enumerate(variants):
+            with self.subTest(case=index), self.assertRaises(local_backup.BackupError) as failure:
+                local_backup._validate_runtime_configuration({
+                    "schema_version": 2, "operation_mode": "PERSONAL", "settings": settings}, "PERSONAL")
+            self.assertNotIn(PRIVATE_SENTINEL, str(failure.exception))
+        with self.assertRaises(local_backup.BackupError):
+            local_backup._validate_runtime_configuration({
+                "schema_version": 1, "operation_mode": "PERSONAL", "settings": valid}, "PERSONAL")
+
+    def test_partial_caps_in_runtime_environment_fail_instead_of_defaulting_a_snapshot(self):
+        settings = {**SAFE_SETTINGS, "MJOBS_SUBMISSION_HOURLY_LIMIT": "0"}
+        with patch.object(local_backup, "_run", return_value=json.dumps(
+                [f"{name}={value}" for name, value in settings.items()]).encode()):
+            with self.assertRaises(local_backup.BackupError):
+                local_backup._runtime_configuration_snapshot("synthetic-api-container", "PERSONAL")
+
     def test_runtime_projection_keeps_only_bounded_allowlisted_api_settings(self):
         raw_environment = [f"{name}={value}" for name, value in SAFE_SETTINGS.items()]
         raw_environment.extend((
@@ -82,6 +121,14 @@ class BackupConfigurationSnapshotTests(unittest.TestCase):
             }
             (archive / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
+            self.assertEqual(local_backup.verify_backup(archive), manifest)
+
+            # New readers preserve legacy archives and verify the new runtime
+            # projection through the complete, checksummed archive boundary.
+            runtime.update(schema_version=2, settings={**SAFE_SETTINGS, **SUBMISSION_SETTINGS})
+            runtime_path.write_text(json.dumps(runtime), encoding="utf-8")
+            files["configuration/runtime.json"] = local_backup.checksum(runtime_path)
+            (archive / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
             self.assertEqual(local_backup.verify_backup(archive), manifest)
 
     def test_schema_two_rejects_secret_fields_and_unknown_configuration_files(self):

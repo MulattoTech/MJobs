@@ -1070,12 +1070,51 @@
         "git_commit": "25e3f25968ce8e6148ede67fae6e029414567567",
         "evidence_path": "docs/evidence/2026-11-01-pro-p1-delivery.json"
       }
+    },
+    {
+      "milestone_id": "PRO-OPS-CAPABILITIES-IMPLEMENTED-20261102",
+      "timestamp": "2026-11-02T00:34:04.724825+00:00",
+      "current_phase": "Pro sprint: source capabilities implemented; protected source delivery and original acceptance pending",
+      "completed_steps": [
+        "Implemented MJ-REQ-019 declarations across current source paths without changing collection or submission authority.",
+        "Prepared submission caps/backup snapshot compatibility, WWR conflict guard and targeted minimatch security fix."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-02-source-capability-implementation.json",
+        "docs/evidence/2026-11-02-wwr-upstream-conflicts.json"
+      ],
+      "files_modified": [
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Capability native52 passed/35 subtests; web10 passed; Chromium1 passed; lint/typecheck/build and repository preflights passed."
+      ],
+      "tests_remaining": [
+        "Four new capability PostgreSQL cases skipped locally; protected hosted integration and proposed-merge checks pending.",
+        "Guarded deployment and canonical acceptance remain pending."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "One bounded WWR public GET retained upstream conflicting identities; isolated replay refused the batch."
+      ],
+      "known_errors": [
+        "Initial capability test table-name oracle failed and was corrected.",
+        "WWR observation post-replay count check raised KeyError; original failure retained and no row-count claim made."
+      ],
+      "known_limitations": [
+        "No requirement acceptance changed in this milestone.",
+        "Whole-product readiness remains UNKNOWN/PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "23be592814303b959bce4a08c71ace2a2abf016e",
+        "evidence_path": "docs/evidence/2026-11-02-source-capability-implementation.json"
+      }
     }
   ],
-  "current_phase": "P1_ACCEPTANCE_RECORDED",
+  "current_phase": "Pro sprint: source capabilities implemented; protected source delivery and original acceptance pending",
   "last_safe_checkpoint": {
-    "git_commit": "25e3f25968ce8e6148ede67fae6e029414567567",
-    "evidence_path": "docs/evidence/2026-11-01-pro-p1-delivery.json"
+    "git_commit": "23be592814303b959bce4a08c71ace2a2abf016e",
+    "evidence_path": "docs/evidence/2026-11-02-source-capability-implementation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
