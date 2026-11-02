@@ -11,8 +11,8 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "PRO-BOUNDARIES-REVIEW-FIXES-20261102",
-  "current_objective": "Maintain verified resumed delivery and execute remaining P0 operation/recovery and P1 privacy/security requirements from the exact current checkpoint.",
+  "current_milestone": "PRO-BOUNDARIES-ACCEPTED-20261102",
+  "current_objective": "Finish the containing protected priority/acceptance publication, verify final delivery, then resume the remaining literal P0/P1 criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -201,15 +201,8 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-004",
-    "MJ-REQ-015",
-    "MJ-REQ-018",
-    "MJ-REQ-174"
-  ],
-  "active_prs": [
-    890
-  ],
+  "active_requirements": [],
+  "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -701,17 +694,15 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "utc": "2026-11-02T16:31:30.298740+00:00",
-    "source_main": "d86a5bf79e883fdd40b750ad843a363960f35c43",
-    "deployed_sha": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "utc": "2026-11-02T19:20:39.762798+00:00",
+    "source_main": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "deployed_sha": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
     "source_prs": [
-      886,
-      887,
-      888
+      890
     ],
-    "required_gates": "All five protected gates plus CodeQL passed for each exact source PR; tested and merged trees match.",
-    "evidence": "docs/evidence/2026-11-02-pro-resume/delivery.json",
-    "acceptance_publication": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash."
+    "required_gates": "All five source PR gates plus CodeQL PASS; tested/merged tree equal; independent main and deployment candidate PASS.",
+    "evidence": "docs/evidence/2026-11-02-pro-boundaries/deployment.json",
+    "acceptance_publication": "Containing protected PR final receipt records its future exact merge, final deployment and issue readback. This commit cannot self-contain its future hash."
   },
   "ci_verification": {
     "result": "PASS",
@@ -787,7 +778,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read the containing acceptance PR final receipt and verify current main/deployment first. Next implement MJ-REQ-004 database-blocked cancellation/deadline fencing; then isolated RQ/Redis interruption recovery for008 and the gated owned-stack journey for292. Keep171/172/174 and real-provider gaps open until literal evidence exists.",
+  "recommended_resume_step": "Read the containing publication PR final receipt and verify fresh main/deployment first. Next004: bound pool acquisition/connect/network/finalization;264: safe automatic origin-discovery enqueue;018/017: remaining preference/provider breadth. Do not redo accepted015/174 or historic status closures.008 host restart and292 full journey remain open; real submissions/paid APIs stayOFF.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -821,17 +812,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "last_implementation_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
   "publication": {
-    "result": "SOURCE_PROTECTED_AND_DEPLOYED",
+    "result": "SOURCE_PROTECTED_AND_DEPLOYED_ACCEPTANCE_PENDING_PUBLICATION",
     "source_prs": [
-      881,
-      882,
-      883
+      890
     ],
-    "source_main": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
-    "acceptance_record": "Containing protected PR and its final description provide the exact publication commit and issue readback.",
-    "final_publication_receipt_url": "https://github.com/MulattoTech/MJobs/pull/882"
+    "source_main": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "branch": "work/pro-boundaries-acceptance-20261102",
+    "acceptance_record": "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
+    "final_receipt_locator": "Final description of the protected PR for work/pro-boundaries-acceptance-20261102; includes exact eventual merge/deployment/issue status."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -1407,12 +1397,83 @@
         "git_commit": "0f8094b63e671053507f869466cba6c03f73e526",
         "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
       }
+    },
+    {
+      "milestone_id": "PRO-BOUNDARIES-ACCEPTED-20261102",
+      "timestamp": "2026-11-02T19:25:56.674927+00:00",
+      "current_phase": "Deployed domain/database acceptance and priority correction ready for protected publication",
+      "completed_steps": [
+        "PASS after literal criterion review of all nineteen distinguished domain concepts. The final missing explicit automation concept is an immutable SavedSearchRule shared by API/transfer admission and scheduler execution; malformed persisted rules cannot create outbox or audit writes. Existing relational identities, reviewed answers and browser profiles remain distinct. All concept test files executed on the exact proposed merge; populated PostgreSQL persistence, protected CI, isolated full functional verification and guarded deployed identity/health readback passed. No requirement definition was changed.",
+        "PASS: production profile/version/fact reads now execute SQLAlchemy ORM mappings over migration-owned Tables; caller transactions, savepoints, repeatable-read snapshots and plain return contracts are preserved. ORM/Core predicates bind data, including injection-shaped values; reviewed dynamic SQL uses metadata identifiers or validated integer controls. Dedicated runtime credentials and effective least privilege passed PostgreSQL tests and an actual deployed read-only probe. Production is empty: its missing-profile ORM path and runtime ACLs were exercised; populated/versioned/reopened paths were verified in isolated PostgreSQL, not invented production data.",
+        "Acceptance correction: historical PASS was overstated. The original enqueue criterion does not contain the earlier note's extra eligible-origin qualification. A high-match job with no direct employer source, no verified origin and no narrow corroborated native link still creates NEEDS_ORIGIN_REVIEW with zero queued discovery operations. Retain original evidence and downgrade to PARTIAL. This publication also fixes in-place NORMAL-to-HIGH promotion and stale Redis-delivery claim ordering, preserving authorization, identity, queue age, retry/backoff and cancellation state; both PostgreSQL race orders pass. It does not complete automatic origin discovery or preempt running work.",
+        "Source PR890 protected-merged; actual tree equals tested proposed tree. Main independent gates and image candidate passed; guarded updater verified backup and deployed exact e67c5dfc.",
+        "Nine historical PASS/open issue mismatches independently reviewed; no new acceptance credit. WWR is a retained upstream content conflict, not a normalization collision."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-02-pro-boundaries/criteria.json",
+        "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
+        "docs/evidence/2026-11-02-pro-boundaries/deployment.json",
+        "docs/evidence/2026-11-02-pro-boundaries/full-readiness.json",
+        "docs/evidence/2026-11-02-pro-boundaries/pr890-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-boundaries/priority-promotion.json",
+        "docs/evidence/2026-11-02-pro-boundaries/production_orm_probe.py",
+        "docs/evidence/2026-11-02-pro-boundaries/historical-issue-reconciliation.json",
+        "docs/evidence/2026-11-02-pro-boundaries/sprint-baseline.json"
+      ],
+      "files_modified": [
+        "services/company_discovery/requests.py",
+        "workers/operations.py",
+        "tests/integration/test_company_discovery_policy.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "PR890 exact proposed merge: native285PASS/2platformSKIP/275subtests; both platform counterparts PASS in hosted Linux unit report.",
+        "PR890 all five protected gates plus CodeQL PASS. Unit7270 JUnit cases including subtests/53SKIP; integration4091 cases including subtests/39SKIP; zero failures/errors. Skips are not acceptance passes.",
+        "Priority source: native70PASS/26environmentSKIP/67subtests, including14 actual PostgreSQL policy/race cases with zero failures/skips.",
+        "Dedicated PostgreSQL follow-up24PASS/2RedisSKIP/6subtests; earlier environment skips remain historical and are not relabelled.",
+        "Independent priority review13PASS/0SKIP/22subtests; no blocking finding; no external workers.",
+        "Actual deployed read-only ORM/runtime-role probe PASS with NO_PROFILE_ROWS; seven image identities match; backup verify PASS; prior image retained.",
+        "Fresh FULL readiness PASS: before/after exact source identity and all13 isolated synthetic functional checks, including dry-run0 and one mock-only confirmation with duplicate replay held at1; cleanup PASS.",
+        "Public Brave session loads Services ready/External submission OFF and exact deployment SHA; unauthenticated CLI GET denied403, no302/login-flow claim."
+      ],
+      "tests_remaining": [
+        "Exact proposed-merge verification and all protected checks for the priority/publication branch",
+        "Protected publication merge and final guarded deployment",
+        "Close new issues16/175 and reconcile nine historical statuses only after publication; keep265 open",
+        "Containing PR final receipt records its future exact merge SHA, deployment and issue readback"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Actual empty PERSONAL PostgreSQL role/ORM read-only boundary",
+        "Origin readiness and public Brave existing-session readback",
+        "Guarded updater and backup integrity; no live restore"
+      ],
+      "known_errors": [
+        "Retained source/fixture/Chromium failures remain in implementation.json and review-followup.json; subsequent scoped results do not erase them.",
+        "Priority reproduction failed NORMAL vs HIGH and stale normal claim before fixes; a negative test fixture initially treated the string profile-version hash as an integer and was corrected.",
+        "WWR SOURCE_DUPLICATE_JOB_ID remains: equal full GUID/link with conflicting description/type; exact duplicates already work and no safe winner is justified."
+      ],
+      "known_limitations": [
+        "004 remains PARTIAL for broader acquisition/connect/network/finalization bounds.",
+        "018 remains PARTIAL for complete strategy ladder and source breadth.",
+        "264 is honestly PARTIAL for unverified-origin automatic enqueue; running tasks are not preempted.",
+        "008 host restart and292 complete original journey remain unverified;171/172/224/269 remain open.",
+        "Production workspace is empty; no populated personal-data or employer-application journey is claimed.",
+        "Priority publication and its final protected merge/deployment remain pending in this commit; see containing PR final receipt."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+        "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+      }
     }
   ],
-  "current_phase": "Review-corrected control boundaries, source authority and domain persistence pending protected integration",
+  "current_phase": "Deployed domain/database acceptance and priority correction ready for protected publication",
   "last_safe_checkpoint": {
-    "git_commit": "0f8094b63e671053507f869466cba6c03f73e526",
-    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
+    "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -3526,9 +3587,9 @@
   ],
   "ownership": {
     "integration_owner": "ChatGPT-Web Pro boundaries sprint 2026-11-02",
-    "active": true,
+    "active": false,
     "standing_workers": [],
-    "note": "One serial integration owner; direct source edits and read-only in-conversation review. No external AI workers or fleets."
+    "note": "Handoff leaves no standing worker or integration claim. The containing PR has one serial integration owner until its merge and final receipt; no external AI workers/fleets were launched."
   },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
@@ -3537,9 +3598,9 @@
     "external_submission": "OFF",
     "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-11-02T03:53:16.524815+00:00",
-  "current_verified_local_state": "All three source branches are protected-merged; exact proposed merges were tested in isolated native worktrees. Primary checkout was preserved; final clean fast-forward and worktree readback follow in the acceptance PR final receipt.",
-  "current_verified_github_state": "PRs #881/#882/#883 protected-merged with all five required gates and seven source checkout identities verified. This acceptance record is published separately; no future publication SHA is self-attested.",
+  "updated_at": "2026-11-02T19:25:56.674927+00:00",
+  "current_verified_local_state": "Exact source merge and deployed identity verified. Native source and priority tests/PG races pass; isolated FULL readiness13checks PASS. Primary and unrelated dirty worktrees preserved.",
+  "current_verified_github_state": "PR890 protected-merged at e67c5dfcb14bfb126a93170819e2f5bd875665ec; independent main/deployment gates PASS. Priority and acceptance are awaiting their containing protected publication.",
   "next_candidates": [
     {
       "issue": 276,
@@ -3584,7 +3645,7 @@
       "remaining_scope": "Supported AI-generated document consumer with approved fact references remains missing; deterministic trace and supplied rewrite review are not that consumer."
     }
   ],
-  "current_verified_at": "2026-11-02T02:34:15.944248+00:00",
+  "current_verified_at": "2026-11-02T19:20:39.762798+00:00",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
@@ -3624,21 +3685,49 @@
   },
   "current_slice": {
     "campaign": "pro-boundaries-20261102",
-    "status": "REVIEW_FIXES_PENDING_EXACT_REVISION_GATES",
+    "status": "VERIFIED_SOURCE_PENDING_FINAL_PUBLICATION",
     "baseline_commit": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+    "verified_source_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "branch": "work/pro-boundaries-acceptance-20261102",
     "requirements": [
-      "MJ-REQ-004",
       "MJ-REQ-015",
-      "MJ-REQ-018",
+      "MJ-REQ-174",
+      "MJ-REQ-264",
+      "MJ-REQ-004",
+      "MJ-REQ-018"
+    ],
+    "newly_accepted": [
+      "MJ-REQ-015",
       "MJ-REQ-174"
     ],
-    "branch": "work/pro-bounds-domain-20261102",
-    "evidence": [
-      "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
-      "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
+    "corrected_to_partial": [
+      "MJ-REQ-264"
     ],
-    "publication_note": "The containing PR records its own exact head, proposed merge, checks and eventual merge; acceptance remains unchanged until verified delivery.",
-    "pr_number": 890
+    "counts_before": {
+      "P0": {
+        "PARTIAL": 4,
+        "PASS": 12,
+        "NOT_RUN": 10
+      },
+      "P1": {
+        "PARTIAL": 7,
+        "PASS": 106,
+        "NOT_RUN": 3
+      }
+    },
+    "counts_after": {
+      "P0": {
+        "PARTIAL": 4,
+        "PASS": 12,
+        "NOT_RUN": 10
+      },
+      "P1": {
+        "PASS": 107,
+        "PARTIAL": 7,
+        "NOT_RUN": 2
+      }
+    },
+    "evidence": "docs/evidence/2026-11-02-pro-boundaries/acceptance.json"
   },
   "p0p1_iteration_3": {
     "issues": [

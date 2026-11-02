@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T19:25:56.674927+00:00",
+  "status": "DEPLOYED_SOURCE_ACCEPTED_PENDING_PROTECTED_PUBLICATION",
+  "baseline_main": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+  "verified_source_main": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "source_pr": "https://github.com/MulattoTech/MJobs/pull/890",
+  "acceptance_authority": "planning/CAPABILITY_MATRIX.json",
+  "newly_accepted": [
+    {
+      "requirement_id": "MJ-REQ-015",
+      "title": "Domain Model — Core Concepts",
+      "result": "PASS"
+    },
+    {
+      "requirement_id": "MJ-REQ-174",
+      "title": "Security — Database",
+      "result": "PASS"
+    }
+  ],
+  "corrected_prior_acceptance": {
+    "requirement_id": "MJ-REQ-264",
+    "before": "PASS",
+    "after": "PARTIAL",
+    "reason": "Acceptance correction: historical PASS was overstated. The original enqueue criterion does not contain the earlier note's extra eligible-origin qualification. A high-match job with no direct employer source, no verified origin and no narrow corroborated native link still creates NEEDS_ORIGIN_REVIEW with zero queued discovery operations. Retain original evidence and downgrade to PARTIAL. This publication also fixes in-place NORMAL-to-HIGH promotion and stale Redis-delivery claim ordering, preserving authorization, identity, queue age, retry/backoff and cancellation state; both PostgreSQL race orders pass. It does not complete automatic origin discovery or preempt running work."
+  },
+  "new_p0_acceptances": [],
+  "verified_p0_progress": [
+    "MJ-REQ-004"
+  ],
+  "counts_before": {
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 12,
+      "NOT_RUN": 10
+    },
+    "P1": {
+      "PARTIAL": 7,
+      "PASS": 106,
+      "NOT_RUN": 3
+    }
+  },
+  "counts_after": {
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 12,
+      "NOT_RUN": 10
+    },
+    "P1": {
+      "PASS": 107,
+      "PARTIAL": 7,
+      "NOT_RUN": 2
+    }
+  },
+  "original_after": {
+    "PARTIAL": 81,
+    "PASS": 180,
+    "NOT_RUN": 105
+  },
+  "denominators_unchanged": {
+    "P0": 26,
+    "P1": 116,
+    "original": 366,
+    "reference": 59
+  },
+  "reference_unchanged": {
+    "PASS": 19,
+    "PARTIAL": 4,
+    "NOT_RUN": 36
+  },
+  "numerical_interpretation": "Two genuine P1 acceptances minus one correction of an older overstated PASS: net recorded P1 change +1. No P0 whole-parent closure. Nine historical open/PASS issue statuses carry zero new acceptance credit.",
+  "literal_criteria": "docs/evidence/2026-11-02-pro-boundaries/criteria.json",
+  "merge_receipt": "docs/evidence/2026-11-02-pro-boundaries/pr890-protected-merge.json",
+  "deployment_receipt": "docs/evidence/2026-11-02-pro-boundaries/deployment.json",
+  "fresh_readiness": "docs/evidence/2026-11-02-pro-boundaries/full-readiness.json",
+  "priority_slice": "docs/evidence/2026-11-02-pro-boundaries/priority-promotion.json",
+  "issue_status_review": "docs/evidence/2026-11-02-pro-boundaries/historical-issue-reconciliation.json",
+  "pending": [
+    "Exact proposed-merge verification and all protected checks for the priority/publication branch",
+    "Protected publication merge and final guarded deployment",
+    "Close new issues16/175 and reconcile nine historical statuses only after publication; keep265 open",
+    "Containing PR final receipt records its future exact merge SHA, deployment and issue readback"
+  ],
+  "production_scope": "Read-only empty PERSONAL workspace; populated fixture/PG tests separate. No employer submission, paid inference, live restore or personal profile creation."
+}

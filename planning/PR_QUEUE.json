@@ -6085,11 +6085,32 @@
       "depends_on": [
         "MJ-PR-PRO-RESUME-CLOSEOUT-20261102"
       ],
-      "status": "REVIEW_FIXES_PENDING_PROTECTED_VERIFICATION",
+      "status": "MERGED",
       "branch": "work/pro-bounds-domain-20261102",
-      "evidence": "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
-      "notes": "Actual SQLite/PostgreSQL lock regressions and native ORM snapshot/least-privilege tests pass. Acceptance results unchanged; broad004 stays PARTIAL. Source publication, exact proposed-merge gates and guarded deployment precede literal015/174 acceptance. PR890 follow-up includes source strategy admission, guarded employer-feed fallback and review-corrected source health/control propagation. Prior-head checks are historical; final revision gates remain required.",
-      "pr_number": 890
+      "evidence": "docs/evidence/2026-11-02-pro-boundaries/pr890-protected-merge.json",
+      "notes": "Protected source PR890 merged and guarded-deployed; exact tree, all protected gates, backup/image/ORM/health/public readback verified. Literal015/174 acceptance is published separately;004/018 remain PARTIAL.",
+      "pr_number": 890,
+      "merge_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec"
+    },
+    {
+      "id": "MJ-PR-PRO-BOUNDARIES-ACCEPTANCE-20261102",
+      "title": "Promote queued company discovery and publish verified domain/database acceptance",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-015",
+        "MJ-REQ-018",
+        "MJ-REQ-174",
+        "MJ-REQ-264"
+      ],
+      "target_area": "company discovery scheduling; canonical acceptance and delivery evidence",
+      "depends_on": [
+        "MJ-PR-PRO-BOUNDARIES-20261102"
+      ],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
+      "branch": "work/pro-boundaries-acceptance-20261102",
+      "evidence": "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
+      "notes": "Only015/174 newly accepted;264 corrected PASS toPARTIAL with a verified priority slice. Final containing-PR receipt supplies its own future head/merge/gates/deployment and issue synchronization. No criterion or denominator changes."
     }
   ],
   "generated_at": "2026-11-02T18:19:27.308764+00:00"

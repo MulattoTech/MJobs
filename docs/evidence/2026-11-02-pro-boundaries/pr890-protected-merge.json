@@ -1,0 +1,422 @@
+{
+  "verified_native_scope": {
+    "source_revision": "c7e3e7c0142c719110ab488bb03562d207451f4e",
+    "source_tree": "c2eb3694105ad1d86b176ba9d6de319ac42d9b88",
+    "pytest_files": [
+      "tests/integration/test_agent_browser_budget_entrypoint_sustain_403.py",
+      "tests/integration/test_ai_tls_recovery.py",
+      "tests/integration/test_application_attempt_history.py",
+      "tests/integration/test_application_relational_rejections_164.py",
+      "tests/integration/test_audit_history.py",
+      "tests/integration/test_company_career_candidates.py",
+      "tests/integration/test_company_sources.py",
+      "tests/integration/test_database_least_privilege.py",
+      "tests/integration/test_named_browser_profile.py",
+      "tests/integration/test_prefilter_search_profile_contract.py",
+      "tests/integration/test_request_deadline_database_lock.py",
+      "tests/integration/test_reviewed_application_answer_durability.py",
+      "tests/integration/test_settings_transfer_portable.py",
+      "tests/integration/test_source_collection_error_categories.py",
+      "tests/integration/test_source_value_integrity.py",
+      "tests/integration/test_spine.py",
+      "tests/integration/test_structured_operation_failures.py",
+      "tests/integration/test_supported_provider_collection.py",
+      "tests/unit/test_browser_profile_configuration.py",
+      "tests/unit/test_company_resolution.py",
+      "tests/unit/test_extension_point_contracts.py",
+      "tests/unit/test_operation_control_reads.py",
+      "tests/unit/test_persistence_input_security_226.py",
+      "tests/unit/test_profile_orm_reads.py",
+      "tests/unit/test_saved_search_scheduler.py",
+      "tests/unit/test_saved_search_scheduler_validation.py",
+      "tests/unit/test_settings_transfer.py",
+      "tests/unit/test_source_strategy_admission.py"
+    ],
+    "subtests_counted_separately": true,
+    "tests_passed": 285,
+    "subtests_passed": 275,
+    "skipped": 2,
+    "duration_seconds": 370.52
+  },
+  "recorded_at": "2026-11-02T19:02:24.607588+00:00",
+  "source_head": "616968326f2d781a9b67843444e3f6ed0f9ed9b8",
+  "protected_merge": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "actual_merge_tree": "c2eb3694105ad1d86b176ba9d6de319ac42d9b88",
+  "premerge": {
+    "repository": "MulattoTech/MJobs",
+    "pr": 890,
+    "head": "616968326f2d781a9b67843444e3f6ed0f9ed9b8",
+    "base": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+    "proposed_merge_sha": "c7e3e7c0142c719110ab488bb03562d207451f4e",
+    "proposed_merge_tree": "c2eb3694105ad1d86b176ba9d6de319ac42d9b88",
+    "mergeStateStatus": "CLEAN",
+    "checks": [
+      {
+        "name": "CI / required",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41502455545/job/125475457204"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41502455315/job/125482594837"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41502455301/job/125473526426"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41502455516/job/125473114380"
+      },
+      {
+        "name": "Security / secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41502456743/job/125473119940"
+      }
+    ],
+    "reports": {
+      "native_final_proposed_merge": {
+        "counts": {
+          "tests": 562,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "sha256": "d93563e88793d145c3601241659f70e7ab4df96f41f3ccc07d6205c4caf90552"
+      },
+      "hosted_unit": {
+        "counts": {
+          "tests": 7270,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 53
+        },
+        "sha256": "888e777e4936eb60b39e19e397b48f8a06498daa8ba2e9e7db0defbe632dcee5",
+        "native_platform_skip_counterparts": [
+          {
+            "name": "test_symlinked_profile_cannot_reuse_another_session",
+            "status": "PASS"
+          },
+          {
+            "name": "test_special_file_selection_is_rejected_before_open",
+            "status": "PASS"
+          }
+        ]
+      }
+    }
+  },
+  "reports": [
+    {
+      "artifact": "integration-0.xml",
+      "junit_counts_including_subtests": {
+        "tests": 1508,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 26
+      },
+      "sha256": "07bc26e056ed293dbcaab56a66e08defdb431e83adf680536912e01dbe1d3502",
+      "targeted_cases": {
+        "test_structured_operation_failures": {
+          "junit_cases": 26,
+          "skipped": 0,
+          "failures": 0
+        }
+      }
+    },
+    {
+      "artifact": "integration-1.xml",
+      "junit_counts_including_subtests": {
+        "tests": 1254,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 3
+      },
+      "sha256": "79cd60f0f7a90fd1fa2e39e0dfd0a605fc9cb6fc4da950c7ecfa62b63930f965",
+      "targeted_cases": {}
+    },
+    {
+      "artifact": "integration-2.xml",
+      "junit_counts_including_subtests": {
+        "tests": 1329,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 10
+      },
+      "sha256": "d56b41dc1646223e4a98975f8df158126ff67b3eb463e17a8aa720a2e12b82c6",
+      "targeted_cases": {
+        "test_database_least_privilege": {
+          "junit_cases": 1,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_company_career_candidates": {
+          "junit_cases": 36,
+          "skipped": 0,
+          "failures": 0
+        }
+      }
+    },
+    {
+      "artifact": "unit.xml",
+      "junit_counts_including_subtests": {
+        "tests": 7270,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 53
+      },
+      "sha256": "888e777e4936eb60b39e19e397b48f8a06498daa8ba2e9e7db0defbe632dcee5",
+      "targeted_cases": {
+        "test_profile_orm_reads": {
+          "junit_cases": 5,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_source_strategy_admission": {
+          "junit_cases": 17,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_operation_control_reads": {
+          "junit_cases": 5,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_saved_search_scheduler": {
+          "junit_cases": 13,
+          "skipped": 0,
+          "failures": 0
+        }
+      }
+    },
+    {
+      "artifact": "pr890-final-proposed-merge.xml",
+      "junit_counts_including_subtests": {
+        "tests": 562,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      },
+      "sha256": "d93563e88793d145c3601241659f70e7ab4df96f41f3ccc07d6205c4caf90552",
+      "targeted_cases": {
+        "test_profile_orm_reads": {
+          "junit_cases": 5,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_database_least_privilege": {
+          "junit_cases": 1,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_source_strategy_admission": {
+          "junit_cases": 17,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_operation_control_reads": {
+          "junit_cases": 5,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_saved_search_scheduler": {
+          "junit_cases": 13,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_company_career_candidates": {
+          "junit_cases": 36,
+          "skipped": 0,
+          "failures": 0
+        },
+        "test_structured_operation_failures": {
+          "junit_cases": 26,
+          "skipped": 0,
+          "failures": 0
+        }
+      }
+    }
+  ],
+  "compose_reports": [
+    {
+      "artifact": "ci-backup-recovery.json",
+      "sha256": "57a0dd089abaff6c08658e63af44fccacaf7e1be16d13eab389f2b2c7ee8b7de",
+      "summary": {
+        "result": "PASS"
+      },
+      "top_level_keys": [
+        "result",
+        "timestamp",
+        "command",
+        "compose_target",
+        "target",
+        "actions",
+        "application_id",
+        "external_submission_enabled",
+        "local_persistence",
+        "public_job_inventory_recovery",
+        "implementation_progress",
+        "container_health"
+      ]
+    },
+    {
+      "artifact": "ci-backup.json",
+      "sha256": "ace8a5e58cdaf4d0da10b05d8ee86deb407bfcf86ae0871efc97b7d63b4b2bf8",
+      "summary": {
+        "result": "PASS"
+      },
+      "top_level_keys": [
+        "utc",
+        "result",
+        "source_project",
+        "target_project",
+        "archive_schema",
+        "receipt_sha256",
+        "application_id",
+        "operation_id",
+        "request_id",
+        "external_submission_enabled",
+        "behavior",
+        "recovery_evidence",
+        "local_persistence",
+        "documented_stop_services",
+        "configuration_restore",
+        "source_after_backup",
+        "negative_controls",
+        "public_cli"
+      ]
+    },
+    {
+      "artifact": "ci-mock-e2e.json",
+      "sha256": "29be667bca0bd14bcbf0ab56855571352109c45b50b094ce25ac0cfe45d41344",
+      "summary": {
+        "result": "PASS"
+      },
+      "top_level_keys": [
+        "result",
+        "target",
+        "timestamp",
+        "command",
+        "application_id",
+        "operation_id",
+        "profile_id",
+        "canonical_jobs",
+        "confirmation",
+        "trace",
+        "external_submission_enabled"
+      ]
+    },
+    {
+      "artifact": "ci-recovery.json",
+      "sha256": "fc230c2dc111d1b6005bd7b3cf5cb7e20208d77872bf3b3b228f4f23ce620c88",
+      "summary": {
+        "result": "PASS"
+      },
+      "top_level_keys": [
+        "result",
+        "timestamp",
+        "command",
+        "compose_target",
+        "target",
+        "actions",
+        "application_id",
+        "external_submission_enabled",
+        "local_persistence",
+        "public_job_inventory_recovery",
+        "implementation_progress",
+        "container_health"
+      ]
+    },
+    {
+      "artifact": "ci-ui-onboarding.json",
+      "sha256": "8d0f4b21280c94bde47a511076edf209a42cb4faf7fb548bd06dc7b6579c3656",
+      "summary": {
+        "result": "PARTIAL",
+        "schema_version": 1
+      },
+      "top_level_keys": [
+        "actions",
+        "application_id",
+        "artifacts",
+        "checks",
+        "command",
+        "confirmation",
+        "discovery_operation_id",
+        "discovery_request_id",
+        "discovery_search_proofs",
+        "external_submission_enabled",
+        "job_inventory",
+        "limitations",
+        "local_persistence",
+        "mode",
+        "operation_id",
+        "overall_state",
+        "profile_id",
+        "remaining_state",
+        "request_id",
+        "result",
+        "schema_version",
+        "source",
+        "target",
+        "target_origin",
+        "timestamp"
+      ]
+    },
+    {
+      "artifact": "ci-ui.json",
+      "sha256": "5551bcd99709b5935a4d534b63d6fe086786ab4385d55673b9aac9022382e29f",
+      "summary": {
+        "result": "PASS",
+        "schema_version": 1
+      },
+      "top_level_keys": [
+        "actions",
+        "application_id",
+        "artifacts",
+        "checks",
+        "command",
+        "confirmation",
+        "discovery_operation_id",
+        "discovery_request_id",
+        "discovery_search_proofs",
+        "external_submission_enabled",
+        "limitations",
+        "local_persistence",
+        "mode",
+        "operation_id",
+        "overall_state",
+        "profile_id",
+        "remaining_state",
+        "request_id",
+        "result",
+        "schema_version",
+        "source",
+        "target",
+        "target_origin",
+        "timestamp"
+      ]
+    }
+  ],
+  "compose_onboarding_interpretation": {
+    "result": "PARTIAL",
+    "passed_checks": 22,
+    "remaining_state": "NONE",
+    "limitations": [
+      "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
+      "Source identity/deduplication and live public-source proof are outside this local fixture run."
+    ],
+    "whole_product_end_to_end_acceptance": false
+  },
+  "additional_codeql": {
+    "result": "SUCCESS",
+    "head_sha": "616968326f2d781a9b67843444e3f6ed0f9ed9b8",
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41502449035",
+    "analyses": [
+      "actions",
+      "python",
+      "javascript-typescript"
+    ]
+  }
+}

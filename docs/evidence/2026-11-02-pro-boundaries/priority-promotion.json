@@ -1,0 +1,122 @@
+{
+  "native_postgres_followup": {
+    "tests_passed": 24,
+    "skipped": 2,
+    "subtests_passed": 6,
+    "duration_seconds": 18.7,
+    "junit_sha256": "6c63485581fef60f001f6931e81b9052e496604503ca52259d9306713251d5b1",
+    "skip_details": [
+      {
+        "class": "tests.integration.test_preparation_priority.PostgreSQLPreparationPriorityTests",
+        "name": "test_cold_worker_start_does_not_inherit_dispatcher_import_lock",
+        "reason": "Requires isolated priority Redis"
+      },
+      {
+        "class": "tests.integration.test_preparation_priority.PostgreSQLPreparationPriorityTests",
+        "name": "test_real_redis_fifo_worker_processes_choose_priority_and_rebuild_lost_queue",
+        "reason": "Requires isolated priority Redis"
+      }
+    ],
+    "disposable_databases": [
+      "mjobs_priority_validation",
+      "mjobs_retry_validation"
+    ],
+    "container_scope": "Owned tmpfs PostgreSQL17 container bdf1629274d0, loopback42692; production untouched"
+  },
+  "recorded_at": "2026-11-02T19:05:33.920541+00:00",
+  "base_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "result": "SCOPED_PASS_WITH_SEPARATE_SKIPS",
+  "source_sha256": {
+    "services/company_discovery/requests.py": "4f7830766d070f596577aae50b1257e9beffa31ab75053c5aa5faf46c7afcf70",
+    "workers/operations.py": "7885853aa40ba5a5f27c7b225d78c9d70fec06dc00b711be34ccb74c6faaba8f",
+    "tests/integration/test_company_discovery_policy.py": "ae38105d705c36c8b920b56ce81745123df90376224460d11922a909e63c13a3"
+  },
+  "native": {
+    "tests_passed": 70,
+    "skipped": 26,
+    "subtests_passed": 67,
+    "duration_seconds": 51.93,
+    "junit_counts_including_subtests": {
+      "tests": 163,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 26
+    },
+    "junit_sha256": "dc733632e1e705ed8dc5d788324a9a38d947ea5ededf83b749c3740665999284",
+    "new_postgres_cases": 14,
+    "new_postgres_failures_or_skips": 0,
+    "postgres_race_cases": [
+      "test_promotion_and_worker_claim_serialize_without_replacing_the_claim",
+      "test_worker_claim_wins_without_later_rescore_rewriting_running_params"
+    ],
+    "other_skipped_groups": [
+      {
+        "class": "tests.integration.test_preparation_priority.PostgreSQLPreparationPriorityTests",
+        "reason": "Requires isolated priority PostgreSQL",
+        "count": 16
+      },
+      {
+        "class": "tests.integration.test_operation_retries.PostgreSQLOperationRetryTests",
+        "reason": "Set MJOBS_RETRY_POSTGRES_URL to an isolated disposable PostgreSQL database",
+        "count": 10
+      }
+    ],
+    "pytest_files": [
+      "tests/integration/test_company_discovery_policy.py",
+      "tests/integration/test_discovery_requests.py",
+      "tests/integration/test_preparation_priority.py",
+      "tests/integration/test_operation_retries.py",
+      "tests/unit/test_operation_concurrency.py",
+      "tests/integration/test_operation_concurrency_postgres.py"
+    ],
+    "database_scope": "Existing owned loopback42692 PostgreSQL17 tmpfs container; each new policy test owns a private generated schema, verifies its name and drops only that schema. No production database writes."
+  },
+  "requirement": "MJ-REQ-264",
+  "acceptance": "PARTIAL",
+  "regressions_before_fix": [
+    {
+      "case": "test_queued_discovery_is_promoted_once_without_replacing_authority_or_retry_state",
+      "result": "FAIL",
+      "actual": "NORMAL",
+      "expected": "HIGH"
+    },
+    {
+      "case": "test_old_normal_delivery_defers_to_promoted_work_without_consuming_attempt",
+      "result": "FAIL",
+      "actual": "RUNNING attempt_count=1",
+      "expected": "No claim and no attempt consumed"
+    }
+  ],
+  "corrected_test_fixture_failure": {
+    "result": "1 failed, 21 passed, 12 PostgreSQL environment skips, 7 subtests",
+    "cause": "The negative fixture treated immutable profile-version hashes as integers; changed the stale value to a different string.",
+    "subsequent": "22 PASS /14 PostgreSQL environment skips /22 subtests"
+  },
+  "independent_review": {
+    "result": "NO_BLOCKING_FINDINGS",
+    "tests_passed": 13,
+    "subtests_passed": 22,
+    "skipped": 0,
+    "scope": "Full SQLite company discovery policy and existing old-delivery preparation-priority regression; lock ordering independently reviewed.",
+    "postgres": "Executed by integration owner in native disposable schema; reviewer did not rerun."
+  },
+  "behavior": [
+    "Promote the same queued uncancelled operation and preserve its request revision, reviewed origin, profile binding, identity, queue age, retries, deadline, audit history and all other parameters.",
+    "USER_CANDIDATE keeps distinct employer identity; all execution authority is revalidated before egress.",
+    "A normal COMPANY_DISCOVER delivery defers before consuming an attempt while due uncancelled high-priority discovery is queued.",
+    "Transaction rollback and both PostgreSQL claim/promotion lock orderings preserve committed state."
+  ],
+  "remaining": [
+    "A useful job with no verified employer origin and no narrow verified native ATS link still creates NEEDS_ORIGIN_REVIEW without enqueueing an automatic origin-discovery operation.",
+    "Original literal enqueue criterion is not fully satisfied; historical PASS is overstated and will be corrected to PARTIAL.",
+    "Running work is not preempted; COMPANY_SOURCE_REFRESH is not reprioritized.",
+    "Exact proposed-merge verification and protected checks remain required for this patch."
+  ],
+  "local": {
+    "tests_passed": 22,
+    "skipped": 14,
+    "subtests_passed": 22,
+    "duration_seconds": 6.81,
+    "skip_reason": "PostgreSQL environment absent locally; all 14 policy PostgreSQL cases subsequently passed natively."
+  }
+}
