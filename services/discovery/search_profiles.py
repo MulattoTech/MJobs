@@ -4,6 +4,7 @@ import re
 
 from sqlalchemy import select
 
+from packages.domain.automation import SavedSearchRule
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
 from services.discovery.search_semantics import (
@@ -43,14 +44,7 @@ def parse_utc_date_bound(value):
 
 
 def _clean_search_scheduler(value):
-    if not isinstance(value, dict) or set(value) != {"enabled", "interval_seconds"}:
-        raise ValueError("Saved search scheduler must include enabled and interval_seconds")
-    if type(value["enabled"]) is not bool:
-        raise ValueError("Saved search scheduler enabled must be boolean")
-    interval_seconds = value["interval_seconds"]
-    if type(interval_seconds) is not int or not 300 <= interval_seconds <= 604800:
-        raise ValueError("Saved search scheduler interval must be an integer from 300 to 604800 seconds")
-    return {"enabled": value["enabled"], "interval_seconds": interval_seconds}
+    return SavedSearchRule.from_mapping(value).as_dict()
 
 
 def _clean_job_filters(value):

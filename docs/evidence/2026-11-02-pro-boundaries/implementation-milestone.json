@@ -1,0 +1,64 @@
+{
+  "milestone_id": "PRO-BOUNDARIES-IMPLEMENTED-20261102",
+  "timestamp": "2026-11-02T18:15:55.134520+00:00",
+  "current_phase": "Control-query and request-clock boundaries plus domain persistence implementation",
+  "completed_steps": [
+    "Control reads use transaction-local PostgreSQL query/lock limits or restored SQLite busy limits; unavailable authority blocks instead of claiming user cancellation.",
+    "Request-owned socket deadline clock is independent of database-backed cancellation observation; registration precedes callbacks and first interruption wins.",
+    "Profile reads use mapped existing SQLAlchemy entities and detached dictionaries while preserving Core-owned transaction/snapshot history.",
+    "One immutable saved-search automation rule validator covers admission, portable settings and scheduler execution; invalid persisted rules produce no outbox or audit changes."
+  ],
+  "files_added": [
+    "packages/domain/automation.py",
+    "packages/persistence/profile_records.py",
+    "tests/integration/test_request_deadline_database_lock.py",
+    "tests/unit/test_operation_control_reads.py",
+    "tests/unit/test_profile_orm_reads.py",
+    "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
+    "docs/evidence/2026-11-02-pro-boundaries/README.md"
+  ],
+  "files_modified": [
+    "packages/persistence/AREA.md",
+    "packages/persistence/store.py",
+    "services/ai/durable_evaluation.py",
+    "services/ai/providers/transport.py",
+    "services/discovery/scheduler.py",
+    "services/discovery/search_profiles.py",
+    "tests/integration/test_database_least_privilege.py",
+    "tests/unit/test_saved_search_scheduler.py",
+    "workers/operations.py",
+    "workers/tasks.py"
+  ],
+  "tests_completed": [
+    "Linux focused domain/settings 30 PASS, 10 PostgreSQL SKIP, 56 subtests; separate native PostgreSQL/domain 33 PASS, 0 SKIP, 48 subtests.",
+    "Linux reviewed control lock/socket ownership 7 PASS, 1 PostgreSQL SKIP.",
+    "Independent P0/P1 source review and baseline scheduler defect reproduction."
+  ],
+  "tests_remaining": [
+    "Exact committed and proposed-merge native verification",
+    "All five required protected hosted gates and CodeQL",
+    "Guarded deployed revision/runtime verification",
+    "Complete literal acceptance mapping for 015 and174"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Isolated native PostgreSQL query locks, least privilege and ORM snapshot preservation"
+  ],
+  "known_errors": [
+    "Scheduler regression fails on baseline main because unsupported persisted rule schedules DISCOVER.",
+    "New worker fixture initially seeded data before workspace binding; corrected fixture ordering.",
+    "Windows found test-owned SQLite connections left open by context managers; explicit close corrected; native rerun passed.",
+    "Initial restricted Linux API run stalled; terminated only the verified owned test PID and reran with permitted loopback access.",
+    "TLS cancellation dispatch exceeded its existing one-second fixture timeout; current isolated rerun passed without relaxing the assertion.",
+    "Local pinned Chromium download unavailable; actual browser-profile test must execute on workstation or hosted runner."
+  ],
+  "known_limitations": [
+    "MJ-REQ-004 remains PARTIAL: pool checkout, DNS/connect, database network-blackhole and later finalization bounds remain unproven.",
+    "No whole-product, host-restart, external provider, paid inference or employer-submission claim.",
+    "Canonical acceptance stays unchanged until protected merge and delivery verification."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/implementation.json"
+  }
+}

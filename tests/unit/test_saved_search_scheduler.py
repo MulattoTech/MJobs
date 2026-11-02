@@ -56,6 +56,39 @@ class SavedSearchSchedulerTests(unittest.TestCase):
             connection.execute(update(m.operations).values(state="COMPLETED"))
             connection.execute(update(m.job_sources).values(last_attempt=at.isoformat()))
 
+    def test_persisted_unsupported_rules_cannot_bypass_admission_or_fall_back_to_source_polling(self):
+        from services.discovery.search_profiles import _clean_search_scheduler
+
+        source_id = configure_source(self.store, "invalid-rule", poll_interval=300, jitter_seconds=0)
+        self.add_search("invalid-rule", source_id, 300)
+        invalid = [
+            {"enabled": True, "interval_seconds": 300, "kind": "AUTO_SUBMIT"},
+            {"enabled": True, "interval_seconds": 300, "last_run": None},
+            {"enabled": True, "interval_seconds": 300, "unsupported": "synthetic"},
+            {"enabled": True}, {"interval_seconds": 300}, None, [],
+            {"enabled": 1, "interval_seconds": 300},
+            {"enabled": True, "interval_seconds": True},
+            {"enabled": True, "interval_seconds": 300.0},
+            {"enabled": True, "interval_seconds": 299},
+            {"enabled": True, "interval_seconds": 604801},
+        ]
+        for rule in invalid:
+            with self.subTest(rule=rule):
+                with self.assertRaises(ValueError):
+                    _clean_search_scheduler(rule)
+                with self.store.engine.begin() as connection:
+                    criteria = dict(connection.execute(select(m.search_profiles.c.criteria).where(
+                        m.search_profiles.c.id == "invalid-rule")).scalar_one())
+                    criteria["scheduler"] = rule
+                    connection.execute(update(m.search_profiles).where(
+                        m.search_profiles.c.id == "invalid-rule").values(criteria=criteria))
+                before = self.store.workspace_status()
+                result = schedule_due_sources(self.store, self.at)
+                self.assertEqual(result["scheduled"], [])
+                self.assertEqual(result["saved_searches"]["scheduled"], [])
+                self.assertEqual(self.store.workspace_status(), before,
+                                 "Rejected rules must not mutate the outbox, audit or source policy")
+
     def test_due_tick_persists_one_idempotent_operation_and_audit_receipt(self):
         source_id = configure_source(self.store, "scheduled-search", poll_interval=300, jitter_seconds=0)
         self.add_search("search-one", source_id, 600)

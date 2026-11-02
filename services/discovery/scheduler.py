@@ -9,6 +9,7 @@ import time
 from sqlalchemy import select
 from redis import Redis
 
+from packages.domain.automation import SavedSearchRule
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -48,16 +49,13 @@ def source_due_at(source):
 def _scheduler_criteria(search_profile):
     criteria = search_profile.get("criteria")
     scheduler = criteria.get("scheduler") if isinstance(criteria, dict) else None
-    if scheduler is None:
+    try:
+        rule = SavedSearchRule.from_mapping(scheduler)
+    except ValueError:
+        # Admission, portable settings and execution share the same authority.
+        # Legacy/malformed persisted JSON must not bypass the API validator.
         return None
-    if not isinstance(scheduler, dict) or type(scheduler.get("enabled")) is not bool:
-        return None
-    if not scheduler["enabled"]:
-        return None
-    interval = scheduler.get("interval_seconds")
-    if type(interval) is not int or not 300 <= interval <= 604800:
-        return None
-    return interval
+    return rule.interval_seconds if rule.enabled else None
 
 
 def _has_saved_search_scheduler(search_profile):

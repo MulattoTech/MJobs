@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Session
 
 from packages.domain.safety import Fact
 from packages.domain.profile import ContactDetails, JobPreferences
@@ -299,16 +300,33 @@ class Store:
 
     @staticmethod
     def _profile_on(connection, profile_id, version=None):
-        row = connection.execute(select(m.profiles).where(m.profiles.c.id == profile_id)).mappings().one()
-        data = dict(row)
-        data["version"] = version or data["version"]
-        snapshot = connection.execute(select(m.profile_versions).where(m.profile_versions.c.id == identity(profile_id, data["version"]))).mappings().one()
-        data.update(snapshot["contact"])
-        data.setdefault('contact', ContactDetails().model_dump())
-        data.setdefault('preferences', JobPreferences().model_dump())
-        data["answers"] = snapshot["answers"]
-        data["facts"] = [dict(fact) for fact in connection.execute(select(m.facts).where(m.facts.c.profile_id == profile_id, m.facts.c.version == data["version"])).mappings()]
-        return data
+        from packages.persistence.profile_records import (
+            CareerFactRecord, CareerProfileRecord, ProfileVersionRecord, snapshot,
+        )
+
+        # Core callers can hold locks, a snapshot or uncommitted writes. Explicit
+        # Connection ownership also preserves the existing autobegin behavior
+        # for an idle caller. Closing this read Session must not end that scope.
+        if not connection.in_transaction():
+            connection.begin()
+        with Session(bind=connection, autoflush=False, expire_on_commit=False,
+                     join_transaction_mode="rollback_only") as session:
+            record = session.scalars(select(CareerProfileRecord).where(
+                CareerProfileRecord.id == profile_id)).one()
+            data = snapshot(record)
+            data["version"] = version or data["version"]
+            saved = session.scalars(select(ProfileVersionRecord).where(
+                ProfileVersionRecord.id == identity(profile_id, data["version"]),
+                ProfileVersionRecord.profile_id == profile_id)).one()
+            values = snapshot(saved)
+            data.update(values["contact"])
+            data.setdefault('contact', ContactDetails().model_dump())
+            data.setdefault('preferences', JobPreferences().model_dump())
+            data["answers"] = values["answers"]
+            data["facts"] = [snapshot(fact) for fact in session.scalars(
+                select(CareerFactRecord).where(CareerFactRecord.profile_id == profile_id,
+                                              CareerFactRecord.version == data["version"]))]
+            return data
 
     def profiles(self):
         with self.engine.connect() as connection:

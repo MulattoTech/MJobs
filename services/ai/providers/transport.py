@@ -175,28 +175,47 @@ class _RequestGuard:
         self.finished = threading.Event()
 
     def check(self, *, close_resources=True):
-        if self.cancellation_event is not None and self.cancellation_event.is_set():
-            self.interrupt("AI_PROVIDER_CANCELLED", close_resources=close_resources)
-            raise AIProviderError("AI_PROVIDER_CANCELLED")
-        if time.monotonic() >= self.deadline:
-            self.interrupt("AI_PROVIDER_TIMEOUT", close_resources=close_resources)
-            raise AIProviderError("AI_PROVIDER_TIMEOUT")
+        # Never reenter a database-backed observer after another watcher has
+        # already stopped this request. The first interruption remains decisive.
+        with self.lock:
+            code = self.interruption_code
+        if code is None and time.monotonic() >= self.deadline:
+            code = "AI_PROVIDER_TIMEOUT"
+        if code is None and self.cancellation_event is not None:
+            try:
+                if self.cancellation_event.is_set():
+                    code = "AI_PROVIDER_CANCELLED"
+            except Exception:
+                # Observer details can contain SQL, credentials or private data.
+                code = "AI_PROVIDER_UNAVAILABLE"
+        if code is None and time.monotonic() >= self.deadline:
+            code = "AI_PROVIDER_TIMEOUT"
+        with self.lock:
+            code = self.interruption_code or code
+        if code is not None:
+            self.interrupt(code, close_resources=close_resources)
+            raise AIProviderError(self.interruption_code or code)
 
     def register_connecting(self, connection):
+        # Own the not-yet-connected socket before any potentially blocking
+        # observer. Only cached state/clock checks run under the ownership lock.
+        code = None
         with self.lock:
-            if self.cancellation_event is not None and self.cancellation_event.is_set():
-                self.interrupted = True
-                self.interruption_code = self.interruption_code or "AI_PROVIDER_CANCELLED"
-            elif time.monotonic() >= self.deadline:
+            if time.monotonic() >= self.deadline:
                 self.interrupted = True
                 self.interruption_code = self.interruption_code or "AI_PROVIDER_TIMEOUT"
             if self.interrupted:
                 code = self.interruption_code or "AI_PROVIDER_UNAVAILABLE"
             else:
                 self.connecting_socket = connection
-                return
-        connection.close()
-        raise AIProviderError(code)
+        if code is not None:
+            connection.close()
+            raise AIProviderError(code)
+        try:
+            self.check(close_resources=False)
+        except BaseException:
+            self.release_connecting(connection, close=True)
+            raise
 
     def release_connecting(self, connection, *, close=False):
         with self.lock:
@@ -311,6 +330,14 @@ class _RequestGuard:
                                if self.cancellation_event is not None else remaining)
 
 
+    def watch_deadline(self):
+        """Interrupt owned sockets even while a cancellation observer is waiting."""
+        while not self.finished.wait(max(0, self.deadline - time.monotonic())):
+            if time.monotonic() >= self.deadline:
+                self.interrupt("AI_PROVIDER_TIMEOUT", close_resources=False)
+                return
+
+
 @contextmanager
 def request_guard(client, *, deadline, cancellation_event=None):
     """Interrupt only this request's connected transport, including header reads.
@@ -333,8 +360,13 @@ def request_guard(client, *, deadline, cancellation_event=None):
         if pool is not None and hasattr(pool, "_network_backend"):
             pool._network_backend = _RequestScopedBackend(guard)
     watcher = threading.Thread(target=guard.watch, name="mjobs-request-deadline", daemon=True)
-    watcher.start()
+    deadline_watcher = threading.Thread(target=guard.watch_deadline,
+                                       name="mjobs-request-clock", daemon=True)
+    started = []
     try:
+        for thread in (deadline_watcher, watcher):
+            thread.start()
+            started.append(thread)
         try:
             yield guard
         except Exception:
@@ -346,5 +378,6 @@ def request_guard(client, *, deadline, cancellation_event=None):
         # The watcher performs only bounded socket interruption, never HTTPX
         # response/stream/client closes. Join it completely so no request-owned
         # cleanup thread can survive the guard.
-        watcher.join()
+        for thread in started:
+            thread.join()
         guard.close()

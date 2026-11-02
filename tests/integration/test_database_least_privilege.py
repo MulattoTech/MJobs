@@ -59,6 +59,17 @@ class DatabaseLeastPrivilegePostgresTests(unittest.TestCase):
                 runtime = Store(destination.read_text())
                 runtime.save_profile(dict(PROFILE, name="Reviewed synthetic profile"))
                 self.assertEqual(runtime.profile("fixture")["name"], "Reviewed synthetic profile")
+                # The production ORM read joins the caller's repeatable-read
+                # snapshot; closing its Session must not release that snapshot.
+                with runtime.read_snapshot() as snapshot:
+                    original_profile = runtime.profile("fixture", connection=snapshot)
+                    owner = snapshot.get_transaction()
+                    runtime.save_profile(dict(PROFILE, name="New synthetic profile version"))
+                    self.assertEqual(runtime.profile("fixture", connection=snapshot), original_profile)
+                    self.assertIs(snapshot.get_transaction(), owner)
+                    self.assertTrue(owner.is_active)
+                self.assertEqual(runtime.profile("fixture")["name"], "New synthetic profile version")
+                self.assertEqual(runtime.profile("fixture", original_profile["version"]), original_profile)
                 with runtime.engine.begin() as connection:
                     self.assertTrue(MigrationContext.configure(connection).get_current_heads(),
                                     "Runtime readiness must read the migration version without being able to update it")
