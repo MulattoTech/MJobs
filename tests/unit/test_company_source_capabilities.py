@@ -95,4 +95,3 @@ class CompanySourceCapabilityTests(unittest.TestCase):
         for source in ({'provider':'mock-ats', 'collection_strategy':'API'},
                        {'provider':'unknown', 'collection_strategy':'FIXTURE'}):
             self.assertEqual(company_source_capabilities(source).features, frozenset())
-
