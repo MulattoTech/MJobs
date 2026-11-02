@@ -14,6 +14,7 @@ from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from services.applications import controlled_dry_run, manual_auth
+from services.applications.browser_profiles import browser_profile_path
 from services.discovery.pipeline import MockClient
 from tests.integration import test_controlled_application_dry_run as flow
 
@@ -120,9 +121,9 @@ class ControlledDebugCaptureTests(unittest.TestCase):
 
 
 class ManualAuthDebugCaptureTests(unittest.TestCase):
-    def exercise(self, root, origin, *, enabled, fail):
-        profile = root / 'app' / 'browser-profile'
-        profile.mkdir(parents=True, exist_ok=True)
+    def exercise(self, root, origin, *, enabled, fail, label='default'):
+        with patch.dict('os.environ', {'MJOBS_BROWSER_PROFILE': label}):
+            profile = browser_profile_path(root / 'app', initialize=True)
         launch = BrowserType.launch_persistent_context
         goto = Page.goto
         wait = Page.wait_for_timeout
@@ -150,21 +151,46 @@ class ManualAuthDebugCaptureTests(unittest.TestCase):
         with patch.object(BrowserType, 'launch_persistent_context', headless), \
                 patch.object(Page, 'goto', navigation), patch.object(Page, 'wait_for_timeout', user_close):
             return manual_auth.run_browser(profile, origin + '/ats/login/A', MockClient(origin),
-                                           debug_capture=enabled)
+                                           debug_capture=enabled, application_root=root / 'app')
 
     def test_failure_capture_has_real_console_network_events_and_masks_credentials(self):
-        with tempfile.TemporaryDirectory() as temporary, fixture_server() as origin:
+        for label in ('default', 'review', 'browser-profile'):
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary, fixture_server() as origin:
+                root = Path(temporary)
+                self.assertEqual(self.exercise(root, origin, enabled=True, fail=True, label=label), manual_auth.OPEN_UNAVAILABLE)
+                package, metadata = read_package(self, root / 'app/debug-captures', phase='MANUAL_AUTH_NAVIGATE')
+                self.assertFalse(list((root / 'app/browser-profile').rglob('debug-captures')),
+                                 'Diagnostics must remain outside the excluded cookie tree')
+                selected = browser_profile_path(root / 'app')
+                self.assertEqual(selected, root / 'app/browser-profile' if label == 'default'
+                                 else root / 'app/browser-profile' / label)
+                sources = {event['source'] for event in metadata['diagnostics']}
+                self.assertIn('console', sources)
+                self.assertIn('requestfailed', sources)
+                box = self.box
+                with Image.open(package / 'screenshot.png') as image:
+                    region = image.convert('RGB').crop((int(box['x']) + 1, int(box['y']) + 1,
+                        int(box['x'] + box['width']) - 1, int(box['y'] + box['height']) - 1))
+                    self.assertEqual(region.getextrema(), ((0, 0), (0, 0), (0, 0)))
+
+    def test_diagnostics_require_explicit_root_matching_the_pinned_profile(self):
+        with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            self.assertEqual(self.exercise(root, origin, enabled=True, fail=True), manual_auth.OPEN_UNAVAILABLE)
-            package, metadata = read_package(self, root / 'app/debug-captures', phase='MANUAL_AUTH_NAVIGATE')
-            sources = {event['source'] for event in metadata['diagnostics']}
-            self.assertIn('console', sources)
-            self.assertIn('requestfailed', sources)
-            box = self.box
-            with Image.open(package / 'screenshot.png') as image:
-                region = image.convert('RGB').crop((int(box['x']) + 1, int(box['y']) + 1,
-                    int(box['x'] + box['width']) - 1, int(box['y'] + box['height']) - 1))
-                self.assertEqual(region.getextrema(), ((0, 0), (0, 0), (0, 0)))
+            with patch.dict('os.environ', {'MJOBS_BROWSER_PROFILE': 'review'}):
+                selected = browser_profile_path(root / 'app', initialize=True)
+                other = browser_profile_path(root / 'other', initialize=True)
+            self.assertEqual(manual_auth._diagnostic_capture_root(selected, root / 'app'),
+                             root / 'app/debug-captures')
+            for candidate in (None, root / 'other', root / 'app/browser-profile', root):
+                with self.subTest(root=candidate):
+                    self.assertIsNone(manual_auth._diagnostic_capture_root(selected, candidate))
+            self.assertIsNone(manual_auth._diagnostic_capture_root(other, root / 'app'))
+            # A changed selection cannot retain diagnostic write authority for
+            # the previous profile path, even if both directories still exist.
+            (root / 'app/browser-profile-selection.json').write_text(
+                '{"schema_version":1,"name":"another"}', encoding='utf-8')
+            self.assertIsNone(manual_auth._diagnostic_capture_root(selected, root / 'app'))
+            self.assertFalse(list(root.rglob('debug-captures')))
 
     def test_disabled_failure_and_normal_close_do_not_capture_sessions(self):
         for enabled, fail, expected in ((False, True, manual_auth.OPEN_UNAVAILABLE),

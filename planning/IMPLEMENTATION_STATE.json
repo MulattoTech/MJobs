@@ -12,7 +12,7 @@
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
   "current_milestone": "PRO-OPS-VERIFIED-DELIVERY-20261102",
-  "current_objective": "Resume from 12/26 P0 and 99/116 P1 acceptance; complete remaining literal criteria without denominator changes.",
+  "current_objective": "Implement bounded native DOM diagnostics and configurable notifications/browser profiles; verify relational design before acceptance.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -194,7 +194,11 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-162",
+    "MJ-REQ-275"
+  ],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -3295,10 +3299,10 @@
     "2026-11-02 current verified source/deployment: 2e0f3df8f6952088b39fc494f9cd38838b020af4; P0 12/26, P1 99/116. The entries above remain historical. Exact protected/source/native/production evidence: docs/evidence/2026-11-02-pro-ops-delivery.json"
   ],
   "ownership": {
-    "integration_owner": "ChatGPT-Web Pro sprint 2026-11-01",
-    "active": false,
+    "integration_owner": "ChatGPT-Web Pro configuration sprint 2026-11-02",
+    "active": true,
     "standing_workers": [],
-    "note": "Source integration complete; this protected acceptance record publishes the handoff. No unattended runner was launched."
+    "note": "One serial integration owner; direct source edits and scoped review, no external AI workers or fleets."
   },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
@@ -3307,7 +3311,7 @@
     "external_submission": "OFF",
     "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-11-02T02:34:15.944248+00:00",
+  "updated_at": "2026-11-02T03:53:16.524815+00:00",
   "current_verified_local_state": "All three source branches are protected-merged; exact proposed merges were tested in isolated native worktrees. Primary checkout was preserved; final clean fast-forward and worktree readback follow in the acceptance PR final receipt.",
   "current_verified_github_state": "PRs #881/#882/#883 protected-merged with all five required gates and seven source checkout identities verified. This acceptance record is published separately; no future publication SHA is self-attested.",
   "next_candidates": [
@@ -3393,22 +3397,17 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "campaign": "pro-ops-20261101",
-    "status": "SOURCE_VERIFIED_AND_DEPLOYED",
-    "source_prs": [
-      881,
-      882,
-      883
+    "campaign": "pro-config-recovery-20261102",
+    "status": "IMPLEMENTATION_VALIDATION",
+    "base_commit": "da589aefa1c3c642cbdbbafe32c796f3780cebd3",
+    "requirements": [
+      "MJ-REQ-004",
+      "MJ-REQ-162",
+      "MJ-REQ-275"
     ],
-    "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
-    "deployed_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
-    "accepted_original_requirements": [
-      "MJ-REQ-019",
-      "MJ-REQ-161",
-      "MJ-REQ-179"
-    ],
-    "evidence": "docs/evidence/2026-11-02-pro-ops-delivery.json",
-    "active_claims": []
+    "evidence": "docs/evidence/2026-11-02-pro-config/criteria.json",
+    "acceptance_unchanged": true,
+    "checkpoint_scope": "Active implementation and validation; canonical accepted milestone remains unchanged until protected delivery."
   },
   "p0p1_iteration_3": {
     "issues": [

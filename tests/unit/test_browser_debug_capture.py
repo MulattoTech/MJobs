@@ -218,10 +218,14 @@ class BrowserDebugCaptureTests(unittest.TestCase):
 class _CdpPage:
     url = "https://fixture.invalid/apply?token=PRIVATE"
 
-    def __init__(self, root, *, stall=None, phase_hook=None):
+    def __init__(self, root, *, stall=None, phase_hook=None, target_id=None, context_id=12,
+                 response=None):
         self.root = root
         self.stall = stall
         self.phase_hook = phase_hook
+        self.target_id = "a" * 32 if target_id is None else target_id
+        self.context_id = context_id
+        self.response = response
         self.calls = []
         self.cancelled = []
         self.pending_tasks = None
@@ -243,10 +247,27 @@ class _CdpPage:
         return self
 
     async def send(self, method, params):
-        assert method == "DOM.getDocument"
-        assert params == {"depth": debug_capture_module.MAX_DOM_DEPTH, "pierce": False}
+        if method == "Target.getTargetInfo":
+            assert params == {}
+            await self.phase("target")
+            return {"targetInfo": {"targetId": self.target_id, "type": "page"}}
+        if method == "Page.createIsolatedWorld":
+            assert params["frameId"] == self.target_id
+            assert params["worldName"].startswith("mjobs-debug-dom-")
+            assert set(params) == {"frameId", "worldName"}
+            await self.phase("world")
+            return {"executionContextId": self.context_id}
+        assert method == "Runtime.evaluate"
+        assert params["contextId"] == self.context_id
+        assert params["expression"] == debug_capture_module._DOM_CAPTURE_SCRIPT
+        assert params["returnByValue"] is True
+        assert params["generatePreview"] is False
+        assert params["silent"] is True
+        assert params["disableBreaks"] is True
+        assert 0 < params["timeout"] <= debug_capture_module.DOM_TIMEOUT_MS
         await self.phase("send")
-        return {"root": self.root}
+        return self.response if self.response is not None else {
+            "result": {"type": "string", "value": json.dumps({"root": self.root})}}
 
     async def detach(self):
         await self.phase("detach")
@@ -283,7 +304,7 @@ class NativeDomCaptureTests(unittest.TestCase):
                 {"nodeType": 3, "nodeValue": "PRIVATE text"},
                 {"nodeType": 1, "nodeName": "IFRAME", "attributes": ["src", "https://PRIVATE.invalid"],
                  "contentDocument": _document([{"nodeType": 1, "nodeName": "PRIVATE"}])},
-                {"nodeType": 1, "nodeName": "DIV", "attributes": ["role", "PRIVATE" * 100000]},
+                {"nodeType": 1, "nodeName": "DIV", "attributes": ["role", "PRIVATE" * 1000]},
             ]}])
         page = _CdpPage(root)
         dom = self.snapshot(page)
@@ -298,7 +319,7 @@ class NativeDomCaptureTests(unittest.TestCase):
                              debug_capture_module.MAX_DOM_BYTES)
         self.assertNotIn("PRIVATE", json.dumps(dom))
         self.assertNotIn("password", json.dumps(dom))
-        self.assertEqual(page.calls, ["create", "send", "detach"])
+        self.assertEqual(page.calls, ["create", "target", "world", "send", "detach"])
         self.assertEqual(page.pending_tasks, 0)
 
     def test_wide_and_deep_documents_obey_retained_node_byte_and_depth_caps(self):
@@ -309,7 +330,7 @@ class NativeDomCaptureTests(unittest.TestCase):
             deep = {"nodeType": 1, "nodeName": "DIV", "children": [deep]}
         for root in (wide, _document([deep])):
             with self.subTest(kind="wide" if root is wide else "deep"):
-                dom = self.snapshot(_CdpPage(root))
+                dom = debug_capture_module._sanitize_dom(root, lambda: None)
                 self.assertEqual(dom["status"], "CAPTURED")
                 self.assertTrue(dom["truncated"])
                 self.assertLessEqual(len(dom["nodes"]), debug_capture_module.MAX_DOM_NODES)
@@ -323,7 +344,7 @@ class NativeDomCaptureTests(unittest.TestCase):
     def test_publication_uses_lf_bytes_within_the_same_serialized_limit(self):
         wide = _document([{"nodeType": 1, "nodeName": "SECTION", "attributes": ["role", "progressbar"]}
                           for _ in range(1000)])
-        dom = self.snapshot(_CdpPage(wide))
+        dom = debug_capture_module._sanitize_dom(wide, lambda: None)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "dom.json"
             debug_capture_module._atomic_json(path, dom)
@@ -333,7 +354,7 @@ class NativeDomCaptureTests(unittest.TestCase):
         self.assertLessEqual(len(written), debug_capture_module.MAX_DOM_BYTES)
 
     def test_each_stalled_protocol_phase_is_cancelled_without_background_tasks(self):
-        for phase in ("create", "send", "detach"):
+        for phase in ("create", "target", "world", "send", "detach"):
             with self.subTest(phase=phase), mock.patch.object(debug_capture_module, "DOM_TIMEOUT_MS", 40):
                 page = _CdpPage(_document([]), stall=phase)
                 started = time.monotonic()
@@ -385,7 +406,7 @@ class NativeDomCaptureTests(unittest.TestCase):
                 finally:
                     guard.cancel()
 
-        for phase in ("create", "send", "detach"):
+        for phase in ("create", "target", "world", "send", "detach"):
             with self.subTest(phase=phase), mock.patch.object(debug_capture_module, "DOM_TIMEOUT_MS", 50):
                 page = NativeProtocolPage(_document([]), stall=phase)
                 started = time.monotonic()
@@ -407,7 +428,7 @@ class NativeDomCaptureTests(unittest.TestCase):
         with mock.patch.object(debug_capture_module.time, "monotonic", lambda: clock[0]):
             dom = self.snapshot(page, deadline=102)
         self.assertEqual(dom["status"], "OMITTED_TIMEOUT")
-        self.assertEqual(page.calls, ["create", "send"])
+        self.assertEqual(page.calls, ["create", "target"])
         self.assertEqual(page.pending_tasks, 0)
 
     def test_one_shot_caller_cancellation_during_dom_stops_capture_without_continuation(self):
@@ -430,9 +451,36 @@ class NativeDomCaptureTests(unittest.TestCase):
                 step="DETECT_FORM", configured_url=page.url, error=ValueError("primary"), check=check)
             self.assertIsNone(result)
             self.assertFalse((Path(directory) / ("1" * 32)).exists())
-        self.assertEqual(page.calls, ["create", "send"])
+        self.assertEqual(page.calls, ["create", "target", "world", "send"])
         self.assertEqual(check.calls, check.cancelled_at)
         self.assertEqual(page.pending_tasks, 0)
+
+    def test_invalid_world_or_target_fails_closed_without_evaluation(self):
+        for options in ({"target_id": "PRIVATE"}, {"context_id": True},
+                        {"context_id": -1}, {"context_id": 2**53}):
+            with self.subTest(options=options):
+                page = _CdpPage(_document([]), **options)
+                self.assertEqual(self.snapshot(page)["status"], "OMITTED_CAPTURE_FAILED")
+                self.assertNotIn("send", page.calls)
+                self.assertEqual(page.calls[-1], "detach")
+                self.assertEqual(page.pending_tasks, 0)
+
+    def test_oversized_or_invalid_native_values_never_reach_json_decode(self):
+        for value in ("x" * (debug_capture_module.MAX_DOM_REPLY_BYTES + 1), "private-\u2603", ""):
+            with self.subTest(length=len(value)), mock.patch.object(
+                    debug_capture_module.json, "loads", side_effect=AssertionError("must not decode")) as decode:
+                page = _CdpPage(None, response={"result": {"type": "string", "value": value}})
+                self.assertEqual(self.snapshot(page)["status"], "OMITTED_CAPTURE_FAILED")
+                decode.assert_not_called()
+        for response in ({"exceptionDetails": {"text": "PRIVATE"}},
+                         {"result": {"type": "object", "value": {"root": {}}}},
+                         {"result": {"type": "string", "value": '{"PRIVATE":1}'}},
+                         {"result": {"type": "string", "value": 'invalid'}}):
+            with self.subTest(response=response):
+                page = _CdpPage(None, response=response)
+                dom = self.snapshot(page)
+                self.assertEqual(dom["status"], "OMITTED_CAPTURE_FAILED")
+                self.assertNotIn("PRIVATE", json.dumps(dom))
 
 
 if __name__ == "__main__":

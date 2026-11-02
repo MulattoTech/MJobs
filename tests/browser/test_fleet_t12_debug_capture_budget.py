@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import time
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import httpx
@@ -14,8 +15,11 @@ from playwright.sync_api import sync_playwright
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.applications import mock_adapter
+from services.applications import debug_capture as debug_capture_module
 from services.applications.mock_adapter import apply_mock
-from services.applications.debug_capture import capture_browser_failure
+from services.applications.debug_capture import (
+    capture_browser_failure, MAX_DOM_BYTES, MAX_DOM_NODES, MAX_DOM_DEPTH,
+)
 from services.applications.attempt_history import read_attempt_history
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
@@ -78,18 +82,28 @@ class DebugCaptureBudgetTests(unittest.TestCase):
         )
 
     @staticmethod
-    def assert_dom_omitted(test, capture_path):
-        dom = json.loads((capture_path / "dom.json").read_text(encoding="utf-8"))
-        test.assertEqual(dom["status"], "OMITTED_UNBOUNDED_EVALUATION")
-        test.assertEqual(dom["element_counts"], {})
+    def assert_dom_captured(test, capture_path):
+        raw = (capture_path / "dom.json").read_bytes()
+        dom = json.loads(raw)
+        test.assertEqual(dom["status"], "CAPTURED")
+        test.assertEqual(dom["element_counts"], {
+            "html": 1, "head": 1, "body": 1, "main": 1, "h1": 1, "input": 1})
         test.assertEqual(dom["role_counts"], {})
+        test.assertFalse(dom["truncated"])
+        test.assertLessEqual(len(raw), MAX_DOM_BYTES)
+        test.assertLessEqual(len(dom["nodes"]), MAX_DOM_NODES)
+        test.assertEqual(dom["depth_limit"], MAX_DOM_DEPTH)
         test.assertTrue(dom["text_omitted"])
         test.assertTrue(dom["attributes_omitted"])
         test.assertTrue(dom["control_values_omitted"])
+        for index, node in enumerate(dom["nodes"]):
+            test.assertTrue(node["parent"] is None or 0 <= node["parent"] < index)
+        test.assertNotIn("SYNTHETIC_PRIVATE_VALUE", raw.decode())
 
     def test_real_renderer_stall_is_bounded_then_independent_capture_reads_back(self):
         # Schedule, but do not wait for, a finite renderer stall. This test-only
-        # evaluate happens before the diagnostic evaluate prohibition is armed.
+        # evaluate happens before the page-world evaluate prohibition is armed.
+        # Diagnostics may only use their bounded isolated-world collector.
         self.page.evaluate("""() => setTimeout(() => {
           const end = performance.now() + 1000;
           while (performance.now() < end) {}
@@ -106,7 +120,7 @@ class DebugCaptureBudgetTests(unittest.TestCase):
             root = Path(directory) / "captures"
             started = time.monotonic()
             with patch.object(self.page, "evaluate", side_effect=AssertionError(
-                    "diagnostic capture must not evaluate DOM")) as diagnostic_evaluate, \
+                    "diagnostics must not evaluate in the page world")) as diagnostic_evaluate, \
                     patch.object(self.page, "screenshot", side_effect=capture_screenshot):
                 stalled = self.capture(self.page, root, "a" * 32, check,
                                        RuntimeError("SYNTHETIC_ORIGINAL_FAILURE"))
@@ -130,20 +144,53 @@ class DebugCaptureBudgetTests(unittest.TestCase):
                 healthy_page = healthy_context.new_page()
                 healthy_page.set_content(_HTML)
                 healthy_check = _BudgetCheck(5.0)
+                healthy_phases = []
+                healthy_started = time.monotonic()
+
+                def observe(phase, operation):
+                    def measured(*args, **kwargs):
+                        began = time.monotonic()
+                        record = {"phase": phase}
+                        try:
+                            result = operation(*args, **kwargs)
+                            if phase == "dom" and isinstance(result, dict):
+                                record["status"] = result.get("status")
+                            return result
+                        except Exception as error:
+                            # Fixed phase/class/timing only: never publish paths,
+                            # DOM content, exception messages, or caller values.
+                            record["error_class"] = type(error).__name__
+                            raise
+                        finally:
+                            record["elapsed_ms"] = round((time.monotonic() - began) * 1000, 3)
+                            healthy_phases.append(record)
+                    return measured
+
                 with patch.object(healthy_page, "evaluate", side_effect=AssertionError(
-                        "diagnostic capture must not evaluate DOM")) as healthy_evaluate:
+                        "diagnostics must not evaluate in the page world")) as healthy_evaluate, \
+                        patch.object(debug_capture_module, "_dom_snapshot",
+                            observe("dom", debug_capture_module._dom_snapshot)), \
+                        patch.object(debug_capture_module, "capture_redacted_screenshot",
+                            observe("screenshot", debug_capture_module.capture_redacted_screenshot)), \
+                        patch.object(debug_capture_module, "prune_debug_captures",
+                            observe("retention", debug_capture_module.prune_debug_captures)), \
+                        patch.object(debug_capture_module, "_atomic_json",
+                            observe("publish", debug_capture_module._atomic_json)):
                     healthy = self.capture(healthy_page, root, "b" * 32, healthy_check,
                                            ValueError("SYNTHETIC_PRIMARY_ERROR"))
                 healthy_evaluate.assert_not_called()
 
-                self.assertIsNotNone(healthy)
+                self.assertIsNotNone(healthy, json.dumps({
+                    "healthy_capture_elapsed_ms": round((time.monotonic() - healthy_started) * 1000, 3),
+                    "checkpoints": healthy_check.calls, "remaining_reads": healthy_check.remaining_calls,
+                    "phases": healthy_phases}, sort_keys=True))
                 screenshot = healthy / "screenshot.png"
                 with Image.open(screenshot) as image:
                     image.verify()
                 metadata = json.loads((healthy / "metadata.json").read_text(encoding="utf-8"))
                 self.assertEqual(metadata["screenshot"], {
                     "file": "screenshot.png", "status": "CAPTURED"})
-                self.assert_dom_omitted(self, healthy)
+                self.assert_dom_captured(self, healthy)
                 self.assertGreaterEqual(healthy_check.calls, 3)
                 self.assertEqual(healthy_check.remaining_calls, 1)
                 serialized = ((healthy / "metadata.json").read_text(encoding="utf-8")
@@ -184,7 +231,7 @@ class DebugCaptureBudgetTests(unittest.TestCase):
         screenshot_error = "SYNTHETIC_SCREENSHOT_PRIVATE_VALUE"
         with tempfile.TemporaryDirectory(prefix="mjobs-t12-primary-error-") as directory:
             with patch.object(self.page, "evaluate", side_effect=AssertionError(
-                    "diagnostic capture must not evaluate DOM")) as evaluate, \
+                    "diagnostics must not evaluate in the page world")) as evaluate, \
                     patch.object(self.page, "screenshot", side_effect=RuntimeError(
                         screenshot_error)):
                 result = self.capture(self.page, Path(directory) / "captures",
@@ -198,7 +245,7 @@ class DebugCaptureBudgetTests(unittest.TestCase):
             self.assertEqual(metadata["error"]["message_length"],
                              len("SYNTHETIC_ORIGINAL_PRIVATE_VALUE"))
             self.assertEqual(metadata["screenshot"], {"file": None, "status": "FAILED"})
-            self.assert_dom_omitted(self, result)
+            self.assert_dom_captured(self, result)
             serialized = metadata_path.read_text(encoding="utf-8")
             serialized += (result / "dom.json").read_text(encoding="utf-8")
             self.assertNotIn("SYNTHETIC_ORIGINAL_PRIVATE_VALUE", serialized)
@@ -206,6 +253,32 @@ class DebugCaptureBudgetTests(unittest.TestCase):
             self.assertEqual(str(original_error), "SYNTHETIC_ORIGINAL_PRIVATE_VALUE")
             self.assertGreaterEqual(check.calls, 3)
             self.assertEqual(check.remaining_calls, 1)
+
+    def test_unsupported_collector_omits_dom_without_page_world_fallback(self):
+        # Keep the real screenshot API, but deliberately expose no supported
+        # native CDP bridge. The helper must retain an explicit omission and
+        # cannot substitute an unbounded evaluation in the page's own world.
+        unsupported = SimpleNamespace(
+            url=self.page.url, locator=self.page.locator, screenshot=self.page.screenshot,
+            evaluate=self.page.evaluate)
+        with tempfile.TemporaryDirectory(prefix="mjobs-t12-unsupported-") as directory:
+            with patch.object(unsupported, "evaluate", side_effect=AssertionError(
+                    "unsupported diagnostics must not evaluate")) as evaluate:
+                result = self.capture(unsupported, Path(directory), "d" * 32,
+                                      _BudgetCheck(5.0), ValueError("PRIVATE_ORIGINAL"))
+            evaluate.assert_not_called()
+            self.assertIsNotNone(result)
+            dom = json.loads((result / "dom.json").read_text(encoding="utf-8"))
+            self.assertEqual(dom, {
+                "status": "OMITTED_UNSUPPORTED_TRANSPORT", "element_counts": {},
+                "role_counts": {}, "text_omitted": True, "attributes_omitted": True,
+                "control_values_omitted": True})
+            metadata = json.loads((result / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["screenshot"], {"file": "screenshot.png", "status": "CAPTURED"})
+            self.assertEqual(metadata["dom_snapshot"]["status"], dom["status"])
+            serialized = json.dumps(metadata) + json.dumps(dom)
+            self.assertNotIn("PRIVATE_ORIGINAL", serialized)
+            self.assertNotIn("SYNTHETIC_PRIVATE_VALUE", serialized)
 
 class ConsumedDebugCaptureCallTests(unittest.TestCase):
     def test_apply_mock_forwards_budget_and_finishes_cancelled_diagnostics(self):

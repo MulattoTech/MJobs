@@ -59,6 +59,21 @@ three caps and validates the same decimal bounds used by admission; incomplete,
 invalid, or unknown settings are rejected. These values are retained for manual
 review and are never applied automatically during restore.
 
+Runtime version 3 additionally captures the validated browser-profile default,
+in-app notification enablement, and worker log level. It is emitted when the
+container supplies `MJOBS_BROWSER_PROFILE`, and then requires all three settings
+and the complete version-2 policy. Older containers without the selector retain
+their existing snapshot version, so a pre-upgrade backup remains compatible.
+All three runtime versions are read-only recovery references; restore does not
+automatically apply them.
+
+Application `browser-profile-selection.json` manifests contain only the pinned
+label and schema version and are retained with the application documents. The
+entire `browser-profile` directory, including every named child profile and its
+cookies, is excluded. A fresh restored application recreates its pinned label
+without restoring authentication. Reauthenticate explicitly before resuming any
+flow requiring a session.
+
 For FIXTURE projects, also stop `mock` before backup. Schema 3 captures and
 checksums only `mock/receipts.json`, the fictional provider's independent
 confirmation history. It verifies every confirmed MOCK application's receipt

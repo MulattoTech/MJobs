@@ -238,3 +238,32 @@ Once the normal local runtime is healthy, use the existing VS Code live-feedback
 For an existing learned source, toggle Pin/Unpin, Disable/Enable and Watch/Unwatch, then reload and inspect the saved state. Review **Recent discovery** for recorded enrollment/import messages and **View Evidence** for the bounded underlying metadata. Missing history is not inferred. Run Now, Rediscover, Verify, Edit and next-check scheduling remain unavailable in this view.
 
 The regression test `python -m unittest tests.browser.test_company_source_view -v` runs this flow with synthetic data after `npm run build --prefix apps/web`; it does not use a personal browser profile or submit applications. Private `outputs/live-feedback/**` files must remain outside Git history. The workstation Docker Linux engine was unavailable during the October 2 verification; hosted Compose success does not establish local runtime readiness.
+
+
+## Activity notifications and browser session defaults
+
+Set `MJOBS_NOTIFICATIONS_ENABLED=1` in the private Compose environment to display
+in-app activity notifications; `0` (the default) hides them. Recreate the API
+container after changing its environment. The signed-in workspace reads the
+active profile's operations every 15 seconds, with one bounded request at a time.
+Changing profiles or leaving the page cancels its pending read. The panel shows
+at most five recent terminal outcomes, supports dismissal and muting for the
+current visit, and uses fixed descriptions without raw errors, document text or
+credentials. A failed read retains the last visible result and shows a retry
+message. It does not use email, push delivery or browser notification permissions.
+
+`MJOBS_BROWSER_PROFILE=default` selects the browser session label for new
+application sessions. A label starts with a lowercase letter and contains up to
+32 lowercase letters, digits or hyphens; Windows reserved device names are
+rejected. Recreate application services to load a changed default. Each
+application still has its own isolated cookie directory. Its first launch pins
+the selected label in a small, nonsecret versioned manifest; later environment
+changes cannot redirect its sign-in or retry to a different session. Existing
+unlabelled browser directories retain their original location. Corrupt manifests
+and path aliases fail closed. The current persistent sign-in consumer is the
+controlled fixture browser; this configuration does not add real-provider
+sign-in capability or enable external application submission.
+
+`GET /settings` reports notification enablement and the browser label for new
+sessions without revealing local paths or credentials. Portable search-settings
+import does not change these deployment settings or existing session selections.
