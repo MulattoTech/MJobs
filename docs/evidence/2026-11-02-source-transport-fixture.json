@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T01:44:01.895475+00:00",
+  "result": "FIXTURE_CORRECTION_NATIVE_PASS_PROTECTED_CI_PENDING",
+  "requirement": "MJ-REQ-004",
+  "acceptance_change": "NONE; original requirement remains PARTIAL",
+  "base_commit": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+  "changed_source": "tests/integration/test_source_http_socket_budget.py",
+  "changed_source_sha256": "f57b7c0034960b3aed1f2702490f2d49bb876ae1a609ffdd3eb53e0e8b17022f",
+  "production_source_changed": false,
+  "failed_main_gates": [
+    {
+      "id": 41371046952,
+      "name": "Integration - PostgreSQL and Redis",
+      "head_sha": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41371046952",
+      "created_at": "2026-11-02T01:10:23Z",
+      "updated_at": "2026-11-02T01:27:37Z"
+    },
+    {
+      "id": 41371046815,
+      "name": "MJobs deployment candidate",
+      "head_sha": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41371046815",
+      "created_at": "2026-11-02T01:10:23Z",
+      "updated_at": "2026-11-02T01:27:41Z"
+    }
+  ],
+  "failed_job": {
+    "job_id": 125041388319,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41371046952/job/125041388319",
+    "summary": "1 failed, 920 passed, 9 skipped, 600 subtests passed",
+    "test": "SourceHttpSocketBudgetTests.test_body_and_header_deadline_precedes_delayed_finalization (mode=header-drip)",
+    "assertion": "Worker did not reach source HTTP transport",
+    "log_sha256": "613f6be019252e243fcf0a2fb47597af23f6272de9fdecd15a5ba6c6428b5aaf",
+    "limitation": "The failed entry assertion did not record terminal state or phase diagnostics. Its precise hosted cause cannot be established from retained evidence."
+  },
+  "controlled_reproduction": {
+    "backend_entries": 0,
+    "durable_terminal": {
+      "state": "DEAD_LETTERED",
+      "error": "OPERATION_TIMEOUT",
+      "attempt_count": 1
+    },
+    "outcome_status": "DEAD_LETTERED",
+    "original_assertion": "False is not true : Worker did not reach source HTTP transport",
+    "timestamp": "2026-11-02T01:35:45.248515+00:00",
+    "source": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+    "result": "REPRODUCED_ORACLE_FAILURE_WITH_CORRECT_PRE_TRANSPORT_TIMEOUT",
+    "scope": "Controlled 1.1-second collector setup delay exhausts the unchanged 0.8-second worker budget. This proves the ambiguous assertion can reject correct behavior; the original hosted run did not retain enough diagnostics to establish its exact cause."
+  },
+  "correction": [
+    "Prepare a real verifying SSL context before the strict transport fixture budget, scoped to the exact owned worker and expected verification arguments.",
+    "Record immutable setup, worker, collector and deadline timestamps; read durable operation diagnostics only after a failed readiness assertion.",
+    "Retain a positive slow SSL-setup control and a negative pre-transport timeout control; adjacent cold-SSL initialization deadline coverage remains executed.",
+    "Snapshot diagnostic phases and omit unrelated unwind delay from the terminal-state negative control."
+  ],
+  "unchanged_oracles": {
+    "operation_budget_seconds": 0.8,
+    "transport_deadline_bound_seconds": 1.1,
+    "cancel_bound_seconds": 0.35,
+    "backend_connect_attempts": 1,
+    "socket_close": "Owned real socket fd == -1",
+    "real_transport_and_watchdog": true
+  },
+  "native_validation": {
+    "before_final_review_adjustments": {
+      "command": "python -m pytest -q tests/integration/test_source_http_socket_budget.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=outputs/fixture-correction.xml",
+      "summary": "35 passed, 25 subtests passed in 138.60s (0:02:18)",
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 25,
+      "junit_testcases": 35,
+      "xml_sha256": "aa8f04297911ed67998e3779702b32c88fc23e16e623ecf2d23d2d6098662307",
+      "log_sha256": "2d118e2d5396601e795007c328da77a2155f62df1af13a820717baa71f4d64e1"
+    },
+    "reviewed_source": {
+      "command": "python -m pytest -q tests/integration/test_source_http_socket_budget.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=outputs/fixture-correction-reviewed.xml",
+      "summary": "35 passed, 25 subtests passed in 130.25s (0:02:10)",
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 25,
+      "junit_testcases": 35,
+      "xml_sha256": "4b9cbfa780d505535e19a732715f8f8d90c7d0201b88257f137b0ada32c2abc0",
+      "log_sha256": "d2e4dcee85721f8277dca0fcc533eeaa62febde01bef8adf1b508fc814784bb3"
+    }
+  },
+  "independent_review": {
+    "result": "NO_SOURCE_BLOCKER",
+    "scope": "Read-only source review; no tests executed by reviewer. Confirmed unchanged clocks, real transport/socket checks, exact context ownership and preserved cold setup coverage."
+  },
+  "delivery": "Protected proposed-merge tests, all required hosted gates and guarded deployment remain pending. The failed main and candidate are retained as failures; no gate was bypassed."
+}
