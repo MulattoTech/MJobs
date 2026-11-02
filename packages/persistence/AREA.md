@@ -6,7 +6,11 @@ Store(url), save_profile, profile(version), ai_task_settings,
 save_ai_task_settings, ai_cost_policy, save_ai_cost_policy, jobs, application,
 transition.
 Requirements: MJ-REQ-015, 041, 052, 092, 094, 145, 146, 156, 158, 159, 162.
-SQLAlchemy Core; PostgreSQL deployment, explicit SQLite test URLs only. Migrations
+SQLAlchemy ORM profile read models share the existing Tables with Core transactional
+writes. Short-lived read Sessions preserve caller-owned locks, snapshots and
+transactions; returned values are detached copies. PostgreSQL deployment uses
+separate least-privileged runtime credentials; explicit SQLite URLs are for tests.
+Migrations
 live in migrations/versions and must retain immutable schema history. UI and
 provider services cannot become durable state authority. Test: .venv/Scripts/python
 -m unittest discover -s tests. Credentials and personal artifacts are never logged

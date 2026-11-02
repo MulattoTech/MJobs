@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T18:15:55.134520+00:00",
+  "baseline_main": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+  "baseline_acceptance": {
+    "P0": {
+      "PASS": 12,
+      "PARTIAL": 4,
+      "NOT_RUN": 10,
+      "total": 26
+    },
+    "P1": {
+      "PASS": 106,
+      "PARTIAL": 7,
+      "NOT_RUN": 3,
+      "total": 116
+    }
+  },
+  "status": "IMPLEMENTED_PENDING_PROTECTED_VERIFICATION",
+  "requirement_results_changed": false,
+  "requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-015",
+    "MJ-REQ-174"
+  ],
+  "source_files_sha256": {
+    "packages/domain/automation.py": "78dee99d4ecf5e473a7d8c8ff2d9e8ae8c15759f5f638a46ea1d8c587ae8f51b",
+    "packages/persistence/AREA.md": "96c77b64caa19a62c0868ce4a6f619e228e45810b6dad1a14922cbf8c3d2230b",
+    "packages/persistence/profile_records.py": "5a8ff1e3ae820d3cc86cfd48ca196f0fde743285196c2aedfb69cb7cf53b96f7",
+    "packages/persistence/store.py": "ef77a6161f1101e30583e4eb42196948dd991fdaa7779eec552456af6a443a6f",
+    "services/ai/durable_evaluation.py": "7b1f7b6efac88657a0f4f9de630c71912711b48cf71fbd0c116135d0813d533a",
+    "services/ai/providers/transport.py": "aa16abd6908136f6d098e243e0d85c4b7a9d9586800c17964da8c105ecf4a807",
+    "services/discovery/scheduler.py": "42e29c3e97a4da86042537207a6145af254ce523f3defb728168c1b77e08182e",
+    "services/discovery/search_profiles.py": "dc099e4d62c10943e6f48fa1b5d226eee1e68b7004149c1d99ad6adb47242cb3",
+    "tests/integration/test_database_least_privilege.py": "4284bcb22fe3a64a787aa56dd9d762f50b28c829e74f093f392defe6a685f99f",
+    "tests/integration/test_request_deadline_database_lock.py": "5616ff7abec9dbac6d4af0360724546a206683c1ae566a0746db246e4720d647",
+    "tests/unit/test_operation_control_reads.py": "214c1b61c9d0b96e7ad5b5aab3bb1fe65d1e711dcbcbec77f423c3ef5e056c6d",
+    "tests/unit/test_profile_orm_reads.py": "8e05022e8389e0854b4674244670dce6d9fe8ce9b223cb26fde47754ffbe38b5",
+    "tests/unit/test_saved_search_scheduler.py": "ffa7d586297fea37106e20d2d3cbbdf710ab2804ed54320de7d6299301fa883c",
+    "workers/operations.py": "cd55ae23ef75ac9471532b39dc95189b571380347afec904d90211adc8498b84",
+    "workers/tasks.py": "12c1d296c0351e2fc6a0541a3651e7587c69d8c0db73d82fd8aabf2fad8e3687"
+  },
+  "changes": [
+    "Control reads use transaction-local PostgreSQL query/lock limits or restored SQLite busy limits; unavailable authority blocks instead of claiming user cancellation.",
+    "Request-owned socket deadline clock is independent of database-backed cancellation observation; registration precedes callbacks and first interruption wins.",
+    "Profile reads use mapped existing SQLAlchemy entities and detached dictionaries while preserving Core-owned transaction/snapshot history.",
+    "One immutable saved-search automation rule validator covers admission, portable settings and scheduler execution; invalid persisted rules produce no outbox or audit changes."
+  ],
+  "initial_verification": [
+    {
+      "scope": "Linux focused domain/settings",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 30,
+      "skipped": 10,
+      "subtests": 56,
+      "limitation": "PostgreSQL unavailable in Linux scratch; executed separately natively."
+    },
+    {
+      "scope": "Windows focused actual PostgreSQL and domain/readback",
+      "result": "PASS",
+      "passed": 33,
+      "skipped": 0,
+      "subtests": 48,
+      "limitation": "Before two final P0 review refinements; refreshed native run pending."
+    },
+    {
+      "scope": "Linux reviewed lock/clock ownership",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 7,
+      "skipped": 1,
+      "limitation": "PostgreSQL case absent in Linux scratch."
+    },
+    {
+      "scope": "Initial wider Linux transport/domain sweep",
+      "result": "FAIL",
+      "passed": 135,
+      "failed": 2,
+      "skipped": 11,
+      "subtests": 184,
+      "failures": [
+        "TLS cancellation dispatch exceeded its existing one-second fixture timeout; current isolated rerun passed without relaxing the assertion.",
+        "Local pinned Chromium download unavailable; actual browser-profile test must execute on workstation or hosted runner."
+      ]
+    }
+  ],
+  "retained_initial_failures": [
+    "Scheduler regression fails on baseline main because unsupported persisted rule schedules DISCOVER.",
+    "New worker fixture initially seeded data before workspace binding; corrected fixture ordering.",
+    "Windows found test-owned SQLite connections left open by context managers; explicit close corrected; native rerun passed.",
+    "Initial restricted Linux API run stalled; terminated only the verified owned test PID and reran with permitted loopback access."
+  ],
+  "review": [
+    "Independent P1 review found no source blocker; first-call transaction identity test strengthened.",
+    "Independent P0 review found shared-memory rollback and unowned socket windows; both fixed with regressions."
+  ],
+  "limitations": [
+    "MJ-REQ-004 remains PARTIAL: pool checkout, DNS/connect, database network-blackhole and later finalization bounds remain unproven.",
+    "No whole-product, host-restart, external provider, paid inference or employer-submission claim.",
+    "Canonical acceptance stays unchanged until protected merge and delivery verification."
+  ],
+  "publication": "Containing source PR records exact tested head/proposed merge, hosted gates and eventual merge; later canonical acceptance receipt will bind deployed source.",
+  "reviewed_native_verification": {
+    "scope": "Windows final reviewed source, isolated actual PostgreSQL, ORM transactions/least privilege, settings portability and TLS recovery",
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "subtests": 54,
+    "seconds": 50.33,
+    "junit": "outputs/native-boundary-reviewed.xml",
+    "exact_commit_verification": "pending committed/proposed merge revision"
+  },
+  "static_analysis": {
+    "bounded_ci_lint": "pending protected CI",
+    "new_files": "PASS: scoped Ruff for all five new Python files",
+    "legacy_modules": "Broad optional Ruff invocation reports existing legacy findings; no unrelated style rewrite. Required CI intentionally lints its bounded file set."
+  },
+  "native_browser_verification": {
+    "scope": "Actual configured mock browser and auth reopen preserves selected browser profile",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 7.48,
+    "junit": "outputs/native-browser-profile.xml"
+  }
+}

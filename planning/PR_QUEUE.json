@@ -6064,11 +6064,33 @@
         "MJ-PR-PRO-VERIFY-20261102",
         "MJ-PR-PRO-ROUTE-20261102"
       ],
-      "status": "READY_FOR_PROTECTED_PUBLICATION",
+      "status": "MERGED",
       "branch": "work/pro-resume-closeout-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-resume/delivery.json",
-      "notes": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash."
+      "notes": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash. Verified live at sprint discovery: PR889 merged, protected checks passed and deployed revision 0112ac4d matched. The prior prospective publication record remains in its historical evidence.",
+      "pr_number": 889,
+      "merge_commit": "0112ac4d5f62214925f43c2e5b68e01ad69e4322"
+    },
+    {
+      "id": "MJ-PR-PRO-BOUNDARIES-20261102",
+      "title": "Bound cancellation control reads and request clocks; explicit automation rule and mapped profile reads",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-015",
+        "MJ-REQ-018",
+        "MJ-REQ-174"
+      ],
+      "target_area": "workers control reads; AI request transport; domain rules; profile persistence",
+      "depends_on": [
+        "MJ-PR-PRO-RESUME-CLOSEOUT-20261102"
+      ],
+      "status": "REVIEW_FIXES_PENDING_PROTECTED_VERIFICATION",
+      "branch": "work/pro-bounds-domain-20261102",
+      "evidence": "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
+      "notes": "Actual SQLite/PostgreSQL lock regressions and native ORM snapshot/least-privilege tests pass. Acceptance results unchanged; broad004 stays PARTIAL. Source publication, exact proposed-merge gates and guarded deployment precede literal015/174 acceptance. PR890 follow-up includes source strategy admission, guarded employer-feed fallback and review-corrected source health/control propagation. Prior-head checks are historical; final revision gates remain required.",
+      "pr_number": 890
     }
   ],
-  "generated_at": "2026-11-02T16:38:42.091786+00:00"
+  "generated_at": "2026-11-02T18:19:27.308764+00:00"
 }

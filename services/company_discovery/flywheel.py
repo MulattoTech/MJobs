@@ -98,11 +98,14 @@ def _sitemap_career_candidates(homepage, client, check):
     return candidates
 
 
-def _career_feed_candidates(page, homepage_url=None):
-    """Homepage feeds need job context, including after a redirect back home."""
+def _career_feed_candidates(page, homepage_url=None, *, require_explicit_job_feed=False):
+    """Homepage and unsupported-ATS feeds need corroborating job context."""
     feeds = machine_readable_job_endpoints(str(page.url), page.text)
-    if (not feeds or homepage_url is None or not _same_origin(homepage_url, str(page.url))
-            or urlsplit(str(page.url)).path.rstrip('/') != urlsplit(str(homepage_url)).path.rstrip('/')):
+    if not feeds:
+        return []
+    if (not require_explicit_job_feed and (homepage_url is None
+            or not _same_origin(homepage_url, str(page.url))
+            or urlsplit(str(page.url)).path.rstrip('/') != urlsplit(str(homepage_url)).path.rstrip('/'))):
         return feeds
     soup = BeautifulSoup(str(page.text or "")[:2_000_000], "html.parser")
     labelled = {urljoin(str(page.url), link["href"]) for link in soup.find_all("link", href=True)
@@ -113,6 +116,8 @@ def _career_feed_candidates(page, homepage_url=None):
         # Do not let a preferred-format blog/news feed outrank an explicitly
         # identified jobs feed advertised on the same page.
         return explicit
+    if require_explicit_job_feed:
+        return []
     context = " ".join(node.get_text(" ", strip=True) for node in soup.find_all(["title", "h1"]))
     if (_JOB_CONTEXT.search(urlsplit(str(page.url)).path.replace("_", " "))
             or _JOB_CONTEXT.search(context)):
@@ -346,8 +351,14 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 **_search_provenance(candidate, search_provider, search_context,
                                      rejected_search_candidates, attempted=search_attempted),
             })
-        feeds = (_career_feed_candidates(careers, homepage.url)
-                 if detected.status != "MATCH" or not detected.provider else [])
+        # Supported official APIs keep priority. An unsupported ATS does not
+        # invalidate an independently advertised same-origin job feed, while
+        # conflicting ATS identities still require explicit review.
+        supported_api = (detected.status == "MATCH"
+                         and detected.provider in {"greenhouse", "lever"})
+        feeds = (_career_feed_candidates(careers, homepage.url,
+                 require_explicit_job_feed=detected.status == "MATCH")
+                 if not supported_api and detected.status != "AMBIGUOUS" else [])
         for feed in feeds:
             check()
             feed_available = None

@@ -1,38 +1,31 @@
-# MJobs checkpoint — resumed delivery, 2026-11-02
+# MJobs checkpoint — control boundaries and domain persistence, 2026-11-02
 
-## Canonical acceptance
+## Verified baseline and acceptance
 
-**P0 12/26 PASS** (4 PARTIAL, 10 NOT_RUN), unchanged. **P1 106/116 PASS** (7 PARTIAL, 3 NOT_RUN), up from this continuation's verified 99/116 baseline. Original requirements: **179/366 PASS**, 81 PARTIAL, 106 NOT_RUN. The separate reference authority is unchanged at **19/59 PASS**, 4 PARTIAL, 36 NOT_RUN. Whole-product readiness remains PARTIAL/UNKNOWN.
+Live main and deployed revision at sprint discovery: **`0112ac4d5f62214925f43c2e5b68e01ad69e4322`**, merged by [PR889](https://github.com/MulattoTech/MJobs/pull/889). Its protected checks, production health and seven matching application images were read back. Canonical **P0 12/26 PASS** (4 PARTIAL, 10 NOT_RUN), **P1 106/116 PASS** (7 PARTIAL, 3 NOT_RUN); original **179/366 PASS**, 81 PARTIAL, 106 NOT_RUN. Separate reference authority **19/59 PASS**, 4 PARTIAL, 36 NOT_RUN. This source batch changes no acceptance result or criterion.
 
-New literal acceptances: **162 Database Design, 167 Data Backup, 175 Secret Management, 208 Dry-Run Mode, 267 Direct Employer Route Discovery Before Apply, 275 Configuration, 288 Verification Utility**. The original prompt started at 92; earlier interrupted work reached 99. This continuation adds seven and exceeds 105, without reaching 110. No priority, denominator or acceptance definition changed.
+Prior accepted 162/167/175/208/267/275/288 and source PR886–889 remain established in [prior delivery evidence](../docs/evidence/2026-11-02-pro-resume/README.md); do not redo or relabel them as new sprint output.
 
-## Exact delivery and publication
+## Current engineering batch
 
-Protected source PRs [#886](https://github.com/MulattoTech/MJobs/pull/886), [#887](https://github.com/MulattoTech/MJobs/pull/887) and [#888](https://github.com/MulattoTech/MJobs/pull/888) merged with all five required gates plus CodeQL and tested-tree equality. Final feature source **`d86a5bf79e883fdd40b750ad843a363960f35c43`** was deployed by the unchanged guarded updater at **16:31:13 UTC**. The prior 2c6a93f3 release/image and integrity-verified pre-switch archive remain available.
+Branch **`work/pro-bounds-domain-20261102`**, native worktree **`C:\Tools\Dev\MJobs-pro-bounds-domain-20261102`**. [Current evidence](../docs/evidence/2026-11-02-pro-boundaries/README.md) preserves source hashes, failures, reviews and scoped test results.
 
-**Publication receipt:** the containing acceptance PR's final description records its own later exact merge SHA, native/hosted checks, final deployed SHA/commands, issue 163/168/176/209/268/276/289 closure and clean-worktree readback. PR888 links that containing PR after creation. This commit anchors already delivered d86 proof and cannot contain a future publication hash. Verify the final receipt before resuming.
+- **004 PARTIAL:** transaction-local PostgreSQL/SQLite cancellation query limits, fixed unavailable-authority classification and a database-independent request socket clock. Real locked-database and socket-ownership regressions pass. Pool acquisition/connect/network black holes, arbitrary callbacks and other broad external-operation criteria remain unproven.
+- **015 pending literal acceptance:** one immutable saved-search automation domain rule validates settings and execution. Malformed persisted rules no longer schedule operations or write audit/outbox records. Existing identities remain distinct.
+- **174 pending literal acceptance:** actual ORM profile/version/fact reads preserve caller transactions and immutable history. Parameter binding and runtime least privilege are exercised on isolated PostgreSQL.
 
-[Delivery report](../docs/evidence/2026-11-02-pro-resume/README.md) and [machine-readable evidence](../docs/evidence/2026-11-02-pro-resume/delivery.json) contain literal mappings, revisions, command exits, hashes, failures and limitations. Earlier prospective records are resolved there without rewriting their original runs.
+Latest reviewed Windows suite: **37 PASS / 0 SKIP / 54 subtests** (actual PostgreSQL, ORM, portable settings, locked reads and TLS recovery). Earlier Linux 30/10skip and 135/2fail/11skip scopes are retained separately. The wider Linux sweep had unavailable Chromium and a one-second TLS fixture dispatch failure; the TLS case passed unchanged in isolation and in native scope. Native actual browser-profile/reopen test also passed (1/0skip). Exact committed/proposed-merge checks, all five protected gates plus CodeQL, guarded delivery and complete015/174 criterion mapping remain required before acceptance. No skipped test is PASS.
 
-## Verified execution
+## Review follow-up
 
-Exact native source merges: **406 PASS/4 SKIP/372 subtests**, **164 PASS/0 SKIP/166 subtests**, **144 PASS/3 SKIP/150 subtests**. PR888 platform skips have separately executed counterpart proof. Hosted PR888 unit 3,385 / 53 skips and integration 2,545 / 39 skips remain separately scoped; overlapping counts are not additive.
+[PR890](https://github.com/MulattoTech/MJobs/pull/890) is the single source integration path. Added018 source contract/policy checks and explicit job-feed fallback before merge. Independent review caught newer backoff overwrite, masked control-read errors, declaration exception leakage and news-feed promotion; all corrected and nine focused independent cases pass. Source branch remains `work/pro-bounds-domain-20261102`; the temporary source-contracts worktrees are staging/review copies only. Final native follow-up86PASS/13SKIP/31subtests. Previous0f/bf158daa native172/2skip and hosted results are retained as prior-head evidence; final revision checks and delivery still pending.018 and004 stay PARTIAL.
 
-At clean deployed d86, public **DRY_RUN11** and **FULL13** both exited 0, verified cleanup and matching source identity. FULL observed production readiness before/after isolated synthetic execution. Seven application containers shared the exact image and safe settings; read-only schema validation covered 50 tables / 84 foreign keys. External submission stayed OFF. No destructive live restore, paid inference or real employer application occurred.
+## Resume and next batch
 
-The first d86 candidate failed a GitHub read before image build; status code is unknown. One diagnosed rerun passed after independent gates and fresh reads. Bounded lookup recovery fixes newer-queued/duplicate-state selection without bypassing gates. The progress-record CLI wrote its checkpoint once, then exposed a post-write validation exception; that failure is retained and corrected in this publication. Broad 004 remains incomplete.
+Read the containing source PR receipt before acting; it records later exact revisions and gate results that cannot be self-contained in this source commit. Finish integration and guarded verification before updating canonical acceptance. Then consider **018**: unsupported ATS detection suppresses valid same-origin feeds, and current adapter strategy must be checked before egress and under the final import lock. **017** still lacks six named global integrations; official Dice MCP needs an explicit query contract. Do not accept either parent from enum declarations alone.
 
-## Next substantive work
+**008** prior evidence already exercises scoped RQ maintenance/redelivery; host restart and the complete original interruption journey remain unverified. **292** still requires its complete original journey. **171/172/224/269** remain substantive gaps. WWR conflicts remain safely blocked. Minimatch alert63 was already fixed. Paid inference and external employer submission remain OFF.
 
-1. **004/#5:** remove DB-poll dependence from transport cancellation/deadline. Prove genuinely blocked DB behavior, durable fencing and cleanup; raw protocol/filesystem/lock bounds remain separate.
-2. **008/#9:** execute and fix isolated real RQ maintenance/redelivery and Redis interruption; physical host restart remains unverified.
-3. **292/#293:** execute gated owned-stack restart/company-monitoring and complete the original journey. Fixture 11/13 is not the 60-step requirement.
-4. **172/171/174:** private-route authentication/authorization, broad PII controls and an actually used ORM path. Existing secret encryption/Core SQL do not establish them.
+## Workstation and ownership
 
-WWR's two conflicts persist; both replay orders leave six tables unchanged. Alert 63 was already fixed; retain the scoped minimatch override until upstream support. Authenticated public Browser observation is NOT_RUN due to unavailable originating context; Cloudflare tunnel/DNS/Access remain healthy and unchanged.
-
-## Ownership
-
-Primary and owned worktrees remain; final receipt records post-publication state. Thirty-three owned Linux dirty files were cleaned only after published-blob verification. Disposable PostgreSQL container/volume and private test Temp were removed. **Preserve 13 unrelated dirty files in MJobs-fleet-recovery-20261026** and existing locked .ao worktrees. Do not reset unknown work or launch external fleets. Keep the 7% resource cutoff intact.
-
-Portable checkpoint: [pro-resume-delivery-20261102](agent_handoffs/pro-resume-delivery-20261102.json). One integration owner; resume from exact live facts.
+One integration owner. Preserve all unrelated work, including **13 dirty files in MJobs-fleet-recovery-20261026** and locked `.ao` worktrees. Do not reset unknown work, terminate unrelated processes, launch fleets or alter the 7% cutoff. Owned disposable PostgreSQL **`mjobs-pro-boundary-pg-20261102-01`** (ID `bdf1629274d0ef8b769a163992a5802ec85c395b7ac482cc5e47e455b2024322`, loopback42692, tmpfs) exists only for this batch and should be removed after exact verification. Never run destructive live restore tests.

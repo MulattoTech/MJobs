@@ -159,11 +159,18 @@ def evaluate_for_operation(store, operation, check):
             raise DurableEvaluationError('AI_TASK_TIMEOUT')
         return seconds
     class Cancellation:
+        failure = None
+
         def is_set(self):
-            from workers.operations import OperationCancelled, OperationTimedOut
+            from workers.operations import OperationCancelled, OperationControlUnavailable, OperationTimedOut
+            if self.failure is not None:
+                return True
             try:
                 remaining()
                 return False
+            except OperationControlUnavailable as error:
+                self.failure = error
+                return True
             except (OperationCancelled, OperationTimedOut, DurableEvaluationError):
                 return True
     evaluations = []
@@ -200,11 +207,14 @@ def evaluate_for_operation(store, operation, check):
             # Once CALL_STARTED is durable, a lost response is uncertain. A
             # later attempt never guesses whether the provider charged for it.
             from services.ai.providers import AIProviderError
+            cancellation = Cancellation()
             try:
                 evaluation = router.generate_structured(task=AITask.JOB_SCORING,
                     prompt=_prompt(candidate), timeout_seconds=min(30, remaining()),
-                    result_model=AIJobEvaluation, cancellation_event=Cancellation())
+                    result_model=AIJobEvaluation, cancellation_event=cancellation)
             except AIProviderError as error:
+                if cancellation.failure is not None:
+                    raise cancellation.failure
                 if error.code == 'AI_PROVIDER_CANCELLED':
                     # Distinguish the persisted user cancellation from an
                     # expired operation/batch budget before classifying it.

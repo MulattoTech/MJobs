@@ -8,6 +8,7 @@ import time
 from uuid import uuid4
 
 from sqlalchemy import func, or_, select, text, update
+from sqlalchemy.exc import DBAPIError, TimeoutError as PoolTimeoutError
 
 from packages.domain.operation_types import validate_operation_type
 from packages.persistence import models as m
@@ -85,6 +86,13 @@ class OperationCancelled(Exception):
 
 class OperationTimedOut(TimeoutError):
     """The worker operation exceeded its configured monotonic time budget."""
+
+
+class OperationControlUnavailable(RuntimeError):
+    """Durable authorization could not be read; this is not user cancellation."""
+
+    def __init__(self):
+        super().__init__("OPERATION_CONTROL_UNAVAILABLE")
 
 
 class OperationConcurrencyLimit(Exception):
@@ -449,15 +457,54 @@ def check_cancelled(store, operation_id, attempt_count=None, local_cancellation=
         # committed transaction authorizes request-owned I/O interruption.
         # Execution threads always read the durable row below.
         raise OperationCancelled("Operation no longer authorized to continue")
-    with store.engine.connect() as connection:
-        row = connection.execute(select(
-            m.operations.c.cancel_requested, m.operations.c.state,
-            m.operations.c.attempt_count, m.operations.c.lease_expires_at,
-        ).where(m.operations.c.id == operation_id)).one()
+    row = _read_operation_control(store, operation_id)
     if (row.cancel_requested or row.state != "RUNNING"
             or not row.lease_expires_at or row.lease_expires_at <= now()
             or (attempt_count is not None and row.attempt_count != attempt_count)):
         raise OperationCancelled("Operation no longer authorized to continue")
+
+
+def _read_operation_control(store, operation_id):
+    """Bound SQL lock contention on this read's owned connection.
+
+    These query limits do not certify pool checkout, DNS/connect or a database
+    network black hole. They never change the engine's shared configuration or
+    turn an unavailable read into cancellation authorization.
+    """
+    try:
+        with store.engine.connect() as connection:
+            previous_busy_timeout = None
+            try:
+                if connection.dialect.name == "postgresql":
+                    # pg_settings reports both limits in milliseconds. Preserve
+                    # a stricter configured value; zero means unlimited.
+                    connection.execute(text(
+                        "SELECT set_config(name, "
+                        "CAST(LEAST(NULLIF(setting, '0')::integer, :budget) AS text), true) "
+                        "FROM pg_settings WHERE name IN ('lock_timeout', 'statement_timeout')"
+                    ), {"budget": 100})
+                elif connection.dialect.name == "sqlite":
+                    # In-memory SingletonThreadPool checkouts may share an
+                    # already active DBAPI transaction. Reject before autobegin
+                    # or PRAGMA so closing this borrowed scope cannot roll back
+                    # another caller's uncommitted state.
+                    if connection.connection.driver_connection.in_transaction:
+                        raise OperationControlUnavailable()
+                    previous_busy_timeout = connection.exec_driver_sql("PRAGMA busy_timeout").scalar_one()
+                    # SQLite zero means fail immediately, unlike PostgreSQL.
+                    if previous_busy_timeout > 100:
+                        connection.exec_driver_sql("PRAGMA busy_timeout = 100")
+                return connection.execute(select(
+                    m.operations.c.cancel_requested, m.operations.c.state,
+                    m.operations.c.attempt_count, m.operations.c.lease_expires_at,
+                ).where(m.operations.c.id == operation_id)).one()
+            finally:
+                if previous_busy_timeout is not None and previous_busy_timeout > 100:
+                    # The value came from SQLite's integer PRAGMA, never input.
+                    connection.exec_driver_sql(f"PRAGMA busy_timeout = {int(previous_busy_timeout)}")
+                # PostgreSQL SET LOCAL is reverted by the owned rollback/close.
+    except (DBAPIError, PoolTimeoutError):
+        raise OperationControlUnavailable() from None
 
 
 def company_refresh_saved(connection, operation):

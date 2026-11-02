@@ -53,7 +53,7 @@ from services.discovery.search_profiles import FixtureSearchUnavailable
 from workers.operations import (
     claim, check_cancelled, company_refresh_saved, dry_run_saved,
     register_operation_cancellation, unregister_operation_cancellation,
-    OperationCancelled, OperationTimedOut, timeout,
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut, timeout,
 )
 from workers.structured_logging import log_operation_finished
 from workers.retries import discovery_retry_plan
@@ -273,6 +273,8 @@ def execute_operation(operation_id, *, registry_module=None,
             deadline = time.monotonic() + timeout()
 
             def remaining_seconds():
+                if time.monotonic() >= deadline:
+                    raise OperationTimedOut("OPERATION_TIMEOUT")
                 check_cancelled(
                     store, operation_id, operation["attempt_count"], local_cancellation,
                 )
@@ -512,6 +514,10 @@ def execute_operation(operation_id, *, registry_module=None,
             state, error = "BLOCKED", failure.code
         except OperationTimedOut:
             state, error = "FAILED", "OPERATION_TIMEOUT"
+            if collection_budget is not None:
+                collection_stop_reason = error
+        except OperationControlUnavailable:
+            state, error = "BLOCKED", "OPERATION_CONTROL_UNAVAILABLE"
             if collection_budget is not None:
                 collection_stop_reason = error
         except OperationCancelled:

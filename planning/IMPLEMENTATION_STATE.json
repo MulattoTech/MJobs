@@ -11,7 +11,7 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "PRO-RESUME-VERIFIED-DELIVERY-20261102",
+  "current_milestone": "PRO-BOUNDARIES-REVIEW-FIXES-20261102",
   "current_objective": "Maintain verified resumed delivery and execute remaining P0 operation/recovery and P1 privacy/security requirements from the exact current checkpoint.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -203,13 +203,13 @@
   "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-004",
-    "MJ-REQ-008",
-    "MJ-REQ-292",
-    "MJ-REQ-172",
-    "MJ-REQ-171",
+    "MJ-REQ-015",
+    "MJ-REQ-018",
     "MJ-REQ-174"
   ],
-  "active_prs": [],
+  "active_prs": [
+    890
+  ],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -1289,12 +1289,130 @@
         "git_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
         "evidence_path": "docs/evidence/2026-11-02-pro-resume/delivery.json"
       }
+    },
+    {
+      "milestone_id": "PRO-BOUNDARIES-IMPLEMENTED-20261102",
+      "timestamp": "2026-11-02T18:15:55.134520+00:00",
+      "current_phase": "Control-query and request-clock boundaries plus domain persistence implementation",
+      "completed_steps": [
+        "Control reads use transaction-local PostgreSQL query/lock limits or restored SQLite busy limits; unavailable authority blocks instead of claiming user cancellation.",
+        "Request-owned socket deadline clock is independent of database-backed cancellation observation; registration precedes callbacks and first interruption wins.",
+        "Profile reads use mapped existing SQLAlchemy entities and detached dictionaries while preserving Core-owned transaction/snapshot history.",
+        "One immutable saved-search automation rule validator covers admission, portable settings and scheduler execution; invalid persisted rules produce no outbox or audit changes."
+      ],
+      "files_added": [
+        "packages/domain/automation.py",
+        "packages/persistence/profile_records.py",
+        "tests/integration/test_request_deadline_database_lock.py",
+        "tests/unit/test_operation_control_reads.py",
+        "tests/unit/test_profile_orm_reads.py",
+        "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
+        "docs/evidence/2026-11-02-pro-boundaries/README.md"
+      ],
+      "files_modified": [
+        "packages/persistence/AREA.md",
+        "packages/persistence/store.py",
+        "services/ai/durable_evaluation.py",
+        "services/ai/providers/transport.py",
+        "services/discovery/scheduler.py",
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_database_least_privilege.py",
+        "tests/unit/test_saved_search_scheduler.py",
+        "workers/operations.py",
+        "workers/tasks.py"
+      ],
+      "tests_completed": [
+        "Linux focused domain/settings 30 PASS, 10 PostgreSQL SKIP, 56 subtests; separate native PostgreSQL/domain 33 PASS, 0 SKIP, 48 subtests.",
+        "Linux reviewed control lock/socket ownership 7 PASS, 1 PostgreSQL SKIP.",
+        "Independent P0/P1 source review and baseline scheduler defect reproduction."
+      ],
+      "tests_remaining": [
+        "Exact committed and proposed-merge native verification",
+        "All five required protected hosted gates and CodeQL",
+        "Guarded deployed revision/runtime verification",
+        "Complete literal acceptance mapping for 015 and174"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated native PostgreSQL query locks, least privilege and ORM snapshot preservation"
+      ],
+      "known_errors": [
+        "Scheduler regression fails on baseline main because unsupported persisted rule schedules DISCOVER.",
+        "New worker fixture initially seeded data before workspace binding; corrected fixture ordering.",
+        "Windows found test-owned SQLite connections left open by context managers; explicit close corrected; native rerun passed.",
+        "Initial restricted Linux API run stalled; terminated only the verified owned test PID and reran with permitted loopback access.",
+        "TLS cancellation dispatch exceeded its existing one-second fixture timeout; current isolated rerun passed without relaxing the assertion.",
+        "Local pinned Chromium download unavailable; actual browser-profile test must execute on workstation or hosted runner."
+      ],
+      "known_limitations": [
+        "MJ-REQ-004 remains PARTIAL: pool checkout, DNS/connect, database network-blackhole and later finalization bounds remain unproven.",
+        "No whole-product, host-restart, external provider, paid inference or employer-submission claim.",
+        "Canonical acceptance stays unchanged until protected merge and delivery verification."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+        "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/implementation.json"
+      }
+    },
+    {
+      "milestone_id": "PRO-BOUNDARIES-REVIEW-FIXES-20261102",
+      "timestamp": "2026-11-02T18:36:14.430434+00:00",
+      "current_phase": "Review-corrected control boundaries, source authority and domain persistence pending protected integration",
+      "completed_steps": [
+        "Collector control-read failures remain BLOCKED/OPERATION_CONTROL_UNAVAILABLE without provider backoff or retry.",
+        "A local stop restores provider health only while its own timestamp and COLLECTING state remain current, preserving newer rate-limit receipts.",
+        "Declared collection strategy/capabilities must match durable configuration before egress; contract/policy drift is checked again before import.",
+        "Malformed or failing capability declarations yield detached fixed SOURCE_CHANGED errors; cooperative stops retain their semantics.",
+        "Supported official ATS APIs stay preferred; unsupported ATS fallback requires same-origin, explicitly job-labelled feeds; ambiguous ATSs, news feeds, auth denial and rate limits cannot silently fall through."
+      ],
+      "files_added": [
+        "tests/unit/test_source_strategy_admission.py",
+        "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
+      ],
+      "files_modified": [
+        "services/company_discovery/flywheel.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_company_career_candidates.py",
+        "tests/integration/test_source_collection_error_categories.py",
+        "tests/integration/test_structured_operation_failures.py",
+        "tests/unit/test_operation_control_reads.py"
+      ],
+      "tests_completed": [
+        "Nine independent final regressions PASS without skips; source query failures, newer attempt backoff, declaration sanitization and feed preference/denial exercised.",
+        "Prior source head0f8094b6 exact proposed-mergebf158daa native172PASS/2platformSKIP/233subtests; both platform cases PASS in hosted unit artifact.",
+        "Initial source head hosted Python3423PASS/53SKIP/3776subtests; web build, CodeQL, dependency and secret gates PASS. These are historical head-bound checks, not final revision acceptance."
+      ],
+      "tests_remaining": [
+        "Final native source follow-up",
+        "Updated exact proposed-merge native verification",
+        "All five required protected checks plus CodeQL on the updated head",
+        "Guarded deployment, backup/image/readiness/ORM runtime proof and literal015/174 acceptance"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Prior native isolated PostgreSQL locks, ORM snapshots and runtime least-privilege behavior"
+      ],
+      "known_errors": [
+        "New source fixture initially named a nonexistent source_observations table; corrected to source_quality_observations; corrected strategy suite passed8/0skip.",
+        "Existing simulated failing adapters omitted or changed the capability contract; fixtures now declare the configured Greenhouse capabilities while retaining original error-sanitation assertions.",
+        "Pinned Linux Chromium install failed; do not treat skipped/failed browser cases as accepted."
+      ],
+      "known_limitations": [
+        "004 remains PARTIAL: database acquisition/connect/network stalls, recovery writes and finalization remain broader unproved boundaries.",
+        "018 remains PARTIAL: these checks do not establish the universal preference ladder or all desired source integrations.",
+        "015/174 acceptance requires final protected integration and guarded deployed readback.",
+        "No untrusted plugin sandbox, real employer submission, paid inference or whole-product completion claim."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0f8094b63e671053507f869466cba6c03f73e526",
+        "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
+      }
     }
   ],
-  "current_phase": "Verified resumed source delivery and seven additional original P1 acceptances",
+  "current_phase": "Review-corrected control boundaries, source authority and domain persistence pending protected integration",
   "last_safe_checkpoint": {
-    "git_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
-    "evidence_path": "docs/evidence/2026-11-02-pro-resume/delivery.json"
+    "git_commit": "0f8094b63e671053507f869466cba6c03f73e526",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -3407,10 +3525,10 @@
     "2026-11-02 current verified source/deployment: 2e0f3df8f6952088b39fc494f9cd38838b020af4; P0 12/26, P1 99/116. The entries above remain historical. Exact protected/source/native/production evidence: docs/evidence/2026-11-02-pro-ops-delivery.json"
   ],
   "ownership": {
-    "integration_owner": "ChatGPT-Web Pro configuration sprint 2026-11-02",
+    "integration_owner": "ChatGPT-Web Pro boundaries sprint 2026-11-02",
     "active": true,
     "standing_workers": [],
-    "note": "One serial integration owner; direct source edits and scoped review, no external AI workers or fleets."
+    "note": "One serial integration owner; direct source edits and read-only in-conversation review. No external AI workers or fleets."
   },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
@@ -3505,23 +3623,22 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "campaign": "pro-resume-delivery-20261102",
-    "status": "SOURCE_DELIVERED_ACCEPTANCE_READY_FOR_PROTECTED_PUBLICATION",
-    "source_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "campaign": "pro-boundaries-20261102",
+    "status": "REVIEW_FIXES_PENDING_EXACT_REVISION_GATES",
+    "baseline_commit": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
     "requirements": [
-      "MJ-REQ-162",
-      "MJ-REQ-167",
-      "MJ-REQ-175",
-      "MJ-REQ-208",
-      "MJ-REQ-267",
-      "MJ-REQ-275",
-      "MJ-REQ-288"
+      "MJ-REQ-004",
+      "MJ-REQ-015",
+      "MJ-REQ-018",
+      "MJ-REQ-174"
     ],
-    "branch": "work/pro-resume-closeout-20261102",
+    "branch": "work/pro-bounds-domain-20261102",
     "evidence": [
-      "docs/evidence/2026-11-02-pro-resume/delivery.json"
+      "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
+      "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
     ],
-    "publication_note": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash."
+    "publication_note": "The containing PR records its own exact head, proposed merge, checks and eventual merge; acceptance remains unchanged until verified delivery.",
+    "pr_number": 890
   },
   "p0p1_iteration_3": {
     "issues": [

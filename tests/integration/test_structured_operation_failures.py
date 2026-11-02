@@ -116,6 +116,9 @@ class StructuredFailureTests(unittest.TestCase):
                 class Adapter:
                     def search(self):
                         raise SourceError(code)
+                    def capabilities(self):
+                        from services.discovery.sources.greenhouse import Greenhouse
+                        return Greenhouse('fixture').capabilities()
                 with patch('services.discovery.sources.collect.source_adapter', return_value=Adapter()):
                     result = execute_operation(operation)
                 self.assert_category(operation, result, category, no_retry=not retry)

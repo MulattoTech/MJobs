@@ -23,7 +23,9 @@ from services.company_discovery.quality import posting_metrics, record_observati
 from services.company_discovery.requests import record_discovery_requests
 from services.dedupe.source_values import lock_candidate_job, record_candidate, resolve_job_values
 from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_company_ingestion
-from services.discovery.sources.contract import SourceAdapter, SourceCapability
+from services.discovery.sources.contract import (
+    CollectionStrategy, SourceAdapter, SourceCapabilities, SourceCapability,
+)
 from services.discovery.sources.greenhouse import Greenhouse, SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
 from services.discovery.search_semantics import normalize_reported_timestamp, parse_timestamp
@@ -198,6 +200,30 @@ def _latest_valid_posted_dates(connection, posting_id):
         before = candidates[-1]
 
 
+def _approved_source_capabilities(source, adapter):
+    """A registry change needs explicit source configuration before any egress."""
+    from workers.operations import OperationCancelled, OperationControlUnavailable, OperationTimedOut
+
+    approved = False
+    try:
+        capabilities = adapter.capabilities()
+        approved = (isinstance(capabilities, SourceCapabilities)
+            and isinstance(capabilities.strategy, CollectionStrategy)
+            and isinstance(capabilities.features, frozenset)
+            and all(isinstance(value, SourceCapability) for value in capabilities.features)
+            and source['strategy'] == capabilities.strategy.value
+            and source['capabilities'] == capabilities.as_dict())
+    except (OperationCancelled, OperationControlUnavailable, OperationTimedOut):
+        raise
+    except Exception:
+        # Declaration callbacks are not a trusted public diagnostic boundary.
+        # Raise outside this handler so private exception chains are not retained.
+        pass
+    if not approved:
+        raise SourceError('SOURCE_CHANGED')
+    return capabilities
+
+
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
                    *, refresh_matches=True, import_guard=None, registry=None,
                    collection_contract=None):
@@ -226,6 +252,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         adapter: SourceAdapter = source_adapter(
             source, transport=transport, check=check, registry=registry,
         )
+        capabilities = _approved_source_capabilities(source, adapter)
         if isinstance(adapter, Greenhouse):
             adapter.set_authoritative_tenant_binding(bound is not None)
         connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(last_attempt=timestamp, health_status="COLLECTING"))
@@ -234,7 +261,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
     enumerated = accepted = completeness_sum = salary_known = None
     authority_rejected = False
     try:
-        if source["strategy"] == "BROWSER":
+        if capabilities.strategy == CollectionStrategy.BROWSER:
             if not callable(getattr(check, "consume_page", None)):
                 raise SourceCollectionContractError("PAGE_BUDGET_REQUIRED")
             if not isinstance(collection_contract, CollectionContract):
@@ -289,7 +316,13 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         salary_known = sum(int(metric[1]) for metric in metrics)
         if batch.items and not normalized:
             raise SourceError("SOURCE_NO_VALID_JOBS")
-        capabilities = adapter.capabilities()
+        # A stateful extension cannot change its declared collection authority
+        # after fetching and have that new authority silently persisted.
+        try:
+            _approved_source_capabilities(source, adapter)
+        except SourceError:
+            authority_rejected = True
+            raise
         strategy = capabilities.strategy.value
         direct_application = capabilities.supports(SourceCapability.DIRECT_APPLICATION)
         with store.engine.begin() as connection:
@@ -304,7 +337,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     m.job_sources.c.id == source_id).with_for_update()).mappings().one()
                 if not current_source['enabled']:
                     raise SourceError('SOURCE_DISABLED')
-                if any(current_source[key] != source[key] for key in ('provider', 'tenant')):
+                if any(current_source[key] != source[key] for key in (
+                        'provider', 'tenant', 'strategy', 'capabilities',
+                        'request_timeout', 'rate_limit', 'concurrency')):
                     raise SourceError('SOURCE_CHANGED')
                 if (fresh_bound or {}).get('id') != (bound or {}).get('id'):
                     raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
@@ -460,16 +495,21 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     "tail_matches": collection_result.tail_matches,
                 } if collection_result is not None else None)}
     except Exception as failure:
-        from workers.operations import OperationCancelled, OperationTimedOut
+        from workers.operations import OperationCancelled, OperationControlUnavailable, OperationTimedOut
         if isinstance(failure, AgentToolError) and failure.code == "PAGE_BUDGET_EXHAUSTED":
             failure = SourceCollectionContractError(failure.code)
         if authority_rejected or isinstance(
-                failure, (OperationCancelled, OperationTimedOut, SourceCollectionContractError)):
+                failure, (OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+                          SourceCollectionContractError)):
             # A local authority revocation or budget stop is not a provider failure.
             # Restore the last observed health and failure metadata instead of
             # poisoning source availability or imposing provider backoff.
             with store.engine.begin() as connection:
-                connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id).values(
+                connection.execute(update(m.job_sources).where(
+                    m.job_sources.c.id == source_id,
+                    m.job_sources.c.last_attempt == timestamp,
+                    m.job_sources.c.health_status == 'COLLECTING',
+                ).values(
                     health_status=source["health_status"],
                     consecutive_failures=source["consecutive_failures"],
                     last_error=source["last_error"],
