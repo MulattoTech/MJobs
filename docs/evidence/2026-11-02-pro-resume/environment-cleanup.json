@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T15:59:37.816867+00:00",
+  "scope": "Only the 33 owned Linux worktree changes were cleaned after immutable blob identity matched published commits. No unknown reset, force-push, or unrelated deletion.",
+  "linux_worktrees": [
+    {
+      "worktree": "MJobs",
+      "head": "986305287eb6d8f0628fb8df811be022cb99bad2",
+      "files": [
+        {
+          "path": "services/applications/submission_admission.py",
+          "blob": "2aa1a6ab7da09097f7ab34937b3ff711ea3091df",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "services/dedupe/route_redirects.py",
+          "blob": "c90c54815df27d247c13cd85e56e7246622cb946",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "tests/integration/test_ai_tls_recovery.py",
+          "blob": "79d33dd820bc89d47a38e47180ea8cf0b4ad5018",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "tests/integration/test_submission_route_preflight.py",
+          "blob": "4332a231a0d1ebec65fc6f2936177078b3daa9c6",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "tests/unit/test_direct_employer_route_redirects.py",
+          "blob": "cf38444cd94770d42f332fca56231cd4f7d7a0b0",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        }
+      ],
+      "cleanup_result": "CLEAN",
+      "after_head": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310"
+    },
+    {
+      "worktree": "MJobs-security",
+      "head": "c31e90e050113ed0633af6d7d631f730841524b8",
+      "files": [
+        {
+          "path": "apps/api/main.py",
+          "blob": "4892aa02d028f0d2f010b8fca0527949c3c50aa1",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "packages/persistence/store.py",
+          "blob": "91324b82ae316e56d84b4e4d7280478e106393a0",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "planning/IMPLEMENTATION_STATE.json",
+          "blob": "3a3be38ecc6f903239619bce2170211dfba7f4e5",
+          "published_commit": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+          "tracked": true
+        },
+        {
+          "path": "planning/PR_QUEUE.json",
+          "blob": "29fba92b74126c0bccee09e0e0f9829837ffa569",
+          "published_commit": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+          "tracked": true
+        },
+        {
+          "path": "tests/integration/test_durable_ai_evaluation.py",
+          "blob": "8cd9a21f75f7ef7fba26271b2eb86353592494f6",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "tests/integration/test_source_http_socket_budget.py",
+          "blob": "481bcb8c4cd620414b65e6cf79911259ba79d624",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "apps/api/credential_errors.py",
+          "blob": "3df438722695eadc0800b95ab9e4626a2922a576",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "docs/evidence/2026-11-02-pro-secret-errors/criteria.json",
+          "blob": "2164c6cb5ccdc80e6656b01f70c711ec2214c61b",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "docs/evidence/2026-11-02-pro-secret-errors/timing-review.json",
+          "blob": "4fe00d54755e80bebe9cc2538231ca0dd470d904",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "tests/integration/test_credential_error_privacy.py",
+          "blob": "91c805cdddce929d6ee2a6a3e61253d1f298365b",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "tests/unit/test_database_exception_privacy.py",
+          "blob": "820c414688bdb886d1d589f92916f58241495346",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        }
+      ],
+      "cleanup_result": "CLEAN",
+      "after_head": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310"
+    },
+    {
+      "worktree": "MJobs-verify",
+      "head": "85d1bff4c1ae542773a75cf3d60efb50725d8591",
+      "files": [
+        {
+          "path": "README.md",
+          "blob": "a593cea899daef0d30afcd4b3ffd36f7bec631de",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "cli/verification_checks.py",
+          "blob": "357ec75b6be7e390e4ce21a5f65b18d70b41a078",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "cli/verification_fixture.py",
+          "blob": "780bfcb56c4a672fd66c538c3e8114cd04821317",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "cli/verify_readiness.py",
+          "blob": "d8cd0179e4617eefd8b0fcedc13b6531dc31a753",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "docs/USER_TESTING.md",
+          "blob": "b3a90d04ff1ae485ff63d5500229ddd2ac3fb7a2",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "planning/IMPLEMENTATION_STATE.json",
+          "blob": "8f4164679acfba9916c71d0ccecf1180d76ccc69",
+          "published_commit": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+          "tracked": true
+        },
+        {
+          "path": "planning/PR_QUEUE.json",
+          "blob": "cf462e14d499fab5a56d79a859a6142bd89b39c8",
+          "published_commit": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+          "tracked": true
+        },
+        {
+          "path": "tests/integration/test_connected_verification_command.py",
+          "blob": "640c09efc0ca6e5f039c697bb2caf42ca22694ff",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "tests/unit/test_verification_utility_sustain_289.py",
+          "blob": "962cb529ee3c9615dd4fcc0b0c2e86d543f17487",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "docs/evidence/2026-11-02-pro-verification/criteria.json",
+          "blob": "ee95125dc79d419dddf31c79400ab81c0dfe863c",
+          "published_commit": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+          "tracked": false
+        },
+        {
+          "path": "docs/runbooks/VERIFY_PLATFORM.md",
+          "blob": "31b460aff537c97bb37921a31865d2677e51681a",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "tests/unit/test_cli_verification_modes.py",
+          "blob": "45a4cda2c3b8418a7c96dc2eb574a88cd44accbd",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        }
+      ],
+      "cleanup_result": "CLEAN",
+      "after_head": "241340bf98c5caa28c447e032a4fe8f32ac5125c"
+    },
+    {
+      "worktree": "MJobs-config-backup",
+      "head": "85d1bff4c1ae542773a75cf3d60efb50725d8591",
+      "files": [
+        {
+          "path": "cli/migration_precondition.py",
+          "blob": "e976293576840fdab59ae4e53688f465df239b71",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "docs/runbooks/LOCAL_BACKUP.md",
+          "blob": "e8717363da69da3b3df429de973c84b363d78a0e",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": true
+        },
+        {
+          "path": "cli/protected_config_backup.py",
+          "blob": "b84da152bc1badbb3bcf667d5dd39b1b1e2e9a8a",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "tests/integration/test_protected_config_credential_recovery.py",
+          "blob": "7b3fbca6b2af9c947b559593be7fe5d6ff33e69f",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        },
+        {
+          "path": "tests/unit/test_protected_config_backup.py",
+          "blob": "30cda357366bf5a6e6b4c048fa7319a95876fb10",
+          "published_commit": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+          "tracked": false
+        }
+      ],
+      "cleanup_result": "CLEAN",
+      "after_head": "241340bf98c5caa28c447e032a4fe8f32ac5125c"
+    }
+  ],
+  "windows_cleanup": {
+    "schema_version": 1,
+    "timestamp": "2026-11-02T16:12:03.075799+00:00",
+    "private_test_parent": {
+      "path": "C:\\MJobs-Pro-Private-20261102-0218abf27430",
+      "verified_original_inode": 3096224750576172,
+      "only_remaining_entry": "pytest-of-Dylan",
+      "removed": true,
+      "shared_acls_modified": false
+    },
+    "disposable_database": {
+      "container": "d1395cbddae2f036d87bf15705dd97e4a0e22db93bc42be9041b3735d810d187",
+      "owner": "pro-config-sprint-20261102",
+      "only_attached_anonymous_volume": "2296a0882c826e8c5a28fd8f005d836048b08057090ada2e03c8beee230ac1f8",
+      "container_removed": true,
+      "anonymous_volume_removed": true
+    },
+    "production": "No production service, data volume, release image or rollback archive removed.",
+    "unrelated_work": "Preserved"
+  },
+  "unrelated_dirty_work": "Windows MJobs-fleet-recovery-20261026 preserved; no modifications authorized or performed for its 13 fleet files.",
+  "windows_worktrees": [
+    {
+      "name": "MJobs",
+      "head": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-route-20261102",
+      "head": "a4f90d51eb28deaa9a7a5a6e300472ab915b91e4",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-resume-mergecheck-20261102",
+      "head": "219bc9ebc36e064d55fc5137abb8164adf872a08",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-security-resume-20261102",
+      "head": "ce6b7119ea9b5b861a2d280d4c035a929ea65e63",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-security-mergecheck-20261102",
+      "head": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-verification-resume-20261102",
+      "head": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-config-backup-20261102",
+      "head": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-operational-b83d524-20261102",
+      "head": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+      "status": "CLEAN"
+    },
+    {
+      "name": "MJobs-pro-resume-closeout-20261102",
+      "head": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+      "status": "CLEAN"
+    }
+  ],
+  "primary_fast_forward": {
+    "schema_version": 1,
+    "timestamp": "2026-11-02T16:09:23.547297+00:00",
+    "primary_before": "da589aefa1c3c642cbdbbafe32c796f3780cebd3",
+    "primary_after": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "primary_status": "CLEAN",
+    "method": "Verified clean main and ordinary non-force fast-forward only",
+    "closeout_worktree": "C:\\Tools\\Dev\\MJobs-pro-resume-closeout-20261102",
+    "closeout_head": "d86a5bf79e883fdd40b750ad843a363960f35c43"
+  },
+  "unrelated_fleet_observed_dirty_files": 13
+}

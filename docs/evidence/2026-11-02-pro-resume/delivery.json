@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:38:42.091786+00:00",
+  "status": "VERIFIED_SOURCE_DELIVERY_AND_SEVEN_LITERAL_ACCEPTANCES",
+  "source_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+  "source_prs": [
+    886,
+    887,
+    888
+  ],
+  "acceptance_publication": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash.",
+  "counting": {
+    "resumption_baseline": {
+      "P0": {
+        "PASS": 12,
+        "PARTIAL": 4,
+        "NOT_RUN": 10,
+        "total": 26
+      },
+      "P1": {
+        "PASS": 99,
+        "PARTIAL": 14,
+        "NOT_RUN": 3,
+        "total": 116
+      },
+      "original": {
+        "PARTIAL": 88,
+        "PASS": 172,
+        "NOT_RUN": 106
+      }
+    },
+    "accepted_after": {
+      "P0": {
+        "PASS": 12,
+        "PARTIAL": 4,
+        "NOT_RUN": 10,
+        "total": 26
+      },
+      "P1": {
+        "PASS": 106,
+        "PARTIAL": 7,
+        "NOT_RUN": 3,
+        "total": 116
+      },
+      "original": {
+        "PARTIAL": 81,
+        "PASS": 179,
+        "NOT_RUN": 106
+      }
+    },
+    "historical_prompt_P1": 92,
+    "earlier_interrupted_work_P1_gain": 7,
+    "this_resumed_continuation_P1_gain": 7,
+    "original_target": 105,
+    "stretch_target": 110,
+    "stretch_target_met": false,
+    "original_denominator": 366,
+    "separate_reference": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36,
+      "total": 59,
+      "sha256_unchanged": "fda62abe9db711ea41941bf991685c95c9d323d9554ca8776366a99c9800653b"
+    }
+  },
+  "requirements": [
+    {
+      "requirement_id": "MJ-REQ-162",
+      "title": "Database Design",
+      "issue": 163,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "The deployed relational model has 50 required tables and 84 verified foreign keys, migrated with Alembic and validated read-only under the least-privilege runtime role. Native and hosted constraints, durable reopening, indexes, SQLite/PostgreSQL migration failure/retry and ownership tests pass. Section 162 permits different illustrative table names; this does not accept the separate ORM/security requirement 174.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+        "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json"
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "title": "Data Backup",
+      "issue": 168,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "Public backup/verify/fresh-restore tooling covers database, uploaded and generated documents, plus important configuration. The ordinary archive preserves public Compose and non-secret settings; the separate AES-256-GCM companion restores exact private .env/Compose bytes with an independent key. Native SQLite/PostgreSQL recovery decrypts unchanged stored credential ciphertext. Fresh disposable restore and no-clobber/corruption/ownership controls pass. Browser cookies are excluded with documented fresh authentication; no destructive production restore was performed.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/backup-criteria.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-artifacts.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json"
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-175",
+      "title": "Security — Secret Management",
+      "issue": 176,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "Provider secrets use profile-bound encrypted server-side storage, masked metadata and private configuration. Allowlisted API exceptions and SQLAlchemy parameter hiding prevent synthetic credential canaries escaping through API, browser or logs. Native credential/cleanup tests, controlled Chromium, PostgreSQL and protected secret scans pass. This accepts the literal secret-management requirement and leaves broader PII/web/database security 171/172/174 open.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/backup-criteria.json"
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-208",
+      "title": "Dry-Run Mode",
+      "issue": 209,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "The public --dry-run --fixture command executed all 11 current checks from clean delivered source: fresh global/company discovery, changed-profile scoring, real generated documents, Chromium navigation/fill/upload/validation, durable DRY_RUN_COMPLETE and zero final submissions/receipts. Parent-side database/audit/document corroboration and owned process-tree cleanup pass. All inputs and targets are explicitly controlled fixtures.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/delivered-dry-run-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json"
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-267",
+      "title": "Direct Employer Route Discovery Before Apply",
+      "issue": 268,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "Automatic pre-submission admission attempts fresh bounded employer/ATS resolution, validates current employer/domain/tenant evidence, durably records the resolution status and candidate URL hash, preserves the selected route, and revalidates application/profile/documents, cancellation, consent, policy and caps before claiming submission. Encoded-path ambiguity and shared Workable-host authority regressions pass. An unresolved probe is a completed attempt, not proof of an employer route. External submissions remain OFF; broader database/deadline bounds remain requirement004.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json"
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "title": "Configuration",
+      "issue": 276,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "All 11 original categories have exercised ordinary UI/environment controls: AI, sources, source intervals, company discovery, match thresholds, application rules, application limits, browser profiles, documents, notifications and logging. Controlled browser/component tests and persistent settings behavior pass; seven deployed application services agree with the safe settings readback. No source edit or production user-setting mutation is required. Authenticated public browser observation was unavailable and is recorded separately.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+        "docs/evidence/2026-11-02-pro-resume/production-runtime-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json"
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-288",
+      "title": "Verification Utility",
+      "issue": 289,
+      "before": "PARTIAL",
+      "after": "PASS",
+      "priority": "P1",
+      "criterion_decision": "The public --full --fixture command reports fresh production PostgreSQL/Redis/scheduler/worker/schema readiness before and after 13 actual controlled functional checks, including dry-run, mock confirmation and duplicate protection. Source revision and aggregate input digest match before/child/after, both source snapshots are clean, deployed identity stays equal and owned cleanup passes. Runtime readiness and isolated synthetic SQLite/inline functional proof remain separate scopes; Linux correctly blocks the Windows-only retained-process containment path.",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-resume/delivered-full-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json"
+      ]
+    }
+  ],
+  "historical_prospective_records_resolved": [
+    "docs/evidence/2026-11-02-pro-config/criteria.json",
+    "docs/evidence/2026-11-02-pro-route/criteria.json",
+    "docs/evidence/2026-11-02-pro-secret-errors/criteria.json",
+    "docs/evidence/2026-11-02-pro-verification/criteria.json"
+  ],
+  "execution_summary": {
+    "native_exact_proposed_merges": [
+      {
+        "pr": 886,
+        "passed": 406,
+        "skipped": 4,
+        "subtests": 372
+      },
+      {
+        "pr": 887,
+        "passed": 164,
+        "skipped": 0,
+        "subtests": 166
+      },
+      {
+        "pr": 888,
+        "passed": 144,
+        "skipped": 3,
+        "subtests": 150
+      }
+    ],
+    "pr888_hosted_unit": {
+      "passed": 3385,
+      "skipped": 53,
+      "subtests": 3724
+    },
+    "pr888_hosted_integration": {
+      "passed": 2545,
+      "skipped": 39,
+      "subtests": 1495
+    },
+    "web_pr886": {
+      "files": 154,
+      "tests": 1102,
+      "notification_component_tests": 3
+    },
+    "public_dry_run": {
+      "checks": 11,
+      "exit": 0,
+      "scope": "new owned synthetic execution; zero final submissions"
+    },
+    "public_full": {
+      "functional_checks": 13,
+      "exit": 0,
+      "scope": "new owned synthetic execution plus independent live PostgreSQL/Redis/RQ/scheduler/schema observations before and after"
+    },
+    "counts_are_not_additive": true,
+    "skip_policy": "Platform skips remain skips. Cross-platform counterparts are cited only where separately executed. Compose onboarding remains PARTIAL; the owned-stack restart/company-monitoring case remains skipped; physical host restart remains separately unverified."
+  },
+  "retained_failures": [
+    "Route and browser regression failures, stale TLS/TestClient fixture failures and their focused reproductions remain in PR886 evidence.",
+    "PR887 first native database setup refused non-empty shared test targets before pytest. Separate owned schemas were used; no existing data was reset.",
+    "Two PR887 hosted timing failures remain recorded. Collection before timed fixture setup stabilizes its harness; automatic GC, production deadlines and assertions remain enabled. Exact final 164 native tests and hosted source gates pass.",
+    "Protected backup initially exposed Windows cross-API ctime differences and a correctly refused non-private Temp ancestor; fixed same-API checks and owned private test parent were independently reviewed.",
+    "FULL source identity review reproduced transient-edit and clean-checkout false positives; before/child/after source binding now rejects both.",
+    "Main d86 candidate run41478359557 attempt1 failed on HTTPError during a GitHub read, before image build. HTTP status was unavailable. A single diagnosed job rerun followed completed independent gates and fresh successful reads. Both outcomes are retained.",
+    "Historical November 1 backup exit-2 detail was discarded and cannot be reconstructed.",
+    "Required progress record invocation appended exactly once and wrote matching output, then exited1 due to missing args.state in post-write validation. The one-line dispatch fix has14 progress-journal tests passed, including three actual-CLI regression tests; the real record command was not repeated."
+  ],
+  "external_and_scope_limits": [
+    "External employer submissions remain OFF; fixture confirmation is not a real application.",
+    "No paid AI calls, destructive production restore, host reboot, unrelated process termination, or fleet launch was performed.",
+    "Public authenticated Browser observation is NOT_RUN because the originating connected browser context was unavailable; no access policy was weakened.",
+    "WWR still has two conflicting groups among 100 entries/98 identities. Both replay orders safely reject without changing six persisted job tables.",
+    "P0 004/008/292 remain PARTIAL. P1 171/172/174 remain NOT_RUN. Database design does not imply ORM/security completeness; secret handling does not imply all PII protection.",
+    "Disposable test container/volume/private Temp and 33 owned dirty local files were cleaned only after ownership and published-blob verification. Unrelated fleet worktree changes were preserved."
+  ],
+  "evidence": [
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/backup-criteria.json",
+      "sha256": "79bf4079140d7bdfb0b61da0bad8dba636b3df55075effa7ec6b8a3830d26f3d"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/cloudflare-and-browser.json",
+      "sha256": "4edb316ca3d796521ad2e2b035ff85bb16e5a5525954d616eaecd75cf4b3b514"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+      "sha256": "f65085bd9e50465026d3decc287cfc0d3fd249e999467fdce8da1a1a338e5336"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+      "sha256": "49983afeddc8f8ff3c065844e85ef5c32f9730d3b54c3eef4f0025b35d29049c"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/delivered-dry-run-d86.json",
+      "sha256": "0e14b7c737ca2bfd72b9655bd20d066fb1c28deed98830db1ba9589066a4bd14"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/delivered-full-d86.json",
+      "sha256": "c4051279aa6016911b0dc3ae5426161fefe700171dce1b879d7b0662684e1dd4"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/dependency-followup.json",
+      "sha256": "13b0d510d0c85b01d7a2028348311928f6af2a9bc38fbac95787c017d22f20a8"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/deployment-gate-recovery.json",
+      "sha256": "ed0de4b0d2c017f50805a9a4b32afc0e71eecbe8068f3bff64cecb253dba156c"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/environment-cleanup.json",
+      "sha256": "71570dda32d9b3c3fb706ac75e0bd640da5669e90c4b6f4d560c7f7d48d712f2"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json",
+      "sha256": "3664582069a1f27f7797c7a1e73f7a1b8241f92e0acac678f5960c196b8d578d"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/milestone.json",
+      "sha256": "a782ba10575a7fd7cbca00897cc999397c145d8aef2b3004e26189246543c38d"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/native-receipt-provenance.json",
+      "sha256": "d0f3aa042a3235fe704b9b478530df550241aa7d09657a8387c0499369163797"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+      "sha256": "0c1f59ca6c1001047a312f2ef1a6b9b9a2e092b604df078802fd1554cc2e6e77"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+      "sha256": "fd69d0bb93263928b074be9bec8837d40d536ef98dd2a2ef02dc593a0d840c21"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/pr888-artifacts.json",
+      "sha256": "607d123b0ba1c445b19bd06a23390ea9959a656ba498554113108288759e72ce"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+      "sha256": "6a18448d98ffa5d27e69b2485964ff2434cb96546fc372395d9af5571e0a1485"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json",
+      "sha256": "c02c894807bc35af90f73a305744ce71a80796a8f828b0c88b56489f451736d8"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/production-runtime-d86.json",
+      "sha256": "23d4f258cb2138939d531c3855afa2ee8a594bbbf5f44ce82abba99b37075189"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json",
+      "sha256": "75a7a9de5fa9b04409d4203b39bed3ddbdb10afd29e9088065e39b7283363b46"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/progress-record-recovery.json",
+      "sha256": "ba607edd40103d8907c476b4861bf527798c09a8d2d3c24946acfc62a8672440"
+    },
+    {
+      "path": "docs/evidence/2026-11-02-pro-resume/wwr-bounded-replay.json",
+      "sha256": "7eebfbd1a754d195ab18256ffc83afe9ece8e3f327d5d5efcef487a4226c91e0"
+    }
+  ]
+}

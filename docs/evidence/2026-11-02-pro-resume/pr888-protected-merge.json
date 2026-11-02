@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:07:18.526439+00:00",
+  "pr": {
+    "baseRefOid": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+    "headRefOid": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+    "mergeStateStatus": "CLEAN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:49:59Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643585/job/125376894981",
+        "name": "Python / unit and integrity",
+        "startedAt": "2026-11-02T15:45:06Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:45:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474637169/job/125376877890",
+        "name": "Analyze (actions)",
+        "startedAt": "2026-11-02T15:45:04Z",
+        "status": "COMPLETED",
+        "workflowName": "CodeQL"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:51:27Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643563/job/125376892637",
+        "name": "Disposable Compose / mock end-to-end",
+        "startedAt": "2026-11-02T15:45:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Connected acceptance \u00e2\u20ac\u201d synthetic"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:45:16Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643611/job/125376893339",
+        "name": "Dependencies / introduced vulnerabilities",
+        "startedAt": "2026-11-02T15:45:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Dependency review"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:55:40Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643557/job/125376893331",
+        "name": "Integration / shard 0",
+        "startedAt": "2026-11-02T15:45:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:45:16Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643618/job/125376893719",
+        "name": "Security / secret scan",
+        "startedAt": "2026-11-02T15:45:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Secret scan - reviewed history"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:46:07Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474637169/job/125376878495",
+        "name": "Analyze (javascript-typescript)",
+        "startedAt": "2026-11-02T15:45:04Z",
+        "status": "COMPLETED",
+        "workflowName": "CodeQL"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:56:16Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643557/job/125376893461",
+        "name": "Integration / shard 1",
+        "startedAt": "2026-11-02T15:45:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:46:22Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474637169/job/125376878740",
+        "name": "Analyze (python)",
+        "startedAt": "2026-11-02T15:45:04Z",
+        "status": "COMPLETED",
+        "workflowName": "CodeQL"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T16:05:20Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643557/job/125376893524",
+        "name": "Integration / shard 2",
+        "startedAt": "2026-11-02T15:45:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:45:42Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643585/job/125376895076",
+        "name": "Web / Vitest and production build",
+        "startedAt": "2026-11-02T15:45:16Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T16:06:50Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643557/job/125388572787",
+        "name": "Integration / PostgreSQL and Redis",
+        "startedAt": "2026-11-02T16:05:27Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:45:35Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643585/job/125376894348",
+        "name": "Repository / policy and docs",
+        "startedAt": "2026-11-02T15:45:20Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:50:26Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/41474643585/job/125379714239",
+        "name": "CI / required",
+        "startedAt": "2026-11-02T15:50:22Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-02T15:45:40Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/runs/125377220002",
+        "name": "CodeQL",
+        "startedAt": "2026-11-02T15:45:37Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "url": "https://github.com/MulattoTech/MJobs/pull/888"
+  },
+  "tested_merge_revision": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+  "tested_merge_tree": "3a64a20a013eca90173d39ea5248e2d7acb62e94",
+  "native": {
+    "result": "PASS",
+    "tests": 144,
+    "subtests": 150,
+    "skipped": 3,
+    "duration_seconds": 405.69,
+    "xml_sha256": "74223d7f339f9fc3a80dba9a99bb0c6ad05f8c5bfcf356c9909474b2f9e22b7e",
+    "manifest": {
+      "schema_version": 1,
+      "candidate": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+      "tree": "3a64a20a013eca90173d39ea5248e2d7acb62e94",
+      "source_head": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+      "base_main": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+      "started_at": "2026-11-02T15:46:20.364152+00:00",
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_cli_verification_modes.py",
+        "tests/unit/test_verification_utility_sustain_289.py",
+        "tests/integration/test_connected_verification_command.py",
+        "tests/unit/test_protected_config_backup.py",
+        "tests/integration/test_protected_config_credential_recovery.py",
+        "tests/unit/test_init_env.py",
+        "tests/unit/test_fleet_t11_guarded_migration.py",
+        "tests/unit/test_backup_config_snapshot.py",
+        "tests/unit/test_backup_credential_restore.py",
+        "--junitxml=outputs/exact-operational-native.xml",
+        "--maxfail=2"
+      ],
+      "source_sha256": [
+        {
+          "path": "cli/verify_readiness.py",
+          "sha256": "1d86c63f1cdcb0ce962381c7cb9096eda1b75f78401089aec38ed54ebb0acdd0"
+        },
+        {
+          "path": "cli/verification_checks.py",
+          "sha256": "beb50e4fad49f931b59e771cbeed75b9ae3566d2eb607ecdbc00b4f692b6abd9"
+        },
+        {
+          "path": "cli/verification_fixture.py",
+          "sha256": "efbfcd69fc09e64a665cde699f216c336dd6c6c39f926d3cefdb09764ec145f1"
+        },
+        {
+          "path": "cli/migration_precondition.py",
+          "sha256": "67617510e65c60a2e0c74415781f6947e44e268518ff24ae97f92ab48e8fe582"
+        },
+        {
+          "path": "cli/protected_config_backup.py",
+          "sha256": "82f895d6bd2ef6f2ae95cf74429bcf78300131548fd3d581b812918d8db1f468"
+        },
+        {
+          "path": "tests/unit/test_cli_verification_modes.py",
+          "sha256": "d20ce87cfcdd238f6246bcf516692baee77c63374c74cf687ed90d9eb1b0178b"
+        },
+        {
+          "path": "tests/unit/test_verification_utility_sustain_289.py",
+          "sha256": "ebb925878cc4a08616e43b8de660ff9365143f4160c3dd03c47581c993b619a5"
+        },
+        {
+          "path": "tests/integration/test_connected_verification_command.py",
+          "sha256": "6784ccd5afc818477f8f40db92fd059e8213ffa346348687df163cd80d95df3d"
+        },
+        {
+          "path": "tests/unit/test_protected_config_backup.py",
+          "sha256": "e9c309c21f2d96b5fa92c3655745cf2cb5665aacf7ad5c80bb21c72150636e6f"
+        },
+        {
+          "path": "tests/integration/test_protected_config_credential_recovery.py",
+          "sha256": "08b49212eb3ec909432c5dbf25baacce0cf1bb6e2d22c1c56ea7e78bdb157afe"
+        },
+        {
+          "path": "tests/unit/test_init_env.py",
+          "sha256": "a54b2635c3292a9fe3d0adff6ff76bb23fc1651380ba2fd50a0e3543a18b84a1"
+        },
+        {
+          "path": "tests/unit/test_fleet_t11_guarded_migration.py",
+          "sha256": "ab06ce1ad8dc5a969fb25f14453b8690e95d2298bf76d860d4edb23871e09a67"
+        },
+        {
+          "path": "tests/unit/test_backup_config_snapshot.py",
+          "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554"
+        },
+        {
+          "path": "tests/unit/test_backup_credential_restore.py",
+          "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef"
+        }
+      ],
+      "private_temporary_parent_verified": true,
+      "environment_scope": "TEMP/TMP overridden only for owned test subprocess; synthetic loopback PostgreSQL; no production data writes or employer requests."
+    }
+  },
+  "cross_platform_coverage": "pr888-artifacts.json retains real Linux execution for all three native skips and Windows execution for NTFS cases.",
+  "merge_result": {
+    "merged_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "merged_at": "2026-11-02T16:07:21Z",
+    "tree": "3a64a20a013eca90173d39ea5248e2d7acb62e94",
+    "tree_matches_tested_merge": true,
+    "main_readback": "d86a5bf79e883fdd40b750ad843a363960f35c43"
+  }
+}

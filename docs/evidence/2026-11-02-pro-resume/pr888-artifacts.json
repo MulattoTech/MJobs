@@ -1,0 +1,660 @@
+{
+  "schema_version": 1,
+  "tested_merge_revision": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+  "tested_merge_tree": "3a64a20a013eca90173d39ea5248e2d7acb62e94",
+  "native": {
+    "manifest": {
+      "schema_version": 1,
+      "candidate": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+      "tree": "3a64a20a013eca90173d39ea5248e2d7acb62e94",
+      "source_head": "241340bf98c5caa28c447e032a4fe8f32ac5125c",
+      "base_main": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+      "started_at": "2026-11-02T15:46:20.364152+00:00",
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_cli_verification_modes.py",
+        "tests/unit/test_verification_utility_sustain_289.py",
+        "tests/integration/test_connected_verification_command.py",
+        "tests/unit/test_protected_config_backup.py",
+        "tests/integration/test_protected_config_credential_recovery.py",
+        "tests/unit/test_init_env.py",
+        "tests/unit/test_fleet_t11_guarded_migration.py",
+        "tests/unit/test_backup_config_snapshot.py",
+        "tests/unit/test_backup_credential_restore.py",
+        "--junitxml=outputs/exact-operational-native.xml",
+        "--maxfail=2"
+      ],
+      "source_sha256": [
+        {
+          "path": "cli/verify_readiness.py",
+          "sha256": "1d86c63f1cdcb0ce962381c7cb9096eda1b75f78401089aec38ed54ebb0acdd0"
+        },
+        {
+          "path": "cli/verification_checks.py",
+          "sha256": "beb50e4fad49f931b59e771cbeed75b9ae3566d2eb607ecdbc00b4f692b6abd9"
+        },
+        {
+          "path": "cli/verification_fixture.py",
+          "sha256": "efbfcd69fc09e64a665cde699f216c336dd6c6c39f926d3cefdb09764ec145f1"
+        },
+        {
+          "path": "cli/migration_precondition.py",
+          "sha256": "67617510e65c60a2e0c74415781f6947e44e268518ff24ae97f92ab48e8fe582"
+        },
+        {
+          "path": "cli/protected_config_backup.py",
+          "sha256": "82f895d6bd2ef6f2ae95cf74429bcf78300131548fd3d581b812918d8db1f468"
+        },
+        {
+          "path": "tests/unit/test_cli_verification_modes.py",
+          "sha256": "d20ce87cfcdd238f6246bcf516692baee77c63374c74cf687ed90d9eb1b0178b"
+        },
+        {
+          "path": "tests/unit/test_verification_utility_sustain_289.py",
+          "sha256": "ebb925878cc4a08616e43b8de660ff9365143f4160c3dd03c47581c993b619a5"
+        },
+        {
+          "path": "tests/integration/test_connected_verification_command.py",
+          "sha256": "6784ccd5afc818477f8f40db92fd059e8213ffa346348687df163cd80d95df3d"
+        },
+        {
+          "path": "tests/unit/test_protected_config_backup.py",
+          "sha256": "e9c309c21f2d96b5fa92c3655745cf2cb5665aacf7ad5c80bb21c72150636e6f"
+        },
+        {
+          "path": "tests/integration/test_protected_config_credential_recovery.py",
+          "sha256": "08b49212eb3ec909432c5dbf25baacce0cf1bb6e2d22c1c56ea7e78bdb157afe"
+        },
+        {
+          "path": "tests/unit/test_init_env.py",
+          "sha256": "a54b2635c3292a9fe3d0adff6ff76bb23fc1651380ba2fd50a0e3543a18b84a1"
+        },
+        {
+          "path": "tests/unit/test_fleet_t11_guarded_migration.py",
+          "sha256": "ab06ce1ad8dc5a969fb25f14453b8690e95d2298bf76d860d4edb23871e09a67"
+        },
+        {
+          "path": "tests/unit/test_backup_config_snapshot.py",
+          "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554"
+        },
+        {
+          "path": "tests/unit/test_backup_credential_restore.py",
+          "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef"
+        }
+      ],
+      "private_temporary_parent_verified": true,
+      "environment_scope": "TEMP/TMP overridden only for owned test subprocess; synthetic loopback PostgreSQL; no production data writes or employer requests."
+    },
+    "result": "PASS",
+    "tests": 144,
+    "subtests": 150,
+    "skipped": 3,
+    "duration_seconds": 405.69,
+    "xml_sha256": "74223d7f339f9fc3a80dba9a99bb0c6ad05f8c5bfcf356c9909474b2f9e22b7e",
+    "skips": [
+      {
+        "class": "tests.integration.test_connected_verification_command",
+        "name": "test_non_windows_connected_command_is_blocked_without_functional_pass",
+        "reason": "NOT_RUN: non-Windows contract is exercised by Linux CI"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_linked_input_and_linked_ancestor_are_rejected",
+        "reason": "Synthetic symlink fixture unavailable: OSError"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_posix_broad_file_and_parent_modes_and_fifo_are_rejected",
+        "reason": "POSIX filesystem permission fixture"
+      }
+    ],
+    "protected_credential_recovery": [
+      {
+        "class": "tests.integration.test_protected_config_credential_recovery.ProtectedConfigCredentialRecoverySQLiteTests",
+        "name": "test_recovered_exact_configuration_is_the_key_to_unchanged_database_ciphertext",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.integration.test_protected_config_credential_recovery.ProtectedConfigCredentialRecoveryPostgreSQLTests",
+        "name": "test_recovered_exact_configuration_is_the_key_to_unchanged_database_ciphertext",
+        "status": "PASS"
+      }
+    ]
+  },
+  "linux_unit": {
+    "schema_version": 1,
+    "run_id": 41474643585,
+    "job_id": 125376894981,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41474643585/job/125376894981",
+    "proposed_merge": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+    "xml_sha256": "62ef5c066bf947b571f4b7d24e072432d13b2dbf1843e38d85cb13aa598bf2c5",
+    "protected_configuration_cases": [
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_authenticated_malformed_payloads_still_fail_validation",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_cli_error_boundary_never_prints_secret_bearing_exception",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_each_backup_uses_a_new_nonce",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_exact_arbitrary_bytes_roundtrip_with_real_aes256_gcm",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_file_total_and_envelope_bounds_apply_before_acceptance",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_no_filesystem_parent_traversal_or_colocated_recovery_key",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_non_256_bit_recovery_keys_are_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_strict_flat_names_and_file_count",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFormatTests",
+        "name": "test_wrong_key_and_changed_header_nonce_ciphertext_tag_or_length_refuse",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigSnapshotTests",
+        "name": "test_posix_keeps_ctime_in_cross_api_comparison",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigSnapshotTests",
+        "name": "test_stable_windows_file_accepts_cross_api_ctime_difference_and_returns_path_snapshot",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigSnapshotTests",
+        "name": "test_windows_ctime_changes_within_each_api_are_still_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigPublicationTests",
+        "name": "test_restore_never_adopts_a_post_publication_replacement_as_its_own_file",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigPublicationTests",
+        "name": "test_staging_unlink_failure_cannot_report_success_with_an_unreadable_output",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_cli_success_reports_counts_without_configuration_or_keys",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_concurrent_output_publication_preserves_winner_and_removes_only_own_temp",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_existing_key_archive_and_restore_target_are_never_overwritten",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_hardlinked_source_or_key_is_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_linked_input_and_linked_ancestor_are_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_ntfs_broad_leaf_read_acl_is_rejected_even_under_private_parent",
+        "status": "SKIP"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_ntfs_junction_ancestor_is_rejected",
+        "status": "SKIP"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_oversized_file_and_key_are_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_posix_broad_file_and_parent_modes_and_fifo_are_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_private_check_happens_before_secret_write",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_restore_file_race_preserves_competing_file",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_restore_write_failure_cleans_only_owned_files_and_directory",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_roundtrip_real_files_are_exact_private_and_separate",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_source_change_during_read_or_later_capture_is_rejected",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_sync_failure_leaves_no_partial_key",
+        "status": "PASS"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "name": "test_wrong_key_corruption_and_invalid_authenticated_paths_create_no_restore_directory",
+        "status": "PASS"
+      }
+    ]
+  },
+  "compose": {
+    "run_id": 41474643563,
+    "job_id": 125376892637,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41474643563/job/125376892637",
+    "result": "SUCCESS",
+    "artifacts": {
+      "ci-backup-recovery.json": {
+        "sha256": "669fc7c414c715b531a858aee4d67c8366ed8c7029c49203f87e40ead71b7b67",
+        "summary": {
+          "result": "PASS",
+          "timestamp": "2026-11-02T15:51:16.479209+00:00",
+          "external_submission_enabled": false,
+          "local_persistence": {
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ],
+            "scope": "Synthetic FIXTURE inventory only; PERSONAL runtime and complete startup command acceptance NOT_RUN",
+            "configuration": "Operator-managed local configuration retained; archive settings not applied"
+          },
+          "public_job_inventory_recovery": {
+            "result": "NOT_RUN",
+            "reason": "Baseline has no canonical public job/source-copy inventory"
+          },
+          "implementation_progress": null
+        }
+      },
+      "ci-backup.json": {
+        "sha256": "a8f02a685d373685b12b6bd9cfe8586075ce239be4320d234c6ad3536bcf9a54",
+        "summary": {
+          "result": "PASS",
+          "utc": "2026-11-02T15:51:16.479996+00:00",
+          "archive_schema": 3,
+          "behavior": "Fresh database/documents/provider volumes restored; original confirmed application and request replay retained; exact independent receipt submission_count remains one",
+          "external_submission_enabled": false,
+          "local_persistence": {
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ],
+            "scope": "Synthetic FIXTURE inventory only; PERSONAL runtime and complete startup command acceptance NOT_RUN",
+            "configuration": "Operator-managed local configuration retained; archive settings not applied"
+          },
+          "configuration_restore": "Operator-managed configuration retained; archive settings not applied",
+          "negative_controls": {
+            "running_writers": "PASS",
+            "corrupt_archive": "PASS",
+            "occupied_target": "PASS"
+          },
+          "public_cli": {
+            "backup": {
+              "command": [
+                "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+                "-m",
+                "cli.local_backup",
+                "backup",
+                "--project",
+                "mjobs-fixture-108a4efe67ea",
+                "--archive",
+                "/home/runner/work/_temp/mjobs-fixture-backup"
+              ],
+              "exit_code": 0,
+              "status": "PASS",
+              "result": "PASS",
+              "file_count": 84
+            },
+            "verify": {
+              "command": [
+                "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+                "-m",
+                "cli.local_backup",
+                "verify",
+                "--archive",
+                "/home/runner/work/_temp/mjobs-fixture-backup"
+              ],
+              "exit_code": 0,
+              "status": "PASS",
+              "result": "PASS",
+              "file_count": 84
+            },
+            "restore": {
+              "command": [
+                "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+                "-m",
+                "cli.local_backup",
+                "restore",
+                "--archive",
+                "/home/runner/work/_temp/mjobs-fixture-backup",
+                "--target-project",
+                "mjobs-fixture-7828e8deff7a",
+                "--port",
+                "18700"
+              ],
+              "exit_code": 0,
+              "status": "PASS",
+              "result": "PASS"
+            }
+          }
+        }
+      },
+      "ci-mock-e2e.json": {
+        "sha256": "6bacfafcbb45fa7b9c5d1a50a124feef9a3d95edcb9680af37bf6b912d2d2291",
+        "summary": {
+          "result": "PASS",
+          "timestamp": "2026-11-02T15:47:14.893171+00:00",
+          "external_submission_enabled": false
+        }
+      },
+      "ci-recovery.json": {
+        "sha256": "2ef2fe862e19cd848396e5570dbb439d8d32fe890343f3e9e46c4a55e3b687c1",
+        "summary": {
+          "result": "PASS",
+          "timestamp": "2026-11-02T15:49:52.441307+00:00",
+          "external_submission_enabled": false,
+          "local_persistence": {
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ],
+            "scope": "Synthetic FIXTURE inventory only; PERSONAL runtime and complete startup command acceptance NOT_RUN",
+            "configuration": "Operator-managed local configuration retained; archive settings not applied"
+          },
+          "public_job_inventory_recovery": {
+            "result": "PASS",
+            "profile_id": "4d155dae-1c66-4afc-9515-efe27e0ece6d",
+            "job_count": 2,
+            "source_copy_count": 4,
+            "sha256": "3fb5ebe1521c230761640f10d0b1dd666503a2d5936f91d6a2ecfcaa88224f05",
+            "scope": "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes via public GET /jobs readback"
+          },
+          "implementation_progress": null
+        }
+      },
+      "ci-ui-onboarding.json": {
+        "sha256": "04081fa3081d4472fa8a16c465bedd6b7f389fd37edb26d6f6ecc0cfa7a867d0",
+        "summary": {
+          "result": "PARTIAL",
+          "timestamp": "2026-11-02T15:48:26.254579+00:00",
+          "external_submission_enabled": false,
+          "local_persistence": {
+            "domains": {
+              "application_history": {
+                "count": 1,
+                "sha256": "0464e4ae8bb6f13e6773f6fe73da25e3e433e847853ce51422bae4f69b69f5dc"
+              },
+              "company_source_catalog": {
+                "count": 1,
+                "sha256": "2bb039dade47a740004582c797aa9f8e1ae8648cbad78b1cec2f6ba146e16b34"
+              },
+              "configuration": {
+                "count": 1,
+                "sha256": "67188a8bc09384bccbf07b0a26541c8647d3a337bc55eed392d3337401fb5aa7"
+              },
+              "cover_letters": {
+                "count": 6,
+                "sha256": "92dc4d7ba6c8039c91ed6199172ec0d8fa9af37edecbe2adc30d37c5a40f4abd"
+              },
+              "generated_resumes": {
+                "count": 6,
+                "sha256": "e541120ea380148853751e9aa9fd09a6d7ddee6d50508f9ebe7f1850ff955b3c"
+              },
+              "postgresql": {
+                "count": 1,
+                "sha256": "eb8e7d67879eaa9014f635abcf2d61e5fd9bab8febd67649bddf0cff854e7e4b"
+              },
+              "uploaded_resumes": {
+                "count": 2,
+                "sha256": "4a9a3944fe6c23e5dde8affd4f518698a510c8459cb94e5e652c60a05e65af89"
+              }
+            },
+            "schema_version": 1
+          },
+          "overall_state": "PARTIAL",
+          "remaining_state": "NONE",
+          "limitations": [
+            "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
+            "Source identity/deduplication and live public-source proof are outside this local fixture run."
+          ]
+        }
+      },
+      "ci-ui.json": {
+        "sha256": "43fc2b41753b417de5968bb69d1c75cb465e3195e31571ea46a0fbc507d7acac",
+        "summary": {
+          "result": "PASS",
+          "timestamp": "2026-11-02T15:47:43.025997+00:00",
+          "external_submission_enabled": false,
+          "local_persistence": {
+            "domains": {
+              "application_history": {
+                "count": 1,
+                "sha256": "c54ac9086b61cc7debab982d25f33e8785415ebb3566d34db8cd6f2711dbbcec"
+              },
+              "company_source_catalog": {
+                "count": 1,
+                "sha256": "2bb039dade47a740004582c797aa9f8e1ae8648cbad78b1cec2f6ba146e16b34"
+              },
+              "configuration": {
+                "count": 1,
+                "sha256": "67188a8bc09384bccbf07b0a26541c8647d3a337bc55eed392d3337401fb5aa7"
+              },
+              "cover_letters": {
+                "count": 5,
+                "sha256": "4e335396f9638f5c6b7999726da335ed79c574f29c51c0280813b43e3ff2255a"
+              },
+              "generated_resumes": {
+                "count": 5,
+                "sha256": "5b420f51a8e2714c7ca4c687df14fe625d1b42c78dad5503aa5973c186ce2927"
+              },
+              "postgresql": {
+                "count": 1,
+                "sha256": "fb68a7de394991db99e856642e4cafd9824d6884d254de2ebe8c55a7ca4783d5"
+              },
+              "uploaded_resumes": {
+                "count": 1,
+                "sha256": "1309f893ffee45607a216a2fc5c84d7fc87f3745f11d461eaa1370b8b9a6038f"
+              }
+            },
+            "schema_version": 1
+          },
+          "overall_state": "PASS",
+          "remaining_state": "NONE",
+          "limitations": []
+        }
+      }
+    }
+  },
+  "scope": "Executed artifacts only. Complete protected integration, delivered source identity and fresh deployed verification commands are recorded separately. Onboarding fixture result remains PARTIAL; this is not whole-product acceptance.",
+  "linux_integration": {
+    "schema_version": 1,
+    "run_id": 41474643557,
+    "proposed_merge": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+    "integration_coverage": [
+      {
+        "shard": 0,
+        "xml_sha256": "b9a31bdaaccc5af9cbbb7facdeb3a976e29b5505b6414aef69cf8041c9ecbb17",
+        "cases": [
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_connected_command_executes_sources_and_durable_application",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_explicit_dry_run_executes_complete_pipeline_with_zero_submissions",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_dry_run_never_enters_submit_path_and_parent_rejects_changed_artifacts",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_no_op_rescore_cannot_pass_using_discovery_scores",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_no_op_explicit_discovery_cannot_borrow_company_discovery_inventory",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_connected_requires_explicit_fixture_admission",
+            "status": "PASS"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_connected_repeats_with_new_identity_and_ignores_personal_environment",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_connected_rejects_user_service_target",
+            "status": "PASS"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_deadline_cancels_owned_child_and_removes_temporary_files",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_missing_browser_preserves_executed_sources_and_nonzero_partial",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_executed_detector_failure_propagates_without_passing_downstream",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_real_browser_failures_cannot_project_success[upload]",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_real_browser_failures_cannot_project_success[confirmation]",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_parent_preserves_post_confirmation_failure_stage[duplicate]",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_parent_preserves_post_confirmation_failure_stage[readback]",
+            "status": "SKIP",
+            "reason": "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_default_readiness_performs_only_one_read_and_no_fixture_writes",
+            "status": "PASS"
+          },
+          {
+            "class": "tests.integration.test_connected_verification_command",
+            "name": "test_non_windows_connected_command_is_blocked_without_functional_pass",
+            "status": "PASS"
+          }
+        ]
+      },
+      {
+        "shard": 1,
+        "xml_sha256": "bf9ba390df7a29e49fc9b97ed5f9e9c799e7f9e5749db29732666df3e7fb39a7",
+        "cases": [
+          {
+            "class": "tests.integration.test_protected_config_credential_recovery.ProtectedConfigCredentialRecoverySQLiteTests",
+            "name": "test_recovered_exact_configuration_is_the_key_to_unchanged_database_ciphertext",
+            "status": "PASS"
+          },
+          {
+            "class": "tests.integration.test_protected_config_credential_recovery.ProtectedConfigCredentialRecoveryPostgreSQLTests",
+            "name": "test_recovered_exact_configuration_is_the_key_to_unchanged_database_ciphertext",
+            "status": "PASS"
+          }
+        ]
+      }
+    ]
+  }
+}

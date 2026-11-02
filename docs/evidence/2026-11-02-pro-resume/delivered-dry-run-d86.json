@@ -1,0 +1,109 @@
+{
+  "schema_version": 2,
+  "scope": "isolated synthetic FIXTURE; not deployment readiness",
+  "execution_mode": "DRY_RUN",
+  "invocation_id": "aa96e464deff47249b44e8f586b7be66",
+  "revision": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+  "source_sha256": "00686df075542e6b5e47d653a5a5fcc02a8f375ad98d04869b6f430fd53ac9a4",
+  "started_at": "2026-11-02T16:31:14.123736+00:00",
+  "external_submission_enabled": false,
+  "checks": {
+    "adapter registry": {
+      "status": "PASS",
+      "reason": "registry source identity and normalized job tenant/provider matched the isolated fixture"
+    },
+    "mock global source": {
+      "status": "PASS",
+      "reason": "API discovery operation executed; two jobs and four postings persisted"
+    },
+    "mock company discovery": {
+      "status": "PASS",
+      "reason": "API company-discovery operation fetched the owned careers/ATS feed and persisted its source"
+    },
+    "ATS detector": {
+      "status": "PASS",
+      "reason": "real detector matched synthetic Lever signature and rejected mock-only page with NO_MATCH; no provider fetch"
+    },
+    "Scoring functional": {
+      "status": "PASS",
+      "reason": "explicit API scoring operation persisted current-profile scores and required Python/SQL evidence"
+    },
+    "Document engine healthy": {
+      "status": "PASS",
+      "reason": "API preparation executed; generated resume/letter PDF and DOCX bytes parsed and hashes verified"
+    },
+    "Browser worker healthy": {
+      "status": "PASS",
+      "reason": "isolated Playwright Chromium launched; production worker heartbeat is not covered"
+    },
+    "Dry-run mode functional": {
+      "status": "PASS",
+      "reason": "API mock-run filled/reviewed in Chromium and stopped before submit; no receipt and zero submissions"
+    },
+    "mock application fill": {
+      "status": "PASS",
+      "reason": "browser validation and mock server review succeeded after standard/custom field fill"
+    },
+    "mock upload": {
+      "status": "PASS",
+      "reason": "real browser selected generated files; mock server accepted multipart review and adapter verified bytes"
+    },
+    "durable readback": {
+      "status": "PASS",
+      "reason": "fresh Store retains DRY_RUN_COMPLETE; no confirmation, receipt or submission request"
+    }
+  },
+  "observations": {
+    "registry_requests": [
+      "/v1/boards/fixture",
+      "/v1/boards/fixture/jobs"
+    ],
+    "registry_company": "Synthetic employer",
+    "registry_job_requisition": "288",
+    "registry_provider": "greenhouse",
+    "registry_tenant": "fixture",
+    "fixture_origin": "http://127.0.0.1:43330",
+    "profile_id": "verification-aa96e464deff47249b44e8f586b7be66",
+    "company_operation_id": "693faf0c71a8c8607bf120c644dc6dbb02eb7eb1642680a1541181ed5c2335d1",
+    "company_id": "a83413a31d901c7c6eb30847e3448b46b9b5f1b55ce62b7b4c407eae5b518c57",
+    "canonical_jobs": 2,
+    "discovery_operation_id": "bcd00d6782d74a82667022f285d630c0d12c3eedef2e608bc02c2199eb9a6e66",
+    "discovery_audit_id": "1fb9dfd04c2e44c29c57eba73097cb58",
+    "discovery_prior_audit_ids": [
+      "1e9ad5e031f84041b72cd412d676ad01"
+    ],
+    "scoring_operation_id": "1333450156194bb43596713fa247c2350f916ebf74bdb470925b44cc88dd47b8",
+    "scored_profile_version": "3bc179b9e67b03df20b57e1b375ba7c71789fb10f492d18b8a0bd68fadf703cb",
+    "scoring_previous_version": "1d635031936ba12f157462ced2ff8cbf1214fd20a68f53c22c0536b458f60e9f",
+    "scores_before_rescore": 0,
+    "scored_job_id": "267a5b8c43b708f027dab94318f02ca3abf83a6256636de969f90a9235ef832a",
+    "score": 100.0,
+    "dry_run_submission_count": 0,
+    "application_id": "cadbac6c504302869ad744c94f3e4b3550298836e60df75bae8093095f7f0c38",
+    "submission_count": 0,
+    "persisted_state": "DRY_RUN_COMPLETE"
+  },
+  "workspace": "C:\\Users\\Dylan\\AppData\\Local\\Temp\\mjobs-connected-verification-zn_76jiw\\fixture",
+  "runtime": {
+    "pid": 16860,
+    "parent_pid": 46060,
+    "python": "3.12.10",
+    "platform": "win32",
+    "database": "owned temporary SQLite",
+    "execution": "API + inline durable operation executor",
+    "dependencies": {
+      "httpx": "0.28.1",
+      "fastapi": "0.142.1",
+      "SQLAlchemy": "2.1.1",
+      "playwright": "1.63.0",
+      "python-docx": "1.2.0",
+      "pypdf": "6.19.0",
+      "reportlab": "5.0.1"
+    }
+  },
+  "finished_at": "2026-11-02T16:31:21.062565+00:00",
+  "cleanup": {
+    "status": "PASS",
+    "reason": "retained Job has zero active members; original host reaped and owned workspace removed"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "result": "PASS",
+  "transaction_read_only": "on",
+  "schema_policy": 1,
+  "required_tables": 50,
+  "observed_required_tables": 50,
+  "required_foreign_keys": 84,
+  "observed_foreign_keys": 84,
+  "required_signature_sha256": "2faa7fd215686cfeba100e7f8a745f9c4d1262abaeceb7ccbe1e02590fc64b7b",
+  "observed_signature_sha256": "55dfc891bc2bf8248f90b7299696b9a6622f70da7e6630ab72b5638443c1aeca",
+  "migration_heads": [
+    "20261025di01"
+  ],
+  "runtime_role_flags": {
+    "rolsuper": false,
+    "rolcreatedb": false,
+    "rolcreaterole": false,
+    "rolreplication": false,
+    "rolbypassrls": false
+  },
+  "timestamp": "2026-11-02T16:31:31.308517+00:00",
+  "deployment": {
+    "commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "version": "0.1.0-dev",
+    "operation_mode": "PERSONAL"
+  },
+  "application_rows_read": false,
+  "production_writes": false,
+  "credentials_retained": false
+}

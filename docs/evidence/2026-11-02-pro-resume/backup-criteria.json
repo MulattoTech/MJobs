@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-167",
+  "title": "Data Backup",
+  "issue": 168,
+  "status": "ALL_LITERAL_TOOLING_CRITERIA_VERIFIED",
+  "literal_acceptance": "Provide backup tooling for database, uploaded documents, generated documents, and important configuration.",
+  "authority": "docs/spec/areas/orchestration_data_security.md, section 167; original requirement and denominator unchanged",
+  "tested_revision": "b83d524ab2a45ca112d782164470451b5c8b9b93",
+  "tested_tree": "3a64a20a013eca90173d39ea5248e2d7acb62e94",
+  "executed_artifact_record": "docs/evidence/2026-11-02-pro-resume/pr888-artifacts.json",
+  "criteria": [
+    {
+      "domain": "database",
+      "implementation": "cli.local_backup and cli.backup_acceptance",
+      "evidence": "The exact-source disposable Compose gate executed public backup, verify, and fresh-project restore commands. Database and provider state reopened with the original confirmed synthetic application and one independent mock receipt; duplicate replay did not add a submission.",
+      "result": "PASS_EXECUTED_TOOLING"
+    },
+    {
+      "domain": "uploaded documents",
+      "implementation": "Local document-volume capture, manifest hashing, and fresh-project restore",
+      "evidence": "The same public CLI backup/verify/restore accepted an 84-file archive and its persistence proof explicitly includes uploaded_resumes. Running-writer, corrupt-archive, and occupied-target negative controls passed.",
+      "result": "PASS_EXECUTED_TOOLING"
+    },
+    {
+      "domain": "generated documents",
+      "implementation": "Local document-volume capture, manifest hashing, and fresh-project restore",
+      "evidence": "The fresh-project persistence proof includes generated_resumes and cover_letters together with application history and company/source catalog state.",
+      "result": "PASS_EXECUTED_TOOLING"
+    },
+    {
+      "domain": "important configuration",
+      "implementation": "Database-persisted application settings, archived public Compose and non-secret runtime snapshot, plus cli.protected_config_backup for explicitly selected .env/private Compose files",
+      "evidence": "The new companion encrypts exact file names and bytes with authenticated AES-256-GCM and an independent recovery key. Real native SQLite and PostgreSQL tests remove only the original synthetic configuration, recover it from the archive, and decrypt unchanged stored credential ciphertext with the recovered original application key. The wrong key fails. Native CLI success/error, owner/ACL, no-clobber, publication, corruption, and race controls passed. Linux executed the symlink/POSIX cases skipped on Windows; Windows executed the NTFS cases skipped on Linux.",
+      "result": "PASS_EXECUTED_TOOLING"
+    }
+  ],
+  "native_results": {
+    "tests": 144,
+    "subtests": 150,
+    "skipped": 3,
+    "duration_seconds": 405.69,
+    "xml_sha256": "74223d7f339f9fc3a80dba9a99bb0c6ad05f8c5bfcf356c9909474b2f9e22b7e",
+    "counting_note": "This combined verifier/backup run overlaps earlier native results; counts are not additive.",
+    "skip_detail": "Both Windows-skipped backup platform cases passed Linux unit CI; the third native skip, the non-Windows verifier fail-closed contract, passed Linux integration CI. Windows passed both NTFS cases skipped on Linux. Exact case receipts are in pr888-artifacts.json; no skipped case is counted as executed on its original platform."
+  },
+  "compose_results": {
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41474643563/job/125376892637",
+    "backup_receipt_sha256": "a8f02a685d373685b12b6bd9cfe8586075ce239be4320d234c6ad3536bcf9a54",
+    "archive_schema": 3,
+    "archive_files": 84,
+    "scope": "Isolated synthetic FIXTURE project; PERSONAL live restore was not performed. Existing historical PERSONAL backup/recovery evidence remains separate."
+  },
+  "recovery_contract": {
+    "runbook": "docs/runbooks/LOCAL_BACKUP.md",
+    "configuration_not_executed": true,
+    "restore_destination_must_be_new": true,
+    "recovery_key_separate_from_archive": true,
+    "archive_settings_not_applied_automatically": true,
+    "browser_authentication": "Browser cookies and sessions are deliberately excluded. Fresh authentication and operator review are documented; section 167 does not require cookie-session preservation.",
+    "process_interruption": "Private staging files can remain after termination; ambiguous or replaced objects are never removed as owned cleanup."
+  },
+  "historical_failures": {
+    "ordinary_backup": "The original November 1 exit-2 stderr was discarded and cannot be reconstructed. The previously delivered updater now retains bounded allowlisted diagnostics; retained failures and fixes remain in the original evidence.",
+    "native_companion": "The first native run failed on Windows lstat/fstat ctime differences and correctly refused non-private Temp ancestry. The reviewed fix retains same-API ctime checks, uses one private task-owned test parent, and changes no shared ACLs.",
+    "source_review": "Publication cleanup and foreign-replacement ownership defects were reproduced, corrected, and regression-tested before publication."
+  },
+  "remaining_acceptance_gates": [],
+  "canonical_acceptance_changed_by_this_record": false,
+  "production_data_writes": false,
+  "destructive_live_restore": false,
+  "completed_delivery_gates": {
+    "protected_merge": "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+    "delivered_identity_and_backup": "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json",
+    "deployed_source": "d86a5bf79e883fdd40b750ad843a363960f35c43"
+  }
+}

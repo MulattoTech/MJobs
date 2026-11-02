@@ -108,7 +108,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -287,7 +287,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
+      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -410,7 +410,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1947,7 +1947,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
+      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1978,7 +1978,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -2925,7 +2925,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
+      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2945,7 +2945,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3266,7 +3266,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",
@@ -6000,8 +6000,8 @@
       ],
       "status": "MERGED",
       "branch": "work/pro-secret-errors-20261102",
-      "evidence": "docs/evidence/2026-11-02-pro-secret-errors/criteria.json",
-      "notes": "Exact proposed merge82a1f59b passed native164+166subtests/0skip and all protected gates plus CodeQL; merged tree653905a78296402c424d0356518d84a65eca3e26 matched. Deployment/canonical closeout follows separately; prior failures retained.",
+      "evidence": "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+      "notes": "MERGED #887 at2c6a93f3, tested tree653905a7 equality verified; native164/166subtests/0skip and all protected gates plus CodeQL PASS. Guarded rollout completed; combined delivered source d86 and canonical175 acceptance are in the resumed delivery record. Historical failures retained.",
       "pr_number": 887,
       "merge_commit": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310"
     },
@@ -6019,11 +6019,56 @@
       "depends_on": [
         "MJ-PR-PRO-SECRET-ERRORS-20261102"
       ],
-      "status": "NATIVE_VERIFIED_PENDING_CI",
+      "status": "MERGED",
       "branch": "work/protected-config-backup-20261102",
-      "evidence": "docs/evidence/2026-11-02-pro-verification/criteria.json",
-      "notes": "Verification548 combined with protected configuration companion and reviewed FULL source-identity correction. Native backup76+150subtests/2platform skips; identity/CLI68/1Linux skip; counts overlap prior runs. Exact protected integration and deployed full command pending. Acceptance unchanged."
+      "evidence": "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+      "notes": "MERGED #888, exact native144/150subtests/3platform skips and protected gates plus CodeQL PASS; tested/merged tree3a64a20a equal. All native skips have explicit Linux counterpart proof; Linux NTFS skips executed on Windows. Delivered dry-run11/FULL13 and encrypted private configuration recovery support literal167/208/288 acceptance.",
+      "pr_number": 888,
+      "merge_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43"
+    },
+    {
+      "id": "MJ-PR-PRO-ROUTE-20261102",
+      "title": "Automatic employer route resolution and completed configuration controls",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-162",
+        "MJ-REQ-267",
+        "MJ-REQ-275",
+        "MJ-REQ-004"
+      ],
+      "target_area": "preparation, consent, configuration, notifications and native regression fixtures",
+      "depends_on": [],
+      "status": "MERGED",
+      "branch": "work/pro-route-20261102",
+      "pr_number": 886,
+      "merge_commit": "9a040029ecd5515da20c0b8fd1ef4c412c5fec1d",
+      "evidence": "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+      "notes": "Native406/372subtests/4skips, protected gates and CodeQL PASS; tested-tree equality verified. Broad004 remains PARTIAL."
+    },
+    {
+      "id": "MJ-PR-PRO-RESUME-CLOSEOUT-20261102",
+      "title": "Verified seven-requirement acceptance and bounded deployment gate lookup recovery",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-162",
+        "MJ-REQ-167",
+        "MJ-REQ-175",
+        "MJ-REQ-208",
+        "MJ-REQ-267",
+        "MJ-REQ-275",
+        "MJ-REQ-288"
+      ],
+      "target_area": "deployment gate, evidence, canonical planning and portable handoff",
+      "depends_on": [
+        "MJ-PR-PRO-SECRET-ERRORS-20261102",
+        "MJ-PR-PRO-VERIFY-20261102",
+        "MJ-PR-PRO-ROUTE-20261102"
+      ],
+      "status": "READY_FOR_PROTECTED_PUBLICATION",
+      "branch": "work/pro-resume-closeout-20261102",
+      "evidence": "docs/evidence/2026-11-02-pro-resume/delivery.json",
+      "notes": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash."
     }
   ],
-  "generated_at": "2026-11-02T15:41:41.807898+00:00"
+  "generated_at": "2026-11-02T16:38:42.091786+00:00"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-02T02:34:15.944248+00:00",
+  "generated_at": "2026-11-02T16:38:42.091786+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "PRO-OPS-VERIFIED-DELIVERY-20261102",
-  "current_objective": "Complete verified resumed delivery: PR886 route/consent fixes integrated; PR887 credential privacy candidate; explicit full-pipeline DRY_RUN and observed-runtime verification modes now natively exercised, pending exact source gates/deployment and canonical acceptance.",
+  "current_milestone": "PRO-RESUME-VERIFIED-DELIVERY-20261102",
+  "current_objective": "Maintain verified resumed delivery and execute remaining P0 operation/recovery and P1 privacy/security requirements from the exact current checkpoint.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -71,7 +71,7 @@
     "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json).",
     "MJ-REQ-007 / issue #8: stated requirement acceptance PASS. Healthy Git source-control safety, conditional no-Git N/A, atomic private configuration initialization, prior backup/restore, SQLite/PostgreSQL migration rollback/retry, and protected credential migration rollback/retry with ciphertext-preserving downgrade refusal are evidenced in docs/evidence/2026-10-07-source-change-safety-completion.json. Offline SQL generation probe failure at existing cb72f9041d6a remains separately recorded and is outside issue acceptance. Full repository release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
     "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL.",
-    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB \u00c3\u2014 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB \u00c3\u2014 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB Ã— 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB Ã— 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json",
     "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial.",
@@ -97,7 +97,7 @@
     "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json.",
     "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes.",
     "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af.",
-    "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete.",
+    "Historical checkpoint, superseded for MJ-REQ-267 by protected PR886 and this delivery record; original text retained: MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete.",
     "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json.",
     "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL.",
     "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
@@ -106,7 +106,14 @@
     "2026-10-11: Profile-scoped CSV/JSON/complete-backup downloads, selectable source relationship graph, dry-run retention preview with configured scheduler, and durable Activity operation progress are wired into the app shell. Connected browser reload/isolation/safety acceptance and focused service/UI tests pass at local main 61305d46; full requirements remain PARTIAL.",
     "MJ-REQ-019: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json",
     "MJ-REQ-161: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json",
-    "MJ-REQ-179: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json"
+    "MJ-REQ-179: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-162 PASS: Database Design; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json.",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-167 PASS: Data Backup; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json.",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-175 PASS: Security — Secret Management; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json.",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-208 PASS: Dry-Run Mode; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json.",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-267 PASS: Direct Employer Route Discovery Before Apply; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json.",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-275 PASS: Configuration; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json.",
+    "2026-11-02T16:31:30.298740+00:00 MJ-REQ-288 PASS: Verification Utility; exact literal acceptance and limitations: docs/evidence/2026-11-02-pro-resume/delivery.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -115,7 +122,7 @@
     "Heuristic description skill coverage for real jobs and exact structured skills for mock; advanced matching remains open",
     "Real jobs support manual preparation and the profile-scoped application pipeline with all ten user-reported stages, notes and durable history; real submission automation and intervention resume remain open.",
     "Greenhouse API-first source strategy verified; additional global feeds and strategy ladder remain open",
-    "Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain",
+    "Historical checkpoint; protected configuration/secret-management gaps are resolved for literal167/175 by this delivery. Broader startup/PII/key-rotation questions remain separately scoped. Original text retained: Local personal first-run, stored-profile relaunch and scoped backup/restore verified; protected configuration, native resume extraction/review and complete startup acceptance remain",
     "Mock-ATS company discovery supports a durable user-added trigger, evidence-based identity, automatic fixture source enrollment, and immediate employer-only job matching; production ATS providers and remaining automatic trigger wiring remains open.",
     "Official-domain source acquisition and career-site discovery currently use fixture acceptance; production provider/search integration and automatic sitemap acquisition remain open (MJ-REQ-060..061 PARTIAL).",
     "ATS detection uses several deterministic page/URL evidence sources, but HTML-signature and network-observed public endpoint signals remain open (MJ-REQ-064 PARTIAL).",
@@ -129,7 +136,7 @@
     "Manual postings receive persisted deterministic skill-evidence explanations from approved profile facts; description-only mentions remain UNKNOWN and full matching/search dimensions remain open (CORE-WORKFLOW-TRIAL C local evidence).",
     "CORE-WORKFLOW-TRIAL D deterministic job-specific cover letter merged in PR #510 at a63c798; exact-head review, both Verification events, runtime reports and merge-tree equality passed. Combined A-F journey remains pending (docs/evidence/2026-10-05-job-specific-cover-letter.json).",
     "CORE-WORKFLOW-TRIAL E has a usable profile answer bank and per-job manual review/export path with profile-scoped history/download, atomic content-addressed export recovery, and a saved-profile load gate. PR #511 merged at fb8ab73 after exact-head review and passing push/pull_request Verification with nine passing reports and digest-matched artifacts. MJ-REQ-103..107 remain PARTIAL for incomplete matching, confidence, sensitive/legal policy and durable unexported drafts (docs/evidence/2026-10-05-reviewed-application-answers.json).",
-    "MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete.",
+    "Historical checkpoint, superseded by the existing canonical MJ-REQ-170 PASS (not a new acceptance in this sprint); original text retained: MJ-REQ-170 transient-artifact retention now has explicit local inventory/quarantine/restore/purge with a 30-day default; automatic background cleanup and broader transient/log retention remain incomplete.",
     "MJ-REQ-004 remains PARTIAL: worker-wide cooperative deadlines, Greenhouse rate-wait cancellation, parser subprocess bounds, mock ATS action budgets, fact-review Git bounds and truthful local OCR child failure diagnostics are verified. Native parser/OCR request-disconnect cancellation, real AI/ATS paths, and broad all-category output/retry/error classification remain open (docs/evidence/2026-10-06-bounded-ocr-diagnostics.json).",
     "MJ-REQ-005 scoped category-admission slice: five bounded independent configuration categories; category-wide SQLite/PostgreSQL claim admission and conservative Compose defaults (docs/evidence/2026-10-06-operation-concurrency-categories.json).",
     "MJ-REQ-006 current workspace inventory and KEEP classification are evidenced and integrated at 124b084925a807079cce78c168211f73b7bf97fb; issue #7 is CLOSED after GitHub readback (docs/evidence/2026-10-06-current-workspace-inspection.json).",
@@ -145,11 +152,11 @@
     "MJ-REQ-004 structured AI evaluation cancellation now closes blocked loopback Ollama transport promptly and discards partial batches; synthetic local HTTP only. Other operation categories and live provider acceptance remain incomplete (docs/evidence/2026-10-07-ai-ollama-active-cancel.json).",
     "MJ-REQ-005 / issue #6 direct structured AI evaluations now reserve database-backed AI category capacity across API instances; generic durable cancellation propagates to provider cancellation; completed, cancelled and expired-lease outcomes are recorded. Full Python 849 PASS (1 optional PostgreSQL skip), 32 focused API/worker tests PASS, 8 browser tests PASS after building worktree UI, frontend 62 PASS/build PASS, validators PASS. Evidence docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json. Requirement remains PARTIAL: live PostgreSQL lock, live provider and real ATS behavior are not evidenced.",
     "MJ-REQ-008: synthetic SQLite and disposable PostgreSQL product-worker process crash recovery, durable lease reclaim and stale-attempt fencing pass; application-stage history survives Chromium renderer and whole-browser-process crash; physical host restart remains NOT_RUN (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json).",
-    "Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open",
+    "Historical checkpoint; protected configuration/secret-management gaps are resolved for literal167/175 by this delivery. Broader startup/PII/key-rotation questions remain separately scoped. Original text retained: Provider credentials are not yet routed into AI inference; master encryption-key rotation and complete original secret/diagnostic requirements remain open",
     "MJ-REQ-156/160/183/184 advanced by the scoped MJ-REF-016 dead-letter slice; full persistent-operation, transient retry-policy, worker-health, and error-management requirements remain PARTIAL/NOT_RUN.",
     "MJ-REF-033 advanced PARTIAL: bounded agent run duration/step stopping, explicit terminal escape outcomes, sanitized stop/budget audit, and typed collection count/tail/shape validation. Browser adapter integration, page budgets, bounded slice reruns, and hard interruption of an in-flight synchronous handler remain open; evidence docs/evidence/2026-10-07-agent-run-budget-output-validation.json.",
     "MJ-REQ-005 / issue #6: live isolated PostgreSQL 17 advisory-lock tests now prove cross-kind company-discovery and independent application-automation capacity-one admission across separate Store engines; each race leaves one RUNNING and one QUEUED operation with matching attempt counts. The acceptance slice passes; broader requirement remains PARTIAL because real ATS/provider execution is not exercised. Evidence docs/evidence/2026-10-07-postgres-concurrency-runtime.json.",
-    "MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
+    "Historical checkpoint, superseded by the existing canonical MJ-REQ-170 PASS (not a new acceptance in this sprint); original text retained: MJ-REQ-170 / issue #171 advanced PARTIAL: new live-feedback sessions automatically prune only managed timestamped session folders older than 30 days and repair the latest pointer; other transient artifact/log/payload classes remain unverified. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
     "MJ-REQ-004 Compose recovery CLI output bounds verified with synthetic child overflow and deadline termination; 2 MiB retained stdout, drained stderr, child reaping and sanitized errors. Real Compose execution NOT_RUN; other operation classes/live AI/ATS remain incomplete. Evidence docs/evidence/2026-10-07-compose-recovery-output-bounds.json.",
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-176 / issue #177 company/source audit history: successful discovery now records idempotent profile-owned COMPANY_DISCOVERED and first source creation COMPANY_SOURCE_ENROLLED events atomically with source persistence. Fixed summaries remain private, profile-isolated and persist across reload; failed discovery emits neither. 26 focused integration tests, connected Chromium 1, frontend 63/build, and repository validators PASS. Evidence docs/evidence/2026-10-07-company-audit-history.json. Job merge, complete settings and full truthful application lifecycle coverage remain incomplete; issue OPEN/PARTIAL.",
@@ -178,15 +185,15 @@
     "#372 / MJ-REF-002: connected answer-review workspace displays current approved career stories and linked fact fingerprints, requires explicit story-reference review/selection, suppresses sensitive-question lookup, and keeps answer text/review separate. Source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3; evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Story citation is transient, not stored in answer export; document-generation selection and broader story-bank acceptance remain incomplete.",
     "MJ-REQ-236 / issue #237: connected profile-scoped durable history for terminal discovery runs with source/query/filter context, UTC start/finish, result and new-job counts, status/errors, idempotent atomic persistence, read-only API, keyset pagination and Activity UI reload readback. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); integrated local main bc523f642a27795e3791d7bf0926e22473376277. Evidence docs/evidence/2026-10-09-search-history.json. Duplicate counts remain null because collectors do not report a reliable total; hosted/live source NOT_RUN_BY_USER_POLICY.",
     "MJ-FEATURE-517 / issue #517 bounded source-candidate slice: exact capture replay is a no-op with immutable observation timestamps; distinct events preserve earliest first_seen and latest last_seen independent of arrival order; changed request reuse conflicts; review history displays sanitized API/feed evidence reference. Tested code 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); integrated local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Issue remains OPEN/PARTIAL.",
-    "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved company\u00e2\u20ac\u2122s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
+    "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved companyâ€™s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
     "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json).",
     "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
     "Issue #372 / MJ-REF-002 explicit job-specific resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c); evidence docs/evidence/2026-10-09-resume-story-reuse.json; focused Python 32, frontend 24, connected resume/cover-letter Chromium 2, build and local validators PASS. Exact story text and immutable story/fact provenance survive durable generation/history; broader story-bank and interview-preparation acceptance remains PARTIAL.",
-    "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted).",
+    "Historical checkpoint, superseded for MJ-REQ-267 by protected PR886 and this delivery record; original text retained: Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted).",
     "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported).",
     "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL).",
     "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete.",
-    "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY \u00e2\u2020\u2019 DEGRADED \u00e2\u2020\u2019 FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete.",
+    "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY â†’ DEGRADED â†’ FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete.",
     "Issue #247 / MJ-REQ-247 PASS: a failed parser does not remove or rewrite the employer source; enabled configuration, provider/endpoints, terminal monitoring state and all failure events survive a fresh Store readback. Main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40; evidence docs/evidence/2026-10-09-failed-source-preservation.json.",
     "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete.",
     "2026-10-10 MJ-REQ-138 durable mock attempt lifecycle and connected history",
@@ -196,12 +203,11 @@
   "blocked_capabilities": [],
   "active_requirements": [
     "MJ-REQ-004",
-    "MJ-REQ-162",
-    "MJ-REQ-267",
-    "MJ-REQ-275",
-    "MJ-REQ-175",
-    "MJ-REQ-208",
-    "MJ-REQ-288"
+    "MJ-REQ-008",
+    "MJ-REQ-292",
+    "MJ-REQ-172",
+    "MJ-REQ-171",
+    "MJ-REQ-174"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -503,7 +509,9 @@
     "2026-10-10 Web application sprint: all 41 new Python tests PASS; combined run 84/86 with two reproduced baseline failures; frontend 567/567 across 99 files; TypeScript/Vite build PASS. Exact source 25fea60889ad13cb5e837ab2263324f84fd20a04; docs/evidence/2026-10-10-durable-application-attempts.json.",
     "2026-10-11 five-feature batch: 55 focused Python unit/API/worker tests; 690 frontend tests; TypeScript/Vite production build; six synthetic Greenhouse/Lever Chromium adapter checks; skill, lane, compile and diff validators PASS at 5a00de653023193367c278fa4c63fc59878c7518.",
     "2026-10-11 four-feature connected batch at 61305d46: 47 focused Python unit/API/Chromium tests; 27 frontend tests; TypeScript/Vite production build; agent-skill, lane-coordination, JSON and diff validation PASS. Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json.",
-    "2026-11-02: Source PRs #881/#882/#883 exact proposed-merge required gates 5/5 each; native first merge 90 tests/83 subtests, second merge 168 tests/113 subtests; fixture merge 35 tests/25 subtests without skips; hosted new PostgreSQL categories/capabilities/configuration executed. Overlapping runs are not additive. See docs/evidence/2026-11-02-pro-ops-delivery.json"
+    "2026-11-02: Source PRs #881/#882/#883 exact proposed-merge required gates 5/5 each; native first merge 90 tests/83 subtests, second merge 168 tests/113 subtests; fixture merge 35 tests/25 subtests without skips; hosted new PostgreSQL categories/capabilities/configuration executed. Overlapping runs are not additive. See docs/evidence/2026-11-02-pro-ops-delivery.json",
+    "2026-11-02T16:31:30.298740+00:00 Exact proposed merge PR886:406 PASS/372 subtests/4 skips; PR887:164 PASS/166 subtests/0 skips; PR888:144 PASS/150 subtests/3 skips. Native/hosted platform coverage is explicit; overlapping runs are not summed.",
+    "2026-11-02T16:31:30.298740+00:00 Delivered public DRY_RUN11 and FULL13 exit0 with owned cleanup, stable matching clean source/deployment, observed PostgreSQL/Redis/workers/scheduler/schema and read-only50-table/84-FK production validation."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -546,7 +554,9 @@
     },
     "2026-10-11 full Python discovery was interrupted after more than ten minutes; unrelated browser cases reported strict-locator failures in application-priority, company-preference and job-risk-signal tests. It is incomplete and is not PASS evidence.",
     "Historical sprint failures retained: fenced confirmation compatibility defect fixed; socket/cancellation timing oracle and Windows monotonic injected-delay fixture corrected; initial debug and capability/WWR observer harness errors preserved. Final qualified source gates and native tests pass; no failed attempt is relabeled. See docs/evidence/2026-11-02-pro-ops-delivery.json",
-    "Main f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912 failed Integration run41371046952 and deployment candidate run41371046815 after its protected PR passed. The original pre-transport failure lacked terminal diagnostics, so its precise hosted cause remains unproven. The controlled reproduction and fixture-only correction are preserved separately; original gates remain failures. See docs/evidence/2026-11-02-source-transport-fixture.json and docs/evidence/2026-11-02-pro-ops/ci-history.json"
+    "Main f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912 failed Integration run41371046952 and deployment candidate run41371046815 after its protected PR passed. The original pre-transport failure lacked terminal diagnostics, so its precise hosted cause remains unproven. The controlled reproduction and fixture-only correction are preserved separately; original gates remain failures. See docs/evidence/2026-11-02-source-transport-fixture.json and docs/evidence/2026-11-02-pro-ops/ci-history.json",
+    "2026-11-02T16:31:30.298740+00:00 Historical resumed-sprint failures retained: PR887 timing runs, protected-backup Windows ctime/private-Temp first run, and main d86 deployment-candidate GitHub HTTPError before imagebuild. See docs/evidence/2026-11-02-pro-resume/delivery.json; none are relabeled PASS.",
+    "2026-11-02T16:38:42.091786+00:00 Required progress record invocation appended exactly once and wrote matching output, then exited1 due to missing args.state in post-write validation. The one-line dispatch fix has14 progress-journal tests passed, including three actual-CLI regression tests; the real record command was not repeated."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -645,7 +655,8 @@
     "MJ-REQ-266: PostgreSQL-specific and full repository suites, live providers, hosted Actions/reviews NOT_RUN; external application submission OFF.",
     "2026-10-10 sprint: full repository Python discovery, PostgreSQL, real ATS, hosted CI/review, hard-crash reservation takeover, and user-personal runtime acceptance NOT_RUN.",
     "2026-10-11: PostgreSQL/Compose runtime, live ATS, hosted CI/review and real submission remain NOT_RUN/OFF; external submission OFF.",
-    "Native exact-merge runs retained 16 and 23 skips, principally absent local PostgreSQL plus optional live WWR. Hosted isolated PostgreSQL cases executed separately. Paid AI, employer submission and destructive live restore were not run."
+    "Native exact-merge runs retained 16 and 23 skips, principally absent local PostgreSQL plus optional live WWR. Hosted isolated PostgreSQL cases executed separately. Paid AI, employer submission and destructive live restore were not run.",
+    "2026-11-02T16:31:30.298740+00:00 Authenticated public Browser observation NOT_RUN: originating connected browser context unavailable. Physical host restart and the full original292 journey remain unproved; no real employer submissions or paid AI calls."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -667,13 +678,13 @@
     "#237 / MJ-REQ-236: the discovery collector does not expose a trustworthy duplicate tally; the history field is retained as null and UI renders Unknown rather than deriving a false count. Live external-source and hosted acceptance NOT_RUN_BY_USER_POLICY.",
     "MJ-FEATURE-517 remains OPEN/PARTIAL beyond this bounded slice; broader source-provider/browser intake and live/hosted acceptance remain unverified. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
     "Issue #238 local SQLite/synthetic acceptance does not verify PostgreSQL or live employer/ATS behavior; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "MJ-REQ-267 resolves only through a user-triggered bounded check to allowlisted verified employer/ATS destinations. Candidates are ephemeral and require manual review; no automatic submission gate is enabled. Live remote behavior, PostgreSQL, and hosted checks remain unverified; external submission OFF."
+    "Historical checkpoint, superseded for MJ-REQ-267 by protected PR886 and this delivery record; original text retained: MJ-REQ-267 resolves only through a user-triggered bounded check to allowlisted verified employer/ATS destinations. Candidates are ephemeral and require manual review; no automatic submission gate is enabled. Live remote behavior, PostgreSQL, and hosted checks remain unverified; external submission OFF."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
-    "Transient artifact cleanup is an explicit local maintenance action; automatic background cleanup and broader log/debug retention remain incomplete (MJ-REQ-170).",
-    "Connected browser suite on 1b35a11 reports repeatable failures in external application capture, resume summary/skill-ordering, and AI task fallback settings after locked frontend install/build. These paths were not changed by the backup subprocess slice; see docs/evidence/2026-10-07-backup-command-output-bounds.json.",
-    "MJ-REQ-179 debug capture currently covers only the local mock ATS browser adapter; real ATS/browser adapters remain unsupported. Broad unittest discovery currently records 2 failures and 9 errors at source 6d3b289 and requires triage."
+    "Historical checkpoint, superseded by the existing canonical MJ-REQ-170 PASS (not a new acceptance in this sprint); original text retained: Transient artifact cleanup is an explicit local maintenance action; automatic background cleanup and broader log/debug retention remain incomplete (MJ-REQ-170).",
+    "Historical failure at the named old revision; not a claim that the current protected source failed. Preserve its original receipt; later exact source results are linked by ci_verification. Original text retained: Connected browser suite on 1b35a11 reports repeatable failures in external application capture, resume summary/skill-ordering, and AI task fallback settings after locked frontend install/build. These paths were not changed by the backup subprocess slice; see docs/evidence/2026-10-07-backup-command-output-bounds.json.",
+    "Historical failure at the named old revision; not a claim that the current protected source failed. Preserve its original receipt; later exact source results are linked by ci_verification. Original text retained: MJ-REQ-179 debug capture currently covers only the local mock ATS browser adapter; real ATS/browser adapters remain unsupported. Broad unittest discovery currently records 2 failures and 9 errors at source 6d3b289 and requires triage."
   ],
   "known_test_harness_defects": [
     "Historical recovery run used Compose dependency startup; corrected to --no-deps and final isolated run is canonical",
@@ -686,32 +697,34 @@
     "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json.",
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
-    "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout\u00e2\u20ac\u2122s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
+    "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkoutâ€™s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "utc": "2026-11-02T02:34:15.944248+00:00",
-    "source_main": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
-    "deployed_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "utc": "2026-11-02T16:31:30.298740+00:00",
+    "source_main": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "deployed_sha": "d86a5bf79e883fdd40b750ad843a363960f35c43",
     "source_prs": [
-      881,
-      882,
-      883
+      886,
+      887,
+      888
     ],
-    "required_gates": "PASS 5/5 for each exact proposed source merge",
-    "evidence": "docs/evidence/2026-11-02-pro-ops-delivery.json",
-    "acceptance_publication": "Exact final main and closure readback are recorded in the containing acceptance PR final receipt."
+    "required_gates": "All five protected gates plus CodeQL passed for each exact source PR; tested and merged trees match.",
+    "evidence": "docs/evidence/2026-11-02-pro-resume/delivery.json",
+    "acceptance_publication": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash."
   },
   "ci_verification": {
     "result": "PASS",
-    "scope": "All three protected source PRs: exact proposed merge, all five required gates and seven source checkout identities",
-    "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "scope": "Three protected source PRs, exact proposed merge tests, source checkout identities and tested-tree equality. Containing acceptance publication has independent gates.",
+    "source_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
     "receipts": [
-      "docs/evidence/2026-11-02-pro-ops/pr-881-protected-merge.json",
-      "docs/evidence/2026-11-02-pro-ops/pr-882-protected-merge.json",
-      "docs/evidence/2026-11-02-pro-ops/pr-883-protected-merge.json"
+      "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+      "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+      "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json"
     ],
-    "acceptance_pr": "Publication checks remain a separate gate, recorded in the containing PR final receipt."
+    "prior_receipts": [
+      "docs/evidence/2026-11-02-pro-ops-delivery.json"
+    ]
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -774,7 +787,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Publish combined protected configuration recovery and verification branch after integrating PR887 merge2c6a93f3; pass exact proposed-merge native/protected checks, deploy through guarded updater, run exact deployed dry-run/full fixture commands, then reconcile literal acceptance for162/167/175/208/267/275/288. Keep broad P0004/008/292 PARTIAL.",
+  "recommended_resume_step": "Read the containing acceptance PR final receipt and verify current main/deployment first. Next implement MJ-REQ-004 database-blocked cancellation/deadline fencing; then isolated RQ/Redis interruption recovery for008 and the gated owned-stack journey for292. Keep171/172/174 and real-provider gaps open until literal evidence exists.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -1185,12 +1198,103 @@
         "git_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
         "evidence_path": "docs/evidence/2026-11-02-pro-ops-delivery.json"
       }
+    },
+    {
+      "milestone_id": "PRO-RESUME-VERIFIED-DELIVERY-20261102",
+      "timestamp": "2026-11-02T16:38:42.091786+00:00",
+      "current_phase": "Verified resumed source delivery and seven additional original P1 acceptances",
+      "completed_steps": [
+        "Protected source PRs886/887/888 merged with exact tested-tree equality and all source gates/CodeQL PASS.",
+        "Guarded d86 production rollout and fresh public DRY_RUN11/FULL13 verified; safe schema/configuration/image readback, backup and rollback preservation recorded.",
+        "Seven literal P1 acceptances prepared for protected publication; P1 99 to106, P0 unchanged12, separate reference authority byte-for-byte unchanged.",
+        "Ownership-verified cleanup preserves unrelated fleet edits; fresh WWR capture/replay proves conflicting upstream data cannot change persisted job rows."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-02-pro-resume/README.md",
+        "docs/evidence/2026-11-02-pro-resume/backup-criteria.json",
+        "docs/evidence/2026-11-02-pro-resume/cloudflare-and-browser.json",
+        "docs/evidence/2026-11-02-pro-resume/configuration-and-schema.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-command-manifest-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-dry-run-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivered-full-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/delivery.json",
+        "docs/evidence/2026-11-02-pro-resume/dependency-followup.json",
+        "docs/evidence/2026-11-02-pro-resume/deployment-gate-recovery.json",
+        "docs/evidence/2026-11-02-pro-resume/environment-cleanup.json",
+        "docs/evidence/2026-11-02-pro-resume/guarded-delivery-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/milestone.json",
+        "docs/evidence/2026-11-02-pro-resume/native-receipt-provenance.json",
+        "docs/evidence/2026-11-02-pro-resume/pr886-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/pr887-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-artifacts.json",
+        "docs/evidence/2026-11-02-pro-resume/pr888-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-resume/prior-acceptance-notes.json",
+        "docs/evidence/2026-11-02-pro-resume/production-runtime-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/production-schema-d86.json",
+        "docs/evidence/2026-11-02-pro-resume/progress-record-recovery.json",
+        "docs/evidence/2026-11-02-pro-resume/wwr-bounded-replay.json",
+        "planning/agent_handoffs/pro-resume-delivery-20261102.json"
+      ],
+      "files_modified": [
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "docs/PROGRESS_DASHBOARD.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "planning/SESSION_HANDOFF.md",
+        "tests/unit/test_deployment_checks.py",
+        "tests/unit/test_progress_journal.py",
+        "tools/deploy/wait_for_checks.py",
+        "tools/verification/progress.py"
+      ],
+      "tests_completed": [
+        "Exact proposed merge native406/164/144; subtests/skips and overlap explicitly recorded.",
+        "All five protected source gates and CodeQL for three PRs; source and merged trees equal.",
+        "PR888 unit3385/53skip/3724subtests and integration2545/39skip/1495subtests; platform-specific cases separately reconciled.",
+        "Delivered dry-run11/FULL13 exit0, clean matching identity and owned cleanup; production50tables/84FK and7 application containers healthy.",
+        "Local deployment-gate30 tests and progress-journal14 tests PASS, zero skips; pre-fix failure controls reproduced; native exact publication and hosted gates remain separately pending.",
+        "Catalogue, planning reconciliation, progress journal, generated dashboard, portable checkpoint and whitespace validators PASS."
+      ],
+      "tests_remaining": [
+        "Containing acceptance/source-hardening PR exact proposed merge native and hosted gates, final guarded rollout and command readback.",
+        "Full P0004/008/292 and P1171/172/174 literal acceptance; no substitute from narrow delivered scopes."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Existing guarded MJobs Micro updater, exact release/image, PostgreSQL/Redis/RQ/scheduler readiness, read-only schema and safe configuration.",
+        "One bounded official WWR read plus two controlled production-collector replays; upstream conflict refusal and unchanged persisted job rows verified.",
+        "Cloudflare tunnel/DNS/Access inspected read-only; public authenticated browser context unavailable."
+      ],
+      "known_errors": [
+        "Route and browser regression failures, stale TLS/TestClient fixture failures and their focused reproductions remain in PR886 evidence.",
+        "PR887 first native database setup refused non-empty shared test targets before pytest. Separate owned schemas were used; no existing data was reset.",
+        "Two PR887 hosted timing failures remain recorded. Collection before timed fixture setup stabilizes its harness; automatic GC, production deadlines and assertions remain enabled. Exact final 164 native tests and hosted source gates pass.",
+        "Protected backup initially exposed Windows cross-API ctime differences and a correctly refused non-private Temp ancestor; fixed same-API checks and owned private test parent were independently reviewed.",
+        "FULL source identity review reproduced transient-edit and clean-checkout false positives; before/child/after source binding now rejects both.",
+        "Main d86 candidate run41478359557 attempt1 failed on HTTPError during a GitHub read, before image build. HTTP status was unavailable. A single diagnosed job rerun followed completed independent gates and fresh successful reads. Both outcomes are retained.",
+        "Historical November 1 backup exit-2 detail was discarded and cannot be reconstructed.",
+        "Required progress record invocation appended exactly once and wrote matching output, then exited1 due to missing args.state in post-write validation. The one-line dispatch fix has14 progress-journal tests passed, including three actual-CLI regression tests; the real record command was not repeated."
+      ],
+      "known_limitations": [
+        "External employer submissions remain OFF; fixture confirmation is not a real application.",
+        "No paid AI calls, destructive production restore, host reboot, unrelated process termination, or fleet launch was performed.",
+        "Public authenticated Browser observation is NOT_RUN because the originating connected browser context was unavailable; no access policy was weakened.",
+        "WWR still has two conflicting groups among 100 entries/98 identities. Both replay orders safely reject without changing six persisted job tables.",
+        "P0 004/008/292 remain PARTIAL. P1 171/172/174 remain NOT_RUN. Database design does not imply ORM/security completeness; secret handling does not imply all PII protection.",
+        "Disposable test container/volume/private Temp and 33 owned dirty local files were cleaned only after ownership and published-blob verification. Unrelated fleet worktree changes were preserved."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+        "evidence_path": "docs/evidence/2026-11-02-pro-resume/delivery.json"
+      }
     }
   ],
-  "current_phase": "Verified operational source delivery and canonical three-requirement P1 acceptance",
+  "current_phase": "Verified resumed source delivery and seven additional original P1 acceptances",
   "last_safe_checkpoint": {
-    "git_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
-    "evidence_path": "docs/evidence/2026-11-02-pro-ops-delivery.json"
+    "git_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "evidence_path": "docs/evidence/2026-11-02-pro-resume/delivery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -3401,23 +3505,23 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "campaign": "pro-operational-verification-20261102",
-    "status": "NATIVE_VERIFIED_PENDING_PROTECTED_INTEGRATION",
-    "source_parent": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+    "campaign": "pro-resume-delivery-20261102",
+    "status": "SOURCE_DELIVERED_ACCEPTANCE_READY_FOR_PROTECTED_PUBLICATION",
+    "source_commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
     "requirements": [
-      "MJ-REQ-004",
+      "MJ-REQ-162",
       "MJ-REQ-167",
+      "MJ-REQ-175",
       "MJ-REQ-208",
+      "MJ-REQ-267",
+      "MJ-REQ-275",
       "MJ-REQ-288"
     ],
-    "branch": "work/protected-config-backup-20261102",
+    "branch": "work/pro-resume-closeout-20261102",
     "evidence": [
-      "docs/evidence/2026-11-02-pro-verification/criteria.json",
-      "docs/evidence/2026-11-02-pro-verification/source-identity-review.json",
-      "docs/evidence/2026-11-02-protected-config/native-review.json"
+      "docs/evidence/2026-11-02-pro-resume/delivery.json"
     ],
-    "acceptance_unchanged": true,
-    "checkpoint_scope": "Source implementation and native validation; exact proposed merge CI, deployed command receipts and canonical acceptance remain pending."
+    "publication_note": "This proposal is published by its own protected PR. The containing PR final description records its exact merge SHA, successful publication checks, final deployed SHA/commands and issue-closure readback; this source commit cannot self-contain a future commit hash."
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -4147,5 +4251,6 @@
     "external_submission": "OFF",
     "physical_host_reboot": "NOT_RUN",
     "next_candidate": "Reconcile live Project1 and original #275/MJ-REQ-274 process restart recovery before any new claim. No automatic continuation."
-  }
+  },
+  "historical_lists_policy": "Cumulative capability/test/limitation lists below retain dated historical observations, including failed and superseded runs. Current authority is CAPABILITY_MATRIX plus last_verified_checkpoint/current_slice and the latest milestone. A historical NOT_RUN/failure is never silently rewritten as a current PASS."
 }

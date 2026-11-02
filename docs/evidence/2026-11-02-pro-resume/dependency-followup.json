@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:05:10.566544+00:00",
+  "scope": "Fresh readback only; remediation was already complete before this resumed continuation.",
+  "alert": {
+    "number": 63,
+    "state": "fixed",
+    "fixed_at": "2026-11-02T01:10:26Z",
+    "dismissed_at": null,
+    "ghsa_id": "GHSA-g3hv-75wg-m249",
+    "package": "minimatch",
+    "manifest_path": "apps/web/package-lock.json",
+    "vulnerable_range": "< 11.0.1",
+    "first_patched_version": {
+      "identifier": "11.0.1"
+    }
+  },
+  "locked_minimatch": [
+    {
+      "path": "node_modules/@eslint/config-array/node_modules/minimatch",
+      "version": "11.0.3"
+    },
+    {
+      "path": "node_modules/eslint/node_modules/minimatch",
+      "version": "11.0.3"
+    }
+  ],
+  "override_maintenance": {
+    "upstream_issue": "https://github.com/eslint/eslint/issues/21463",
+    "state": "open",
+    "note": "Retain scoped compatibility overrides until upstream dependencies permit their retirement; no new dependency changes in this continuation."
+  }
+}

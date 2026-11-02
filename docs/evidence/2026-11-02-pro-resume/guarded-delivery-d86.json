@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T16:31:45.967026+00:00",
+  "result": "PASS",
+  "source": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+  "state": {
+    "sha": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "image": "mjobs-micro:sha-d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "deployed_at": "2026-11-02T16:31:13.437654+00:00"
+  },
+  "required_main_gates": {
+    "schema_version": 1,
+    "timestamp": "2026-11-02T16:30:04.301064+00:00",
+    "commit": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "required": [
+      {
+        "name": "Deployment / candidate",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41478359557/job/125401413005"
+      },
+      {
+        "name": "CI / required",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41478359777/job/125392186330"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41478359379/job/125401055760"
+      },
+      {
+        "name": "Security / secret scan",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41478359536/job/125389779942"
+      }
+    ],
+    "result": "PASS",
+    "read_query_errors_this_observation": 0,
+    "prior_observer_failure": "Initial read-only check-runs query returned gh exit1 before any updater invocation; direct exact query subsequently returned16 rows. No test rerun or gate bypass."
+  },
+  "read_failure_and_diagnosed_retry": {
+    "schema_version": 1,
+    "timestamp": "2026-11-02T16:27:45.764384+00:00",
+    "sha": "d86a5bf79e883fdd40b750ad843a363960f35c43",
+    "failed_run": 41478359557,
+    "failed_job": 125389779209,
+    "diagnosis": "Read-only GitHub status lookup aborted on HTTPError before image build; original HTTP status unavailable. Independent exact-main checks now complete successfully and fresh API reads succeeded.",
+    "independent_checks": {
+      "CI / required": "https://github.com/MulattoTech/MJobs/actions/runs/41478359777/job/125392186330",
+      "Integration / PostgreSQL and Redis": "https://github.com/MulattoTech/MJobs/actions/runs/41478359379/job/125401055760",
+      "Security / secret scan": "https://github.com/MulattoTech/MJobs/actions/runs/41478359536/job/125389779942"
+    },
+    "action": "One rerun of failed deployment-candidate job after diagnosing an external read failure; no source-test rerun, changed thresholds, or gate bypass.",
+    "rerun_command_exit": 0
+  },
+  "updater_sha256": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+  "backup": {
+    "archive_name": "20261102T163102Z-2c6a93f3eeec",
+    "verify_command_exit": 0,
+    "manifest_sha256": "54849abc77e32875551ff76073c5db34fff374d2e45c8526a9a98050f68bc923",
+    "schema_version": 2,
+    "files": 3,
+    "source_project": "mjobs-micro",
+    "operation_mode": "PERSONAL",
+    "migration_revision": "20261025di01",
+    "private_document_paths_retained": false
+  },
+  "rollback": {
+    "commit": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+    "image": "mjobs-micro:sha-2c6a93f3eeecd5d6777bec25a18855a7bf8ac310",
+    "image_id": "sha256:bf89c45ab3ffe77ef1e000fff2e1d231f37132744524cae16d827f317f1cb33e",
+    "source_exists": true,
+    "source_revision_verified": true
+  },
+  "destructive_restore": false,
+  "external_submission_enabled": false,
+  "guarded_switch_only": true
+}
