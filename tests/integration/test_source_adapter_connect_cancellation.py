@@ -350,7 +350,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             and scope["method"] == "POST" and scope["path"].endswith("/cancel")):
                         # Exercise slow fixture/ASGI scheduling before the real
                         # synchronous cancellation service is admitted.
-                        await asyncio.sleep(cancel_dispatch_delay)
+                        # Use the measured clock as the oracle: a timer callback
+                        # can be scheduled slightly before its requested delay.
+                        dispatch_ready_at = time.monotonic() + cancel_dispatch_delay
+                        while (remaining := dispatch_ready_at - time.monotonic()) > 0:
+                            await asyncio.sleep(remaining)
                     await app(scope, receive, send)
 
                 with TestClient(dispatch) as client:
