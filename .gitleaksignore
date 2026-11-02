@@ -286,3 +286,24 @@ c9dd86fd8e65b9d9686d4cdf902073de74ac18f3:docs/evidence/2026-11-01-pro-p1/criteri
 
 # Independently recomputed SHA-256 of committed apps/web/src/api.ts; not a credential.
 6b4127b59bb042f20a6e87ae077465dcf0e8cd7d:docs/evidence/2026-11-01-ui-injected-request-deadlines.json:generic-api-key:186
+
+# 2026-11-02: five source SHA-256 digests and twelve Git commit references independently verified.
+# Proof: docs/evidence/2026-11-02-pro-ops/secret-scan-review.json
+# Exact immutable history fingerprints only; no scanner rule or directory suppression.
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops-delivery.json:generic-api-key:117
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops-delivery.json:generic-api-key:118
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops-delivery.json:generic-api-key:119
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops-delivery.json:generic-api-key:147
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops-delivery.json:generic-api-key:148
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:12
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:55
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:98
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:120
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:163
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:206
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:228
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:271
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:314
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:336
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:379
+4ce7456aa48547eff86c62556a8f27940a203757:docs/evidence/2026-11-02-pro-ops/ci-history.json:generic-api-key:422
