@@ -6002,6 +6002,24 @@
       "branch": "work/pro-secret-errors-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-secret-errors/criteria.json",
       "notes": "Native106 tests+135 subtests passed, zero skips. Reproduced13 failures across two pre-fix runs. Exact protected CI/deployment pending; canonical acceptance unchanged."
+    },
+    {
+      "id": "MJ-PR-PRO-VERIFY-20261102",
+      "title": "Complete dry-run and observed platform verification modes",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-208",
+        "MJ-REQ-288",
+        "MJ-REQ-004"
+      ],
+      "target_area": "cli/verification_checks.py; cli/verification_fixture.py; cli/verify_readiness.py; command and transport regressions",
+      "depends_on": [
+        "MJ-PR-PRO-SECRET-ERRORS-20261102"
+      ],
+      "status": "IMPLEMENTED_AWAITING_CI",
+      "branch": "work/verified-dry-run-20261102",
+      "evidence": "docs/evidence/2026-11-02-pro-verification/criteria.json",
+      "notes": "Native102 tests+9subtests passed, one explicit Linux-only skip; final28 focused regressions passed, zero skips. Exact protected CI and deployed full command pending. Acceptance unchanged."
     }
   ],
   "generated_at": "2026-11-01T06:12:03.759437+00:00"

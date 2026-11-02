@@ -49,6 +49,115 @@ def test_connected_command_executes_sources_and_durable_application():
     assert report["cleanup"]["status"] == "PASS"
 
 
+@requires_windows_connected
+def test_explicit_dry_run_executes_complete_pipeline_with_zero_submissions():
+    result = command("--dry-run", "--fixture", "--json")
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = json.loads(result.stdout)
+    assert report["execution_mode"] == "DRY_RUN"
+    assert all(row["status"] == "PASS" for row in report["checks"].values()), report
+    assert report["observations"]["score"] == 100
+    assert report["observations"]["scoring_operation_id"]
+    assert report["observations"]["company_operation_id"]
+    assert report["observations"]["submission_count"] == 0
+    assert report["observations"]["persisted_state"] == "DRY_RUN_COMPLETE"
+    assert "mock confirmation" not in report["checks"]
+    assert report["cleanup"]["status"] == "PASS"
+    assert not Path(report["workspace"]).exists()
+
+
+@requires_windows_connected
+def test_dry_run_never_enters_submit_path_and_parent_rejects_changed_artifacts(tmp_path):
+    import sqlite3
+    from cli.verification_checks import _corroborate, new_report, exit_status
+    from cli.verification_fixture import exercise
+    from services.applications import mock_adapter
+    import workers.tasks
+
+    report = new_report("dry-run-boundary", "revision", "inputs", mode="DRY_RUN")
+    report["workspace"] = str(tmp_path)
+    expected = deepcopy(report)
+    original = mock_adapter.apply_mock
+    calls = []
+
+    def forbid_submission(*args, **kwargs):
+        assert kwargs.get("submit") is False, "dry-run reached a submission boundary"
+        calls.append(False)
+        return original(*args, **kwargs)
+
+    with patch.dict(os.environ), patch.object(mock_adapter, "apply_mock", forbid_submission), \
+            patch.object(workers.tasks, "apply_mock", forbid_submission):
+        exercise(report, tmp_path, 120)
+    assert exit_status(report) == 0, report
+    assert calls == [False]
+    _corroborate(report, expected)
+    database = tmp_path / "fixture.db"
+    with sqlite3.connect(database) as connection:
+        connection.execute("UPDATE job_matches SET score = 50")
+    with pytest.raises(ValueError, match="scoring explanation"):
+        _corroborate(report, expected)
+    with sqlite3.connect(database) as connection:
+        connection.execute("UPDATE job_matches SET score = 100")
+        connection.execute("UPDATE applications SET state = 'CONFIRMED'")
+    with pytest.raises(ValueError, match="dry-run persistence"):
+        _corroborate(report, expected)
+    with sqlite3.connect(database) as connection:
+        connection.execute("UPDATE applications SET state = 'DRY_RUN_COMPLETE'")
+    counts_path = tmp_path / "request-counts.json"
+    counts = json.loads(counts_path.read_text())
+    counts["submit"] = 1
+    counts_path.write_text(json.dumps(counts))
+    with pytest.raises(ValueError, match="zero-submission"):
+        _corroborate(report, expected)
+    for submit, review in ((False, 1), (0.0, 1), (0, True), (0, 1.0)):
+        counts.update(submit=submit, review=review)
+        counts_path.write_text(json.dumps(counts))
+        with pytest.raises(ValueError, match="zero-submission"):
+            _corroborate(report, expected)
+
+
+@requires_windows_connected
+def test_no_op_rescore_cannot_pass_using_discovery_scores(tmp_path):
+    from cli.verification_checks import new_report, exit_status
+    from cli.verification_fixture import exercise
+    import workers.tasks
+
+    report = new_report("dry-run-no-op-score", "revision", "inputs", mode="DRY_RUN")
+    # Discovery's own recalculation remains real; only the separately admitted
+    # rescore worker branch is faulty and completes without writing new scores.
+    with patch.dict(os.environ), patch.object(workers.tasks, "recalculate", return_value=None) as rescore:
+        exercise(report, tmp_path, 120)
+    rescore.assert_called_once()
+    assert report["checks"]["mock global source"]["status"] == "PASS"
+    assert report["checks"]["mock company discovery"]["status"] == "PASS"
+    assert report["checks"]["Scoring functional"]["status"] == "FAIL"
+    assert report["checks"]["Document engine healthy"]["status"] == "NOT_RUN"
+    assert exit_status(report) == 1
+
+
+@requires_windows_connected
+def test_no_op_explicit_discovery_cannot_borrow_company_discovery_inventory(tmp_path):
+    from cli.verification_checks import new_report, exit_status
+    from cli.verification_fixture import exercise
+    import workers.tasks
+
+    report = new_report("dry-run-no-op-discovery", "revision", "inputs", mode="DRY_RUN")
+    original = workers.tasks.discover
+    calls = []
+
+    def only_first_discovery(*args, **kwargs):
+        calls.append(True)
+        return original(*args, **kwargs) if len(calls) == 1 else []
+
+    with patch.dict(os.environ), patch.object(workers.tasks, "discover", side_effect=only_first_discovery):
+        exercise(report, tmp_path, 120)
+    assert len(calls) == 2
+    assert report["checks"]["mock company discovery"]["status"] == "PASS"
+    assert report["checks"]["mock global source"]["status"] == "FAIL"
+    assert report["checks"]["Scoring functional"]["status"] == "NOT_RUN"
+    assert exit_status(report) == 1
+
+
 def test_connected_requires_explicit_fixture_admission():
     result = command("--connected", "--json")
     assert result.returncode != 0

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "status": "IMPLEMENTED_NATIVE_VERIFIED_PENDING_EXACT_CI_AND_DEPLOYMENT",
+  "source_parent": "85d1bff4c1ae542773a75cf3d60efb50725d8591",
+  "source_sha256": [
+    {
+      "path": "cli/verify_readiness.py",
+      "sha256": "0a8601deaf708e6ce26073d5abf8f9a8eb4e2cc7ca7ad879890eabea574e3d8e"
+    },
+    {
+      "path": "cli/verification_checks.py",
+      "sha256": "beb50e4fad49f931b59e771cbeed75b9ae3566d2eb607ecdbc00b4f692b6abd9"
+    },
+    {
+      "path": "cli/verification_fixture.py",
+      "sha256": "efbfcd69fc09e64a665cde699f216c336dd6c6c39f926d3cefdb09764ec145f1"
+    },
+    {
+      "path": "tests/unit/test_cli_verification_modes.py",
+      "sha256": "a6f4ff16f720faa1df7ab983262b6036a66450fd3572165e103d04f70641f516"
+    },
+    {
+      "path": "tests/unit/test_verification_utility_sustain_289.py",
+      "sha256": "ebb925878cc4a08616e43b8de660ff9365143f4160c3dd03c47581c993b619a5"
+    },
+    {
+      "path": "tests/integration/test_connected_verification_command.py",
+      "sha256": "6784ccd5afc818477f8f40db92fd059e8213ffa346348687df163cd80d95df3d"
+    }
+  ],
+  "requirements": {
+    "MJ-REQ-208": {
+      "literal": "DRY_RUN: discovery, company discovery, scoring, documents, browser navigation, forms and validation work; final external submission does not occur.",
+      "implemented": "Selectable --dry-run --fixture executes those production API/durable-worker paths with controlled sources, fresh discovery audit, new matching-input profile revision, parsed/hashed generated documents, actual Chromium fill/upload/validation and reopened DRY_RUN_COMPLETE; parent independently corroborates mode-bound artifacts and zero submissions.",
+      "acceptance": "Candidate only; exact protected source and deployed verification pending."
+    },
+    "MJ-REQ-288": {
+      "literal": "One truthful verification command reports configuration/schema/PostgreSQL/Redis/scheduler/workers and executed source/document/browser/application checks. Never fabricate a PASS.",
+      "implemented": "--full --fixture combines fresh live runtime observations before/after fresh connected execution, strict clean source/deployment identity, actual current child evidence and proven cleanup. All scopes remain distinct.",
+      "acceptance": "Full command on the exact deployed source remains pending."
+    },
+    "MJ-REQ-004": {
+      "implemented": "Each live readiness/identity observation uses one absolute transport deadline across bounded DNS, TCP, TLS, headers/body; streamed 64KiB ceiling and no compression, redirect or inherited proxy. Native slow header/body drip negatives and owned child deadline verified.",
+      "acceptance": "Scoped improvement; whole P0 remains PARTIAL."
+    }
+  },
+  "native_history": [
+    {
+      "receipt": "outputs/verification-modes-native.xml",
+      "result": "FAIL",
+      "failures": 7,
+      "passed": null,
+      "detail": "Initial parent corroboration incorrectly queried logical operations instead of physical worker_operations. Failed execution history retained; no acceptance."
+    },
+    {
+      "receipt": "outputs/verification-modes-reviewed.log",
+      "result": "ABORTED_TRANSFER_MISMATCH",
+      "detail": "A source-transfer timeout left old CLI files with updated tests. File hashes proved mismatch. Slow-drip regression reached inherited unbounded read; only the verified owned test process tree was terminated. No pass claimed. Files then synchronized individually and hashes checked."
+    },
+    {
+      "receipt": "outputs/verification-modes-final.xml",
+      "result": "PASS_BEFORE_FINAL_PARSE_GUARD",
+      "passed": 102,
+      "subtests_passed": 9,
+      "skipped": 1,
+      "duration_seconds": 85.14,
+      "sha256": "f30617e7976690904c86c7aa0d717154358ec2738ba3424e51528cf8ac428385",
+      "skip": "test_non_windows_connected_command_is_blocked_without_functional_pass is Linux-only; Windows native skip is not PASS. Linux required CI must execute it.",
+      "scope": "Native Windows retained-Job containment, fresh complete dry-run, connected one-mock-confirmation/replay, positive and negative parent evidence, no-op rescore/discovery faults, malformed identities, strict mode admission, HTTP header/body deadlines and response limits."
+    },
+    {
+      "receipt": "outputs/verification-parser-final.xml",
+      "result": "PASS",
+      "passed": 28,
+      "skipped": 0,
+      "duration_seconds": 6.33,
+      "scope": "Final absolute live-probe deadline/size/privacy/malformed identity/deep JSON controls and real dry-run parent-artifact validation including rejection of boolean/float counters. Overlaps the prior run; totals are not additive."
+    }
+  ],
+  "independent_review": {
+    "findings_fixed": [
+      "Use real matching-input revision because contact-only revisions copy old score snapshots.",
+      "Require new explicit discovery completion audit rather than borrow company-discovery inventory.",
+      "Use actual worker_operations table for parent corroboration.",
+      "Use absolute request guard with per-request client, trace binding, bounded streamed body; retain readiness when identity fails.",
+      "Reject malformed ports and non-string operation modes.",
+      "Require integer request counters, not boolean/float equality.",
+      "Catch deeply nested JSON RecursionError as unavailable probe; 20,001-byte native regression verifies parser throws before testing preserved readiness and identity outcomes."
+    ],
+    "scope": "Two independent read-only source reviewers; tests owned by integration owner.",
+    "result": "All concrete review findings fixed; final focused regressions passed."
+  },
+  "limitations": [
+    "No real employer application or paid AI API call.",
+    "Functional modes remain Windows-only with explicit BLOCKED result on unsupported containment platforms.",
+    "Temporary SQLite/inline functional execution is kept separate from deployed PostgreSQL/Redis/RQ/scheduler observations.",
+    "Original requirement matrices and all historical evidence remain unchanged until exact source CI and deployed acceptance."
+  ]
+}

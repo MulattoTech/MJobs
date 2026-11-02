@@ -15,7 +15,7 @@ import sys
 import time
 from urllib.parse import urlsplit
 
-from cli.verification_checks import CHECKS, exit_status
+from cli.verification_checks import CHECKS, checks_for, exit_status
 
 
 def require(condition, reason):
@@ -54,6 +54,8 @@ def validate_registry_probe(adapter, batch, requests):
 
 
 def exercise(report, root, timeout):
+    mode = report["execution_mode"]
+    require(set(report["checks"]) == set(checks_for(mode)), "execution mode/check inventory mismatch")
     active = CHECKS[0]
     deadline = time.monotonic() + timeout - 0.5
 
@@ -77,8 +79,6 @@ def exercise(report, root, timeout):
         from packages.persistence import models as m
         from packages.persistence.store import Store
         from services.ats_detection.detector import detect_ats
-        from services.company_discovery.flywheel import discover_company_source
-        from services.discovery.pipeline import MockClient
         from services.discovery.sources.registry import source_adapter
         from services.applications.mock_adapter import apply_mock
         from tests.integration.test_spine import PROFILE
@@ -148,27 +148,49 @@ def exercise(report, root, timeout):
                             "owned API fixture admission failed")
                     report["observations"]["fixture_origin"] = origin
                     call("PUT", "/profiles", json=profile)
+                    report["observations"]["profile_id"] = profile["id"]
+                    # Run the explicit durable company operation before global
+                    # discovery can enroll that company as a side effect.
+                    active = "mock company discovery"
+                    company = call("POST", "/companies/discovery", json={
+                        "company_name": "Example Systems Inc.", "company_website": origin + "/company",
+                        "reason": "USER_ADDED_COMPANY", "profile_id": profile["id"],
+                        "request_id": "company-" + report["invocation_id"],
+                    })
+                    require(company.get("status") == "QUEUED" and company.get("operation_id"),
+                            "fresh company discovery operation was not admitted")
+                    execute(company)
+                    with store.engine.connect() as connection:
+                        company_sources = list(connection.execute(select(m.company_sources)).mappings())
+                    require(len(company_sources) == 1
+                            and company_sources[0]["company_id"] == company["company_id"]
+                            and company_sources[0]["provider"] == "mock-ats"
+                            and company_sources[0]["tenant"] == "example", "company discovery persistence mismatch")
+                    report["observations"].update(company_operation_id=company["operation_id"],
+                                                  company_id=company["company_id"])
+                    passed(active, "API company-discovery operation fetched the owned careers/ATS feed and persisted its source")
+
                     active = "mock global source"
-                    execute(call("POST", "/discovery", json={"profile_id": profile["id"]}))
+                    with store.engine.connect() as connection:
+                        prior_audits = set(connection.execute(select(m.audit.c.id).where(
+                            m.audit.c.entity_id == profile["id"], m.audit.c.action == "MOCK_DISCOVERY_COMPLETE")).scalars())
+                    discovery = call("POST", "/discovery", json={"profile_id": profile["id"],
+                        "request_id": "discover-" + report["invocation_id"]})
+                    execute(discovery)
+                    with store.engine.connect() as connection:
+                        completed_audits = set(connection.execute(select(m.audit.c.id).where(
+                            m.audit.c.entity_id == profile["id"], m.audit.c.action == "MOCK_DISCOVERY_COMPLETE")).scalars())
+                    fresh_audits = completed_audits - prior_audits
+                    require(len(fresh_audits) == 1 and prior_audits <= completed_audits,
+                            "explicit global discovery did not persist fresh completion evidence")
                     jobs = call("GET", "/jobs", params={"profile_id": profile["id"]})["jobs"]
                     require({job["requisition"] for job in jobs} == {"A", "B"}
                             and store.count("job_postings") == 4, "mock discovery inventory mismatch")
                     report["observations"]["profile_id"] = profile["id"]
                     report["observations"]["canonical_jobs"] = len(jobs)
+                    report["observations"].update(discovery_operation_id=discovery["operation_id"],
+                        discovery_audit_id=next(iter(fresh_audits)), discovery_prior_audit_ids=sorted(prior_audits))
                     passed(active, "API discovery operation executed; two jobs and four postings persisted")
-
-                    active = "mock company discovery"
-                    transport = MockClient(origin, check=check)
-                    try:
-                        company = discover_company_source(store, {
-                            "company_name": "Example Systems Inc.", "company_website": origin + "/company",
-                        }, transport, check=check, profile_id=profile["id"])
-                    finally:
-                        transport.close()
-                    require(company["provider"] == "mock-ats" and company["tenant"] == "example"
-                            and company["jobs_enumerated"] == 2 and store.count("company_job_sources") == 1,
-                            "company discovery did not prove and persist fixture feed")
-                    passed(active, "company resolver fetched owned careers/ATS feed and persisted one source with two jobs")
 
                     active = "ATS detector"
                     html = fixture.get(origin + "/ats/example").text
@@ -177,6 +199,46 @@ def exercise(report, root, timeout):
                     require(unknown.status == "NO_MATCH" and detected.status == "MATCH" and detected.provider == "lever",
                             "detector synthetic positive/negative controls failed")
                     passed(active, "real detector matched synthetic Lever signature and rejected mock-only page with NO_MATCH; no provider fetch")
+
+                    active = "Scoring functional"
+                    # Discovery already scores its initial profile. Change a
+                    # genuine matching input so a no-op rescore cannot borrow
+                    # those older rows (contact-only edits may copy scores).
+                    previous_version = store.profile(profile["id"])["version"]
+                    profile["facts"] = [*profile["facts"], {
+                        "id": "fixture-extra-skill", "text": "TypeScript", "kind": "skill",
+                        "source": "fictional-verification-profile", "verified": True,
+                        "user_approved": True, "confidence": 100,
+                    }]
+                    updated_profile = call("PUT", "/profiles", json={**profile, "expected_version": previous_version})
+                    profile_version = updated_profile["version"]
+                    with store.engine.connect() as connection:
+                        existing_score = connection.execute(select(m.matches.c.id).where(
+                            m.matches.c.profile_id == profile["id"],
+                            m.matches.c.profile_version == profile_version)).first()
+                    require(profile_version != previous_version and existing_score is None,
+                            "fresh scoring revision already has scores")
+                    scoring = call("POST", "/matches", json={
+                        "profile_id": profile["id"], "request_id": "score-" + report["invocation_id"],
+                    })
+                    execute(scoring)
+                    job = next(job for job in jobs if job["requisition"] == "B")
+                    profile_version = store.profile(profile["id"])["version"]
+                    with store.engine.connect() as connection:
+                        scores = list(connection.execute(select(m.matches).where(
+                            m.matches.c.profile_id == profile["id"],
+                            m.matches.c.profile_version == profile_version)).mappings())
+                    selected = [row for row in scores if row["job_id"] == job["id"]]
+                    require(len(scores) == 2 and len(selected) == 1, "current-profile scoring inventory mismatch")
+                    match = selected[0]
+                    strengths = {item["skill"]: item["strength"] for item in match["components"]["requirements"]}
+                    require(match["score"] == 100 and not match["missing"]
+                            and strengths == {"Python": "REQUIRED", "SQL": "REQUIRED"},
+                            "persisted score or explanation mismatch")
+                    report["observations"].update(scoring_operation_id=scoring["operation_id"],
+                        scored_profile_version=profile_version, scoring_previous_version=previous_version,
+                        scores_before_rescore=0, scored_job_id=job["id"], score=match["score"])
+                    passed(active, "explicit API scoring operation persisted current-profile scores and required Python/SQL evidence")
 
                     active = "Document engine healthy"
                     job = next(job for job in jobs if job["requisition"] == "B")
@@ -247,6 +309,25 @@ def exercise(report, root, timeout):
                                         and item["sha256"] == doc["sha256"]["pdf"] for doc in documents)
                                     for item in uploads), "browser upload byte provenance missing")
                     passed(active, "real browser selected generated files; mock server accepted multipart review and adapter verified bytes")
+
+                    if mode == "DRY_RUN":
+                        active = "durable readback"
+                        reopened = Store(db)
+                        try:
+                            restored = reopened.application(app_id)
+                            require(restored["state"] == "DRY_RUN_COMPLETE" and restored["confirmation"] is None
+                                    and reopened.count("applications") == 1, "fresh store lost dry-run state")
+                        finally:
+                            reopened.engine.dispose()
+                        counts = fixture.get(origin + "/_test/request-counts").json()
+                        require(counts["submit"] == 0 and counts["review"] == 1
+                                and fixture.get(origin + "/ats/receipts/" + app_id).json() == {"status": "not_found"},
+                                "dry-run produced a submission or receipt")
+                        (root / "request-counts.json").write_text(json.dumps(counts), encoding="utf-8")
+                        report["observations"].update(application_id=app_id, submission_count=0,
+                            persisted_state=restored["state"])
+                        passed(active, "fresh Store retains DRY_RUN_COMPLETE; no confirmation, receipt or submission request")
+                        return
 
                     active = "mock confirmation"
                     submit = call("POST", app_path + "/mock-run", json={"submit": True})

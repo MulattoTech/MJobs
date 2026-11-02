@@ -10,7 +10,7 @@ and preparing applications without losing control of your data.
 [![Integration](https://github.com/MulattoTech/MJobs/actions/workflows/integration.yml/badge.svg)](https://github.com/MulattoTech/MJobs/actions/workflows/integration.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-[**Open the Access-protected preview**](https://mjobs.m-techlabs.com) · [Deployment](infra/deploy/README.md) · [Install](docs/INSTALLATION.md) · [Try the demo](docs/USER_TESTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Develop](docs/DEVELOPMENT.md) · [Roadmap](https://github.com/users/MulattoTech/projects/1)
+[**Open the Access-protected preview**](https://mjobs.m-techlabs.com) · [Deployment](infra/deploy/README.md) · [Install](docs/INSTALLATION.md) · [Try the demo](docs/USER_TESTING.md) · [Verify](docs/runbooks/VERIFY_PLATFORM.md) · [Architecture](docs/ARCHITECTURE.md) · [Develop](docs/DEVELOPMENT.md) · [Roadmap](https://github.com/users/MulattoTech/projects/1)
 
 </div>
 

@@ -99,6 +99,13 @@ def duplicate_receipt_evidence(tmp_path, submission_count):
     with sqlite3.connect(workspace / "fixture.db") as db:
         db.execute("CREATE TABLE job_postings (id INTEGER)")
         db.executemany("INSERT INTO job_postings VALUES (?)", [(1,), (2,), (3,), (4,)])
+        db.execute("CREATE TABLE worker_operations (id TEXT, kind TEXT, entity_id TEXT, state TEXT, params TEXT)")
+        db.execute("INSERT INTO worker_operations VALUES (?, ?, ?, ?, ?)",
+                   ("discovery-current", "DISCOVER", "verification-current-invocation", "COMPLETED",
+                    json.dumps({"request_id": "discover-current-invocation"})))
+        db.execute("CREATE TABLE audit_events (id TEXT, entity_id TEXT, action TEXT)")
+        db.execute("INSERT INTO audit_events VALUES (?, ?, ?)",
+                   ("audit-current", "verification-current-invocation", "MOCK_DISCOVERY_COMPLETE"))
         db.execute(
             "CREATE TABLE applications (id TEXT, profile_id TEXT, state TEXT, confirmation TEXT)"
         )
@@ -123,6 +130,8 @@ def duplicate_receipt_evidence(tmp_path, submission_count):
         registry_tenant="fixture",
         profile_id="verification-current-invocation",
         canonical_jobs=2,
+        discovery_operation_id="discovery-current", discovery_audit_id="audit-current",
+        discovery_prior_audit_ids=[],
         submission_count=submission_count,
         confirmation_operation_id="operation-original",
         duplicate_retry_operation_id="operation-original",
