@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T00:34:04.724825+00:00",
+  "requirement": "MJ-REQ-019",
+  "result": "IMPLEMENTED_PENDING_PROTECTED_CI_AND_DEPLOYMENT",
+  "canonical_acceptance": "PARTIAL_UNCHANGED",
+  "local_prepublication_commit": "23be592814303b959bce4a08c71ace2a2abf016e",
+  "identity_note": "Local prepublication history may be rebased before publication. These blob hashes bind the executed source; final acceptance must cite protected proposed-merge and deployed receipts.",
+  "source_blob_sha256": {
+    "apps/web/src/company-sources.test.tsx": "7474288581e68ed9c6cf10f6f1daec73bfbe25e54a27e9b91665c322ba4d4d4d",
+    "apps/web/src/company-sources.tsx": "e082debc3b1c4e1cdd07a9aba41cb3fcbcab9ba17040c28f630f6011f1699852",
+    "services/company_discovery/AREA.md": "7ae02c57d821fc08e0bcf093e144518b9829e151df211a3fc9fdb3d5c7deb65d",
+    "services/company_discovery/capabilities.py": "5ab3526fa7731931b9cf99523d06b58701ec3dbbe51b08a210b7e7214ce6a80a",
+    "services/company_discovery/sources.py": "69c1d62836ec5d3bfc6ef67061751f77713858dad40d832d9292770bd25a80c5",
+    "services/discovery/company_feed.py": "07ea9143b045c3e3cc08ccb16c647b42747bfe3f9b1e8d0c15ffa0c0483852aa",
+    "services/discovery/pipeline.py": "32cd83e74d0c9a96acd7dac0734d19cf52a79e042549d7dc51049e2da01606c7",
+    "tests/browser/test_company_source_view.py": "84b0d257f5f7274634bce04b7e964d1e91b289d07fd354af1240fc5da09d2386",
+    "tests/integration/test_company_source_monitoring.py": "35a63ce5633e958c3c6da8ae342657928046b837dc345396fcd365ffb2140c0e",
+    "tests/integration/test_company_source_view.py": "fd44c50fbda8fe8ced63a8daf670364e56fb79392f88b038eda7dd9f741c7ca3",
+    "tests/unit/test_company_source_capabilities.py": "bc35d5425603cfc5ad2494f8c89c2b122fc3e0b21bdca9147c740cce333947ad"
+  },
+  "coverage": [
+    "RSS/JSON and legacy RSS-labelled JSON feed imports",
+    "Five registered collectors with each original declaration, including WWR salary=false",
+    "Trusted extension configured and reopened without factory calls",
+    "Malformed/mismatched/missing linked declarations fail closed",
+    "Disabled support remains distinct from monitoring authorization",
+    "Actual local mock-ATS fixture discovery and producer audit",
+    "API readback, fresh stores, controlled refresh, actual job fields",
+    "Connected Chromium controls, reload and mobile layout"
+  ],
+  "native": {
+    "command": "python -m pytest -q tests/unit/test_company_source_capabilities.py tests/unit/test_source_adapter_contract_223.py tests/integration/test_company_source_view.py tests/integration/test_company_source_monitoring.py tests/integration/test_company_feed_quality.py",
+    "passed": 52,
+    "skipped": 4,
+    "subtests_passed": 35,
+    "skip_reason": "No local disposable PostgreSQL URL; four new private-schema cases must execute in required hosted integration.",
+    "junit_sha256": "fc0924794961f060143c2d4ff715b7a2373f5f56bdb80083b18eb8a7bb1089d4"
+  },
+  "web": {
+    "runtime": "Node24.21.0 in existing node:24-bookworm-slim image, network disabled",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "production_build": "PASS",
+    "vitest": {
+      "passed": 10,
+      "skipped": 0
+    },
+    "retained_warning": "Existing production chunk exceeds500kB; current bundle about978kB."
+  },
+  "browser": {
+    "command": "python -m pytest -q tests/browser/test_company_source_view.py",
+    "passed": 1,
+    "skipped": 0,
+    "external_requests": 0
+  },
+  "history": [
+    {
+      "result": "FAIL",
+      "passed": 49,
+      "failed": 1,
+      "subtests_passed": 35,
+      "cause": "Test used the Python variable name operations as a metadata table key. Corrected to query m.operations directly; no production failure."
+    },
+    {
+      "review": "Missing supported local fixture source discovered and repaired before publication; independent final review found no blocker."
+    }
+  ],
+  "limits": [
+    "Declarations describe saved support, not current provider availability, authorization or scheduling.",
+    "No live provider call, employer submission or paid AI call was used.",
+    "No capability result is promoted until protected CI and source deployment are verified."
+  ]
+}

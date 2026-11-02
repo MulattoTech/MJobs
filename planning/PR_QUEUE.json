@@ -138,7 +138,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-006-core-search-model",
       "draft_until_verified": true,
-      "notes": "Typed source capabilities/policy, persistent scheduled search profiles, and durable private-network scheduler locally verified; exact-head CI pending. Live GitHub reconciliation: PR #431 merged at 563d386376afe537045a29d9ab892819b27f8535.",
+      "notes": "Typed source capabilities/policy, persistent scheduled search profiles, and durable private-network scheduler locally verified; exact-head CI pending. Live GitHub reconciliation: PR #431 merged at 563d386376afe537045a29d9ab892819b27f8535. Pro sprint2026-11-02: MJ-REQ-019 company feed, linked collector/extension and local fixture declarations implemented and natively verified on work/pro-minimatch-20261101; protected CI/deployment pending, original acceptance remains PARTIAL. Evidence docs/evidence/2026-11-02-source-capability-implementation.json.",
       "pr_number": 431,
       "merge_commit": "563d386376afe537045a29d9ab892819b27f8535",
       "merged_at": "2026-10-01T17:30:51Z"
