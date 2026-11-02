@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "sprint": "pro-route-preflight-20261102",
+  "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+  "requirement_id": "MJ-REQ-267",
+  "title": "Direct Employer Route Discovery Before Apply",
+  "canonical_source": "docs/spec/areas/operations_ux_ci.md",
+  "literal_acceptance": "Before an automatic submission through an aggregator: attempt lightweight resolution of whether that listing ultimately routes to the employer ATS. Do not delay indefinitely.",
+  "acceptance_unchanged": true,
+  "implementation": [
+    "services/applications/submission_admission.py",
+    "services/dedupe/route_redirects.py",
+    "services/company_discovery/public_client.py"
+  ],
+  "criteria": {
+    "automatic_pre_submission_attempt": [
+      "test_fresh_probe_precedes_claim_without_holding_database_write_locks",
+      "test_trusted_integrated_boards_still_require_a_fresh_probe",
+      "test_unverified_provider_labels_cannot_exempt_the_board_url"
+    ],
+    "independently_verified_destination_exemption": [
+      "test_board_source_with_verified_ats_destination_does_not_probe",
+      "test_board_source_with_verified_employer_destination_does_not_probe"
+    ],
+    "lightweight_finite_resolution": [
+      "services/dedupe/route_redirects.py::ROUTE_CHECK_TIMEOUT_SECONDS=8",
+      "tests/unit/test_direct_employer_route_redirects.py",
+      "test_cancellation_and_operation_deadline_propagate_without_claim",
+      "test_post_probe_cancellation_cannot_claim_a_successful_result",
+      "test_expired_probe_is_not_admitted_after_database_wait"
+    ],
+    "preserve_safety_and_user_selected_route": [
+      "test_default_off_missing_intent_barriers_and_caps_never_probe",
+      "test_unresolved_attempt_is_recorded_and_keeps_the_selected_route",
+      "test_trusted_board_completed_unresolved_probe_preserves_selected_route",
+      "test_blocked_and_invalid_probe_results_fail_closed_without_private_output"
+    ],
+    "revalidate_after_network_operation": [
+      "test_changed_route_during_probe_invalidates_result",
+      "test_revoked_tenant_evidence_during_probe_invalidates_result",
+      "test_revoked_integrated_board_capability_invalidates_the_probe",
+      "test_changed_profile_version_during_probe_invalidates_result",
+      "test_current_materials_are_revalidated_after_probe",
+      "test_updated_and_revalidated_document_hashes_cannot_reuse_the_probe",
+      "test_submission_caps_are_recounted_after_probe",
+      "test_intent_expiring_during_probe_cannot_be_consumed"
+    ],
+    "atomic_consent_and_claim": [
+      "test_concurrent_probes_have_exactly_one_claim_and_consumption",
+      "tests/integration/test_live_submission_intent_admission.py"
+    ]
+  },
+  "test_module": "tests/integration/test_submission_route_preflight.py",
+  "backends": [
+    "SQLite",
+    "Disposable PostgreSQL schemas"
+  ],
+  "independent_review": {
+    "result": "NO_REMAINING_SOURCE_BLOCKERS",
+    "scope": "Read-only source and regression review; not runtime or full acceptance evidence",
+    "findings_fixed": [
+      "Integrated boards and UNKNOWN/mislabeled provider URLs could bypass the initial probe rule; exemptions now require the actual URL and current verified destination evidence",
+      "Inherited PostgreSQL consent insertion relied on rowcount and could persist consumption while denying admission; RETURNING identifies the atomic result"
+    ],
+    "reviewed_source_sha256": "395b5c87734bdafab7695cb2b292f9d16c0bef1ae82fb84e6c5882e8eb201bf4",
+    "reviewed_new_tests_sha256": "5c123fcbd6f6ef9a4862fd792e973a5e5d544f36f937f50a7c8c14e9cc770616"
+  },
+  "native_history": [
+    {
+      "result": "COMMAND_ERROR",
+      "detail": "Initial supporting resolver module path incorrectly used tests/integration; no tests executed. Correct path is tests/unit/test_direct_employer_route_redirects.py."
+    },
+    {
+      "result": "FAIL",
+      "passed": 53,
+      "failed": 4,
+      "subtests_passed": 58,
+      "receipt": "outputs/pro-route-focused-qualified.xml",
+      "detail": "Four PostgreSQL positive-admission cases exposed inherited receipt-consumption rowcount behavior."
+    },
+    {
+      "result": "REPRODUCED",
+      "receipt": "outputs/pro-route-pg-diagnosis.log",
+      "observation": "INSERT rowcount=-1, consume return=false, decision=JOB_INTENT_ALREADY_CONSUMED, persisted consumption=1, application state=READY_TO_SUBMIT",
+      "environment": "Native Windows project venv, SQLAlchemy2.1.1, psycopg3.3.6 and disposable PostgreSQL17"
+    },
+    {
+      "result": "FAIL",
+      "passed": 67,
+      "failed": 2,
+      "subtests_passed": 74,
+      "receipt": "outputs/pro-route-reviewed.xml",
+      "detail": "All 22 new SQLite and22 new PostgreSQL cases passed. Two legacy intent fixtures still selected localhost mock URLs for REAL targets; they now use verified synthetic HTTPS employer routes and reject unexpected network calls."
+    },
+    {
+      "result": "PASS",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 2,
+      "receipt": "outputs/pro-route-legacy-intent-fixed.xml",
+      "detail": "Corrected verified synthetic HTTPS fixtures preserve all replay/intent assertions and forbid unexpected resolver calls."
+    }
+  ],
+  "remaining_gates": [
+    "Exact proposed merge native execution",
+    "All five protected CI checks and source checkout identity",
+    "Guarded deployment, exact image/commit, health, disabled gate and backup/rollback verification",
+    "Canonical acceptance publication by the single integration owner"
+  ],
+  "limits": [
+    "The eight-second resolver bound does not establish globally bounded database lock acquisition or the inherited authority-evidence join; MJ-REQ-004 remains PARTIAL.",
+    "A completed unresolved attempt preserves the selected route and does not establish that a direct employer route exists.",
+    "This does not enable live-provider adapters, grant employer-submission consent or claim a successful employer submission."
+  ],
+  "external_employer_submissions": 0,
+  "paid_ai_calls": 0,
+  "destructive_live_restore": false
+}
