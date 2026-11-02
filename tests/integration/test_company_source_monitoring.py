@@ -76,6 +76,14 @@ class CompanySourceMonitoringTests(unittest.TestCase):
         self.assertEqual(self.store.count('canonical_jobs'), 1)
         self.assertEqual(self.monitor()['status'], 'HEALTHY')
         self.assertEqual(self.monitor()['completed_operation_id'], result['operation_id'])
+        view = list_company_source_view(self.store)[0]
+        with self.store.engine.connect() as connection:
+            declaration = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.action=='COMPANY_FEED_IMPORT_COMPLETE')).scalar_one()['source_capabilities']
+        self.assertEqual(view['capabilities'], declaration)
+        self.assertTrue(declaration['discovery'])
+        self.assertFalse(declaration['direct_application'])
+        self.assertFalse(declaration['application_status'])
         self.assertEqual(schedule_company_sources(self.store)['scheduled'], [])
 
     def test_verified_source_auto_enrolls_but_revocation_blocks_before_get(self):

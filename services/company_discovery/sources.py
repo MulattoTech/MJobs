@@ -13,6 +13,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now, upsert
 from services.audit_history import record_company_discovered, record_company_source_enrolled
 from services.company_discovery.source_host_locks import lock_company_source_hosts
+from services.company_discovery.capabilities import company_source_capabilities
 
 
 _PRIORITIES = {"USER_PINNED", "HIGH", "NORMAL", "LOW", "DORMANT"}
@@ -454,6 +455,9 @@ def list_company_source_view(store, profile_id=None):
         scheduled_profiles = bool(_profiles(c))
         from services.company_discovery.ats_enrollment import collector_view
         collectors = {row['id']: collector_view(store, c, row) for row in rows}
+        collector_ids = {row['collector_source_id'] for row in rows if row['collector_source_id']}
+        collector_sources = {row['id']: dict(row) for row in c.execute(select(m.job_sources).where(
+            m.job_sources.c.id.in_(collector_ids))).mappings()} if collector_ids else {}
         for source in rows:
             monitor = monitors.get(source['id'])
             if monitor:
@@ -484,6 +488,8 @@ def list_company_source_view(store, profile_id=None):
             "official_domain": domain["domain"] if domain else None,
             "career_url": _view_url(row["career_url"]), "provider": row["provider"], "tenant": row["tenant"],
             "collection_strategy": row["collection_strategy"], "confidence": confidence if valid_confidence else None,
+            "capabilities": company_source_capabilities(
+                row, collector_sources.get(row['collector_source_id'])).as_dict(),
             "priority": row["priority"], "enabled": row["enabled"], "origin": row["origin"],
             "discovered_automatically": row["discovered_automatically"],
             "status": "COMPANY_SOURCE_REVIEW_REQUIRED" if review else ("ENABLED" if row["enabled"] else "DISABLED"),

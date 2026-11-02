@@ -15,6 +15,33 @@ const source = {id:'source-1', company_id:'acme', profile_id:'fixture', profile_
   provenance:{events:[], tenant_evidence:[], source_linked_history_available:false}};
 
 describe('Companies/Sources view', () => {
+  it('shows declared support separately from unsupported actions and enabled state', async () => {
+    const capabilities = {strategy:'FEED', capabilities:['DISCOVERY','JOB_DETAIL','SALARY','REMOTE_METADATA','APPLICATION_REDIRECT'],
+      discovery:true, job_detail:true, salary:true, remote_metadata:true, application_redirect:true,
+      direct_application:false, application_status:false};
+    const html = await render([{...source, enabled:false, capabilities}]);
+    expect(html).toContain('Collection method: FEED');
+    expect(html).toContain('Supported: Job discovery, Job details, Salary extraction, Remote-work metadata, Application links');
+    expect(html).toContain('Unsupported: Direct application, Application status updates');
+    expect(html).toContain('Pinned · Disabled · Watched');
+  });
+  it('keeps unsupported sources distinct from declarations missing in older readbacks', async () => {
+    const capabilities = {strategy:'DISABLED', capabilities:[], discovery:false, job_detail:false, salary:false,
+      remote_metadata:false, application_redirect:false, direct_application:false, application_status:false};
+    const html = await render([{...source, capabilities}]);
+    expect(html).toContain('Supported: None declared');
+    expect(html).toContain('Unsupported: Job discovery, Job details, Salary extraction, Remote-work metadata, Application links, Direct application, Application status updates');
+    expect(await render([source])).toContain('Capabilities have not been declared for this source.');
+  });
+  it('labels the local mock source so its declaration cannot imply public support', async () => {
+    const html = await render([{...source, provider:'mock-ats', collection_strategy:'FIXTURE',
+      capabilities:{strategy:'API', capabilities:['DISCOVERY','JOB_DETAIL','SALARY','REMOTE_METADATA','APPLICATION_REDIRECT'],
+        discovery:true, job_detail:true, salary:true, remote_metadata:true, application_redirect:true,
+        direct_application:false, application_status:false}}]);
+    expect(html).toContain('Local fixture source.');
+    expect(html).toContain('Collection method: API');
+    expect(html).toContain('Unsupported: Direct application, Application status updates');
+  });
   it('distinguishes user-confirmed recurring identity from independent verification', async () => {
     const html = await render([{...source, collector: {
       status:'ACTIVE', poll_interval:300, identity_basis:'USER_CONFIRMED_DOMAIN',

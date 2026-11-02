@@ -8,6 +8,7 @@ from sqlalchemy import select, update
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.company_discovery.sources import _token, _url
+from services.company_discovery.capabilities import feed_capabilities
 from services.discovery.search_semantics import (
     classify_location, normalize_employment_type, normalize_experience_level,
     normalize_title, parse_education_requirement, parse_salary, normalize_reported_timestamp,
@@ -244,6 +245,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                     m.matches.c.score > 0)).scalars())
             audit_details = {
                 "company_source_id": source_id, "provider": provider, "strategy": strategy,
+                "source_capabilities": feed_capabilities(strategy).as_dict(),
                 "jobs_enumerated": len(items), "jobs_imported": imported, "profile_id": profile_id,
                 "evaluated_profile_count": len({(item['id'], item['version']) for item in evaluated_profiles})}
             if evaluated_profiles:

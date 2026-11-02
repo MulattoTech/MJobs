@@ -16,6 +16,11 @@ export type CompanySourceView = {
   provider: string;
   tenant: string;
   collection_strategy: string;
+  capabilities?: {
+    strategy: string; capabilities: string[];
+    discovery: boolean; job_detail: boolean; salary: boolean; remote_metadata: boolean;
+    application_redirect: boolean; direct_application: boolean; application_status: boolean;
+  };
   confidence: number | null;
   priority: string;
   enabled: boolean;
@@ -60,6 +65,28 @@ type Props = {
   onMonitor?: (row: CompanySourceView, interval: number) => Promise<void>;
   onRun?: (row: CompanySourceView) => Promise<void>;
 };
+
+const sourceCapabilityLabels = {
+  discovery: 'Job discovery', job_detail: 'Job details', salary: 'Salary extraction',
+  remote_metadata: 'Remote-work metadata', application_redirect: 'Application links',
+  direct_application: 'Direct application', application_status: 'Application status updates',
+} as const;
+
+function SourceCapabilities({row}: {row: CompanySourceView}) {
+  const declaration = row.capabilities;
+  const labels = (supported: boolean) => Object.entries(sourceCapabilityLabels)
+    .filter(([key]) => declaration?.[key as keyof typeof sourceCapabilityLabels] === supported)
+    .map(([, label]) => label).join(', ') || 'None declared';
+  return <section aria-label={`Source capabilities for ${row.company_name}`}>
+    <h4>Source capabilities</h4>
+    {row.provider === 'mock-ats' && row.collection_strategy === 'FIXTURE' && <p>Local fixture source.</p>}
+    {declaration ? <>
+      <p>Collection method: {declaration.strategy}</p>
+      <p>Supported: {labels(true)}</p>
+      <p>Unsupported: {labels(false)}</p>
+    </> : <p>Capabilities have not been declared for this source.</p>}
+  </section>;
+}
 
 function safeLink(value: string | null): string | null {
   if (!value) return null;
@@ -246,6 +273,7 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
           <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check)
             : row.collector?.status === 'ACTIVE' ? 'Scheduled by saved searches' : 'Not scheduled'}</dd></div>
         </dl>
+        <SourceCapabilities row={row} />
         <SourceLinkEvidence evidence={row.quality?.link_verification} />
         <SourceQuality quality={row.quality} />
         <CompanyContextPanel key={`${row.id}:company-context`} row={row} />

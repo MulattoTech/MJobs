@@ -17,6 +17,17 @@ MJ-PR-016 establishes the durable trigger/resolver/flywheel contract and proves 
 ## Companies/Sources read model and controls
 `list_company_source_view` projects persisted source-specific feed postings and current-profile match records without treating candidate domains as official or inferring missing scheduling. Explicit pin/enabled/watch choices remain independent. New discovery events carry `company_source_id`; unlinked historical events remain unavailable. `apps/web/src/company-sources.tsx` renders this contract with unsupported actions clearly disabled.
 
+Every source view includes the seven-field capability declaration. Linked sources
+reuse their collector's complete persisted declaration, including trusted extensions;
+reads do not construct adapters. Unlinked RSS/JSON feeds use the same declaration
+recorded by the feed importer. Invalid links or declarations and unsupported source
+types expose `DISABLED` with no supported capabilities. Capabilities describe support,
+not authorization, health, or scheduling: disabled feeds retain their declarations,
+and the stricter monitoring admission checks are unchanged. Feed job lifecycle claims
+do not imply application-status tracking or direct submission support.
+The separate local `mock-ats` / `FIXTURE` discovery consumer declares its API data
+capabilities in the same view and its discovery audit; the UI labels its fixture scope.
+
 ## Verified Greenhouse enrollment
 
 Public discovery can enroll an unambiguous Greenhouse board linked or embedded on an independently verified official career page. It reuses the existing bounded read-only adapter, collector policy, posting snapshots, canonical deduplication, matching and saved-search scheduler. The persisted source binds collection to the original employer ID and is reauthorized before fetching and inside the import transaction. Source-host locks serialize competing owner claims; conflicting historical owners require review rather than re-parenting data.
