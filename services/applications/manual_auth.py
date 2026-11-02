@@ -369,7 +369,8 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
     try:
         configured_root = Path(output_dir)
         configured_application_root = configured_root / application_path_id
-        configured_profile = configured_application_root / "browser-profile"
+        from services.applications.browser_profiles import browser_profile_path
+        configured_profile = browser_profile_path(configured_application_root)
         configured_paths = (
             configured_root, configured_application_root, configured_profile,
         )
@@ -425,11 +426,41 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
                 pass
         return OPEN_UNAVAILABLE
     return run_browser(profile, login_url, client, check=check, on_process=on_process,
-                       debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1")
+                       debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1",
+                       application_root=Path(output_dir) / application_id)
+
+
+def _diagnostic_capture_root(profile: Path, application_root: Path | None) -> Path | None:
+    """Bind diagnostics to an explicit application and its pinned session.
+
+    Never infer the application from the profile's parent: named profiles add
+    another level, and a valid label can itself be 'browser-profile'. Missing or
+    mismatched roots omit optional diagnostics without redirecting a session.
+    """
+    if application_root is None:
+        return None
+    try:
+        from services.applications.browser_profiles import browser_profile_path
+
+        root, selected = Path(application_root), Path(profile)
+        if (not root.is_dir() or not selected.is_dir()
+                or _has_reparse_component(root) or _has_reparse_component(selected)):
+            return None
+        expected = browser_profile_path(root)
+        if expected.resolve(strict=True) != selected.resolve(strict=True):
+            return None
+        # Preserve lexical alias checks across resolution before authorizing a
+        # write beside the profile exclusion tree.
+        if any(_has_reparse_component(path) for path in (root, selected, expected)):
+            return None
+        return root.resolve(strict=True) / "debug-captures"
+    except (OSError, RuntimeError, TypeError, ValueError):
+        return None
 
 
 def run_browser(profile: Path, login_url: str, client: MockClient,
-                *, check=None, on_process=None, debug_capture=False) -> str:
+                *, check=None, on_process=None, debug_capture=False,
+                application_root: Path | None = None) -> str:
     """Run the validated fixture window in the caller's containment boundary."""
     context = None
     launch_attempted = False
@@ -440,6 +471,7 @@ def run_browser(profile: Path, login_url: str, client: MockClient,
     try:
         if check is not None:
             check()
+        capture_root = _diagnostic_capture_root(profile, application_root) if debug_capture is True else None
 
         # Import lazily so unsupported local runtimes fail closed without
         # preventing the API from serving unrelated application workflows.
@@ -462,7 +494,7 @@ def run_browser(profile: Path, login_url: str, client: MockClient,
                     if client.allowed(browser_route.request.url)
                     else browser_route.abort()))
                 page = context.pages[0] if context.pages else context.new_page()
-                if debug_capture is True:
+                if capture_root is not None:
                     subscribe_debug_events(page, browser_events)
                 page.goto(login_url, wait_until="domcontentloaded",
                           timeout=_browser_wait_ms(check, 15000))
@@ -478,9 +510,9 @@ def run_browser(profile: Path, login_url: str, client: MockClient,
                             raise
                         break
             except Exception as error:
-                if debug_capture is True:
+                if capture_root is not None:
                     try:
-                        capture_browser_failure(page, profile.parent / "debug-captures",
+                        capture_browser_failure(page, capture_root,
                             attempt_id=secrets.token_hex(16), step=step, configured_url=login_url,
                             error=error, events=browser_events, check=check)
                     except Exception:

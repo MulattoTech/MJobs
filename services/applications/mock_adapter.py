@@ -712,7 +712,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 _stop_for_answer_policy(store, application, preflight, policy_problem)
                 return store.application(application_id)
             with sync_playwright() as playwright:
-                context = playwright.chromium.launch_persistent_context(str(root / "browser-profile"), headless=True,
+                from services.applications.browser_profiles import browser_profile_path
+                context = playwright.chromium.launch_persistent_context(str(browser_profile_path(root, initialize=True)), headless=True,
                     args=["--disable-gpu"], timeout=_playwright_action_timeout_ms(check, 15000))
                 try:
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())

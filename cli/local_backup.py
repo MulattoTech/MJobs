@@ -21,6 +21,7 @@ from packages.persistence import models
 from packages.persistence.store import Store
 from services.credentials.vault import CredentialCipher, CredentialConfigurationError
 from services.applications.configuration import configured_submission_policy
+from services.applications.browser_profiles import validate_browser_profile_name
 
 
 PROJECT = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
@@ -62,6 +63,15 @@ SUBMISSION_SETTING_NAMES = frozenset((
     "MJOBS_SUBMISSION_COMPANY_LIMIT",
 ))
 RUNTIME_SETTING_NAMES_V2 = RUNTIME_SETTING_NAMES | SUBMISSION_SETTING_NAMES
+RUNTIME_SETTING_NAMES_V3 = RUNTIME_SETTING_NAMES_V2 | frozenset((
+    "MJOBS_BROWSER_PROFILE", "MJOBS_NOTIFICATIONS_ENABLED", "MJOBS_WORKER_LOG_LEVEL",
+))
+RUNTIME_SETTING_NAMES_BY_VERSION = {
+    1: RUNTIME_SETTING_NAMES,
+    2: RUNTIME_SETTING_NAMES_V2,
+    3: RUNTIME_SETTING_NAMES_V3,
+}
+WORKER_LOG_LEVELS = frozenset(("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"))
 
 
 def require_stopped_writers(states: dict[str, str]) -> None:
@@ -134,11 +144,12 @@ def _validate_runtime_configuration(snapshot: object, operation_mode: str) -> No
             or not isinstance(snapshot, dict)
             or set(snapshot) != {"schema_version", "operation_mode", "settings"}):
         raise BackupError("Backup runtime configuration is invalid")
-    if (type(snapshot.get("schema_version")) is not int or snapshot.get("schema_version") not in (1, 2)
+    if (type(snapshot.get("schema_version")) is not int
+            or snapshot.get("schema_version") not in RUNTIME_SETTING_NAMES_BY_VERSION
             or snapshot.get("operation_mode") != operation_mode):
         raise BackupError("Backup runtime configuration does not match its workspace mode")
     settings = snapshot.get("settings")
-    expected_names = RUNTIME_SETTING_NAMES_V2 if snapshot["schema_version"] == 2 else RUNTIME_SETTING_NAMES
+    expected_names = RUNTIME_SETTING_NAMES_BY_VERSION[snapshot["schema_version"]]
     if not isinstance(settings, dict) or set(settings) != expected_names:
         raise BackupError("Backup runtime configuration contains unsupported settings")
     if settings["MJOBS_OPERATION_MODE"] != operation_mode:
@@ -151,10 +162,22 @@ def _validate_runtime_configuration(snapshot: object, operation_mode: str) -> No
         if (not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]{0,6}", value)
                 or not minimum <= int(value) <= maximum):
             raise BackupError("Backup runtime configuration contains an invalid setting")
-    if snapshot["schema_version"] == 2:
+    if snapshot["schema_version"] >= 2:
         try:
             configured_submission_policy(settings)
         except ValueError:
+            raise BackupError("Backup runtime configuration contains an invalid setting") from None
+    if snapshot["schema_version"] == 3:
+        try:
+            validate_browser_profile_name(settings["MJOBS_BROWSER_PROFILE"])
+            if settings["MJOBS_NOTIFICATIONS_ENABLED"] not in ("0", "1"):
+                raise ValueError()
+            # Match workers.main startup: surrounding whitespace and case are
+            # normalized for validation, while preserving the captured value.
+            log_level = settings["MJOBS_WORKER_LOG_LEVEL"]
+            if not isinstance(log_level, str) or log_level.strip().upper() not in WORKER_LOG_LEVELS:
+                raise ValueError()
+        except (TypeError, ValueError):
             raise BackupError("Backup runtime configuration contains an invalid setting") from None
 
 
@@ -169,16 +192,23 @@ def _runtime_configuration_snapshot(container: str, operation_mode: str) -> dict
         environment: dict[str, str] = {}
         for item in entries:
             name, value = item.split("=", 1)
-            if name in RUNTIME_SETTING_NAMES_V2:
+            if name in RUNTIME_SETTING_NAMES_V3:
                 if name in environment:
                     raise ValueError("duplicate allowlisted setting")
                 environment[name] = value
     except (UnicodeError, json.JSONDecodeError, ValueError):
         raise BackupError("API runtime configuration could not be safely captured") from None
+    # Older API containers already have notification/logging variables but no
+    # browser selection. Keep their original v1/v2 projection so a guarded
+    # pre-upgrade backup remains possible. The new selector opts into v3, which
+    # must contain every setting; never invent missing configuration values.
+    version = (3 if "MJOBS_BROWSER_PROFILE" in environment
+               else 2 if SUBMISSION_SETTING_NAMES.intersection(environment) else 1)
     snapshot = {
-        "schema_version": 2 if SUBMISSION_SETTING_NAMES.intersection(environment) else 1,
+        "schema_version": version,
         "operation_mode": operation_mode,
-        "settings": environment,
+        "settings": {name: value for name, value in environment.items()
+                     if name in RUNTIME_SETTING_NAMES_BY_VERSION[version]},
     }
     _validate_runtime_configuration(snapshot, operation_mode)
     return snapshot

@@ -25,6 +25,9 @@ DOM_TIMEOUT_MS = 300
 MAX_DOM_NODES = 160
 MAX_DOM_DEPTH = 8
 MAX_DOM_BYTES = 8192
+# Bound the document-derived CDP value before it crosses into the driver. This
+# is separate from the retained JSON cap and does not bound all CDP metadata.
+MAX_DOM_REPLY_BYTES = 32768
 _ATTEMPT_RE = re.compile(r"^[a-f0-9]{32}$")
 _SAFE_ERROR_TYPE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,63}$")
 _FINGERPRINT_KEY = secrets.token_bytes(32)
@@ -51,6 +54,50 @@ _ALLOWED_ROLES = frozenset((
     "searchbox", "slider", "spinbutton", "status", "switch", "tab", "table", "tablist",
     "tabpanel", "textbox", "tree", "treeitem",
 ))
+
+
+# Execute only in a fresh Chromium isolated world: page scripts must not be
+# able to replace DOM getters, Set/JSON, or array methods used by diagnostics.
+# Visit a fixed prefix through sibling pointers, never materialize children,
+# text, HTML, values, arbitrary attributes, subframes, or shadow roots.
+_DOM_CAPTURE_SCRIPT = """(() => {
+  const tags = new Set(TAGS);
+  const roles = new Set(ROLES);
+  const root = {nodeType: 9, children: []};
+  const stack = [{next: document.firstChild, depth: 0, children: root.children}];
+  let visited = 1;
+  let truncated = false;
+  while (stack.length && visited < NODE_LIMIT) {
+    const level = stack[stack.length - 1];
+    const node = level.next;
+    if (!node) { stack.pop(); continue; }
+    level.next = node.nextSibling;
+    visited += 1;
+    if (node.nodeType !== 1) continue;
+    const name = node.nodeName;
+    const tag = typeof name === 'string' && name.length <= 16 ? name.toLowerCase() : 'other';
+    const item = {nodeType: 1, nodeName: tags.has(tag) ? tag : 'other'};
+    const role = node.getAttribute('role');
+    if (typeof role === 'string' && role.length <= 16 && roles.has(role)) item.attributes = ['role', role];
+    level.children.push(item);
+    if (node.firstChild) {
+      if (level.depth < DEPTH_LIMIT) {
+        item.children = [];
+        stack.push({next: node.firstChild, depth: level.depth + 1, children: item.children});
+      } else {
+        item.childNodeCount = 1;
+        truncated = true;
+      }
+    }
+  }
+  if (stack.length || truncated) root.childNodeCount = root.children.length + 1;
+  // Every emitted string is fixed ASCII, so length equals UTF-8 byte length.
+  const result = JSON.stringify({root});
+  return result.length <= REPLY_LIMIT ? result : '';
+})()""".replace("TAGS", json.dumps(sorted(_ALLOWED_ELEMENTS))).replace(
+    "ROLES", json.dumps(sorted(_ALLOWED_ROLES))).replace(
+    "NODE_LIMIT", str(MAX_DOM_NODES)).replace("DEPTH_LIMIT", str(MAX_DOM_DEPTH - 1)).replace(
+    "REPLY_LIMIT", str(MAX_DOM_REPLY_BYTES))
 
 
 class _DomDeadlineExpired(TimeoutError):
@@ -241,7 +288,11 @@ def _dom_snapshot(page, *, deadline, checkpoint):
     cancellation must terminate that wait. An unexpected nonterminal task stops
     publication. The owner still closes its browser context after failure,
     including any session whose creation was interrupted.
-    CDP replies are decoded before the retained topology/byte limits are applied.
+    Document content is reduced inside a fresh isolated world before the CDP
+    value is serialized. Only bounded fixed-enum topology crosses the driver.
+    This does not impose a transport byte cap on target metadata, unsolicited
+    events, or the protocol envelope. Filesystem and browser-owner cleanup have
+    their separate existing contracts; this helper does not establish them.
     """
     if page is None:
         return _omitted_dom("UNAVAILABLE")
@@ -319,8 +370,32 @@ def _dom_snapshot(page, *, deadline, checkpoint):
         interrupted = False
         try:
             session = await bounded_call(lambda: create_session(implementation), work_deadline)
-            result = await bounded_call(lambda: session.send(
-                "DOM.getDocument", {"depth": MAX_DOM_DEPTH, "pierce": False}), work_deadline)
+            target = await bounded_call(lambda: session.send("Target.getTargetInfo", {}), work_deadline)
+            info = target.get("targetInfo") if isinstance(target, dict) else None
+            target_id = info.get("targetId") if isinstance(info, dict) else None
+            if (not isinstance(info, dict) or info.get("type") != "page"
+                    or not isinstance(target_id, str)
+                    or not re.fullmatch(r"[a-fA-F0-9]{32}", target_id)):
+                raise ValueError("Unsupported diagnostic target")
+            # Chromium's top-level frame uses its page target ID. Avoid
+            # Page.getFrameTree: it would transfer an arbitrarily wide tree
+            # with raw URLs. Unsupported targets fail closed at world creation.
+            world = await bounded_call(lambda: session.send("Page.createIsolatedWorld", {
+                "frameId": target_id,
+                "worldName": "mjobs-debug-dom-" + secrets.token_hex(16),
+            }), work_deadline)
+            context_id = world.get("executionContextId") if isinstance(world, dict) else None
+            if type(context_id) is not int or not 0 < context_id < 2**53:
+                raise ValueError("Invalid diagnostic world")
+            result = await bounded_call(lambda: session.send("Runtime.evaluate", {
+                "expression": _DOM_CAPTURE_SCRIPT,
+                "contextId": context_id,
+                "returnByValue": True,
+                "generatePreview": False,
+                "silent": True,
+                "disableBreaks": True,
+                "timeout": max(1, int((work_deadline - time.monotonic()) * 1000)),
+            }), work_deadline)
         except (_CaptureControlSignal, _DomCancellationFailed):
             interrupted = True
             raise
@@ -332,7 +407,19 @@ def _dom_snapshot(page, *, deadline, checkpoint):
     try:
         result = sync(capture())
         check_dom()
-        return _sanitize_dom(result.get("root") if isinstance(result, dict) else None, check_dom)
+        if not isinstance(result, dict) or "exceptionDetails" in result:
+            raise ValueError("Diagnostic evaluation failed")
+        remote_value = result.get("result")
+        encoded = remote_value.get("value") if isinstance(remote_value, dict) else None
+        if (not isinstance(remote_value, dict) or remote_value.get("type") != "string"
+                or not isinstance(encoded, str) or not encoded
+                or len(encoded) > MAX_DOM_REPLY_BYTES or not encoded.isascii()):
+            raise ValueError("Invalid diagnostic value")
+        value = json.loads(encoded)
+        check_dom()
+        if not isinstance(value, dict) or set(value) != {"root"}:
+            raise ValueError("Invalid diagnostic envelope")
+        return _sanitize_dom(value["root"], check_dom)
     except _CaptureControlSignal:
         raise
     except _DomCancellationFailed as error:
@@ -396,7 +483,8 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
     """Capture diagnostics under one caller-derived, capped monotonic budget.
 
     Native DOM protocol work and the screenshot share this deadline. DOM
-    capture does not evaluate page JavaScript. Phase checkpoints
+    capture runs fixed code in a fresh isolated world, never page-world
+    JavaScript. Phase checkpoints
     preserve caller cancellation; existing local OS I/O remains synchronous.
     Diagnostics are best-effort and never replace the primary browser error.
     """

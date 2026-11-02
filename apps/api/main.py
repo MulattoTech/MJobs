@@ -746,6 +746,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                application_registry: ApplicationAdapterRegistry = DEFAULT_APPLICATION_ADAPTER_REGISTRY):
     from services.applications.configuration import configured_submission_policy
     submission_policy = configured_submission_policy()
+    from services.applications.browser_profiles import configured_browser_profile
+    browser_profile = configured_browser_profile()
     if (source_registry is DEFAULT_SOURCE_ADAPTER_REGISTRY
             or application_registry is DEFAULT_APPLICATION_ADAPTER_REGISTRY):
         registry_module = configured_extension_registry_module()
@@ -994,7 +996,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                       "company": submission_policy.company_limit},
                 "browser_workers": limit("APPLY_MOCK") if operation_mode == "FIXTURE" else 0,
                 "worker_limits": {kind: limit(kind) for kind in QUEUES},
-                "notifications": {"enabled": notifications_enabled, "delivery": "IN_APP"}}
+                "notifications": {"enabled": notifications_enabled, "delivery": "IN_APP"},
+                "browser_profile": {"name": browser_profile, "scope": "PER_APPLICATION",
+                                    "existing_sessions": "PINNED"}}
 
     @app.get("/profiles")
     def profiles():

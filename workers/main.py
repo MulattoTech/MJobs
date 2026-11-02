@@ -33,6 +33,8 @@ def _worker_log_level():
 
 def main():
     configured_submission_policy()
+    from services.applications.browser_profiles import configured_browser_profile
+    configured_browser_profile()
     log_level = _worker_log_level()
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])

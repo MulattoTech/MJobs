@@ -203,7 +203,7 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
 
                 def withhold_owned_dom_reply(message):
                     params = message.get("params", {})
-                    if message.get("method") == "send" and params.get("method") == "DOM.getDocument":
+                    if message.get("method") == "send" and params.get("method") == "Runtime.evaluate":
                         blocked.append(message["id"])
                         # Fail promptly under the old unbounded abort behavior.
                         guards.append(connection._loop.call_later(1.5, release_callback, message["id"]))
@@ -236,6 +236,54 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
                 recovered = debug_capture_module._dom_snapshot(
                     page, deadline=time.monotonic() + .6, checkpoint=lambda: None)
                 self.assertEqual(recovered["status"], "CAPTURED")
+            finally:
+                browser.close()
+
+    def test_isolated_collector_bounds_document_reply_before_driver_decode(self):
+        from playwright._impl._cdp_session import CDPSession
+
+        marker = "RAW_DOM_PRIVATE_b3d2"
+        large = marker * 20000
+        html = (f'<main role="main"><form><input role="textbox" value="{large}">'
+                f'<div role="{large}" data-secret="{large}">{large}</div></form>'
+                + '<section role="progressbar"></section>' * 5000 + '</main>')
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True, args=["--disable-gpu"])
+            try:
+                page = browser.new_page()
+                page.set_content(html)
+                # The same collector in the page world would throw or return
+                # attacker values. The fresh isolated world must use its own
+                # native prototypes and omit private DOM content before CDP.
+                page.evaluate("""() => {
+                  Object.defineProperty(Node.prototype, 'firstChild', {get() { throw new Error('page getter'); }});
+                  Object.defineProperty(Node.prototype, 'nextSibling', {get() { throw new Error('page getter'); }});
+                  Element.prototype.getAttribute = () => { throw new Error('page getter'); };
+                }""")
+                replies, methods = [], []
+                original_send = CDPSession.send
+
+                async def observe(session, method, *args, **kwargs):
+                    methods.append(method)
+                    result = await original_send(session, method, *args, **kwargs)
+                    if method == "Runtime.evaluate":
+                        replies.append(result)
+                    return result
+
+                with patch.object(CDPSession, "send", new=observe):
+                    dom = debug_capture_module._dom_snapshot(
+                        page, deadline=time.monotonic() + 2, checkpoint=lambda: None)
+                self.assertEqual(dom["status"], "CAPTURED")
+                self.assertTrue(dom["truncated"])
+                self.assertEqual(dom["role_counts"].get("textbox"), 1)
+                self.assertNotIn("DOM.getDocument", methods)
+                self.assertNotIn("Page.getFrameTree", methods)
+                self.assertEqual(len(replies), 1)
+                encoded = replies[0]["result"]["value"]
+                self.assertLessEqual(len(encoded.encode("ascii")), debug_capture_module.MAX_DOM_REPLY_BYTES)
+                self.assertNotIn(marker, json.dumps(replies))
+                self.assertLessEqual(len((json.dumps(dom, indent=2) + "\n").encode()),
+                                     debug_capture_module.MAX_DOM_BYTES)
             finally:
                 browser.close()
 

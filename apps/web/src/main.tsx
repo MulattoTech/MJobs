@@ -98,6 +98,7 @@ import { SettingsTransfer } from './settings-transfer';
 import { DataExport } from './data-export';
 import { SourceRelationshipGraph } from './source-relationship-graph';
 import { RetentionConnected } from './feature-connections';
+import { OperationNotifications } from './operation-notifications';
 import { OperationProgressConnected } from './operation-progress-connected';
 import { ApplicationRehearsal } from './application-rehearsal';
 import { ControlledApplicationDryRun } from './controlled-application-dry-run';
@@ -345,6 +346,9 @@ function App() {
   const companySourcesSequence = useRef(0);
   const [operationMode,setOperationMode] = useState<OperationMode|null>(null);
   const [ops,setOps] = useState<Operation[]>([]);
+  const [notificationsEnabled,setNotificationsEnabled] = useState(false);
+  const [notificationReadError,setNotificationReadError] = useState(false);
+  const [opsProfileId,setOpsProfileId] = useState<string|null>(null);
   const [deadLetters,setDeadLetters] = useState<Operation[]>([]);
   const [deadLetterCount,setDeadLetterCount] = useState(0);
   const [auditEvents,setAuditEvents] = useState<AuditEvent[]>([]);
@@ -490,7 +494,7 @@ function App() {
       const suffix = id ? `?profile_id=${encodeURIComponent(id)}` : '';
       const [p,a,s,o,sp,cs,dr,sc] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]}),api<{company_sources:CompanySourceView[]}>('/company-sources/view'+suffix),api<{requests:DiscoveryRequest[]}>('/company-discovery/requests'),id?api<{candidates:SourceCandidate[]}>('/source-candidates'+suffix):Promise.resolve({candidates:[]} as {candidates:SourceCandidate[]})]);
       if(companySequence===companySourcesSequence.current&&id===profileRef.current){setCompanySources(cs.company_sources);setDiscoveryRequests(dr.requests);}
-      if(profileListRequest===profileListSequence.current)setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setSearchProfiles(sp.search_profiles.map(search=>({...search,scheduler:search.criteria.scheduler??search.scheduler})));clearSearchScheduleDrafts();setSourceCandidates(sc.candidates);
+      if(profileListRequest===profileListSequence.current)setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setOpsProfileId(id);setSearchProfiles(sp.search_profiles.map(search=>({...search,scheduler:search.criteria.scheduler??search.scheduler})));clearSearchScheduleDrafts();setSourceCandidates(sc.candidates);
         if(restoreClaim&&pendingApplicationRestore.current===restoreClaim&&navigation===navigationSequence.current&&applicationRestoreProfile.current!==id){
           const summary=a.applications.find(row=>row.id===restoreApplication);
           if(summary){setTabState('Applications');await showApp(restoreApplication!,summary,false);}
@@ -702,7 +706,7 @@ function App() {
       if(readinessRequest.current===controller)readinessRequest.current=null;
     }
   }
-  useEffect(() => {void api<{skills:SearchSkill[]}>('/search-skills').then(r=>setSkillOptions(r.skills)).catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>{clearInterval(timer);readinessRequest.current?.abort();readinessRequest.current=null;};},[]);
+  useEffect(() => {void api<{skills:SearchSkill[]}>('/search-skills').then(r=>setSkillOptions(r.skills)).catch(e=>setError(String(e)));void api<{operation_mode:OperationMode;notifications?:{enabled:boolean}}>('/settings').then(s=>{setOperationMode(s.operation_mode);setNotificationsEnabled(s.notifications?.enabled===true);}).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>{clearInterval(timer);readinessRequest.current?.abort();readinessRequest.current=null;};},[]);
   useEffect(()=>{if(tab==='Activity'){void loadDeadLetters(profileId).catch(e=>setError(String(e)));void loadAuditHistory(profileId).catch(e=>setError(String(e)));void loadCompanyDiscoveryActivity(profileId);void loadCompanyDiscoveryQueue(profileId);}},[tab,profileId]);
   useEffect(()=>{
     let current=true;
@@ -755,6 +759,27 @@ function App() {
     return()=>{current=false;};
   },[profileId]);
   useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;profileBaselineRef.current=null;localStorage.setItem('mjobs-profile',profileId);setApplicationLoading(null);setSearchProfiles([]);clearSearchScheduleDrafts();setSelectedSearchProfileId('');setJobSourceId('');setApplicationPipelineStatus('');setApplicationCapability('');setDetail(null);setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setDocs([]);setResumes([]);setApps([]);setOps([]);setCompanySources([]);setAITaskSettings(defaultAITaskSettings());setAITaskFallbacks({});setAISettingsLoading(!!profileId);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current){const loaded={...p,contact:p.contact||{},preferences:p.preferences||{},facts:(p.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};setEditor(loaded);profileBaselineRef.current=loaded;}}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));void api<{tasks:AITaskSettings;fallback_capabilities:AITaskFallbacks}>(`/profiles/${encodeURIComponent(profileId)}/ai-task-settings`).then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current){setAITaskSettings(r.tasks);setAITaskFallbacks(r.fallback_capabilities);}}).catch(e=>setError(String(e))).finally(()=>{if(sequence===editorSequence.current)setAISettingsLoading(false);});}else setAISettingsLoading(false);},[profileId]);
+  useEffect(()=>{
+    setNotificationReadError(false);
+    if(!notificationsEnabled||!profileId)return;
+    const selected=profileId;const controller=new AbortController();
+    let disposed=false;let timer:ReturnType<typeof setTimeout>|undefined;
+    async function updateNotifications(){
+      try {
+        const response=await api<{operations:Operation[]}>(
+          `/operations?profile_id=${encodeURIComponent(selected)}`,{signal:controller.signal});
+        if(!disposed&&profileRef.current===selected){
+          setOps(response.operations);setOpsProfileId(selected);setNotificationReadError(false);
+        }
+      } catch {
+        if(!disposed&&profileRef.current===selected)setNotificationReadError(true);
+      } finally {
+        if(!disposed)timer=setTimeout(()=>void updateNotifications(),15000);
+      }
+    }
+    void updateNotifications();
+    return()=>{disposed=true;controller.abort();if(timer!==undefined)clearTimeout(timer);};
+  },[notificationsEnabled,profileId]);
   useEffect(()=>{++credentialSequence.current;setProviderCredentials([]);setCredentialDrafts({openai:'',anthropic:''});setProviderCredentialFeedback({openai:null,anthropic:null});},[profileId]);
   useEffect(()=>{const sequence=++credentialSequence.current;if(!profileId||tab!=='AI Settings')return;const selected=profileId;void api<{credentials:ProviderCredential[]}>(`/profiles/${encodeURIComponent(selected)}/provider-credentials`).then(result=>{if(sequence===credentialSequence.current&&profileRef.current===selected)setProviderCredentials(result.credentials);}).catch(e=>{if(sequence===credentialSequence.current&&profileRef.current===selected)setError(String(e));});},[profileId,tab]);
   useEffect(()=>{setAICostPlan(null);},[selectedSearchProfileId]);
@@ -1537,6 +1562,7 @@ function App() {
       <div className="safety">Real applications require your own manual review and submission. This workspace cannot submit to an external employer.</div>
       {error&&<div role="alert" className="alert"><strong>Action needs attention</strong><p>{error}</p></div>}
       {notice&&<div role="status" className="notice">{notice}</div>}
+      {profileId&&opsProfileId===profileId&&<OperationNotifications key={profileId} enabled={notificationsEnabled} operations={ops} loadError={notificationReadError}/>}
       {busy&&<div role="status" className="notice">{busy}… {activeOp&&<button className="quiet" onClick={()=>void api('/operations/'+activeOp+'/cancel',{method:'POST'}).then(()=>setNotice('Cancellation requested.')).catch(e=>setError(String(e)))}>Cancel operation</button>}</div>}
       {tab==='Review Queue'&&<ApplicationReviewQueue applications={reviewQueueApplications} profileId={profileId} loading={reviewQueueLoading} loadError={reviewQueueLoadError} onReview={applicationId=>void showApp(applicationId).catch(e=>setError(String(e)))}/>}
       {tab==='Pipeline'&&<PipelineWorkbench profileId={profileId} onOpenApplication={id=>void showApp(id).catch(e=>setError(String(e)))}/>}

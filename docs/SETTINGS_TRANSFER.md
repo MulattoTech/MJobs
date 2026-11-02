@@ -31,3 +31,10 @@ Invalid rules,
 unknown fields, missing sources, policy conflicts, and malformed search criteria
 reject the entire import. No partial source creation or profile replacement is
 committed. Re-export after import or reload to verify the saved configuration.
+
+
+Deployment environment controls such as notification enablement and the default
+browser-profile label are outside portable search-settings transfer. They are
+validated on process startup and retained in version-3 backup runtime snapshots
+for manual review. Importing search settings cannot switch an application's
+pinned browser session or transfer its cookies.

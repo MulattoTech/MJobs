@@ -13,6 +13,7 @@ from time import monotonic
 
 from services.applications.manual_auth import (
     MANUAL_AUTH_WINDOW_CLOSED, OPEN_UNAVAILABLE, STALE, _manual_login_url, run_browser,
+    _has_reparse_component,
 )
 from services.discovery.pipeline import MockClient
 
@@ -50,11 +51,15 @@ def run(stream) -> int:
         configured_root = Path(payload["output_dir"])
         if not configured_root.is_absolute():
             return 2
+        if (_has_reparse_component(configured_root)
+                or _has_reparse_component(configured_root / payload["application_id"])):
+            return 2
         root = configured_root.resolve(strict=True)
         application = (root / payload["application_id"]).resolve(strict=True)
-        profile = (application / "browser-profile").resolve(strict=True)
+        from services.applications.browser_profiles import browser_profile_path
+        profile = browser_profile_path(application).resolve(strict=True)
         if (application.parent != root or application.name != payload["application_id"]
-                or profile.parent != application or profile.name != "browser-profile"
+                or not profile.is_relative_to(application / "browser-profile")
                 or not profile.is_dir()):
             return 2
         client = MockClient(payload["mock_origin"])
@@ -84,7 +89,8 @@ def run(stream) -> int:
                 pass
         return 2
     try:
-        options = {"debug_capture": True} if payload.get("debug_capture", False) else {}
+        options = {"debug_capture": True, "application_root": application} \
+            if payload.get("debug_capture", False) else {}
         status = run_browser(profile, login, client, check=check, **options)
         return 0 if status == MANUAL_AUTH_WINDOW_CLOSED else 2 if status in {OPEN_UNAVAILABLE, STALE} else 3
     except Exception:

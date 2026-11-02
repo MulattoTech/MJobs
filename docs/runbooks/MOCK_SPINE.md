@@ -94,7 +94,9 @@ revisions instead of editing an applied revision.
   are returned with their current state; no automatic failed-operation retry
   or recurring source scheduler is provided yet.
 - Configured public Greenhouse boards are the only real read-only provider;
-  real application providers, AI, and notifications remain incomplete.
+  real application providers and AI remain incomplete at this historical checkpoint.
+  Current in-app activity notification configuration is documented in
+  `docs/USER_TESTING.md`; external notification delivery is not provided.
 - The active CI definition is `.github/workflows/ci.yml`. Workflow authorization
   was restored on 2026-09-30; the merged connected UI spine passed remote CI
   (see `docs/evidence/2026-09-30-ci-370.json`). The current PR head must pass

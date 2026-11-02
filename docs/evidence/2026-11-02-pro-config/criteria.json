@@ -1,0 +1,632 @@
+{
+  "schema_version": 1,
+  "sprint": "2026-11-02-pro-config",
+  "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+  "purpose": "Prospective criterion mapping only. No canonical PASS, issue closure, merge or deployment is established by this file.",
+  "authority": {
+    "canonical_matrix": "planning/CAPABILITY_MATRIX.json",
+    "canonical_index": "planning/REQUIREMENT_INDEX.json",
+    "reference_matrix": "planning/REFERENCE_GAP_MATRIX.json",
+    "standards_unchanged": true,
+    "matrix_mutation_by_mapping_author": false
+  },
+  "candidate": {
+    "base_main_sha": "da589aefa1c3c642cbdbbafe32c796f3780cebd3",
+    "source_head_sha": null,
+    "proposed_merge_sha": null,
+    "deployed_sha": null,
+    "identity_status": "UNCOMMITTED_CANDIDATE_AWAITING_OWNER_RECEIPT"
+  },
+  "requirements": [
+    {
+      "requirement_id": "MJ-REQ-162",
+      "title": "Database Design",
+      "issue": 163,
+      "current_canonical_result": "PARTIAL",
+      "prospective_result_after_all_gates": "PASS",
+      "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+      "literal_acceptance": "# 162. DATABASE DESIGN\n\nUse a proper relational model.\n\nLikely tables include:\n\n```text\nusers\ncareer_profiles\ncareer_facts\nwork_experience\neducation\ncertifications\nskills\nprojects\nanswer_bank\n\nsearch_profiles\nsearch_queries\nsearch_filters\n\ncompanies\ncompany_aliases\ncompany_domains\ncompany_relationships\n\njob_sources\ncompany_job_sources\nsource_runs\ncompany_discovery_runs\ncompany_discovery_evidence\nats_providers\nats_tenants\n\ncanonical_jobs\njob_postings\njob_posting_versions\napplication_routes\n\njob_skills\njob_requirements\njob_locations\n\njob_match_scores\njob_match_components\n\ndocuments\nresume_versions\ncover_letter_versions\n\napplication_rules\napplications\napplication_attempts\napplication_answers\napplication_documents\napplication_events\n\nbrowser_profiles\n\noperations\naudit_logs\nnotifications\nsettings\n```\n\nExact names may differ.\n\n---",
+      "interpretation_boundary": "The original requirement calls for a proper relational model and explicitly presents likely table names, permitting different names. Acceptance here would establish relational design, not all illustrative product features, a multi-user account system, or MJ-REQ-174 ORM/security acceptance. Typed immutable JSON attributes do not replace the relational ownership and integrity model.",
+      "implementation": [
+        "packages/persistence/models.py",
+        "packages/persistence/resume_workspace.py",
+        "packages/persistence/store.py",
+        "migrations/env.py",
+        "migrations/versions",
+        "cli/migration_precondition.py"
+      ],
+      "criterion_mapping": [
+        {
+          "domain": "Career profile, facts and answers",
+          "representation": "career_profiles, profile_versions and FK-linked career_facts; typed/versioned facts and reviewed answers/contact JSON preserve immutable snapshots."
+        },
+        {
+          "domain": "Searches, sources and companies",
+          "representation": "FK-linked search_profiles, companies, company_aliases, company_domains, company_ats_tenants, company_job_sources and company_discovery_requests; validated structured criteria and monitoring policy fields."
+        },
+        {
+          "domain": "Jobs, provenance and matching",
+          "representation": "canonical_jobs -> companies; job_postings -> canonical_jobs; posting_snapshots -> job_postings; application_routes -> jobs/companies; job_matches -> jobs/profiles with bounded score and profile-version context."
+        },
+        {
+          "domain": "Applications and document history",
+          "representation": "applications -> job/route/profile, unique job/profile and state check; application_attempts, application_route_choices and documents link through foreign keys; uploaded_resumes, resume_revisions and resume_workspace_revisions retain versioned artifacts."
+        },
+        {
+          "domain": "Operations, settings and audit",
+          "representation": "worker_operations retain state/progress/cancellation/retry/lease metadata; profile-owned AI/provider/policy tables have relational ownership and constraints; audit_events retain durable history."
+        },
+        {
+          "domain": "Migrations and schema validation",
+          "representation": "Alembic revisions migrate existing databases; cli.migration_precondition compares required and observed columns, primary keys and validated foreign keys before runtime provisioning. SQLite setup is test-only; production uses PostgreSQL/Alembic."
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/integration/test_database_constraints_sustain_164.py",
+          "cases": [
+            "test_valid_rows_reopen_with_sqlite_foreign_keys_enabled",
+            "test_match_score_outside_zero_to_one_hundred_rejects_atomically",
+            "test_unknown_application_state_rejects_atomically",
+            "test_upgrade_downgrade_and_reupgrade_preserve_valid_rows",
+            "test_batch_failures_roll_back_schema_rows_version_and_retry_cleanly"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/integration/test_spine.py",
+          "cases": [
+            "test_preparation_provenance_and_idempotency_survive_restart",
+            "test_concurrent_preparation_preserves_one_application_and_document_hashes",
+            "test_scores_are_scoped_to_selected_profile"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/integration/test_database_least_privilege.py",
+          "cases": [
+            "test_populated_upgrade_repeat_provision_privilege_denial_and_recovery"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/integration/test_database_indexes_sustain_165.py",
+          "cases": [],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/integration/test_migration_recovery.py",
+          "cases": [],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        }
+      ],
+      "remaining_acceptance_gates": [
+        "Attach root native PostgreSQL command, exact tested revision and sanitized receipt.",
+        "Verify candidate schema on fresh migrated disposable PostgreSQL and read-only deployed schema; preserve skips separately.",
+        "Required CI on exact proposed merge, tested-tree identity, protected integration and deployment verification."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "title": "Configuration",
+      "issue": 276,
+      "current_canonical_result": "PARTIAL",
+      "prospective_result_after_all_gates": "PASS",
+      "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+      "literal_acceptance": "# 275. CONFIGURATION\n\nDo not require source-code editing for ordinary settings.\n\nUI/environment configuration should cover:\n\n```text\nAI\nsources\nsource intervals\ncompany discovery\nmatch thresholds\napplication rules\napplication limits\nbrowser profiles\ndocuments\nnotifications\nlogging\n```\n\n---",
+      "configuration_categories": [
+        {
+          "category": "AI",
+          "configuration_surface": "AI Settings UI; profile-scoped /profiles/{profile_id}/ai-task-settings API; provider environment settings.",
+          "implementation": [
+            "apps/web/src/main.tsx",
+            "apps/api/main.py",
+            "services/ai/tasks.py",
+            "packages/persistence/store.py"
+          ],
+          "behavior_to_verify": "Saving provider/model choices persists across Store reopen, remains profile-scoped, rejects credential-shaped settings, and all-disabled still permits deterministic matching and factual documents. This does not claim live paid-provider acceptance.",
+          "tests": [
+            {
+              "path": "tests/integration/test_ai_task_settings_api.py",
+              "cases": [
+                "test_settings_are_profile_scoped_and_survive_a_store_reopen",
+                "test_all_disabled_keeps_deterministic_matching_and_factual_documents_available",
+                "test_secret_shaped_model_values_and_extra_credentials_are_rejected"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "sources",
+          "configuration_surface": "Supported source configuration and enable/disable controls; persisted source/search-profile settings.",
+          "implementation": [
+            "apps/web/src/main.tsx",
+            "apps/api/main.py",
+            "services/discovery/sources/collect.py",
+            "services/discovery/search_profiles.py"
+          ],
+          "behavior_to_verify": "Saved source enablement, typed capabilities and policy control actual collection/scheduling; disabled and failed sources do not incorrectly block independent sources.",
+          "tests": [
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "cases": [
+                "test_source_declares_typed_capabilities_and_persists_complete_policy",
+                "test_search_profiles_are_data_driven_persistent_and_source_scoped"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/integration/test_source_policy_cadence_sustain_021.py",
+              "cases": [
+                "test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "source intervals",
+          "configuration_surface": "Source poll interval, request timeout, rate, jitter and saved-search scheduling settings.",
+          "implementation": [
+            "services/discovery/sources/collect.py",
+            "services/discovery/scheduler.py",
+            "services/discovery/search_profiles.py",
+            "apps/web/src/main.tsx"
+          ],
+          "behavior_to_verify": "Saved cadence survives reopen and changes due scheduling, including deduplication and source-isolated failure/backoff behavior.",
+          "tests": [
+            {
+              "path": "tests/integration/test_source_policy_scheduler.py",
+              "cases": [
+                "test_scheduler_respects_independent_source_cadence_and_deduplicates_ticks"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/integration/test_source_policy_cadence_sustain_021.py",
+              "cases": [
+                "test_policy_survives_reopen_and_failure_cannot_block_independent_due_source"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "company discovery",
+          "configuration_surface": "Profile company-discovery enabled flag, minimum/priority score thresholds and hourly discovery cap; company monitoring controls.",
+          "implementation": [
+            "packages/domain/profile.py",
+            "services/company_discovery/triggers.py",
+            "services/company_discovery/monitoring_policy.py",
+            "apps/web/src/main.tsx"
+          ],
+          "behavior_to_verify": "Explicit profile preferences prevent disabled discovery, control request priority and hourly admission, and retain configured dispatch priority after review.",
+          "tests": [
+            {
+              "path": "tests/integration/test_company_discovery_policy.py",
+              "cases": [
+                "test_disabled_policy_prevents_new_profile_discovery_requests",
+                "test_thresholds_control_high_priority_and_rate_limit_new_requests",
+                "test_high_match_threshold_is_configurable_and_dispatch_priority_survives_review"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "match thresholds",
+          "configuration_surface": "AI cost controls and profile-scoped eligibility minimum; selected-search scoring preferences.",
+          "implementation": [
+            "apps/api/main.py",
+            "apps/web/src/main.tsx",
+            "packages/persistence/store.py",
+            "services/matching/weight_configuration.py"
+          ],
+          "behavior_to_verify": "Saved thresholds and candidate caps change eligible preview/document-preparation candidates, persist by profile, and are effective without making provider calls.",
+          "tests": [
+            {
+              "path": "tests/integration/test_ai_cost_policy_api.py",
+              "cases": [
+                "test_profile_cost_policy_defaults_are_safe_and_persist_independently",
+                "test_preview_uses_saved_caps_and_threshold_without_calling_a_provider",
+                "test_reviewed_document_candidates_are_capped_persisted_and_required_for_preparation"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "application rules",
+          "configuration_surface": "Profile route preference and explicit route choice; reviewed sensitive-answer/confidence policies.",
+          "implementation": [
+            "packages/domain/profile.py",
+            "services/documents/sensitive_answer_policy.py",
+            "services/documents/generate.py",
+            "apps/web/src/main.tsx"
+          ],
+          "behavior_to_verify": "Stored application preferences survive reopen, enforce review for sensitive answers, and USER_CHOICE requires an explicit route before preparation. External submission remains disabled.",
+          "tests": [
+            {
+              "path": "tests/integration/test_sensitive_answer_policy.py",
+              "cases": [
+                "test_omitted_sensitive_policy_defaults_to_review_and_policy_is_profile_scoped_durable",
+                "test_unrecognized_or_invalid_policy_never_falls_back_to_a_configured_answer",
+                "test_suggestion_uses_only_the_active_profile_explicit_policy_without_side_effects"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/browser/test_application_route_preference.py",
+              "cases": [
+                "test_profile_choice_requires_selecting_a_route_before_preparation"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "application limits",
+          "configuration_surface": "MJOBS_SUBMISSION_HOURLY_LIMIT, MJOBS_SUBMISSION_DAILY_LIMIT and MJOBS_SUBMISSION_COMPANY_LIMIT; safe /settings readback.",
+          "implementation": [
+            "services/applications/configuration.py",
+            "services/applications/submission_admission.py",
+            "compose.yml",
+            "apps/api/main.py"
+          ],
+          "behavior_to_verify": "Actual durable admission enforces zero and positive hourly/daily/company caps, serializes competing admissions, survives reopen and cannot enable real-employer submission.",
+          "tests": [
+            {
+              "path": "tests/integration/test_configured_submission_limits.py",
+              "cases": [
+                "test_zero_each_cap_blocks_actual_mock_admission_without_claiming",
+                "test_configured_hourly_cap_serializes_two_distinct_application_admissions",
+                "test_configured_caps_use_existing_rolling_and_company_durable_counters",
+                "test_configured_caps_cannot_enable_external_submission"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/unit/test_submission_limit_configuration.py",
+              "cases": [
+                "test_compose_forwards_same_caps_to_api_and_all_workers"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "browser profiles",
+          "configuration_surface": "MJOBS_BROWSER_PROFILE validated nonsecret label; immutable per-application browser-profile-selection.json manifest; /settings readback.",
+          "implementation": [
+            "services/applications/browser_profiles.py",
+            "services/applications/mock_adapter.py",
+            "services/applications/manual_auth.py",
+            "services/applications/manual_auth_host.py",
+            "compose.yml",
+            "apps/api/main.py"
+          ],
+          "behavior_to_verify": "Real controlled Chromium launch uses the configured application-isolated profile; later auth resolution remains pinned after environment changes. Legacy sessions retain their path, Windows reserved names and aliases are rejected, and malformed/special-file manifests fail closed. Supported live-provider sessions are not established by this fixture.",
+          "tests": [
+            {
+              "path": "tests/unit/test_browser_profile_configuration.py",
+              "cases": [
+                "test_invalid_selection_does_not_create_or_pin_a_profile",
+                "test_new_profile_selection_is_isolated_and_pinned_across_environment_changes",
+                "test_legacy_session_is_preserved_even_when_default_changes",
+                "test_invalid_manifest_is_not_overwritten_or_followed",
+                "test_symlinked_profile_cannot_reuse_another_session",
+                "test_special_file_selection_is_rejected_before_open",
+                "test_compose_preserves_selector_and_api_worker_validation"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/integration/test_named_browser_profile.py",
+              "cases": [
+                "test_actual_mock_browser_and_auth_reopen_keep_configured_selection"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "documents",
+          "configuration_surface": "Document preparation UI options for cover-letter style/length, resume tailoring/contact/skill order/page target and reviewed facts.",
+          "implementation": [
+            "apps/web/src/main.tsx",
+            "services/documents/generate.py",
+            "services/documents/cover_letter.py",
+            "services/documents/history.py"
+          ],
+          "behavior_to_verify": "Changing document options creates distinct, reviewable durable versions and visible output changes while retaining prior document bytes and fact provenance; bad stored bytes block download.",
+          "tests": [
+            {
+              "path": "tests/integration/test_cover_letter_workflow.py",
+              "cases": [
+                "test_style_and_length_create_reviewable_immutable_versions_and_bad_bytes_block_download"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/integration/test_skill_order.py",
+              "cases": [
+                "test_explicit_queue_option_versions_preserves_and_labels_skill_order"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "notifications",
+          "configuration_surface": "MJOBS_NOTIFICATIONS_ENABLED=0/1; in-app mute/dismiss controls; bounded profile-scoped read-only refresh.",
+          "implementation": [
+            "apps/api/main.py",
+            "apps/web/src/operation-notifications.tsx",
+            "apps/web/src/main.tsx",
+            "compose.yml"
+          ],
+          "behavior_to_verify": "Disabled mode renders no notifications; enabled mode observes a newly completed stored operation without user refresh, supports dismissal/mute, isolates profile readback and contains no private error text. No email, webhook or external notification delivery is implied.",
+          "tests": [
+            {
+              "path": "tests/unit/test_configuration_surface_sustain_276.py",
+              "cases": [
+                "test_notifications_default_to_disabled_in_app_delivery_without_external_side_effects",
+                "test_notifications_accept_only_explicit_binary_opt_in",
+                "test_invalid_notification_configuration_fails_closed",
+                "test_compose_notification_configuration_reaches_public_readback"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/browser/test_operation_notifications.py",
+              "cases": [
+                "test_notification_configuration_polling_dismissal_and_profile_isolation"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "apps/web/src/operation-notifications.test.tsx",
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        },
+        {
+          "category": "logging",
+          "configuration_surface": "MJOBS_WORKER_LOG_LEVEL environment setting, forwarded through Compose; structured audit logging remains independent.",
+          "implementation": [
+            "workers/main.py",
+            "workers/structured_logging.py",
+            "compose.yml",
+            "cli/local_backup.py"
+          ],
+          "behavior_to_verify": "Worker startup passes the normalized setting to RQ, rejects invalid levels before startup effects, preserves the existing default, and the backup validator accepts exactly the same supported levels.",
+          "tests": [
+            {
+              "path": "tests/unit/test_configuration_contract_sustain_276.py",
+              "cases": [
+                "test_default_worker_log_level_remains_warning",
+                "test_valid_worker_log_level_is_passed_to_rq",
+                "test_worker_log_level_is_case_insensitive_and_trimmed",
+                "test_invalid_worker_log_levels_fail_before_startup_side_effects"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            },
+            {
+              "path": "tests/unit/test_backup_config_snapshot.py",
+              "cases": [
+                "test_runtime_v3_log_level_validation_matches_worker_startup"
+              ],
+              "execution_status": "AWAITING_OWNER_RECEIPT"
+            }
+          ],
+          "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT"
+        }
+      ],
+      "scope_boundary": "Ordinary supported configuration is available through UI/API/environment without source editing. Browser selection is application-isolated and verified with the controlled fixture; unsupported live-provider sessions, paid AI execution, full future notification delivery and real employer submission are not claimed.",
+      "remaining_acceptance_gates": [
+        "Run configuration effect/persistence sweep and attach exact candidate receipt.",
+        "Resolve independent review fix and rerun affected regressions.",
+        "Verify rendered Compose forwarding, browser behavior and safe settings readback on the deployed exact image.",
+        "Required CI on exact proposed merge, tested-tree identity, protected integration and deployment verification."
+      ]
+    }
+  ],
+  "partial_progress": [
+    {
+      "requirement_id": "MJ-REQ-004",
+      "title": "Bound External Operations",
+      "current_canonical_result": "PARTIAL",
+      "prospective_result_after_all_gates": "PARTIAL",
+      "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+      "literal_acceptance": "# 4. BOUND EXTERNAL OPERATIONS\n\nEvery operation that may hang should use:\n\n```text\ntimeouts\ncaptured output\ncontrolled cancellation\nretry policy\nerror classification\n```\n\nThis includes:\n\n```text\nHTTP requests\nbrowser navigation\nbrowser selectors\nAI requests\ndocument parsing\nOCR\nexternal processes\nsource collectors\nATS collectors\n```\n\nNever leave workers permanently blocked on one source.\n\n---",
+      "implemented_slice": "Diagnostic native DOM collection shares a finite total deadline across CDP phases, cancels stalled protocol work, bounds browser-side traversal/output before Python decode, omits DOM on unsupported or invalid paths, and preserves the original operation failure. Selection-manifest reads reject special files rather than blocking on a FIFO.",
+      "implementation": [
+        "services/applications/debug_capture.py",
+        "services/applications/browser_profiles.py"
+      ],
+      "tests": [
+        {
+          "path": "tests/unit/test_browser_debug_capture.py",
+          "cases": [
+            "test_installed_protocol_abort_wait_is_bounded_in_each_native_phase",
+            "test_elapsed_create_and_send_share_one_budget_and_cannot_start_late_detach",
+            "test_one_shot_caller_cancellation_during_dom_stops_capture_without_continuation",
+            "test_oversized_or_invalid_native_values_never_reach_json_decode"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/browser/test_debug_capture_privacy.py",
+          "cases": [
+            "test_unacknowledged_native_dom_abort_is_bounded_and_transport_recovers",
+            "test_isolated_collector_bounds_document_reply_before_driver_decode"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/browser/test_fleet_t12_debug_capture_budget.py",
+          "cases": [
+            "test_real_renderer_stall_is_bounded_then_independent_capture_reads_back",
+            "test_unsupported_collector_omits_dom_without_page_world_fallback"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/unit/test_browser_profile_configuration.py",
+          "cases": [
+            "test_special_file_selection_is_rejected_before_open"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        }
+      ],
+      "remaining_criteria": [
+        "The full original operation inventory is not globally bounded and accepted.",
+        "Filesystem operations and the entire CDP/driver transport have not been proven globally time-bounded under all host/protocol failures.",
+        "This diagnostic slice does not establish every HTTP/browser/AI/parser/OCR/process/source/ATS retry, cancellation and classification path."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "title": "Data Backup",
+      "current_canonical_result": "PARTIAL",
+      "prospective_result_after_all_gates": "PARTIAL",
+      "status": "IMPLEMENTED_AWAITING_EXACT_MERGE_CI_AND_DEPLOYMENT",
+      "literal_acceptance": "# 167. DATA BACKUP\n\nProvide backup tooling for:\n\n```text\ndatabase\nuploaded documents\ngenerated documents\nimportant configuration\n```\n\n---",
+      "implemented_slice": "Runtime configuration snapshot schema 3 captures validated nonsecret browser selector, notification enablement and worker log level with existing caps. Strict schema 1/2 readers and legacy-container capture remain supported; original archive manifest schema is unchanged. Named/legacy cookie trees stay excluded while each nonsecret pinned selection manifest remains in document backup.",
+      "implementation": [
+        "cli/local_backup.py",
+        "services/applications/browser_profiles.py"
+      ],
+      "tests": [
+        {
+          "path": "tests/unit/test_backup_config_snapshot.py",
+          "cases": [
+            "test_runtime_v3_records_validated_nonsecret_configuration_without_private_values",
+            "test_old_container_with_logging_and_notifications_still_captures_legacy_version",
+            "test_runtime_v3_refuses_missing_invalid_or_private_configuration_without_echoing_it",
+            "test_runtime_v3_log_level_validation_matches_worker_startup",
+            "test_backup_preserves_pinned_selection_but_excludes_all_named_and_legacy_cookies"
+          ],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/unit/test_backup_restore_snapshot.py",
+          "cases": [],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        },
+        {
+          "path": "tests/unit/test_backup_credential_restore.py",
+          "cases": [],
+          "execution_status": "AWAITING_OWNER_RECEIPT"
+        }
+      ],
+      "remaining_criteria": [
+        "Protected secrets/private custom configuration and override recovery remain outside complete acceptance.",
+        "Browser authentication/cookies are deliberately not restored; a recreated named profile is empty and requires fresh authentication.",
+        "No destructive live database restore was performed or authorized by this evidence.",
+        "The discarded historical November 1 backup exit-code-2 output cannot be reconstructed."
+      ]
+    }
+  ],
+  "validation": {
+    "native_postgresql": {
+      "status": "PRECOMMIT_NATIVE_PASS_EXACT_MERGE_PENDING",
+      "passed": 49,
+      "subtests_passed": 134,
+      "failed": 0,
+      "skipped": 0,
+      "command": "python -m pytest -q tests/integration/test_database_constraints_sustain_164.py tests/integration/test_database_indexes_sustain_165.py tests/integration/test_database_least_privilege.py tests/integration/test_spine.py tests/unit/test_database_provisioning.py tests/unit/test_runtime_database.py tests/unit/test_persistence_input_security_226.py tests/unit/test_backup_config_snapshot.py --junitxml=outputs/pro-relational-backup-qualified.xml",
+      "tested_revision": "Uncommitted source worktree based on da589aefa1c3c642cbdbbafe32c796f3780cebd3; exact proposed merge pending",
+      "receipt": "Windows isolated source worktree outputs/pro-relational-backup-qualified.xml",
+      "provenance": "Integration owner executed on project venv with disposable PostgreSQL; overlapping later suites must not be added as unique tests"
+    },
+    "configuration_scope": {
+      "status": "AWAITING_OWNER_EXECUTION_AND_RECEIPT",
+      "prerequisites": [
+        "Build apps/web from the exact candidate.",
+        "Controlled Chromium available.",
+        "Use only isolated disposable PostgreSQL settings; a missing database environment is a skip, not PASS.",
+        "No paid AI calls or live employer submission."
+      ],
+      "recommended_command": "python -m pytest -q tests/integration/test_ai_task_settings_api.py tests/integration/test_source_policy_cadence_sustain_021.py tests/integration/test_company_discovery_policy.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_sensitive_answer_policy.py tests/integration/test_configured_submission_limits.py tests/integration/test_named_browser_profile.py tests/integration/test_cover_letter_workflow.py tests/browser/test_operation_notifications.py tests/unit/test_configuration_contract_sustain_276.py",
+      "additional_explicit_controls_command": "python -m pytest -q tests/browser/test_application_route_preference.py tests/integration/test_skill_order.py tests/unit/test_configuration_surface_sustain_276.py tests/unit/test_submission_limit_configuration.py tests/unit/test_browser_profile_configuration.py tests/unit/test_backup_config_snapshot.py",
+      "frontend_command": "npm --prefix apps/web run test -- --run src/operation-notifications.test.tsx",
+      "precommit_native": {
+        "passed": 41,
+        "failed": 0,
+        "skipped": 0,
+        "subtests_passed": 21,
+        "receipt": "outputs/pro-config-categories.xml",
+        "scope": "Recommended scope excluding notification and named-profile cases, separately exercised in native browser and review-fix suites"
+      }
+    },
+    "independent_review": {
+      "status": "FIXED_SCOPED_NATIVE_REGRESSION_PASS",
+      "blocking_for_acceptance": false,
+      "finding": "Named browser profiles placed manual-auth diagnostics inside the cookie exclusion tree",
+      "resolution": "Validated explicit application-root binding preserves application/debug-captures for default and named profiles",
+      "resolution_receipt": "Native outputs/pro-config-review-fixes.xml:20 tests and46 subtests pass,0 failed,0 skipped; exact proposed-merge validation remains pending",
+      "review_scope": "Read-only independent review of selectors/callers, notifications/polling and backupv3; no additional source blockers found"
+    },
+    "protected_ci": {
+      "status": "NOT_YET_ATTACHED",
+      "required_checks": [
+        "CI / required",
+        "Integration / PostgreSQL and Redis",
+        "Disposable Compose / mock end-to-end",
+        "Dependencies / introduced vulnerabilities",
+        "Security / secret scan"
+      ],
+      "exact_merge_identity_required": true,
+      "skipped_is_pass": false
+    },
+    "deployment": {
+      "status": "NOT_YET_VERIFIED_FOR_CANDIDATE",
+      "required": [
+        "Exact deployed Git SHA and container image identity.",
+        "Application health and guarded updater receipt.",
+        "Settings/Compose readback, notification browser behavior and application-isolated profile selection.",
+        "Integrity-verified pre-switch backup and retained rollback release/image."
+      ],
+      "destructive_live_restore": false
+    },
+    "retained_prepublication_failures": [
+      "Global Python lacked psycopg; qualified project-venv PostgreSQL run passed",
+      "Initial notification fixture reset selected profile at reload; fixed and real-browser regression passed",
+      "Two legacy T12 assertions expected removed DOM-omission status; replaced with bounded captured topology/privacy assertions",
+      "One qualified broad browser run had healthy capture return None after intentional renderer stall; timing/phase diagnostics added and unchanged deadline tests passed in targeted20-case run",
+      "Local progress validation caught active phase disagreeing with canonical accepted milestone, then dashboard staleness; active work is retained in current_slice until accepted delivery"
+    ]
+  },
+  "acceptance_policy": {
+    "prospective_acceptances": [
+      "MJ-REQ-162",
+      "MJ-REQ-275"
+    ],
+    "remain_partial": [
+      "MJ-REQ-004",
+      "MJ-REQ-167"
+    ],
+    "do_not_promote": [
+      "MJ-REQ-174",
+      "MJ-REQ-179",
+      "MJ-REQ-204",
+      "MJ-REQ-224",
+      "MJ-REQ-269"
+    ],
+    "note": "Existing accepted rows remain as-is. This mapping does not confer acceptance on adjacent security, diagnostic, notification-provider, adapter-contract or document-generation requirements. Overlapping test counts must not be summed as unique tests."
+  },
+  "external_employer_submissions": "OFF",
+  "paid_ai_calls": "NOT_PERFORMED"
+}
