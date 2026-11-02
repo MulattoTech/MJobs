@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T02:29:45.686117+00:00",
+  "result": "PASS",
+  "deployment": {
+    "commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "version": "0.1.0-dev",
+    "operation_mode": "PERSONAL"
+  },
+  "state": {
+    "sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "source": "%LOCALAPPDATA%\\MJobsMicro\\releases\\2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "deployed_at": "2026-11-02T02:29:35.894301+00:00"
+  },
+  "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+  "containers": [
+    {
+      "id": "b909060f2223dd1b765d8a4c876f93cbf8536b382fb05f903506d64cfc9864f6",
+      "service": "scheduler",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "fd2fb6005ddc17d7440aef8b9fb3c0b452a936d98ed57edf9c10648adc87f825",
+      "service": "company-discovery-worker",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "6e4601d1d50eed7f086e9519c65da0352cea4b9e66e5c93b0f88c1b410b9fbca",
+      "service": "worker",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "947e7dd19ceb4881a64a474c7e6f3cd7e6b44454b6c29869fa18f1ef458dbaf5",
+      "service": "source-worker",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "6f64ef2fb84851d4e8590d8976d887d5e490e874e5f6ab05c3befc01ba8aba1b",
+      "service": "api",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "e12c570677302cd71ebc310d97a6c914f96ec0860e1c868af7801e47e33ce43e",
+      "service": "ai-worker",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "0506cc90a44ab68b0198570e82a732148046966e9d4b91aa179a5ed423e9a2cd",
+      "service": "document-worker",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "32ff67545d21d19c0f87f35d46476ed1c7671af1507152bba787ab5e6861fab6",
+      "service": "migrate",
+      "image": "mjobs-micro:sha-2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+      "status": "exited",
+      "health": null
+    },
+    {
+      "id": "bb11582979b038aa54f433fd80cc1b0ab001268f9d063462031d23974883f5b2",
+      "service": "postgres",
+      "image": "postgres:17",
+      "image_id": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "id": "a999cbadbc39141770a7165d3dfbd4813c7e1402aad5e74fe61dadd48954dba9",
+      "service": "redis",
+      "image": "redis:7",
+      "image_id": "sha256:c6eabf748fc7a61dbb5a705c78bcf3d6377b1127a97d0ce965c11c44ba46896f",
+      "status": "running",
+      "health": "healthy"
+    }
+  ],
+  "health": {
+    "status": "ready",
+    "checks": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "worker": true,
+      "scheduler": true,
+      "workers": {
+        "mjobs-ai": true,
+        "mjobs-application": true,
+        "mjobs-company-discovery": true,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      },
+      "schema": true
+    },
+    "db_backend": "postgresql"
+  },
+  "safe_settings": {
+    "mode": "LOCAL_FIRST",
+    "operation_mode": "PERSONAL",
+    "external_submission_enabled": false,
+    "submission_limits": {
+      "hourly": 3,
+      "daily": 10,
+      "company": 1
+    },
+    "browser_workers": 0,
+    "worker_limits": {
+      "DISCOVER": 2,
+      "COMPANY_DISCOVER": 1,
+      "AI_EVALUATE_QUEUED": 1,
+      "COMPANY_SOURCE_REFRESH": 1,
+      "PREPARE": 1,
+      "RESUME_EXTRACT_QUEUED": 1,
+      "UPLOADED_RESUME_COMPARE_QUEUED": 1,
+      "APPLY_MOCK": 1,
+      "APPLICATION_FORM_REVIEW": 1,
+      "APPLICATION_DRY_RUN": 1
+    },
+    "notifications": {
+      "enabled": false,
+      "delivery": "IN_APP"
+    }
+  },
+  "frontend": {
+    "html_sha256": "a554780cadf3ad7f3871f0fc7003967bf902ea8ab49960ced22a6d681c6f5843",
+    "scripts": [
+      {
+        "path": "/assets/index-B5mA3lf-.js",
+        "bytes": 978590,
+        "sha256": "21f9985d51ce6dae91573ef36eb6179d7f4e9802533fd900e018ca1947d56d5d"
+      }
+    ],
+    "scope": "Read-only origin HTML and bounded static asset reads; public browser must separately confirm the same script paths"
+  },
+  "installed_updater_sha256": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+  "production_data_writes": false,
+  "live_restore_performed": false,
+  "submission_limit_environment": {
+    "result": "PASS",
+    "values": {
+      "hourly": 3,
+      "daily": 10,
+      "company": 1
+    },
+    "services_checked": [
+      "ai-worker",
+      "api",
+      "company-discovery-worker",
+      "document-worker",
+      "scheduler",
+      "source-worker",
+      "worker"
+    ],
+    "scope": "Only the three allowlisted numeric settings were compared with the API readback"
+  },
+  "source_capabilities_api": {
+    "result": "PASS_EMPTY_COLLECTION",
+    "rows_checked": 0,
+    "strategies": {},
+    "scope": "Read-only bounded production API response. Retained only declaration counts and strategy totals; no profile, company, URL, source ID or context data. Empty data establishes endpoint availability only."
+  },
+  "backup": {
+    "archive": "%LOCALAPPDATA%\\MJobsMicro\\backups\\20261102T022921Z-355a0b49efb8",
+    "result": "PASS",
+    "verify_summary": [
+      "Backup verified: 3 files; mode PERSONAL",
+      "Configuration snapshot: configuration/runtime.json (manual review only; settings are not applied)"
+    ],
+    "manifest_sha256": "0158ec8c5ef0a75b45a438a79d231f8de7210ba29d35a86450cb8530d595599d"
+  },
+  "rollback": {
+    "source_commit": "355a0b49efb83b56db4de6730e7332f85906db36",
+    "source_preserved": true,
+    "image": "mjobs-micro:sha-355a0b49efb83b56db4de6730e7332f85906db36",
+    "image_id": "sha256:270a89ad0d17b50d906c827912328a71ca9bf213714776f812f99ec0ce6e0da5",
+    "image_preserved": true,
+    "verified_archive_preserved": true
+  }
+}

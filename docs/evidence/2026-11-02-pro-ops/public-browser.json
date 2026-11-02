@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T02:33:32.110Z",
+  "result": "PASS",
+  "browser": "Brave",
+  "url": "https://mjobs.m-techlabs.com/",
+  "title": "MJobs \u00b7 Local workspace",
+  "observed_deployment_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "operation_mode": "PERSONAL",
+  "services_ready": true,
+  "external_submission_off": true,
+  "external_submission_off_evidence": "Visible manual-review notice explicitly states that this workspace cannot submit to an external employer. Actual server configuration and all worker environments are verified separately in production-after.json.",
+  "app_script_paths": [
+    "/assets/index-B5mA3lf-.js"
+  ],
+  "visible_manual_submission_notice": true,
+  "sidebar_off_badge_visible": false,
+  "sidebar_note": "The sidebar badge is present but hidden at the current layout; the visible manual-submission notice was used instead.",
+  "deployment_readback_url": "https://mjobs.m-techlabs.com/__deployment",
+  "private_settings_navigation": {
+    "url": "https://mjobs.m-techlabs.com/settings",
+    "result": "BLOCKED_AS_DESIGNED",
+    "observed_detail": "Cross-site personal data access blocked",
+    "bypass_performed": false
+  },
+  "scope": "Read-only public browser DOM and deployment JSON-page observations. No profile selection, form submission, employer action or production data write. Raw DOM, profile and company data are not retained."
+}

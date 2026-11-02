@@ -1,0 +1,546 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T01:04:58.427333+00:00",
+  "qualification": "Historical only. Final source acceptance is established by the separate immutable final PR881/882 receipts.",
+  "runs": [
+    {
+      "run_id": 41362217385,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217385",
+      "workflow": "CI - fast",
+      "event": "pull_request",
+      "source_head": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "api_head_sha": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-01T23:27:47Z",
+      "updated_at": "2026-11-01T23:32:29Z",
+      "note": "Initial source fast checks",
+      "jobs": [
+        {
+          "id": 125014811431,
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217385/job/125014811431"
+        },
+        {
+          "id": 125014811483,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217385/job/125014811483"
+        },
+        {
+          "id": 125014811602,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217385/job/125014811602"
+        },
+        {
+          "id": 125015940308,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217385/job/125015940308"
+        }
+      ]
+    },
+    {
+      "run_id": 41362217392,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217392",
+      "workflow": "Integration - PostgreSQL and Redis",
+      "event": "pull_request",
+      "source_head": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "api_head_sha": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-01T23:27:47Z",
+      "updated_at": "2026-11-01T23:43:11Z",
+      "note": "Initial integration failed: exact fenced recovery compatibility and overly broad timing oracles",
+      "jobs": [
+        {
+          "id": 125014811490,
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217392/job/125014811490"
+        },
+        {
+          "id": 125014811609,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217392/job/125014811609"
+        },
+        {
+          "id": 125014811626,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217392/job/125014811626"
+        },
+        {
+          "id": 125018568985,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217392/job/125018568985"
+        }
+      ]
+    },
+    {
+      "run_id": 41362217496,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217496",
+      "workflow": "Connected acceptance \u2014 synthetic",
+      "event": "pull_request",
+      "source_head": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "api_head_sha": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-01T23:27:47Z",
+      "updated_at": "2026-11-01T23:35:51Z",
+      "note": "Initial disposable Compose",
+      "jobs": [
+        {
+          "id": 125014811683,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41362217496/job/125014811683"
+        }
+      ]
+    },
+    {
+      "run_id": 41364140432,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140432",
+      "workflow": "CI - fast",
+      "event": "pull_request",
+      "source_head": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "api_head_sha": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-01T23:51:36Z",
+      "updated_at": "2026-11-01T23:55:53Z",
+      "note": "Superseded by strict socket oracle",
+      "jobs": [
+        {
+          "id": 125020608824,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140432/job/125020608824"
+        },
+        {
+          "id": 125020609017,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140432/job/125020609017"
+        },
+        {
+          "id": 125020609051,
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140432/job/125020609051"
+        },
+        {
+          "id": 125021602525,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140432/job/125021602525"
+        }
+      ]
+    },
+    {
+      "run_id": 41364140435,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140435",
+      "workflow": "Integration - PostgreSQL and Redis",
+      "event": "pull_request",
+      "source_head": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "api_head_sha": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created_at": "2026-11-01T23:51:36Z",
+      "updated_at": "2026-11-01T23:59:32Z",
+      "note": "Superseded by strict socket oracle",
+      "jobs": [
+        {
+          "id": 125020608992,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140435/job/125020608992"
+        },
+        {
+          "id": 125020609037,
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140435/job/125020609037"
+        },
+        {
+          "id": 125020609084,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140435/job/125020609084"
+        },
+        {
+          "id": 125022433320,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140435/job/125022433320"
+        }
+      ]
+    },
+    {
+      "run_id": 41364140437,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140437",
+      "workflow": "Connected acceptance \u2014 synthetic",
+      "event": "pull_request",
+      "source_head": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "api_head_sha": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created_at": "2026-11-01T23:51:36Z",
+      "updated_at": "2026-11-01T23:58:10Z",
+      "note": "Superseded by strict socket oracle",
+      "jobs": [
+        {
+          "id": 125020609049,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364140437/job/125020609049"
+        }
+      ]
+    },
+    {
+      "run_id": 41364637923,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637923",
+      "workflow": "CI - fast",
+      "event": "pull_request",
+      "source_head": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "api_head_sha": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-01T23:57:55Z",
+      "updated_at": "2026-11-02T00:02:08Z",
+      "note": "Intermediate fast checks",
+      "jobs": [
+        {
+          "id": 125022088295,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637923/job/125022088295"
+        },
+        {
+          "id": 125022088536,
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637923/job/125022088536"
+        },
+        {
+          "id": 125022088556,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637923/job/125022088556"
+        },
+        {
+          "id": 125023104719,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637923/job/125023104719"
+        }
+      ]
+    },
+    {
+      "run_id": 41364637900,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637900",
+      "workflow": "Integration - PostgreSQL and Redis",
+      "event": "pull_request",
+      "source_head": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "api_head_sha": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created_at": "2026-11-01T23:57:55Z",
+      "updated_at": "2026-11-02T00:18:15Z",
+      "note": "Integration cancellation timing failed; ASGI dispatch consumed .845 seconds, service store .003 and tail .001",
+      "jobs": [
+        {
+          "id": 125022452522,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637900/job/125022452522"
+        },
+        {
+          "id": 125022452660,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637900/job/125022452660"
+        },
+        {
+          "id": 125022452696,
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637900/job/125022452696"
+        },
+        {
+          "id": 125027392180,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637900/job/125027392180"
+        }
+      ]
+    },
+    {
+      "run_id": 41364637918,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637918",
+      "workflow": "Connected acceptance \u2014 synthetic",
+      "event": "pull_request",
+      "source_head": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "api_head_sha": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-01T23:57:55Z",
+      "updated_at": "2026-11-02T00:06:12Z",
+      "note": "Intermediate Compose",
+      "jobs": [
+        {
+          "id": 125022144977,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41364637918/job/125022144977"
+        }
+      ]
+    },
+    {
+      "run_id": 41366387700,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387700",
+      "workflow": "CI - fast",
+      "event": "pull_request",
+      "source_head": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "api_head_sha": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created_at": "2026-11-02T00:17:54Z",
+      "updated_at": "2026-11-02T00:22:25Z",
+      "note": "Superseded by monotonic injected-delay fixture correction",
+      "jobs": [
+        {
+          "id": 125027324249,
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387700/job/125027324249"
+        },
+        {
+          "id": 125027324481,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387700/job/125027324481"
+        },
+        {
+          "id": 125027324499,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387700/job/125027324499"
+        },
+        {
+          "id": 125028513197,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387700/job/125028513197"
+        }
+      ]
+    },
+    {
+      "run_id": 41366387745,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387745",
+      "workflow": "Integration - PostgreSQL and Redis",
+      "event": "pull_request",
+      "source_head": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "api_head_sha": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created_at": "2026-11-02T00:17:54Z",
+      "updated_at": "2026-11-02T00:23:41Z",
+      "note": "Superseded by monotonic injected-delay fixture correction",
+      "jobs": [
+        {
+          "id": 125027414590,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387745/job/125027414590"
+        },
+        {
+          "id": 125027414792,
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387745/job/125027414792"
+        },
+        {
+          "id": 125027414800,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387745/job/125027414800"
+        },
+        {
+          "id": 125028851060,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387745/job/125028851060"
+        }
+      ]
+    },
+    {
+      "run_id": 41366387728,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387728",
+      "workflow": "Connected acceptance \u2014 synthetic",
+      "event": "pull_request",
+      "source_head": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "api_head_sha": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "created_at": "2026-11-02T00:17:54Z",
+      "updated_at": "2026-11-02T00:22:28Z",
+      "note": "Superseded by monotonic injected-delay fixture correction",
+      "jobs": [
+        {
+          "id": 125027324447,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366387728/job/125027324447"
+        }
+      ]
+    }
+  ],
+  "retained_local_log_hashes": [
+    {
+      "file": "ci-881-job-125014811490.log",
+      "sha256": "32b62317e3872cb9afca228150584a4e4c25e53ed7e2481028f07b28fa142629"
+    },
+    {
+      "file": "ci-881-job-125014811609.log",
+      "sha256": "daa19b624ad6749075a1d08daac43aab4f5af717d8dbdb7facfbb4836f3b3118"
+    },
+    {
+      "file": "ci-881-job-125014811626.log",
+      "sha256": "e5ab62687d63536abc54a7faa18b70afea4207699edfe1255c6bf79143001c85"
+    },
+    {
+      "file": "ci-881-job-125022452696.log",
+      "sha256": "f416ffd1e8687b05bda93068e17a9fc1c4836385b2febddfe92dd271b7a13927"
+    }
+  ],
+  "observed_failure_counts": [
+    {
+      "job_id": 125014811626,
+      "failed": 5,
+      "passed": 800,
+      "skipped": 13,
+      "subtests_passed": 368
+    },
+    {
+      "job_id": 125014811490,
+      "failed": 3,
+      "passed": 793,
+      "skipped": 22,
+      "subtests_passed": 435
+    },
+    {
+      "job_id": 125014811609,
+      "failed": 1,
+      "passed": 841,
+      "skipped": 0,
+      "subtests_passed": 590
+    },
+    {
+      "job_id": 125022452696,
+      "failed": 1,
+      "passed": 797,
+      "skipped": 22,
+      "subtests_passed": 443
+    }
+  ],
+  "repairs": [
+    "Fenced recovery accepts exactly the historical proof or the new category proof; mixed/extra/mismatched proof remains refused.",
+    "Socket oracle measures actual owned-stream closure, requires exactly one connect and preserves the original transport bound. Persistence completion is separately bounded.",
+    "Cancellation oracle starts at immutable request_cancel entry, includes store persistence, retains .35-second service/transport limits and separately bounds pre-dispatch at 3 seconds; positive dispatch delay and negative service-delay controls remain.",
+    "Windows injected asyncio delay undershot .800 seconds at .797; one fixed monotonic deadline corrected the fixture without reducing its lower bound."
+  ],
+  "subsequent_main_failure": {
+    "source_commit": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+    "gate_results": [
+      {
+        "id": 41371046952,
+        "name": "Integration - PostgreSQL and Redis",
+        "head_sha": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41371046952",
+        "created_at": "2026-11-02T01:10:23Z",
+        "updated_at": "2026-11-02T01:27:37Z"
+      },
+      {
+        "id": 41371046815,
+        "name": "MJobs deployment candidate",
+        "head_sha": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "failure",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41371046815",
+        "created_at": "2026-11-02T01:10:23Z",
+        "updated_at": "2026-11-02T01:27:41Z"
+      }
+    ],
+    "failed_job": {
+      "job_id": 125041388319,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41371046952/job/125041388319",
+      "summary": "1 failed, 920 passed, 9 skipped, 600 subtests passed",
+      "test": "SourceHttpSocketBudgetTests.test_body_and_header_deadline_precedes_delayed_finalization (mode=header-drip)",
+      "assertion": "Worker did not reach source HTTP transport",
+      "log_sha256": "613f6be019252e243fcf0a2fb47597af23f6272de9fdecd15a5ba6c6428b5aaf",
+      "limitation": "The failed entry assertion did not record terminal state or phase diagnostics. Its precise hosted cause cannot be established from retained evidence."
+    },
+    "controlled_reproduction": {
+      "backend_entries": 0,
+      "durable_terminal": {
+        "state": "DEAD_LETTERED",
+        "error": "OPERATION_TIMEOUT",
+        "attempt_count": 1
+      },
+      "outcome_status": "DEAD_LETTERED",
+      "original_assertion": "False is not true : Worker did not reach source HTTP transport",
+      "timestamp": "2026-11-02T01:35:45.248515+00:00",
+      "source": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+      "result": "REPRODUCED_ORACLE_FAILURE_WITH_CORRECT_PRE_TRANSPORT_TIMEOUT",
+      "scope": "Controlled 1.1-second collector setup delay exhausts the unchanged 0.8-second worker budget. This proves the ambiguous assertion can reject correct behavior; the original hosted run did not retain enough diagnostics to establish its exact cause."
+    },
+    "fixture_correction_pr": 883,
+    "scope": "Original failed main and candidate remain failures. The later source has distinct protected and deployment receipts; no blind rerun or gate bypass."
+  },
+  "qualification_at_delivery": "Historical attempts remain unchanged. The final three-source delivery is established by separate protected, native, hosted and deployment receipts for PRs #881/#882/#883."
+}

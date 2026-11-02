@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T00:35:12Z",
+  "baseline_commit": "355a0b49efb83b56db4de6730e7332f85906db36",
+  "exact_source_head": "25fb88ee9fc5737dd91d2bdb94e2de608ec46059",
+  "exact_source_tree": "933e1bd8987d488a7a9f039824cb8dcb05f17dba",
+  "environment": {
+    "native": "Windows 11 / Python3.12.10 / pytest9.1.1 / Chromium",
+    "auxiliary": "Linux standard-library unittest",
+    "paid_ai_calls": 0,
+    "real_employer_submissions": 0
+  },
+  "executed": [
+    {
+      "id": "updater-windows",
+      "revision": "precommit working tree",
+      "command": "python -m pytest -q tests/unit/test_windows_micro_command_bounds.py tests/unit/test_windows_micro_backup_diagnostics.py tests/unit/test_windows_micro_cd.py",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 40,
+      "skipped": 2,
+      "subtests_passed": 63,
+      "skip_reason": "Windows host cannot create two test symlinks without the required privilege."
+    },
+    {
+      "id": "updater-linux",
+      "revision": "production files identical to committed source",
+      "command": "python -m unittest tests.unit.test_windows_micro_command_bounds tests.unit.test_windows_micro_backup_diagnostics tests.unit.test_windows_micro_cd -q",
+      "result": "PASS",
+      "passed": 42,
+      "skipped": 0
+    },
+    {
+      "id": "debug-initial",
+      "revision": "precommit working tree",
+      "result": "FAIL",
+      "passed": 85,
+      "failed": 2,
+      "skipped": 13,
+      "subtests_passed": 73,
+      "failures": [
+        "Fixture retried an idempotent dry-run without the explicit review required for a fresh attempt.",
+        "The network-error fixture used an HTTP404; corrected to an origin-blocked requestfailed event."
+      ],
+      "skips": "13 isolated PostgreSQL cases had no configured database."
+    },
+    {
+      "id": "debug-corrected",
+      "revision": "precommit working tree",
+      "command": "python -m pytest -q tests/browser/test_debug_capture_consumers.py",
+      "result": "PASS",
+      "passed": 6,
+      "subtests_passed": 5,
+      "skipped": 0
+    },
+    {
+      "id": "errors-initial",
+      "revision": "precommit working tree",
+      "result": "FAIL",
+      "passed": 102,
+      "failed_subtests": 4,
+      "skipped": 10,
+      "subtests_passed": 26,
+      "failures": [
+        "Repeated CAPTCHA/auth and closed-state cases reused deterministic operation IDs. Production correctly refused second execution. Fixture tasks now use separate explicit identities."
+      ]
+    },
+    {
+      "id": "errors-corrected",
+      "revision": "precommit working tree",
+      "command": "python -m pytest -q tests/integration/test_structured_operation_failures.py tests/integration/test_durable_ai_evaluation.py tests/unit/test_operation_error_categories.py tests/unit/test_error_categories_sustain_162.py tests/integration/test_source_collection_error_categories.py tests/integration/test_operation_retries.py tests/integration/test_fleet_t11_operation_recovery_progress.py",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 137,
+      "skipped": 10,
+      "subtests_passed": 47,
+      "skip_reason": "10 optional PostgreSQL retry cases had no MJOBS_RETRY_POSTGRES_URL."
+    },
+    {
+      "id": "contracts-initial",
+      "revision": "precommit working tree",
+      "result": "FAIL",
+      "passed": 18,
+      "failed": 1,
+      "skipped": 3,
+      "subtests_passed": 28,
+      "failures": [
+        "The new lookup-failure regression exercised a direct category trace, so it never reached the optional DB enrichment. Fixture corrected to a static unmapped required questionnaire."
+      ]
+    },
+    {
+      "id": "contracts-corrected",
+      "revision": "precommit working tree",
+      "command": "python -m pytest -q tests/integration/test_structured_operation_failures.py::StructuredFailureTests::test_optional_category_read_failure_preserves_blocked_outcome tests/unit/test_operation_progress.py tests/integration/test_application_log_privacy.py",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 13,
+      "skipped": 3,
+      "subtests_passed": 23,
+      "skip_reason": "Three PostgreSQL application privacy cases had no configured database."
+    },
+    {
+      "id": "exact-committed-head",
+      "revision": "af44d9934aac6ebef2fc8deed40308ba5f08c80d",
+      "command": "python -m pytest -q tests/unit/test_windows_micro_command_bounds.py tests/browser/test_debug_capture_consumers.py tests/integration/test_structured_operation_failures.py tests/unit/test_error_categories_sustain_162.py tests/unit/test_operation_progress.py tests/integration/test_application_log_privacy.py",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 43,
+      "skipped": 16,
+      "subtests_passed": 50,
+      "skip_reason": "13 new PostgreSQL structured-error and three existing PostgreSQL privacy cases had no local database. New PostgreSQL cases execute in required hosted integration."
+    },
+    {
+      "id": "repository-preflight",
+      "result": "PASS",
+      "commands": [
+        "python -m tools.verification.catalogue",
+        "python -m tools.verification.progress validate",
+        "python -m tools.verification.progress_dashboard --check",
+        "git diff --check",
+        "python -m tools.verification.commit_provenance --commit HEAD"
+      ]
+    },
+    {
+      "id": "recovery-compatibility",
+      "revision": "pre-c666806b source tree",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 26,
+      "skipped": 3,
+      "subtests_passed": 5,
+      "skip_reason": "PostgreSQL unavailable locally",
+      "scope": "Legacy and categorized confirmation proof exactness"
+    },
+    {
+      "id": "ci-repair-batch",
+      "revision": "c666806b653dd24321f1dba80a34d3517cd0cb59",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 43,
+      "skipped": 3,
+      "subtests_passed": 22
+    },
+    {
+      "id": "strict-socket-oracle",
+      "revision": "8fb20d5c1f8aab570ecaa7fbef34f050f0ec530a",
+      "result": "PASS",
+      "passed": 17,
+      "skipped": 0,
+      "subtests_passed": 14,
+      "command": "python -m pytest -q tests/integration/test_source_http_socket_budget.py"
+    },
+    {
+      "id": "prior-proposed-merge",
+      "revision": "41e228f1c6e35a4f89b15dd19465ae07ceb7cf1c",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 71,
+      "skipped": 16,
+      "subtests_passed": 72
+    },
+    {
+      "id": "prior-proposed-merge-browser-privacy",
+      "revision": "41e228f1c6e35a4f89b15dd19465ae07ceb7cf1c",
+      "result": "PASS",
+      "passed": 3,
+      "skipped": 0,
+      "command": "python -m pytest -q tests/browser/test_debug_capture_privacy.py"
+    },
+    {
+      "id": "cancellation-boundary-initial",
+      "revision": "ead8a476e80cd05166868c82372ba9ed88fa0796",
+      "result": "PASS",
+      "passed": 16,
+      "skipped": 0,
+      "subtests_passed": 11
+    },
+    {
+      "id": "cancellation-boundary-proposed-merge-undersleep",
+      "revision": "ab17c5d214d078e072bcb2451fabd0a09ac9519f",
+      "result": "FAIL",
+      "passed": 15,
+      "failed": 1,
+      "subtests_passed": 11,
+      "reason": "Injected asyncio timer returned after.797s instead of.8s; fixture now waits against one fixed monotonic deadline. Production .35s bounds unchanged."
+    },
+    {
+      "id": "cancellation-boundary-corrected",
+      "revision": "source tree committed as25fb88ee9fc5737dd91d2bdb94e2de608ec46059",
+      "result": "PASS",
+      "passed": 16,
+      "skipped": 0,
+      "subtests_passed": 11
+    },
+    {
+      "id": "final-actual-proposed-merge-native",
+      "revision": "769adc77494dec84a6c58730a4b35b984dcf5579",
+      "tree": "933e1bd8987d488a7a9f039824cb8dcb05f17dba",
+      "result": "PASS_WITH_SKIPS",
+      "passed": 90,
+      "skipped": 16,
+      "subtests_passed": 83,
+      "seconds": 223.56,
+      "skip_reason": "13 structured-error and3 privacy PostgreSQL cases require hosted disposable database.",
+      "command": "python -m pytest -q tests/unit/test_windows_micro_command_bounds.py tests/browser/test_debug_capture_consumers.py tests/integration/test_structured_operation_failures.py tests/unit/test_error_categories_sustain_162.py tests/unit/test_operation_progress.py tests/integration/test_application_log_privacy.py tests/integration/test_application_confirmation_recovered_attempt.py tests/integration/test_source_http_socket_budget.py tests/integration/test_source_adapter_connect_cancellation.py tests/browser/test_debug_capture_privacy.py --junitxml=outputs/pro-ops-proposed-merge-final.xml"
+    }
+  ],
+  "review": {
+    "command_bounds": "Independent read-only review; cleanup close-error handling and timeout validation ordering corrected.",
+    "debug_capture": "Independent read-only review; real requestfailed fixture and phase reset corrected.",
+    "structured_errors": "Independent read-only review; late JOB_CLOSED trace, enrichment failure preservation and current-input pins corrected. Additive exact-shape assertions updated.",
+    "confirmation_proof": "Independent review approved exact old/new format compatibility; mixed formats, wrong categories and extra metadata remain refused.",
+    "timing_oracles": "Independent reviews approved causal transport/service boundaries and delayed-dispatch/negative controls; original limits preserved."
+  },
+  "live_scope": {
+    "public_browser": "Connected Brave loaded https://mjobs.m-techlabs.com on baseline355a0b49 and displayed Services ready and External submission OFF. No login wall in this session.",
+    "production_features": "Failure-producing feature tests are isolated synthetic fixtures; no live employer action or production-data mutation."
+  },
+  "limits": [
+    "Precommit runs are not immutable-revision acceptance by themselves. The exact-head native run and exact proposed-merge hosted receipts establish current-source execution.",
+    "Subtests and reruns overlap; do not sum these rows as distinct tests.",
+    "All skips and failed attempts are retained; none is relabeled PASS."
+  ],
+  "exact_proposed_merge": "769adc77494dec84a6c58730a4b35b984dcf5579"
+}

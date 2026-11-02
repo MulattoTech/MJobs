@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-11-02T01:13:16.759861+00:00",
+  "observed_main": "f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912",
+  "number": 63,
+  "url": "https://github.com/MulattoTech/MJobs/security/dependabot/63",
+  "state": "fixed",
+  "fixed_at": "2026-11-02T01:10:26Z",
+  "dismissed_at": null,
+  "package": {
+    "ecosystem": "npm",
+    "name": "minimatch"
+  },
+  "advisory": "GHSA-g3hv-75wg-m249",
+  "scope": "GitHub independently marks the dependency alert fixed after the protected default-branch update; no manual dismissal."
+}

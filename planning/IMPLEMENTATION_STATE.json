@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-01T06:31:43.869016+00:00",
+  "generated_at": "2026-11-02T02:34:15.944248+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "PRO-P1-VERIFIED-DELIVERY-20261101",
-  "current_objective": "Continue from verified 92/116 P1 acceptance; complete remaining UX, source-quality and application-readiness gaps",
+  "current_milestone": "PRO-OPS-VERIFIED-DELIVERY-20261102",
+  "current_objective": "Resume from 12/26 P0 and 99/116 P1 acceptance; complete remaining literal criteria without denominator changes.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -103,7 +103,10 @@
     "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
     "MJ-REQ-190 PASS: the connected Jobs interface exposes and verifies Best Match, Newest, Application Priority, Salary, Company, and Title sorting; see docs/evidence/2026-10-09-complete-job-sorting.json.",
     "2026-10-11: Connected durable company discovery queue, fail-closed document generation recovery, profile-scoped settings transfer, read-only Greenhouse form review, and Lever route/form analysis integrated locally on main; issue scopes remain PARTIAL.",
-    "2026-10-11: Profile-scoped CSV/JSON/complete-backup downloads, selectable source relationship graph, dry-run retention preview with configured scheduler, and durable Activity operation progress are wired into the app shell. Connected browser reload/isolation/safety acceptance and focused service/UI tests pass at local main 61305d46; full requirements remain PARTIAL."
+    "2026-10-11: Profile-scoped CSV/JSON/complete-backup downloads, selectable source relationship graph, dry-run retention preview with configured scheduler, and durable Activity operation progress are wired into the app shell. Connected browser reload/isolation/safety acceptance and focused service/UI tests pass at local main 61305d46; full requirements remain PARTIAL.",
+    "MJ-REQ-019: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json",
+    "MJ-REQ-161: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json",
+    "MJ-REQ-179: 2026-11-02 full literal acceptance after protected source and verified delivery; docs/evidence/2026-11-02-pro-ops-delivery.json"
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -151,7 +154,7 @@
     "MJ-REQ-176 / issue #177: Activity now records profile-owned durable PREPARE queued/start/terminal-failure events with stable IDs and attempt history, safe fixed summaries and job/company context. Queue, claim, task terminal failure and retry-limit recovery transactions were exercised; resume rewrite payloads are excluded. 28 focused Python integration/worker/outbox tests PASS with 1 PostgreSQL-only skip, 1 connected Chromium test PASS, frontend 63/build and validators PASS. Evidence docs/evidence/2026-10-07-application-preparation-audit.json. Company/source enrollment, job merge, full settings and truthful complete actual application lifecycle events remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-176 / issue #177 company/source audit history: successful discovery now records idempotent profile-owned COMPANY_DISCOVERED and first source creation COMPANY_SOURCE_ENROLLED events atomically with source persistence. Fixed summaries remain private, profile-isolated and persist across reload; failed discovery emits neither. 26 focused integration tests, connected Chromium 1, frontend 63/build, and repository validators PASS. Evidence docs/evidence/2026-10-07-company-audit-history.json. Job merge, complete settings and full truthful application lifecycle coverage remain incomplete; issue OPEN/PARTIAL.",
     "MJ-REQ-177 / issue #178 structured worker logging: durable worker terminal outcomes emit JSON-only allowlisted records only after persistence; records contain safe operation context and omit parameters, exception messages and private resume text. Evidence docs/evidence/2026-10-07-structured-worker-operation-logs.json. Focused 21 PASS/1 PostgreSQL-only skip; full Python suite 932 PASS/8 skipped; frontend 63/build and local validators PASS. Posting/source/ATS and other operation types, live Redis/RQ and PostgreSQL remain unverified; issue remains OPEN/PARTIAL.",
-    "MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL.",
+    "Historical checkpoint, superseded for MJ-REQ-179 by 2026-11-02 PASS; original text retained: MJ-REQ-179 / issue #180 Debug Capture is locally evidenced for the existing local mock ATS browser adapter. Opt-in defaults OFF; failure diagnostics include a privacy-masked viewport screenshot, structural allowlisted DOM counts, sanitized URL path shape, error-only console/network HMAC fingerprints and current durable step; retention is 30 days/20 captures, events 50, screenshot 5 MiB. Synthetic browser tests preserve REVIEW_REQUIRED and SUBMISSION_UNCONFIRMED/no-blind-retry. Exact-head affected validation 72 PASS and one optional PostgreSQL skip; repository-wide discovery at source 6d3b289 failed (948 run, 2 failures, 9 errors, 28 skipped) and is not promoted. Evidence docs/evidence/2026-10-07-safe-browser-debug-capture.json. Real ATS, live PostgreSQL and hosted checks NOT_RUN; external submission OFF. Requirement remains PARTIAL.",
     "Issue #517 / discovered job-source catalogue PARTIAL: manual capture and external application reports persist profile-scoped sanitized provenance, destination site-type assessments, review history and explicit unknown hops. Source commit 5b49d595ff48615c8a82a3e383a8ac3d82261578; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 954 run/8 skipped, frontend 63/build, focused 10 API/browser, disposable SQLite migration and local validators PASS. Provider/browser discovery hooks, documented source evaluation/integration task linkage, PostgreSQL/Docker and live source evidence remain NOT_RUN/incomplete. Issue remains OPEN/PARTIAL; external submission OFF.",
     "Issue #517 / discovered job-source catalogue follow-up PARTIAL: a URL-only profile-scoped source report now works without title/company/job metadata and creates no job or application. Source commit 20e6835308209c7ae8366d7791215db642ec9ad0; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 955 run/8 skipped, 12 focused API/browser workflow tests, frontend 63/build and local validators PASS. Supported provider/browser capture entry points, documented source evaluation and bounded integration task remain open; hosted, PostgreSQL/Docker and live-source checks NOT_RUN.",
     "Local MOCK ATS submission history now records APPLICATION_SUBMITTED separately from receipt-backed APPLICATION_CONFIRMED; missing receipt remains SUBMISSION_UNCONFIRMED (MJ-REQ-176 / issue #177 PARTIAL).",
@@ -491,7 +494,8 @@
     "2026-10-09 #517 local integration task exact-source acceptance: API/service integration plus connected Chromium 11 PASS; focused web 12 PASS; TypeScript/Vite build, py_compile, lane validation and diff check PASS; docs/evidence/2026-10-09-source-candidate-local-integration-task.json.",
     "2026-10-10 Web application sprint: all 41 new Python tests PASS; combined run 84/86 with two reproduced baseline failures; frontend 567/567 across 99 files; TypeScript/Vite build PASS. Exact source 25fea60889ad13cb5e837ab2263324f84fd20a04; docs/evidence/2026-10-10-durable-application-attempts.json.",
     "2026-10-11 five-feature batch: 55 focused Python unit/API/worker tests; 690 frontend tests; TypeScript/Vite production build; six synthetic Greenhouse/Lever Chromium adapter checks; skill, lane, compile and diff validators PASS at 5a00de653023193367c278fa4c63fc59878c7518.",
-    "2026-10-11 four-feature connected batch at 61305d46: 47 focused Python unit/API/Chromium tests; 27 frontend tests; TypeScript/Vite production build; agent-skill, lane-coordination, JSON and diff validation PASS. Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json."
+    "2026-10-11 four-feature connected batch at 61305d46: 47 focused Python unit/API/Chromium tests; 27 frontend tests; TypeScript/Vite production build; agent-skill, lane-coordination, JSON and diff validation PASS. Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json.",
+    "2026-11-02: Source PRs #881/#882/#883 exact proposed-merge required gates 5/5 each; native first merge 90 tests/83 subtests, second merge 168 tests/113 subtests; fixture merge 35 tests/25 subtests without skips; hosted new PostgreSQL categories/capabilities/configuration executed. Overlapping runs are not additive. See docs/evidence/2026-11-02-pro-ops-delivery.json"
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -532,7 +536,9 @@
       "classification": "PREEXISTING_REPRODUCED_BASELINE",
       "note": "Do not treat the full combined suite as PASS. Active foreign form-analysis claims remain untouched."
     },
-    "2026-10-11 full Python discovery was interrupted after more than ten minutes; unrelated browser cases reported strict-locator failures in application-priority, company-preference and job-risk-signal tests. It is incomplete and is not PASS evidence."
+    "2026-10-11 full Python discovery was interrupted after more than ten minutes; unrelated browser cases reported strict-locator failures in application-priority, company-preference and job-risk-signal tests. It is incomplete and is not PASS evidence.",
+    "Historical sprint failures retained: fenced confirmation compatibility defect fixed; socket/cancellation timing oracle and Windows monotonic injected-delay fixture corrected; initial debug and capability/WWR observer harness errors preserved. Final qualified source gates and native tests pass; no failed attempt is relabeled. See docs/evidence/2026-11-02-pro-ops-delivery.json",
+    "Main f955e1b9f9ebeacf49fc3f96c0f57973c4ff0912 failed Integration run41371046952 and deployment candidate run41371046815 after its protected PR passed. The original pre-transport failure lacked terminal diagnostics, so its precise hosted cause remains unproven. The controlled reproduction and fixture-only correction are preserved separately; original gates remain failures. See docs/evidence/2026-11-02-source-transport-fixture.json and docs/evidence/2026-11-02-pro-ops/ci-history.json"
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -630,7 +636,8 @@
     "MJ-REQ-114 PostgreSQL-specific execution, full repository suite, hosted CI/review, and live employer/ATS integrations NOT_RUN under local-only policy; external application submission OFF.",
     "MJ-REQ-266: PostgreSQL-specific and full repository suites, live providers, hosted Actions/reviews NOT_RUN; external application submission OFF.",
     "2026-10-10 sprint: full repository Python discovery, PostgreSQL, real ATS, hosted CI/review, hard-crash reservation takeover, and user-personal runtime acceptance NOT_RUN.",
-    "2026-10-11: PostgreSQL/Compose runtime, live ATS, hosted CI/review and real submission remain NOT_RUN/OFF; external submission OFF."
+    "2026-10-11: PostgreSQL/Compose runtime, live ATS, hosted CI/review and real submission remain NOT_RUN/OFF; external submission OFF.",
+    "Native exact-merge runs retained 16 and 23 skips, principally absent local PostgreSQL plus optional live WWR. Hosted isolated PostgreSQL cases executed separately. Paid AI, employer submission and destructive live restore were not run."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -675,17 +682,28 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "utc": "2026-11-01T06:31:43.869016+00:00",
-    "source_commit": "7aa6190500f771a3ab231ca54795582d4f5cee06",
-    "tested_head": "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b",
-    "main": "25e3f25968ce8e6148ede67fae6e029414567567",
-    "pr": 876,
-    "required_gates": "PASS 5/5",
-    "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
+    "utc": "2026-11-02T02:34:15.944248+00:00",
+    "source_main": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "deployed_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "source_prs": [
+      881,
+      882,
+      883
+    ],
+    "required_gates": "PASS 5/5 for each exact proposed source merge",
+    "evidence": "docs/evidence/2026-11-02-pro-ops-delivery.json",
+    "acceptance_publication": "Exact final main and closure readback are recorded in the containing acceptance PR final receipt."
   },
   "ci_verification": {
-    "result": "NOT_RUN",
-    "scope": "Approved resume selection not yet published"
+    "result": "PASS",
+    "scope": "All three protected source PRs: exact proposed merge, all five required gates and seven source checkout identities",
+    "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "receipts": [
+      "docs/evidence/2026-11-02-pro-ops/pr-881-protected-merge.json",
+      "docs/evidence/2026-11-02-pro-ops/pr-882-protected-merge.json",
+      "docs/evidence/2026-11-02-pro-ops/pr-883-protected-merge.json"
+    ],
+    "acceptance_pr": "Publication checks remain a separate gate, recorded in the containing PR final receipt."
   },
   "mock_spine_ci": {
     "result": "PASS",
@@ -748,7 +766,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read this checkpoint and the protected acceptance PR receipts; verify current main, issue closure and deployment before resuming the remaining P1 work. Start with MJ-REQ-254 request deadlines, MJ-REQ-275 configuration or MJ-REQ-179 bounded DOM capture, after checking active ownership.",
+  "recommended_resume_step": "Verify latest main, this acceptance PR final receipt, issue #20/#162/#180 closure and live SHA; then implement remaining MJ-REQ-275 notification/profile configuration and MJ-REQ-004 complete operation bounds. Keep MJ-REQ-167 protected recovery and WWR upstream conflicts explicit.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -763,8 +781,8 @@
     "e14ac893620f",
     "Issue #517 structured candidate review evaluation migration 9b6d40aaf163; temporary SQLite upgrade/backfill/downgrade-preservation verified; retained personal database untouched."
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json\nMJ-REF-033 issue #403 page permits integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Browser/source entrypoint integration, bounded diagnostic reruns, and preemption of already-running synchronous handlers remain incomplete.\nMJ-REQ-176 AI cost-policy SETTING_CHANGED slice integrated PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c, source 612a697b47dbf9a9c695261835727445dd699b1b; effective existing-profile changes emit one empty-payload audit event in the same transaction, default-equivalent and repeated saves emit none. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; 35 focused tests, full Python 967 PASS/8 skipped, frontend 63/build and validators PASS. Issue #177 remains OPEN/PARTIAL for remaining settings and full event lifecycle; hosted NOT_RUN_BY_USER_POLICY; external submission OFF.\nMJ-FEATURE-517 provider issue-reference slice integrated at dbc9e573680fcf32498131afe3bee75e72213371; evidence docs/evidence/2026-10-08-source-candidate-issue-link.json. Nine focused source-candidate API/integration/browser/migration tests and 94 web tests plus build pass on the integrated tree; temporary SQLite migration upgrade/readback/guarded downgrade verified. Issue #517 remains OPEN/PARTIAL for broader provider/browser intake and evaluation/task linkage; hosted/PostgreSQL NOT_RUN; collection and external submission OFF.\nMJ-REQ-133 issue #134 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; focused acceptance evidence docs/evidence/2026-10-09-dynamic-form-review.json. Requirement remains PARTIAL for durable answer persistence and broader live ATS acceptance.\nIssue #372 / MJ-REF-002 resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c; evidence docs/evidence/2026-10-09-resume-story-reuse.json. Broader story-bank and interview-preparation acceptance remains incomplete.",
-  "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
+  "unfinished_work_evidence": "Current remaining criteria are in docs/evidence/2026-11-02-pro-ops/criteria.json and docs/evidence/2026-11-02-pro-ops-delivery.json. MJ-REQ-004, 017, 167 and 275 remain PARTIAL. Historical unfinished-work narratives are preserved in historical_control_snapshots and do not supersede the canonical matrices.",
+  "authorization": "Current 2026-11-01 sprint explicitly authorizes routine scoped development, tests, commits, PRs, protected merges and guarded deployment to the existing MJobs environment. No new permissions arise from this checkpoint.",
   "user_testing": {
     "result": "PASS",
     "timestamp": "2026-09-30T08:05:46.654343-05:00",
@@ -782,19 +800,17 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+  "last_implementation_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
   "publication": {
-    "result": "PR_PENDING_FINAL_GATES",
-    "pr": 653,
-    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
-    "prior_prs_merged": [
-      651,
-      652
+    "result": "SOURCE_PROTECTED_AND_DEPLOYED",
+    "source_prs": [
+      881,
+      882,
+      883
     ],
-    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
-    "original_requirements_accepted": [
-      "MJ-REQ-277"
-    ]
+    "source_main": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "acceptance_record": "Containing protected PR and its final description provide the exact publication commit and issue readback.",
+    "final_publication_receipt_url": "https://github.com/MulattoTech/MJobs/pull/882"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -1109,12 +1125,64 @@
         "git_commit": "23be592814303b959bce4a08c71ace2a2abf016e",
         "evidence_path": "docs/evidence/2026-11-02-source-capability-implementation.json"
       }
+    },
+    {
+      "milestone_id": "PRO-OPS-VERIFIED-DELIVERY-20261102",
+      "timestamp": "2026-11-02T02:34:15.944248+00:00",
+      "current_phase": "Verified operational source delivery and canonical three-requirement P1 acceptance",
+      "completed_steps": [
+        "Protected source PRs #881/#882/#883 integrated; exact tested trees verified",
+        "Guarded production deployment, health, image, cap environment, backup integrity and rollback artifacts verified",
+        "MJ-REQ-019, MJ-REQ-161 and MJ-REQ-179 promoted with original literal criteria unchanged; P0 remains partial"
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-02-pro-ops-delivery.json",
+        "docs/evidence/2026-11-02-pro-ops/criteria.json",
+        "planning/agent_handoffs/pro-ops-delivery-20261102.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/REQUIREMENT_INDEX.json"
+      ],
+      "tests_completed": [
+        "All five required protected gates per source PR",
+        "Exact native proposed merges: 90 PASS/16 SKIP/83 subtests; 168 PASS/23 SKIP/113 subtests; fixture 35 PASS/0 SKIP/25 subtests",
+        "New PostgreSQL capabilities 4/4, limits 5/5 and structured failures 13/13 executed; source-specific artifact receipts retained",
+        "Public browser and local production SHA/readiness/caps readback"
+      ],
+      "tests_remaining": [
+        "Full remaining P0 literal acceptance",
+        "Real provider availability remains independent of synthetic contract evidence"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Existing MJobs Micro guarded release and backup verification",
+        "Public mjobs.m-techlabs.com read-only browser smoke",
+        "Bounded WWR official-feed observation retained as conflicting upstream data, not PASS"
+      ],
+      "known_errors": [
+        "Historical failed/superseded runs preserved in evidence",
+        "WWR conflicting upstream identities persist; observation row-count harness failure retained"
+      ],
+      "known_limitations": [
+        "MJ-REQ-004: Complete external-operation bounds are not established.",
+        "MJ-REQ-167: Historical Nov1 backup exit2 detail was discarded and cannot be recovered; protected configuration and browser authentication recovery remain outside acceptance.",
+        "MJ-REQ-275: Notification behavior and browser-profile selection remain missing.",
+        "MJ-REQ-017: Fresh live feed still has conflicting records; no live-source PASS."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+        "evidence_path": "docs/evidence/2026-11-02-pro-ops-delivery.json"
+      }
     }
   ],
-  "current_phase": "Pro sprint: source capabilities implemented; protected source delivery and original acceptance pending",
+  "current_phase": "Verified operational source delivery and canonical three-requirement P1 acceptance",
   "last_safe_checkpoint": {
-    "git_commit": "23be592814303b959bce4a08c71ace2a2abf016e",
-    "evidence_path": "docs/evidence/2026-11-02-source-capability-implementation.json"
+    "git_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "evidence_path": "docs/evidence/2026-11-02-pro-ops-delivery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -1627,55 +1695,18 @@
   "active_development_issue": {
     "numbers": [],
     "requirement_ids": [],
-    "status": "ACCEPTANCE_PUBLICATION_PENDING",
-    "last_pr": 875,
-    "last_completed_original_requirements": [
-      "MJ-REQ-020",
-      "MJ-REQ-021",
-      "MJ-REQ-030",
-      "MJ-REQ-034",
-      "MJ-REQ-157",
-      "MJ-REQ-159",
-      "MJ-REQ-163",
-      "MJ-REQ-164",
-      "MJ-REQ-170",
-      "MJ-REQ-213",
-      "MJ-REQ-214",
-      "MJ-REQ-215",
-      "MJ-REQ-216",
-      "MJ-REQ-217",
-      "MJ-REQ-219",
-      "MJ-REQ-220",
-      "MJ-REQ-222",
-      "MJ-REQ-223",
-      "MJ-REQ-225",
-      "MJ-REQ-226",
-      "MJ-REQ-227",
-      "MJ-REQ-228",
-      "MJ-REQ-229",
-      "MJ-REQ-230",
-      "MJ-REQ-255",
-      "MJ-REQ-256",
-      "MJ-REQ-258",
-      "MJ-REQ-259",
-      "MJ-REQ-260",
-      "MJ-REQ-261",
-      "MJ-REQ-262",
-      "MJ-REQ-271",
-      "MJ-REQ-274",
-      "MJ-REQ-278",
-      "MJ-REQ-279",
-      "MJ-REQ-280",
-      "MJ-REQ-281",
-      "MJ-REQ-282",
-      "MJ-REQ-283",
-      "MJ-REQ-284",
-      "MJ-REQ-285",
-      "MJ-REQ-286",
-      "MJ-REQ-287"
+    "status": "SOURCE_COMPLETE_ACCEPTANCE_RECORDED",
+    "source_prs": [
+      881,
+      882,
+      883
     ],
-    "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json",
-    "acceptance_pr": 877
+    "last_completed_original_requirements": [
+      "MJ-REQ-019",
+      "MJ-REQ-161",
+      "MJ-REQ-179"
+    ],
+    "evidence": "docs/evidence/2026-11-02-pro-ops-delivery.json"
   },
   "historical_control_snapshots": [
     {
@@ -2908,6 +2939,181 @@
         "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
         "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
       }
+    },
+    {
+      "recorded_at_utc": "2026-11-02T02:34:15.944248+00:00",
+      "reason": "Preserve prior current-control fields before verified Pro operational delivery; historical acceptance and failures remain unchanged.",
+      "generated_at": "2026-11-01T06:31:43.869016+00:00",
+      "updated_at": "2026-10-14T21:47:49.717359+00:00",
+      "current_milestone": "PRO-P1-VERIFIED-DELIVERY-20261101",
+      "current_objective": "Continue from verified 92/116 P1 acceptance; complete remaining UX, source-quality and application-readiness gaps",
+      "active_requirements": [],
+      "active_prs": [],
+      "last_verified_checkpoint": {
+        "utc": "2026-11-01T06:31:43.869016+00:00",
+        "source_commit": "7aa6190500f771a3ab231ca54795582d4f5cee06",
+        "tested_head": "7c09ae3f21690dc1d66d6bcb71fb9a3497f92e2b",
+        "main": "25e3f25968ce8e6148ede67fae6e029414567567",
+        "pr": 876,
+        "required_gates": "PASS 5/5",
+        "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json"
+      },
+      "last_implementation_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+      "recommended_resume_step": "Read this checkpoint and the protected acceptance PR receipts; verify current main, issue closure and deployment before resuming the remaining P1 work. Start with MJ-REQ-254 request deadlines, MJ-REQ-275 configuration or MJ-REQ-179 bounded DOM capture, after checking active ownership.",
+      "ownership": {
+        "integration_owner": "Codex campaign 20261014-193432",
+        "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-193432\\.worktrees\\document-failure",
+        "branch": "feat/document-render-failure-20261014",
+        "workers": "One Luna writer completed isolated code; one local Luna reviewer; root sole integration owner",
+        "active": true
+      },
+      "current_verified_local_state": "Owned source worktree verified at ca1e62c6; primary Windows main retained clean during isolated execution. Source integrated at 07eab582; acceptance records follow through their own protected PR.",
+      "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
+      "current_verified_at": "2026-10-14T21:47:49.717359+00:00",
+      "session_control": {
+        "status": "SCOPED_CAMPAIGN_CLOSED",
+        "active_runner": false,
+        "next_action": "Reconcile Project#1 original #277/MJ-REQ-276 settings versioning; no automatic continuation"
+      },
+      "current_slice": {
+        "campaign": "round3-20261014-143805",
+        "issues": [
+          15,
+          258
+        ],
+        "status": "DELIVERED",
+        "branch": "codex/p0p1-round3-20261014-143805",
+        "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+        "evidence": "docs\\evidence\\2026-10-14-round3-startup-theme.json",
+        "original_pass_counts": {
+          "P0": 7,
+          "P1": 42
+        },
+        "additive_completed": [],
+        "merge_commit": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
+        "tested_final_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+        "complete_original_requirements": [
+          "MJ-REQ-257"
+        ],
+        "active_claims": []
+      },
+      "publication": {
+        "result": "PR_PENDING_FINAL_GATES",
+        "pr": 653,
+        "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+        "prior_prs_merged": [
+          651,
+          652
+        ],
+        "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+        "original_requirements_accepted": [
+          "MJ-REQ-277"
+        ]
+      },
+      "active_development_issue": {
+        "numbers": [],
+        "requirement_ids": [],
+        "status": "ACCEPTANCE_PUBLICATION_PENDING",
+        "last_pr": 875,
+        "last_completed_original_requirements": [
+          "MJ-REQ-020",
+          "MJ-REQ-021",
+          "MJ-REQ-030",
+          "MJ-REQ-034",
+          "MJ-REQ-157",
+          "MJ-REQ-159",
+          "MJ-REQ-163",
+          "MJ-REQ-164",
+          "MJ-REQ-170",
+          "MJ-REQ-213",
+          "MJ-REQ-214",
+          "MJ-REQ-215",
+          "MJ-REQ-216",
+          "MJ-REQ-217",
+          "MJ-REQ-219",
+          "MJ-REQ-220",
+          "MJ-REQ-222",
+          "MJ-REQ-223",
+          "MJ-REQ-225",
+          "MJ-REQ-226",
+          "MJ-REQ-227",
+          "MJ-REQ-228",
+          "MJ-REQ-229",
+          "MJ-REQ-230",
+          "MJ-REQ-255",
+          "MJ-REQ-256",
+          "MJ-REQ-258",
+          "MJ-REQ-259",
+          "MJ-REQ-260",
+          "MJ-REQ-261",
+          "MJ-REQ-262",
+          "MJ-REQ-271",
+          "MJ-REQ-274",
+          "MJ-REQ-278",
+          "MJ-REQ-279",
+          "MJ-REQ-280",
+          "MJ-REQ-281",
+          "MJ-REQ-282",
+          "MJ-REQ-283",
+          "MJ-REQ-284",
+          "MJ-REQ-285",
+          "MJ-REQ-286",
+          "MJ-REQ-287"
+        ],
+        "evidence": "docs/evidence/2026-11-01-pro-p1-delivery.json",
+        "acceptance_pr": 877
+      },
+      "next_candidates": [
+        {
+          "issue": 255,
+          "requirement_id": "MJ-REQ-254",
+          "status": "PARTIAL",
+          "remaining_scope": "Cover 21 remaining active UI modules and 32 unbounded injected-fetch dispatch sites."
+        },
+        {
+          "issue": 276,
+          "requirement_id": "MJ-REQ-275",
+          "status": "NOT_RUN",
+          "remaining_scope": "Complete and verify the literal configuration surfaces."
+        },
+        {
+          "issue": 180,
+          "requirement_id": "MJ-REQ-179",
+          "status": "PARTIAL",
+          "remaining_scope": "Bound DOM capture without unsafe unbounded evaluation."
+        },
+        {
+          "issue": 268,
+          "requirement_id": "MJ-REQ-267",
+          "status": "PARTIAL",
+          "remaining_scope": "Resolve current employer application routes before submission preparation."
+        },
+        {
+          "issue": 225,
+          "requirement_id": "MJ-REQ-224",
+          "status": "NOT_RUN",
+          "remaining_scope": "Execute full supported application-adapter contract journeys."
+        },
+        {
+          "issue": 270,
+          "requirement_id": "MJ-REQ-269",
+          "status": "PARTIAL",
+          "remaining_scope": "Trace AI-generated document claims to approved facts."
+        }
+      ],
+      "ci_verification": {
+        "result": "NOT_RUN",
+        "scope": "Approved resume selection not yet published"
+      },
+      "delivery_policy": {
+        "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
+        "authority": "AGENTS.md and round2 directive-001.md explicitly authorize exact-head hosted checks and controlled PR integration",
+        "paid_ai_services": "OFF",
+        "external_submission": "OFF",
+        "original_pass_requires_all_criteria": true
+      },
+      "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
+      "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json\nMJ-REF-033 issue #403 page permits integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Browser/source entrypoint integration, bounded diagnostic reruns, and preemption of already-running synchronous handlers remain incomplete.\nMJ-REQ-176 AI cost-policy SETTING_CHANGED slice integrated PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c, source 612a697b47dbf9a9c695261835727445dd699b1b; effective existing-profile changes emit one empty-payload audit event in the same transaction, default-equivalent and repeated saves emit none. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; 35 focused tests, full Python 967 PASS/8 skipped, frontend 63/build and validators PASS. Issue #177 remains OPEN/PARTIAL for remaining settings and full event lifecycle; hosted NOT_RUN_BY_USER_POLICY; external submission OFF.\nMJ-FEATURE-517 provider issue-reference slice integrated at dbc9e573680fcf32498131afe3bee75e72213371; evidence docs/evidence/2026-10-08-source-candidate-issue-link.json. Nine focused source-candidate API/integration/browser/migration tests and 94 web tests plus build pass on the integrated tree; temporary SQLite migration upgrade/readback/guarded downgrade verified. Issue #517 remains OPEN/PARTIAL for broader provider/browser intake and evaluation/task linkage; hosted/PostgreSQL NOT_RUN; collection and external submission OFF.\nMJ-REQ-133 issue #134 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; focused acceptance evidence docs/evidence/2026-10-09-dynamic-form-review.json. Requirement remains PARTIAL for durable answer persistence and broader live ATS acceptance.\nIssue #372 / MJ-REF-002 resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c; evidence docs/evidence/2026-10-09-resume-story-reuse.json. Broader story-bank and interview-preparation acceptance remains incomplete."
     }
   ],
   "current_user_browser_acceptance": {
@@ -3008,9 +3214,9 @@
     }
   },
   "session_control": {
-    "status": "SCOPED_CAMPAIGN_CLOSED",
+    "status": "SOURCE_DELIVERED_ACCEPTANCE_RECORDED",
     "active_runner": false,
-    "next_action": "Reconcile Project#1 original #277/MJ-REQ-276 settings versioning; no automatic continuation"
+    "next_action": "Verify latest main, this acceptance PR final receipt, issue #20/#162/#180 closure and live SHA; then implement remaining MJ-REQ-275 notification/profile configuration and MJ-REQ-004 complete operation bounds. Keep MJ-REQ-167 protected recovery and WWR upstream conflicts explicit."
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -3085,64 +3291,70 @@
     "Issue #247 / MJ-REQ-246 exact integrated source 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47 (tree f120f92fecbc2393c6e471a2ee75ed9ae09cbe56): focused monitoring integration 7 PASS, component 5 PASS, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Evidence docs/evidence/2026-10-09-source-failure-recovery.json; PostgreSQL/full suites/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #248 / MJ-REQ-247 exact integrated source 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40: monitoring/preservation integration 8 PASS, connected Chromium source workflow 1 PASS, py_compile/diff/coordination validation PASS. Evidence docs/evidence/2026-10-09-failed-source-preservation.json; PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
-    "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
+    "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF.",
+    "2026-11-02 current verified source/deployment: 2e0f3df8f6952088b39fc494f9cd38838b020af4; P0 12/26, P1 99/116. The entries above remain historical. Exact protected/source/native/production evidence: docs/evidence/2026-11-02-pro-ops-delivery.json"
   ],
   "ownership": {
-    "integration_owner": "Codex campaign 20261014-193432",
-    "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-193432\\.worktrees\\document-failure",
-    "branch": "feat/document-render-failure-20261014",
-    "workers": "One Luna writer completed isolated code; one local Luna reviewer; root sole integration owner",
-    "active": true
+    "integration_owner": "ChatGPT-Web Pro sprint 2026-11-01",
+    "active": false,
+    "standing_workers": [],
+    "note": "Source integration complete; this protected acceptance record publishes the handoff. No unattended runner was launched."
   },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
-    "authority": "AGENTS.md and round2 directive-001.md explicitly authorize exact-head hosted checks and controlled PR integration",
+    "authority": "2026-11-01 user-authorized autonomous MJobs engineering sprint and AGENTS.md; existing protected gates and guarded updater preserved",
     "paid_ai_services": "OFF",
     "external_submission": "OFF",
     "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-10-14T21:47:49.717359+00:00",
-  "current_verified_local_state": "Owned source worktree verified at ca1e62c6; primary Windows main retained clean during isolated execution. Source integrated at 07eab582; acceptance records follow through their own protected PR.",
-  "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
+  "updated_at": "2026-11-02T02:34:15.944248+00:00",
+  "current_verified_local_state": "All three source branches are protected-merged; exact proposed merges were tested in isolated native worktrees. Primary checkout was preserved; final clean fast-forward and worktree readback follow in the acceptance PR final receipt.",
+  "current_verified_github_state": "PRs #881/#882/#883 protected-merged with all five required gates and seven source checkout identities verified. This acceptance record is published separately; no future publication SHA is self-attested.",
   "next_candidates": [
-    {
-      "issue": 255,
-      "requirement_id": "MJ-REQ-254",
-      "status": "PARTIAL",
-      "remaining_scope": "Cover 21 remaining active UI modules and 32 unbounded injected-fetch dispatch sites."
-    },
     {
       "issue": 276,
       "requirement_id": "MJ-REQ-275",
-      "status": "NOT_RUN",
-      "remaining_scope": "Complete and verify the literal configuration surfaces."
+      "status": "PARTIAL",
+      "remaining_scope": "Notification behavior and browser-profile selection; caps are now implemented and delivered."
     },
     {
-      "issue": 180,
-      "requirement_id": "MJ-REQ-179",
+      "issue": 5,
+      "requirement_id": "MJ-REQ-004",
       "status": "PARTIAL",
-      "remaining_scope": "Bound DOM capture without unsafe unbounded evaluation."
+      "remaining_scope": "Complete operation bounds, including pre-decode CDP bytes, synchronous filesystem work and context cleanup."
+    },
+    {
+      "issue": 168,
+      "requirement_id": "MJ-REQ-167",
+      "status": "PARTIAL",
+      "remaining_scope": "Protected configuration and browser-authentication recovery with isolated restore proof."
+    },
+    {
+      "issue": 18,
+      "requirement_id": "MJ-REQ-017",
+      "status": "PARTIAL",
+      "remaining_scope": "Whole live-source criteria; conflicting WWR upstream data remains refused."
+    },
+    {
+      "issue": 225,
+      "requirement_id": "MJ-REQ-224",
+      "status": "PARTIAL",
+      "remaining_scope": "Seven-dimension contract matrix across every supported application adapter, including ATS detection, remains incomplete."
     },
     {
       "issue": 268,
       "requirement_id": "MJ-REQ-267",
       "status": "PARTIAL",
-      "remaining_scope": "Resolve current employer application routes before submission preparation."
-    },
-    {
-      "issue": 225,
-      "requirement_id": "MJ-REQ-224",
-      "status": "NOT_RUN",
-      "remaining_scope": "Execute full supported application-adapter contract journeys."
+      "remaining_scope": "Fresh automatic employer-route discovery before preparation remains missing; explicit save/resolve and stored-route selection are not the automatic consumer."
     },
     {
       "issue": 270,
       "requirement_id": "MJ-REQ-269",
       "status": "PARTIAL",
-      "remaining_scope": "Trace AI-generated document claims to approved facts."
+      "remaining_scope": "Supported AI-generated document consumer with approved fact references remains missing; deterministic trace and supplied rewrite review are not that consumer."
     }
   ],
-  "current_verified_at": "2026-10-14T21:47:49.717359+00:00",
+  "current_verified_at": "2026-11-02T02:34:15.944248+00:00",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
@@ -3181,25 +3393,21 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "campaign": "round3-20261014-143805",
-    "issues": [
-      15,
-      258
+    "campaign": "pro-ops-20261101",
+    "status": "SOURCE_VERIFIED_AND_DEPLOYED",
+    "source_prs": [
+      881,
+      882,
+      883
     ],
-    "status": "DELIVERED",
-    "branch": "codex/p0p1-round3-20261014-143805",
-    "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
-    "evidence": "docs\\evidence\\2026-10-14-round3-startup-theme.json",
-    "original_pass_counts": {
-      "P0": 7,
-      "P1": 42
-    },
-    "additive_completed": [],
-    "merge_commit": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
-    "tested_final_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
-    "complete_original_requirements": [
-      "MJ-REQ-257"
+    "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "deployed_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "accepted_original_requirements": [
+      "MJ-REQ-019",
+      "MJ-REQ-161",
+      "MJ-REQ-179"
     ],
+    "evidence": "docs/evidence/2026-11-02-pro-ops-delivery.json",
     "active_claims": []
   },
   "p0p1_iteration_3": {
