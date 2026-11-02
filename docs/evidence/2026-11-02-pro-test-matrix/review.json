@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T21:00:45.470859+00:00",
+  "requirement_id": "MJ-REQ-291",
+  "reviewer": "Independent read-only internal reviewer /root/p1_audit",
+  "result": "NO_REMAINING_SEMANTIC_BLOCKER",
+  "source_map_sha256": "8888b12fe945ee88e05de7801e78ee6c605928b82cfd17274e472aa831ce5345",
+  "findings_resolved": [
+    "Remote filtering now maps a real worker test admitting remote and excluding onsite jobs under REQUIRED remote criteria.",
+    "Job dedupe now maps repeated discovery producing the same canonical identity, not only a posting test given that identity.",
+    "XSS includes the production Lever normalizer sanitizing untrusted description, in addition to actual Chromium fixture escaping."
+  ],
+  "scope_review": [
+    "All72 literal minimum scenarios have meaningful assertions; source mapping alone was not used as execution proof.",
+    "Deletion is supported replace-on-import plus stale queued-work handling. A dedicated DELETE route is not part of the literal criterion.",
+    "Excellent/Strong/Weak have explicit classifier-boundary assertions; missing requirements and remote/salary mismatch exercise scoring inputs. Do not infer an end-to-end journey for every category.",
+    "Recovery separately tests worker and browser process failure, scheduler restart and submission uncertainty. Receipt reconciliation does not resubmit.",
+    "291 acceptance does not establish171,172,224,292 or whole-product production readiness."
+  ],
+  "new_regression_review": "NO_BLOCKING_FINDINGS; meaningful API/reopen/worker/data-preservation assertions. Final nonempty baseline assertion added after review to avoid vacuous inventory comparisons.",
+  "execution_review": "docs/evidence/2026-11-02-pro-test-matrix/source-execution.json",
+  "publication_review": {
+    "result": "NO_MATERIAL_ISSUE",
+    "sole_status_change": "MJ-REQ-291 NOT_RUN to PASS",
+    "counts_recomputed": true,
+    "selectors_with_pass_execution": 65,
+    "serialized_cases": 67,
+    "unique_clauses": 72,
+    "resolved_evidence_source_pointers": 92,
+    "hashes_match": true,
+    "qualification": "Read-only independent review; no tests rerun. Protected publication and main/deployment gates remain separate."
+  }
+}

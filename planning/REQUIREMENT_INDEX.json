@@ -3370,7 +3370,7 @@
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-292",
@@ -3447,8 +3447,8 @@
   ],
   "summary": {
     "PARTIAL": 85,
-    "PASS": 199,
-    "NOT_RUN": 141
+    "PASS": 200,
+    "NOT_RUN": 140
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

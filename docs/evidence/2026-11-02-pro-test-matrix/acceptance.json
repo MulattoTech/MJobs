@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T21:00:45.470859+00:00",
+  "status": "VERIFIED_SOURCE_ACCEPTED_PENDING_PROTECTED_PUBLICATION",
+  "requirement_id": "MJ-REQ-291",
+  "title": "Test Matrix",
+  "acceptance_authority": "planning/CAPABILITY_MATRIX.json",
+  "baseline_main": "0112ac4d5f62214925f43c2e5b68e01ad69e4322",
+  "verified_source_main": "821171122a44332853339a798d717c5c11dd9ad5",
+  "source_pr": "https://github.com/MulattoTech/MJobs/pull/891",
+  "result": "PASS",
+  "literal_groups": 12,
+  "literal_scenarios": 72,
+  "passed_primary_selectors": 65,
+  "selected_serialized_parent_parameterized_testcases": 67,
+  "selected_skipped": 0,
+  "selected_failed": 0,
+  "selected_missing": 0,
+  "source_map": "docs/evidence/2026-11-02-pro-test-matrix/coverage-map.json",
+  "execution": "docs/evidence/2026-11-02-pro-test-matrix/source-execution.json",
+  "independent_review": "docs/evidence/2026-11-02-pro-test-matrix/review.json",
+  "additional_regression": "docs/evidence/2026-11-02-pro-test-matrix/implementation.json",
+  "protected_source_merge": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json",
+  "source_map_status_note": "coverage-map.json remains the original pinned source-only proposal. source-execution.json and this acceptance are its executed follow-up; no historical claim is silently rewritten.",
+  "counts_before": {
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 12,
+      "NOT_RUN": 10
+    },
+    "P1": {
+      "PASS": 107,
+      "PARTIAL": 7,
+      "NOT_RUN": 2
+    }
+  },
+  "counts_after": {
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 13,
+      "NOT_RUN": 9
+    },
+    "P1": {
+      "PASS": 107,
+      "PARTIAL": 7,
+      "NOT_RUN": 2
+    }
+  },
+  "original_after": {
+    "PARTIAL": 81,
+    "PASS": 181,
+    "NOT_RUN": 104
+  },
+  "reference_unchanged": {
+    "PASS": 19,
+    "PARTIAL": 4,
+    "NOT_RUN": 36
+  },
+  "denominators_unchanged": {
+    "P0": 26,
+    "P1": 116,
+    "original": 366,
+    "reference": 59
+  },
+  "sprint_accounting": "One new P0 (291); two new P1 (015/174) minus the honest264 PASS-to-PARTIAL correction. Historical issue status reconciliation contributes no new acceptance.",
+  "limits": [
+    "This accepts the literal test-matrix requirement, not every test or complete product readiness.",
+    "Broader171/172/224/292 remain incomplete; all existing requirement definitions are preserved.",
+    "Application and document journeys use isolated synthetic data; real employer submissions and paid inference stay off.",
+    "Existing full-report skips remain skips even though none of the selected65 primary selectors was skipped.",
+    "New deletion regression is additional joined coverage, not a replacement that hides a missing original primary selector."
+  ],
+  "pending": [
+    "Exact proposed-merge verification and all protected checks for this publication.",
+    "Main gates, existing guarded updater, exact deployed SHA/image/backup/readiness and authorized public readback.",
+    "Close issue292 only after protected publication and verification; containing PR final receipt records its future final merge/deployment/issue state."
+  ]
+}

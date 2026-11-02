@@ -1,14 +1,24 @@
 """Connected acceptance for profile-scoped versioned settings transfer."""
 import copy
-from pathlib import Path
+import os
 import tempfile
 import unittest
+from functools import partial
+from pathlib import Path
+from unittest.mock import patch
 
+import httpx
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api.main import create_app
+from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.discovery.search_history import list_search_history
+from services.discovery.sources.collect import collect_source
+from tests.integration.test_greenhouse import RAW
 from tests.integration.test_spine import PROFILE
+from workers.tasks import execute_operation
 
 
 class SettingsTransferFlowTests(unittest.TestCase):
@@ -152,6 +162,108 @@ class SettingsTransferFlowTests(unittest.TestCase):
                 if case == "secret-bearing payload":
                     self.assertNotIn("synthetic-private-token", response.text)
                 self.assertEqual(self._export("other-profile"), before)
+
+    def test_deleting_last_search_through_import_preserves_data_and_fences_queued_collection(self):
+        enabled = self.client.put("/sources", json={
+            "tenant": "settings-transfer-fixture", "enabled": True,
+            "poll_interval": 600, "concurrency": 2, "request_timeout": 8,
+            "rate_limit": 20, "jitter_seconds": 5,
+        })
+        self.assertEqual(enabled.status_code, 200, enabled.text)
+        self.assertEqual(enabled.json()["id"], self.source_id)
+        environment = {
+            "MJOBS_DATABASE_URL": self.database_url, "MJOBS_OPERATION_MODE": "PERSONAL",
+            "MJOBS_OUTPUT_DIR": str(self.root), "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
+        }
+        captured_requests = []
+
+        def provider(request):
+            captured_requests.append(request)
+            self.assertEqual(request.method, "GET")
+            self.assertEqual(request.url.host, "boards-api.greenhouse.io")
+            if request.url.path.endswith("/jobs"):
+                raw = {**RAW, "title": "Systems Administrator",
+                       "absolute_url": "https://job-boards.greenhouse.io/settings-transfer-fixture/jobs/1234"}
+                return httpx.Response(200, json={"jobs": [raw], "meta": {"total": 1}})
+            return httpx.Response(200, json={"name": "Synthetic Settings Employer"})
+
+        # Populate actual source/job/history rows through the worker and real
+        # collector. Only the provider transport is synthetic.
+        source_search = self._profile_searches("fixture")[0]["id"]
+        first = self.client.post(f"/sources/{self.source_id}/collect", json={
+            "profile_id": "fixture", "search_profile_id": source_search,
+            "request_id": "retained-history-before-delete",
+        })
+        self.assertEqual(first.status_code, 202, first.text)
+        with patch.dict(os.environ, environment), patch(
+                "workers.tasks.collect_source",
+                partial(collect_source, transport=httpx.MockTransport(provider))):
+            first_result = execute_operation(first.json()["operation_id"])
+        self.assertEqual(first_result["status"], "COMPLETED", first_result)
+        self.assertTrue(captured_requests)
+        self.assertEqual(self.store.count("canonical_jobs"), 1)
+        history_before = list_search_history(self.store, "fixture")
+        self.assertEqual(len(history_before["runs"]), 1)
+        self.assertEqual(history_before["runs"][0]["status"], "COMPLETED")
+
+        target_search = self._profile_searches("other-profile")[0]["id"]
+        queued = self.client.post(f"/sources/{self.source_id}/collect", json={
+            "profile_id": "other-profile", "search_profile_id": target_search,
+            "request_id": "selected-search-deleted-before-start",
+        })
+        self.assertEqual(queued.status_code, 202, queued.text)
+        operation_id = queued.json()["operation_id"]
+        source_settings_before = self._export("fixture")
+        profiles_before = {identifier: self.store.profile(identifier)
+                           for identifier in ("fixture", "other-profile")}
+
+        def inventory():
+            with self.store.engine.connect() as connection:
+                return {table.name: [dict(row) for row in connection.execute(
+                    select(table).order_by(table.c.id)).mappings()]
+                    for table in (m.job_sources, m.companies, m.jobs, m.postings,
+                                  m.posting_snapshots, m.matches)}
+
+        inventory_before = inventory()
+        for table_name, rows in inventory_before.items():
+            self.assertTrue(rows, f"Preservation fixture must populate {table_name}")
+        empty = {"schema_version": 2, "settings": {
+            "search_profiles": [], "automation_rules": [], "source_configuration": [],
+        }}
+        for _ in range(2):
+            imported = self.client.post("/profiles/other-profile/settings/import", json=empty)
+            self.assertEqual(imported.status_code, 200, imported.text)
+            self.assertEqual(imported.json(), {
+                "imported_count": 0, "search_profile_count": 0,
+                "automation_rule_count": 0, "source_configuration_count": 0,
+            })
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = self._client()
+        self.assertEqual(self._export("other-profile"), empty)
+        self.assertEqual(self._profile_searches("other-profile"), [])
+        self.assertEqual(self._export("fixture"), source_settings_before)
+        self.assertEqual(inventory(), inventory_before)
+        for identifier, before in profiles_before.items():
+            self.assertEqual(self.store.profile(identifier), before)
+
+        with patch.dict(os.environ, environment), patch("workers.tasks.collect_source") as collect:
+            result = execute_operation(operation_id)
+        self.assertEqual(result["status"], "DEAD_LETTERED", result)
+        collect.assert_not_called()
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id)).mappings().one()
+        self.assertEqual(operation["error"], "NoResultFound")
+        self.assertEqual(operation["retry_count"], 0)
+        self.assertIsNone(operation["next_attempt_at"])
+        self.assertIsNone(operation["lease_expires_at"])
+        self.assertEqual(inventory(), inventory_before)
+        self.assertEqual(list_search_history(self.store, "fixture"), history_before)
+        rejected = list_search_history(self.store, "other-profile")["runs"]
+        self.assertEqual(len(rejected), 1)
+        self.assertEqual(rejected[0]["status"], "FAILED")
 
     def test_unknown_profile_cannot_export_or_import_settings(self):
         payload = self._export("fixture")

@@ -6107,12 +6107,29 @@
       "depends_on": [
         "MJ-PR-PRO-BOUNDARIES-20261102"
       ],
-      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
+      "status": "MERGED",
       "branch": "work/pro-boundaries-acceptance-20261102",
-      "evidence": "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
-      "notes": "Only015/174 newly accepted;264 corrected PASS toPARTIAL with a verified priority slice. Final containing-PR receipt supplies its own future head/merge/gates/deployment and issue synchronization. No criterion or denominator changes. PR891 initial fast CI exposed a stale census test assumption; publication-followup.json preserves failure, corrected fixture and native setup correction. Updated head requires fresh protected checks.",
-      "pr_number": 891
+      "evidence": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json",
+      "notes": "PR891 protected merged; all five required gates and CodeQL passed on final a1 head; actual/proposed tree887d1976 equal. Initial failed census assumption and reused test-database collision are retained. Production delivery is verified separately; final PR891 receipt records its deployed identity.",
+      "pr_number": 891,
+      "merge_commit": "821171122a44332853339a798d717c5c11dd9ad5"
+    },
+    {
+      "id": "MJ-PR-PRO-TEST-MATRIX-20261102",
+      "title": "Preserve data when deleting the last search and verify the literal72-scenario test matrix",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-291"
+      ],
+      "target_area": "settings transfer regression; exact-source test evidence and canonical acceptance",
+      "depends_on": [
+        "MJ-PR-PRO-BOUNDARIES-ACCEPTANCE-20261102"
+      ],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
+      "branch": "work/pro-test-matrix-20261102",
+      "evidence": "docs/evidence/2026-11-02-pro-test-matrix/acceptance.json",
+      "notes": "72 original scenarios/65 primary selectors executed PASS, no selected skips; new real API/reopen/stale-worker deletion regression. Only291 accepted. The containing PR final description records its own future merge/gates/deployment and issue closure; no criteria changes or whole-product claim."
     }
   ],
-  "generated_at": "2026-11-02T19:41:58.439688+00:00"
+  "generated_at": "2026-11-02T21:00:45.470859+00:00"
 }

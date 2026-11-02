@@ -1,0 +1,1496 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-11-02T20:51:06.009708+00:00",
+  "requirement_id": "MJ-REQ-291",
+  "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+  "proposed_merge": "54a31d0735ca04ee6bea6adae5a4891b7e9b5608",
+  "tree": "887d197621783b6cd155d78afd9cb928675e50aa",
+  "source_map_sha256": "8888b12fe945ee88e05de7801e78ee6c605928b82cfd17274e472aa831ce5345",
+  "reports": [
+    {
+      "path": "outputs/pr891-current-ci/compose/settings-browser-results/ci-settings-browser.xml",
+      "sha256": "5aacbbc56dc7da5d404fe66e8582345f9aa8e74a0545aeaf711c7db179c58d36"
+    },
+    {
+      "path": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml",
+      "sha256": "868e1a9ced48f43e3476b0ec6a6163e43afce2e594b8500243d31240d0b53a6a"
+    },
+    {
+      "path": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml",
+      "sha256": "dc8596c9628dba7264c0ff0cf119e401d9532607af26ecbaf6caf90ac9fd5aa3"
+    },
+    {
+      "path": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml",
+      "sha256": "bc818085366143206bdae4c403493ab471b32cc4d4fe2e9dcbcda990f2ed969c"
+    },
+    {
+      "path": "outputs/pr891-current-ci/unit/unit.xml",
+      "sha256": "73af5363882f28433721221928b4f95486303dc04728c7dfb39208db04d465d0"
+    },
+    {
+      "path": "outputs/pr891-test-matrix-browser.xml",
+      "sha256": "c790c6171452f81d2fadb45a6d6b432cff0cbd461975f9d68fcde094305362b5"
+    }
+  ],
+  "selectors": {
+    "tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_application_tracking_recovers_after_browser_process_crash": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests",
+          "name": "test_application_tracking_recovers_after_browser_process_crash",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_captcha_requires_intervention": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_application.MockApplicationTests",
+          "name": "test_captcha_requires_intervention",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_conditional_required_dropdown_with_known_mapping_pauses_for_review": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_application.MockApplicationTests",
+          "name": "test_conditional_required_dropdown_with_known_mapping_pauses_for_review",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_application.MockApplicationTests",
+          "name": "test_dry_run_fills_two_pages_uploads_and_stops_before_submit",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_missing_required_answer_stops_before_browser_and_shows_question": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_application.MockApplicationTests",
+          "name": "test_missing_required_answer_stops_before_browser_and_shows_question",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_application.MockApplicationTests",
+          "name": "test_mock_submission_confirmed_once_and_survives_restart",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_uncertain_submission_without_receipt_does_not_retry": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_application.MockApplicationTests",
+          "name": "test_uncertain_submission_without_receipt_does_not_retry",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_environment_coverage",
+          "name": "test_multipage_validation_error_then_review_question_and_confirmation",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/browser/test_mock_html_security.py::test_untrusted_fixture_values_cannot_execute_in_chromium": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.browser.test_mock_html_security",
+          "name": "test_untrusted_fixture_values_cannot_execute_in_chromium",
+          "result": "PASS",
+          "report": "outputs/pr891-test-matrix-browser.xml"
+        }
+      ]
+    },
+    "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_duplicate_user_request_and_database_reopen_keep_one_operation": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_application_run_requests.ApplicationRunRequestTests",
+          "name": "test_duplicate_user_request_and_database_reopen_keep_one_operation",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_application_worker_crash_postgres.py::ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests",
+          "name": "test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_career_discovery_finds_navigation_link_without_rel_careers_marker": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery.CompanyDiscoveryTests",
+          "name": "test_career_discovery_finds_navigation_link_without_rel_careers_marker",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_custom_domain_ats_detection_is_audited_without_claiming_application_support": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery.CompanyDiscoveryTests",
+          "name": "test_custom_domain_ats_detection_is_audited_without_claiming_application_support",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_durable_company_operation_enrolls_source_and_immediately_imports_employer_only_job": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery.CompanyDiscoveryTests",
+          "name": "test_durable_company_operation_enrolls_source_and_immediately_imports_employer_only_job",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_matches_only_a_persisted_verified_company_domain": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery.CompanyDiscoveryTests",
+          "name": "test_resolver_matches_only_a_persisted_verified_company_domain",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_returns_identity_confidence_and_evidence": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery.CompanyDiscoveryTests",
+          "name": "test_resolver_returns_identity_confidence_and_evidence",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_uses_a_verified_company_alias": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery.CompanyDiscoveryTests",
+          "name": "test_resolver_uses_a_verified_company_alias",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests::test_new_tab_intents_share_one_active_operation_and_survive_reopen": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests",
+          "name": "test_new_tab_intents_share_one_active_operation_and_survive_reopen",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_changed_career_feed_queues_rediscovery_without_import_or_retarget": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_source_monitoring.CompanySourceMonitoringTests",
+          "name": "test_changed_career_feed_queues_rediscovery_without_import_or_retarget",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_retryable_failures_degrade_then_stop_until_successful_manual_recovery": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_source_monitoring.CompanySourceMonitoringTests",
+          "name": "test_retryable_failures_degrade_then_stop_until_successful_manual_recovery",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_company_sources.py::CompanySourceTests::test_tenant_and_multiple_company_sources_are_persisted_independently": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_company_sources.CompanySourceTests",
+          "name": "test_tenant_and_multiple_company_sources_are_persisted_independently",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_document_provenance.DocumentProvenanceTests",
+          "name": "test_three_formats_and_historical_provenance_survive_profile_changes",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_document_validation.py::DocumentValidationTests::test_unsupported_claim_or_glyph_preserves_prior_documents": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_document_validation.DocumentValidationTests",
+          "name": "test_unsupported_claim_or_glyph_preserves_prior_documents",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_fixture_saved_search_discovery.py::FixtureSavedSearchDiscoveryTests::test_search_invalidated_after_queue_blocks_before_capture": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_fixture_saved_search_discovery.FixtureSavedSearchDiscoveryTests",
+          "name": "test_search_invalidated_after_queue_blocks_before_capture",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_collection_preserves_provenance_and_labels_live_matching": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_greenhouse.GreenhouseTests",
+          "name": "test_collection_preserves_provenance_and_labels_live_matching",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_empty_board_collection_preserves_provider_company_name": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_greenhouse.GreenhouseTests",
+          "name": "test_empty_board_collection_preserves_provider_company_name",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_malformed_rows_and_untrusted_routes_do_not_invent_evidence": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_greenhouse.GreenhouseTests",
+          "name": "test_malformed_rows_and_untrusted_routes_do_not_invent_evidence",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_multiple_postings_share_one_canonical_job_and_route": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_greenhouse.GreenhouseTests",
+          "name": "test_multiple_postings_share_one_canonical_job_and_route",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_rate_limit_persists_provider_backoff": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_greenhouse.GreenhouseTests",
+          "name": "test_rate_limit_persists_provider_backoff",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_employer_closure_beats_later_aggregator_and_can_reopen": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_job_lifecycle.JobLifecycleTests",
+          "name": "test_employer_closure_beats_later_aggregator_and_can_reopen",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_revisions_noop_material_change_reversion_and_restart": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_job_lifecycle.JobLifecycleTests",
+          "name": "test_revisions_noop_material_change_reversion_and_restart",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_prefilter_discover_worker.py::DiscoverWorkerPrefilterTests::test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_prefilter_discover_worker.DiscoverWorkerPrefilterTests",
+          "name": "test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_profile_import.ProfileImportTests",
+          "name": "test_complete_career_profile_survives_restart_without_approving_answers",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_profile_import.py::ProfileImportTests::test_empty_and_imported_pending_profiles_cannot_generate_documents": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_profile_import.ProfileImportTests",
+          "name": "test_empty_and_imported_pending_profiles_cannot_generate_documents",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_profile_import.py::ProfileImportTests::test_extract_pdf_populates_review_candidates_without_saving_or_approving": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_profile_import.ProfileImportTests",
+          "name": "test_extract_pdf_populates_review_candidates_without_saving_or_approving",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_resume_upload.py::ResumeUploadTests::test_unsafe_or_mismatched_uploads_are_rejected_without_storage": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_resume_upload.ResumeUploadTests",
+          "name": "test_unsafe_or_mismatched_uploads_are_rejected_without_storage",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_route_attempt_concurrency.py::RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests",
+          "name": "test_two_real_workers_only_one_submits_then_explicit_retry_is_safe",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_saved_search_filters.SavedSearchFiltersApiTests",
+          "name": "test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_selected_search_filters_before_result_limit": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_saved_search_filters.SavedSearchFiltersApiTests",
+          "name": "test_selected_search_filters_before_result_limit",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_settings_transfer_flow.py::SettingsTransferFlowTests::test_versioned_export_import_is_profile_scoped_and_survives_reload": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_settings_transfer_flow.SettingsTransferFlowTests",
+          "name": "test_versioned_export_import_is_profile_scoped_and_survives_reload",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_source_http_socket_budget.py::SourceHttpSocketBudgetTests::test_worker_deadline_under_continuous_sub_64k_body_and_header_stall": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+          "name": "test_worker_deadline_under_continuous_sub_64k_body_and_header_stall",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_due_discovery_survives_store_restart_and_completes_once": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_source_policy_scheduler.SourcePolicySchedulerTests",
+          "name": "test_due_discovery_survives_store_restart_and_completes_once",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_search_profiles_are_data_driven_persistent_and_source_scoped": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_source_policy_scheduler.SourcePolicySchedulerTests",
+          "name": "test_search_profiles_are_data_driven_persistent_and_source_scoped",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_spine.SpineTests",
+          "name": "test_flywheel_enrolls_company_and_finds_employer_only_job",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-2/integration-2.xml"
+        }
+      ]
+    },
+    "tests/integration/test_user_read_models.py::UserReadModelTests::test_integrity_checked_downloads_and_traversal_rejection": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_user_read_models.UserReadModelTests",
+          "name": "test_integrity_checked_downloads_and_traversal_rejection",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_product_worker_process_crash_recovers_from_durable_lease": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests",
+          "name": "test_product_worker_process_crash_recovers_from_durable_lease",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-1/integration-1.xml"
+        }
+      ]
+    },
+    "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_fetch_rejects_conflicting_identity_independent_of_order": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.integration.test_wwr.WeWorkRemotelyTests",
+          "name": "test_fetch_rejects_conflicting_identity_independent_of_order",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/integration/integration-results-0/integration-0.xml"
+        }
+      ]
+    },
+    "tests/unit/test_ats_detection.py::ATSDetectionTests::test_conflicting_vendor_signals_require_review": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_ats_detection.ATSDetectionTests",
+          "name": "test_conflicting_vendor_signals_require_review",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_ats_detection.ATSDetectionTests",
+          "name": "test_recognizes_all_declared_major_ats_hostname_families",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_ats_detection.py::ATSDetectionTests::test_unknown_custom_domain_is_not_guessed": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_ats_detection.ATSDetectionTests",
+          "name": "test_unknown_custom_domain_is_not_guessed",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_job_matching_engine.JobMatchingEngineUnitTests",
+          "name": "test_classify_match_category",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_job_normalization.py::JobNormalizationTests::test_canonical_view_has_stable_provider_neutral_shape": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_job_normalization.JobNormalizationTests",
+          "name": "test_canonical_view_has_stable_provider_neutral_shape",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_matching_requirements_sustain_219.py::test_missing_required_skill_costs_more_than_missing_preferred_skill": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_matching_requirements_sustain_219",
+          "name": "test_missing_required_skill_costs_more_than_missing_preferred_skill",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_matching_requirements_sustain_219.py::test_remote_preference_mismatch_is_a_known_low_fit": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_matching_requirements_sustain_219",
+          "name": "test_remote_preference_mismatch_is_a_known_low_fit",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_matching_requirements_sustain_219.py::test_salary_below_candidate_minimum_is_a_known_low_fit": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_matching_requirements_sustain_219",
+          "name": "test_salary_below_candidate_minimum_is_a_known_low_fit",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_persistence_input_security_226.py::test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope": {
+      "result": "PASS",
+      "executed_rows": 3,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_persistence_input_security_226",
+          "name": "test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope[Robert'); DROP TABLE career_profiles;--]",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        },
+        {
+          "class": "tests.unit.test_persistence_input_security_226",
+          "name": "test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope[' OR 1=1 --]",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        },
+        {
+          "class": "tests.unit.test_persistence_input_security_226",
+          "name": "test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope[Caf\\xe9 \\u2014 \\u674e & O'Neil]",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_no_credentials_fragments_or_cross_origin_urls_are_allowed": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_public_company_client.PublicCompanyClientTests",
+          "name": "test_no_credentials_fragments_or_cross_origin_urls_are_allowed",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_private_dns_answer_is_fail_closed": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_public_company_client.PublicCompanyClientTests",
+          "name": "test_private_dns_answer_is_fail_closed",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_unsafe_redirect_is_rejected_before_second_request": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_public_company_client.PublicCompanyClientTests",
+          "name": "test_unsafe_redirect_is_rejected_before_second_request",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_docx_native_text_is_extracted": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_resume_extraction.ResumeExtractionTests",
+          "name": "test_docx_native_text_is_extracted",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_radius_filter_uses_coordinates_only_when_available": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_search_semantics.SearchSemanticsTests",
+          "name": "test_radius_filter_uses_coordinates_only_when_available",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_classification_preserves_restrictions": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_search_semantics.SearchSemanticsTests",
+          "name": "test_remote_classification_preserves_restrictions",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_worldwide_and_hybrid_are_distinct": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_search_semantics.SearchSemanticsTests",
+          "name": "test_remote_worldwide_and_hybrid_are_distinct",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_structured_and_or_not_semantics_and_aliases": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_search_semantics.SearchSemanticsTests",
+          "name": "test_structured_and_or_not_semantics_and_aliases",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    },
+    "tests/unit/test_structured_text_web_security_sustain_173.py::StructuredTextWebSecurityTests::test_lever_normalize_sanitizes_untrusted_description_without_mutating_input": {
+      "result": "PASS",
+      "executed_rows": 1,
+      "junit_cases": [
+        {
+          "class": "tests.unit.test_structured_text_web_security_sustain_173.StructuredTextWebSecurityTests",
+          "name": "test_lever_normalize_sanitizes_untrusted_description_without_mutating_input",
+          "result": "PASS",
+          "report": "outputs/pr891-current-ci/unit/unit.xml"
+        }
+      ]
+    }
+  },
+  "clauses": [
+    {
+      "ordinal": 1,
+      "group": "Career Profile",
+      "scenario": "PDF import",
+      "selectors": [
+        "tests/integration/test_profile_import.py::ProfileImportTests::test_extract_pdf_populates_review_candidates_without_saving_or_approving"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 2,
+      "group": "Career Profile",
+      "scenario": "DOCX import",
+      "selectors": [
+        "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_docx_native_text_is_extracted"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 3,
+      "group": "Career Profile",
+      "scenario": "fact review",
+      "selectors": [
+        "tests/integration/test_profile_import.py::ProfileImportTests::test_empty_and_imported_pending_profiles_cannot_generate_documents"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 4,
+      "group": "Career Profile",
+      "scenario": "skills",
+      "selectors": [
+        "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 5,
+      "group": "Career Profile",
+      "scenario": "experience",
+      "selectors": [
+        "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 6,
+      "group": "Career Profile",
+      "scenario": "education",
+      "selectors": [
+        "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 7,
+      "group": "Search Profiles",
+      "scenario": "create",
+      "selectors": [
+        "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_search_profiles_are_data_driven_persistent_and_source_scoped"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 8,
+      "group": "Search Profiles",
+      "scenario": "edit",
+      "selectors": [
+        "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_selected_search_filters_before_result_limit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 9,
+      "group": "Search Profiles",
+      "scenario": "delete",
+      "selectors": [
+        "tests/integration/test_settings_transfer_flow.py::SettingsTransferFlowTests::test_versioned_export_import_is_profile_scoped_and_survives_reload",
+        "tests/integration/test_fixture_saved_search_discovery.py::FixtureSavedSearchDiscoveryTests::test_search_invalidated_after_queue_blocks_before_capture"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 10,
+      "group": "Search Profiles",
+      "scenario": "include/exclude",
+      "selectors": [
+        "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_structured_and_or_not_semantics_and_aliases"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 11,
+      "group": "Search Profiles",
+      "scenario": "location",
+      "selectors": [
+        "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_radius_filter_uses_coordinates_only_when_available"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 12,
+      "group": "Search Profiles",
+      "scenario": "salary",
+      "selectors": [
+        "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 13,
+      "group": "Search Profiles",
+      "scenario": "remote",
+      "selectors": [
+        "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_classification_preserves_restrictions",
+        "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_worldwide_and_hybrid_are_distinct",
+        "tests/integration/test_prefilter_discover_worker.py::DiscoverWorkerPrefilterTests::test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 14,
+      "group": "Global Sources",
+      "scenario": "successful run",
+      "selectors": [
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_collection_preserves_provenance_and_labels_live_matching"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 15,
+      "group": "Global Sources",
+      "scenario": "empty run",
+      "selectors": [
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_empty_board_collection_preserves_provider_company_name"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 16,
+      "group": "Global Sources",
+      "scenario": "timeout",
+      "selectors": [
+        "tests/integration/test_source_http_socket_budget.py::SourceHttpSocketBudgetTests::test_worker_deadline_under_continuous_sub_64k_body_and_header_stall"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 17,
+      "group": "Global Sources",
+      "scenario": "rate limit",
+      "selectors": [
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_rate_limit_persists_provider_backoff"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 18,
+      "group": "Global Sources",
+      "scenario": "malformed listing",
+      "selectors": [
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_malformed_rows_and_untrusted_routes_do_not_invent_evidence"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 19,
+      "group": "Global Sources",
+      "scenario": "duplicate listing",
+      "selectors": [
+        "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_fetch_rejects_conflicting_identity_independent_of_order"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 20,
+      "group": "Company Discovery",
+      "scenario": "new company",
+      "selectors": [
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_durable_company_operation_enrolls_source_and_immediately_imports_employer_only_job"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 21,
+      "group": "Company Discovery",
+      "scenario": "known company",
+      "selectors": [
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_returns_identity_confidence_and_evidence"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 22,
+      "group": "Company Discovery",
+      "scenario": "alias",
+      "selectors": [
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_uses_a_verified_company_alias"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 23,
+      "group": "Company Discovery",
+      "scenario": "official domain",
+      "selectors": [
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_matches_only_a_persisted_verified_company_domain"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 24,
+      "group": "Company Discovery",
+      "scenario": "career page",
+      "selectors": [
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_career_discovery_finds_navigation_link_without_rel_careers_marker"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 25,
+      "group": "Company Discovery",
+      "scenario": "custom ATS domain",
+      "selectors": [
+        "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_custom_domain_ats_detection_is_audited_without_claiming_application_support"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 26,
+      "group": "Company Discovery",
+      "scenario": "multiple ATS portals",
+      "selectors": [
+        "tests/integration/test_company_sources.py::CompanySourceTests::test_tenant_and_multiple_company_sources_are_persisted_independently"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 27,
+      "group": "Company Discovery",
+      "scenario": "failure",
+      "selectors": [
+        "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_retryable_failures_degrade_then_stop_until_successful_manual_recovery"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 28,
+      "group": "Company Discovery",
+      "scenario": "rediscovery",
+      "selectors": [
+        "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_changed_career_feed_queues_rediscovery_without_import_or_retarget"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 29,
+      "group": "ATS Detection",
+      "scenario": "Greenhouse",
+      "selectors": [
+        "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 30,
+      "group": "ATS Detection",
+      "scenario": "Lever",
+      "selectors": [
+        "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 31,
+      "group": "ATS Detection",
+      "scenario": "Ashby",
+      "selectors": [
+        "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 32,
+      "group": "ATS Detection",
+      "scenario": "unknown",
+      "selectors": [
+        "tests/unit/test_ats_detection.py::ATSDetectionTests::test_unknown_custom_domain_is_not_guessed"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 33,
+      "group": "ATS Detection",
+      "scenario": "ambiguous",
+      "selectors": [
+        "tests/unit/test_ats_detection.py::ATSDetectionTests::test_conflicting_vendor_signals_require_review"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 34,
+      "group": "Job Model",
+      "scenario": "normalize",
+      "selectors": [
+        "tests/unit/test_job_normalization.py::JobNormalizationTests::test_canonical_view_has_stable_provider_neutral_shape"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 35,
+      "group": "Job Model",
+      "scenario": "dedupe",
+      "selectors": [
+        "tests/integration/test_greenhouse.py::GreenhouseTests::test_multiple_postings_share_one_canonical_job_and_route",
+        "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 36,
+      "group": "Job Model",
+      "scenario": "description changes",
+      "selectors": [
+        "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_revisions_noop_material_change_reversion_and_restart"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 37,
+      "group": "Job Model",
+      "scenario": "closed job",
+      "selectors": [
+        "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_employer_closure_beats_later_aggregator_and_can_reopen"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 38,
+      "group": "Matching",
+      "scenario": "excellent",
+      "selectors": [
+        "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 39,
+      "group": "Matching",
+      "scenario": "strong",
+      "selectors": [
+        "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 40,
+      "group": "Matching",
+      "scenario": "weak",
+      "selectors": [
+        "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 41,
+      "group": "Matching",
+      "scenario": "required missing",
+      "selectors": [
+        "tests/unit/test_matching_requirements_sustain_219.py::test_missing_required_skill_costs_more_than_missing_preferred_skill"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 42,
+      "group": "Matching",
+      "scenario": "preferred missing",
+      "selectors": [
+        "tests/unit/test_matching_requirements_sustain_219.py::test_missing_required_skill_costs_more_than_missing_preferred_skill"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 43,
+      "group": "Matching",
+      "scenario": "remote mismatch",
+      "selectors": [
+        "tests/unit/test_matching_requirements_sustain_219.py::test_remote_preference_mismatch_is_a_known_low_fit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 44,
+      "group": "Matching",
+      "scenario": "salary mismatch",
+      "selectors": [
+        "tests/unit/test_matching_requirements_sustain_219.py::test_salary_below_candidate_minimum_is_a_known_low_fit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 45,
+      "group": "Documents",
+      "scenario": "resume generated",
+      "selectors": [
+        "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 46,
+      "group": "Documents",
+      "scenario": "cover letter generated",
+      "selectors": [
+        "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 47,
+      "group": "Documents",
+      "scenario": "unsupported claim detected",
+      "selectors": [
+        "tests/integration/test_document_validation.py::DocumentValidationTests::test_unsupported_claim_or_glyph_preserves_prior_documents"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 48,
+      "group": "Documents",
+      "scenario": "version saved",
+      "selectors": [
+        "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 49,
+      "group": "Applications",
+      "scenario": "form fill",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 50,
+      "group": "Applications",
+      "scenario": "upload",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 51,
+      "group": "Applications",
+      "scenario": "question",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_missing_required_answer_stops_before_browser_and_shows_question"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 52,
+      "group": "Applications",
+      "scenario": "conditional field",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_conditional_required_dropdown_with_known_mapping_pauses_for_review"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 53,
+      "group": "Applications",
+      "scenario": "validation",
+      "selectors": [
+        "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 54,
+      "group": "Applications",
+      "scenario": "review pause",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_missing_required_answer_stops_before_browser_and_shows_question"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 55,
+      "group": "Applications",
+      "scenario": "CAPTCHA pause",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_captcha_requires_intervention"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 56,
+      "group": "Applications",
+      "scenario": "submission",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 57,
+      "group": "Applications",
+      "scenario": "confirmation",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 58,
+      "group": "Applications",
+      "scenario": "uncertain submission",
+      "selectors": [
+        "tests/browser/test_mock_application.py::MockApplicationTests::test_uncertain_submission_without_receipt_does_not_retry"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 59,
+      "group": "Idempotency",
+      "scenario": "duplicate source run",
+      "selectors": [
+        "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 60,
+      "group": "Idempotency",
+      "scenario": "duplicate company discovery",
+      "selectors": [
+        "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests::test_new_tab_intents_share_one_active_operation_and_survive_reopen"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 61,
+      "group": "Idempotency",
+      "scenario": "duplicate application queue",
+      "selectors": [
+        "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_duplicate_user_request_and_database_reopen_keep_one_operation"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 62,
+      "group": "Idempotency",
+      "scenario": "concurrent submission",
+      "selectors": [
+        "tests/integration/test_route_attempt_concurrency.py::RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 63,
+      "group": "Recovery",
+      "scenario": "worker crash",
+      "selectors": [
+        "tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_product_worker_process_crash_recovers_from_durable_lease"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 64,
+      "group": "Recovery",
+      "scenario": "browser crash",
+      "selectors": [
+        "tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_application_tracking_recovers_after_browser_process_crash"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 65,
+      "group": "Recovery",
+      "scenario": "scheduler restart",
+      "selectors": [
+        "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_due_discovery_survives_store_restart_and_completes_once"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 66,
+      "group": "Recovery",
+      "scenario": "submission uncertainty",
+      "selectors": [
+        "tests/integration/test_application_worker_crash_postgres.py::ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 67,
+      "group": "Security",
+      "scenario": "XSS",
+      "selectors": [
+        "tests/browser/test_mock_html_security.py::test_untrusted_fixture_values_cannot_execute_in_chromium",
+        "tests/unit/test_structured_text_web_security_sustain_173.py::StructuredTextWebSecurityTests::test_lever_normalize_sanitizes_untrusted_description_without_mutating_input"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 68,
+      "group": "Security",
+      "scenario": "SSRF",
+      "selectors": [
+        "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_private_dns_answer_is_fail_closed",
+        "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_unsafe_redirect_is_rejected_before_second_request"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 69,
+      "group": "Security",
+      "scenario": "malicious URL",
+      "selectors": [
+        "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_no_credentials_fragments_or_cross_origin_urls_are_allowed"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 70,
+      "group": "Security",
+      "scenario": "path traversal",
+      "selectors": [
+        "tests/integration/test_user_read_models.py::UserReadModelTests::test_integrity_checked_downloads_and_traversal_rejection"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 71,
+      "group": "Security",
+      "scenario": "malicious filename",
+      "selectors": [
+        "tests/integration/test_resume_upload.py::ResumeUploadTests::test_unsafe_or_mismatched_uploads_are_rejected_without_storage"
+      ],
+      "result": "PASS"
+    },
+    {
+      "ordinal": 72,
+      "group": "Security",
+      "scenario": "injection-like text",
+      "selectors": [
+        "tests/unit/test_persistence_input_security_226.py::test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "counts": {
+    "total_clauses": 72,
+    "passed_clauses": 72,
+    "total_selectors": 65,
+    "passed_selectors": 65
+  },
+  "qualification": "Exact-source JUnit matching only. Required CI, independent scope review, actual merge and deployed readback are separate gates. No skipped case is counted as PASS.",
+  "actual_merge": "821171122a44332853339a798d717c5c11dd9ad5",
+  "actual_merge_tree_equals_tested_tree": true,
+  "serialization_qualification": "The 65 selectors match 67 serialized JUnit parent/parameterized testcases. Successful unittest subtests are folded into their parent testcase; the aggregate JUnit tests count includes successful subtest reports. No individually serialized success node is invented. The matcher rejects failure, error or skipped children on every matched testcase. All source reports contain zero failures/errors, and all selected parent/parameterized testcases contain zero skipped children.",
+  "selected_serialized_testcase_count": 67
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-02T19:25:56.674927+00:00",
+  "timestamp": "2026-11-02T21:00:45.470859+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -3625,9 +3625,16 @@
     },
     {
       "requirement_id": "MJ-REQ-291",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-test-matrix/coverage-map.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/source-execution.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/review.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/implementation.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/acceptance.json"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-02 Pro test matrix: PASS for all72 original minimum scenarios in12 groups. Literal source, area specification and issue seed are retained with hashes. Independent semantic review plus exact-source JUnit matching proves65 primary selectors (67 serialized parent/parameterized testcases) passed with no selected failures/errors/skips. Hosted PostgreSQL/Redis and unit reports are pinned to a1f261acc45f1e0f066c31d2f717bdd8b5417e83; nine native Chromium cases ran on proposed merge54a31d0735ca04ee6bea6adae5a4891b7e9b5608. Actual protected merge821171122a44332853339a798d717c5c11dd9ad5 has the identical887d197621783b6cd155d78afd9cb928675e50aa tree. A new joined API/import/reopen/worker regression also proves final-search deletion preserves populated job data and fences stale work. Successful subtests are folded into JUnit parents; aggregate counts are not represented as individually serialized cases. The containing PR must pass its own exact proposed-merge and protected publication gates. Fictional application submission only;171/172/224/292 and whole-product readiness remain incomplete. No acceptance criterion or denominator changed.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"

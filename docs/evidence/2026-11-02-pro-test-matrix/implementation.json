@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T19:52:01.095567+00:00",
+  "requirement_id": "MJ-REQ-291",
+  "result": "REGRESSION_AND_SOURCE_MATRIX_VERIFIED_PENDING_PROTECTED_PUBLICATION",
+  "base_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+  "source_path": "tests/integration/test_settings_transfer_flow.py",
+  "source_sha256": "7814c1e1b62af36ce4eff1207b623333601c7c77269b4d40608078f117c6e1a7",
+  "new_test": "SettingsTransferFlowTests.test_deleting_last_search_through_import_preserves_data_and_fences_queued_collection",
+  "behavior": [
+    "Real isolated PERSONAL API and worker seed one source, canonical job, posting, snapshot, match and completed history; only the provider transport is mocked.",
+    "Supported empty settings import twice deletes the final target search; after reopen the target exports empty searches, rules and source settings.",
+    "Six populated source/job tables, both current profiles, the other profile settings and its completed history remain byte-for-value equivalent.",
+    "Previously queued selected-search collection terminates before collect_source, preserving existing DEAD_LETTERED/NoResultFound behavior, with no retry or active lease. No production behavior change is claimed."
+  ],
+  "tests": {
+    "initial_setup_failure": {
+      "result": "FAIL",
+      "cause": "Existing shared test source starts disabled; the real worker correctly refused SOURCE_DISABLED before deletion was exercised.",
+      "correction": "Enable only the owned synthetic source using the supported source settings API."
+    },
+    "new_case": {
+      "passed": 1,
+      "skipped": 0,
+      "duration_seconds": 2.37,
+      "junit_sha256": "006300ddc12814fa1c161bfb9a878e56784a0c9de5c3e5d70e0a7ff72eb3d927"
+    },
+    "adjacent": {
+      "passed": 17,
+      "skipped": 0,
+      "subtests_passed": 19,
+      "duration_seconds": 17.0,
+      "junit_sha256": "dfa7e468d0aa7c66f31da542db81c6b4eb6eea55566df725786ce56811eaa706",
+      "scope": [
+        "tests/integration/test_settings_transfer_flow.py",
+        "tests/integration/test_fixture_saved_search_discovery.py",
+        "tests/integration/test_source_policy_scheduler.py"
+      ],
+      "qualification": "Before the final added baseline-nonempty assertions; the final new case passed separately."
+    },
+    "independent_review": "NO_BLOCKING_FINDINGS; meaningful API/reopen/worker/data-preservation assertions. Final nonempty baseline assertion added after review to avoid vacuous inventory comparisons.",
+    "native_final": {
+      "base_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "source_sha256": "7814c1e1b62af36ce4eff1207b623333601c7c77269b4d40608078f117c6e1a7",
+      "passed": 17,
+      "subtests_passed": 19,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "duration_seconds": 22.82,
+      "junit_path": "C:/Tools/Dev/MJobs-pro-test-matrix-20261102/outputs/test-matrix-deletion-native.xml",
+      "junit_sha256": "1b3f749e74b6fc44f6f0eab74d8e98f55febc6460e9ff3df0f5851abd3ca3f61",
+      "scope": [
+        "tests/integration/test_settings_transfer_flow.py",
+        "tests/integration/test_fixture_saved_search_discovery.py",
+        "tests/integration/test_source_policy_scheduler.py"
+      ],
+      "qualification": "Includes the final nonempty baseline assertions. This overlaps the local runs and is not added to them as a unique-test total."
+    }
+  },
+  "limitations": [
+    "Completed retained history belongs to the untouched profile; do not claim prior completed history for the deleted-search profile.",
+    "Inventory covers six named tables, not every global table.",
+    "No production data, paid inference or employer submission used.",
+    "All72 original scenarios now have exact-source execution evidence in source-execution.json; the containing publication still requires its own exact proposed-merge tests and protected gates."
+  ],
+  "followup_at": "2026-11-02T21:00:45.470859+00:00",
+  "historical_limitations": [
+    "Completed retained history belongs to the untouched profile; do not claim prior completed history for the deleted-search profile.",
+    "Inventory covers six named tables, not every global table.",
+    "No production data, paid inference or employer submission used.",
+    "All72 original minimum scenarios still need exact-source executed PASS evidence; no canonical acceptance changed."
+  ]
+}
