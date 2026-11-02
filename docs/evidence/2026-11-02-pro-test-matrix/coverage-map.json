@@ -1,0 +1,3179 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-291",
+  "status": "SOURCE_MAPPING_PENDING_EXECUTION",
+  "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+  "prior_read_only_audit_head": "5d6cc9ce2921a46a384f64734f71a593dab0ad43",
+  "source_read_method": "All contract and test definition metadata read from pinned git objects at source_head; concurrent working-tree changes are excluded.",
+  "purpose": "Proposed exact-selector coverage map for the original 72 minimum Test Matrix scenarios; not an acceptance result, test-run receipt, merge receipt or deployment claim.",
+  "contract": {
+    "requirement_id": "MJ-REQ-291",
+    "title": "Test Matrix",
+    "issue_number": 292,
+    "original_source_path": "docs/spec/source/MJobs_Startup_Prompt.original.md",
+    "original_source_lines": "7521-7658",
+    "original_source_file_sha256": "1cf94181ae4b8e599063ada219759cb39b766f9d1bb7d860b99f4bb58adc0998",
+    "original_requirement_text": "# 291. TEST MATRIX\n\nAt minimum test:\n\n## Career Profile\n\n```text\nPDF import\nDOCX import\nfact review\nskills\nexperience\neducation\n```\n\n## Search Profiles\n\n```text\ncreate\nedit\ndelete\ninclude/exclude\nlocation\nsalary\nremote\n```\n\n## Global Sources\n\n```text\nsuccessful run\nempty run\ntimeout\nrate limit\nmalformed listing\nduplicate listing\n```\n\n## Company Discovery\n\n```text\nnew company\nknown company\nalias\nofficial domain\ncareer page\ncustom ATS domain\nmultiple ATS portals\nfailure\nrediscovery\n```\n\n## ATS Detection\n\n```text\nGreenhouse\nLever\nAshby\nunknown\nambiguous\n```\n\n## Job Model\n\n```text\nnormalize\ndedupe\ndescription changes\nclosed job\n```\n\n## Matching\n\n```text\nexcellent\nstrong\nweak\nrequired missing\npreferred missing\nremote mismatch\nsalary mismatch\n```\n\n## Documents\n\n```text\nresume generated\ncover letter generated\nunsupported claim detected\nversion saved\n```\n\n## Applications\n\n```text\nform fill\nupload\nquestion\nconditional field\nvalidation\nreview pause\nCAPTCHA pause\nsubmission\nconfirmation\nuncertain submission\n```\n\n## Idempotency\n\n```text\nduplicate source run\nduplicate company discovery\nduplicate application queue\nconcurrent submission\n```\n\n## Recovery\n\n```text\nworker crash\nbrowser crash\nscheduler restart\nsubmission uncertainty\n```\n\n## Security\n\n```text\nXSS\nSSRF\nmalicious URL\npath traversal\nmalicious filename\ninjection-like text\n```\n\n---\n\n",
+    "original_requirement_text_sha256": "83f58fa688a4b53c8d2412c71caf485465aad79f1e83fe43bddf6979929327c0",
+    "area_spec_path": "docs/spec/areas/delivery_control.md",
+    "area_spec_file_sha256": "8b48abad5abb51a3055e7d2a5d5d88381cf23c28bb9dcc81b312857a02d596b6",
+    "area_requirement_text_sha256": "b969e6a4e281498521a1dddaf9e968c141e0520f95a7f4121752ab9ca39827f6",
+    "issue_seed_path": "planning/ISSUE_SEED.jsonl",
+    "issue_seed_file_sha256": "e7d430ec2b86a8d6a030987168ef7753b81ff24d2b4ad5df6c7c25f78c74914a",
+    "issue_seed_record_sha256": "2e385420d642f47cd81d7a25e785e30de162376abadc0a0b0cb5590be527b6a7",
+    "issue_seed_record_digest_encoding": "Exact UTF-8 JSONL record bytes without its terminating newline.",
+    "issue_seed_body_sha256": "39846790f33968de03141d2b5e838948b8a06df50749b892f5a63ec3f6984cd9",
+    "issue_seed_body_digest_encoding": "Exact decoded body string encoded as UTF-8, matching acceptance_integrity contract digest.",
+    "literal_groups": [
+      {
+        "group": "Career Profile",
+        "scenarios": [
+          "PDF import",
+          "DOCX import",
+          "fact review",
+          "skills",
+          "experience",
+          "education"
+        ]
+      },
+      {
+        "group": "Search Profiles",
+        "scenarios": [
+          "create",
+          "edit",
+          "delete",
+          "include/exclude",
+          "location",
+          "salary",
+          "remote"
+        ]
+      },
+      {
+        "group": "Global Sources",
+        "scenarios": [
+          "successful run",
+          "empty run",
+          "timeout",
+          "rate limit",
+          "malformed listing",
+          "duplicate listing"
+        ]
+      },
+      {
+        "group": "Company Discovery",
+        "scenarios": [
+          "new company",
+          "known company",
+          "alias",
+          "official domain",
+          "career page",
+          "custom ATS domain",
+          "multiple ATS portals",
+          "failure",
+          "rediscovery"
+        ]
+      },
+      {
+        "group": "ATS Detection",
+        "scenarios": [
+          "Greenhouse",
+          "Lever",
+          "Ashby",
+          "unknown",
+          "ambiguous"
+        ]
+      },
+      {
+        "group": "Job Model",
+        "scenarios": [
+          "normalize",
+          "dedupe",
+          "description changes",
+          "closed job"
+        ]
+      },
+      {
+        "group": "Matching",
+        "scenarios": [
+          "excellent",
+          "strong",
+          "weak",
+          "required missing",
+          "preferred missing",
+          "remote mismatch",
+          "salary mismatch"
+        ]
+      },
+      {
+        "group": "Documents",
+        "scenarios": [
+          "resume generated",
+          "cover letter generated",
+          "unsupported claim detected",
+          "version saved"
+        ]
+      },
+      {
+        "group": "Applications",
+        "scenarios": [
+          "form fill",
+          "upload",
+          "question",
+          "conditional field",
+          "validation",
+          "review pause",
+          "CAPTCHA pause",
+          "submission",
+          "confirmation",
+          "uncertain submission"
+        ]
+      },
+      {
+        "group": "Idempotency",
+        "scenarios": [
+          "duplicate source run",
+          "duplicate company discovery",
+          "duplicate application queue",
+          "concurrent submission"
+        ]
+      },
+      {
+        "group": "Recovery",
+        "scenarios": [
+          "worker crash",
+          "browser crash",
+          "scheduler restart",
+          "submission uncertainty"
+        ]
+      },
+      {
+        "group": "Security",
+        "scenarios": [
+          "XSS",
+          "SSRF",
+          "malicious URL",
+          "path traversal",
+          "malicious filename",
+          "injection-like text"
+        ]
+      }
+    ]
+  },
+  "mapping_counts": {
+    "literal_groups": 12,
+    "literal_scenarios": 72,
+    "unique_selected_tests": 80,
+    "unique_primary_tests": 65
+  },
+  "execution_verification": {
+    "performed": false,
+    "execution_receipts": [],
+    "outcome": null,
+    "requirements": [
+      "Collect and execute tests from the actual proposed merge revision, then retain exact-head JUnit and revision identity.",
+      "Require each mapped primary selector and all of its parametrizations/subtests to have executed successfully before using it as scenario evidence.",
+      "Record skipped, failed, unavailable and absent cases independently; a successful aggregate workflow is not evidence that a skipped case ran.",
+      "Alternates supply supporting or environment-specific evidence; do not silently substitute them for a skipped primary without reviewing the scenario assertions.",
+      "Check source/module changes between this pinned source map and the tested revision, then refresh hashes or explicitly retain the reviewed change evidence.",
+      "Keep fixture, PostgreSQL/Redis, browser and production observations distinct; this file contains no production execution evidence."
+    ]
+  },
+  "limitations": [
+    "Every listed scenario has a proposed asserted-test mapping; that statement does not claim completion or a new acceptance count.",
+    "Search deletion is supported indirectly by settings replacement plus a separate direct-SQL stale-work guard; the in-progress empty-search API regression is not included.",
+    "Excellent/Strong/Weak categories have explicit classifier assertions. Strong/Weak have no mapped full profile-to-score-to-persisted-API journey requiring those categories.",
+    "Application submissions, CAPTCHA and receipt cases use the fictional local provider. Real employer submission remains disabled.",
+    "Live-source tests gated by MJOBS_ENABLE_LIVE_TESTS are not used as substitutes for, or inferred from, the deterministic matrix cases."
+  ],
+  "unmapped_in_progress_work": [
+    "Supported API empty-search-set settings import followed by store reopen and fencing of a stale queued PERSONAL source collector; parent is implementing/verifying it separately."
+  ],
+  "environments": {
+    "python": {
+      "requirements": "Pinned requirements.lock plus .github/test-requirements.txt; pytest must collect the exact selected revision.",
+      "scope": "No test is executed by this source-map creation."
+    },
+    "sqlite": {
+      "requirements": "Disposable temporary SQLite database and writable temporary artifact directory; repository migrations available.",
+      "scope": "Local synthetic fixture, separate from production."
+    },
+    "local_http": {
+      "requirements": "Loopback socket bind/connect permitted; test-owned HTTP servers or in-process API clients as required by the selector.",
+      "scope": "Synthetic local API/provider. No live employer submission."
+    },
+    "controlled_http": {
+      "requirements": "Injected HTTPX MockTransport or bounded fixture client according to the source test.",
+      "scope": "No inference of current upstream availability, response schema or live rate-limit behavior."
+    },
+    "document_parsers": {
+      "requirements": "Pinned reportlab, pypdf, python-docx and extractor/runtime dependencies as used by the test.",
+      "scope": "Synthetic resume/document bytes, local output only."
+    },
+    "chromium": {
+      "requirements": "The pinned Playwright package and its Chromium runtime must be installed and runnable.",
+      "scope": "Local fictional application/browser surfaces. A browser launch failure or skipped test is not a pass."
+    },
+    "web_dist": {
+      "requirements": "apps/web/dist/index.html from the exact-revision production build must exist before collection.",
+      "skip_condition": "Selected SPA browser class is decorated to skip if the build is absent."
+    },
+    "owned_subprocess": {
+      "requirements": "The environment permits test-owned Python processes, synchronization files, loopback services and bounded child cleanup.",
+      "scope": "Only test-owned processes are involved; no host reboot or unrelated process termination."
+    },
+    "controlled_dns": {
+      "requirements": "Owned resolver test process support.",
+      "scope": "DNS answers are controlled; no live private destination is contacted."
+    },
+    "scheduler_fake_redis": {
+      "requirements": "Scheduler test's heartbeat-recorder fixture and controlled collection implementation.",
+      "scope": "Scheduler processes and persistence are real; this is not an actual Redis restart/outage assertion."
+    },
+    "postgres_general": {
+      "requirements": "MJOBS_TEST_POSTGRES_URL must identify the test's admitted disposable loopback PostgreSQL database.",
+      "skip_condition": "PostgreSQL company-idempotency class skips if this variable is absent.",
+      "scope": "Do not replace the SQLite evidence with a skipped PostgreSQL variant."
+    },
+    "postgres_worker": {
+      "requirements": "MJOBS_WORKER_RECOVERY_POSTGRES_URL must identify the isolated mjobs_worker_recovery database.",
+      "skip_condition": "PostgreSQL worker recovery setup skips if its explicit disposable URL is absent.",
+      "scope": "Durable worker-process crash/reclaim proof specific to PostgreSQL."
+    },
+    "postgres_application": {
+      "requirements": "MJOBS_APPLICATION_CRASH_POSTGRES_URL must identify an admitted disposable loopback mjobs_test_* PostgreSQL database.",
+      "skip_condition": "Inherited PostgreSQL application crash class skips if its explicit disposable URL is absent.",
+      "scope": "A unique test schema and released migrations isolate the same inherited crash/reconciliation cases."
+    },
+    "redis_rq": {
+      "requirements": "Linux plus explicit admitted disposable MJOBS_REDIS_URL; actual Redis, pinned RQ and forking worker environment.",
+      "skip_condition": "Real workhorse class skips on non-Linux or absent MJOBS_REDIS_URL; configured-but-unavailable Redis fails.",
+      "scope": "Actual owned RQ workhorse, maintenance and redelivery. It is additional environment-specific proof, not implied by SQLite unit cases."
+    }
+  },
+  "groups": [
+    {
+      "group": "Career Profile",
+      "scenarios": [
+        {
+          "scenario": "PDF import",
+          "primary_selectors": [
+            "tests/integration/test_profile_import.py::ProfileImportTests::test_extract_pdf_populates_review_candidates_without_saving_or_approving"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_pdf_native_text_is_extracted_and_empty_pdf_is_unreadable"
+          ],
+          "asserted_behavior": "A real PDF upload is extracted by the operation worker and read back through the API; email, skill/date candidates and upload provenance are asserted, with no silent approval or profile mutation.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Synthetic generated resume and isolated workspace; no personal resume or production upload is exercised."
+          ],
+          "literal_ordinal": 1
+        },
+        {
+          "scenario": "DOCX import",
+          "primary_selectors": [
+            "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_docx_native_text_is_extracted"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_native_pdf_and_docx_preserve_reviewable_chronology_and_links"
+          ],
+          "asserted_behavior": "A real DOCX archive is parsed and its contact email and exact skill facts are asserted.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Parser coverage uses a synthetic DOCX; this primary selector does not traverse the browser upload UI."
+          ],
+          "literal_ordinal": 2
+        },
+        {
+          "scenario": "fact review",
+          "primary_selectors": [
+            "tests/integration/test_profile_import.py::ProfileImportTests::test_empty_and_imported_pending_profiles_cannot_generate_documents"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Empty or imported unapproved facts prevent document preparation; explicit fact approval permits preparation and the application uses only that approved fact.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Approval is applied through the test's controlled profile path; this is not a browser usability claim."
+          ],
+          "literal_ordinal": 3
+        },
+        {
+          "scenario": "skills",
+          "primary_selectors": [
+            "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_docx_native_text_is_extracted"
+          ],
+          "asserted_behavior": "Career facts retain the skill kind, saved content and unapproved/unverified flags when the store is reopened.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Persistence/readback coverage; extraction assertions are supplied by the DOCX/PDF selectors."
+          ],
+          "literal_ordinal": 4
+        },
+        {
+          "scenario": "experience",
+          "primary_selectors": [
+            "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_native_pdf_and_docx_preserve_reviewable_chronology_and_links"
+          ],
+          "asserted_behavior": "Experience facts persist as distinct fact kinds across reopen without automatically approving their content.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Synthetic facts; native document chronology is a separate supporting test."
+          ],
+          "literal_ordinal": 5
+        },
+        {
+          "scenario": "education",
+          "primary_selectors": [
+            "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Education facts are saved and reopened with the complete career profile, retaining explicit fact kind and review flags.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "This selector proves education persistence, not every possible education layout in uploaded resumes."
+          ],
+          "literal_ordinal": 6
+        }
+      ],
+      "scenario_count": 6
+    },
+    {
+      "group": "Search Profiles",
+      "scenarios": [
+        {
+          "scenario": "create",
+          "primary_selectors": [
+            "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_search_profiles_are_data_driven_persistent_and_source_scoped"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "API creation persists two source-scoped saved searches with normalized criteria, independent identity and a durable row count.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Isolated database/API; no production settings are changed."
+          ],
+          "literal_ordinal": 7
+        },
+        {
+          "scenario": "edit",
+          "primary_selectors": [
+            "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_selected_search_filters_before_result_limit"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Editing the saved title criteria changes which job is returned; the saved search also survives store reopen and rejects another profile's access.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "The test edits include-title criteria; all possible combinations are not implied."
+          ],
+          "literal_ordinal": 8
+        },
+        {
+          "scenario": "delete",
+          "primary_selectors": [
+            "tests/integration/test_settings_transfer_flow.py::SettingsTransferFlowTests::test_versioned_export_import_is_profile_scoped_and_survives_reload",
+            "tests/integration/test_fixture_saved_search_discovery.py::FixtureSavedSearchDiscoveryTests::test_search_invalidated_after_queue_blocks_before_capture"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Supported settings import removes the previous target search while preserving the source profile; reopening retains the replacement. Separately, deleting a queued selected search causes the worker to stop before capture and creates no postings.",
+          "source_mapping_depth": "INDIRECT_SUPPORTED_DELETE_PLUS_SEPARATE_WORKER_GUARD",
+          "limitations": [
+            "Deletion is covered indirectly by supported replace-on-import, not a dedicated DELETE route.",
+            "The stale-queued-work subcase performs direct SQL fixture deletion; these two selectors do not connect empty-set settings import to that worker guard.",
+            "The new empty-search-set import regression being implemented in this worktree is deliberately excluded pending separate verification."
+          ],
+          "literal_ordinal": 9
+        },
+        {
+          "scenario": "include/exclude",
+          "primary_selectors": [
+            "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_structured_and_or_not_semantics_and_aliases"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A job satisfies structured include criteria and aliases; changing its title to an excluded title fails with TITLE_EXCLUDED.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Pure semantic evaluation over deterministic job data."
+          ],
+          "literal_ordinal": 10
+        },
+        {
+          "scenario": "location",
+          "primary_selectors": [
+            "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_radius_filter_uses_coordinates_only_when_available"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_location_text_is_literal_case_insensitive_and_filters_before_limit"
+          ],
+          "asserted_behavior": "A nearby job satisfies a radius filter; a distant job returns OUTSIDE_RADIUS and missing coordinates return RADIUS_DATA_UNAVAILABLE.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Distance filtering uses synthetic known coordinates."
+          ],
+          "literal_ordinal": 11
+        },
+        {
+          "scenario": "salary",
+          "primary_selectors": [
+            "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_experience_salary_and_date_filters_are_deterministic"
+          ],
+          "asserted_behavior": "API salary filters include the range boundaries, reject incompatible/unknown currency-period evidence, and filter before the result limit.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Annual USD fixture behavior; not a live currency-conversion test."
+          ],
+          "literal_ordinal": 12
+        },
+        {
+          "scenario": "remote",
+          "primary_selectors": [
+            "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_classification_preserves_restrictions",
+            "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_worldwide_and_hybrid_are_distinct",
+            "tests/integration/test_prefilter_discover_worker.py::DiscoverWorkerPrefilterTests::test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_structured_and_or_not_semantics_and_aliases"
+          ],
+          "asserted_behavior": "Remote-state restrictions are retained and worldwide remote, hybrid and onsite classifications remain distinct. Classification alone did not demonstrate saved-search filtering. Added actual queued-worker prefilter assertions for REQUIRED+REMOTE admitted and REQUIRED+ONSITE excluded.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Classification and normalization coverage; the structured search test supplies an additional remote-required matching case."
+          ],
+          "literal_ordinal": 13
+        }
+      ],
+      "scenario_count": 7
+    },
+    {
+      "group": "Global Sources",
+      "scenarios": [
+        {
+          "scenario": "successful run",
+          "primary_selectors": [
+            "tests/integration/test_greenhouse.py::GreenhouseTests::test_collection_preserves_provenance_and_labels_live_matching"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Collection persists the expected jobs, source postings and raw snapshots, including provider URLs and matching provenance.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "HTTPX MockTransport supplies a sanitized Greenhouse response; no live source health is claimed."
+          ],
+          "literal_ordinal": 14
+        },
+        {
+          "scenario": "empty run",
+          "primary_selectors": [
+            "tests/integration/test_greenhouse.py::GreenhouseTests::test_empty_board_collection_preserves_provider_company_name"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "An empty provider board returns no jobs while preserving the provider's company name.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Adapter empty-result behavior; this selector does not claim live provider availability or historical job closure."
+          ],
+          "literal_ordinal": 15
+        },
+        {
+          "scenario": "timeout",
+          "primary_selectors": [
+            "tests/integration/test_source_http_socket_budget.py::SourceHttpSocketBudgetTests::test_worker_deadline_under_continuous_sub_64k_body_and_header_stall"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A public-admitted worker faces continuous small TCP response chunks and a stalled header; its real monotonic deadline terminates the operation and owned transport within the asserted budget.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Actual loopback TCP, worker and watchdog; endpoints and timeout budget are controlled fixture seams.",
+            "This selected test does not establish that every database pool/connect/finalization path is bounded or close MJ-REQ-004."
+          ],
+          "literal_ordinal": 16
+        },
+        {
+          "scenario": "rate limit",
+          "primary_selectors": [
+            "tests/integration/test_greenhouse.py::GreenhouseTests::test_rate_limit_persists_provider_backoff"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "HTTP 429 causes SOURCE_RATE_LIMITED and persists RATE_LIMITED health with a backoff deadline.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Injected provider response; no live rate limit is provoked."
+          ],
+          "literal_ordinal": 17
+        },
+        {
+          "scenario": "malformed listing",
+          "primary_selectors": [
+            "tests/integration/test_greenhouse.py::GreenhouseTests::test_malformed_rows_and_untrusted_routes_do_not_invent_evidence"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A valid listing persists while an invalid location row is rejected; an untrusted application URL is excluded rather than invented as employer evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Controlled mixed adapter response; one malformed schema family."
+          ],
+          "literal_ordinal": 18
+        },
+        {
+          "scenario": "duplicate listing",
+          "primary_selectors": [
+            "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_fetch_rejects_conflicting_identity_independent_of_order"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting"
+          ],
+          "asserted_behavior": "Conflicting content under one source identity fails with SOURCE_DUPLICATE_JOB_ID in either order, while identical repeated content remains readable and healthy.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Sanitized WWR fixtures; not a live-feed success claim."
+          ],
+          "literal_ordinal": 19
+        }
+      ],
+      "scenario_count": 6
+    },
+    {
+      "group": "Company Discovery",
+      "scenarios": [
+        {
+          "scenario": "new company",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_durable_company_operation_enrolls_source_and_immediately_imports_employer_only_job"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_returns_identity_confidence_and_evidence"
+          ],
+          "asserted_behavior": "A newly queued company discovery operation completes, enrolls one employer source and imports the expected employer-only job with provenance.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Fictional local provider in FIXTURE mode."
+          ],
+          "literal_ordinal": 20
+        },
+        {
+          "scenario": "known company",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_returns_identity_confidence_and_evidence"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Resolving a previously persisted company reuses its identity and distinguishes it from the initial new-company resolution without inventing domain verification.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Resolver integration over controlled identity evidence."
+          ],
+          "literal_ordinal": 21
+        },
+        {
+          "scenario": "alias",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_uses_a_verified_company_alias"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A persisted verified company alias resolves to its canonical company with explicit alias evidence and confidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Synthetic approved alias; does not authorize fuzzy identity merging."
+          ],
+          "literal_ordinal": 22
+        },
+        {
+          "scenario": "official domain",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_matches_only_a_persisted_verified_company_domain"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Only a persisted verified company domain corroborates company identity; a related careers host resolves to the existing canonical company with verified-domain evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Verified-domain fixture is pre-seeded; this selector does not independently verify ownership of a live website."
+          ],
+          "literal_ordinal": 23
+        },
+        {
+          "scenario": "career page",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_career_discovery_finds_navigation_link_without_rel_careers_marker"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The discovery flow follows an ordinary jobs/careers navigation link without a special rel marker and reports the career page it found.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Injected first-party page transport; no live employer navigation."
+          ],
+          "literal_ordinal": 24
+        },
+        {
+          "scenario": "custom ATS domain",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_custom_domain_ats_detection_is_audited_without_claiming_application_support"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Embedded ATS evidence on a custom career domain is detected and audited, while unsupported enumeration fails explicitly and application support remains false.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "This is a detection/audit/unsupported-enumeration case, not successful enumeration or submission for every custom ATS domain."
+          ],
+          "literal_ordinal": 25
+        },
+        {
+          "scenario": "multiple ATS portals",
+          "primary_selectors": [
+            "tests/integration/test_company_sources.py::CompanySourceTests::test_tenant_and_multiple_company_sources_are_persisted_independently"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Separate Greenhouse and iCIMS portals persist for the same company while normalization deduplicates the identical Greenhouse portal and preserves tenant metadata.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Persistence/normalization of supported source records; simultaneous live enumeration of both portals is not claimed."
+          ],
+          "literal_ordinal": 26
+        },
+        {
+          "scenario": "failure",
+          "primary_selectors": [
+            "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_retryable_failures_degrade_then_stop_until_successful_manual_recovery"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Repeated provider failures increase persisted failure state, stop further automatic refresh, retain the existing source and allow the tested explicit recovery path.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Controlled retryable failures and manual recovery; no destructive production fault injection."
+          ],
+          "literal_ordinal": 27
+        },
+        {
+          "scenario": "rediscovery",
+          "primary_selectors": [
+            "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_changed_career_feed_queues_rediscovery_without_import_or_retarget"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_retryable_failures_degrade_then_stop_until_successful_manual_recovery"
+          ],
+          "asserted_behavior": "A changed career feed marks rediscovery required and queues a rediscovery operation without importing changed content or silently retargeting the original source.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Primary selector proves safe rediscovery admission; the supporting test executes a failing rediscovery and subsequent manual refresh recovery, not universal automatic rediscovery success."
+          ],
+          "literal_ordinal": 28
+        }
+      ],
+      "scenario_count": 9
+    },
+    {
+      "group": "ATS Detection",
+      "scenarios": [
+        {
+          "scenario": "Greenhouse",
+          "primary_selectors": [
+            "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The Greenhouse hostname subcase asserts MATCH, provider=greenhouse and hostname-based evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Pure URL signature classification over the declared provider family subtests."
+          ],
+          "literal_ordinal": 29
+        },
+        {
+          "scenario": "Lever",
+          "primary_selectors": [
+            "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The Lever hostname subcase asserts MATCH, provider=lever and hostname-based evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Pure URL signature classification over the declared provider family subtests."
+          ],
+          "literal_ordinal": 30
+        },
+        {
+          "scenario": "Ashby",
+          "primary_selectors": [
+            "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The Ashby hostname subcase asserts MATCH, provider=ashby and hostname-based evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Detection does not imply an implemented submission adapter."
+          ],
+          "literal_ordinal": 31
+        },
+        {
+          "scenario": "unknown",
+          "primary_selectors": [
+            "tests/unit/test_ats_detection.py::ATSDetectionTests::test_unknown_custom_domain_is_not_guessed"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "An unknown custom domain returns NO_MATCH, no selected provider and no invented evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Deterministic unknown-domain fixture."
+          ],
+          "literal_ordinal": 32
+        },
+        {
+          "scenario": "ambiguous",
+          "primary_selectors": [
+            "tests/unit/test_ats_detection.py::ATSDetectionTests::test_conflicting_vendor_signals_require_review"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Conflicting vendor signals return AMBIGUOUS, no selected provider and multiple candidates for review.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Deterministic contradictory URL/script evidence."
+          ],
+          "literal_ordinal": 33
+        }
+      ],
+      "scenario_count": 5
+    },
+    {
+      "group": "Job Model",
+      "scenarios": [
+        {
+          "scenario": "normalize",
+          "primary_selectors": [
+            "tests/unit/test_job_normalization.py::JobNormalizationTests::test_canonical_view_has_stable_provider_neutral_shape"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The canonical view preserves stable job identity and asserts normalized title/company, description, salary and remote regions independently of provider shape.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Provider-neutral view fixture, supplemented by collector normalization elsewhere in the matrix."
+          ],
+          "literal_ordinal": 34
+        },
+        {
+          "scenario": "dedupe",
+          "primary_selectors": [
+            "tests/integration/test_greenhouse.py::GreenhouseTests::test_multiple_postings_share_one_canonical_job_and_route",
+            "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Two provider postings share exactly one canonical job and application route while both source identities and application URLs remain visible. The existing posting test supplies its canonical ID. Added actual repeated discovery and employer/aggregator consolidation assertions.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Second source posting is inserted through the production persistence helper using an already-correlated canonical job ID."
+          ],
+          "literal_ordinal": 35
+        },
+        {
+          "scenario": "description changes",
+          "primary_selectors": [
+            "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_revisions_noop_material_change_reversion_and_restart"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Whitespace-only change creates no revision; material change and reversion retain distinct immutable revisions, and the same revision history is available after store reopen.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Synthetic descriptions and isolated API readback."
+          ],
+          "literal_ordinal": 36
+        },
+        {
+          "scenario": "closed job",
+          "primary_selectors": [
+            "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_employer_closure_beats_later_aggregator_and_can_reopen"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Authoritative employer closure survives a later aggregator active claim, retains both posting histories and can reopen on later employer active evidence.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Explicit controlled source authority; rolling-feed absence is not treated as closure."
+          ],
+          "literal_ordinal": 37
+        }
+      ],
+      "scenario_count": 4
+    },
+    {
+      "group": "Matching",
+      "scenarios": [
+        {
+          "scenario": "excellent",
+          "primary_selectors": [
+            "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_job_matching_engine_integration.py::JobMatchingEngineIntegrationTests::test_database_jobs_batch_scoring_and_formatting",
+            "tests/integration/test_job_matching_engine_integration.py::JobMatchingEngineIntegrationTests::test_canonical_score_formatting_examples"
+          ],
+          "asserted_behavior": "The classifier maps representative and boundary scores 91 and 85 to EXCELLENT with the expected label.",
+          "source_mapping_depth": "CATEGORY_ASSERTIONS_WITH_SEPARATE_HIGH_FIT_SCORING",
+          "limitations": [
+            "Primary assertion concerns score classification. The additional real profile/job batch test asserts a high score in EXCELLENT or EXCEPTIONAL, not exclusively EXCELLENT."
+          ],
+          "literal_ordinal": 38
+        },
+        {
+          "scenario": "strong",
+          "primary_selectors": [
+            "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category"
+          ],
+          "alternate_selectors": [
+            "tests/unit/test_matching_explainable_breakdown.py::ExplainableBreakdownUnitTests::test_build_explainable_match_breakdown_math",
+            "tests/integration/test_job_matching_engine_integration.py::JobMatchingEngineIntegrationTests::test_canonical_score_formatting_examples"
+          ],
+          "asserted_behavior": "The classifier maps 80 and 75 to STRONG; the supporting explanation test computes 80 positive minus 5 negative points and asserts STRONG at 75.",
+          "source_mapping_depth": "CATEGORY_AND_EXPLANATION_ARITHMETIC",
+          "limitations": [
+            "No mapped profile-to-persisted-score-to-reopened-API test is required to produce STRONG without inserting scores."
+          ],
+          "literal_ordinal": 39
+        },
+        {
+          "scenario": "weak",
+          "primary_selectors": [
+            "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_job_matching_engine_integration.py::JobMatchingEngineIntegrationTests::test_canonical_score_formatting_examples"
+          ],
+          "asserted_behavior": "The classifier maps 45 and 40 to WEAK; the supporting canonical formatting test asserts the Weak Match label for 48.",
+          "source_mapping_depth": "CATEGORY_AND_FORMATTING",
+          "limitations": [
+            "No mapped profile-to-persisted-score-to-reopened-API test is required to produce WEAK without inserting scores."
+          ],
+          "literal_ordinal": 40
+        },
+        {
+          "scenario": "required missing",
+          "primary_selectors": [
+            "tests/unit/test_matching_requirements_sustain_219.py::test_missing_required_skill_costs_more_than_missing_preferred_skill"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Missing a required skill produces a zero required-skill component and a larger penalty than missing a preferred skill using actual job/profile inputs.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Deterministic scoring inputs; no paid model or external inference."
+          ],
+          "literal_ordinal": 41
+        },
+        {
+          "scenario": "preferred missing",
+          "primary_selectors": [
+            "tests/unit/test_matching_requirements_sustain_219.py::test_missing_required_skill_costs_more_than_missing_preferred_skill"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Missing a preferred skill is distinguished from missing required skill; the preferred-missing profile receives the higher overall score with the expected component values.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Same paired regression intentionally covers both literal missing-skill scenarios."
+          ],
+          "literal_ordinal": 42
+        },
+        {
+          "scenario": "remote mismatch",
+          "primary_selectors": [
+            "tests/unit/test_matching_requirements_sustain_219.py::test_remote_preference_mismatch_is_a_known_low_fit"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A remote preference against an onsite job yields a known low-fit component and location-mismatch explanation, while a matching remote job aligns.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Known preference and job remote evidence are supplied explicitly."
+          ],
+          "literal_ordinal": 43
+        },
+        {
+          "scenario": "salary mismatch",
+          "primary_selectors": [
+            "tests/unit/test_matching_requirements_sustain_219.py::test_salary_below_candidate_minimum_is_a_known_low_fit"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A posted salary below the candidate minimum yields known low fit and SALARY_BELOW_TARGET, while the aligned range scores positively.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Controlled annual salary evidence; not a live salary estimate or currency-conversion claim."
+          ],
+          "literal_ordinal": 44
+        }
+      ],
+      "scenario_count": 7
+    },
+    {
+      "group": "Documents",
+      "scenarios": [
+        {
+          "scenario": "resume generated",
+          "primary_selectors": [
+            "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Generated resume TXT, DOCX and PDF bytes match recorded hashes and equivalent text, contain only the selected approved facts and retain generation provenance.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Deterministic local document generation; no paid language-model call."
+          ],
+          "literal_ordinal": 45
+        },
+        {
+          "scenario": "cover letter generated",
+          "primary_selectors": [
+            "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Generated cover-letter TXT, DOCX and PDF retain the same text and hashes, distinguish employer requirements from approved candidate claims and record fact provenance.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "The source test handles both document kinds in one generation flow."
+          ],
+          "literal_ordinal": 46
+        },
+        {
+          "scenario": "unsupported claim detected",
+          "primary_selectors": [
+            "tests/integration/test_document_validation.py::DocumentValidationTests::test_unsupported_claim_or_glyph_preserves_prior_documents"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Injected invented certification and employment claims raise UNSUPPORTED_CLAIM; prior application state, document metadata and every saved file remain unchanged.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "The composer output is deliberately replaced by unsupported synthetic text; this is a validator/data-integrity regression."
+          ],
+          "literal_ordinal": 47
+        },
+        {
+          "scenario": "version saved",
+          "primary_selectors": [
+            "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A second generation after approved profile changes creates version 2 while every version-1 record, timestamp, fact snapshot and artifact byte remains unchanged.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Versioned persistence and API download within an isolated database/filesystem."
+          ],
+          "literal_ordinal": 48
+        }
+      ],
+      "scenario_count": 4
+    },
+    {
+      "group": "Applications",
+      "scenarios": [
+        {
+          "scenario": "form fill",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The real browser adapter completes a two-page dry run and reaches validation without creating a submission receipt.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Fictional local mock ATS only; no external employer submission."
+          ],
+          "literal_ordinal": 49
+        },
+        {
+          "scenario": "upload",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit"
+          ],
+          "alternate_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation"
+          ],
+          "asserted_behavior": "The dry-run trace includes resume upload and validation, and the adapter finishes the controlled two-page flow without submission.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Real browser upload of locally generated synthetic documents."
+          ],
+          "literal_ordinal": 50
+        },
+        {
+          "scenario": "question",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_missing_required_answer_stops_before_browser_and_shows_question"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A missing required answer persists its question ID and answer requirements in the preflight report, returns REVIEW_REQUIRED and prevents browser startup.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Negative required-question path; controlled reviewed profile data."
+          ],
+          "literal_ordinal": 51
+        },
+        {
+          "scenario": "conditional field",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_conditional_required_dropdown_with_known_mapping_pauses_for_review"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A dynamically required dropdown is identified and mapped, but persists a review-required report and produces no review or submission requests.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Known synthetic dropdown mapping; candidate answer values are excluded from the report."
+          ],
+          "literal_ordinal": 52
+        },
+        {
+          "scenario": "validation",
+          "primary_selectors": [
+            "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "An invalid uploaded document produces HTTP 422 and a visible browser validation error with zero submissions; correcting it permits review and exactly one fictional confirmation.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Exercises the local mock provider validation/UI contract, not every external provider validator."
+          ],
+          "literal_ordinal": 53
+        },
+        {
+          "scenario": "review pause",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_missing_required_answer_stops_before_browser_and_shows_question"
+          ],
+          "alternate_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_conditional_required_dropdown_with_known_mapping_pauses_for_review"
+          ],
+          "asserted_behavior": "Missing required information stops in REVIEW_REQUIRED before any browser is started and exposes the missing question for review.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Same deterministic preflight regression as the question clause; no autonomous answer fabrication."
+          ],
+          "literal_ordinal": 54
+        },
+        {
+          "scenario": "CAPTCHA pause",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_captcha_requires_intervention"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A challenge-marked application route returns USER_INTERVENTION_REQUIRED.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Synthetic challenge trigger; no real CAPTCHA is solved or bypassed."
+          ],
+          "literal_ordinal": 55
+        },
+        {
+          "scenario": "submission",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The controlled application reaches CONFIRMED and replay after store reopen leaves the provider submission count at one.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Fictional provider only; live submission remains disabled."
+          ],
+          "literal_ordinal": 56
+        },
+        {
+          "scenario": "confirmation",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Confirmation includes verified URL, text, reference number and timezone-aware timestamp; persisted confirmation and event history survive reopen without another submission.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Receipt from the local fixture, not external employer confirmation."
+          ],
+          "literal_ordinal": 57
+        },
+        {
+          "scenario": "uncertain submission",
+          "primary_selectors": [
+            "tests/browser/test_mock_application.py::MockApplicationTests::test_uncertain_submission_without_receipt_does_not_retry"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A previously submitting application with no receipt remains SUBMISSION_UNCONFIRMED on repeated calls and creates no false submitted/confirmed event or new receipt.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Controlled persisted uncertainty; actual post-crash receipt outages are mapped separately under Recovery."
+          ],
+          "literal_ordinal": 58
+        }
+      ],
+      "scenario_count": 10
+    },
+    {
+      "group": "Idempotency",
+      "scenarios": [
+        {
+          "scenario": "duplicate source run",
+          "primary_selectors": [
+            "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Two real local discovery runs leave the exact expected requisitions, four source postings and one company source, preserving multi-source provenance without duplicate jobs.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Fictional local HTTP flywheel; sequential rerun rather than simultaneous collector race."
+          ],
+          "literal_ordinal": 59
+        },
+        {
+          "scenario": "duplicate company discovery",
+          "primary_selectors": [
+            "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests::test_new_tab_intents_share_one_active_operation_and_survive_reopen"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests::test_concurrent_intents_share_one_operation",
+            "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyPostgreSQLTests::test_concurrent_postgresql_intents"
+          ],
+          "asserted_behavior": "Independent user intents share one active operation, and replay after database reopen retains the same operation ID and row count.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "SQLite baseline; concurrent and PostgreSQL variants are retained as alternate selectors."
+          ],
+          "literal_ordinal": 60
+        },
+        {
+          "scenario": "duplicate application queue",
+          "primary_selectors": [
+            "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_duplicate_user_request_and_database_reopen_keep_one_operation"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_concurrent_double_click_is_one_atomic_admission"
+          ],
+          "asserted_behavior": "Repeating the user request returns the same operation, marks only the replay as replayed and retains one operation across database reopen.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "SQLite baseline; the concurrent double-click alternate checks atomic admission."
+          ],
+          "literal_ordinal": 61
+        },
+        {
+          "scenario": "concurrent submission",
+          "primary_selectors": [
+            "tests/integration/test_route_attempt_concurrency.py::RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Two actual worker subprocesses race for one shared route; exactly one completes and submits, the other blocks, and an explicit later reviewed retry is separate and safe.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Real subprocesses, database fencing and Chromium against the fictional local provider; no external submission."
+          ],
+          "literal_ordinal": 62
+        }
+      ],
+      "scenario_count": 4
+    },
+    {
+      "group": "Recovery",
+      "scenarios": [
+        {
+          "scenario": "worker crash",
+          "primary_selectors": [
+            "tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_product_worker_process_crash_recovers_from_durable_lease"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_worker_lifecycle.py::PostgreSQLWorkerCrashRecoveryTests::test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation",
+            "tests/integration/test_rq_workhorse_recovery.py::RqWorkhorseRecoveryTests::test_abandoned_execution_maintenance_redelivers_to_fresh_production_workhorse"
+          ],
+          "asserted_behavior": "A test-owned worker process is killed after durable RUNNING state; the expired lease is recovered and a fresh worker completes the same operation.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "The SQLite baseline controls the lease-expiry clock/state and blocks the operation at a fixture seam.",
+            "PostgreSQL verifies the same durable recovery with that database; the RQ alternate additionally verifies actual maintenance/redelivery. A skipped alternate is not evidence for that environment."
+          ],
+          "literal_ordinal": 63
+        },
+        {
+          "scenario": "browser crash",
+          "primary_selectors": [
+            "tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_application_tracking_recovers_after_browser_process_crash"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "After the backend commits a tracking update but withholds its response, CDP Browser.crash disconnects Chromium; a fresh browser reads the unchanged committed record and history.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Tests browser/UI crash recovery around a committed tracking mutation, not every possible application-automation crash point."
+          ],
+          "literal_ordinal": 64
+        },
+        {
+          "scenario": "scheduler restart",
+          "primary_selectors": [
+            "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_due_discovery_survives_store_restart_and_completes_once"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Separate scheduler processes observe one persisted due operation, a fresh worker completes it once, and a later scheduler does not duplicate it.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Actual scheduler and worker subprocesses use SQLite; Redis heartbeat transport and provider collector are controlled fixture implementations. This selector is not a real Redis outage test."
+          ],
+          "literal_ordinal": 65
+        },
+        {
+          "scenario": "submission uncertainty",
+          "primary_selectors": [
+            "tests/integration/test_application_worker_crash_postgres.py::ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit"
+          ],
+          "alternate_selectors": [
+            "tests/integration/test_application_worker_crash_postgres.py::PostgreSQLApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+            "tests/integration/test_rq_workhorse_recovery.py::RqWorkhorseRecoveryTests::test_abandoned_mock_submit_with_unavailable_receipt_remains_uncertain_without_resubmission"
+          ],
+          "asserted_behavior": "A worker process loses execution after the local provider side effect; unavailable receipt reconciliation retains uncertainty, then a later receipt resolves it without another browser or submission.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Baseline class uses disposable SQLite despite the file's postgres suffix.",
+            "The inherited PostgreSQL class exercises the same method with a disposable schema; RQ variant adds actual abandoned-workhorse recovery. Neither can be credited when skipped."
+          ],
+          "literal_ordinal": 66
+        }
+      ],
+      "scenario_count": 4
+    },
+    {
+      "group": "Security",
+      "scenarios": [
+        {
+          "scenario": "XSS",
+          "primary_selectors": [
+            "tests/browser/test_mock_html_security.py::test_untrusted_fixture_values_cannot_execute_in_chromium",
+            "tests/unit/test_structured_text_web_security_sustain_173.py::StructuredTextWebSecurityTests::test_lever_normalize_sanitizes_untrusted_description_without_mutating_input"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Actual Chromium parses untrusted application, review and confirmation values without creating injected image/SVG nodes or executing the injected script/event handlers. Fixture browser escaping alone did not exercise production job-description sanitization. Added actual Lever normalizer assertions for active HTML removal and immutable raw input.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Local mock ATS HTML surfaces; not a claim that every SPA rendering surface has been security-audited."
+          ],
+          "literal_ordinal": 67
+        },
+        {
+          "scenario": "SSRF",
+          "primary_selectors": [
+            "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_private_dns_answer_is_fail_closed",
+            "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_unsafe_redirect_is_rejected_before_second_request"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Private DNS answers fail closed, and an unsafe redirect is rejected after only the initial request so the private target is never fetched.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Owned resolver fixtures and injected first response; no request to a real private network destination."
+          ],
+          "literal_ordinal": 68
+        },
+        {
+          "scenario": "malicious URL",
+          "primary_selectors": [
+            "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_no_credentials_fragments_or_cross_origin_urls_are_allowed"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "The public client rejects credentials, fragments, downgraded schemes, foreign origins, unexpected ports, control characters, backslash ambiguity and overlong hosts.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "URL admission predicates are tested deterministically; DNS/IP checks are covered by the SSRF selectors."
+          ],
+          "literal_ordinal": 69
+        },
+        {
+          "scenario": "path traversal",
+          "primary_selectors": [
+            "tests/integration/test_user_read_models.py::UserReadModelTests::test_integrity_checked_downloads_and_traversal_rejection"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "A persisted document path containing ../../ is rejected by the download API; profile isolation and valid integrity-checked downloads are also asserted.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Traversal path is seeded only inside an isolated database; no user filesystem data is read."
+          ],
+          "literal_ordinal": 70
+        },
+        {
+          "scenario": "malicious filename",
+          "primary_selectors": [
+            "tests/integration/test_resume_upload.py::ResumeUploadTests::test_unsafe_or_mismatched_uploads_are_rejected_without_storage"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "Traversal filenames, wrong media types, malformed archives/content, empty uploads and oversized uploads receive rejection; no upload remains and the outside file does not exist.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "Synthetic upload data; no production storage is touched."
+          ],
+          "literal_ordinal": 71
+        },
+        {
+          "scenario": "injection-like text",
+          "primary_selectors": [
+            "tests/unit/test_persistence_input_security_226.py::test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope"
+          ],
+          "alternate_selectors": [],
+          "asserted_behavior": "SQL-shaped names round-trip as data, schema and row count remain intact, an injection-shaped profile ID does not broaden query scope, and the same data survives store reopen.",
+          "source_mapping_depth": "DIRECT_ASSERTIONS",
+          "limitations": [
+            "The selector is parametrized; all three parameter cases must run. This is SQL input-binding coverage, not an exhaustive injection audit."
+          ],
+          "literal_ordinal": 72
+        }
+      ],
+      "scenario_count": 6
+    }
+  ],
+  "test_cases": {
+    "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_pdf_native_text_is_extracted_and_empty_pdf_is_unreadable": {
+      "path": "tests/unit/test_resume_extraction.py",
+      "test_class": "ResumeExtractionTests",
+      "method": "test_pdf_native_text_is_extracted_and_empty_pdf_is_unreadable",
+      "defining_class": "ResumeExtractionTests",
+      "inheritance_chain": [
+        "ResumeExtractionTests"
+      ],
+      "definition_lines": {
+        "first": 153,
+        "last": 171
+      },
+      "module_sha256": "648932ab52604b09f30dc80303c37a4463e534bf7a93937e1515a6fecfe199f1",
+      "definition_sha256": "95072bce01dda14f82c80b270f7d7d2d1e685ee7a0388353d78a93568712f32e",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_docx_native_text_is_extracted": {
+      "path": "tests/unit/test_resume_extraction.py",
+      "test_class": "ResumeExtractionTests",
+      "method": "test_docx_native_text_is_extracted",
+      "defining_class": "ResumeExtractionTests",
+      "inheritance_chain": [
+        "ResumeExtractionTests"
+      ],
+      "definition_lines": {
+        "first": 173,
+        "last": 183
+      },
+      "module_sha256": "648932ab52604b09f30dc80303c37a4463e534bf7a93937e1515a6fecfe199f1",
+      "definition_sha256": "d5dcb571f38b2eb2ffb948eba74bb35c1279f335be41d56ea1fb9e6aa466292f",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_resume_extraction.py::ResumeExtractionTests::test_native_pdf_and_docx_preserve_reviewable_chronology_and_links": {
+      "path": "tests/unit/test_resume_extraction.py",
+      "test_class": "ResumeExtractionTests",
+      "method": "test_native_pdf_and_docx_preserve_reviewable_chronology_and_links",
+      "defining_class": "ResumeExtractionTests",
+      "inheritance_chain": [
+        "ResumeExtractionTests"
+      ],
+      "definition_lines": {
+        "first": 286,
+        "last": 321
+      },
+      "module_sha256": "648932ab52604b09f30dc80303c37a4463e534bf7a93937e1515a6fecfe199f1",
+      "definition_sha256": "799658e5dec0cf0b47c31129cf69710c27a586cab36e653ebacfbe55209f46d1",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_profile_import.py::ProfileImportTests::test_extract_pdf_populates_review_candidates_without_saving_or_approving": {
+      "path": "tests/integration/test_profile_import.py",
+      "test_class": "ProfileImportTests",
+      "method": "test_extract_pdf_populates_review_candidates_without_saving_or_approving",
+      "defining_class": "ProfileImportTests",
+      "inheritance_chain": [
+        "ProfileImportTests"
+      ],
+      "definition_lines": {
+        "first": 156,
+        "last": 185
+      },
+      "module_sha256": "fb5027cce330302393d0bb859d3f48e6111486f4b07fa45bb1b526b75b068fcf",
+      "definition_sha256": "35c781ece6c29bcf19dc11c6b4b9ad4a052d56ddff06883c6895365f67c7282d",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_profile_import.py::ProfileImportTests::test_empty_and_imported_pending_profiles_cannot_generate_documents": {
+      "path": "tests/integration/test_profile_import.py",
+      "test_class": "ProfileImportTests",
+      "method": "test_empty_and_imported_pending_profiles_cannot_generate_documents",
+      "defining_class": "ProfileImportTests",
+      "inheritance_chain": [
+        "ProfileImportTests"
+      ],
+      "definition_lines": {
+        "first": 128,
+        "last": 144
+      },
+      "module_sha256": "fb5027cce330302393d0bb859d3f48e6111486f4b07fa45bb1b526b75b068fcf",
+      "definition_sha256": "7c0a30950174e1e21d9d372ca236e2b0ed39944fc2c4ac961da0efe455932925",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_profile_import.py::ProfileImportTests::test_complete_career_profile_survives_restart_without_approving_answers": {
+      "path": "tests/integration/test_profile_import.py",
+      "test_class": "ProfileImportTests",
+      "method": "test_complete_career_profile_survives_restart_without_approving_answers",
+      "defining_class": "ProfileImportTests",
+      "inheritance_chain": [
+        "ProfileImportTests"
+      ],
+      "definition_lines": {
+        "first": 86,
+        "last": 118
+      },
+      "module_sha256": "fb5027cce330302393d0bb859d3f48e6111486f4b07fa45bb1b526b75b068fcf",
+      "definition_sha256": "9c3deb4ecd703f1c0cb507fec29a68285738087efb46470e57444d7bc69ed655",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_search_profiles_are_data_driven_persistent_and_source_scoped": {
+      "path": "tests/integration/test_source_policy_scheduler.py",
+      "test_class": "SourcePolicySchedulerTests",
+      "method": "test_search_profiles_are_data_driven_persistent_and_source_scoped",
+      "defining_class": "SourcePolicySchedulerTests",
+      "inheritance_chain": [
+        "SourcePolicySchedulerTests"
+      ],
+      "definition_lines": {
+        "first": 74,
+        "last": 127
+      },
+      "module_sha256": "d566870033f3db832bb29a2184892dd984fd322b778c2f8c11241cd73d8cd7ea",
+      "definition_sha256": "2fa7a8e499c4948584b69106da8c7af30f2471084df0f6303d1aa85461659ea6",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_selected_search_filters_before_result_limit": {
+      "path": "tests/integration/test_saved_search_filters.py",
+      "test_class": "SavedSearchFiltersApiTests",
+      "method": "test_selected_search_filters_before_result_limit",
+      "defining_class": "SavedSearchFiltersApiTests",
+      "inheritance_chain": [
+        "SavedSearchFiltersApiTests"
+      ],
+      "definition_lines": {
+        "first": 23,
+        "last": 61
+      },
+      "module_sha256": "b455c4a66c2ec453018fa3f3f8d25974888470f98362d6f16176aa82afb03dc4",
+      "definition_sha256": "c50d99e7616dea02d790b633a8671004c651328d290f5785653b59dfa541d6a2",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_settings_transfer_flow.py::SettingsTransferFlowTests::test_versioned_export_import_is_profile_scoped_and_survives_reload": {
+      "path": "tests/integration/test_settings_transfer_flow.py",
+      "test_class": "SettingsTransferFlowTests",
+      "method": "test_versioned_export_import_is_profile_scoped_and_survives_reload",
+      "defining_class": "SettingsTransferFlowTests",
+      "inheritance_chain": [
+        "SettingsTransferFlowTests"
+      ],
+      "definition_lines": {
+        "first": 85,
+        "last": 127
+      },
+      "module_sha256": "004c83a99690151cb3b397532e0b76882a704cb657c13144295e4735fb8121d6",
+      "definition_sha256": "6ec82b54a1b8249a0c0069f11c7a199f2c9d0103698eca90f5ef2ac8efc7ce23",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_fixture_saved_search_discovery.py::FixtureSavedSearchDiscoveryTests::test_search_invalidated_after_queue_blocks_before_capture": {
+      "path": "tests/integration/test_fixture_saved_search_discovery.py",
+      "test_class": "FixtureSavedSearchDiscoveryTests",
+      "method": "test_search_invalidated_after_queue_blocks_before_capture",
+      "defining_class": "FixtureSavedSearchDiscoveryTests",
+      "inheritance_chain": [
+        "FixtureSavedSearchDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 73,
+        "last": 125
+      },
+      "module_sha256": "8a95b3081a565e46d85f752ece2829dbf6f3346e55278d25822d6ae0267a9033",
+      "definition_sha256": "72d06c0f353bf3c058a51f1d29b3c598b03cf6530b209bf8a397593b29aa396e",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_structured_and_or_not_semantics_and_aliases": {
+      "path": "tests/unit/test_search_semantics.py",
+      "test_class": "SearchSemanticsTests",
+      "method": "test_structured_and_or_not_semantics_and_aliases",
+      "defining_class": "SearchSemanticsTests",
+      "inheritance_chain": [
+        "SearchSemanticsTests"
+      ],
+      "definition_lines": {
+        "first": 45,
+        "last": 86
+      },
+      "module_sha256": "ad608fdbe5dd46402339b9028ead3774bf31d7d74bd1c56f11afaa91cb2bfa7c",
+      "definition_sha256": "4b8f6feead4f4eedd3b0e5ae8396c99b6afeb76a0a0597f5833c703ef5ecc867",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_radius_filter_uses_coordinates_only_when_available": {
+      "path": "tests/unit/test_search_semantics.py",
+      "test_class": "SearchSemanticsTests",
+      "method": "test_radius_filter_uses_coordinates_only_when_available",
+      "defining_class": "SearchSemanticsTests",
+      "inheritance_chain": [
+        "SearchSemanticsTests"
+      ],
+      "definition_lines": {
+        "first": 88,
+        "last": 106
+      },
+      "module_sha256": "ad608fdbe5dd46402339b9028ead3774bf31d7d74bd1c56f11afaa91cb2bfa7c",
+      "definition_sha256": "4f00ae8f0f2b445f19be6ae36f721ad7677c68c715bd5b8e34311b3fa07df179",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_location_text_is_literal_case_insensitive_and_filters_before_limit": {
+      "path": "tests/integration/test_saved_search_filters.py",
+      "test_class": "SavedSearchFiltersApiTests",
+      "method": "test_location_text_is_literal_case_insensitive_and_filters_before_limit",
+      "defining_class": "SavedSearchFiltersApiTests",
+      "inheritance_chain": [
+        "SavedSearchFiltersApiTests"
+      ],
+      "definition_lines": {
+        "first": 707,
+        "last": 724
+      },
+      "module_sha256": "b455c4a66c2ec453018fa3f3f8d25974888470f98362d6f16176aa82afb03dc4",
+      "definition_sha256": "d69868edf4f245adaf5f70e28e52e596e19123bde7453e4d394d1372ba2d994a",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_saved_search_filters.py::SavedSearchFiltersApiTests::test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit": {
+      "path": "tests/integration/test_saved_search_filters.py",
+      "test_class": "SavedSearchFiltersApiTests",
+      "method": "test_annual_usd_salary_filters_are_inclusive_fail_closed_and_apply_before_limit",
+      "defining_class": "SavedSearchFiltersApiTests",
+      "inheritance_chain": [
+        "SavedSearchFiltersApiTests"
+      ],
+      "definition_lines": {
+        "first": 726,
+        "last": 766
+      },
+      "module_sha256": "b455c4a66c2ec453018fa3f3f8d25974888470f98362d6f16176aa82afb03dc4",
+      "definition_sha256": "2f55a5936325fad65ea2052dba9419cce974a463970e72b8e7f02c8d9cd64b74",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_experience_salary_and_date_filters_are_deterministic": {
+      "path": "tests/unit/test_search_semantics.py",
+      "test_class": "SearchSemanticsTests",
+      "method": "test_experience_salary_and_date_filters_are_deterministic",
+      "defining_class": "SearchSemanticsTests",
+      "inheritance_chain": [
+        "SearchSemanticsTests"
+      ],
+      "definition_lines": {
+        "first": 149,
+        "last": 169
+      },
+      "module_sha256": "ad608fdbe5dd46402339b9028ead3774bf31d7d74bd1c56f11afaa91cb2bfa7c",
+      "definition_sha256": "afb2b6e33beb91ba8000e86b05e8682e1715bc845816efc255977c1a7ada78ae",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_classification_preserves_restrictions": {
+      "path": "tests/unit/test_search_semantics.py",
+      "test_class": "SearchSemanticsTests",
+      "method": "test_remote_classification_preserves_restrictions",
+      "defining_class": "SearchSemanticsTests",
+      "inheritance_chain": [
+        "SearchSemanticsTests"
+      ],
+      "definition_lines": {
+        "first": 16,
+        "last": 24
+      },
+      "module_sha256": "ad608fdbe5dd46402339b9028ead3774bf31d7d74bd1c56f11afaa91cb2bfa7c",
+      "definition_sha256": "68303577333b0bfc0076da08efa4b6b016d53317e836ac1efd2090354e7e23da",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_search_semantics.py::SearchSemanticsTests::test_remote_worldwide_and_hybrid_are_distinct": {
+      "path": "tests/unit/test_search_semantics.py",
+      "test_class": "SearchSemanticsTests",
+      "method": "test_remote_worldwide_and_hybrid_are_distinct",
+      "defining_class": "SearchSemanticsTests",
+      "inheritance_chain": [
+        "SearchSemanticsTests"
+      ],
+      "definition_lines": {
+        "first": 26,
+        "last": 29
+      },
+      "module_sha256": "ad608fdbe5dd46402339b9028ead3774bf31d7d74bd1c56f11afaa91cb2bfa7c",
+      "definition_sha256": "56fcbcfa50ccf10b2d4c31089019240466e081e234c96c1889b17559fecbc891",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_collection_preserves_provenance_and_labels_live_matching": {
+      "path": "tests/integration/test_greenhouse.py",
+      "test_class": "GreenhouseTests",
+      "method": "test_collection_preserves_provenance_and_labels_live_matching",
+      "defining_class": "GreenhouseTests",
+      "inheritance_chain": [
+        "GreenhouseTests"
+      ],
+      "definition_lines": {
+        "first": 407,
+        "last": 428
+      },
+      "module_sha256": "7bf07c5456f335bc1e726f160a74caece9833868940bce75eb0cec6359c5da15",
+      "definition_sha256": "a0e3473baf1b4fb1c793b22a8355823bbbc6fc7c197c58a51e06aac6958bb2c4",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_empty_board_collection_preserves_provider_company_name": {
+      "path": "tests/integration/test_greenhouse.py",
+      "test_class": "GreenhouseTests",
+      "method": "test_empty_board_collection_preserves_provider_company_name",
+      "defining_class": "GreenhouseTests",
+      "inheritance_chain": [
+        "GreenhouseTests"
+      ],
+      "definition_lines": {
+        "first": 400,
+        "last": 405
+      },
+      "module_sha256": "7bf07c5456f335bc1e726f160a74caece9833868940bce75eb0cec6359c5da15",
+      "definition_sha256": "a88c1da40bfe5a6e2efeef4ae43e275238637118b5ad214a79b500e14d00c1b8",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_source_http_socket_budget.py::SourceHttpSocketBudgetTests::test_worker_deadline_under_continuous_sub_64k_body_and_header_stall": {
+      "path": "tests/integration/test_source_http_socket_budget.py",
+      "test_class": "SourceHttpSocketBudgetTests",
+      "method": "test_worker_deadline_under_continuous_sub_64k_body_and_header_stall",
+      "defining_class": "SourceHttpSocketBudgetTests",
+      "inheritance_chain": [
+        "SourceHttpSocketBudgetTests"
+      ],
+      "definition_lines": {
+        "first": 603,
+        "last": 607
+      },
+      "module_sha256": "023ee69141347c036b7c2dbd1786d2d37539feae1fcf1568d5723ddcc4b4e699",
+      "definition_sha256": "584b858a91fbb5718fccc1394bae91f6bef37088bac76a53602806eb4af5c8eb",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "owned_subprocess"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_rate_limit_persists_provider_backoff": {
+      "path": "tests/integration/test_greenhouse.py",
+      "test_class": "GreenhouseTests",
+      "method": "test_rate_limit_persists_provider_backoff",
+      "defining_class": "GreenhouseTests",
+      "inheritance_chain": [
+        "GreenhouseTests"
+      ],
+      "definition_lines": {
+        "first": 520,
+        "last": 527
+      },
+      "module_sha256": "7bf07c5456f335bc1e726f160a74caece9833868940bce75eb0cec6359c5da15",
+      "definition_sha256": "8b8b284d9029b6a24e1b9b32e3760a4ec6941557235249266ea5f207594a1eca",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_malformed_rows_and_untrusted_routes_do_not_invent_evidence": {
+      "path": "tests/integration/test_greenhouse.py",
+      "test_class": "GreenhouseTests",
+      "method": "test_malformed_rows_and_untrusted_routes_do_not_invent_evidence",
+      "defining_class": "GreenhouseTests",
+      "inheritance_chain": [
+        "GreenhouseTests"
+      ],
+      "definition_lines": {
+        "first": 537,
+        "last": 551
+      },
+      "module_sha256": "7bf07c5456f335bc1e726f160a74caece9833868940bce75eb0cec6359c5da15",
+      "definition_sha256": "f7afd5f92ef074a2bb8e06b57efa92e8bd4222812b2d2ca7cd264dd182e77cf9",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_fetch_rejects_conflicting_identity_independent_of_order": {
+      "path": "tests/integration/test_wwr.py",
+      "test_class": "WeWorkRemotelyTests",
+      "method": "test_fetch_rejects_conflicting_identity_independent_of_order",
+      "defining_class": "WeWorkRemotelyTests",
+      "inheritance_chain": [
+        "WeWorkRemotelyTests"
+      ],
+      "definition_lines": {
+        "first": 250,
+        "last": 270
+      },
+      "module_sha256": "cfc47cb850699474687514faa38414fdba16bf79c9717b6dc09716b37ed631f1",
+      "definition_sha256": "a6b4cefed8018aace5ba8fcb77abe368cb4e571968e52ecfe313328646f7ba62",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_wwr.py::WeWorkRemotelyTests::test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting": {
+      "path": "tests/integration/test_wwr.py",
+      "test_class": "WeWorkRemotelyTests",
+      "method": "test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting",
+      "defining_class": "WeWorkRemotelyTests",
+      "inheritance_chain": [
+        "WeWorkRemotelyTests"
+      ],
+      "definition_lines": {
+        "first": 272,
+        "last": 311
+      },
+      "module_sha256": "cfc47cb850699474687514faa38414fdba16bf79c9717b6dc09716b37ed631f1",
+      "definition_sha256": "5d543e4b5a41bc7020d240d8a409235012db295258d046d87e507e8b7cad4125",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_returns_identity_confidence_and_evidence": {
+      "path": "tests/integration/test_company_discovery.py",
+      "test_class": "CompanyDiscoveryTests",
+      "method": "test_resolver_returns_identity_confidence_and_evidence",
+      "defining_class": "CompanyDiscoveryTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 36,
+        "last": 57
+      },
+      "module_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+      "definition_sha256": "db1da486830e5404ded908557de48bbd89c9e6e6810cd8ce0dec443bc7f35c45",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_durable_company_operation_enrolls_source_and_immediately_imports_employer_only_job": {
+      "path": "tests/integration/test_company_discovery.py",
+      "test_class": "CompanyDiscoveryTests",
+      "method": "test_durable_company_operation_enrolls_source_and_immediately_imports_employer_only_job",
+      "defining_class": "CompanyDiscoveryTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 272,
+        "last": 301
+      },
+      "module_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+      "definition_sha256": "8bac29c68916cd43f17e3c2a4121bc0d35c282b1182649282eb5ae66b6f796fe",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_uses_a_verified_company_alias": {
+      "path": "tests/integration/test_company_discovery.py",
+      "test_class": "CompanyDiscoveryTests",
+      "method": "test_resolver_uses_a_verified_company_alias",
+      "defining_class": "CompanyDiscoveryTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 99,
+        "last": 120
+      },
+      "module_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+      "definition_sha256": "abc9cef0ce0ddf274baa8a88008d14618c59410435725b766baddce2f440236b",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_resolver_matches_only_a_persisted_verified_company_domain": {
+      "path": "tests/integration/test_company_discovery.py",
+      "test_class": "CompanyDiscoveryTests",
+      "method": "test_resolver_matches_only_a_persisted_verified_company_domain",
+      "defining_class": "CompanyDiscoveryTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 74,
+        "last": 97
+      },
+      "module_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+      "definition_sha256": "c61b9944b1f53bcaf9c2e7d81c1424350ffb3370b81f8ce949452e128d0159dc",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_career_discovery_finds_navigation_link_without_rel_careers_marker": {
+      "path": "tests/integration/test_company_discovery.py",
+      "test_class": "CompanyDiscoveryTests",
+      "method": "test_career_discovery_finds_navigation_link_without_rel_careers_marker",
+      "defining_class": "CompanyDiscoveryTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 389,
+        "last": 432
+      },
+      "module_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+      "definition_sha256": "e9436b9e025e0bd1162364f349a61894bdca512fcc7bda0dc1821bf569547e92",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery.py::CompanyDiscoveryTests::test_custom_domain_ats_detection_is_audited_without_claiming_application_support": {
+      "path": "tests/integration/test_company_discovery.py",
+      "test_class": "CompanyDiscoveryTests",
+      "method": "test_custom_domain_ats_detection_is_audited_without_claiming_application_support",
+      "defining_class": "CompanyDiscoveryTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryTests"
+      ],
+      "definition_lines": {
+        "first": 598,
+        "last": 643
+      },
+      "module_sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+      "definition_sha256": "60dc7a829c109bd136b10e110c6a260941080c6a17bd4751f13c712f3127bdb1",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_sources.py::CompanySourceTests::test_tenant_and_multiple_company_sources_are_persisted_independently": {
+      "path": "tests/integration/test_company_sources.py",
+      "test_class": "CompanySourceTests",
+      "method": "test_tenant_and_multiple_company_sources_are_persisted_independently",
+      "defining_class": "CompanySourceTests",
+      "inheritance_chain": [
+        "CompanySourceTests"
+      ],
+      "definition_lines": {
+        "first": 36,
+        "last": 79
+      },
+      "module_sha256": "dc776a3a57c6c675024a2f73a9855e88f2e4ccaa9306345b7af65466bebeb19d",
+      "definition_sha256": "6aa3887ea8e9d2ce5003868349b299d3cba2a793f9afa38a3ea1b269ebe113e4",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_retryable_failures_degrade_then_stop_until_successful_manual_recovery": {
+      "path": "tests/integration/test_company_source_monitoring.py",
+      "test_class": "CompanySourceMonitoringTests",
+      "method": "test_retryable_failures_degrade_then_stop_until_successful_manual_recovery",
+      "defining_class": "CompanySourceMonitoringTests",
+      "inheritance_chain": [
+        "CompanySourceMonitoringTests"
+      ],
+      "definition_lines": {
+        "first": 125,
+        "last": 204
+      },
+      "module_sha256": "35a63ce5633e958c3c6da8ae342657928046b837dc345396fcd365ffb2140c0e",
+      "definition_sha256": "207bbe83ff1f8f57aa925b4cf9a969a0098c4eafbcc92ec346350641c1942dea",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_source_monitoring.py::CompanySourceMonitoringTests::test_changed_career_feed_queues_rediscovery_without_import_or_retarget": {
+      "path": "tests/integration/test_company_source_monitoring.py",
+      "test_class": "CompanySourceMonitoringTests",
+      "method": "test_changed_career_feed_queues_rediscovery_without_import_or_retarget",
+      "defining_class": "CompanySourceMonitoringTests",
+      "inheritance_chain": [
+        "CompanySourceMonitoringTests"
+      ],
+      "definition_lines": {
+        "first": 110,
+        "last": 123
+      },
+      "module_sha256": "35a63ce5633e958c3c6da8ae342657928046b837dc345396fcd365ffb2140c0e",
+      "definition_sha256": "a42f3e45b3f8f54a0356a1413a53e207832b1df8fe6c5fa6b7c93e4840710765",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_ats_detection.py::ATSDetectionTests::test_recognizes_all_declared_major_ats_hostname_families": {
+      "path": "tests/unit/test_ats_detection.py",
+      "test_class": "ATSDetectionTests",
+      "method": "test_recognizes_all_declared_major_ats_hostname_families",
+      "defining_class": "ATSDetectionTests",
+      "inheritance_chain": [
+        "ATSDetectionTests"
+      ],
+      "definition_lines": {
+        "first": 238,
+        "last": 269
+      },
+      "module_sha256": "ffed6cf7f4a0cbc4d7e14ef3b1531a73e25072766b0f069b3ad7cc287b375b85",
+      "definition_sha256": "220f41c02e518bf960d8c2bad3d9a8368f32718213fe60fac4664ba0c7bb3d92",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_ats_detection.py::ATSDetectionTests::test_unknown_custom_domain_is_not_guessed": {
+      "path": "tests/unit/test_ats_detection.py",
+      "test_class": "ATSDetectionTests",
+      "method": "test_unknown_custom_domain_is_not_guessed",
+      "defining_class": "ATSDetectionTests",
+      "inheritance_chain": [
+        "ATSDetectionTests"
+      ],
+      "definition_lines": {
+        "first": 198,
+        "last": 203
+      },
+      "module_sha256": "ffed6cf7f4a0cbc4d7e14ef3b1531a73e25072766b0f069b3ad7cc287b375b85",
+      "definition_sha256": "b9e538136e0718c2acb177589f0e81c2c7dd1f6a12d28693a04eb7bd8ffd333c",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_ats_detection.py::ATSDetectionTests::test_conflicting_vendor_signals_require_review": {
+      "path": "tests/unit/test_ats_detection.py",
+      "test_class": "ATSDetectionTests",
+      "method": "test_conflicting_vendor_signals_require_review",
+      "defining_class": "ATSDetectionTests",
+      "inheritance_chain": [
+        "ATSDetectionTests"
+      ],
+      "definition_lines": {
+        "first": 188,
+        "last": 196
+      },
+      "module_sha256": "ffed6cf7f4a0cbc4d7e14ef3b1531a73e25072766b0f069b3ad7cc287b375b85",
+      "definition_sha256": "6360214f43010f0ce62f3846a3d7c1c1233d993db5052f8cd99198d45ef06f80",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_job_normalization.py::JobNormalizationTests::test_canonical_view_has_stable_provider_neutral_shape": {
+      "path": "tests/unit/test_job_normalization.py",
+      "test_class": "JobNormalizationTests",
+      "method": "test_canonical_view_has_stable_provider_neutral_shape",
+      "defining_class": "JobNormalizationTests",
+      "inheritance_chain": [
+        "JobNormalizationTests"
+      ],
+      "definition_lines": {
+        "first": 7,
+        "last": 40
+      },
+      "module_sha256": "3f93ca9baf04a1e3410b3fc2da34319a32f1dcf242e6764dd2ff44354317e97b",
+      "definition_sha256": "38d5275c0f4924ed800ae531d13389912cb3b1e58695664759e23269d0f7d1e7",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_greenhouse.py::GreenhouseTests::test_multiple_postings_share_one_canonical_job_and_route": {
+      "path": "tests/integration/test_greenhouse.py",
+      "test_class": "GreenhouseTests",
+      "method": "test_multiple_postings_share_one_canonical_job_and_route",
+      "defining_class": "GreenhouseTests",
+      "inheritance_chain": [
+        "GreenhouseTests"
+      ],
+      "definition_lines": {
+        "first": 430,
+        "last": 448
+      },
+      "module_sha256": "7bf07c5456f335bc1e726f160a74caece9833868940bce75eb0cec6359c5da15",
+      "definition_sha256": "aea5529f265e19f9e5d61193e8fc61bd6d6d2cb12705a18519dcdb3f1f7dc25d",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_revisions_noop_material_change_reversion_and_restart": {
+      "path": "tests/integration/test_job_lifecycle.py",
+      "test_class": "JobLifecycleTests",
+      "method": "test_revisions_noop_material_change_reversion_and_restart",
+      "defining_class": "JobLifecycleTests",
+      "inheritance_chain": [
+        "JobLifecycleTests"
+      ],
+      "definition_lines": {
+        "first": 68,
+        "last": 87
+      },
+      "module_sha256": "d32f056cc28f13170e129f3ec593d40bd893f5640ba9b19da68170c68d67ee6b",
+      "definition_sha256": "d37b388906ec43d39b1fc82cc3a6c283679bd456c2fa6081c8a16f74a83153fe",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_job_lifecycle.py::JobLifecycleTests::test_employer_closure_beats_later_aggregator_and_can_reopen": {
+      "path": "tests/integration/test_job_lifecycle.py",
+      "test_class": "JobLifecycleTests",
+      "method": "test_employer_closure_beats_later_aggregator_and_can_reopen",
+      "defining_class": "JobLifecycleTests",
+      "inheritance_chain": [
+        "JobLifecycleTests"
+      ],
+      "definition_lines": {
+        "first": 54,
+        "last": 66
+      },
+      "module_sha256": "d32f056cc28f13170e129f3ec593d40bd893f5640ba9b19da68170c68d67ee6b",
+      "definition_sha256": "0058cf864dcfa85048d9e2dfc054218cde805fd80d34581e40327e32a56ce722",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_job_matching_engine.py::JobMatchingEngineUnitTests::test_classify_match_category": {
+      "path": "tests/unit/test_job_matching_engine.py",
+      "test_class": "JobMatchingEngineUnitTests",
+      "method": "test_classify_match_category",
+      "defining_class": "JobMatchingEngineUnitTests",
+      "inheritance_chain": [
+        "JobMatchingEngineUnitTests"
+      ],
+      "definition_lines": {
+        "first": 13,
+        "last": 26
+      },
+      "module_sha256": "e610fa8eeff6b0d09674edc28dd97586e6b48eb210572bd9d6adedb831fc25fa",
+      "definition_sha256": "a11ea1a75695fa7b0cbd37f114c453d1ad4f3c2addc9e5acd38764d3d713e025",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_job_matching_engine_integration.py::JobMatchingEngineIntegrationTests::test_database_jobs_batch_scoring_and_formatting": {
+      "path": "tests/integration/test_job_matching_engine_integration.py",
+      "test_class": "JobMatchingEngineIntegrationTests",
+      "method": "test_database_jobs_batch_scoring_and_formatting",
+      "defining_class": "JobMatchingEngineIntegrationTests",
+      "inheritance_chain": [
+        "JobMatchingEngineIntegrationTests"
+      ],
+      "definition_lines": {
+        "first": 70,
+        "last": 132
+      },
+      "module_sha256": "db9946b2dd5c7d656b3ca9b9dc357a65aec11ccfefce58051e3f5ce80183bd13",
+      "definition_sha256": "36a6110ba878833bf0ba3d11641da25276cc458e42f253396d137efc93f82fc3",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_job_matching_engine_integration.py::JobMatchingEngineIntegrationTests::test_canonical_score_formatting_examples": {
+      "path": "tests/integration/test_job_matching_engine_integration.py",
+      "test_class": "JobMatchingEngineIntegrationTests",
+      "method": "test_canonical_score_formatting_examples",
+      "defining_class": "JobMatchingEngineIntegrationTests",
+      "inheritance_chain": [
+        "JobMatchingEngineIntegrationTests"
+      ],
+      "definition_lines": {
+        "first": 134,
+        "last": 141
+      },
+      "module_sha256": "db9946b2dd5c7d656b3ca9b9dc357a65aec11ccfefce58051e3f5ce80183bd13",
+      "definition_sha256": "e3bcf176a08b3cbdebb99acf8dbf7db6f549ed4ff3a85f659cd1ccd6b2c3df80",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_matching_explainable_breakdown.py::ExplainableBreakdownUnitTests::test_build_explainable_match_breakdown_math": {
+      "path": "tests/unit/test_matching_explainable_breakdown.py",
+      "test_class": "ExplainableBreakdownUnitTests",
+      "method": "test_build_explainable_match_breakdown_math",
+      "defining_class": "ExplainableBreakdownUnitTests",
+      "inheritance_chain": [
+        "ExplainableBreakdownUnitTests"
+      ],
+      "definition_lines": {
+        "first": 57,
+        "last": 79
+      },
+      "module_sha256": "c10380d58656b3ef802715d72c4c7ab94b661b5afdd5f2cdf0eedfd992b43ceb",
+      "definition_sha256": "f805b8bd39eff2f2f116d080e29166ffa39dd57c978ba845d994278bb97ee542",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_matching_requirements_sustain_219.py::test_missing_required_skill_costs_more_than_missing_preferred_skill": {
+      "path": "tests/unit/test_matching_requirements_sustain_219.py",
+      "test_class": null,
+      "method": "test_missing_required_skill_costs_more_than_missing_preferred_skill",
+      "defining_class": null,
+      "inheritance_chain": [],
+      "definition_lines": {
+        "first": 21,
+        "last": 42
+      },
+      "module_sha256": "6f3067b7b37ceb65586682d52ba70a1ae5d277a7881e09c187de33ac7b8c31c8",
+      "definition_sha256": "4dc9a290f3374f6df69d8f40519b0abe9b91b501885f109326dc92aa15de88f2",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_matching_requirements_sustain_219.py::test_remote_preference_mismatch_is_a_known_low_fit": {
+      "path": "tests/unit/test_matching_requirements_sustain_219.py",
+      "test_class": null,
+      "method": "test_remote_preference_mismatch_is_a_known_low_fit",
+      "defining_class": null,
+      "inheritance_chain": [],
+      "definition_lines": {
+        "first": 63,
+        "last": 78
+      },
+      "module_sha256": "6f3067b7b37ceb65586682d52ba70a1ae5d277a7881e09c187de33ac7b8c31c8",
+      "definition_sha256": "f6fc492897c46b7b57b5964098e08a19c67d8df02a260f858d00984f8dd94811",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_matching_requirements_sustain_219.py::test_salary_below_candidate_minimum_is_a_known_low_fit": {
+      "path": "tests/unit/test_matching_requirements_sustain_219.py",
+      "test_class": null,
+      "method": "test_salary_below_candidate_minimum_is_a_known_low_fit",
+      "defining_class": null,
+      "inheritance_chain": [],
+      "definition_lines": {
+        "first": 81,
+        "last": 96
+      },
+      "module_sha256": "6f3067b7b37ceb65586682d52ba70a1ae5d277a7881e09c187de33ac7b8c31c8",
+      "definition_sha256": "51f2a4aba8e719225fd0d286996ec38b82d70597331e6ce094cafa45d875fe26",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_document_provenance.py::DocumentProvenanceTests::test_three_formats_and_historical_provenance_survive_profile_changes": {
+      "path": "tests/integration/test_document_provenance.py",
+      "test_class": "DocumentProvenanceTests",
+      "method": "test_three_formats_and_historical_provenance_survive_profile_changes",
+      "defining_class": "DocumentProvenanceTests",
+      "inheritance_chain": [
+        "DocumentProvenanceTests"
+      ],
+      "definition_lines": {
+        "first": 41,
+        "last": 92
+      },
+      "module_sha256": "c0e43ce6d6cfbf2b13dfdedd3e6d3874884bd5a9d624800577c9ba2043d56151",
+      "definition_sha256": "7880593af19c150d0b4ae1a782ea1f1058d6e51e316516e65e5d05dacd50d84d",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_document_validation.py::DocumentValidationTests::test_unsupported_claim_or_glyph_preserves_prior_documents": {
+      "path": "tests/integration/test_document_validation.py",
+      "test_class": "DocumentValidationTests",
+      "method": "test_unsupported_claim_or_glyph_preserves_prior_documents",
+      "defining_class": "DocumentValidationTests",
+      "inheritance_chain": [
+        "DocumentValidationTests"
+      ],
+      "definition_lines": {
+        "first": 159,
+        "last": 184
+      },
+      "module_sha256": "74c8d9593792cc7215b7e415ffd0ac0d9c13d141fda426940a7b0aea8cf77cdb",
+      "definition_sha256": "485d280e1fb0796c656ac18ee6137acd3155e30a73eecc88ec76bbc437bc93fe",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_dry_run_fills_two_pages_uploads_and_stops_before_submit": {
+      "path": "tests/browser/test_mock_application.py",
+      "test_class": "MockApplicationTests",
+      "method": "test_dry_run_fills_two_pages_uploads_and_stops_before_submit",
+      "defining_class": "MockApplicationTests",
+      "inheritance_chain": [
+        "MockApplicationTests"
+      ],
+      "definition_lines": {
+        "first": 228,
+        "last": 235
+      },
+      "module_sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "definition_sha256": "00de03c900256501caac2281f81c598109fa6ca3a66b2de918165a7109d7bcaf",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_missing_required_answer_stops_before_browser_and_shows_question": {
+      "path": "tests/browser/test_mock_application.py",
+      "test_class": "MockApplicationTests",
+      "method": "test_missing_required_answer_stops_before_browser_and_shows_question",
+      "defining_class": "MockApplicationTests",
+      "inheritance_chain": [
+        "MockApplicationTests"
+      ],
+      "definition_lines": {
+        "first": 572,
+        "last": 585
+      },
+      "module_sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "definition_sha256": "1dc8277bc7253e6c73aac21d3931946224e2a1bf73e058ee1d1c34bf8a404658",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_conditional_required_dropdown_with_known_mapping_pauses_for_review": {
+      "path": "tests/browser/test_mock_application.py",
+      "test_class": "MockApplicationTests",
+      "method": "test_conditional_required_dropdown_with_known_mapping_pauses_for_review",
+      "defining_class": "MockApplicationTests",
+      "inheritance_chain": [
+        "MockApplicationTests"
+      ],
+      "definition_lines": {
+        "first": 668,
+        "last": 713
+      },
+      "module_sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "definition_sha256": "a6f305179be040fd0ff8e6ed9c8a39f83f615c7f5a4346984c6463c7df627a88",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_environment_coverage.py::test_multipage_validation_error_then_review_question_and_confirmation": {
+      "path": "tests/browser/test_mock_environment_coverage.py",
+      "test_class": null,
+      "method": "test_multipage_validation_error_then_review_question_and_confirmation",
+      "defining_class": null,
+      "inheritance_chain": [],
+      "definition_lines": {
+        "first": 109,
+        "last": 134
+      },
+      "module_sha256": "2eb573c5636893ef2277583168390bd74fcf27f9f7194527c6ea07785767c2ad",
+      "definition_sha256": "c3fb361b1905dbb1ba1755604a08a9463f97e767d77a7716a3b6f897ef06c19e",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "local_http",
+        "chromium"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_captcha_requires_intervention": {
+      "path": "tests/browser/test_mock_application.py",
+      "test_class": "MockApplicationTests",
+      "method": "test_captcha_requires_intervention",
+      "defining_class": "MockApplicationTests",
+      "inheritance_chain": [
+        "MockApplicationTests"
+      ],
+      "definition_lines": {
+        "first": 459,
+        "last": 465
+      },
+      "module_sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "definition_sha256": "9e8f8ed9d7f744f4abd96f90d7a49f70459464de959979a118865a9ecd1f0814",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart": {
+      "path": "tests/browser/test_mock_application.py",
+      "test_class": "MockApplicationTests",
+      "method": "test_mock_submission_confirmed_once_and_survives_restart",
+      "defining_class": "MockApplicationTests",
+      "inheritance_chain": [
+        "MockApplicationTests"
+      ],
+      "definition_lines": {
+        "first": 301,
+        "last": 333
+      },
+      "module_sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "definition_sha256": "3922efa6a4725c4728e2224c025f345ffeae39d366ae9ea84700d444db7780a6",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_application.py::MockApplicationTests::test_uncertain_submission_without_receipt_does_not_retry": {
+      "path": "tests/browser/test_mock_application.py",
+      "test_class": "MockApplicationTests",
+      "method": "test_uncertain_submission_without_receipt_does_not_retry",
+      "defining_class": "MockApplicationTests",
+      "inheritance_chain": [
+        "MockApplicationTests"
+      ],
+      "definition_lines": {
+        "first": 447,
+        "last": 457
+      },
+      "module_sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "definition_sha256": "53b92e8c4c876162e4a36d5e0ca4471c4d5ddf3a84d776c4d97209646a08f15e",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job": {
+      "path": "tests/integration/test_spine.py",
+      "test_class": "SpineTests",
+      "method": "test_flywheel_enrolls_company_and_finds_employer_only_job",
+      "defining_class": "SpineTests",
+      "inheritance_chain": [
+        "SpineTests"
+      ],
+      "definition_lines": {
+        "first": 37,
+        "last": 50
+      },
+      "module_sha256": "4c7f018237cb976c3bcf0640db30d20dec15744a598d2c6a2602ed3ae0ab7184",
+      "definition_sha256": "38571fd0951bb49b02d54cf997a2b21f4a7f5ac3ac4c9e8697c1f3a596c5d267",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests::test_new_tab_intents_share_one_active_operation_and_survive_reopen": {
+      "path": "tests/integration/test_company_discovery_idempotency.py",
+      "test_class": "CompanyDiscoveryIdempotencyTests",
+      "method": "test_new_tab_intents_share_one_active_operation_and_survive_reopen",
+      "defining_class": "CompanyDiscoveryIdempotencyTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryIdempotencyTests"
+      ],
+      "definition_lines": {
+        "first": 42,
+        "last": 53
+      },
+      "module_sha256": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca",
+      "definition_sha256": "8109687b70f5074dc721eea0934cf57afc3476f7305f7ff243dbba9d87ffe1ce",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyTests::test_concurrent_intents_share_one_operation": {
+      "path": "tests/integration/test_company_discovery_idempotency.py",
+      "test_class": "CompanyDiscoveryIdempotencyTests",
+      "method": "test_concurrent_intents_share_one_operation",
+      "defining_class": "CompanyDiscoveryIdempotencyTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryIdempotencyTests"
+      ],
+      "definition_lines": {
+        "first": 55,
+        "last": 63
+      },
+      "module_sha256": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca",
+      "definition_sha256": "61d2499c2ac5706139e06199ee0dea061fae02fa55944e50d1766a4cba0d4782",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_company_discovery_idempotency.py::CompanyDiscoveryIdempotencyPostgreSQLTests::test_concurrent_postgresql_intents": {
+      "path": "tests/integration/test_company_discovery_idempotency.py",
+      "test_class": "CompanyDiscoveryIdempotencyPostgreSQLTests",
+      "method": "test_concurrent_postgresql_intents",
+      "defining_class": "CompanyDiscoveryIdempotencyPostgreSQLTests",
+      "inheritance_chain": [
+        "CompanyDiscoveryIdempotencyPostgreSQLTests"
+      ],
+      "definition_lines": {
+        "first": 240,
+        "last": 241
+      },
+      "module_sha256": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca",
+      "definition_sha256": "f7192fa4213a28896aef014871ad80342a0c8628a1a6435efa1b88bb53258116",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "postgres_general"
+      ],
+      "ast_decorators": [
+        "unittest.skipUnless(os.environ.get('MJOBS_TEST_POSTGRES_URL'), 'Disposable PostgreSQL URL is required')"
+      ],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_duplicate_user_request_and_database_reopen_keep_one_operation": {
+      "path": "tests/integration/test_application_run_requests.py",
+      "test_class": "ApplicationRunRequestTests",
+      "method": "test_duplicate_user_request_and_database_reopen_keep_one_operation",
+      "defining_class": "ApplicationRunRequestTests",
+      "inheritance_chain": [
+        "ApplicationRunRequestTests"
+      ],
+      "definition_lines": {
+        "first": 46,
+        "last": 57
+      },
+      "module_sha256": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef",
+      "definition_sha256": "58c874e7d6fa9c2358d3bddd8419392b6984cc8a4fe036b9abc7804fff56f28c",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_application_run_requests.py::ApplicationRunRequestTests::test_concurrent_double_click_is_one_atomic_admission": {
+      "path": "tests/integration/test_application_run_requests.py",
+      "test_class": "ApplicationRunRequestTests",
+      "method": "test_concurrent_double_click_is_one_atomic_admission",
+      "defining_class": "ApplicationRunRequestTests",
+      "inheritance_chain": [
+        "ApplicationRunRequestTests"
+      ],
+      "definition_lines": {
+        "first": 66,
+        "last": 71
+      },
+      "module_sha256": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef",
+      "definition_sha256": "8fc4bf9e63e430c340db4b4b58a5dfc3fec433c8a3bee5080b6bae1d2704f765",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_route_attempt_concurrency.py::RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe": {
+      "path": "tests/integration/test_route_attempt_concurrency.py",
+      "test_class": "RouteAttemptConcurrencyTests",
+      "method": "test_two_real_workers_only_one_submits_then_explicit_retry_is_safe",
+      "defining_class": "RouteAttemptConcurrencyTests",
+      "inheritance_chain": [
+        "RouteAttemptConcurrencyTests"
+      ],
+      "definition_lines": {
+        "first": 102,
+        "last": 161
+      },
+      "module_sha256": "d2876c21319791514aaabcbf8f70afedc6f8eef5c951af1dab30c8a0711d50df",
+      "definition_sha256": "fd986a755616badb4f6ffb6907ad1284c0d145f5d7a2e76994fc2c9fc4f96899",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers",
+        "owned_subprocess"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_product_worker_process_crash_recovers_from_durable_lease": {
+      "path": "tests/integration/test_worker_lifecycle.py",
+      "test_class": "WorkerLifecycleTests",
+      "method": "test_product_worker_process_crash_recovers_from_durable_lease",
+      "defining_class": "WorkerLifecycleTests",
+      "inheritance_chain": [
+        "WorkerLifecycleTests"
+      ],
+      "definition_lines": {
+        "first": 462,
+        "last": 520
+      },
+      "module_sha256": "cb278186a4a46e6a03bb13289e7a3b344fc38f925fbaf18ec611ae9125452daa",
+      "definition_sha256": "5991be60d5aae9956566174b3bf0b9d263fbb89d1fb333a71c2d47559dbb9736",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "owned_subprocess"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_worker_lifecycle.py::PostgreSQLWorkerCrashRecoveryTests::test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation": {
+      "path": "tests/integration/test_worker_lifecycle.py",
+      "test_class": "PostgreSQLWorkerCrashRecoveryTests",
+      "method": "test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation",
+      "defining_class": "PostgreSQLWorkerCrashRecoveryTests",
+      "inheritance_chain": [
+        "PostgreSQLWorkerCrashRecoveryTests"
+      ],
+      "definition_lines": {
+        "first": 712,
+        "last": 774
+      },
+      "module_sha256": "cb278186a4a46e6a03bb13289e7a3b344fc38f925fbaf18ec611ae9125452daa",
+      "definition_sha256": "a20d9450fad6ecaa3a6e530ff6163df3d0030c4e5e3c799a57977a29ada7fde4",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "postgres_worker",
+        "owned_subprocess"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_rq_workhorse_recovery.py::RqWorkhorseRecoveryTests::test_abandoned_execution_maintenance_redelivers_to_fresh_production_workhorse": {
+      "path": "tests/integration/test_rq_workhorse_recovery.py",
+      "test_class": "RqWorkhorseRecoveryTests",
+      "method": "test_abandoned_execution_maintenance_redelivers_to_fresh_production_workhorse",
+      "defining_class": "RqWorkhorseRecoveryTests",
+      "inheritance_chain": [
+        "RqWorkhorseRecoveryTests"
+      ],
+      "definition_lines": {
+        "first": 538,
+        "last": 638
+      },
+      "module_sha256": "0f76665d29f76c1b10223506cba18bef671b916a774f07afb8f01237687d57a1",
+      "definition_sha256": "0ddede01f1757ab320c2d4cb8e33fa91efcad68fdf22c2eebd698ca9eedc9b43",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "owned_subprocess",
+        "redis_rq"
+      ],
+      "ast_decorators": [
+        "unittest.skipUnless(sys.platform == 'linux', 'NOT_RUN: real forking RQ worker requires Linux')",
+        "unittest.skipUnless(os.environ.get('MJOBS_REDIS_URL'), 'NOT_RUN: explicit disposable CI Redis absent')"
+      ],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_application_tracking_recovers_after_browser_process_crash": {
+      "path": "tests/browser/test_application_pipeline.py",
+      "test_class": "ApplicationPipelineBrowserTests",
+      "method": "test_application_tracking_recovers_after_browser_process_crash",
+      "defining_class": "ApplicationPipelineBrowserTests",
+      "inheritance_chain": [
+        "ApplicationPipelineBrowserTests"
+      ],
+      "definition_lines": {
+        "first": 259,
+        "last": 260
+      },
+      "module_sha256": "c337a2736f19dbae64d15171dd7633a3ce074a3d174d7a9f096ed1bb951b13ff",
+      "definition_sha256": "196ee8cae4fe5eddcfaac700696493be574bbe1b9ad1baa3394182f5c3285a3f",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "web_dist",
+        "document_parsers"
+      ],
+      "ast_decorators": [
+        "unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')"
+      ],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_source_policy_scheduler.py::SourcePolicySchedulerTests::test_due_discovery_survives_store_restart_and_completes_once": {
+      "path": "tests/integration/test_source_policy_scheduler.py",
+      "test_class": "SourcePolicySchedulerTests",
+      "method": "test_due_discovery_survives_store_restart_and_completes_once",
+      "defining_class": "SourcePolicySchedulerTests",
+      "inheritance_chain": [
+        "SourcePolicySchedulerTests"
+      ],
+      "definition_lines": {
+        "first": 208,
+        "last": 350
+      },
+      "module_sha256": "d566870033f3db832bb29a2184892dd984fd322b778c2f8c11241cd73d8cd7ea",
+      "definition_sha256": "543ae05aa712c6990acb8741723c731853d0733c80bb600605a59917efcf8104",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "owned_subprocess",
+        "scheduler_fake_redis"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_application_worker_crash_postgres.py::ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit": {
+      "path": "tests/integration/test_application_worker_crash_postgres.py",
+      "test_class": "ApplicationWorkerCrashTests",
+      "method": "test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+      "defining_class": "ApplicationWorkerCrashTests",
+      "inheritance_chain": [
+        "ApplicationWorkerCrashTests"
+      ],
+      "definition_lines": {
+        "first": 268,
+        "last": 324
+      },
+      "module_sha256": "b5bc631c78683d12f4a2e9cbfd7ee13a7bf934fb8c4e7e6572b7cd311671c94b",
+      "definition_sha256": "5e751d00e76e7b651dfd0c20b42da390a4cb764f62ecf3dab37e76c925f023e6",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers",
+        "owned_subprocess"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_application_worker_crash_postgres.py::PostgreSQLApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit": {
+      "path": "tests/integration/test_application_worker_crash_postgres.py",
+      "test_class": "PostgreSQLApplicationWorkerCrashTests",
+      "method": "test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+      "defining_class": "ApplicationWorkerCrashTests",
+      "inheritance_chain": [
+        "PostgreSQLApplicationWorkerCrashTests",
+        "ApplicationWorkerCrashTests"
+      ],
+      "definition_lines": {
+        "first": 268,
+        "last": 324
+      },
+      "module_sha256": "b5bc631c78683d12f4a2e9cbfd7ee13a7bf934fb8c4e7e6572b7cd311671c94b",
+      "definition_sha256": "5e751d00e76e7b651dfd0c20b42da390a4cb764f62ecf3dab37e76c925f023e6",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "postgres_application",
+        "local_http",
+        "chromium",
+        "document_parsers",
+        "owned_subprocess"
+      ],
+      "ast_decorators": [
+        "unittest.skipUnless(POSTGRES_URL, f'Set {POSTGRES_URL_ENV} to a disposable loopback mjobs_test_* database')"
+      ],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_rq_workhorse_recovery.py::RqWorkhorseRecoveryTests::test_abandoned_mock_submit_with_unavailable_receipt_remains_uncertain_without_resubmission": {
+      "path": "tests/integration/test_rq_workhorse_recovery.py",
+      "test_class": "RqWorkhorseRecoveryTests",
+      "method": "test_abandoned_mock_submit_with_unavailable_receipt_remains_uncertain_without_resubmission",
+      "defining_class": "RqWorkhorseRecoveryTests",
+      "inheritance_chain": [
+        "RqWorkhorseRecoveryTests"
+      ],
+      "definition_lines": {
+        "first": 640,
+        "last": 748
+      },
+      "module_sha256": "0f76665d29f76c1b10223506cba18bef671b916a774f07afb8f01237687d57a1",
+      "definition_sha256": "56d0993828223f100049011557c316dc6507674516ed005f5a576d79f4c1c39b",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "chromium",
+        "document_parsers",
+        "owned_subprocess",
+        "redis_rq"
+      ],
+      "ast_decorators": [
+        "unittest.skipUnless(sys.platform == 'linux', 'NOT_RUN: real forking RQ worker requires Linux')",
+        "unittest.skipUnless(os.environ.get('MJOBS_REDIS_URL'), 'NOT_RUN: explicit disposable CI Redis absent')"
+      ],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/browser/test_mock_html_security.py::test_untrusted_fixture_values_cannot_execute_in_chromium": {
+      "path": "tests/browser/test_mock_html_security.py",
+      "test_class": null,
+      "method": "test_untrusted_fixture_values_cannot_execute_in_chromium",
+      "defining_class": null,
+      "inheritance_chain": [],
+      "definition_lines": {
+        "first": 9,
+        "last": 42
+      },
+      "module_sha256": "d7c40299bc78f2158557670989e153c7c6a13536de65fc2bb3c03b7bf3651720",
+      "definition_sha256": "0f022cfc1d163e40085028858328fd2d668a9d02c0c42d7f84806789fd539205",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "local_http",
+        "chromium"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_private_dns_answer_is_fail_closed": {
+      "path": "tests/unit/test_public_company_client.py",
+      "test_class": "PublicCompanyClientTests",
+      "method": "test_private_dns_answer_is_fail_closed",
+      "defining_class": "PublicCompanyClientTests",
+      "inheritance_chain": [
+        "PublicCompanyClientTests"
+      ],
+      "definition_lines": {
+        "first": 73,
+        "last": 81
+      },
+      "module_sha256": "8decfc29abf66ec01d165722de835aa08f9767cab14c503e10d02cf3180e07c5",
+      "definition_sha256": "4b14d621f2df5c243b24c5e443171718b82727b8edec8941bbc276e1696f8b8a",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "owned_subprocess",
+        "controlled_dns"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_unsafe_redirect_is_rejected_before_second_request": {
+      "path": "tests/unit/test_public_company_client.py",
+      "test_class": "PublicCompanyClientTests",
+      "method": "test_unsafe_redirect_is_rejected_before_second_request",
+      "defining_class": "PublicCompanyClientTests",
+      "inheritance_chain": [
+        "PublicCompanyClientTests"
+      ],
+      "definition_lines": {
+        "first": 38,
+        "last": 47
+      },
+      "module_sha256": "8decfc29abf66ec01d165722de835aa08f9767cab14c503e10d02cf3180e07c5",
+      "definition_sha256": "2706ce028518397db46b441d6f4c8c6841d64cb5c8b6baf63e592a305409b69f",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_public_company_client.py::PublicCompanyClientTests::test_no_credentials_fragments_or_cross_origin_urls_are_allowed": {
+      "path": "tests/unit/test_public_company_client.py",
+      "test_class": "PublicCompanyClientTests",
+      "method": "test_no_credentials_fragments_or_cross_origin_urls_are_allowed",
+      "defining_class": "PublicCompanyClientTests",
+      "inheritance_chain": [
+        "PublicCompanyClientTests"
+      ],
+      "definition_lines": {
+        "first": 433,
+        "last": 442
+      },
+      "module_sha256": "8decfc29abf66ec01d165722de835aa08f9767cab14c503e10d02cf3180e07c5",
+      "definition_sha256": "2e4370f1bced4b0ae66b46c2dbcc62311bbd53e7408a5f2dd5fed4bb1c6a9454",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_user_read_models.py::UserReadModelTests::test_integrity_checked_downloads_and_traversal_rejection": {
+      "path": "tests/integration/test_user_read_models.py",
+      "test_class": "UserReadModelTests",
+      "method": "test_integrity_checked_downloads_and_traversal_rejection",
+      "defining_class": "UserReadModelTests",
+      "inheritance_chain": [
+        "UserReadModelTests"
+      ],
+      "definition_lines": {
+        "first": 56,
+        "last": 76
+      },
+      "module_sha256": "8b9615916481c55bdd5d84f805bdd1588c51b5c9ce16a34967c03e370029a444",
+      "definition_sha256": "aa91b36ebbcb9730aa1e476111b687f7ba0c3260693cc275a7d333ae85680829",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http",
+        "document_parsers"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_resume_upload.py::ResumeUploadTests::test_unsafe_or_mismatched_uploads_are_rejected_without_storage": {
+      "path": "tests/integration/test_resume_upload.py",
+      "test_class": "ResumeUploadTests",
+      "method": "test_unsafe_or_mismatched_uploads_are_rejected_without_storage",
+      "defining_class": "ResumeUploadTests",
+      "inheritance_chain": [
+        "ResumeUploadTests"
+      ],
+      "definition_lines": {
+        "first": 168,
+        "last": 183
+      },
+      "module_sha256": "43125046c88dbcb418bb11087bf756293c0b0aaa6c63c3c15e1f8a067971a9c0",
+      "definition_sha256": "1deeee95965cb51ece8043f191fefe4eff2bbf68095702e52af528337893078c",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "local_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_persistence_input_security_226.py::test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope": {
+      "path": "tests/unit/test_persistence_input_security_226.py",
+      "test_class": null,
+      "method": "test_sql_looking_profile_values_round_trip_without_changing_schema_or_query_scope",
+      "defining_class": null,
+      "inheritance_chain": [],
+      "definition_lines": {
+        "first": 12,
+        "last": 39
+      },
+      "module_sha256": "c0b0c8d02344a2733fc2a5c4a5f60752b036e0b51e2200172fd752b4d26fee0d",
+      "definition_sha256": "a481c88a8e29728120f04be666a732cf83e485b1fcf4cdd075998bb204bc5e45",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite"
+      ],
+      "ast_decorators": [
+        "pytest.mark.parametrize('name', [\"Robert'); DROP TABLE career_profiles;--\", \"' OR 1=1 --\", \"Café — 李 & O'Neil\"])"
+      ],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/integration/test_prefilter_discover_worker.py::DiscoverWorkerPrefilterTests::test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring": {
+      "path": "tests/integration/test_prefilter_discover_worker.py",
+      "test_class": "DiscoverWorkerPrefilterTests",
+      "method": "test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring",
+      "defining_class": "DiscoverWorkerPrefilterTests",
+      "inheritance_chain": [
+        "DiscoverWorkerPrefilterTests"
+      ],
+      "definition_lines": {
+        "first": 139,
+        "last": 176
+      },
+      "module_sha256": "976b89e82930eaa6cdcdda74deee3bf9495712e141598785971950e1b3030e7d",
+      "definition_sha256": "3099b4fdee545b5b4e3eced54425a2faeb1821128ab7177b070a3545e5eff3ca",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python",
+        "sqlite",
+        "controlled_http"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    },
+    "tests/unit/test_structured_text_web_security_sustain_173.py::StructuredTextWebSecurityTests::test_lever_normalize_sanitizes_untrusted_description_without_mutating_input": {
+      "path": "tests/unit/test_structured_text_web_security_sustain_173.py",
+      "test_class": "StructuredTextWebSecurityTests",
+      "method": "test_lever_normalize_sanitizes_untrusted_description_without_mutating_input",
+      "defining_class": "StructuredTextWebSecurityTests",
+      "inheritance_chain": [
+        "StructuredTextWebSecurityTests"
+      ],
+      "definition_lines": {
+        "first": 72,
+        "last": 117
+      },
+      "module_sha256": "05c88c710c7b4f8de58737a00576b8fbe52c80da4e1b1d4ec1609dc4acfcc89f",
+      "definition_sha256": "7add62e37e6945cfd6aa5abc5946e681f656d5aec41595c58721087536a6a8cf",
+      "source_head": "a1f261acc45f1e0f066c31d2f717bdd8b5417e83",
+      "environment_ids": [
+        "python"
+      ],
+      "ast_decorators": [],
+      "selection_semantics": "Run the full selector, including every parametrization and unittest subtest; a skipped child is not a pass."
+    }
+  },
+  "independent_review_corrections": {
+    "reviewed_at": "2026-11-02T20:49:20.185853+00:00",
+    "prior_mapping_sha256": "bd484eb1518b7e8a2f487c197fc02433bf3b599139d886ecbdae63f0ebd60142",
+    "source_semantics_only": true,
+    "corrections": [
+      {
+        "group": "Search Profiles",
+        "scenario": "remote",
+        "added_required_selector": "tests/integration/test_prefilter_discover_worker.py::DiscoverWorkerPrefilterTests::test_full_saved_criteria_are_applied_to_canonical_fields_before_scoring",
+        "reason": "Classification alone did not demonstrate saved-search filtering. Added actual queued-worker prefilter assertions for REQUIRED+REMOTE admitted and REQUIRED+ONSITE excluded."
+      },
+      {
+        "group": "Job Model",
+        "scenario": "dedupe",
+        "added_required_selector": "tests/integration/test_spine.py::SpineTests::test_flywheel_enrolls_company_and_finds_employer_only_job",
+        "reason": "The existing posting test supplies its canonical ID. Added actual repeated discovery and employer/aggregator consolidation assertions."
+      },
+      {
+        "group": "Security",
+        "scenario": "XSS",
+        "added_required_selector": "tests/unit/test_structured_text_web_security_sustain_173.py::StructuredTextWebSecurityTests::test_lever_normalize_sanitizes_untrusted_description_without_mutating_input",
+        "reason": "Fixture browser escaping alone did not exercise production job-description sanitization. Added actual Lever normalizer assertions for active HTML removal and immutable raw input."
+      }
+    ],
+    "literal_contract_unchanged": true,
+    "execution_not_inferred": true
+  }
+}

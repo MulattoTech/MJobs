@@ -1,0 +1,40 @@
+{
+  "milestone_id": "PRO-TEST-MATRIX-STARTED-20261102",
+  "timestamp": "2026-11-02T19:52:01.095567+00:00",
+  "current_phase": "Verify literal72-scenario P0 test matrix and joined saved-search deletion regression",
+  "completed_steps": [
+    "Real isolated PERSONAL API and worker seed one source, canonical job, posting, snapshot, match and completed history; only the provider transport is mocked.",
+    "Supported empty settings import twice deletes the final target search; after reopen the target exports empty searches, rules and source settings.",
+    "Six populated source/job tables, both current profiles, the other profile settings and its completed history remain byte-for-value equivalent.",
+    "Previously queued selected-search collection terminates before collect_source, preserving existing DEAD_LETTERED/NoResultFound behavior, with no retry or active lease. No production behavior change is claimed."
+  ],
+  "files_added": [
+    "docs/evidence/2026-11-02-pro-test-matrix/implementation.json"
+  ],
+  "files_modified": [
+    "tests/integration/test_settings_transfer_flow.py"
+  ],
+  "tests_completed": [
+    "New regression1PASS/0SKIP; adjacent17PASS/19subtests/0SKIP. Source fixture enablement correction retained.",
+    "Independent review found no blocker; fixture/provider/local isolation preserved."
+  ],
+  "tests_remaining": [
+    "Match all72 literal scenarios to exact-source executed tests; a source mapping alone is not acceptance.",
+    "Native source validation, protected publication and final delivery; source basePR891 must finish first."
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [],
+  "known_errors": [
+    "Initial new test setup SOURCE_DISABLED retained; corrected with supported settings PUT."
+  ],
+  "known_limitations": [
+    "Completed retained history belongs to the untouched profile; do not claim prior completed history for the deleted-search profile.",
+    "Inventory covers six named tables, not every global table.",
+    "No production data, paid inference or employer submission used.",
+    "All72 original minimum scenarios still need exact-source executed PASS evidence; no canonical acceptance changed."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+  }
+}

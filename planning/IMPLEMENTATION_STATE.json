@@ -11,8 +11,8 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "PRO-BOUNDARIES-ACCEPTED-20261102",
-  "current_objective": "Finish the containing protected priority/acceptance publication, verify final delivery, then resume the remaining literal P0/P1 criteria.",
+  "current_milestone": "PRO-TEST-MATRIX-ACCEPTED-20261102",
+  "current_objective": "Complete protected test-matrix publication and guarded final delivery; then resume remaining literal P0/P1 criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -778,7 +778,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Read the containing publication PR final receipt and verify fresh main/deployment first. Next004: bound pool acquisition/connect/network/finalization;264: safe automatic origin-discovery enqueue;018/017: remaining preference/provider breadth. Do not redo accepted015/174 or historic status closures.008 host restart and292 full journey remain open; real submissions/paid APIs stayOFF.",
+  "recommended_resume_step": "Read containing PR final receipt and requery main/deployment/counts. Next004 external acquisition/connect/network/finalization;264 automatic employer-origin discovery;018/017 preference/provider breadth. Do not recount015/174/291 or historical issue cleanup.008 host restart and292 full journey remain open; submissions/paid APIs remainOFF.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -812,16 +812,17 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+  "last_implementation_commit": "821171122a44332853339a798d717c5c11dd9ad5",
   "publication": {
-    "result": "SOURCE_PROTECTED_AND_DEPLOYED_ACCEPTANCE_PENDING_PUBLICATION",
+    "result": "SOURCE_PROTECTED_TEST_MATRIX_ACCEPTANCE_PENDING_PUBLICATION",
     "source_prs": [
-      890
+      890,
+      891
     ],
-    "source_main": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
-    "branch": "work/pro-boundaries-acceptance-20261102",
-    "acceptance_record": "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
-    "final_receipt_locator": "Final description of the protected PR for work/pro-boundaries-acceptance-20261102; includes exact eventual merge/deployment/issue status."
+    "source_main": "821171122a44332853339a798d717c5c11dd9ad5",
+    "branch": "work/pro-test-matrix-20261102",
+    "acceptance_record": "docs/evidence/2026-11-02-pro-test-matrix/acceptance.json",
+    "final_receipt_locator": "Final description of the protected PR for work/pro-test-matrix-20261102 contains exact eventual merge/main gates/deployed identity/issue readback and owned-worktree cleanup."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -1511,12 +1512,107 @@
         "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
         "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
       }
+    },
+    {
+      "milestone_id": "PRO-TEST-MATRIX-STARTED-20261102",
+      "timestamp": "2026-11-02T19:52:01.095567+00:00",
+      "current_phase": "Verify literal72-scenario P0 test matrix and joined saved-search deletion regression",
+      "completed_steps": [
+        "Real isolated PERSONAL API and worker seed one source, canonical job, posting, snapshot, match and completed history; only the provider transport is mocked.",
+        "Supported empty settings import twice deletes the final target search; after reopen the target exports empty searches, rules and source settings.",
+        "Six populated source/job tables, both current profiles, the other profile settings and its completed history remain byte-for-value equivalent.",
+        "Previously queued selected-search collection terminates before collect_source, preserving existing DEAD_LETTERED/NoResultFound behavior, with no retry or active lease. No production behavior change is claimed."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-02-pro-test-matrix/implementation.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_settings_transfer_flow.py"
+      ],
+      "tests_completed": [
+        "New regression1PASS/0SKIP; adjacent17PASS/19subtests/0SKIP. Source fixture enablement correction retained.",
+        "Independent review found no blocker; fixture/provider/local isolation preserved."
+      ],
+      "tests_remaining": [
+        "Match all72 literal scenarios to exact-source executed tests; a source mapping alone is not acceptance.",
+        "Native source validation, protected publication and final delivery; source basePR891 must finish first."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial new test setup SOURCE_DISABLED retained; corrected with supported settings PUT."
+      ],
+      "known_limitations": [
+        "Completed retained history belongs to the untouched profile; do not claim prior completed history for the deleted-search profile.",
+        "Inventory covers six named tables, not every global table.",
+        "No production data, paid inference or employer submission used.",
+        "All72 original minimum scenarios still need exact-source executed PASS evidence; no canonical acceptance changed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
+        "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+      }
+    },
+    {
+      "milestone_id": "PRO-TEST-MATRIX-ACCEPTED-20261102",
+      "timestamp": "2026-11-02T21:00:45.470859+00:00",
+      "current_phase": "Publish verified72-scenario P0 test matrix and deletion data-preservation regression",
+      "completed_steps": [
+        "Reviewed all original72 scenarios/12 groups without altering text or denominator.",
+        "Verified65 primary selectors/67 serialized parent or parameterized cases against exact-source hosted/native JUnit; zero selected failures/errors/skips/missing.",
+        "Independent review corrected remote-filter, dedupe and production-XSS mappings; no remaining semantic blocker.",
+        "New joined supported API/import/reopen/stale-worker deletion regression preserves six populated tables and untouched profile history.",
+        "PR891 protected merged at82117112 with actual/proposed tree equality; canonical291 accepted for publication with P0 13/26 and P1 107/116."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-02-pro-test-matrix/coverage-map.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/source-execution.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/review.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/acceptance.json",
+        "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
+      ],
+      "files_modified": [
+        "tests/integration/test_settings_transfer_flow.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Native final adjacent regression17PASS/19subtests/0SKIP22.82s; separate local new-case and adjacent runs retained without summed totals.",
+        "PR891 exact proposed native144PASS/3platformSKIP/44subtests; three platform counterparts passed Linux.",
+        "All65 selected291 primary selectors PASS; nine actual Chromium cases PASS0SKIP on exact proposed54a31.",
+        "PR891 hosted unit7275JUnit/53SKIP; integration4153JUnit/39SKIP; both include subtests and have zero failures/errors.",
+        "PR891 five protected gates and CodeQL PASS, exact merged/proposed tree equality."
+      ],
+      "tests_remaining": [
+        "Exact proposed-merge verification and all protected checks for this publication.",
+        "Main gates, existing guarded updater, exact deployed SHA/image/backup/readiness and authorized public readback.",
+        "Close issue292 only after protected publication and verification; containing PR final receipt records its future final merge/deployment/issue state."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Initial new regression setup SOURCE_DISABLED retained and corrected through supported synthetic-source settings.",
+        "PR891 initial census hard-coded NOT_RUN assumption and reused fixed-identity database setup failure retained; corrected runs and final protected gates pass.",
+        "Native npm stderr warning terminated the initial PowerShell wrapper; captured locked npm install and production build then returned zero. Pinned hosted Node24 remains unchanged."
+      ],
+      "known_limitations": [
+        "This accepts the literal test-matrix requirement, not every test or complete product readiness.",
+        "Broader171/172/224/292 remain incomplete; all existing requirement definitions are preserved.",
+        "Application and document journeys use isolated synthetic data; real employer submissions and paid inference stay off.",
+        "Existing full-report skips remain skips even though none of the selected65 primary selectors was skipped.",
+        "New deletion regression is additional joined coverage, not a replacement that hides a missing original primary selector."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "821171122a44332853339a798d717c5c11dd9ad5",
+        "evidence_path": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
+      }
     }
   ],
-  "current_phase": "PR891 census fixture correction verified; fresh protected publication checks required",
+  "current_phase": "Publish verified72-scenario P0 test matrix and deletion data-preservation regression",
   "last_safe_checkpoint": {
-    "git_commit": "e67c5dfcb14bfb126a93170819e2f5bd875665ec",
-    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/deployment.json"
+    "git_commit": "821171122a44332853339a798d717c5c11dd9ad5",
+    "evidence_path": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -3642,8 +3738,8 @@
     "original_pass_requires_all_criteria": true
   },
   "updated_at": "2026-11-02T19:25:56.674927+00:00",
-  "current_verified_local_state": "Exact source merge and deployed identity verified. Native source and priority tests/PG races pass; isolated FULL readiness13checks PASS. Primary and unrelated dirty worktrees preserved.",
-  "current_verified_github_state": "PR890 protected-merged at e67c5dfcb14bfb126a93170819e2f5bd875665ec; independent main/deployment gates PASS. Priority and acceptance are awaiting their containing protected publication.",
+  "current_verified_local_state": "All72 original291 scenarios match65 passing exact-source selectors; native final deletion suite17PASS/19subtests/0SKIP. New publication proposed-merge/CI/deployment still required.",
+  "current_verified_github_state": "PR890 protected merged/deployed at e67c5dfcb14bfb126a93170819e2f5bd875665ec. PR891 protected merged at821171122a44332853339a798d717c5c11dd9ad5 with exact proposed-tree equality; main/deployment verified separately.",
   "next_candidates": [
     {
       "issue": 276,
@@ -3688,7 +3784,7 @@
       "remaining_scope": "Supported AI-generated document consumer with approved fact references remains missing; deterministic trace and supplied rewrite review are not that consumer."
     }
   ],
-  "current_verified_at": "2026-11-02T19:20:39.762798+00:00",
+  "current_verified_at": "2026-11-02T21:00:45.470859+00:00",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
