@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import math
 import os
 if os.name == 'nt':
     import msvcrt
@@ -33,6 +34,8 @@ WRITERS = ('api', 'worker', 'source-worker', 'document-worker', 'ai-worker',
 PORT = '18801'
 PUBLIC_HOST = 'mjobs.m-techlabs.com'
 MAX_BACKUP_DIAGNOSTIC_BYTES = 8192
+MAX_COMMAND_OUTPUT_BYTES = 8 * 1024 * 1024
+COMMAND_POLL_SECONDS = 0.01
 BACKUP_REFUSALS = {
     'BACKUP_POSTGRES_NOT_RUNNING': ('PostgreSQL must be running for a logical backup',),
     'BACKUP_ENV_MISSING': ('Project-local .env is missing; run python -m cli.init_env first',),
@@ -122,16 +125,109 @@ def backup_failure_code(stderr):
             return f'BACKUP_{code}_FAILED'
     return fallback
 
-def command(args, *, cwd=None, env=None, timeout=120, label='command', backup_diagnostics=False):
+class CommandCaptureError(RuntimeError):
+    """A fixed, content-free failure code from the owned command boundary."""
+
+
+def _run_captured(args, *, cwd=None, env=None, timeout=120, cancelled=None):
+    """Capture both pipes without blocking reads, reader threads or silent truncation.
+
+    Python 3.12 supports nonblocking pipes on Windows as well as POSIX. The
+    deadline includes draining pipes after the direct child exits: inherited
+    handles must not turn process completion into an unbounded wait. Only the
+    child created here is terminated; unrelated processes are never selected.
+    """
+    if (type(timeout) not in (int, float) or timeout <= 0 or timeout > 7200
+            or not math.isfinite(timeout)):
+        raise CommandCaptureError('COMMAND_TIMEOUT_INVALID')
+    deadline = time.monotonic() + timeout
+    process = None
     try:
-        proc = subprocess.run(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                              text=True, errors='replace', timeout=timeout,
-                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    except subprocess.TimeoutExpired:
-        if backup_diagnostics:
+        if cancelled is not None and cancelled():
+            raise CommandCaptureError('COMMAND_CANCELLED')
+        try:
+            process = subprocess.Popen(
+                args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0,
+                shell=False, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+            )
+        except OSError:
+            raise CommandCaptureError('COMMAND_START_FAILED') from None
+        retained = [bytearray(), bytearray()]
+        total = 0
+        streams = {process.stdout: retained[0], process.stderr: retained[1]}
+        try:
+            for stream in streams:
+                os.set_blocking(stream.fileno(), False)
+        except (OSError, ValueError):
+            raise CommandCaptureError('COMMAND_PIPE_UNAVAILABLE') from None
+        while streams or process.poll() is None:
+            if cancelled is not None and cancelled():
+                raise CommandCaptureError('COMMAND_CANCELLED')
+            if time.monotonic() >= deadline:
+                raise CommandCaptureError('COMMAND_TIMEOUT')
+            received = False
+            for stream, output in list(streams.items()):
+                # Bound each turn so a continuous writer cannot starve the
+                # deadline, cancellation check, or the other output pipe.
+                for _ in range(4):
+                    try:
+                        chunk = stream.read(65536)
+                    except (OSError, ValueError):
+                        raise CommandCaptureError('COMMAND_READ_FAILED') from None
+                    if chunk is None:
+                        break
+                    if not chunk:
+                        del streams[stream]
+                        break
+                    received = True
+                    total += len(chunk)
+                    if total > MAX_COMMAND_OUTPUT_BYTES:
+                        raise CommandCaptureError('COMMAND_OUTPUT_LIMIT')
+                    output.extend(chunk)
+            if not received and (streams or process.poll() is None):
+                time.sleep(min(COMMAND_POLL_SECONDS, max(0, deadline - time.monotonic())))
+        return subprocess.CompletedProcess(
+            [], process.returncode,
+            bytes(retained[0]).decode('utf-8', errors='replace').replace('\r\n', '\n'),
+            bytes(retained[1]).decode('utf-8', errors='replace').replace('\r\n', '\n'),
+        )
+    finally:
+        if process is not None:
+            # Unbuffered FileIO close cannot wait on a blocked reader thread.
+            for stream in (process.stdout, process.stderr):
+                if stream is not None:
+                    try:
+                        stream.close()
+                    except OSError:
+                        pass
+            if process.poll() is None:
+                try:
+                    process.terminate()
+                except OSError:
+                    pass
+                try:
+                    process.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    try:
+                        process.kill()
+                    except OSError:
+                        pass
+                    try:
+                        process.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        raise CommandCaptureError('COMMAND_CLEANUP_TIMEOUT') from None
+
+
+def command(args, *, cwd=None, env=None, timeout=120, label='command',
+            backup_diagnostics=False, cancelled=None):
+    try:
+        proc = _run_captured(args, cwd=cwd, env=env, timeout=timeout, cancelled=cancelled)
+    except CommandCaptureError as error:
+        code = str(error)
+        if backup_diagnostics and code == 'COMMAND_TIMEOUT':
             raise RuntimeError(f'{label} timed out [BACKUP_COMMAND_TIMEOUT]') from None
-        raise
+        raise RuntimeError(f'{label} could not complete [{code}]') from None
     if proc.returncode:
         diagnostic = f' [{backup_failure_code(proc.stderr)}]' if backup_diagnostics else ''
         raise RuntimeError(f'{label} failed (exit {proc.returncode})' + diagnostic)

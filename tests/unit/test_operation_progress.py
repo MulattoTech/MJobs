@@ -52,6 +52,7 @@ class OperationProgressTests(unittest.TestCase):
         self.assertEqual(set(result), {
             "operation_id", "operation_type", "entity_id", "state", "current_step", "progress",
             "started_at", "updated_at", "completed_at", "next_attempt_at", "retry_count", "recovery_summary",
+            "error_category",
         })
         self.assertEqual(result["operation_type"], "DISCOVER")
         self.assertEqual(result["state"], "RUNNING")

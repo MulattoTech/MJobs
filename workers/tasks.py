@@ -5,11 +5,13 @@ import time
 
 from sqlalchemy import and_, or_, select, update
 
-from packages.domain.operation_errors import ai_operation_error_category
+from packages.domain.operation_errors import ai_operation_error_category, operation_error_category
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now
 from services.applications.mock_adapter import apply_mock
+from services.applications.errors import ApplicationValidationError, application_failure_category
+from services.applications.upload_integrity import UploadIntegrityError
 from services.applications.attempt_history import AttemptConflict, timeout_failure_code
 from services.applications.run_requests import validate_run_operation
 from services.applications.answer_resume import (
@@ -257,6 +259,7 @@ def execute_operation(operation_id, *, registry_module=None,
             before_job_ids = {}
             history_results = None
         retry_failure = None
+        canonical_error_category = None
         collection_budget = None
         collection_contract = None
         collection_started_at = None
@@ -487,6 +490,7 @@ def execute_operation(operation_id, *, registry_module=None,
                            expected_fingerprint=operation["params"].get("input_fingerprint"))
                 if application["state"] not in ("CONFIRMED", "DRY_RUN_COMPLETE"):
                     state, error = "BLOCKED", application["state"]
+                    canonical_error_category = application_failure_category(store, application)
             else:
                 raise ValueError("Unsupported operation")
             history_counts = {}
@@ -541,8 +545,12 @@ def execute_operation(operation_id, *, registry_module=None,
         except Exception as failure:
             retry_failure = failure
             state, error = "FAILED", failure.code if isinstance(
-                failure, (SourceError, PreparationError, FormReviewError)
+                failure, (SourceError, PreparationError, FormReviewError, ApplicationValidationError)
             ) else _classify_unexpected_failure(failure)
+            if isinstance(failure, PreparationError):
+                canonical_error_category = operation_error_category(failure.code) or "DOCUMENT_ERROR"
+            elif isinstance(failure, UploadIntegrityError):
+                canonical_error_category = "UPLOAD_FAILED"
             if collection_budget is not None:
                 collection_stop_reason = error
             history_counts = {}
@@ -600,6 +608,8 @@ def execute_operation(operation_id, *, registry_module=None,
             if state == "FAILED":
                 state = "DEAD_LETTERED"
                 error = error or "OPERATION_FAILED"
+            canonical_error_category = (None if state in {"COMPLETED", "CANCELLED"} else
+                canonical_error_category or operation_error_category(error))
             values = {"state": state, "error": error, "lease_expires_at": None,
                       "updated_at": finished_at,
                       "current_step": "COMPLETED" if state == "COMPLETED" else "FINALIZING",
@@ -617,6 +627,9 @@ def execute_operation(operation_id, *, registry_module=None,
                 values["progress"] = 100
             if state == "DEAD_LETTERED":
                 values["dead_lettered_at"] = finished_at
+            if canonical_error_category is not None:
+                values["recovery_metadata"] = {**values["recovery_metadata"],
+                                               "error_category": canonical_error_category}
             changed = connection.execute(update(m.operations).where(m.operations.c.id == operation_id,
                 m.operations.c.state == "RUNNING", m.operations.c.attempt_count == operation["attempt_count"]).values(**values))
             if changed.rowcount != 1:
@@ -633,7 +646,8 @@ def execute_operation(operation_id, *, registry_module=None,
                     raise RuntimeError('Completed AI evaluation has no result')
                 complete_evaluation(store, connection, operation, durable_ai_result)
             terminal_payload = {"state": state, "error": error,
-                                "attempt_count": int(operation["attempt_count"])}
+                                "attempt_count": int(operation["attempt_count"]),
+                                "error_category": canonical_error_category}
             if collection_budget is not None and collection_started_at is not None:
                 terminal_payload["collection_budget"] = {
                     "stop_reason": collection_stop_reason or state,
@@ -697,7 +711,11 @@ def execute_operation(operation_id, *, registry_module=None,
             context = {}
         logged_operation = {**operation, "log_context": context}
         log_operation_finished(logged_operation, state, error, time.monotonic() - started_at)
-        return {"operation_id": operation_id, "status": state, "error_category": error}
+        # Preserve the legacy diagnostic field for existing queue consumers;
+        # new callers use the explicit structured failure, as the public API does.
+        return {"operation_id": operation_id, "status": state, "error_category": error,
+                "failure": ({"code": error, "category": canonical_error_category}
+                            if error is not None else None)}
     finally:
         if local_cancellation is not None:
             unregister_operation_cancellation(operation_id, local_cancellation)

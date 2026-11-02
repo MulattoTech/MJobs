@@ -102,6 +102,7 @@ class ControlledApplicationFieldPrivacyTests(ApplicationLogFixture, unittest.Tes
             'operation_id': queued['operation_id'],
             'status': 'BLOCKED',
             'error_category': 'CONTROLLED_DRY_RUN_BROWSER_FAILED',
+            'failure': {'code': 'CONTROLLED_DRY_RUN_BROWSER_FAILED', 'category': None},
         })
         public = self.client.get(self.path() + '/runs/' + body['request_id'])
         self.assertEqual(public.status_code, 200, public.text)

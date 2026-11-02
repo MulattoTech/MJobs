@@ -31,7 +31,8 @@ _FINGERPRINT_KEY = secrets.token_bytes(32)
 _MAX_MESSAGE_BYTES = 65536
 _ALLOWED_STEPS = {
     "NAVIGATE", "DETECT_FORM", "FILL_CONTACT", "FILL_LOCATION", "UPLOAD_RESUME",
-    "ANSWER_STANDARD", "ANSWER_CUSTOM", "VALIDATE",
+    "ANSWER_STANDARD", "ANSWER_CUSTOM", "VALIDATE", "UPLOAD_SUPPORTING_DOCUMENTS",
+    "MANUAL_AUTH_NAVIGATE", "MANUAL_AUTH_WAIT",
     "STOP_BEFORE_SUBMIT", "POLICY_GATE", "SUBMIT", "VERIFY_CONFIRMATION",
     "RECONCILE_CONFIRMATION", "CHALLENGE_DETECTED", "UNKNOWN",
 }
@@ -101,6 +102,36 @@ def append_console_error(events, message, url):
     if getattr(message, "type", None) != "error":
         return None
     return append_diagnostic_event(events, "console", url, getattr(message, "text", ""))
+
+
+def subscribe_debug_events(page, events):
+    """Observe errors only; diagnostics must never fail the owning browser task."""
+    def console(message):
+        try:
+            append_console_error(events, message,
+                getattr(message, "location", {}).get("url", page.url))
+        except Exception:
+            pass
+
+    def pageerror(error):
+        try:
+            append_diagnostic_event(events, "pageerror", page.url, error)
+        except Exception:
+            pass
+
+    def requestfailed(request):
+        try:
+            append_diagnostic_event(events, "requestfailed", request.url,
+                                    getattr(request, "failure", None) or "REQUEST_FAILED")
+        except Exception:
+            pass
+
+    for name, callback in (("console", console), ("pageerror", pageerror),
+                           ("requestfailed", requestfailed)):
+        try:
+            page.on(name, callback)
+        except Exception:
+            pass
 
 
 def _atomic_json(path, value):

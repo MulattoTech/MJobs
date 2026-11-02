@@ -225,7 +225,11 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 original_log_context = worker_tasks._resolve_application_log_context
                 original_connect_tcp = http_transport._Backend.connect_tcp
                 original_start_tls = http_transport._Stream.start_tls
+                original_stream_close = http_transport._Stream.close
                 transport_entered = threading.Event()
+                transport_entry = {}
+                stream_closed = threading.Event()
+                stream_close = {}
                 connect_exited = threading.Event()
                 connect_exit = {}
                 tls_entered = threading.Event()
@@ -258,6 +262,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                     return original_log_context(*args, **kwargs)
 
                 def observe_connect_tcp(backend, *args, **kwargs):
+                    transport_entry.setdefault("at", time.monotonic())
+                    transport_entry["connects"] = transport_entry.get("connects", 0) + 1
                     transport_entered.set()
                     try:
                         return original_connect_tcp(backend, *args, **kwargs)
@@ -267,6 +273,14 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         connect_exit["fileno"] = (connecting.fileno()
                                                   if connecting is not None else None)
                         connect_exited.set()
+
+                def observe_stream_close(stream):
+                    original_stream_close(stream)
+                    if (stream.connection is socket_state.get("connecting_socket")
+                            and not stream_closed.is_set()):
+                        stream_close["at"] = time.monotonic()
+                        stream_close["fileno"] = stream.connection.fileno()
+                        stream_closed.set()
 
                 def observe_start_tls(stream, *args, **kwargs):
                     tls_entry["at"] = time.monotonic()
@@ -307,6 +321,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         new=observe_connect_tcp), patch(
                         "services.discovery.sources.http_transport._Stream.start_tls",
                         new=observe_start_tls), patch(
+                        "services.discovery.sources.http_transport._Stream.close",
+                        new=observe_stream_close), patch(
                         "services.discovery.sources.remotive.API_URL", endpoint), patch(
                         "workers.tasks.timeout", return_value=worker_budget):
                     with TestClient(create_app(store, "http://127.0.0.1:1", root,
@@ -406,10 +422,26 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                                     # loaded shards may schedule it after the
                                     # transport has already closed on deadline.
                                     worker.join(timeout=3)
+                                elif mode in {"body-drip", "header-drip", "header-stall"}:
+                                    self.assertTrue(stream_closed.wait(1.1),
+                                                    "HTTP transport ignored the operation deadline")
+                                    transport_elapsed = stream_close["at"] - transport_entry["at"]
+                                    self.assertLess(transport_elapsed, 1.1,
+                                                    f"HTTP transport exceeded the operation deadline: "
+                                                    f"{transport_elapsed:.3f}s; close={stream_close}")
+                                    self.assertEqual(stream_close["fileno"], -1,
+                                                     "Interrupted HTTP transport retained its socket")
+                                    # Keep the strict network deadline separate
+                                    # from durable terminal bookkeeping, as the
+                                    # connect/TLS cases above already do.
+                                    worker.join(timeout=3)
                                 else:
                                     worker.join(timeout=3 if mode == "positive-hostname" else 1.1)
                                 self.assertFalse(worker.is_alive(),
                                                  f"Operation deadline ignored during {mode} for {time.monotonic()-started:.3f}s")
+                            if mode in {"body-drip", "header-drip", "header-stall"}:
+                                self.assertEqual(transport_entry["connects"], 1,
+                                                 "A reconnect must not reset the HTTP deadline oracle")
                             if mode == "tls-stall":
                                 self.assertTrue(tls_exited.is_set(),
                                                 "TLS transport did not exit before peer observation")
@@ -504,6 +536,11 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
             with self.subTest(mode=mode):
                 self.run_source(mode, cancel=True, log_context_delay=.8 if mode == "body-drip" else 0,
                                 worker_entry_delay=1.1 if mode == "header-stall" else 0)
+
+    def test_body_and_header_deadline_precedes_delayed_finalization(self):
+        for mode in ("body-drip", "header-drip", "header-stall"):
+            with self.subTest(mode=mode):
+                self.run_source(mode, unwind_delay=.8)
 
     def test_public_cancel_during_real_tcp_connect_stall(self):
         # Valid production operation budget; the source's minimum supported

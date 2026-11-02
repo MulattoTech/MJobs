@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
+import secrets
 
 from sqlalchemy import select
 
@@ -24,6 +26,7 @@ from services.applications.supporting_documents import read_selected_files, list
 from services.applications.upload_integrity import (
     attach_verified_files, snapshot_prepared, snapshot_supporting, MAX_TOTAL_BYTES,
 )
+from services.applications.debug_capture import capture_browser_failure, subscribe_debug_events
 from workers.dispatch import enqueue_operation
 from workers.operations import OperationCancelled, OperationTimedOut
 
@@ -283,17 +286,22 @@ def _budget_ms(check, maximum=5000):
     return max(1, min(maximum, int(remaining * 1000)))
 
 
-def run_browser(current, prepared, supporting, *, check):
+def run_browser(current, prepared, supporting, *, check, capture_root=None):
     from playwright.sync_api import sync_playwright
     fixture = template(current["provider"])
     if fixture["template_sha256"] != current["template_sha256"]:
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_STALE")
     blocked = []
+    page = None
+    browser_events = []
+    step = "NAVIGATE"
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True, timeout=_budget_ms(check, 15000))
         try:
             context = browser.new_context(service_workers="block")
             page = context.new_page()
+            if capture_root is not None:
+                subscribe_debug_events(page, browser_events)
             expected_url = ORIGIN
             visited = []
             def local_only(route):
@@ -314,6 +322,7 @@ def run_browser(current, prepared, supporting, *, check):
             page.goto(ORIGIN, wait_until="domcontentloaded", timeout=_budget_ms(check))
             manifest, proofs = [], []
             for index, plan in enumerate(fixture["pages"]):
+                step = "DETECT_FORM"
                 check()
                 page.set_default_timeout(_budget_ms(check))
                 fields = [field for field in current["fields"] if field["key"] in plan["field_keys"]]
@@ -327,6 +336,7 @@ def run_browser(current, prepared, supporting, *, check):
                         or page.locator("button, iframe, frame, object, embed, script, base").count()):
                     raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
                 for field in fields:
+                    step = "DETECT_FORM"
                     page.set_default_timeout(_budget_ms(check))
                     if field["source"] not in {"CONTACT", "VERIFIED_ANSWER", "DOCUMENT"}:
                         raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
@@ -337,16 +347,20 @@ def run_browser(current, prepared, supporting, *, check):
                     if metadata != {"name": field["key"], "type": field["type"], "required": field["required"]}:
                         raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
                     if field["source"] != "DOCUMENT":
+                        step = "FILL_CONTACT" if field["source"] == "CONTACT" else "ANSWER_CUSTOM"
                         control.fill(field["value"])
                         if control.input_value() != field["value"]:
                             raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
                 if plan["id"] == "documents":
+                    step = "UPLOAD_RESUME"
                     for snapshot, field in zip(prepared, ("resume", "cover_letter")):
                         page.set_default_timeout(_budget_ms(check))
                         manifest.extend(attach_verified_files(page.locator('[name="'+field+'"]'), [snapshot], check=check))
                     if supporting:
+                        step = "UPLOAD_SUPPORTING_DOCUMENTS"
                         page.set_default_timeout(_budget_ms(check))
                         manifest.extend(attach_verified_files(page.locator('[name="supporting_documents"]'), supporting, check=check))
+                step = "VALIDATE"
                 page.set_default_timeout(_budget_ms(check))
                 if blocked or not page.locator("form").evaluate("form => form.checkValidity()"):
                     raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
@@ -359,6 +373,7 @@ def run_browser(current, prepared, supporting, *, check):
                             or next_link.get_attribute("download") is not None):
                         raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
                     expected_url = ORIGIN + "/documents"
+                    step = "NAVIGATE"
                     with page.expect_navigation(wait_until="domcontentloaded", timeout=_budget_ms(check)):
                         next_link.click(timeout=_budget_ms(check))
                 elif page.locator("a").count():
@@ -368,6 +383,15 @@ def run_browser(current, prepared, supporting, *, check):
                     or context.pages != [page] or len(page.frames) != 1):
                 raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
             return {"documents": manifest, "pages": proofs}
+        except Exception as error:
+            if capture_root is not None:
+                try:
+                    capture_browser_failure(page, capture_root, attempt_id=secrets.token_hex(16),
+                        step=step, configured_url=ORIGIN, error=error,
+                        events=browser_events, check=check)
+                except Exception:
+                    pass
+            raise
         finally:
             browser.close()
 
@@ -407,7 +431,12 @@ def execute(store, output_dir, operation, *, check):
                 if field["type"] == "file" and field["key"] != "supporting_documents"
             ], prepared)
         execution_check()
-        browser_result = run_browser(current, prepared, supporting, check=execution_check)
+        capture_root = None
+        if os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1":
+            capture_root = Path(output_dir) / params["application_id"] / "debug-captures"
+        capture_options = {"capture_root": capture_root} if capture_root is not None else {}
+        browser_result = run_browser(current, prepared, supporting, check=execution_check,
+                                     **capture_options)
         if (preflight_manifest is not None
                 and browser_result["documents"][:len(preflight_manifest)] != preflight_manifest):
             raise ControlledDryRunError("CONTROLLED_DRY_RUN_DOCUMENT_CHANGED")

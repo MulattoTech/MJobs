@@ -36,7 +36,8 @@ def run(stream) -> int:
         if not isinstance(raw, bytes) or not raw or len(raw) > 2048:
             return 2
         payload = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_object)
-        if (not isinstance(payload, dict) or set(payload) != _FIELDS
+        if (not isinstance(payload, dict) or set(payload) - {"debug_capture"} != _FIELDS
+                or type(payload.get("debug_capture", False)) is not bool
                 or type(payload["schema"]) is not int or payload["schema"] != 1
                 or type(payload["budget_seconds"]) is not int
                 or not 1 <= payload["budget_seconds"] <= 900):
@@ -83,7 +84,8 @@ def run(stream) -> int:
                 pass
         return 2
     try:
-        status = run_browser(profile, login, client, check=check)
+        options = {"debug_capture": True} if payload.get("debug_capture", False) else {}
+        status = run_browser(profile, login, client, check=check, **options)
         return 0 if status == MANUAL_AUTH_WINDOW_CLOSED else 2 if status in {OPEN_UNAVAILABLE, STALE} else 3
     except Exception:
         return 3

@@ -28,11 +28,11 @@ from services.applications.mock_answer_bindings import (
     preflight_profile_answers,
 )
 from services.applications.debug_capture import (
-    append_diagnostic_event,
-    append_console_error,
     capture_browser_failure,
+    subscribe_debug_events,
 )
 from services.documents.errors import PreparationError
+from services.applications.errors import ApplicationValidationError
 from services.documents.validation import validate_stored_resume, VALIDATOR
 from services.documents.avoid_list import validate_content as validate_avoid_list
 from services.documents.answers import get_answer_confidence_policy, validate_answer_confidence_policy
@@ -532,6 +532,13 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         if application["state"] not in (
                 "PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED"):
             return application
+        from services.discovery.lifecycle import CLOSED_STATES
+        with store.engine.connect() as connection:
+            attributes = connection.execute(select(m.jobs.c.attributes).where(
+                m.jobs.c.id == application["job_id"])).scalar_one()
+        if attributes.get("status") in CLOSED_STATES:
+            store.transition(application_id, [application["state"]], "REVIEW_REQUIRED", "JOB_CLOSED")
+            return store.application(application_id)
         check()
         profile = store.profile(application["profile_id"], application["profile_version"])
         current_profile = store.profile(application["profile_id"])
@@ -711,14 +718,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     context.route("**/*", lambda route: route.continue_() if client.allowed(route.request.url) else route.abort())
                     page = context.new_page()
                     if debug_capture:
-                        page.on("console", lambda message: append_console_error(
-                            browser_events, message,
-                            getattr(message, "location", {}).get("url", page.url)))
-                        page.on("pageerror", lambda error: append_diagnostic_event(
-                            browser_events, "pageerror", page.url, error))
-                        page.on("requestfailed", lambda request: append_diagnostic_event(
-                            browser_events, "requestfailed", request.url,
-                            getattr(request, "failure", None) or "REQUEST_FAILED"))
+                        subscribe_debug_events(page, browser_events)
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     start_step("NAVIGATE")
                     store.transition(application_id, [application["state"]], "FILLING", "NAVIGATE")
@@ -730,6 +730,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     start_step("DETECT_FORM")
                     auth_required_detected = page.locator("[data-auth-required]").count() > 0
                     intervention_detected = page.locator("[data-intervention]").count() > 0
+                    captcha_detected = page.locator('[data-intervention="CAPTCHA"]').count() > 0
                     finish_step("COMPLETED")
                     if auth_required_detected:
                         store.transition(application_id, ["FILLING"], "AUTH_REQUIRED",
@@ -737,6 +738,9 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                         return store.application(application_id)
                     if intervention_detected:
                         store.transition(application_id, ["FILLING"], "USER_INTERVENTION_REQUIRED", "CHALLENGE_DETECTED")
+                        if captcha_detected:
+                            store.transition(application_id, ["USER_INTERVENTION_REQUIRED"],
+                                             "USER_INTERVENTION_REQUIRED", "CAPTCHA_REQUIRED")
                         return store.application(application_id)
                     store.transition(application_id, ["FILLING"], "FILLING", "DETECT_FORM")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
@@ -831,7 +835,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     finish_step("COMPLETED")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
-                        raise ValueError("Mock form validation failed")
+                        raise ApplicationValidationError("Mock form validation failed")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     # Recheck after every autofill event, immediately before the
                     # review POST. Page scripts may have replaced selected Files.
@@ -860,7 +864,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     start_step("VALIDATE")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
-                        raise ValueError("Mock review validation failed")
+                        raise ApplicationValidationError("Mock review validation failed")
                     finish_step("COMPLETED")
                     store.transition(application_id, ["FILLING"], "READY_TO_SUBMIT", "VALIDATE")
                     if not submit:
@@ -869,6 +873,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     decision = _authorize(store, application_id, min(fact.confidence for fact in (*facts, *answers)), check=check)
                     if not decision.allowed:
                         store.transition(application_id, ["READY_TO_SUBMIT"], "REVIEW_REQUIRED", "POLICY_GATE")
+                        if "JOB_CLOSED" in decision.reasons:
+                            store.transition(application_id, ["REVIEW_REQUIRED"], "REVIEW_REQUIRED", "JOB_CLOSED")
                         return store.application(application_id)
                     # The operation deadline may expire after the durable
                     # reservation commits but before the irreversible submit

@@ -5,11 +5,14 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now
+from packages.domain.operation_errors import (
+    OPERATION_ERROR_CATEGORIES, operation_error_category, validate_operation_error_category,
+)
 
 
 _STEP_CODE = re.compile(r"^[A-Z][A-Z0-9_]{0,63}$")
 _ERROR_CODE = re.compile(r"^[A-Z][A-Z0-9_]{0,63}$")
-_RECOVERY_KEYS = {"action", "reason_code", "next_step", "retry_after_seconds", "retryable"}
+_RECOVERY_KEYS = {"action", "reason_code", "next_step", "retry_after_seconds", "retryable", "error_category"}
 _RECOVERY_ACTIONS = {"RETRY", "RESUME", "RECONCILE", "MANUAL_REVIEW", "NONE"}
 _TERMINAL_STATES = {"COMPLETED", "FAILED", "BLOCKED", "CANCELLED", "DEAD_LETTERED", "DISCARDED"}
 _TRANSITIONS = {
@@ -30,6 +33,8 @@ def _sanitize_recovery_metadata(value):
     if not isinstance(value, dict) or set(value) - _RECOVERY_KEYS or len(value) > len(_RECOVERY_KEYS):
         raise ValueError("RECOVERY_METADATA_INVALID")
     cleaned = {}
+    if "error_category" in value:
+        cleaned["error_category"] = validate_operation_error_category(value["error_category"])
     if "action" in value:
         action = value["action"]
         if not isinstance(action, str) or action not in _RECOVERY_ACTIONS:
@@ -71,6 +76,11 @@ def operation_public_record(row):
     if isinstance(metadata, dict):
         result["recovery_metadata"] = {
             key: value for key, value in metadata.items() if key != "manual_auth_owner"}
+    category = metadata.get("error_category") if isinstance(metadata, dict) else None
+    result["error_category"] = (category if type(category) is str and category in OPERATION_ERROR_CATEGORIES
+                                else operation_error_category(result.get("error")))
+    if result.get("state") in {"COMPLETED", "CANCELLED"}:
+        result["error_category"] = None
     return result
 
 
@@ -96,6 +106,7 @@ def _read_model(row):
         "next_attempt_at": row["next_attempt_at"],
         "retry_count": row["retry_count"],
         "recovery_summary": _recovery_summary(metadata),
+        "error_category": operation_public_record(row)["error_category"],
         **({"preparation_priority": priority} if priority is not None else {}),
     }
 

@@ -5,6 +5,7 @@ import pytest
 from packages.domain.operation_errors import (
     OPERATION_ERROR_CATEGORIES,
     source_collection_error_category,
+    operation_error_category,
     validate_operation_error_category,
 )
 
@@ -70,3 +71,24 @@ def test_source_collection_mapping_returns_only_canonical_categories(provider_co
                                              "token=PRIVATE"])
 def test_source_collection_mapping_rejects_unclassified_provider_codes(provider_code):
     assert source_collection_error_category(provider_code) is None
+
+
+@pytest.mark.parametrize('code,category', [
+    ('QUESTION_PREFLIGHT_STALE', 'FORM_CHANGED'),
+    ('UNMAPPED_REQUIRED_QUESTION', 'FIELD_UNKNOWN'),
+    ('UNKNOWN_DYNAMIC_REQUIRED_FIELD', 'FIELD_UNKNOWN'),
+    ('UPLOAD_INTEGRITY_FAILED', 'UPLOAD_FAILED'),
+    ('FORM_FIELDS_INVALID', 'VALIDATION_FAILED'),
+    ('UNSUPPORTED_ATS', 'ATS_UNSUPPORTED'),
+    ('SOURCE_HTTP_429', 'RATE_LIMITED'),
+    *[(category, category) for category in sorted(EXPECTED_CATEGORIES)],
+])
+def test_known_application_and_source_codes_have_finite_categories(code, category):
+    assert operation_error_category(code) == category
+
+
+@pytest.mark.parametrize('code', [None, [], {}, 'PRIVATE=secret', 'USER_INTERVENTION_REQUIRED',
+                                 'CHALLENGE_DETECTED', 'REVIEW_REQUIRED', 'QUESTION_PREFLIGHT_FAIL',
+                                 'DYNAMIC_FORM_STATE_UNAVAILABLE'])
+def test_unknown_or_ambiguous_failures_do_not_invent_a_category(code):
+    assert operation_error_category(code) is None

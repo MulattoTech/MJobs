@@ -30,7 +30,36 @@ separate explicit API actions. Database state is authoritative if the UI closes
 or reloads while a worker is unavailable; the outbox dispatcher will publish
 the queued operation when Redis is available again.
 
-Local evidence is recorded in
+## Structured failure categories
+
+Operation detail and profile-scoped progress responses expose an additive
+`error_category` field. It contains one of the 15 categories defined by
+`packages/domain/operation_errors.py`, or `null` when the producer has no exact
+category. The original fixed `error` code remains available on operation detail.
+Terminal attempt audit records and durable recovery metadata preserve the
+category through process restart and API reload. Completed and cancelled
+operations expose no failure category.
+
+Classification uses exact producer codes, typed upload/document failures and
+current application evidence. It never parses exception messages. A generic
+challenge does not imply CAPTCHA, and unknown diagnostics remain unclassified.
+Questionnaire evidence must match the application's profile, document and route
+versions. Failure of this optional diagnostic read does not change an already
+blocked operation into a failed or retryable operation.
+
+The internal worker return preserves its historical `error_category` diagnostic
+code for compatibility. Its additive `failure` object separates `code` from the
+canonical `category`; consumers should use the public API category or this
+structured object. Categorization does not change automatic retry policy.
+
+Jobs marked REMOVED, EXPIRED, FILLED or CLOSED block document preparation and
+new browser execution with `JOB_CLOSED`. The final submission admission checks
+the locked job again, including a closure that occurs after browser startup.
+Receipt reconciliation still runs before that initial closure guard, so prior
+confirmed or uncertain submissions retain their recovery semantics and are
+never replayed automatically.
+
+Historical local queue evidence is recorded in
 [`2026-10-07-dead-letter-queue.json`](../evidence/2026-10-07-dead-letter-queue.json).
-Hosted workflows and reviewers are intentionally not run under the repository's
-local-only delivery policy.
+Current publication follows the protected checks in
+[`PR_PUBLICATION_POLICY.md`](../PR_PUBLICATION_POLICY.md).

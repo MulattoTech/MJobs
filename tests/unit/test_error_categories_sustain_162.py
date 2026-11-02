@@ -77,6 +77,7 @@ class AIOperationErrorCategoryTests(unittest.TestCase):
 
                         self.assertEqual(result["status"], "BLOCKED")
                         self.assertEqual(result["error_category"], "AI_ERROR")
+                        self.assertEqual(result["failure"]["category"], "AI_ERROR")
                         reopened = Store(url)
                         try:
                             with reopened.engine.connect() as connection:
@@ -88,12 +89,14 @@ class AIOperationErrorCategoryTests(unittest.TestCase):
                             self.assertEqual(operation["error"], "AI_ERROR")
                             self.assertEqual(len(audit), 1)
                             self.assertEqual(audit[0]["error"], "AI_ERROR")
+                            self.assertEqual(audit[0]["error_category"], "AI_ERROR")
                             public = TestClient(create_app(reopened, "http://127.0.0.1:1", root,
                                                            operation_mode="PERSONAL"))
                             try:
                                 readback = public.get(f"/operations/{operation_id}")
                                 self.assertEqual(readback.status_code, 200, readback.text)
                                 self.assertEqual(readback.json()["error"], "AI_ERROR")
+                                self.assertEqual(readback.json()["error_category"], "AI_ERROR")
                                 if secret:
                                     observable = json.dumps({"result": result, "operation": dict(operation),
                                                             "audit": audit, "readback": readback.json()})

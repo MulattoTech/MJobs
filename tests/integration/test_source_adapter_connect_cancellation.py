@@ -4,6 +4,7 @@ Provider endpoints, operation timeout and SSL-context readiness are fixture seam
 No production transport/check/stream is replaced. Synthetic loopback stores only.
 """
 from contextlib import ExitStack, contextmanager
+import asyncio
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
@@ -119,7 +120,8 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
 
     def run_source(self, provider, mode, *, tenant=None, coordinator_delay=0,
-                   transport_setup_delay=0, worker_unwind_delay=0, ssl_setup_delay=0):
+                   transport_setup_delay=0, worker_unwind_delay=0, ssl_setup_delay=0,
+                   cancel_dispatch_delay=0, cancel_service_delay=0):
         tenant = tenant or source_tenant(provider)
         cold_ssl = mode == "cold_ssl_deadline"
         finite_deadline = mode == "deadline" or cold_ssl
@@ -303,7 +305,14 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             def observe_request_cancel(*args, **kwargs):
                 call = {"entered_at": time.monotonic()}
                 cancel_calls.append(call)
+                connection = state["connecting_socket"]
+                call["socket_pending_at_entry"] = (connection.fileno() >= 0
+                    and not socket_select.select([], [connection], [], 0)[1])
                 try:
+                    if cancel_service_delay:
+                        # Negative control: delay inside the measured service
+                        # boundary must still violate the cancellation budget.
+                        time.sleep(cancel_service_delay)
                     return original_request_cancel(*args, **kwargs)
                 finally:
                     call["exited_at"] = time.monotonic()
@@ -333,8 +342,22 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 if mode == "cancel":
                     endpoints.enter_context(patch("apps.api.main.request_cancel",
                                                   new=observe_request_cancel))
-                with TestClient(create_app(store, "http://127.0.0.1:1", root,
-                        "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
+                app = create_app(store, "http://127.0.0.1:1", root,
+                                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+
+                async def dispatch(scope, receive, send):
+                    if (cancel_dispatch_delay and scope["type"] == "http"
+                            and scope["method"] == "POST" and scope["path"].endswith("/cancel")):
+                        # Exercise slow fixture/ASGI scheduling before the real
+                        # synchronous cancellation service is admitted.
+                        # Use the measured clock as the oracle: a timer callback
+                        # can be scheduled slightly before its requested delay.
+                        dispatch_ready_at = time.monotonic() + cancel_dispatch_delay
+                        while (remaining := dispatch_ready_at - time.monotonic()) > 0:
+                            await asyncio.sleep(remaining)
+                    await app(scope, receive, send)
+
+                with TestClient(dispatch) as client:
                     self.assertEqual(client.put("/profiles", json=PROFILE).status_code, 200)
                     response = client.put("/sources", json={"provider": provider,
                                           "tenant": tenant,
@@ -473,14 +496,21 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             self.assertEqual(len(cancel_calls), 1,
                                              f"Expected one public cancellation call, got {len(cancel_calls)}")
                             cancel_call = cancel_calls[0]
-                            cancel_dispatch_elapsed = cancel_call["entered_at"] - started
-                            cancel_store_elapsed = cancel_call["exited_at"] - cancel_call["entered_at"]
+                            # Keep one immutable admission timestamp, including
+                            # durable cancellation in both strict .35s oracles.
+                            # TestClient/AnyIO dispatch is separately bounded as
+                            # fixture readiness, not claimed as HTTP latency.
+                            cancel_started_at = cancel_call["entered_at"]
+                            cancel_dispatch_elapsed = cancel_started_at - started
+                            cancel_service_response_elapsed = response_finished_at - cancel_started_at
+                            cancel_store_elapsed = cancel_call["exited_at"] - cancel_started_at
                             cancel_response_tail_elapsed = response_finished_at - cancel_call["exited_at"]
-                            self.assertLess(cancel_response_elapsed, .35,
-                                f"{provider}: public cancel response blocked {cancel_response_elapsed:.3f}s; "
-                                f"dispatch={cancel_dispatch_elapsed:.3f}s; "
-                                f"store={cancel_store_elapsed:.3f}s; "
-                                f"response_tail={cancel_response_tail_elapsed:.3f}s")
+                            self.assertTrue(cancel_call["socket_pending_at_entry"],
+                                            "Owned connect must still be pending at cancellation service entry")
+                            self.assertLess(cancel_dispatch_elapsed, 3,
+                                f"{provider}: cancellation fixture dispatch exceeded readiness bound; "
+                                f"dispatch={cancel_dispatch_elapsed:.3f}s")
+                            self.assertGreaterEqual(cancel_dispatch_elapsed, cancel_dispatch_delay)
                             worker.join(timeout=.35)
                             if worker.is_alive():
                                 pending = client.get(f"/operations/{identifier}").json()
@@ -500,8 +530,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                              "Owned adapter worker completion was not observed exactly once")
                             self.assertTrue(transport_operation_completed.is_set(),
                                             "Owned pending transport completion was not observed")
-                            transport_settle_elapsed = phases["transport_operation_completed_at"] - started
-                            worker_settle_elapsed = worker_finished_at[0] - started
+                            transport_settle_elapsed = phases["transport_operation_completed_at"] - cancel_started_at
+                            worker_settle_elapsed = worker_finished_at[0] - cancel_started_at
+                            self.assertGreaterEqual(transport_settle_elapsed, 0,
+                                "Owned transport must not complete before cancellation service entry")
                             worker_after_response_elapsed = max(
                                 0, worker_finished_at[0] - response_finished_at)
                         self.assertEqual(errors, [])
@@ -559,11 +591,18 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         if mode == "cancel":
                             print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
                                   f"dispatch={cancel_dispatch_elapsed:.3f}s "
+                                  f"service_response={cancel_service_response_elapsed:.3f}s "
                                   f"store={cancel_store_elapsed:.3f}s "
                                   f"response_tail={cancel_response_tail_elapsed:.3f}s "
                                   f"transport={transport_settle_elapsed:.3f}s "
                                   f"worker={worker_settle_elapsed:.3f}s "
                                   f"worker_after_response={worker_after_response_elapsed:.3f}s")
+                            self.assertLess(cancel_service_response_elapsed, .35,
+                                f"{provider}: cancel service response blocked {cancel_service_response_elapsed:.3f}s; "
+                                f"total_response={cancel_response_elapsed:.3f}s; "
+                                f"dispatch={cancel_dispatch_elapsed:.3f}s; "
+                                f"store={cancel_store_elapsed:.3f}s; "
+                                f"response_tail={cancel_response_tail_elapsed:.3f}s")
                             self.assertLess(transport_settle_elapsed, .35,
                                 f"{provider}: pending transport did not stop within 0.35s; "
                                 f"cancel_response={cancel_response_elapsed:.3f}s; "
@@ -588,6 +627,13 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
 
     def test_wwr_public_cancel_during_real_tcp_connect(self):
         self.run_source("wwr", "cancel")
+
+    def test_public_cancel_budget_excludes_fixture_dispatch_delay(self):
+        self.run_source("greenhouse", "cancel", cancel_dispatch_delay=.8)
+
+    def test_public_cancel_budget_rejects_delay_after_handler_admission(self):
+        with self.assertRaisesRegex(AssertionError, "cancel service response blocked"):
+            self.run_source("greenhouse", "cancel", cancel_service_delay=.4)
 
     def test_positive_public_worker_collections_and_fresh_readback(self):
         for provider in ENDPOINTS:

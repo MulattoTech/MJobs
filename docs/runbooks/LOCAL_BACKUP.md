@@ -130,6 +130,29 @@ credential values.
 
 ## Validation scope
 
+### Guarded Windows updater command capture
+
+The existing Windows updater invokes Git, Docker and backup commands through
+one bounded command reader. It drains stdout and stderr concurrently, retaining
+at most 8 MiB combined. Each command has a finite deadline (120 seconds by
+default, with existing explicit build/backup/Compose limits). Invalid, infinite
+or excessive timeout values are rejected before process creation.
+
+Timeout, cancellation, pipe failure and output overflow fail closed with fixed
+diagnostic codes. The reader closes its pipes and makes bounded termination and
+kill attempts against only the direct process it created. It does not search
+for or terminate processes by executable name. A descendant holding an inherited
+pipe cannot extend the capture deadline after the direct child exits.
+
+Successful bounded output remains complete; overflow is a failure rather than
+truncated success. Raw command output is never added to failure exceptions.
+Backup failures retain only the existing allowlisted reason code. A failed
+backup or verification leaves the candidate unactivated and uses the existing
+previous-release recovery path. This improves future diagnostics; it cannot
+recover the discarded cause of the historical November 1 exit-code-2 failure.
+
+### Historical isolated restore evidence
+
 The isolated proof in `docs/evidence/2026-09-30-pr004-backup-restore-local.json`
 restored a fictional confirmed application, profile, source catalog, four
 document downloads and a queued operation into a different FIXTURE project.

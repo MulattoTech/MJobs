@@ -275,7 +275,10 @@ def authorize_submission(
         if check:
             check()
         job = dict(connection.execute(select(m.jobs).where(
-            m.jobs.c.id == application["job_id"])).mappings().one())
+            m.jobs.c.id == application["job_id"]).with_for_update()).mappings().one())
+        from services.discovery.lifecycle import CLOSED_STATES
+        if job["attributes"].get("status") in CLOSED_STATES:
+            return Decision(False, ("JOB_CLOSED",))
         match = dict(connection.execute(select(m.matches).where(
             m.matches.c.job_id == job["id"],
             m.matches.c.profile_id == application["profile_id"],

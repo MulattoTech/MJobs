@@ -75,6 +75,19 @@ class ManualAuthIsolatedTests(unittest.TestCase):
                     self.assertEqual(self.invoke(**changes), 'STALE')
             self.job.launch.assert_not_called()
 
+    def test_debug_opt_in_is_only_a_boolean_in_the_private_host_input(self):
+        from contextlib import ExitStack
+        for configured in ('0', '1', 'invalid'):
+            with self.subTest(configured=configured), ExitStack() as stack:
+                self.setup_transport(stack)
+                stack.enter_context(patch.dict('os.environ', {'MJOBS_BROWSER_DEBUG_CAPTURE': configured}))
+                self.assertEqual(self.invoke(), 'MANUAL_AUTH_WINDOW_CLOSED')
+                args, kwargs = self.job.launch.call_args
+                payload = json.loads(kwargs['private_input'])
+                self.assertIs(payload['debug_capture'], configured == '1')
+                self.assertNotIn('debug_capture', str(args))
+                self.assertNotIn(self.token, kwargs['private_input'].decode())
+
     def test_failed_observer_ack_never_launches(self):
         from contextlib import ExitStack
         from services.applications import manual_auth_isolated as module
