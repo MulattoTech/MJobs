@@ -115,5 +115,6 @@
   ],
   "external_employer_submissions": 0,
   "paid_ai_calls": 0,
-  "destructive_live_restore": false
+  "destructive_live_restore": false,
+  "resumed_regression_evidence": "docs/evidence/2026-11-02-pro-route/resumed-regressions.json"
 }

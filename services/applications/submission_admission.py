@@ -509,6 +509,12 @@ def _authorize_transaction(
             return Decision(False, ("APPLICATION_ROUTE_CHANGED",))
         if check:
             check()
+        # Route/evidence locks and final cancellation checks may outlive the
+        # timestamp used for initial eligibility. Consent must still be valid
+        # at consumption, including routes that needed no network probe.
+        timestamp = _utc_now()
+        if intent is not None and not intent["granted_at"] <= timestamp < intent["expires_at"]:
+            return Decision(False, ("STALE_JOB_INTENT",))
         if intent is not None and not _consume_intent(
                 connection, intent, application, timestamp):
             return Decision(False, ("JOB_INTENT_ALREADY_CONSUMED",))

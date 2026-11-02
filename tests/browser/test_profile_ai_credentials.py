@@ -1,4 +1,5 @@
 """Built UI -> encrypted key -> explicit scoring plan -> real durable adapter path."""
+import json
 import threading
 import time
 import unittest
@@ -42,6 +43,17 @@ class ProfileAICredentialBrowserTests(unittest.TestCase):
                     external, errors = [], []
                     page.on('pageerror', lambda error: errors.append(str(error)))
 
+                    def assert_browser_secrets_absent():
+                        visible = page.locator('body').inner_text()
+                        html = page.content()
+                        storage = page.evaluate('''() => JSON.stringify({
+                            local: {...localStorage}, session: {...sessionStorage}
+                        })''')
+                        for secret in (fixture.secret, fixture.environment_secret, fixture.key,
+                                       'synthetic-browser-rotated-key',
+                                       'synthetic-revoked-before-worker-key'):
+                            self.assertNotIn(secret, visible + html + storage)
+
                     def local_only(route):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
@@ -59,6 +71,7 @@ class ProfileAICredentialBrowserTests(unittest.TestCase):
                     field.fill(fixture.secret)
                     openai.get_by_role('button', name='Save credential', exact=True).click()
                     expect(field).to_have_value('')
+                    assert_browser_secrets_absent()
                     panel = page.get_by_role('region', name='AI cost controls', exact=True)
                     panel.get_by_role('button', name='Preview AI work plan', exact=True).click()
                     preview = panel.get_by_role('region', name='Planned AI candidates', exact=True)
@@ -94,7 +107,7 @@ class ProfileAICredentialBrowserTests(unittest.TestCase):
                     expect(quotes).to_contain_text('Only the quotations are verified')
                     expect(quotes).to_contain_text('Source: captured job description')
                     expect(field).to_have_value('')
-                    self.assertNotIn('synthetic-browser-rotated-key', page.locator('body').inner_text())
+                    assert_browser_secrets_absent()
                     panel.get_by_role('button', name='Preview AI work plan', exact=True).click()
                     panel.get_by_role('button', name='Evaluate planned AI candidates', exact=True).click()
                     expect(panel.get_by_role('region', name='Durable AI evaluations')).to_contain_text('QUEUED')
@@ -105,12 +118,24 @@ class ProfileAICredentialBrowserTests(unittest.TestCase):
                     field.fill('synthetic-revoked-before-worker-key')
                     openai.get_by_role('button', name='Rotate credential', exact=True).click()
                     expect(field).to_have_value('')
-                    self.assertEqual(execute_operation(stale_operation)['status'], 'BLOCKED')
-                    expect(panel.get_by_role('region', name='Durable AI evaluations')).to_contain_text('The saved credential changed, so this batch stopped')
+                    result = execute_operation(stale_operation)
+                    self.assertEqual(result['status'], 'BLOCKED')
+                    self.assertEqual(result['error_category'], 'AI_ERROR')
+                    readback = fixture.client.get(
+                        '/profiles/fixture/ai-cost-plan/operations/' + stale_operation)
+                    self.assertEqual(readback.status_code, 200, readback.text)
+                    self.assertEqual(readback.json()['error'], 'AI_ERROR')
+                    self.assertNotIn('AI_PROVIDER_CREDENTIAL_CHANGED', json.dumps(readback.json()))
+                    evaluations = panel.get_by_role('region', name='Durable AI evaluations')
+                    expect(evaluations).to_contain_text('The AI evaluation failed.')
+                    expect(evaluations).to_contain_text('No partial advisory batch was published.')
+                    expect(evaluations).to_contain_text('Automatic replay remains paused')
+                    assert_browser_secrets_absent()
                     self.assertEqual(len(fixture.requests), 1)
                     page.locator('#active-profile').select_option('other')
                     expect(history).to_contain_text('No saved AI evaluations for this profile')
                     expect(credentials.get_by_role('group', name='OpenAI')).to_contain_text('No credential saved')
+                    assert_browser_secrets_absent()
                     self.assertEqual(external, [])
                     self.assertEqual(errors, [])
                 finally:

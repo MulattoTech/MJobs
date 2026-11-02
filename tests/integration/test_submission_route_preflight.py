@@ -415,6 +415,68 @@ class SubmissionRoutePreflightTests(unittest.TestCase):
             self.assertIn("STALE_JOB_INTENT", self.authorize().reasons)
         self.assert_unclaimed()
 
+    def _expire_intent_after_route_locks(self, *, direct_destination):
+        if direct_destination:
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.routes).where(
+                    m.routes.c.id == self.route_id).values(
+                        url=self.resolved()["candidate_url"]))
+        original_snapshot = admission._route_check_snapshot
+        calls = 0
+
+        def delayed_snapshot(*args, **kwargs):
+            nonlocal calls
+            result = original_snapshot(*args, **kwargs)
+            calls += 1
+            if calls == (1 if direct_destination else 2):
+                # Model time spent acquiring route/evidence locks after the
+                # transaction's initial consent check, without sleeping.
+                self.now += timedelta(minutes=6)
+            return result
+
+        with patch.object(admission, "_route_check_snapshot", side_effect=delayed_snapshot), \
+                patch.object(admission, "resolve_aggregator_redirect",
+                             return_value=self.resolved()) as probe:
+            decision = self.authorize()
+        self.assertFalse(decision.allowed, decision.reasons)
+        self.assertIn("STALE_JOB_INTENT", decision.reasons)
+        self.assertEqual(probe.call_count, 0 if direct_destination else 1)
+        self.assert_unclaimed()
+
+    def test_intent_expiring_after_probe_while_route_locks_wait_cannot_be_consumed(self):
+        self._expire_intent_after_route_locks(direct_destination=False)
+
+    def test_direct_destination_cannot_consume_intent_expired_during_route_locks(self):
+        self._expire_intent_after_route_locks(direct_destination=True)
+
+    def test_wrong_ats_tenant_in_path_cannot_exempt_or_validate_destination(self):
+        for provider, candidate in (
+            ("ashby", "https://jobs.ashbyhq.com/other/verified-employer"),
+            ("workday", "https://other.myworkdayjobs.com/en-US/verified-employer/job/42"),
+        ):
+            with self.subTest(provider=provider):
+                with self.store.engine.begin() as connection:
+                    upsert(connection, m.company_ats_tenants, {
+                        "id": "wrong-tenant-" + provider, "company_id": self.company_id,
+                        "provider": provider, "tenant_identifier": "verified-employer",
+                        "organization_identifier": "other", "board_identifier": "42",
+                        "confidence": .95, "evidence": ["PUBLIC_API_BOARD"],
+                        "first_seen_at": "2026-11-02T00:00:00Z",
+                        "last_seen_at": "2026-11-02T00:00:00Z",
+                    })
+                    connection.execute(update(m.routes).where(
+                        m.routes.c.id == self.route_id).values(url=candidate))
+                with patch.object(admission, "resolve_aggregator_redirect", return_value={
+                    "status": "RESOLVED_ATS_ROUTE", "provider": provider,
+                    "tenant": "verified-employer", "candidate_url": candidate,
+                }) as probe:
+                    decision = self.authorize()
+                probe.assert_called_once()
+                self.assertFalse(decision.allowed, decision.reasons)
+                self.assertIn("APPLICATION_ROUTE_DISCOVERY_BLOCKED", decision.reasons)
+                self.assert_unclaimed()
+                self.assertEqual(self.checks()[-1]["reason"], "DESTINATION_NOT_VERIFIED")
+
     def test_cancellation_and_operation_deadline_propagate_without_claim(self):
         for error in (OperationCancelled("cancelled"), OperationTimedOut("expired")):
             with self.subTest(error=type(error).__name__):
