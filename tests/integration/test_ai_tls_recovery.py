@@ -1,6 +1,6 @@
 """A stalled TLS handshake terminates durable advisory work without publication."""
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 import socket
 import threading
 import time
@@ -209,7 +209,7 @@ class DurableTLSRecoveryTests(unittest.TestCase):
         for provider_type in HTTPS_PROVIDERS:
             for cancel in (False, True):
                 with self.subTest(provider=provider_type.name, cancel=cancel), stalled_tls_peer() as (
-                        origin, started, closed), recorded_duplicates() as duplicates:
+                        origin, started, closed), recorded_duplicates() as duplicates, ExitStack() as clients:
                     client = httpx.Client(trust_env=False, timeout=1.5)
                     self.addCleanup(client.close)
                     provider = provider_type(base_url=origin, client_factory=lambda **_kwargs: client)
@@ -230,7 +230,12 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                     cancel_client_setup_ms = None
                     if cancel:
                         setup_started = time.monotonic()
-                        cancel_client = self.new_client()
+                        # Start the ASGI portal before the timed TLS phase;
+                        # constructing TestClient alone leaves it lazy.
+                        cancel_client = clients.enter_context(self.new_client())
+                        ready = cancel_client.get(path)
+                        self.assertEqual(ready.status_code, 200, ready.text)
+                        self.assertEqual(ready.json()['state'], 'QUEUED')
                         cancel_client_setup_ms = (time.monotonic() - setup_started) * 1000
                     try:
                         with ThreadPoolExecutor(max_workers=2) as pool:
@@ -252,10 +257,12 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                                 with mock.patch.object(
                                         self.store, '_audit', side_effect=pause_cancellation_audit):
                                     cancelling = pool.submit(cancel_client.post, path + '/cancel')
-                                    self.assertTrue(cancellation_staged.wait(.5),
-                                                    'cancel transaction was not staged')
-                                    closed_before_commit = closed.wait(.2)
-                                    release_cancellation.set()
+                                    try:
+                                        self.assertTrue(cancellation_staged.wait(.5),
+                                                        'cancel transaction was not staged')
+                                        closed_before_commit = closed.wait(.2)
+                                    finally:
+                                        release_cancellation.set()
                                     response = cancelling.result(timeout=1)
                                 acknowledged_at = time.monotonic()
                                 self.assertEqual(response.status_code, 200, response.text)
@@ -290,6 +297,7 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                             self.assertLess(elapsed, .9, phase_details)
                     finally:
                         if cancel_client is not None:
+                            clients.close()
                             cancel_client.close()
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)

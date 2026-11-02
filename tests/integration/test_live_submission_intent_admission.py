@@ -12,7 +12,7 @@ from sqlalchemy import delete, func, select, update
 from fixtures.mock_server import fixture_server
 from packages.domain.safety import Policy
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity, upsert
 from services.applications.submission_admission import (
     authorize_submission,
     grant_live_submission_intent,
@@ -41,6 +41,7 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
                 m.applications.c.id == self.application_id).values(target="REAL"))
             application = dict(connection.execute(select(m.applications).where(
                 m.applications.c.id == self.application_id)).mappings().one())
+            self._verify_synthetic_route(connection, application)
             self.store._audit(
                 connection, self.application_id, "APPLICATION_QUESTION_PREFLIGHT", {
                     "result": "PASS",
@@ -55,6 +56,30 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
         self.now = datetime(2026, 10, 29, 6, 0, tzinfo=timezone.utc)
         self.receipt_id = "live-intent-receipt-a"
         self.policy = Policy(external_submissions_enabled=True)
+        route_probe = patch(
+            "services.applications.submission_admission.resolve_aggregator_redirect",
+            side_effect=AssertionError("Verified synthetic admission must not fetch"))
+        self.route_probe = route_probe.start()
+        self.addCleanup(route_probe.stop)
+
+    def _verify_synthetic_route(self, connection, application):
+        company_id = connection.execute(select(m.jobs.c.company_id).where(
+            m.jobs.c.id == application["job_id"])).scalar_one()
+        # Live-intent tests use an independently verified public-shaped route.
+        # The discovery server's localhost URL is only a collection fixture.
+        upsert(connection, m.company_domains, {
+            "id": identity("intent-admission-domain", company_id),
+            "company_id": company_id, "domain": "intent-fixture.example",
+            "confidence": .95, "verified": True,
+            "verification_method": "SYNTHETIC_TEST_EVIDENCE",
+            "first_seen_at": "2026-10-29T05:59:00+00:00",
+            "last_verified_at": "2026-10-29T05:59:00+00:00",
+            "evidence": ["SYNTHETIC_VERIFIED_DOMAIN"],
+        })
+        connection.execute(update(m.routes).where(
+            m.routes.c.id == application["route_id"]).values(
+                provider="employer", tenant="",
+                url="https://careers.intent-fixture.example/jobs/" + application["job_id"]))
 
     def tearDown(self):
         self.store.engine.dispose()
@@ -109,6 +134,9 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.applications).where(
                 m.applications.c.id == application_id).values(target="REAL"))
+            application = dict(connection.execute(select(m.applications).where(
+                m.applications.c.id == application_id)).mappings().one())
+            self._verify_synthetic_route(connection, application)
         return application_id
 
     def test_sequential_replay_cannot_reuse_consumed_receipt(self):
@@ -118,10 +146,11 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
         self.reset_ready()
         replay = self.authorize()
 
-        self.assertTrue(first.allowed)
+        self.assertTrue(first.allowed, first.reasons)
         self.assertFalse(replay.allowed)
         self.assertIn("JOB_INTENT_ALREADY_CONSUMED", replay.reasons)
         self.assertEqual(self.consumption_count(), 1)
+        self.route_probe.assert_not_called()
 
     def test_concurrent_replay_has_exactly_one_admission_and_consumption(self):
         self.grant()
@@ -129,9 +158,11 @@ class LiveSubmissionIntentAdmissionTests(unittest.TestCase):
         with ThreadPoolExecutor(max_workers=2) as pool:
             decisions = list(pool.map(lambda _: self.authorize(), range(2)))
 
-        self.assertEqual(sum(decision.allowed for decision in decisions), 1)
+        self.assertEqual(sum(decision.allowed for decision in decisions), 1,
+                         [decision.reasons for decision in decisions])
         self.assertEqual(self.consumption_count(), 1)
         self.assertEqual(self.store.application(self.application_id)["state"], "SUBMITTING")
+        self.route_probe.assert_not_called()
 
     def test_missing_cross_job_expired_and_malformed_receipts_fail_closed(self):
         missing = self.authorize(receipt_id="missing-receipt")

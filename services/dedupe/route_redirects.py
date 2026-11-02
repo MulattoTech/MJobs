@@ -5,7 +5,7 @@ import ipaddress
 import re
 import time
 import urllib.robotparser
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from services.company_discovery.public_client import (
     PublicCompanyClient,
@@ -24,7 +24,7 @@ ATS_HOSTS = {
     "greenhouse": {"boards.greenhouse.io", "job-boards.greenhouse.io"},
     "lever": {"jobs.lever.co", "jobs.eu.lever.co"},
     "ashby": {"jobs.ashbyhq.com"},
-    "workable": {"apply.workable.com", "jobs.workable.com"},
+    "workable": {"apply.workable.com"},
     "smartrecruiters": {"jobs.smartrecruiters.com"},
     "jobvite": {"jobs.jobvite.com"},
     "icims": {"jobs.icims.com"},
@@ -74,11 +74,17 @@ def _tenant_identifiers(row):
 
 
 def _ats_tenant_for_url(host, path, tenants):
-    labels = set(host.split("."))
-    if host.endswith(".myworkdayjobs.com"):
-        labels.add(host[: -len(".myworkdayjobs.com")].split(".")[-1])
-    path_parts = {part.casefold() for part in path.split("/") if part}
-    observed = labels | path_parts
+    # Reject paths whose normalization can move a different tenant into the
+    # first segment. Metadata and job titles are never employer authority.
+    try:
+        path_parts = [unquote(part, errors="strict") for part in path.split("/")]
+    except UnicodeError:
+        return None
+    if (not path.startswith("/") or path.startswith("//")
+            or any(part in {".", ".."} or any(char in part for char in ("/", "\\", "%"))
+                   or any(ord(char) < 32 or ord(char) == 127 for char in part)
+                   for part in path_parts)):
+        return None
     for row in tenants:
         if not isinstance(row, dict):
             continue
@@ -108,8 +114,19 @@ def _ats_tenant_for_url(host, path, tenants):
             if matches:
                 return {'provider': provider, 'tenant': tenant}
             continue
-        if host_matches and identifiers.intersection(observed):
-            return {"provider": provider, "tenant": str(row.get("tenant_identifier") or "")}
+        tenant = str(row.get("tenant_identifier") or "")
+        if not host_matches or not identifiers or not re.fullmatch(
+                r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", tenant):
+            continue
+        if provider in {"ashby", "workable", "smartrecruiters", "jobvite"}:
+            if len(path_parts) > 1 and path_parts[1].casefold() == tenant.casefold():
+                return {"provider": provider, "tenant": tenant}
+        elif provider == "workday":
+            match = re.fullmatch(r"([a-z0-9][a-z0-9-]*)(?:\.wd[0-9]+)?\.myworkdayjobs\.com", host)
+            if match and match[1] == tenant.casefold():
+                return {"provider": provider, "tenant": tenant}
+        # Shared-host providers without an implemented structural identity
+        # stay unqualified. A tenant token elsewhere in a URL cannot suffice.
     return None
 
 

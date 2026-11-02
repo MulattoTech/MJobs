@@ -12,7 +12,7 @@
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
   "current_milestone": "PRO-OPS-VERIFIED-DELIVERY-20261102",
-  "current_objective": "Implement bounded native DOM diagnostics and configurable notifications/browser profiles; verify relational design before acceptance.",
+  "current_objective": "Resume PR886: close route identity and consent-expiry gaps, retain bounded TLS cancellation and credential privacy; verify protected merge and production before acceptance.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -197,9 +197,13 @@
   "active_requirements": [
     "MJ-REQ-004",
     "MJ-REQ-162",
-    "MJ-REQ-275"
+    "MJ-REQ-267",
+    "MJ-REQ-275",
+    "MJ-REQ-175"
   ],
-  "active_prs": [],
+  "active_prs": [
+    886
+  ],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",

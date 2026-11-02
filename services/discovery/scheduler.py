@@ -300,7 +300,8 @@ def run_forever():
                 scheduler_tick(store, redis, interval_seconds=interval)
             except Exception:
                 import logging
-                logging.exception("Scheduler tick failed; retrying without losing durable state")
+                # Dependency errors can contain secrets in messages or tracebacks.
+                logging.error("SCHEDULER_TICK_FAILED: retrying without losing durable state")
             current = time.monotonic()
             if current >= next_retention_at:
                 run_transient_retention_if_configured(store=store)

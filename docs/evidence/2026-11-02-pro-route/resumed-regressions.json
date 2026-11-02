@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T13:20:49.389580+00:00",
+  "status": "SOURCE_VERIFIED_AWAITING_PROTECTED_INTEGRATION",
+  "resumed_pr": 886,
+  "source_parent": "986305287eb6d8f0628fb8df811be022cb99bad2",
+  "canonical_baseline": {
+    "P0": {
+      "pass": 12,
+      "total": 26
+    },
+    "P1": {
+      "pass": 99,
+      "total": 116
+    }
+  },
+  "requirements": [
+    "MJ-REQ-267",
+    "MJ-REQ-004",
+    "MJ-REQ-175"
+  ],
+  "findings_fixed": [
+    "Consent is checked with fresh UTC immediately before consumption after route/evidence locks, including direct destinations.",
+    "ATS authority requires the actual provider tenant slot; metadata or arbitrary path text cannot qualify a different employer.",
+    "Workable shared board prefixes view/company and unsupported shared-host structures do not confer employer authority.",
+    "TLS cancellation TestClient portal is initialized before timing; staged transaction release is unconditional while original cancellation/cleanup bounds remain unchanged.",
+    "Recovered credential browser regression expects the public value-free AI_ERROR boundary and checks visible HTML and storage for synthetic secret canaries."
+  ],
+  "regression_before": {
+    "summary": "15 failed, 3 passed, 52 deselected in 9.75s",
+    "backends": [
+      "SQLite",
+      "disposable PostgreSQL"
+    ],
+    "includes_subtest_failures": true,
+    "junit_sha256": "e26557a77c9f0bca28b2757c5561490bc682343e6483e117669d1fdde9c96f4c"
+  },
+  "native_runs": {
+    "route_tls": {
+      "junit_sha256": "b6e2c1444f7978107d476ef5b5d374d2ee6e90845e72a7762c4ee426c1226c27",
+      "suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "190",
+          "time": "82.005",
+          "timestamp": "2026-11-02T07:14:02.110695-06:00",
+          "hostname": "MulattoTechBox"
+        }
+      ],
+      "summary": ".................................. [ 44%]\r\n...........................................                           [100%]\r\n77 passed, 113 subtests passed in 82.01s (0:01:22)\r\n"
+    },
+    "final_route_and_browser": {
+      "junit_sha256": "57be0bb835d75f7bfdbf0f12a2e48caba9c58a75b5480a6ae0df869acf2fd8d5",
+      "suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "134",
+          "time": "68.870",
+          "timestamp": "2026-11-02T07:17:17.299806-06:00",
+          "hostname": "MulattoTechBox"
+        }
+      ],
+      "summary": ".................................. [ 53%]\r\n..............................           [100%]\r\n64 passed, 70 subtests passed in 68.87s (0:01:08)\r\n"
+    }
+  },
+  "run_overlap": "The two scopes overlap and must not be summed. Final route/browser run includes the Workable shared-board correction; TLS source is identical to the passing route/TLS run.",
+  "source_sha256": [
+    {
+      "path": "services/applications/submission_admission.py",
+      "tested_worktree_sha256": "63efbd9159b9b273cfb8cc78aa295a2ad94f8bc34f9739f04ac98ab5f19a033b",
+      "git_blob_sha256": "63efbd9159b9b273cfb8cc78aa295a2ad94f8bc34f9739f04ac98ab5f19a033b",
+      "newline_equivalent": true
+    },
+    {
+      "path": "services/dedupe/route_redirects.py",
+      "tested_worktree_sha256": "9afa911a86996a4be2618077dfda7ce1b65d86d366e050c0549adc5cb03492bb",
+      "git_blob_sha256": "9afa911a86996a4be2618077dfda7ce1b65d86d366e050c0549adc5cb03492bb",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/browser/test_profile_ai_credentials.py",
+      "tested_worktree_sha256": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
+      "git_blob_sha256": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/integration/test_ai_tls_recovery.py",
+      "tested_worktree_sha256": "e5b8d9932f656e6a14e0ee1fc4367884e72c058b70fad7c8a115b0360bf1becb",
+      "git_blob_sha256": "e5b8d9932f656e6a14e0ee1fc4367884e72c058b70fad7c8a115b0360bf1becb",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/integration/test_submission_route_preflight.py",
+      "tested_worktree_sha256": "185e213002fb4fbec0dfb42f753fa47c545f2f25a88fa89f584d564528c8eec2",
+      "git_blob_sha256": "185e213002fb4fbec0dfb42f753fa47c545f2f25a88fa89f584d564528c8eec2",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/unit/test_direct_employer_route_redirects.py",
+      "tested_worktree_sha256": "ebd71ea8cd20ffbe90137224343195a7cbd5f8bee72cb2ebbbb0d85d3fc20703",
+      "git_blob_sha256": "ebd71ea8cd20ffbe90137224343195a7cbd5f8bee72cb2ebbbb0d85d3fc20703",
+      "newline_equivalent": true
+    }
+  ],
+  "independent_review": {
+    "result": "NO_REMAINING_SCOPED_SOURCE_BLOCKERS",
+    "findings_addressed": [
+      "lock-time consent expiry",
+      "misplaced ATS tenant",
+      "Workable shared board"
+    ],
+    "not_runtime_acceptance": true
+  },
+  "retained_hosted_failure": {
+    "run": 41389806325,
+    "job": 125098470778,
+    "test": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay",
+    "detail": "openai-compatible cancel=True: cancel transaction was not staged; original failure remains failure"
+  },
+  "limits": [
+    "MJ-REQ-004 remains PARTIAL: this does not establish a global database-lock bound.",
+    "No employer application was sent; controlled test admission alone is not a live submission.",
+    "Protected CI, exact proposed-merge verification, guarded deployment and canonical acceptance remain separate gates."
+  ],
+  "external_employer_submissions": 0,
+  "paid_ai_calls": 0,
+  "hash_scope": "Tested Windows working-file bytes and immutable normalized Git source bytes are both recorded; line-ending equivalence is asserted."
+}

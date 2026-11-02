@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T13:24:19.027816+00:00",
+  "result": "VERIFIED_NON_SECRET_SOURCE_CHECKSUM",
+  "historical_failure": {
+    "run": 41452290388,
+    "job": 125300189540,
+    "result": "FAILURE_RETAINED"
+  },
+  "fingerprint": "c31e90e050113ed0633af6d7d631f730841524b8:docs/evidence/2026-11-02-pro-route/resumed-regressions.json:generic-api-key:76",
+  "evidence_path": "docs/evidence/2026-11-02-pro-route/resumed-regressions.json",
+  "reported_line": 76,
+  "classification": "SHA256_OF_TESTED_SOURCE_FILE",
+  "source_revision": "c31e90e050113ed0633af6d7d631f730841524b8",
+  "source": {
+    "path": "tests/browser/test_profile_ai_credentials.py",
+    "tested_worktree_sha256": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
+    "git_blob_sha256": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
+    "newline_equivalent": true
+  },
+  "method": "Recompute tested Windows file SHA256, read the immutable Git source blob, and assert exact equality after CRLF/LF normalization. This is a public source checksum with no authentication function.",
+  "exceptions": {
+    "exact_historical_fingerprints": 1,
+    "directory_or_rule_suppressions": 0
+  }
+}

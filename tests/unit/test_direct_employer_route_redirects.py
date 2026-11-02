@@ -18,6 +18,65 @@ VERIFIED_TENANTS = [{
 
 
 class DirectEmployerRouteRedirectTests(unittest.TestCase):
+    def test_path_tenant_must_be_first_segment_not_other_metadata(self):
+        for provider, host in (
+            ("ashby", "jobs.ashbyhq.com"), ("workable", "apply.workable.com"),
+            ("smartrecruiters", "jobs.smartrecruiters.com"),
+            ("jobvite", "jobs.jobvite.com"),
+        ):
+            with self.subTest(provider=provider, host=host):
+                client = RouteRedirectProbeClient("https://board.example/jobs/42",
+                    verified_domains=[], ats_tenants=[dict(VERIFIED_TENANTS[0],
+                        provider=provider, organization_identifier="other", board_identifier="42")])
+                try:
+                    self.assertTrue(client.allowed(f"https://{host}/acme"))
+                    self.assertTrue(client.allowed(f"https://{host}/acme/job-42"))
+                    for path in ("/other/acme", "/other/42", "/other/jobs/acme",
+                                 "/acme/../other/job-42", "/acme/%2e%2e/other/job-42",
+                                 "/acme/%252e%252e/other/job-42", "/acme%2fother/job-42",
+                                 "//acme/job-42", "/acme/%5c../other"):
+                        self.assertFalse(client.allowed(f"https://{host}{path}"), path)
+                finally:
+                    client.close()
+
+    def test_workday_tenant_is_the_employer_host_label(self):
+        client = RouteRedirectProbeClient("https://board.example/jobs/42",
+            verified_domains=[], ats_tenants=[dict(VERIFIED_TENANTS[0],
+                provider="workday", organization_identifier="wd5", board_identifier="External")])
+        try:
+            for host in ("acme.myworkdayjobs.com", "acme.wd5.myworkdayjobs.com"):
+                self.assertTrue(client.allowed(f"https://{host}/en-US/External/job/42"))
+            for host, path in (
+                ("other.myworkdayjobs.com", "/en-US/acme/job/42"),
+                ("other.wd5.myworkdayjobs.com", "/External/job/acme"),
+                ("other.acme.myworkdayjobs.com", "/External/job/42"),
+                ("acme.other.myworkdayjobs.com", "/External/job/42"),
+                ("myworkdayjobs.com", "/acme/External/job/42"),
+            ):
+                self.assertFalse(client.allowed(f"https://{host}{path}"), host + path)
+        finally:
+            client.close()
+
+    def test_unrecognized_shared_host_tenant_structure_is_not_authority(self):
+        client = RouteRedirectProbeClient("https://board.example/jobs/42",
+            verified_domains=[], ats_tenants=[dict(VERIFIED_TENANTS[0], provider="icims")])
+        try:
+            self.assertFalse(client.allowed("https://jobs.icims.com/other/acme/42"))
+        finally:
+            client.close()
+
+    def test_workable_shared_board_prefix_is_not_an_employer_tenant(self):
+        for tenant in ("view", "company"):
+            with self.subTest(tenant=tenant):
+                client = RouteRedirectProbeClient("https://board.example/jobs/42",
+                    verified_domains=[], ats_tenants=[dict(VERIFIED_TENANTS[0],
+                        provider="workable", tenant_identifier=tenant)])
+                try:
+                    self.assertFalse(client.allowed(
+                        f"https://jobs.workable.com/{tenant}/other-company/job-42"))
+                finally:
+                    client.close()
+
     def test_greenhouse_tenant_must_be_the_structural_board_identity(self):
         client = RouteRedirectProbeClient('https://board.example/redirect/1',
             verified_domains=[], ats_tenants=[{**VERIFIED_TENANTS[0], 'board_identifier': '42'}])
