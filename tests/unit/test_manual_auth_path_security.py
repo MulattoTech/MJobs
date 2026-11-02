@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from services.applications import manual_auth
+from services.applications.browser_profiles import browser_profile_path
 
 
 APPLICATION_ID = "a" * 64
@@ -115,21 +116,57 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
 
         with patch.object(
             manual_auth, "run_browser", return_value=manual_auth.MANUAL_AUTH_WINDOW_CLOSED,
-        ):
+        ) as run_browser, patch.dict(os.environ, {"MJOBS_BROWSER_DEBUG_CAPTURE": "1"}):
             result = self._open()
 
         self.assertEqual(result, manual_auth.MANUAL_AUTH_WINDOW_CLOSED)
+        self.assertTrue(run_browser.call_args.kwargs["debug_capture"])
+        self.assertEqual(run_browser.call_args.kwargs["application_root"], self.application_root)
+        self.assertEqual(manual_auth._diagnostic_capture_root(
+            run_browser.call_args.args[0], run_browser.call_args.kwargs["application_root"]),
+            self.application_root / "debug-captures")
+
+    def test_named_profile_diagnostics_keep_the_validated_application_root(self):
+        for label in ("review", "browser-profile"):
+            with self.subTest(label=label), tempfile.TemporaryDirectory(dir=self.root) as directory:
+                root = Path(directory)
+                application_root = root / APPLICATION_ID
+                with patch.dict(os.environ, {"MJOBS_BROWSER_PROFILE": label}):
+                    selected = browser_profile_path(application_root, initialize=True)
+                # A later environment change must retain the pinned session,
+                # including a name identical to the browser-profile directory.
+                with patch.dict(os.environ, {
+                    "MJOBS_BROWSER_PROFILE": "different", "MJOBS_BROWSER_DEBUG_CAPTURE": "1",
+                }), patch.object(manual_auth, "run_browser",
+                                 return_value=manual_auth.MANUAL_AUTH_WINDOW_CLOSED) as run_browser:
+                    result = manual_auth.open_manual_auth_window(
+                        _Store(), APPLICATION_ID, ATTEMPT_ID,
+                        "http://127.0.0.1:8123", root,
+                    )
+                self.assertEqual(result, manual_auth.MANUAL_AUTH_WINDOW_CLOSED)
+                self.assertEqual(run_browser.call_args.args[0], selected)
+                self.assertEqual(run_browser.call_args.kwargs["application_root"], application_root)
+                self.assertTrue(run_browser.call_args.kwargs["debug_capture"])
+                self.assertEqual(manual_auth._diagnostic_capture_root(
+                    selected, run_browser.call_args.kwargs["application_root"]),
+                    application_root / "debug-captures")
 
     def test_persisted_path_shaped_application_id_fails_closed(self):
-        application_id = "nested/application"
-        profile = self.root / application_id / "browser-profile"
-        profile.mkdir(parents=True)
-
-        with patch.object(manual_auth, "run_browser", return_value="BROWSER_STARTED"):
-            result = self._open(application_id=application_id)
-
-        self.assertEqual(result, manual_auth.STALE)
-        self.assertNotIn(str(profile), result)
+        self.profile.mkdir()
+        (self.root / "nested" / APPLICATION_ID / "browser-profile").mkdir(parents=True)
+        for application_id in (
+            "nested/" + APPLICATION_ID, "../" + APPLICATION_ID, str(self.application_root),
+            "..\\" + APPLICATION_ID, "C:\\" + APPLICATION_ID,
+            "\\\\server\\share\\" + APPLICATION_ID, "%2e%2e%2f" + APPLICATION_ID,
+            APPLICATION_ID + "\n", APPLICATION_ID + "\0", "A" * 64, None, 64,
+        ):
+            with self.subTest(application_id=application_id), patch.dict(
+                os.environ, {"MJOBS_BROWSER_DEBUG_CAPTURE": "1"},
+            ), patch.object(manual_auth, "run_browser", return_value="BROWSER_STARTED") as run_browser:
+                result = self._open(application_id=application_id)
+            self.assertEqual(result, manual_auth.STALE)
+            run_browser.assert_not_called()
+        self.assertFalse(list(self.root.rglob("debug-captures")))
 
 
 if __name__ == "__main__":

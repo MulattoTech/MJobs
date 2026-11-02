@@ -403,6 +403,12 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
     an explicit user action and keep the application in AUTH_REQUIRED until a
     separate explicit rerun is requested.
     """
+    if (not isinstance(application_id, str)
+            or not _FINGERPRINT.fullmatch(application_id)):
+        return STALE
+    application_path_id = os.path.basename(application_id)
+    if application_path_id != application_id:
+        return STALE
     resolved = _resolve_auth_attempt(store, application_id, attempt_id, output_dir)
     if resolved is None:
         return STALE
@@ -427,7 +433,7 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
         return OPEN_UNAVAILABLE
     return run_browser(profile, login_url, client, check=check, on_process=on_process,
                        debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1",
-                       application_root=Path(output_dir) / application_id)
+                       application_root=Path(output_dir) / application_path_id)
 
 
 def _diagnostic_capture_root(profile: Path, application_root: Path | None) -> Path | None:
