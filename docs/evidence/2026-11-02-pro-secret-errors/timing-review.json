@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "status": "NATIVE_FOLLOWUP_PASS_HOSTED_RECHECK_PENDING",
+  "source_parent": "85d1bff4c1ae542773a75cf3d60efb50725d8591",
+  "failed_hosted_run": {
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41457526538/job/125317907114",
+    "test": "DurableAIEvaluationTests.test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation",
+    "provider": "openai-compatible",
+    "cancel": false,
+    "observed_worker_seconds": 1.0937226369999848,
+    "observed_peer_close_ms": 963.4,
+    "failed": 1,
+    "passed": 903,
+    "skipped": 20,
+    "subtests_passed": 579
+  },
+  "finding": "The test measured completion on the observing thread after future.result(), and measured the initial boundary after the observer resumed. These timestamps combine execution with observer scheduling and cannot diagnose which phase exceeded the limit.",
+  "correction": "Timestamp partial-header entry in the server handler and durable completion in the worker. Record cancellation API entry, interrupt request, provider return, peer-close observation and observer lag separately. Keep the 0.3-second provider budget, one-second terminal bound, exactly-one-request and durable no-partial-result assertions unchanged.",
+  "source_sha256": [
+    {
+      "path": "tests/integration/test_durable_ai_evaluation.py",
+      "sha256": "87f337432cc3de70aea6b1898bb6b78bf81125be0f024f61fd21eaf7c9df02d6"
+    }
+  ],
+  "native_run": {
+    "command": "python -m pytest -q -s tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation --junitxml=outputs/security-timing-native.xml",
+    "result": "PASS",
+    "passed": 1,
+    "subtests_passed": 10,
+    "skipped": 0,
+    "duration_seconds": 8.98,
+    "timeout_worker_terminal_ms_range": [
+      328,
+      344
+    ],
+    "cancellation_worker_terminal_ms_range": [
+      47,
+      62
+    ],
+    "receipt_sha256": "c4c8091814dd3171d97ab21ad67a8993521d4dd66d295b15b490cc8a02eed82c"
+  },
+  "limitations": [
+    "This correction does not establish the cause of the historical hosted overrun; phase diagnostics and the fresh protected run remain required.",
+    "Independent review identified a separate remaining MJ-REQ-004 risk: durable cancellation polling performs database work before the provider deadline check and may block the watcher. This patch makes no production deadline-independence claim and does not promote MJ-REQ-004 to PASS.",
+    "No timeout widened, protected check bypassed, paid provider called, or real employer application submitted."
+  ],
+  "followup_parent": "0f923caf3d7f67625db45fff83dd346afd052a1b",
+  "hosted_recheck": {
+    "run": "https://github.com/MulattoTech/MJobs/actions/runs/41461988369",
+    "result": "FAIL",
+    "durable_ai": {
+      "job": 125333090500,
+      "interrupt_requested_ms": 292.5,
+      "provider_return_ms": 293.6,
+      "peer_close_observed_ms": 1011.3,
+      "worker_terminal_ms": 1237.3,
+      "failed": 1,
+      "passed": 903,
+      "skipped": 20,
+      "subtests_passed": 579
+    },
+    "source_socket": {
+      "job": 125333095319,
+      "test": "test_positive_public_worker_source_uses_real_socket",
+      "failure": "DEAD_LETTERED / OPERATION_TIMEOUT instead of COMPLETED",
+      "failed": 1,
+      "passed": 862,
+      "skipped": 4,
+      "subtests_passed": 582
+    }
+  },
+  "setup_isolation": "Collect cyclic graphs from preceding API fixtures immediately before starting each timed worker. Automatic GC remains enabled. Provider budgets, actor-owned clocks, terminal limits, cancellation assertions and durable-state readback remain unchanged. The delayed independent peer observation plus prompt provider return supports a process-wide pause; GC as the historical cause remains an inference, not proved.",
+  "followup_source_sha256": [
+    {
+      "path": "tests/integration/test_durable_ai_evaluation.py",
+      "sha256": "0d1b5a7aae764f79c85955115168d346b806b3adfc748601979387723c9d361e"
+    },
+    {
+      "path": "tests/integration/test_source_http_socket_budget.py",
+      "sha256": "023ee69141347c036b7c2dbd1786d2d37539feae1fcf1568d5723ddcc4b4e699"
+    }
+  ],
+  "native_followup": {
+    "command": "python -m pytest -q -s tests/integration/test_durable_ai_evaluation.py tests/integration/test_source_http_socket_budget.py --junitxml=outputs/security-timing-gc-native.xml",
+    "result": "PASS",
+    "passed": 54,
+    "subtests_passed": 31,
+    "skipped": 0,
+    "duration_seconds": 117.91,
+    "receipt_sha256": "9667e25ea33b99f17eead84007b53c3ca76fc5074c7b861983f706ab94f4dd00",
+    "first_setup_collection": {
+      "objects": 192782,
+      "duration_ms": 438
+    },
+    "timeout_worker_terminal_ms_range": [
+      344,
+      360
+    ],
+    "cancellation_worker_terminal_ms_range": [
+      47,
+      109
+    ],
+    "positive_source_worker_seconds": 0.063
+  }
+}
