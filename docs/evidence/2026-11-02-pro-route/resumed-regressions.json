@@ -70,14 +70,44 @@
     }
   },
   "run_overlap": "The two scopes overlap and must not be summed. Final route/browser run includes the Workable shared-board correction; TLS source is identical to the passing route/TLS run.",
-  "source_sha256": {
-    "services/applications/submission_admission.py": "63efbd9159b9b273cfb8cc78aa295a2ad94f8bc34f9739f04ac98ab5f19a033b",
-    "services/dedupe/route_redirects.py": "9afa911a86996a4be2618077dfda7ce1b65d86d366e050c0549adc5cb03492bb",
-    "tests/browser/test_profile_ai_credentials.py": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
-    "tests/integration/test_ai_tls_recovery.py": "e5b8d9932f656e6a14e0ee1fc4367884e72c058b70fad7c8a115b0360bf1becb",
-    "tests/integration/test_submission_route_preflight.py": "185e213002fb4fbec0dfb42f753fa47c545f2f25a88fa89f584d564528c8eec2",
-    "tests/unit/test_direct_employer_route_redirects.py": "ebd71ea8cd20ffbe90137224343195a7cbd5f8bee72cb2ebbbb0d85d3fc20703"
-  },
+  "source_sha256": [
+    {
+      "path": "services/applications/submission_admission.py",
+      "tested_worktree_sha256": "63efbd9159b9b273cfb8cc78aa295a2ad94f8bc34f9739f04ac98ab5f19a033b",
+      "git_blob_sha256": "63efbd9159b9b273cfb8cc78aa295a2ad94f8bc34f9739f04ac98ab5f19a033b",
+      "newline_equivalent": true
+    },
+    {
+      "path": "services/dedupe/route_redirects.py",
+      "tested_worktree_sha256": "9afa911a86996a4be2618077dfda7ce1b65d86d366e050c0549adc5cb03492bb",
+      "git_blob_sha256": "9afa911a86996a4be2618077dfda7ce1b65d86d366e050c0549adc5cb03492bb",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/browser/test_profile_ai_credentials.py",
+      "tested_worktree_sha256": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
+      "git_blob_sha256": "b2d8c2eb14c1748653f9b57c7a77daae4981d33e59b6b8daf2602f4bcbed6804",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/integration/test_ai_tls_recovery.py",
+      "tested_worktree_sha256": "e5b8d9932f656e6a14e0ee1fc4367884e72c058b70fad7c8a115b0360bf1becb",
+      "git_blob_sha256": "e5b8d9932f656e6a14e0ee1fc4367884e72c058b70fad7c8a115b0360bf1becb",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/integration/test_submission_route_preflight.py",
+      "tested_worktree_sha256": "185e213002fb4fbec0dfb42f753fa47c545f2f25a88fa89f584d564528c8eec2",
+      "git_blob_sha256": "185e213002fb4fbec0dfb42f753fa47c545f2f25a88fa89f584d564528c8eec2",
+      "newline_equivalent": true
+    },
+    {
+      "path": "tests/unit/test_direct_employer_route_redirects.py",
+      "tested_worktree_sha256": "ebd71ea8cd20ffbe90137224343195a7cbd5f8bee72cb2ebbbb0d85d3fc20703",
+      "git_blob_sha256": "ebd71ea8cd20ffbe90137224343195a7cbd5f8bee72cb2ebbbb0d85d3fc20703",
+      "newline_equivalent": true
+    }
+  ],
   "independent_review": {
     "result": "NO_REMAINING_SCOPED_SOURCE_BLOCKERS",
     "findings_addressed": [
@@ -99,5 +129,6 @@
     "Protected CI, exact proposed-merge verification, guarded deployment and canonical acceptance remain separate gates."
   ],
   "external_employer_submissions": 0,
-  "paid_ai_calls": 0
+  "paid_ai_calls": 0,
+  "hash_scope": "Tested Windows working-file bytes and immutable normalized Git source bytes are both recorded; line-ending equivalence is asserted."
 }
