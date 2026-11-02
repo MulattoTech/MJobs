@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-11-02T02:27:20.707566+00:00",
+  "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "result": "MAIN_DEPLOYMENT_GATES_PASS",
+  "required_checks": [
+    {
+      "id": 125061159963,
+      "name": "Integration / PostgreSQL and Redis",
+      "head_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41375975054/job/125061159963"
+    },
+    {
+      "id": 125057163754,
+      "name": "CI / required",
+      "head_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41375974990/job/125057163754"
+    },
+    {
+      "id": 125056179476,
+      "name": "Deployment / candidate",
+      "head_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41375975230/job/125056179476"
+    },
+    {
+      "id": 125056178405,
+      "name": "Security / secret scan",
+      "head_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41375974973/job/125056178405"
+    }
+  ],
+  "candidate_run": 41375975230,
+  "candidate_artifact_id": 13111632558,
+  "candidate_manifest": {
+    "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+    "result": "CANDIDATE_VALIDATED_NOT_DEPLOYED",
+    "deployment": "pulled by isolated MJobs host"
+  },
+  "candidate_manifest_sha256": "ed34a5e10594dea1fc6d7dc71266c4966949c16d13a19d34d7719bd08ff0c8d5",
+  "deployment": "This proves eligibility only. The existing guarded updater and separate post-deployment receipt establish actual rollout."
+}

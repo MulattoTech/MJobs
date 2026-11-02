@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T02:05:58.695403+00:00",
+  "result": "PROTECTED_FIXTURE_NATIVE_AND_HOSTED_PASS",
+  "source_pr": 883,
+  "tested_merge_revision": "02e9d3f939358d2f31f82702b6cedfd918baaec1",
+  "tested_merge_tree": "7223b22d2ee1e0493ba694f73070f0f5d225c23e",
+  "native_exact_merge": {
+    "xml_sha256": "3d165ca26764a3f1686c853f988407d944033d1459a03e160da268778efa94fc",
+    "junit_testcases": 35,
+    "passed": 35,
+    "skipped": 0,
+    "failed": 0,
+    "skip_reasons": {},
+    "revision": "02e9d3f939358d2f31f82702b6cedfd918baaec1",
+    "subtests_passed": 25,
+    "summary": "35 passed, 25 subtests passed in 117.58s (0:01:57)",
+    "command": "python -m pytest -q tests/integration/test_source_http_socket_budget.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=outputs/fixture-proposed-merge.xml",
+    "log_sha256": "d9c88b041dc7d82f2547a12324d93c6b8c3119bea181b489fb04589edb934a0e",
+    "tested_source_sha256": "f57b7c0034960b3aed1f2702490f2d49bb876ae1a609ffdd3eb53e0e8b17022f"
+  },
+  "hosted_artifacts": [
+    {
+      "xml_sha256": "a9da3ae8273110122a01973c86da3a566f9b5337a8487be14bc15905b1544a8c",
+      "junit_testcases": 3337,
+      "passed": 3286,
+      "skipped": 51,
+      "failed": 0,
+      "skip_reasons": {
+        "Windows case-insensitive filesystem alias": 1,
+        "Windows directory junction": 2,
+        "Optional host-installed Codex CLI is absent on this runner": 1,
+        "Native Windows junction boundary": 6,
+        "Native Windows retained identity": 2,
+        "Native Windows private observer": 1,
+        "Native retained query writer": 1,
+        "Native creator death and Chromium": 1,
+        "Native retained query provenance": 1,
+        "Native Windows containment": 9,
+        "Native Windows durable observer": 7,
+        "Native Windows actual Chromium channel": 1,
+        "Native Windows maximum bound frame": 1,
+        "Native Windows observer IPC": 2,
+        "Native Windows creator exit": 1,
+        "Native Windows bounded pipe reads": 1,
+        "Native Windows private host input": 5,
+        "Windows retained process identity regression": 2,
+        "Windows process-tree cancellation contract": 1,
+        "Windows owned Chromium tree cancellation": 1,
+        "Native Windows contained process trees": 1,
+        "Windows-only log viewer": 1,
+        "Windows-only visible terminals": 1,
+        "npm .cmd wrappers are Windows-only": 1
+      },
+      "run_id": 41374127756,
+      "artifact_id": 13110656561,
+      "name": "unit-results",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41374127756/artifacts/13110656561"
+    },
+    {
+      "xml_sha256": "bdf9910995fd27edf7448ad514c3f05d3b5b8018ee3a7f7fbb1aacf7148f3114",
+      "junit_testcases": 790,
+      "passed": 776,
+      "skipped": 14,
+      "failed": 0,
+      "skip_reasons": {
+        "STK01 requires frozen static audit and explicit disposable-stack resource grant": 1,
+        "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence": 9,
+        "Native isolated Windows host": 1,
+        "disposable protected-config PostgreSQL URL not configured": 1,
+        "disposable PostgreSQL URL not configured": 1,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      },
+      "run_id": 41374127698,
+      "artifact_id": 13110628240,
+      "name": "integration-results-0",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41374127698/artifacts/13110628240"
+    },
+    {
+      "xml_sha256": "3b12870c0d7248ad91910c59395a6b026b60d4ccb972ef39913d03b0f60b5cbf",
+      "junit_testcases": 783,
+      "passed": 771,
+      "skipped": 12,
+      "failed": 0,
+      "skip_reasons": {
+        "SQLite in-memory-only shared DBAPI guard": 1,
+        "Set MJOBS_RETRY_POSTGRES_URL to an isolated disposable PostgreSQL database": 10,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      },
+      "run_id": 41374127698,
+      "artifact_id": 13110587764,
+      "name": "integration-results-1",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41374127698/artifacts/13110587764"
+    },
+    {
+      "xml_sha256": "d61ce8134bf7c7f5caac25128fc8a94641dd774d7a85d2eaae6af34840ea7208",
+      "junit_testcases": 931,
+      "passed": 922,
+      "skipped": 9,
+      "failed": 0,
+      "skip_reasons": {
+        "Requires isolated refresh PostgreSQL": 9
+      },
+      "run_id": 41374127698,
+      "artifact_id": 13111042546,
+      "name": "integration-results-2",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41374127698/artifacts/13111042546"
+    }
+  ],
+  "required_fixture_cases": [
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_finite_worker_deadline_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_greenhouse_public_cancel_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_injected_transports_keep_control_even_when_falsey",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_deadline_survives_delayed_coordinator_before_worker_entry",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_finite_deadline_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_healthy_worker_and_fresh_source_readback",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_public_cancel_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_global_finite_deadline_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_global_healthy_worker_and_fresh_source_readback",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_global_public_cancel_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_positive_public_worker_collections_and_fresh_readback",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_public_cancel_budget_excludes_fixture_dispatch_delay",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_public_cancel_budget_rejects_delay_after_handler_admission",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_remoteok_public_cancel_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_wwr_public_cancel_during_real_tcp_connect",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13110628240
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_body_and_header_deadline_precedes_delayed_finalization",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_connect_stall_oracle_starts_after_worker_setup",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_default_transport_preserves_source_trust_env_false",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_dns_capacity_wait_is_bounded_without_spawning_an_extra_resolver",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_dns_launch_failure_is_classified_and_releases_capacity",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_pending_first_address_preserves_other_address_opportunity_and_closes_losers",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_positive_public_worker_source_uses_owned_localhost_dns",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_positive_public_worker_source_uses_real_socket",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_pre_transport_timeout_diagnostic_retains_real_terminal_state",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_public_cancel_during_real_tcp_connect_stall",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_public_cancel_during_real_tls_handshake_stall",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_public_cancel_under_continuous_sub_64k_body_and_header_stall",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_real_tls_preserves_certificate_and_hostname_verification",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_slow_ssl_setup_precedes_strict_header_transport_deadline",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_source_fixture_lifetime_starts_after_connection",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_worker_deadline_during_real_tcp_connect_stall",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_worker_deadline_during_real_tls_handshake_stall",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_worker_deadline_under_continuous_sub_64k_body_and_header_stall",
+      "result": "PASS",
+      "run_id": 41374127698,
+      "artifact_id": 13111042546
+    }
+  ],
+  "interpretation": "Both real-transport modules executed without skipped cases in native exact-merge validation and protected hosted CI. Full suite artifacts retain their distinct skips. Original failed main/candidate remain failures. Counts overlap and are not additive."
+}

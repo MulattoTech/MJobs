@@ -1,0 +1,533 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T01:09:29.440997+00:00",
+  "tested_merge_revision": "00c9ea2a7ab6c28e2a79cf1314fa7941cc7f42a7",
+  "hosted_artifacts": [
+    {
+      "name": "unit-results",
+      "run_id": 41369114399,
+      "artifact_id": 13108097734,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41369114399/artifacts/13108097734",
+      "xml_sha256": "5cf8fa6f1f7c0af84fde696b30e62aa56fdcd5e62d1cedf4ec6cee2c1b4c3105",
+      "junit_testcases": 3337,
+      "passed_testcases": 3286,
+      "skipped_testcases": 51,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "Windows case-insensitive filesystem alias": 1,
+        "Windows directory junction": 2,
+        "Optional host-installed Codex CLI is absent on this runner": 1,
+        "Native Windows junction boundary": 6,
+        "Native Windows retained identity": 2,
+        "Native Windows private observer": 1,
+        "Native retained query writer": 1,
+        "Native creator death and Chromium": 1,
+        "Native retained query provenance": 1,
+        "Native Windows containment": 9,
+        "Native Windows durable observer": 7,
+        "Native Windows actual Chromium channel": 1,
+        "Native Windows maximum bound frame": 1,
+        "Native Windows observer IPC": 2,
+        "Native Windows creator exit": 1,
+        "Native Windows bounded pipe reads": 1,
+        "Native Windows private host input": 5,
+        "Windows retained process identity regression": 2,
+        "Windows process-tree cancellation contract": 1,
+        "Windows owned Chromium tree cancellation": 1,
+        "Native Windows contained process trees": 1,
+        "Windows-only log viewer": 1,
+        "Windows-only visible terminals": 1,
+        "npm .cmd wrappers are Windows-only": 1
+      },
+      "failure_summaries": []
+    },
+    {
+      "name": "integration-results-0",
+      "run_id": 41369114372,
+      "artifact_id": 13108848045,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41369114372/artifacts/13108848045",
+      "xml_sha256": "00668d5d142e9f6594b7fe28658d9d8ec57b89ab0598bbbd82b0eb0c06e9c67a",
+      "junit_testcases": 790,
+      "passed_testcases": 776,
+      "skipped_testcases": 14,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "STK01 requires frozen static audit and explicit disposable-stack resource grant": 1,
+        "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence": 9,
+        "Native isolated Windows host": 1,
+        "disposable protected-config PostgreSQL URL not configured": 1,
+        "disposable PostgreSQL URL not configured": 1,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      },
+      "failure_summaries": []
+    },
+    {
+      "name": "integration-results-1",
+      "run_id": 41369114372,
+      "artifact_id": 13109051600,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41369114372/artifacts/13109051600",
+      "xml_sha256": "32e108b6a4dfa734262506c096798ecd3fb6037899473d830beeea57f31ee37c",
+      "junit_testcases": 783,
+      "passed_testcases": 771,
+      "skipped_testcases": 12,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "SQLite in-memory-only shared DBAPI guard": 1,
+        "Set MJOBS_RETRY_POSTGRES_URL to an isolated disposable PostgreSQL database": 10,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      },
+      "failure_summaries": []
+    },
+    {
+      "name": "integration-results-2",
+      "run_id": 41369114372,
+      "artifact_id": 13108503699,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41369114372/artifacts/13108503699",
+      "xml_sha256": "74126c4e385c777ea6edb02190e22364ab3e227bf9ac41bbce572b27b7943a0f",
+      "junit_testcases": 929,
+      "passed_testcases": 920,
+      "skipped_testcases": 9,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "Requires isolated refresh PostgreSQL": 9
+      },
+      "failure_summaries": []
+    },
+    {
+      "name": "settings-browser-results",
+      "run_id": 41369114394,
+      "artifact_id": 13109250223,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41369114394/artifacts/13109250223",
+      "xml_sha256": "1e5af84f7353e7dc69e3f593147f051a3b66d22c9ff0b6c690bded05f0dfc80c",
+      "junit_testcases": 5,
+      "passed_testcases": 5,
+      "skipped_testcases": 0,
+      "failed_testcases": 0,
+      "skip_reasons": {},
+      "failure_summaries": []
+    },
+    {
+      "name": "synthetic-acceptance-json",
+      "run_id": 41369114394,
+      "artifact_id": 13109046344,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41369114394/artifacts/13109046344",
+      "results": {
+        "ci-backup-recovery.json": {
+          "result": "PASS",
+          "sha256": "8e2d899081e6667f34ff817e27aa4225240de86e80c5f5792266bd903e4e6aef"
+        },
+        "ci-backup.json": {
+          "result": "PASS",
+          "sha256": "c0d1e017d6fec292c25f8ee90699bd5fb3a6253aee2f1a38670e5ef859fc2b92"
+        },
+        "ci-mock-e2e.json": {
+          "result": "PASS",
+          "sha256": "9ecee9e7c667b3ec2dde04e2d93dfd9cc40949c765a55c45acd41f035491d723"
+        },
+        "ci-recovery.json": {
+          "result": "PASS",
+          "sha256": "f124170df534e862ca0cd5ad7a40a8d13fa94e187948084fd93005edf8222734"
+        },
+        "ci-ui-onboarding.json": {
+          "result": "PARTIAL",
+          "sha256": "15e148ba48ede02a896a723db82df66514391f08acd0f2fdffc25b46541915b8"
+        },
+        "ci-ui.json": {
+          "result": "PASS",
+          "sha256": "c133493ca6405e6c8c3b1eb8181620c96afb187339505f423dcd3e6e4556046c"
+        }
+      }
+    }
+  ],
+  "required_database_cases": {
+    "source_capabilities_postgresql": [
+      {
+        "class": "tests.integration.test_company_source_view.CompanySourceCapabilityPostgresTests",
+        "name": "test_feed_capabilities_survive_api_readback_and_disabled_legacy_sources",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_company_source_view.CompanySourceCapabilityPostgresTests",
+        "name": "test_linked_builtin_and_extension_declarations_reopen_without_factories",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_company_source_view.CompanySourceCapabilityPostgresTests",
+        "name": "test_local_fixture_discovery_declares_its_actual_source_and_read_only_scope",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_company_source_view.CompanySourceCapabilityPostgresTests",
+        "name": "test_real_feed_imports_record_the_declaration_and_supported_job_fields",
+        "result": "PASS"
+      }
+    ],
+    "submission_limits_postgresql": [
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitPostgresTests",
+        "name": "test_configured_caps_cannot_enable_external_submission",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitPostgresTests",
+        "name": "test_configured_caps_use_existing_rolling_and_company_durable_counters",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitPostgresTests",
+        "name": "test_configured_hourly_cap_serializes_two_distinct_application_admissions",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitPostgresTests",
+        "name": "test_explicit_internal_policy_retains_existing_override_semantics",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitPostgresTests",
+        "name": "test_zero_each_cap_blocks_actual_mock_admission_without_claiming",
+        "result": "PASS"
+      }
+    ],
+    "submission_limits_sqlite": [
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitTests",
+        "name": "test_configured_caps_cannot_enable_external_submission",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitTests",
+        "name": "test_configured_caps_use_existing_rolling_and_company_durable_counters",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitTests",
+        "name": "test_configured_hourly_cap_serializes_two_distinct_application_admissions",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitTests",
+        "name": "test_explicit_internal_policy_retains_existing_override_semantics",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_configured_submission_limits.ConfiguredSubmissionLimitTests",
+        "name": "test_zero_each_cap_blocks_actual_mock_admission_without_claiming",
+        "result": "PASS"
+      }
+    ],
+    "structured_categories_postgresql": [
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_ambiguous_challenge_and_stale_preflight_do_not_invent_categories",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_changed_questionnaire_blocks_before_browser",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_closed_job_blocks_preparation_browser_and_final_admission",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_closure_after_browser_start_blocks_final_submit_and_is_classified",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_document_failure_is_categorized_after_real_fact_validation",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_explicit_captcha_and_auth_are_distinct_durable_categories",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_native_form_validation_failure_keeps_fixed_category",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_optional_category_read_failure_preserves_blocked_outcome",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_source_categories_keep_existing_retry_policy_and_reopen",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_unconfirmed_receipt_reconciliation_survives_later_closure_without_replay",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_unknown_dynamic_field_retains_exact_category",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_unsupported_ats_route_is_rejected_by_real_form_review_worker",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+        "name": "test_upload_integrity_failure_is_structured_and_never_retried",
+        "result": "PASS"
+      }
+    ],
+    "structured_categories_sqlite": [
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_ambiguous_challenge_and_stale_preflight_do_not_invent_categories",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_changed_questionnaire_blocks_before_browser",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_closed_job_blocks_preparation_browser_and_final_admission",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_closure_after_browser_start_blocks_final_submit_and_is_classified",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_document_failure_is_categorized_after_real_fact_validation",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_explicit_captcha_and_auth_are_distinct_durable_categories",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_native_form_validation_failure_keeps_fixed_category",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_optional_category_read_failure_preserves_blocked_outcome",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_source_categories_keep_existing_retry_policy_and_reopen",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_unconfirmed_receipt_reconciliation_survives_later_closure_without_replay",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_unknown_dynamic_field_retains_exact_category",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_unsupported_ats_route_is_rejected_by_real_form_review_worker",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+        "name": "test_upload_integrity_failure_is_structured_and_never_retried",
+        "result": "PASS"
+      }
+    ]
+  },
+  "native_exact_merge": {
+    "xml_sha256": "3448933f2ff8b8eb314b02b4d667a2458ae192c32c1ff59ad53227a98587b0fe",
+    "junit_testcases": 191,
+    "passed_testcases": 168,
+    "skipped_testcases": 23,
+    "failed_testcases": 0,
+    "skip_reasons": {
+      "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database": 22,
+      "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+    },
+    "failure_summaries": [],
+    "revision": "00c9ea2a7ab6c28e2a79cf1314fa7941cc7f42a7",
+    "pytest_summary": "168 passed, 23 skipped, 113 subtests passed in 155.28s",
+    "browser_cases": [
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_all_controlled_providers_capture_failure_and_preserve_durable_result",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_diagnostic_failure_cannot_replace_original_browser_failure",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_disabled_capture_creates_no_failure_package",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_success_with_capture_enabled_creates_no_failure_package",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ManualAuthDebugCaptureTests",
+        "name": "test_disabled_failure_and_normal_close_do_not_capture_sessions",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ManualAuthDebugCaptureTests",
+        "name": "test_failure_capture_has_real_console_network_events_and_masks_credentials",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_company_source_view.CompanySourceBrowserTests",
+        "name": "test_personal_source_controls_persist_and_feedback_layout_remains_usable",
+        "result": "PASS"
+      }
+    ],
+    "fresh_ui_build": "PASS: Docker node:24-bookworm-slim, network none, exact-merge source; minimatch 11.0.3; typecheck and production build",
+    "build_log_sha256": "969f7babc3ff1f16e52fef29218cc747f28d9747b0bbcf68c7e4a60d59073dbb",
+    "test_log_sha256": "11d2dc07f6a44ff45c62fdc6e54951d9fe63353dab46f5a8611acf7f25e32fc2",
+    "build_warning": "Existing 978.59 kB JavaScript chunk warning remains."
+  },
+  "earlier_native_artifacts": [
+    {
+      "file": "backup-caps-final.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "298e338299185445c1a3c349ed5b765dd3d3b31b3cf5b5beaf505d3ad84a0b6a",
+      "junit_testcases": 80,
+      "passed_testcases": 80,
+      "skipped_testcases": 0,
+      "failed_testcases": 0,
+      "skip_reasons": {},
+      "failure_summaries": []
+    },
+    {
+      "file": "backup-caps.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "570046daf2636408306a529bcdee8fb0b613712c0ab461342a56afed3fce477d",
+      "junit_testcases": 80,
+      "passed_testcases": 80,
+      "skipped_testcases": 0,
+      "failed_testcases": 0,
+      "skip_reasons": {},
+      "failure_summaries": []
+    },
+    {
+      "file": "second-batch-combined.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "2ecd890b8075ad190d68b430081959fe851239d6ac6a148b4272a4dc2c0736c0",
+      "junit_testcases": 134,
+      "passed_testcases": 115,
+      "skipped_testcases": 19,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database": 18,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      },
+      "failure_summaries": []
+    },
+    {
+      "file": "source-capabilities-browser.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "fcc5565357d81faae51acb144f7947917c9ab74cd30a2e15f5fcf2a4cd6d8dbd",
+      "junit_testcases": 1,
+      "passed_testcases": 1,
+      "skipped_testcases": 0,
+      "failed_testcases": 0,
+      "skip_reasons": {},
+      "failure_summaries": []
+    },
+    {
+      "file": "source-capabilities-final.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "fc0924794961f060143c2d4ff715b7a2373f5f56bdb80083b18eb8a7bb1089d4",
+      "junit_testcases": 56,
+      "passed_testcases": 52,
+      "skipped_testcases": 4,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database": 4
+      },
+      "failure_summaries": []
+    },
+    {
+      "file": "source-capabilities-initial.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "29bf713983d91c48142ad2ed35a6f3e8b19e54f07bf788b46c4db539c917d4dc",
+      "junit_testcases": 50,
+      "passed_testcases": 49,
+      "skipped_testcases": 0,
+      "failed_testcases": 1,
+      "skip_reasons": {},
+      "failure_summaries": [
+        "KeyError: 'operations'"
+      ]
+    },
+    {
+      "file": "submission-limits-corrected.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "179dfd3c2366c1d62eadbad8ca16db11ab1dabccad79714ee1e6635ac63053e7",
+      "junit_testcases": 50,
+      "passed_testcases": 50,
+      "skipped_testcases": 0,
+      "failed_testcases": 0,
+      "skip_reasons": {},
+      "failure_summaries": []
+    },
+    {
+      "file": "submission-limits-final.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "69891fdaddaa8023d49a5f12a3f70ce7543864a403994405c52976eae8f8afbf",
+      "junit_testcases": 55,
+      "passed_testcases": 50,
+      "skipped_testcases": 5,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "Set MJOBS_TEST_POSTGRES_URL to an isolated disposable PostgreSQL database": 5
+      },
+      "failure_summaries": []
+    },
+    {
+      "file": "submission-limits.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "cb400d3fab6b62728adba3638b11e636e9e20ba7d23cf49126600e821f49740a",
+      "junit_testcases": 89,
+      "passed_testcases": 89,
+      "skipped_testcases": 0,
+      "failed_testcases": 0,
+      "skip_reasons": {},
+      "failure_summaries": []
+    },
+    {
+      "file": "wwr-identity.xml",
+      "scope": "Earlier focused working-tree execution; not independent final-revision proof",
+      "xml_sha256": "b6bb8028bfc1005864c8d65dc043d4e19ee8f9aca590048c14dde6802d52d30d",
+      "junit_testcases": 43,
+      "passed_testcases": 42,
+      "skipped_testcases": 1,
+      "failed_testcases": 0,
+      "skip_reasons": {
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      },
+      "failure_summaries": []
+    }
+  ],
+  "interpretation": "Runs overlap. JUnit testcase counts and pytest subtests are reported separately; skips are not passes."
+}

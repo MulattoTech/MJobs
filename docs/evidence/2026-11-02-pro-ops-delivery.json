@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T02:34:15.944248+00:00",
+  "sprint": "pro-ops-20261101",
+  "result": "VERIFIED_SOURCE_DELIVERY_WITH_THREE_P1_ACCEPTANCES",
+  "baseline_commit": "355a0b49efb83b56db4de6730e7332f85906db36",
+  "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "source_prs": [
+    881,
+    882,
+    883
+  ],
+  "counts_before": {
+    "originals": {
+      "PARTIAL": 90,
+      "PASS": 169,
+      "NOT_RUN": 107
+    },
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 12,
+      "NOT_RUN": 10
+    },
+    "P1": {
+      "PARTIAL": 16,
+      "PASS": 96,
+      "NOT_RUN": 4
+    }
+  },
+  "counts_after": {
+    "originals": {
+      "PARTIAL": 88,
+      "PASS": 172,
+      "NOT_RUN": 106
+    },
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 12,
+      "NOT_RUN": 10
+    },
+    "P1": {
+      "PARTIAL": 14,
+      "PASS": 99,
+      "NOT_RUN": 3
+    }
+  },
+  "accepted_requirements": [
+    {
+      "requirement_id": "MJ-REQ-019",
+      "title": "Source Capability Model"
+    },
+    {
+      "requirement_id": "MJ-REQ-161",
+      "title": "Error Categories"
+    },
+    {
+      "requirement_id": "MJ-REQ-179",
+      "title": "Debug Capture"
+    }
+  ],
+  "partial_progress": [
+    {
+      "requirement_id": "MJ-REQ-004",
+      "result": "PARTIAL",
+      "implemented": "Finite updater command deadlines, combined stdout/stderr cap, cancellation, child/pipe cleanup, fixed diagnostics",
+      "tests": "tests/unit/test_windows_micro_command_bounds.py",
+      "limits": "Complete external-operation bounds are not established."
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "result": "PARTIAL",
+      "implemented": "Retained safe backup refusal categories and backward-compatible non-secret cap snapshots",
+      "limits": "Historical Nov1 backup exit2 detail was discarded and cannot be recovered; protected configuration and browser authentication recovery remain outside acceptance."
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "result": "PARTIAL",
+      "implemented": "Actual configurable submission admission caps, startup validation, safe readback, identical Compose forwarding, versioned backup retention",
+      "limits": "Notification behavior and browser-profile selection remain missing."
+    },
+    {
+      "requirement_id": "MJ-REQ-017",
+      "result": "PARTIAL",
+      "implemented": "WWR detail lookup consistently rejects conflicting duplicate identities; collection rollback covered",
+      "limits": "Fresh live feed still has conflicting records; no live-source PASS.",
+      "related_requirement_id": "MJ-REQ-017.S02",
+      "existing_child_acceptance": "PASS remains unchanged; synthetic adapter acceptance is distinct from the retained live-feed failure"
+    }
+  ],
+  "unchanged_partial_requirements": {
+    "MJ-REQ-224": "Seven-dimension contract matrix across every supported application adapter, including ATS detection, remains incomplete.",
+    "MJ-REQ-267": "Fresh automatic employer-route discovery before preparation remains missing; explicit save/resolve and stored-route selection are not the automatic consumer.",
+    "MJ-REQ-269": "Supported AI-generated document consumer with approved fact references remains missing; deterministic trace and supplied rewrite review are not that consumer."
+  },
+  "reference_matrix_sha256_before_and_after": "fda62abe9db711ea41941bf991685c95c9d323d9554ca8776366a99c9800653b",
+  "source_blob_sha256": {
+    ".env.example": "b748833fb8c590cebada428ef63af3afddfaec8ad23669b9204ef1729a76b94c",
+    "apps/api/main.py": "c08a577f8bc75516da8814823fe4b8ea0c7953ef83daa67c58bc1b2545463086",
+    "apps/api/operation_progress.py": "c32fa2db0d6813e8e6201af2af4189069b0e308363270d021da2297217726cd9",
+    "apps/web/package-lock.json": "2acf5987d423047d30ed4e19462edefca4c13798fbcaf4d92918004be031c195",
+    "apps/web/package.json": "9421f08777d6283013740c196f4fcc8848480da60f93031e51ea4f8c2ac91325",
+    "apps/web/scripts/quality-checks.mjs": "9abf87f7b850da85313aa8a6eb7526d0a2fbc54ef7ceb29abad1f5f846291afe",
+    "apps/web/src/company-sources.test.tsx": "7474288581e68ed9c6cf10f6f1daec73bfbe25e54a27e9b91665c322ba4d4d4d",
+    "apps/web/src/company-sources.tsx": "e082debc3b1c4e1cdd07a9aba41cb3fcbcab9ba17040c28f630f6011f1699852",
+    "cli/local_backup.py": "d15bf18f56b825a3443930c2b6f1dd8d379ae30f8dd13408b07933d8b4386bd5",
+    "compose.yml": "705a084bf688b97cd7cd3ec7caf59d5d072c1ba32ad6b7e94e7a9faeb9cba550",
+    "docs/runbooks/BROWSER_DEBUG_CAPTURE.md": "5d997b783135f00ba773e03006ca95f872ac38c8abb5b6881abcee1253b822d6",
+    "docs/runbooks/DEAD_LETTER_OPERATIONS.md": "81649cee783750cae9b08081eedbcd87aec8c252ccf6066af0d7a907dd71454c",
+    "docs/runbooks/LOCAL_BACKUP.md": "081a496e7411637ec3235884bd1f662ee5d9da99f58663f0fe1a3b30c55c1035",
+    "infra/deploy/windows/update_mjobs_micro.py": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+    "packages/domain/operation_errors.py": "9ec9097f7da88b1e4bb530a09ed901a591b1cf7a08a080aa9c26e9c1e55af684",
+    "services/applications/configuration.py": "814624bf60f0c956bf1f1fb972348a6083c0ad097a81e1a22c03acab02f17d40",
+    "services/applications/confirmation_recovery.py": "d59ce7d828492a09ac803c20543cc16a3f11f9030c4d90d9e1116c61ba562b79",
+    "services/applications/controlled_dry_run.py": "4f93d6526451b12ae770101c70bc8e56be131d1c499d8bb8812d5fc7729f7ba0",
+    "services/applications/debug_capture.py": "bf15396a059e7561c241ab0f1faedf900a0acb8fa1dd370f75840095fdc4e2da",
+    "services/applications/errors.py": "bc2c5b65207f4a34bacb8632ad4bd3837396a395c11099fbdf417b3f0dd2b239",
+    "services/applications/manual_auth.py": "086001a762819738e3eb6ac4524fd7cf8919d2d4f174792cdc6ddb0ae0f9a110",
+    "services/applications/manual_auth_host.py": "0888fe83566e7b713f68455aeb773028deae2cedaf7074ba8e056c80e54f10ff",
+    "services/applications/manual_auth_isolated.py": "f94b45a62f2210c3da548d916c45b1eadfe52a7188c623503cedcd1a017b1da9",
+    "services/applications/mock_adapter.py": "af2a5c3f0a74d0115a2a6d697046bfe09a7a0f18aa0d39da4861b39be1455c89",
+    "services/applications/submission_admission.py": "0d3b8b3bf886ef20f518ea464da4871c904dc54a8cb3f01bb228f46f4311087a",
+    "services/company_discovery/AREA.md": "7ae02c57d821fc08e0bcf093e144518b9829e151df211a3fc9fdb3d5c7deb65d",
+    "services/company_discovery/capabilities.py": "5ab3526fa7731931b9cf99523d06b58701ec3dbbe51b08a210b7e7214ce6a80a",
+    "services/company_discovery/sources.py": "69c1d62836ec5d3bfc6ef67061751f77713858dad40d832d9292770bd25a80c5",
+    "services/discovery/company_feed.py": "07ea9143b045c3e3cc08ccb16c647b42747bfe3f9b1e8d0c15ffa0c0483852aa",
+    "services/discovery/pipeline.py": "32cd83e74d0c9a96acd7dac0734d19cf52a79e042549d7dc51049e2da01606c7",
+    "services/discovery/sources/wwr.py": "e30a71f743a440734c0803dcd2feb62972df6b29b074ff01f69af5b103674b9f",
+    "services/documents/generate.py": "0afd9206ed865837f07ed3ea5488f0f5537e8f46d61113a96d6712816dd9814a",
+    "services/operations/progress.py": "567858b84bfb91a75dfc9f9c701d28cdc9bada97ad2def1c73c38f7a14c6c654",
+    "tests/browser/test_company_source_view.py": "84b0d257f5f7274634bce04b7e964d1e91b289d07fd354af1240fc5da09d2386",
+    "tests/browser/test_debug_capture_consumers.py": "bdb9d8f1fb1eb1c61bcb8ca85f03905db5ebd8ea71ea218045989e6c66f0cb4d",
+    "tests/integration/test_application_confirmation_recovered_attempt.py": "46e0773b0d2ab7e27432f3870c817caeae87b137ba6bd83c87104076ea5ed8f3",
+    "tests/integration/test_application_log_privacy.py": "55543eb52b3642296954c4059a7964041b11d0e748f119e4f96a2a294d8dffeb",
+    "tests/integration/test_company_source_monitoring.py": "35a63ce5633e958c3c6da8ae342657928046b837dc345396fcd365ffb2140c0e",
+    "tests/integration/test_company_source_view.py": "fd44c50fbda8fe8ced63a8daf670364e56fb79392f88b038eda7dd9f741c7ca3",
+    "tests/integration/test_configured_submission_limits.py": "4d36ddde13e99d9f8c57c89aca194398fb8d55b728eb96bea41c8d2d01c4cced",
+    "tests/integration/test_durable_ai_evaluation.py": "990bf15471448f845c701b821d967653b7b444d11876be08951811596bbb8233",
+    "tests/integration/test_persistent_operation_progress.py": "7ac7e83d44c3218fbb4471e78cd55e920ef697032c9066f1f3cc4a7b0134a8f4",
+    "tests/integration/test_source_adapter_connect_cancellation.py": "6964e5439d674bb5a5a2fe0f726ea338d1c15416808c96cf0f14100653c66198",
+    "tests/integration/test_source_http_socket_budget.py": "f57b7c0034960b3aed1f2702490f2d49bb876ae1a609ffdd3eb53e0e8b17022f",
+    "tests/integration/test_structured_operation_failures.py": "14a0fd461aa735345b2946a0d39dcbc07fad887322817c2168442a9648022361",
+    "tests/integration/test_wwr.py": "cfc47cb850699474687514faa38414fdba16bf79c9717b6dc09716b37ed631f1",
+    "tests/unit/test_backup_config_snapshot.py": "925f37b445e5a489e4458282a921638088c561c8a8c7e3d12c2572ed8ab5a223",
+    "tests/unit/test_browser_debug_capture.py": "bc00279b2e130617e4d3c29147ec9abb856aea88a62441f4535105465fb2a5b4",
+    "tests/unit/test_company_source_capabilities.py": "dac9548e10e7733883c6bc7c51024bc73b7a18db765a0350c37193f7c5681508",
+    "tests/unit/test_error_categories_sustain_162.py": "7914077e08b9907dff1e0dc3d98f3aba442e43f50df9f34819d2a910d02eae8a",
+    "tests/unit/test_manual_auth_host.py": "e1d593a51fd591528578bb58c22c2b210ab16804aa585baacc4198f1c521625b",
+    "tests/unit/test_manual_auth_isolated.py": "63a7f8f328461c477fcdbcb811ea8dbf3533ab0de6d09605d257c677c6917566",
+    "tests/unit/test_operation_error_categories.py": "b926a87ac3985dddd95d2666f827eb573f9a6cd13e1e8725b128b8617aeeba4c",
+    "tests/unit/test_operation_progress.py": "4617288aa49421b886190a910300dfca8f8afc7f80b9f7c212f72af26f4790fd",
+    "tests/unit/test_submission_limit_configuration.py": "9f3e7c967553ead3c45f9d211d20c029c5a733b630f7fe4b232f3fb6aeb99b09",
+    "tests/unit/test_windows_micro_backup_diagnostics.py": "114ccd28150e1991ca0c13ebcb186792b894eccbfcfb8b73545cac05f643e429",
+    "tests/unit/test_windows_micro_command_bounds.py": "c89f93367795d758e2c956d3f57504a316415ea1fb081e88fe5d35e2c69242cb",
+    "workers/main.py": "90f9a76889b7652b18692580a68dcc6419869760b034cb854bb41d633c2acf63",
+    "workers/tasks.py": "a94c6fe9c3e27ace695b8a029b119926ad9e67140a88c7b1006dd81c1e81db99"
+  },
+  "fixture_only_delta_from_operational_source": [
+    "docs/evidence/2026-11-02-source-transport-fixture.json",
+    "tests/integration/test_source_http_socket_budget.py"
+  ],
+  "evidence": {
+    "pr-881-protected-merge": "docs/evidence/2026-11-02-pro-ops/pr-881-protected-merge.json",
+    "pr-881-artifacts": "docs/evidence/2026-11-02-pro-ops/pr-881-artifacts.json",
+    "pr-882-protected-merge": "docs/evidence/2026-11-02-pro-ops/pr-882-protected-merge.json",
+    "pr-882-artifacts": "docs/evidence/2026-11-02-pro-ops/pr-882-artifacts.json",
+    "pr-883-protected-merge": "docs/evidence/2026-11-02-pro-ops/pr-883-protected-merge.json",
+    "pr-883-artifacts": "docs/evidence/2026-11-02-pro-ops/pr-883-artifacts.json",
+    "native-validation": "docs/evidence/2026-11-02-pro-ops/native-validation.json",
+    "ci-history": "docs/evidence/2026-11-02-pro-ops/ci-history.json",
+    "security-alert": "docs/evidence/2026-11-02-pro-ops/security-alert.json",
+    "updater-install": "docs/evidence/2026-11-02-pro-ops/updater-install.json",
+    "production-before": "docs/evidence/2026-11-02-pro-ops/production-before.json",
+    "main-deployment-gates": "docs/evidence/2026-11-02-pro-ops/main-deployment-gates.json",
+    "production-after": "docs/evidence/2026-11-02-pro-ops/production-after.json",
+    "public-browser": "docs/evidence/2026-11-02-pro-ops/public-browser.json"
+  },
+  "criteria": "docs/evidence/2026-11-02-pro-ops/criteria.json",
+  "existing_operational_evidence": [
+    "docs/evidence/2026-11-01-minimatch-compatibility.json",
+    "docs/evidence/2026-11-02-source-capability-implementation.json",
+    "docs/evidence/2026-11-02-wwr-upstream-conflicts.json",
+    "docs/evidence/2026-11-02-source-transport-fixture.json"
+  ],
+  "deployed_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "image_id": "sha256:70de560a8e3e1b30bc79e67074ebfb389cf1d4e94538683a1a7c510858eb15b4",
+  "security": "GitHub alert63 is fixed, without manual dismissal. Scoped minimatch 11.0.3 override for two inspected ESLint consumers; tested beyond their declared semver ranges. Remove when upstream parents support a patched release. Exact alert readback is preserved separately.",
+  "publication": "This evidence is proposed through a separate protected acceptance PR. Its final description and the final delivery update in source PR882 record the publication merge SHA and issue closure readback; source and deployed SHA above are immutable.",
+  "final_publication_receipt_url": "https://github.com/MulattoTech/MJobs/pull/882",
+  "limits": [
+    "P0 counts remain 12/26; complete product remains UNKNOWN/PARTIAL.",
+    "Native PostgreSQL skips remain skips; hosted isolated PostgreSQL execution is recorded separately.",
+    "Historical failed/superseded CI and native attempts remain preserved.",
+    "No paid AI calls, external employer submissions, live restore, autonomous worker fleet or unrelated workstation changes."
+  ]
+}

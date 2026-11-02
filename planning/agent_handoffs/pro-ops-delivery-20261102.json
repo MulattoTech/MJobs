@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "task_id": "pro-ops-delivery-20261102",
+  "objective": "Deliver verified operational source and preserve canonical P0/P1 acceptance and resume state",
+  "owner": "ChatGPT-Web Pro sprint 2026-11-01",
+  "branch": "work/pro-ops-acceptance-20261102",
+  "head_sha": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "routing_state": "RESUME",
+  "next_action": "Verify latest main, this acceptance PR final receipt, issue #20/#162/#180 closure and live SHA; then implement remaining MJ-REQ-275 notification/profile configuration and MJ-REQ-004 complete operation bounds. Keep MJ-REQ-167 protected recovery and WWR upstream conflicts explicit.",
+  "created_at": "2026-11-02T02:34:23.281645+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source PRs #881/#882/#883: all five protected gates and exact tree receipts",
+      "result": "PASS"
+    },
+    {
+      "command": "Native proposed merges and hosted PostgreSQL cases: see docs/evidence/2026-11-02-pro-ops-delivery.json",
+      "result": "PASS"
+    },
+    {
+      "command": "Production SHA/image/health/caps/backup and public browser readback",
+      "result": "PASS"
+    },
+    {
+      "command": "Real employer submissions, paid AI and destructive live restore intentionally not run",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Local PostgreSQL skips are not promoted",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Remaining P0 product outcomes and partial configuration/protected recovery; WWR upstream conflict"
+  ],
+  "milestone_id": "PRO-OPS-VERIFIED-DELIVERY-20261102"
+}

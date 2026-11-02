@@ -1,0 +1,546 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T00:41:47.412915+00:00",
+  "tested_merge_revision": "769adc77494dec84a6c58730a4b35b984dcf5579",
+  "hosted_artifacts": [
+    {
+      "name": "unit",
+      "artifact_id": 13107737078,
+      "run_id": 41366784678,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366784678/artifacts/13107737078",
+      "sha256": "0f0a52d52fac21842b913122bf9852006844202180abbf490d472acae765a1d6",
+      "junit_testcases": 3284,
+      "passed": 3233,
+      "skipped": 51,
+      "failed": 0,
+      "skip_reasons": {
+        "Windows case-insensitive filesystem alias": 1,
+        "Windows directory junction": 2,
+        "Optional host-installed Codex CLI is absent on this runner": 1,
+        "Native Windows junction boundary": 6,
+        "Native Windows retained identity": 2,
+        "Native Windows private observer": 1,
+        "Native retained query writer": 1,
+        "Native creator death and Chromium": 1,
+        "Native retained query provenance": 1,
+        "Native Windows containment": 9,
+        "Native Windows durable observer": 7,
+        "Native Windows actual Chromium channel": 1,
+        "Native Windows maximum bound frame": 1,
+        "Native Windows observer IPC": 2,
+        "Native Windows creator exit": 1,
+        "Native Windows bounded pipe reads": 1,
+        "Native Windows private host input": 5,
+        "Windows retained process identity regression": 2,
+        "Windows process-tree cancellation contract": 1,
+        "Windows owned Chromium tree cancellation": 1,
+        "Native Windows contained process trees": 1,
+        "Windows-only log viewer": 1,
+        "Windows-only visible terminals": 1,
+        "npm .cmd wrappers are Windows-only": 1
+      }
+    },
+    {
+      "name": "integration-0",
+      "artifact_id": 13108175666,
+      "run_id": 41366784489,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366784489/artifacts/13108175666",
+      "sha256": "8ac7fe3f25f5fbf7fab15958e237399fa813a71e8c9ab6bf5701cfdba2dcec7f",
+      "junit_testcases": 818,
+      "passed": 805,
+      "skipped": 13,
+      "failed": 0,
+      "skip_reasons": {
+        "STK01 requires frozen static audit and explicit disposable-stack resource grant": 1,
+        "SQLite in-memory-only shared DBAPI guard": 1,
+        "Set MJOBS_RETRY_POSTGRES_URL to an isolated disposable PostgreSQL database": 10,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      }
+    },
+    {
+      "name": "integration-1",
+      "artifact_id": 13107878600,
+      "run_id": 41366784489,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366784489/artifacts/13107878600",
+      "sha256": "cf104e2c10bc35ce2a81260cf2d724bc2b9dd45e6f7a2e47e2e60e844c0b95fd",
+      "junit_testcases": 842,
+      "passed": 842,
+      "skipped": 0,
+      "failed": 0,
+      "skip_reasons": {}
+    },
+    {
+      "name": "integration-2",
+      "artifact_id": 13106904916,
+      "run_id": 41366784489,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366784489/artifacts/13106904916",
+      "sha256": "61c8bb4bbd1229a8fb2fd114bed2cb15724d27b1c1c7fb21986b6d46d87e8731",
+      "junit_testcases": 822,
+      "passed": 800,
+      "skipped": 22,
+      "failed": 0,
+      "skip_reasons": {
+        "Requires isolated refresh PostgreSQL": 9,
+        "NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence": 9,
+        "Native isolated Windows host": 1,
+        "disposable protected-config PostgreSQL URL not configured": 1,
+        "disposable PostgreSQL URL not configured": 1,
+        "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1": 1
+      }
+    },
+    {
+      "name": "settings-browser",
+      "artifact_id": 13108155269,
+      "run_id": 41366784377,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41366784377/artifacts/13108155269",
+      "sha256": "0549de5c47ab8c652e83ee07a6c782604d0fadb68fee78f2e2e514f323099834",
+      "junit_testcases": 5,
+      "passed": 5,
+      "skipped": 0,
+      "failed": 0,
+      "skip_reasons": {}
+    }
+  ],
+  "structured_category_execution": {
+    "sqlite_passed": 13,
+    "postgresql_passed": 13,
+    "skipped": 0,
+    "ai_category_consumer": "PASS_IN_HOSTED_UNIT"
+  },
+  "critical_hosted_cases": [
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_body_and_header_deadline_precedes_delayed_finalization",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_connect_stall_oracle_starts_after_worker_setup",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_default_transport_preserves_source_trust_env_false",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_dns_capacity_wait_is_bounded_without_spawning_an_extra_resolver",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_dns_launch_failure_is_classified_and_releases_capacity",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_owned_dns_child_is_reaped_on_cancel_or_deadline_without_resolver_threads",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_pending_first_address_preserves_other_address_opportunity_and_closes_losers",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_positive_public_worker_source_uses_owned_localhost_dns",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_positive_public_worker_source_uses_real_socket",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_public_cancel_during_real_tcp_connect_stall",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_public_cancel_during_real_tls_handshake_stall",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_public_cancel_under_continuous_sub_64k_body_and_header_stall",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_real_tls_preserves_certificate_and_hostname_verification",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_source_fixture_lifetime_starts_after_connection",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_worker_deadline_during_real_tcp_connect_stall",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_worker_deadline_during_real_tls_handshake_stall",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_http_socket_budget.SourceHttpSocketBudgetTests",
+      "name": "test_worker_deadline_under_continuous_sub_64k_body_and_header_stall",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_ambiguous_challenge_and_stale_preflight_do_not_invent_categories",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_changed_questionnaire_blocks_before_browser",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_closed_job_blocks_preparation_browser_and_final_admission",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_closure_after_browser_start_blocks_final_submit_and_is_classified",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_document_failure_is_categorized_after_real_fact_validation",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_explicit_captcha_and_auth_are_distinct_durable_categories",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_native_form_validation_failure_keeps_fixed_category",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_optional_category_read_failure_preserves_blocked_outcome",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_source_categories_keep_existing_retry_policy_and_reopen",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_unconfirmed_receipt_reconciliation_survives_later_closure_without_replay",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_unknown_dynamic_field_retains_exact_category",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_unsupported_ats_route_is_rejected_by_real_form_review_worker",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailureTests",
+      "name": "test_upload_integrity_failure_is_structured_and_never_retried",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_ambiguous_challenge_and_stale_preflight_do_not_invent_categories",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_changed_questionnaire_blocks_before_browser",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_closed_job_blocks_preparation_browser_and_final_admission",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_closure_after_browser_start_blocks_final_submit_and_is_classified",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_document_failure_is_categorized_after_real_fact_validation",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_explicit_captcha_and_auth_are_distinct_durable_categories",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_native_form_validation_failure_keeps_fixed_category",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_optional_category_read_failure_preserves_blocked_outcome",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_source_categories_keep_existing_retry_policy_and_reopen",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_unconfirmed_receipt_reconciliation_survives_later_closure_without_replay",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_unknown_dynamic_field_retains_exact_category",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_unsupported_ats_route_is_rejected_by_real_form_review_worker",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_structured_operation_failures.StructuredFailurePostgresTests",
+      "name": "test_upload_integrity_failure_is_structured_and_never_retried",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_additional_unlinked_running_attempt_keeps_application_reserved",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_fenced_same_request_replay_allows_read_only_reconcile_without_rewriting_attempt",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_fenced_successful_receipt_recovery_allows_read_only_reconcile",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_historical_category_free_proof_remains_readable",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_live_operation_is_never_authorized_by_stale_attempt_proof",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_mismatched_or_extra_category_evidence_keeps_attempt_reserved",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_mismatched_started_snapshot_keeps_attempt_reserved",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_missing_lease_recovery_audit_keeps_attempt_reserved",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_queued_operation_is_never_authorized_by_stale_attempt_proof",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_started_audit_scoped_to_another_application_keeps_attempt_reserved",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests",
+      "name": "test_terminal_operation_without_recovered_second_claim_keeps_attempt_reserved",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_finite_worker_deadline_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_greenhouse_public_cancel_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_injected_transports_keep_control_even_when_falsey",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_deadline_survives_delayed_coordinator_before_worker_entry",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_finite_deadline_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_healthy_worker_and_fresh_source_readback",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_eu_public_cancel_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_global_finite_deadline_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_global_healthy_worker_and_fresh_source_readback",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_lever_global_public_cancel_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_positive_public_worker_collections_and_fresh_readback",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_public_cancel_budget_excludes_fixture_dispatch_delay",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_public_cancel_budget_rejects_delay_after_handler_admission",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_remoteok_public_cancel_during_real_tcp_connect",
+      "result": "PASS"
+    },
+    {
+      "class": "tests.integration.test_source_adapter_connect_cancellation.SourceAdapterConnectCancellationTests",
+      "name": "test_wwr_public_cancel_during_real_tcp_connect",
+      "result": "PASS"
+    }
+  ],
+  "native_exact_merge": {
+    "revision": "769adc77494dec84a6c58730a4b35b984dcf5579",
+    "xml_sha256": "1c17257edba3e86d6e7b78655e09b6c3570d05536bcd0f1c87830c9f47f13412",
+    "passed": 90,
+    "skipped": 16,
+    "subtests_passed": 83,
+    "browser_cases": [
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_all_controlled_providers_capture_failure_and_preserve_durable_result",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_diagnostic_failure_cannot_replace_original_browser_failure",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_disabled_capture_creates_no_failure_package",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ControlledDebugCaptureTests",
+        "name": "test_success_with_capture_enabled_creates_no_failure_package",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ManualAuthDebugCaptureTests",
+        "name": "test_disabled_failure_and_normal_close_do_not_capture_sessions",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_consumers.ManualAuthDebugCaptureTests",
+        "name": "test_failure_capture_has_real_console_network_events_and_masks_credentials",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_privacy.DebugCapturePackagePrivacyTests",
+        "name": "test_fixture_browser_failure_package_redacts_visual_and_serialized_canaries",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_privacy.DebugCapturePackagePrivacyTests",
+        "name": "test_native_dom_snapshot_has_bounded_topology_without_private_attributes",
+        "result": "PASS"
+      },
+      {
+        "class": "tests.browser.test_debug_capture_privacy.DebugCapturePackagePrivacyTests",
+        "name": "test_unacknowledged_native_dom_abort_is_bounded_and_transport_recovers",
+        "result": "PASS"
+      }
+    ]
+  },
+  "compose_artifact": {
+    "id": 13107423820,
+    "run_id": 41366784377,
+    "results": {
+      "ci-backup-recovery.json": {
+        "result": "PASS",
+        "sha256": "db2a2f029e91d11f0f549cbf9a0f90687fa1b087332907a41547ad34153a049c"
+      },
+      "ci-backup.json": {
+        "result": "PASS",
+        "sha256": "bf5f278dcbd0d734346f1afc5254d3565f1e23b2a2688145b7f02e367d2f8307"
+      },
+      "ci-mock-e2e.json": {
+        "result": "PASS",
+        "sha256": "3a8c3c23e9bc5fdae02ca7e179870aa67140d08c31186438f3ff592fb9cdc1fc"
+      },
+      "ci-recovery.json": {
+        "result": "PASS",
+        "sha256": "8ec8e8beba161e9b0d3264fe11c82f8af3877ffa48e3eed871cf3909ca08a4f5"
+      },
+      "ci-ui-onboarding.json": {
+        "result": "PARTIAL",
+        "sha256": "79c1441fdd206154d185f2eb99db419a43fbb8525fceb646a5fd20fa2d118a3e"
+      },
+      "ci-ui.json": {
+        "result": "PASS",
+        "sha256": "452e88459172547eb5b1e77ef815ae3e2ef592de620d3a717a585a8d21ad8ae0"
+      }
+    }
+  }
+}

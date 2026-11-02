@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-01T21:58:09.714036+00:00",
+  "timestamp": "2026-11-02T02:34:15.944248+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -89,9 +89,10 @@
         "docs/evidence/2026-11-01-source-socket-test-phases.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
       ],
-      "note": "Historical checkpoint: The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Connected pre-response-header reads now share the request deadline and cancellation guard across all five HTTP AI providers, with real TCP/TLS loopback and durable terminal-state proof. DNS/TCP/TLS establishment before stream exposure and broader external-operation acceptance remain PARTIAL. Current verified campaign closeout: Current campaign PR662 adds executed bounded DNS/TCP/TLS establishment/deadline/cancellation and synthetic loopback/durable terminal-state proof; prior connection-establishment limitation is superseded for this slice. Broader external-operation parent remains PARTIAL; no whole-parent approval or live-provider/paid-inference execution claimed.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Retain the existing broader external-operation parent limitation. Frontend deadlines, native DOM capture bounds and real loopback socket tests prove bounded slices only; they do not establish all external-operation timeout/retry/cancellation criteria. Raw CDP bytes are decoded before retained-size caps, and synchronous diagnostic filesystem work is checkpointed rather than hard-preempted. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Historical checkpoint: The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Connected pre-response-header reads now share the request deadline and cancellation guard across all five HTTP AI providers, with real TCP/TLS loopback and durable terminal-state proof. DNS/TCP/TLS establishment before stream exposure and broader external-operation acceptance remain PARTIAL. Current verified campaign closeout: Current campaign PR662 adds executed bounded DNS/TCP/TLS establishment/deadline/cancellation and synthetic loopback/durable terminal-state proof; prior connection-establishment limitation is superseded for this slice. Broader external-operation parent remains PARTIAL; no whole-parent approval or live-provider/paid-inference execution claimed.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Retain the existing broader external-operation parent limitation. Frontend deadlines, native DOM capture bounds and real loopback socket tests prove bounded slices only; they do not establish all external-operation timeout/retry/cancellation criteria. Raw CDP bytes are decoded before retained-size caps, and synchronous diagnostic filesystem work is checkpointed rather than hard-preempted. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: Verified updater subprocess deadlines, combined stdout/stderr byte cap, cancellation, pipe/child cleanup and safe fixed diagnostics are deployed. Complete bounds for raw CDP decoding, synchronous filesystem work and browser-context cleanup remain unproven.",
       "latest_evidence_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
       "latest_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420",
       "priority": "P0",
@@ -281,9 +282,10 @@
         "docs/evidence/2026-10-06-remotive-job-source-adapter.json",
         "docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json",
         "docs/evidence/2026-10-06-remote-ok-job-source-adapter.json",
-        "docs/evidence/2026-10-11-six-team-integration.json"
+        "docs/evidence/2026-10-11-six-team-integration.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
       ],
-      "note": "Supported Greenhouse/Remotive/RemoteOK/WWR sources can now be enrolled through API/UI with canonical global tenants. Aggregator provenance no longer asserts ATS tenancy; company identity remains low-confidence. Controlled enrollment/reload/toggle/collection and bounded live Greenhouse read-only preparation verified. Remaining global targets pending.",
+      "note": "Supported Greenhouse/Remotive/RemoteOK/WWR sources can now be enrolled through API/UI with canonical global tenants. Aggregator provenance no longer asserts ATS tenancy; company identity remains low-confidence. Controlled enrollment/reload/toggle/collection and bounded live Greenhouse read-only preparation verified. Remaining global targets pending.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: WWR detail lookup now refuses conflicting duplicate native identities consistently and collection rollback is covered. A fresh bounded official-feed observation found 100 entries, 98 identities and two conflicting groups with identical GUID/link strings. The later row-count observer harness error is preserved separately. No live WWR PASS is claimed; MJ-REQ-017.S02 existing synthetic acceptance remains unchanged.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -306,13 +308,18 @@
     },
     {
       "requirement_id": "MJ-REQ-019",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-01-source-policy-scheduler.json",
-        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json",
+        "docs/evidence/2026-11-02-pro-ops/criteria.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-881-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-882-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-883-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
       ],
-      "note": "Historical checkpoint (preserved): Typed strategy/capability contract is persisted and rendered; Greenhouse live evidence declares exact supported and unsupported capabilities. Current audit: Current whole-source adjudication: active company RSS/JSON monitoring lacks supported/unsupported capability declarations and has no linked collector; strategy alone is insufficient. Public company-feed readback and global positive control are source-bound in the consolidated evidence. Historical global/Greenhouse proof remains valid at its stated scope; no original closure cause is inferred.",
+      "note": "Historical checkpoint (preserved): Typed strategy/capability contract is persisted and rendered; Greenhouse live evidence declares exact supported and unsupported capabilities. Current audit: Current whole-source adjudication: active company RSS/JSON monitoring lacks supported/unsupported capability declarations and has no linked collector; strategy alone is insufficient. Public company-feed readback and global positive control are source-bound in the consolidated evidence. Historical global/Greenhouse proof remains valid at its stated scope; no original closure cause is inferred.\n\n2026-11-02 Pro operational acceptance after protected source 2e0f3df8f6952088b39fc494f9cd38838b020af4 and exact production verification: All seven capabilities and collection strategy are explicit for company RSS/JSON feeds, the five registered collectors, saved trusted extensions, the local mock-ATS fixture and unsupported sources. Actual imports, producer audits, persistence/reopen, API and connected Chromium readback are verified; four isolated PostgreSQL cases executed. Capability support remains distinct from enabled state, authorization and provider health. Prior notes above remain historical; this entry supersedes their pending/partial status.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -1999,9 +2006,15 @@
     },
     {
       "requirement_id": "MJ-REQ-161",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-02-pro-ops/criteria.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-881-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-882-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-883-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-02 Pro operational acceptance after protected source 2e0f3df8f6952088b39fc494f9cd38838b020af4 and exact production verification: All 15 literal failure categories have actual producer/worker or AI-consumer evidence, durable audit and recovery metadata, reopened-store/API projection and privacy controls. Thirteen SQLite and thirteen isolated PostgreSQL category cases executed. Unknown or ambiguous errors are not assigned an invented cause; retry and fenced recovery behavior is preserved. Prior notes above remain historical; this entry supersedes their pending/partial status.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2075,9 +2088,10 @@
         "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
       ],
-      "note": "Quiescent database/document backup and fresh restore verified with 385 files/eight identical database inventories and encrypted credentials. Schema-2 archive now captures exact Compose plus strict nonsecret runtime allowlist. Secrets, private custom configuration and override recovery remain separately operator-protected; broader operational backup acceptance remains open.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Quiescent database/document backup and fresh restore verified with 385 files/eight identical database inventories and encrypted credentials. Schema-2 archive now captures exact Compose plus strict nonsecret runtime allowlist. Secrets, private custom configuration and override recovery remain separately operator-protected; broader operational backup acceptance remains open.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Guarded updater failure diagnostics and rollback simulations are verified, and existing backup/archive regressions run with three recorded skips. Full operational backup acceptance, protected secret/private custom configuration and override recovery remain open. The discarded historical exit-2 output cannot be reconstructed; no live restore is claimed by these unit simulations. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: Backup runtime schema 2 preserves validated non-secret submission caps; strict schema 1 archives remain supported. The guarded deployment created an integrity-verified quiescent archive and preserved the previous release/image. Historical Nov1 backup exit-2 detail was discarded and cannot be recovered. Protected configuration and browser-authentication recovery remain incomplete; no destructive live restore was performed.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2225,16 +2239,21 @@
     },
     {
       "requirement_id": "MJ-REQ-179",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
         "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
         "docs/evidence/2026-11-01-bounded-native-dom-diagnostics.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-02-pro-ops/criteria.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-881-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-882-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops/pr-883-protected-merge.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
       ],
-      "note": "Existing local mock-ATS capture is verified PARTIAL. A synthetic FIXTURE-mode browser/package-writer privacy regression is actively claimed to prove produced screenshot and metadata/DOM redaction; this test-only slice does not add real ATS support. Issue #180 remains OPEN/PARTIAL; hosted checks NOT_RUN. Additional synthetic FIXTURE-mode package-writer privacy regression integrated at 89b9a5e24087183717c4359282db544bb48b8fef (tested exact source head d4e5d975e7e16e3e2db477099119207a923dbc91, tree 5d1d349d3352119e477a6c0e1d7e3ec5e1e9e82d); connected Chromium test PASS 1/1 on rebased candidate and combined integration tree. Full captured name/email input rectangles are required all-black, and a one-pixel white-leak negative control fails the same predicate; canaries are absent from serialized metadata/DOM, state remains REVIEW_REQUIRED, and no submission receipt exists. LOCAL_DELEGATED_REVIEW PASS; catalogue/progress/lane/diff checks PASS. Evidence docs/evidence/2026-10-08-debug-capture-package-privacy.json. Test-only slice; real ATS/browser adapter support remains unavailable, so issue #180 / MJ-REQ-179 remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Native DOM topology, visual/serialized redaction, retained-size caps and bounded capture/abort recovery are executed for the tested local failure path. Complete browser-automation/real-adapter coverage is not established. Raw CDP decode bytes are not capped before parsing, synchronous filesystem work is not hard-preempted, and existing failure owners retain context cleanup. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Existing local mock-ATS capture is verified PARTIAL. A synthetic FIXTURE-mode browser/package-writer privacy regression is actively claimed to prove produced screenshot and metadata/DOM redaction; this test-only slice does not add real ATS support. Issue #180 remains OPEN/PARTIAL; hosted checks NOT_RUN. Additional synthetic FIXTURE-mode package-writer privacy regression integrated at 89b9a5e24087183717c4359282db544bb48b8fef (tested exact source head d4e5d975e7e16e3e2db477099119207a923dbc91, tree 5d1d349d3352119e477a6c0e1d7e3ec5e1e9e82d); connected Chromium test PASS 1/1 on rebased candidate and combined integration tree. Full captured name/email input rectangles are required all-black, and a one-pixel white-leak negative control fails the same predicate; canaries are absent from serialized metadata/DOM, state remains REVIEW_REQUIRED, and no submission receipt exists. LOCAL_DELEGATED_REVIEW PASS; catalogue/progress/lane/diff checks PASS. Evidence docs/evidence/2026-10-08-debug-capture-package-privacy.json. Test-only slice; real ATS/browser adapter support remains unavailable, so issue #180 / MJ-REQ-179 remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Native DOM topology, visual/serialized redaction, retained-size caps and bounded capture/abort recovery are executed for the tested local failure path. Complete browser-automation/real-adapter coverage is not established. Raw CDP decode bytes are not capped before parsing, synchronous filesystem work is not hard-preempted, and existing failure owners retain context cleanup. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-02 Pro operational acceptance after protected source 2e0f3df8f6952088b39fc494f9cd38838b020af4 and exact production verification: Opt-in diagnostic capture is integrated into all three supported Playwright failure owners: mock adapter, controlled dry run and manual authentication. Executed Chromium cases cover masked screenshots, bounded sanitized DOM, safe current URL, error-only console and network events, automation phase, failure preservation and disabled capture. Retention is 30 days/20 packages pruned on capture. Broader raw CDP decoding, synchronous filesystem and context-cleanup bounds remain MJ-REQ-004 limitations; future adapter functionality is not inferred. Prior notes above remain historical; this entry supersedes their pending/partial status.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -3373,9 +3392,10 @@
         "docs/evidence/2026-11-01-worker-logging-configuration.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-02-pro-ops-delivery.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Worker log-level configuration is now documented, validated and forwarded through Compose to all five worker services, with unit and sanitized rendered-configuration evidence. Connected settings exist for several other categories. Whole configuration acceptance remains incomplete: notification behavior is not wired, browser-profile selection is fixed, and application submission limits have no ordinary UI/environment policy mapping. Controlled dry-run API limits are distinct from submission limits. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: Strict hourly/daily/company environment caps are enforced by actual transactional admission and read back safely. All seven application services use identical verified numeric values. Zero denies; empty/invalid values fail startup; the external-submission gate remains OFF. Notification behavior and browser-profile selection remain incomplete.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -4267,5 +4287,5 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "delivery_policy_note": "2026-11-01 user-authorized protected GitHub-hosted delivery: source PR875 passed exact-head required checks and was merged; this separately reviewed acceptance record promotes 43 original P1 requirements with criterion-specific executed evidence. Whole product remains PARTIAL; external submissions OFF. Historical policy checkpoints remain in version history."
+  "delivery_policy_note": "2026-11-01 user-authorized protected GitHub-hosted delivery: source PR875 passed exact-head required checks and was merged; this separately reviewed acceptance record promotes 43 original P1 requirements with criterion-specific executed evidence. Whole product remains PARTIAL; external submissions OFF. Historical policy checkpoints remain in version history.\n\n2026-11-02: Protected PRs #881/#882/#883 and exact guarded production delivery support three new original P1 acceptances. Overall product remains PARTIAL, reference authority unchanged and external submissions OFF. This record is published through its own protected acceptance PR."
 }

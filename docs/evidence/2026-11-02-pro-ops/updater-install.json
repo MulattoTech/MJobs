@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-11-02T00:44:06.939994+00:00",
+  "protected_source_commit": "76ed9bdbbba82317c04bc5e1ca551e33d2f91f40",
+  "installed_sha256": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+  "previous_sha256": "1729f447d1ba7a4a2c5256eb07ed30c01522276188c588a9ddf9a5bc7e49896f",
+  "changed": true,
+  "backup_preserved": true,
+  "installed_path": "%LOCALAPPDATA%\\MJobsMicro\\update.py",
+  "backup_path": "%LOCALAPPDATA%\\MJobsMicro\\update.py.before-pro-ops-20261101.bak",
+  "deployment": "Existing guarded updater remains the only rollout path"
+}

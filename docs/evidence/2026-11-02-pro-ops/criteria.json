@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "sprint": "pro-ops-20261101",
+  "status": "ACCEPTED_AFTER_VERIFIED_PROTECTED_SOURCE_AND_DEPLOYMENT",
+  "authority": "Original literal requirements; no denominator or acceptance text changes.",
+  "requirements": [
+    {
+      "requirement_id": "MJ-REQ-019",
+      "title": "Source Capability Model",
+      "proposed_result": "PASS",
+      "literal_contract": "Every source declares the seven capabilities and its collection strategy; unsupported capabilities remain explicit. The requirement lists eight strategy families without requiring every family to be implemented.",
+      "criteria": {
+        "seven_capability_flags": [
+          "tests/unit/test_company_source_capabilities.py::CompanySourceCapabilityTests::test_feed_declarations_include_supported_and_unsupported_flags",
+          "tests/unit/test_company_source_capabilities.py::CompanySourceCapabilityTests::test_every_registered_collector_preserves_its_own_declaration"
+        ],
+        "collection_strategy": [
+          "services/discovery/sources/contract.py::CollectionStrategy",
+          "test_feed_declarations_include_supported_and_unsupported_flags",
+          "test_fixture_declaration_requires_exact_fixture_source_type"
+        ],
+        "registered_collectors_and_extension": "test_linked_builtin_and_extension_declarations_reopen_without_factories",
+        "actual_feed_support": "test_real_feed_imports_record_the_declaration_and_supported_job_fields",
+        "persisted_api_and_disabled_legacy_sources": "test_feed_capabilities_survive_api_readback_and_disabled_legacy_sources",
+        "supported_local_fixture": "test_local_fixture_discovery_declares_its_actual_source_and_read_only_scope",
+        "malformed_and_mismatched_declarations": [
+          "test_malformed_or_mismatched_link_never_falls_back_to_generic_feed_support",
+          "test_saved_extension_support_is_not_inferred_from_provider_name"
+        ],
+        "monitoring_authorization_unchanged": "test_legacy_enabled_flag_does_not_authorize_but_explicit_review_schedules_and_imports",
+        "visible_declaration_and_controls": [
+          "apps/web/src/company-sources.test.tsx",
+          "tests/browser/test_company_source_view.py::CompanySourceBrowserTests::test_personal_source_controls_persist_and_feedback_layout_remains_usable"
+        ]
+      },
+      "backends": [
+        "SQLite import, persistence, reopen and API readback",
+        "Four isolated PostgreSQL aliases in protected integration",
+        "Connected native Chromium API/UI, disable, reload and mobile layout"
+      ],
+      "supported_registered_collectors": [
+        "Greenhouse",
+        "Lever",
+        "Remotive",
+        "Remote OK",
+        "WWR"
+      ],
+      "caveats": [
+        "Capability declarations do not authorize scheduling, enable disabled sources, imply source health, or enable external submissions.",
+        "WWR preserves salary=false. Valid persisted extension declarations are read without invoking factories.",
+        "The local mock-ATS source is explicitly labeled as a fixture; no real employer submission is claimed."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-161",
+      "title": "Error Categories",
+      "proposed_result": "PASS",
+      "criteria": {
+        "NETWORK_ERROR": "test_source_categories_keep_existing_retry_policy_and_reopen",
+        "RATE_LIMITED": "test_source_categories_keep_existing_retry_policy_and_reopen",
+        "SOURCE_CHANGED": "test_source_categories_keep_existing_retry_policy_and_reopen",
+        "SOURCE_BLOCKED": "test_source_categories_keep_existing_retry_policy_and_reopen",
+        "AUTH_REQUIRED": "test_explicit_captcha_and_auth_are_distinct_durable_categories",
+        "CAPTCHA_REQUIRED": "test_explicit_captcha_and_auth_are_distinct_durable_categories",
+        "ATS_UNSUPPORTED": "test_unsupported_ats_route_is_rejected_by_real_form_review_worker",
+        "FORM_CHANGED": "test_changed_questionnaire_blocks_before_browser",
+        "FIELD_UNKNOWN": "test_unknown_dynamic_field_retains_exact_category",
+        "UPLOAD_FAILED": "test_upload_integrity_failure_is_structured_and_never_retried",
+        "VALIDATION_FAILED": "test_native_form_validation_failure_keeps_fixed_category",
+        "JOB_CLOSED": "test_closed_job_blocks_preparation_browser_and_final_admission; test_closure_after_browser_start_blocks_final_submit_and_is_classified",
+        "SUBMISSION_UNCONFIRMED": "test_unconfirmed_receipt_reconciliation_survives_later_closure_without_replay",
+        "DOCUMENT_ERROR": "test_document_failure_is_categorized_after_real_fact_validation",
+        "AI_ERROR": "tests/unit/test_error_categories_sustain_162.py::AIOperationErrorCategoryTests::test_worker_ai_diagnostics_are_generic_in_result_audit_and_public_readback"
+      },
+      "test_module": "tests/integration/test_structured_operation_failures.py",
+      "assertions": [
+        "Actual producer and worker classification",
+        "Durable recovery metadata and terminal audit",
+        "Fresh Store reopen, operation detail and profile progress API",
+        "Profile isolation and no private-canary disclosure",
+        "Existing source retry policy retained; no new automatic application retries",
+        "Fenced receipt recovery accepts exact historical/current proof shapes and rejects mixed, extra or mismatched evidence"
+      ],
+      "backends": [
+        "SQLite native execution",
+        "Isolated PostgreSQL subclass in protected integration"
+      ],
+      "caveats": [
+        "An unmapped or ambiguous diagnostic remains unclassified; enum membership is not evidence of an invented cause.",
+        "Synthetic provider failures and local browser fixtures establish error behavior without paid inference or employer submission."
+      ]
+    },
+    {
+      "requirement_id": "MJ-REQ-179",
+      "title": "Debug Capture",
+      "proposed_result": "PASS",
+      "criteria": {
+        "screenshot": [
+          "tests/browser/test_debug_capture_privacy.py::DebugCapturePackagePrivacyTests::test_fixture_browser_failure_package_redacts_visual_and_serialized_canaries",
+          "tests/browser/test_debug_capture_consumers.py::ManualAuthDebugCaptureTests::test_failure_capture_has_real_console_network_events_and_masks_credentials"
+        ],
+        "sanitized_dom": [
+          "tests/browser/test_debug_capture_privacy.py::DebugCapturePackagePrivacyTests::test_native_dom_snapshot_has_bounded_topology_without_private_attributes",
+          "tests/unit/test_browser_debug_capture.py::NativeDomCaptureTests"
+        ],
+        "current_url": [
+          "tests/unit/test_browser_debug_capture.py::BrowserDebugCaptureTests::test_debug_url_drops_credentials_query_fragment_and_identifiers",
+          "tests/browser/test_debug_capture_consumers.py"
+        ],
+        "console_errors": [
+          "tests/unit/test_browser_debug_capture.py::BrowserDebugCaptureTests::test_console_capture_ignores_non_error_messages",
+          "tests/browser/test_debug_capture_consumers.py"
+        ],
+        "network_errors": [
+          "tests/browser/test_debug_capture_consumers.py::ManualAuthDebugCaptureTests::test_failure_capture_has_real_console_network_events_and_masks_credentials"
+        ],
+        "automation_step": [
+          "tests/unit/test_browser_debug_capture.py::BrowserDebugCaptureTests::test_supported_upload_and_manual_auth_failure_phases_are_preserved",
+          "tests/browser/test_debug_capture_consumers.py"
+        ],
+        "retention": [
+          "tests/unit/test_browser_debug_capture.py::BrowserDebugCaptureTests::test_event_buffer_and_capture_retention_are_bounded"
+        ],
+        "optional_capture_and_failure_preservation": [
+          "tests/browser/test_debug_capture_consumers.py"
+        ]
+      },
+      "supported_browser_owners": [
+        "services/applications/mock_adapter.py",
+        "services/applications/controlled_dry_run.py",
+        "services/applications/manual_auth.py"
+      ],
+      "retention": {
+        "events": 50,
+        "packages": 20,
+        "age_days": 30,
+        "pruning": "On capture; not a continuously scheduled deletion guarantee"
+      },
+      "bounds": {
+        "retained_dom_bytes": 8192,
+        "nodes": 160,
+        "depth": 8,
+        "screenshot_bytes": 5242880,
+        "total_capture_budget_seconds": 2,
+        "dom_budget_seconds": 0.3
+      },
+      "caveats": [
+        "The literal diagnostic requirement does not require an external employer submission.",
+        "Future application-adapter journeys remain under MJ-REQ-224.",
+        "Raw CDP replies are decoded before retained-size caps; synchronous filesystem operations and browser-context cleanup remain broader MJ-REQ-004 limitations."
+      ]
+    }
+  ],
+  "partial_progress": [
+    {
+      "requirement_id": "MJ-REQ-004",
+      "result": "PARTIAL",
+      "implemented": "Finite updater command deadlines, combined stdout/stderr cap, cancellation, child/pipe cleanup, fixed diagnostics",
+      "tests": "tests/unit/test_windows_micro_command_bounds.py",
+      "limits": "Complete external-operation bounds are not established."
+    },
+    {
+      "requirement_id": "MJ-REQ-167",
+      "result": "PARTIAL",
+      "implemented": "Retained safe backup refusal categories and backward-compatible non-secret cap snapshots",
+      "limits": "Historical Nov1 backup exit2 detail was discarded and cannot be recovered; protected configuration and browser authentication recovery remain outside acceptance."
+    },
+    {
+      "requirement_id": "MJ-REQ-275",
+      "result": "PARTIAL",
+      "implemented": "Actual configurable submission admission caps, startup validation, safe readback, identical Compose forwarding, versioned backup retention",
+      "limits": "Notification behavior and browser-profile selection remain missing."
+    },
+    {
+      "requirement_id": "MJ-REQ-017",
+      "result": "PARTIAL",
+      "implemented": "WWR detail lookup consistently rejects conflicting duplicate identities; collection rollback covered",
+      "limits": "Fresh live feed still has conflicting records; no live-source PASS.",
+      "related_requirement_id": "MJ-REQ-017.S02",
+      "existing_child_acceptance": "PASS remains unchanged; synthetic adapter acceptance is distinct from the retained live-feed failure"
+    }
+  ],
+  "reference_matrix_sha256": "fda62abe9db711ea41941bf991685c95c9d323d9554ca8776366a99c9800653b",
+  "external_employer_submissions": 0,
+  "paid_ai_calls": 0,
+  "timestamp": "2026-11-02T02:34:15.944248+00:00",
+  "source_commit": "2e0f3df8f6952088b39fc494f9cd38838b020af4",
+  "tested_merge_revisions": [
+    "769adc77494dec84a6c58730a4b35b984dcf5579",
+    "00c9ea2a7ab6c28e2a79cf1314fa7941cc7f42a7",
+    "02e9d3f939358d2f31f82702b6cedfd918baaec1"
+  ],
+  "independent_review": {
+    "result": "NO_REMAINING_SOURCE_BLOCKER",
+    "source_capability_review_identity": "All 11 reviewed files byte-for-byte match published 7fadca0856e740b09229cbb429c423b8e9888f7f; fresh checkout clean.",
+    "fixture_review": "Separate read-only final source review found no blocker; terminal-state control and diagnostic snapshot fixes applied. Only the transport fixture and its evidence differ from PR882; production implementation is unchanged.",
+    "fixture_changed_paths": [
+      "docs/evidence/2026-11-02-source-transport-fixture.json",
+      "tests/integration/test_source_http_socket_budget.py"
+    ],
+    "scope": "Read-only independent implementation and acceptance reviews; hosted execution and deployment are separately bound by receipts."
+  }
+}
