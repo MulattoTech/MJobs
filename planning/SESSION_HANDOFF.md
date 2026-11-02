@@ -16,6 +16,10 @@ Branch **`work/pro-bounds-domain-20261102`**, native worktree **`C:\Tools\Dev\MJ
 
 Latest reviewed Windows suite: **37 PASS / 0 SKIP / 54 subtests** (actual PostgreSQL, ORM, portable settings, locked reads and TLS recovery). Earlier Linux 30/10skip and 135/2fail/11skip scopes are retained separately. The wider Linux sweep had unavailable Chromium and a one-second TLS fixture dispatch failure; the TLS case passed unchanged in isolation and in native scope. Native actual browser-profile/reopen test also passed (1/0skip). Exact committed/proposed-merge checks, all five protected gates plus CodeQL, guarded delivery and complete015/174 criterion mapping remain required before acceptance. No skipped test is PASS.
 
+## Review follow-up
+
+[PR890](https://github.com/MulattoTech/MJobs/pull/890) is the single source integration path. Added018 source contract/policy checks and explicit job-feed fallback before merge. Independent review caught newer backoff overwrite, masked control-read errors, declaration exception leakage and news-feed promotion; all corrected and nine focused independent cases pass. Source branch remains `work/pro-bounds-domain-20261102`; the temporary source-contracts worktrees are staging/review copies only. Final native follow-up86PASS/13SKIP/31subtests. Previous0f/bf158daa native172/2skip and hosted results are retained as prior-head evidence; final revision checks and delivery still pending.018 and004 stay PARTIAL.
+
 ## Resume and next batch
 
 Read the containing source PR receipt before acting; it records later exact revisions and gate results that cannot be self-contained in this source commit. Finish integration and guarded verification before updating canonical acceptance. Then consider **018**: unsupported ATS detection suppresses valid same-origin feeds, and current adapter strategy must be checked before egress and under the final import lock. **017** still lacks six named global integrations; official Dice MCP needs an explicit query contract. Do not accept either parent from enum declarations alone.

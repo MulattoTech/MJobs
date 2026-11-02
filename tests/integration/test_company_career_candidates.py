@@ -177,6 +177,111 @@ class CompanyCareerCandidateTests(unittest.TestCase):
         self.assertNotIn(ORIGIN + '/feed/', self.seen)
         self.assertEqual(self.store.count('company_ats_tenants'), 1)
 
+    def test_unsupported_ats_does_not_hide_verified_same_origin_job_feed(self):
+        self.pages['/team/openings'] = (
+            '<script src="https://wd5.myworkdayjobs.com/Example/jobboard.js"></script>'
+            '<link rel="alternate" type="application/rss+xml" href="/jobs.xml">')
+        self.pages['/jobs.xml'] = JOB_FEED
+
+        self.assert_job_feed(ORIGIN + '/', ORIGIN + '/jobs.xml')
+
+        reopened = Store(self.store.url)
+        try:
+            with reopened.engine.connect() as connection:
+                source = connection.execute(select(m.company_sources)).mappings().one()
+                posting = connection.execute(select(m.postings)).mappings().one()
+                review = connection.execute(select(m.audit.c.payload).where(
+                    m.audit.c.action == 'COMPANY_ATS_DETECTION_REVIEW')).scalar_one()
+            self.assertEqual(source['company_id'], 'employer')
+            self.assertEqual(source['collection_strategy'], 'RSS')
+            self.assertEqual(posting['raw']['guid'], 'employer-role')
+            self.assertEqual(posting['source_url'], ORIGIN + '/jobs.xml')
+            self.assertEqual(review['provider'], 'workday')
+            self.assertFalse(review['application_supported'])
+            self.assertEqual(reopened.count('application_attempts'), 0)
+        finally:
+            reopened.engine.dispose()
+
+    def test_supported_official_api_remains_preferred_to_advertised_feed(self):
+        self.pages['/team/openings'] = BOARD + (
+            '<link rel="alternate" type="application/rss+xml" href="/jobs.xml">')
+        self.pages['/jobs.xml'] = JOB_FEED
+        _, result = self.run_discovery()
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        self.assert_enrolled(ORIGIN + '/team/openings')
+        self.assertNotIn(ORIGIN + '/jobs.xml', self.seen)
+
+    def test_unsupported_ats_does_not_promote_sitewide_news_feed_to_jobs(self):
+        self.pages['/team/openings'] = (
+            '<script src="https://wd5.myworkdayjobs.com/Example/jobboard.js"></script>'
+            '<link rel="alternate" type="application/rss+xml" '
+            'title="Example News" href="/feed/">')
+        self.pages['/feed/'] = BLOG_FEED
+        _, result = self.run_discovery()
+        self.assertEqual(result['error_category'], 'COMPANY_ATS_ENUMERATION_UNSUPPORTED', result)
+        self.assertNotIn(ORIGIN + '/feed/', self.seen)
+        self.assertEqual(self.store.count('canonical_jobs'), 0)
+
+    def test_unsupported_ats_prefers_explicit_job_feed_over_sitewide_news(self):
+        self.pages['/team/openings'] = (
+            '<script src="https://wd5.myworkdayjobs.com/Example/jobboard.js"></script>'
+            '<link rel="alternate" type="application/rss+xml" '
+            'title="Example News" href="/a-feed/">'
+            '<link rel="alternate" type="application/rss+xml" '
+            'title="Current job openings" href="/b-feed/">')
+        self.pages['/a-feed/'] = BLOG_FEED
+        self.pages['/b-feed/'] = JOB_FEED
+        self.assert_job_feed(ORIGIN + '/', ORIGIN + '/b-feed/')
+        self.assertNotIn(ORIGIN + '/a-feed/', self.seen)
+
+    def test_unsupported_ats_does_not_authorize_cross_origin_feed(self):
+        self.pages['/team/openings'] = (
+            '<script src="https://wd5.myworkdayjobs.com/Example/jobboard.js"></script>'
+            '<link rel="alternate" type="application/rss+xml" '
+            'href="https://untrusted.invalid/jobs.xml">')
+        _, result = self.run_discovery()
+        self.assertEqual(result['error_category'], 'COMPANY_ATS_ENUMERATION_UNSUPPORTED', result)
+        self.assertNotIn('https://untrusted.invalid/jobs.xml', self.seen)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
+
+    def test_ambiguous_ats_cannot_be_silently_replaced_by_a_feed(self):
+        self.pages['/team/openings'] = BOARD + (
+            '<a href="https://jobs.lever.co/example">Lever jobs</a>'
+            '<link rel="alternate" type="application/rss+xml" href="/jobs.xml">')
+        self.pages['/jobs.xml'] = JOB_FEED
+        _, result = self.run_discovery()
+        self.assertEqual(result['error_category'], 'COMPANY_ATS_REVIEW_REQUIRED', result)
+        self.assertNotIn(ORIGIN + '/jobs.xml', self.seen)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
+
+    def assert_feed_denial_stops_fallback(self, status):
+        self.pages['/team/openings'] = (
+            '<script src="https://wd5.myworkdayjobs.com/Example/jobboard.js"></script>'
+            '<link rel="alternate" type="application/rss+xml" href="/a-jobs.xml">'
+            '<link rel="alternate" type="application/rss+xml" href="/b-jobs.xml">')
+        self.pages['/b-jobs.xml'] = JOB_FEED
+        original_page = self.page
+
+        def deny(transport, url, deadline):
+            if url == ORIGIN + '/a-jobs.xml':
+                self.seen.append(url)
+                return httpx.Response(status, request=httpx.Request('GET', url))
+            return original_page(transport, url, deadline)
+
+        with patch.object(self, 'page', side_effect=deny):
+            _, result = self.run_discovery()
+        self.assertNotEqual(result['status'], 'COMPLETED', result)
+        self.assertIn(ORIGIN + '/a-jobs.xml', self.seen)
+        self.assertNotIn(ORIGIN + '/b-jobs.xml', self.seen)
+        self.assertEqual(self.store.count('canonical_jobs'), 0)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
+
+    def test_unsupported_ats_feed_auth_denial_is_not_bypassed(self):
+        self.assert_feed_denial_stops_fallback(403)
+
+    def test_unsupported_ats_feed_rate_limit_is_not_bypassed(self):
+        self.assert_feed_denial_stops_fallback(429)
+
     def test_generic_homepage_feed_alone_is_not_evidence_of_job_inventory(self):
         self.pages['/'] = '<link rel="alternate" type="application/rss+xml" href="/feed/">'
         self.pages['/feed/'] = BLOG_FEED

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-02T18:36:14.430434+00:00",
+  "previous_source_head": "0f8094b63e671053507f869466cba6c03f73e526",
+  "pr": 890,
+  "status": "REVIEW_FIXES_PENDING_EXACT_REVISION_GATES",
+  "requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-015",
+    "MJ-REQ-018",
+    "MJ-REQ-174"
+  ],
+  "acceptance_results_changed": false,
+  "changes": [
+    "Collector control-read failures remain BLOCKED/OPERATION_CONTROL_UNAVAILABLE without provider backoff or retry.",
+    "A local stop restores provider health only while its own timestamp and COLLECTING state remain current, preserving newer rate-limit receipts.",
+    "Declared collection strategy/capabilities must match durable configuration before egress; contract/policy drift is checked again before import.",
+    "Malformed or failing capability declarations yield detached fixed SOURCE_CHANGED errors; cooperative stops retain their semantics.",
+    "Supported official ATS APIs stay preferred; unsupported ATS fallback requires same-origin, explicitly job-labelled feeds; ambiguous ATSs, news feeds, auth denial and rate limits cannot silently fall through."
+  ],
+  "source_files_sha256": {
+    "services/company_discovery/flywheel.py": "6b5c157a0655749a81699c497cbeddf3328694389a22f212f46e7c72360e8adf",
+    "services/discovery/sources/collect.py": "a1946b4ca4fa69fdda8ac24c27836d9d03d39717dfa938758e96154201e2a10a",
+    "tests/integration/test_company_career_candidates.py": "d504221cfb7b03be24e45a7366db0f416563096eda43c4400de96f442cc1f073",
+    "tests/integration/test_source_collection_error_categories.py": "a27fd991b42071b031687c629e65f871c789a1123a0c7481f958649e40fe0345",
+    "tests/integration/test_structured_operation_failures.py": "c1e3cbccb3c142a98c4c7475addb7df93f9fb7849b5258100ee3bc4568e02ec8",
+    "tests/unit/test_operation_control_reads.py": "1488e6ee85980b53a8bb518b82939d02a1a0e847965e28c312ac07aba8c4f0fb",
+    "tests/unit/test_source_strategy_admission.py": "c118390d650c9086ecf02a13f38d145120a27bdf68faa27022cd30815d5e8e28"
+  },
+  "reproductions": [
+    {
+      "scope": "New source strategy/career-feed baseline regressions on0f8094b6",
+      "failed": 7,
+      "passed": 0,
+      "expected": "Defects reproduced before source changes"
+    },
+    {
+      "scope": "Independent older-collector/newer-rate-limit interleaving",
+      "result": "Reproduced destructive overwrite of newer backoff before conditional restore"
+    },
+    {
+      "scope": "Independent unsupported ATS + generic blog feed",
+      "result": "Reproduced Company picnic imported as job before explicit-feed corroboration"
+    },
+    {
+      "scope": "Independent control-query failure inside source collection",
+      "result": "Reproduced false provider-health failure before local-stop propagation"
+    }
+  ],
+  "verification": [
+    {
+      "scope": "Independent final targeted review",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 5.37
+    },
+    {
+      "scope": "Linux pre-final source/error/browser sweep",
+      "passed": 81,
+      "failed": 5,
+      "skipped": 13,
+      "subtests": 29,
+      "limitation": "Five actual Chromium-dependent cases fail because pinned browser executable is unavailable locally; thirteen other environment skips remain distinct. Native counterparts pending. Two later feed-specific regressions separately passed in independent review."
+    },
+    {
+      "scope": "Windows final follow-up: source admission, real SQL lock worker, source/operation failure classes, actual browser and employer feeds",
+      "passed": 86,
+      "failed": 0,
+      "skipped": 13,
+      "subtests": 31,
+      "seconds": 154.08,
+      "junit": "outputs/pr890-review-followup.xml",
+      "limitation": "Thirteen environmental skips retained; exact proposed merge and hosted counterparts still required."
+    }
+  ],
+  "retained_failures": [
+    "New source fixture initially named a nonexistent source_observations table; corrected to source_quality_observations; corrected strategy suite passed8/0skip.",
+    "Existing simulated failing adapters omitted or changed the capability contract; fixtures now declare the configured Greenhouse capabilities while retaining original error-sanitation assertions.",
+    "Pinned Linux Chromium install failed; do not treat skipped/failed browser cases as accepted."
+  ],
+  "review": "Independent read-only review reproduced and rechecked all four integration findings; final review found no blocker.",
+  "limitations": [
+    "004 remains PARTIAL: database acquisition/connect/network stalls, recovery writes and finalization remain broader unproved boundaries.",
+    "018 remains PARTIAL: these checks do not establish the universal preference ladder or all desired source integrations.",
+    "015/174 acceptance requires final protected integration and guarded deployed readback.",
+    "No untrusted plugin sandbox, real employer submission, paid inference or whole-product completion claim."
+  ]
+}

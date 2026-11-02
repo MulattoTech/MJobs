@@ -106,3 +106,37 @@ class OperationControlReadTests(unittest.TestCase):
                 self.assertEqual(connection.execute(select(m.matches)).all(), [])
         finally:
             reopened.engine.dispose()
+
+    def test_source_worker_keeps_actual_control_lock_failure_out_of_provider_health(self):
+        from services.discovery.sources.collect import configure_source
+        from tests.integration.test_spine import PROFILE
+        from workers.dispatch import enqueue_operation
+        from workers.tasks import execute_operation
+
+        self.store.save_profile(PROFILE)
+        source_id = configure_source(self.store, 'fixture')
+        identifier = enqueue_operation(self.store, 'DISCOVER', 'fixture', {'source_id': source_id})
+
+        def actual_locked_read(adapter):
+            with self.store.engine.connect() as blocker:
+                blocker.exec_driver_sql('BEGIN EXCLUSIVE')
+                adapter.check()
+
+        with patch.dict('os.environ', {'MJOBS_DATABASE_URL': self.store.url, 'MJOBS_OPERATION_MODE': 'FIXTURE'}), \
+                patch('services.discovery.sources.greenhouse.Greenhouse.search',
+                      autospec=True, side_effect=actual_locked_read):
+            result = execute_operation(identifier)
+        self.assertEqual(result['status'], 'BLOCKED', result)
+        with self.store.engine.connect() as connection:
+            source = connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == source_id)).mappings().one()
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == identifier)).mappings().one()
+        self.assertEqual(source['health_status'], 'NOT_CHECKED')
+        self.assertEqual(source['consecutive_failures'], 0)
+        self.assertIsNone(source['backoff_until'])
+        self.assertIsNone(source['last_error'])
+        self.assertEqual(operation['error'], 'OPERATION_CONTROL_UNAVAILABLE')
+        self.assertFalse(operation['cancel_requested'])
+        self.assertEqual(operation['retry_count'], 0)
+        self.assertEqual(self.store.count('source_quality_observations'), 0)

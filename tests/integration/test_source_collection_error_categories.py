@@ -11,7 +11,8 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.discovery.sources.contract import CollectionStrategy, SearchBatch, SourceCapabilities
+from services.discovery.sources.contract import SearchBatch
+from services.discovery.sources.greenhouse import Greenhouse
 from services.discovery.sources.collect import (
     SourceCollectionBoundaryError,
     collect_source,
@@ -30,13 +31,16 @@ class _FailingAdapter:
     def search(self):
         raise self.failure
 
+    def capabilities(self):
+        return Greenhouse('fixture').capabilities()
+
 
 class _EmptyAdapter:
     def search(self):
         return SearchBatch(endpoint="https://example.invalid/jobs", items=())
 
     def capabilities(self):
-        return SourceCapabilities(strategy=CollectionStrategy.API, features=frozenset())
+        return Greenhouse('fixture').capabilities()
 
 
 class SourceCollectionErrorCategoryTests(unittest.TestCase):

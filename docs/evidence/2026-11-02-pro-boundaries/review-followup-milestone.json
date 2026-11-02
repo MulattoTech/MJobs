@@ -1,0 +1,54 @@
+{
+  "milestone_id": "PRO-BOUNDARIES-REVIEW-FIXES-20261102",
+  "timestamp": "2026-11-02T18:36:14.430434+00:00",
+  "current_phase": "Review-corrected control boundaries, source authority and domain persistence pending protected integration",
+  "completed_steps": [
+    "Collector control-read failures remain BLOCKED/OPERATION_CONTROL_UNAVAILABLE without provider backoff or retry.",
+    "A local stop restores provider health only while its own timestamp and COLLECTING state remain current, preserving newer rate-limit receipts.",
+    "Declared collection strategy/capabilities must match durable configuration before egress; contract/policy drift is checked again before import.",
+    "Malformed or failing capability declarations yield detached fixed SOURCE_CHANGED errors; cooperative stops retain their semantics.",
+    "Supported official ATS APIs stay preferred; unsupported ATS fallback requires same-origin, explicitly job-labelled feeds; ambiguous ATSs, news feeds, auth denial and rate limits cannot silently fall through."
+  ],
+  "files_added": [
+    "tests/unit/test_source_strategy_admission.py",
+    "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
+  ],
+  "files_modified": [
+    "services/company_discovery/flywheel.py",
+    "services/discovery/sources/collect.py",
+    "tests/integration/test_company_career_candidates.py",
+    "tests/integration/test_source_collection_error_categories.py",
+    "tests/integration/test_structured_operation_failures.py",
+    "tests/unit/test_operation_control_reads.py"
+  ],
+  "tests_completed": [
+    "Nine independent final regressions PASS without skips; source query failures, newer attempt backoff, declaration sanitization and feed preference/denial exercised.",
+    "Prior source head0f8094b6 exact proposed-mergebf158daa native172PASS/2platformSKIP/233subtests; both platform cases PASS in hosted unit artifact.",
+    "Initial source head hosted Python3423PASS/53SKIP/3776subtests; web build, CodeQL, dependency and secret gates PASS. These are historical head-bound checks, not final revision acceptance."
+  ],
+  "tests_remaining": [
+    "Final native source follow-up",
+    "Updated exact proposed-merge native verification",
+    "All five required protected checks plus CodeQL on the updated head",
+    "Guarded deployment, backup/image/readiness/ORM runtime proof and literal015/174 acceptance"
+  ],
+  "migrations_applied": [],
+  "live_integrations_tested": [
+    "Prior native isolated PostgreSQL locks, ORM snapshots and runtime least-privilege behavior"
+  ],
+  "known_errors": [
+    "New source fixture initially named a nonexistent source_observations table; corrected to source_quality_observations; corrected strategy suite passed8/0skip.",
+    "Existing simulated failing adapters omitted or changed the capability contract; fixtures now declare the configured Greenhouse capabilities while retaining original error-sanitation assertions.",
+    "Pinned Linux Chromium install failed; do not treat skipped/failed browser cases as accepted."
+  ],
+  "known_limitations": [
+    "004 remains PARTIAL: database acquisition/connect/network stalls, recovery writes and finalization remain broader unproved boundaries.",
+    "018 remains PARTIAL: these checks do not establish the universal preference ladder or all desired source integrations.",
+    "015/174 acceptance requires final protected integration and guarded deployed readback.",
+    "No untrusted plugin sandbox, real employer submission, paid inference or whole-product completion claim."
+  ],
+  "last_safe_checkpoint": {
+    "git_commit": "0f8094b63e671053507f869466cba6c03f73e526",
+    "evidence_path": "docs/evidence/2026-11-02-pro-boundaries/review-followup.json"
+  }
+}

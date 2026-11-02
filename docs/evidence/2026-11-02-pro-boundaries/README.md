@@ -15,3 +15,7 @@ Baseline: `0112ac4d5f62214925f43c2e5b68e01ad69e4322`, original P0 **12/26**, P1 
 The 100 ms SQL lock/query setting is not a certificate for pool acquisition, DNS/connect, a database network black hole or arbitrary callbacks. Request cleanup still waits for its observer; no daemon is abandoned to manufacture success. MJ-REQ-004 remains **PARTIAL**. Real employer submission and paid inference remain OFF.
 
 The earlier handoff's RQ-maintenance TODO is stale for a scoped subcriterion: prior hosted evidence in `docs/evidence/2026-11-01-pro-p1/hosted-execution.json` already records natural workhorse maintenance/redelivery and uncertain-submission recovery. Rechecking it is not a newly implemented capability; host restart and complete original interruption acceptance remain outstanding.
+
+## Review follow-up before integration
+
+[Follow-up evidence](review-followup.json) records the source-admission and employer-feed batch incorporated into PR890 before merge. Independent review caught newer-backoff overwrite, masked durable control failures, capability callback exception leakage and generic news-feed promotion. The resulting fixes preserve source authority and failure history. Native and exact proposed-merge receipts supersede neither the initial failed runs nor platform-specific skips. MJ-REQ-018 remains PARTIAL alongside004; 015/174 still await protected delivery.

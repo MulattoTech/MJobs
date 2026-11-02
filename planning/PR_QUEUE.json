@@ -6078,16 +6078,18 @@
       "requirements": [
         "MJ-REQ-004",
         "MJ-REQ-015",
+        "MJ-REQ-018",
         "MJ-REQ-174"
       ],
       "target_area": "workers control reads; AI request transport; domain rules; profile persistence",
       "depends_on": [
         "MJ-PR-PRO-RESUME-CLOSEOUT-20261102"
       ],
-      "status": "READY_FOR_PROTECTED_VERIFICATION",
+      "status": "REVIEW_FIXES_PENDING_PROTECTED_VERIFICATION",
       "branch": "work/pro-bounds-domain-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-boundaries/implementation.json",
-      "notes": "Actual SQLite/PostgreSQL lock regressions and native ORM snapshot/least-privilege tests pass. Acceptance results unchanged; broad004 stays PARTIAL. Source publication, exact proposed-merge gates and guarded deployment precede literal015/174 acceptance."
+      "notes": "Actual SQLite/PostgreSQL lock regressions and native ORM snapshot/least-privilege tests pass. Acceptance results unchanged; broad004 stays PARTIAL. Source publication, exact proposed-merge gates and guarded deployment precede literal015/174 acceptance. PR890 follow-up includes source strategy admission, guarded employer-feed fallback and review-corrected source health/control propagation. Prior-head checks are historical; final revision gates remain required.",
+      "pr_number": 890
     }
   ],
   "generated_at": "2026-11-02T18:19:27.308764+00:00"
