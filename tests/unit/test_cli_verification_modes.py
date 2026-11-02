@@ -83,6 +83,7 @@ def test_full_report_requires_live_health_executed_checks_cleanup_and_same_sourc
     observations = iter([before, after])
     monkeypatch.setattr(cli, "collect_readiness", lambda *_args, **_kwargs: next(observations))
     monkeypatch.setattr(cli, "working_tree_clean", lambda: failure != "dirty")
+    monkeypatch.setattr("cli.verification_checks.source_identity", lambda: (REVISION, "inputs"))
     calls = []
 
     def execute(**kwargs):
@@ -102,6 +103,48 @@ def test_full_report_requires_live_health_executed_checks_cleanup_and_same_sourc
     if failure == "runtime":
         assert result["functional"]["checks"]["Browser worker healthy"]["status"] == "PASS"
         assert result["runtime_after"]["checks"]["Application worker"] == "FAIL"
+
+
+@pytest.mark.parametrize("change", ["transient_edit", "checkout_after_functional"])
+def test_full_rejects_source_changes_during_live_probes_even_when_final_tree_is_clean(monkeypatch, change):
+    source = {"revision": REVISION, "digest": "inputs", "clean": True}
+    probes = []
+    functional = functional_report()
+
+    def observe(*_args, **_kwargs):
+        probes.append(len(probes) + 1)
+        if change == "transient_edit":
+            # The child sees one stable edited tree throughout its execution;
+            # both outer cleanliness observations still see the original tree.
+            source.update(digest="edited-inputs" if len(probes) == 1 else "inputs",
+                          clean=len(probes) == 2)
+        elif len(probes) == 2:
+            # A clean checkout can change after the child has returned without
+            # changing the live deployment or the child's reported revision.
+            source.update(revision="b" * 40, digest="other-revision-inputs")
+        return runtime_report()
+
+    def execute(**_kwargs):
+        functional.update(revision=source["revision"], source_sha256=source["digest"])
+        return functional
+
+    monkeypatch.setattr(cli, "collect_readiness", observe)
+    monkeypatch.setattr(cli, "working_tree_clean", lambda: source["clean"])
+    monkeypatch.setattr("cli.verification_checks.source_identity",
+                        lambda: (source["revision"], source["digest"]))
+    monkeypatch.setattr("cli.verification_checks.run_connected", execute)
+    result = cli.run_full("http://127.0.0.1:18801", fixture=True)
+    assert probes == [1, 2]
+    assert result["runtime_before"]["ready"] and result["runtime_after"]["ready"]
+    assert all(row["status"] == "PASS" for row in functional["checks"].values())
+    assert functional["cleanup"]["status"] == "PASS"
+    assert result["revision_identity"]["working_tree_clean"]
+    assert result["status"] == "FAIL" and result["exit_code"] == 1
+    assert result["revision_identity"]["status"] == "FAIL"
+    assert result["revision_identity"]["source_before"] == {"revision": REVISION, "source_sha256": "inputs"}
+    assert result["revision_identity"]["source_after"] == {
+        "revision": source["revision"], "source_sha256": source["digest"]}
+    assert result["revision_identity"]["functional_inputs_match"] is False
 
 
 def test_live_collection_only_retains_valid_identity_and_structural_checks(monkeypatch):

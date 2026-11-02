@@ -164,18 +164,27 @@ def working_tree_clean():
 
 def run_full(base_url, *, fixture=False, timeout=5.0, connected_timeout=120):
     """Combine fresh live observations and fresh owned functional execution."""
-    from cli.verification_checks import run_connected, exit_status
+    from cli.verification_checks import run_connected, exit_status, source_identity
     if fixture is not True:
         raise ValueError("full verification requires explicit fixture admission")
     started = datetime.now(timezone.utc).isoformat()
+    source_before = source_identity()
     clean_before = working_tree_clean()
     before = collect_readiness(base_url, timeout=timeout, include_identity=True)
     functional = run_connected(fixture=True, timeout=connected_timeout)
     after = collect_readiness(base_url, timeout=timeout, include_identity=True)
-    clean = clean_before and working_tree_clean()
+    source_after = source_identity()
+    clean_after = working_tree_clean()
+    clean = clean_before and clean_after
+    # The child's own before/after hash only covers functional execution.
+    # Bind it to the clean source around both live probes too: edits reverted
+    # during the final probe must not qualify a different tested input tree.
+    source_matches = source_before == source_after == (
+        functional.get("revision"), functional.get("source_sha256"))
     deployment = after.get("deployment")
     identity_matches = (deployment is not None and before.get("deployment") == deployment
-                        and deployment["commit"] == functional.get("revision") and clean)
+                        and deployment["commit"] == functional.get("revision")
+                        and source_matches and clean)
     functional_status = exit_status(functional)
     cleanup_passed = functional.get("cleanup", {}).get("status") == "PASS"
     passed = (before["ready"] and after["ready"] and identity_matches
@@ -189,8 +198,11 @@ def run_full(base_url, *, fixture=False, timeout=5.0, connected_timeout=120):
         "runtime_before": before, "runtime_after": after, "functional": functional,
         "revision_identity": {
             "status": "PASS" if identity_matches else "FAIL", "working_tree_clean": clean,
-            "reason": ("same deployment before/after functional execution; exact clean source revision"
-                       if identity_matches else "deployment/source identity missing, changed, different or local tree dirty"),
+            "source_before": {"revision": source_before[0], "source_sha256": source_before[1]},
+            "source_after": {"revision": source_after[0], "source_sha256": source_after[1]},
+            "functional_inputs_match": source_matches,
+            "reason": ("same deployment and clean source revision/input digest before and after functional execution"
+                       if identity_matches else "deployment/source revision or inputs missing, changed, different or local tree dirty"),
         },
     }
 

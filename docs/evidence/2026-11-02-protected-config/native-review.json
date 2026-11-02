@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T15:44:08.379286+00:00",
+  "requirement": "MJ-REQ-167",
+  "status": "NATIVE_VERIFIED_PENDING_EXACT_CI_AND_DELIVERY",
+  "purpose": "Encrypted companion for important private configuration, combined with existing database/upload/generated-document backup and restore. No live restore performed.",
+  "manifest": {
+    "source_parent": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_protected_config_backup.py",
+      "tests/integration/test_protected_config_credential_recovery.py",
+      "tests/unit/test_init_env.py",
+      "tests/unit/test_fleet_t11_guarded_migration.py",
+      "tests/unit/test_backup_config_snapshot.py",
+      "tests/unit/test_backup_credential_restore.py",
+      "--junitxml=outputs/protected-config-reviewed.xml",
+      "--maxfail=2"
+    ],
+    "source_sha256": [
+      {
+        "path": "cli/protected_config_backup.py",
+        "sha256": "82f895d6bd2ef6f2ae95cf74429bcf78300131548fd3d581b812918d8db1f468"
+      },
+      {
+        "path": "cli/migration_precondition.py",
+        "sha256": "67617510e65c60a2e0c74415781f6947e44e268518ff24ae97f92ab48e8fe582"
+      },
+      {
+        "path": "tests/unit/test_protected_config_backup.py",
+        "sha256": "e9c309c21f2d96b5fa92c3655745cf2cb5665aacf7ad5c80bb21c72150636e6f"
+      },
+      {
+        "path": "tests/integration/test_protected_config_credential_recovery.py",
+        "sha256": "08b49212eb3ec909432c5dbf25baacce0cf1bb6e2d22c1c56ea7e78bdb157afe"
+      },
+      {
+        "path": "docs/runbooks/LOCAL_BACKUP.md",
+        "sha256": "09d19fb822c4fa2fe2972ce0130ba2600b0c85c26cfbcea7bc2419d17040137f"
+      }
+    ],
+    "private_test_parent_verified": true,
+    "shared_acls_changed": false,
+    "external_data": "synthetic only; disposable loopback PostgreSQL schemas"
+  },
+  "native": {
+    "result": "PASS",
+    "tests": 76,
+    "subtests": 150,
+    "skipped": 2,
+    "duration_seconds": 314.89,
+    "xml_sha256": "8e8e300489a09d8abd43e56c9a8b095bc981c614b0ebf78f41f8c85f23f06f0a",
+    "skips": [
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "test": "test_linked_input_and_linked_ancestor_are_rejected",
+        "reason": "Synthetic symlink fixture unavailable: OSError"
+      },
+      {
+        "class": "tests.unit.test_protected_config_backup.ProtectedConfigFilesystemTests",
+        "test": "test_posix_broad_file_and_parent_modes_and_fifo_are_rejected",
+        "reason": "POSIX filesystem permission fixture"
+      }
+    ]
+  },
+  "failure_history": [
+    {
+      "receipt": "outputs/protected-config-native.xml",
+      "result": "FAIL",
+      "failed": 2,
+      "passed": 10,
+      "subtests": 58,
+      "duration_seconds": 3.25,
+      "cause": "Windows path-stat and descriptor-stat ctime differ for unchanged files; ordinary Temp ancestry correctly failed private-parent checks."
+    },
+    {
+      "result": "FIXED_AND_REVIEWED",
+      "detail": "Omit ctime only for Windows cross-API metadata equality; retain ctime for same-API before/after comparisons and all POSIX comparisons. Run actual NTFS checks inside one new private task-owned parent; no shared ACL changes."
+    },
+    {
+      "result": "FIXED_AND_REVIEWED",
+      "detail": "Prior source review reproduced mandatory temporary-hardlink unlink failure and foreign replacement ownership defects; publication now verifies one link/original identity and cleanup retains only recorded owned identities."
+    }
+  ],
+  "recovery_proof": {
+    "sqlite": "Recovered original exact-byte .env and Compose fixture; recovered key decrypts unchanged credential ciphertext; wrong key refused.",
+    "postgresql": "Same proof executed in fresh owned schema on disposable loopback PostgreSQL17.",
+    "production_restore": false,
+    "secrets": "Synthetic fixtures only; encrypted archive payload and actual keys are never logged."
+  },
+  "security_properties": [
+    "Independent 32-byte recovery key and authenticated AES-256-GCM envelope",
+    "Strict .env/flat Compose allowlist and input/envelope size limits",
+    "Actual private owner/ACL and ancestor checks before secret writes",
+    "Reject links/reparse points/hardlinks/special nodes and metadata changes",
+    "Authenticate entire archive before restoring into a new directory",
+    "Atomic create-if-absent publication; never overwrite; cleanup only owned objects"
+  ],
+  "remaining_gates": [
+    "Linux symlink/POSIX cases",
+    "Exact proposed-merge CI and native evidence",
+    "Protected integration and delivered tooling identity"
+  ],
+  "acceptance_unchanged": true
+}

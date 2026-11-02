@@ -5,7 +5,7 @@
   "source_sha256": [
     {
       "path": "cli/verify_readiness.py",
-      "sha256": "0a8601deaf708e6ce26073d5abf8f9a8eb4e2cc7ca7ad879890eabea574e3d8e"
+      "sha256": "1d86c63f1cdcb0ce962381c7cb9096eda1b75f78401089aec38ed54ebb0acdd0"
     },
     {
       "path": "cli/verification_checks.py",
@@ -17,7 +17,7 @@
     },
     {
       "path": "tests/unit/test_cli_verification_modes.py",
-      "sha256": "a6f4ff16f720faa1df7ab983262b6036a66450fd3572165e103d04f70641f516"
+      "sha256": "d20ce87cfcdd238f6246bcf516692baee77c63374c74cf687ed90d9eb1b0178b"
     },
     {
       "path": "tests/unit/test_verification_utility_sustain_289.py",
@@ -75,6 +75,15 @@
       "skipped": 0,
       "duration_seconds": 6.33,
       "scope": "Final absolute live-probe deadline/size/privacy/malformed identity/deep JSON controls and real dry-run parent-artifact validation including rejection of boolean/float counters. Overlaps the prior run; totals are not additive."
+    },
+    {
+      "receipt": "docs/evidence/2026-11-02-pro-verification/source-identity-review.json",
+      "result": "PASS",
+      "passed": 68,
+      "skipped": 1,
+      "duration_seconds": 76.71,
+      "sha256": "a7ad4d76fce5e68f7845ee731ebba4cd4143b1a189f09789382b30deebb9f2bc",
+      "scope": "Corrected FULL clean source revision/input binding and complete CLI/connected command regression modules; overlaps earlier native runs."
     }
   ],
   "independent_review": {
@@ -85,7 +94,8 @@
       "Use absolute request guard with per-request client, trace binding, bounded streamed body; retain readiness when identity fails.",
       "Reject malformed ports and non-string operation modes.",
       "Require integer request counters, not boolean/float equality.",
-      "Catch deeply nested JSON RecursionError as unavailable probe; 20,001-byte native regression verifies parser throws before testing preserved readiness and identity outcomes."
+      "Catch deeply nested JSON RecursionError as unavailable probe; 20,001-byte native regression verifies parser throws before testing preserved readiness and identity outcomes.",
+      "Bind the exact functional source snapshot before the first live probe, through the child, and after the final probe; reject transient dirty inputs and post-child clean checkout changes."
     ],
     "scope": "Two independent read-only source reviewers; tests owned by integration owner.",
     "result": "All concrete review findings fixed; final focused regressions passed."

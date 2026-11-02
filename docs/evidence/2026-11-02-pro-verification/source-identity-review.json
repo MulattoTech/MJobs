@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-02T15:41:41.807898+00:00",
+  "status": "NATIVE_VERIFIED_PENDING_EXACT_CI_AND_DEPLOYMENT",
+  "source_parent": "54854b204cd67cfabab660ea237ab6f0dc77eb6d",
+  "requirements": [
+    "MJ-REQ-288",
+    "MJ-REQ-004"
+  ],
+  "defect": "FULL could pass when its functional inputs were edited during the first live probe and restored before the final cleanliness check, or when a clean checkout changed after functional execution.",
+  "pre_fix": {
+    "result": "REPRODUCED",
+    "method": "Independent standard-library harness executed the actual extracted run_full function; both changed-input cases returned false PASS.",
+    "not_claimed": "Not a full native pytest run."
+  },
+  "correction": "Require identical clean revision and aggregate functional source digest before first live probe, in child report, and after final live probe. Preserve runtime readiness, exact inventory, stable deployment and cleanup checks.",
+  "independent_review": "Narrow two-file delta checked against immutable 548 preimages; no configuration-backup overlap or CONNECTED/DRY_RUN behavior change.",
+  "native": {
+    "result": "PASS",
+    "tests": 68,
+    "skipped": 1,
+    "duration_seconds": 76.71,
+    "xml": "outputs/verification-identity-reviewed.xml",
+    "xml_sha256": "a7ad4d76fce5e68f7845ee731ebba4cd4143b1a189f09789382b30deebb9f2bc",
+    "skip": "test_non_windows_connected_command_is_blocked_without_functional_pass: Linux-only containment contract; awaiting hosted integration execution.",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_cli_verification_modes.py",
+      "tests/unit/test_verification_utility_sustain_289.py",
+      "tests/integration/test_connected_verification_command.py",
+      "--junitxml=outputs/verification-identity-reviewed.xml",
+      "--maxfail=2"
+    ],
+    "source_sha256": [
+      {
+        "path": "cli/verify_readiness.py",
+        "sha256": "1d86c63f1cdcb0ce962381c7cb9096eda1b75f78401089aec38ed54ebb0acdd0"
+      },
+      {
+        "path": "cli/verification_checks.py",
+        "sha256": "beb50e4fad49f931b59e771cbeed75b9ae3566d2eb607ecdbc00b4f692b6abd9"
+      },
+      {
+        "path": "cli/verification_fixture.py",
+        "sha256": "efbfcd69fc09e64a665cde699f216c336dd6c6c39f926d3cefdb09764ec145f1"
+      },
+      {
+        "path": "tests/unit/test_cli_verification_modes.py",
+        "sha256": "d20ce87cfcdd238f6246bcf516692baee77c63374c74cf687ed90d9eb1b0178b"
+      }
+    ]
+  },
+  "acceptance_unchanged": true
+}

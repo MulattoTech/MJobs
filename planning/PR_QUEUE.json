@@ -5998,16 +5998,19 @@
       "depends_on": [
         "MJ-PR-072"
       ],
-      "status": "IMPLEMENTED_AWAITING_CI",
+      "status": "MERGED",
       "branch": "work/pro-secret-errors-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-secret-errors/criteria.json",
-      "notes": "Native106 tests+135 subtests passed, zero skips. Reproduced13 failures across two pre-fix runs. Exact protected CI/deployment pending; canonical acceptance unchanged."
+      "notes": "Exact proposed merge82a1f59b passed native164+166subtests/0skip and all protected gates plus CodeQL; merged tree653905a78296402c424d0356518d84a65eca3e26 matched. Deployment/canonical closeout follows separately; prior failures retained.",
+      "pr_number": 887,
+      "merge_commit": "2c6a93f3eeecd5d6777bec25a18855a7bf8ac310"
     },
     {
       "id": "MJ-PR-PRO-VERIFY-20261102",
-      "title": "Complete dry-run and observed platform verification modes",
+      "title": "Truthful verification modes and encrypted protected configuration recovery",
       "priority": "P1",
       "requirements": [
+        "MJ-REQ-167",
         "MJ-REQ-208",
         "MJ-REQ-288",
         "MJ-REQ-004"
@@ -6016,11 +6019,11 @@
       "depends_on": [
         "MJ-PR-PRO-SECRET-ERRORS-20261102"
       ],
-      "status": "IMPLEMENTED_AWAITING_CI",
-      "branch": "work/verified-dry-run-20261102",
+      "status": "NATIVE_VERIFIED_PENDING_CI",
+      "branch": "work/protected-config-backup-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-verification/criteria.json",
-      "notes": "Native102 tests+9subtests passed, one explicit Linux-only skip; final28 focused regressions passed, zero skips. Exact protected CI and deployed full command pending. Acceptance unchanged."
+      "notes": "Verification548 combined with protected configuration companion and reviewed FULL source-identity correction. Native backup76+150subtests/2platform skips; identity/CLI68/1Linux skip; counts overlap prior runs. Exact protected integration and deployed full command pending. Acceptance unchanged."
     }
   ],
-  "generated_at": "2026-11-01T06:12:03.759437+00:00"
+  "generated_at": "2026-11-02T15:41:41.807898+00:00"
 }
