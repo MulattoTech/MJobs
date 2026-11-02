@@ -25,10 +25,22 @@ from cli.verification_process import CleanupError, ContainmentUnavailable, Owned
 ROOT = Path(__file__).resolve().parents[1]
 CHECKS = (
     "adapter registry", "mock global source", "mock company discovery", "ATS detector",
+    "Scoring functional",
     "Document engine healthy", "Browser worker healthy", "Dry-run mode functional",
     "mock application fill", "mock upload", "mock confirmation",
     "duplicate-submission protection", "durable readback",
 )
+DRY_RUN_CHECKS = tuple(name for name in CHECKS if name not in {
+    "mock confirmation", "duplicate-submission protection",
+})
+
+
+def checks_for(mode):
+    if mode == "CONNECTED":
+        return CHECKS
+    if mode == "DRY_RUN":
+        return DRY_RUN_CHECKS
+    raise ValueError("unsupported verification execution mode")
 
 
 def validate_connected_timeout(value):
@@ -54,14 +66,15 @@ def source_identity():
     return revision, digest.hexdigest()
 
 
-def new_report(invocation_id, revision, source_hash):
+def new_report(invocation_id, revision, source_hash, *, mode="CONNECTED"):
     return {
-        "schema_version": 1, "scope": "isolated synthetic FIXTURE; not deployment readiness",
+        "schema_version": 2, "scope": "isolated synthetic FIXTURE; not deployment readiness",
+        "execution_mode": mode,
         "invocation_id": invocation_id, "revision": revision, "source_sha256": source_hash,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "external_submission_enabled": False,
         "checks": {name: {"status": "NOT_RUN", "reason": "prerequisite not completed"}
-                   for name in CHECKS}, "observations": {},
+                   for name in checks_for(mode)}, "observations": {},
     }
 
 
@@ -69,7 +82,7 @@ def validate_report(report, expected, *, pid):
     """Only accept the just-launched child's report for the exact invocation."""
     if not isinstance(report, dict):
         raise ValueError("invalid connected evidence")
-    for key in ("schema_version", "invocation_id", "revision", "source_sha256", "started_at"):
+    for key in ("schema_version", "invocation_id", "revision", "source_sha256", "started_at", "execution_mode"):
         if report.get(key) != expected[key]:
             raise ValueError("connected evidence identity mismatch")
     runtime = report.get("runtime")
@@ -80,7 +93,7 @@ def validate_report(report, expected, *, pid):
             or report.get("external_submission_enabled") is not False):
         raise ValueError("connected evidence runtime mismatch")
     checks = report.get("checks")
-    if not isinstance(checks, dict) or set(checks) != set(CHECKS):
+    if not isinstance(checks, dict) or set(checks) != set(checks_for(expected["execution_mode"])):
         raise ValueError("invalid connected check set")
     for row in checks.values():
         if (not isinstance(row, dict) or row.get("status") not in {"PASS", "FAIL", "NOT_RUN", "BLOCKED"}
@@ -137,18 +150,69 @@ def _corroborate(report, expected):
         }
         if any(observed.get(name) != value for name, value in expected_source.items()):
             raise ValueError("registry source identity corroboration missing")
-    if not passed("mock global source"):
+    if not any(passed(name) for name in ("mock global source", "mock company discovery", "Scoring functional")):
         return
     profile_id = "verification-" + expected["invocation_id"]
-    if observed.get("profile_id") != profile_id or observed.get("canonical_jobs") != 2:
+    if observed.get("profile_id") != profile_id:
         raise ValueError("discovery identity mismatch")
     root = Path(expected["workspace"])
     with closing(sqlite3.connect((root / "fixture.db").as_uri() + "?mode=ro", uri=True)) as db:
-        if db.execute("SELECT COUNT(*) FROM job_postings").fetchone()[0] != 4:
+        if passed("mock global source") and (observed.get("canonical_jobs") != 2 or
+                db.execute("SELECT COUNT(*) FROM job_postings").fetchone()[0] != 4):
             raise ValueError("discovery persistence missing")
-        if passed("mock company discovery") and db.execute(
-                "SELECT COUNT(*) FROM company_job_sources").fetchone()[0] != 1:
-            raise ValueError("company persistence missing")
+        if passed("mock global source"):
+            operation = db.execute("SELECT kind, entity_id, state, params FROM worker_operations WHERE id = ?",
+                (observed.get("discovery_operation_id"),)).fetchone()
+            prior_ids, fresh_id = observed.get("discovery_prior_audit_ids"), observed.get("discovery_audit_id")
+            if (operation is None or operation[:3] != ("DISCOVER", profile_id, "COMPLETED")
+                    or not isinstance(prior_ids, list) or not all(isinstance(item, str) for item in prior_ids)
+                    or len(prior_ids) != len(set(prior_ids)) or not isinstance(fresh_id, str) or fresh_id in prior_ids):
+                raise ValueError("fresh global discovery operation evidence missing")
+            params = json.loads(operation[3])
+            audits = {row[0] for row in db.execute("SELECT id FROM audit_events WHERE entity_id = ? "
+                "AND action = 'MOCK_DISCOVERY_COMPLETE'", (profile_id,))}
+            if (params.get("rescore_only") is True
+                    or params.get("request_id") != "discover-" + expected["invocation_id"]
+                    or audits != set(prior_ids) | {fresh_id}):
+                raise ValueError("fresh global discovery audit mismatch")
+        if passed("mock company discovery"):
+            source = db.execute("SELECT company_id, provider, tenant FROM company_job_sources").fetchall()
+            operation = db.execute("SELECT kind, entity_id, state, params FROM worker_operations WHERE id = ?",
+                (observed.get("company_operation_id"),)).fetchone()
+            if (len(source) != 1 or source[0] != (observed.get("company_id"), "mock-ats", "example")
+                    or operation is None or operation[:3] != ("COMPANY_DISCOVER", source[0][0], "COMPLETED")):
+                raise ValueError("company operation persistence missing")
+            params = json.loads(operation[3])
+            if (params.get("profile_id") != profile_id
+                    or params.get("request_id") != "company-" + expected["invocation_id"]):
+                raise ValueError("company operation invocation mismatch")
+        if passed("Scoring functional"):
+            profile = db.execute("SELECT version FROM career_profiles WHERE id = ?", (profile_id,)).fetchone()
+            operation = db.execute("SELECT kind, entity_id, state, params FROM worker_operations WHERE id = ?",
+                (observed.get("scoring_operation_id"),)).fetchone()
+            if (not passed("mock global source") or profile is None or operation is None
+                    or operation[:3] != ("DISCOVER", profile_id, "COMPLETED")):
+                raise ValueError("scoring operation persistence missing")
+            params = json.loads(operation[3])
+            rows = db.execute("SELECT job_id, profile_version, score, missing, components FROM job_matches "
+                "WHERE profile_id = ? AND profile_version = ?", (profile_id, profile[0])).fetchall()
+            if (params.get("rescore_only") is not True or params.get("profile_version") != profile[0]
+                    or params.get("request_id") != "score-" + expected["invocation_id"]
+                    or observed.get("scored_profile_version") != profile[0] or len(rows) != 2
+                    or not isinstance(observed.get("scoring_previous_version"), str)
+                    or observed["scoring_previous_version"] == profile[0]
+                    or type(observed.get("scores_before_rescore")) is not int
+                    or observed["scores_before_rescore"] != 0):
+                raise ValueError("current scoring evidence missing")
+            selected = [row for row in rows if row[0] == observed.get("scored_job_id")]
+            if len(selected) != 1:
+                raise ValueError("scored job identity mismatch")
+            row = selected[0]
+            strengths = {item.get("skill"): item.get("strength")
+                         for item in json.loads(row[4]).get("requirements", [])}
+            if (row[2] != 100 or json.loads(row[3]) or observed.get("score") != 100
+                    or strengths != {"Python": "REQUIRED", "SQL": "REQUIRED"}):
+                raise ValueError("persisted scoring explanation mismatch")
         if passed("Document engine healthy"):
             rows = db.execute("SELECT application_id, files, sha256 FROM documents").fetchall()
             if len(rows) != 2:
@@ -159,7 +223,27 @@ def _corroborate(report, expected):
                     path = (root / app_id / files[extension]).resolve()
                     if not path.is_relative_to(root.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != hashes[extension]:
                         raise ValueError("document evidence mismatch")
-        if passed("mock confirmation") or passed("duplicate-submission protection") or passed("durable readback"):
+        if expected.get("execution_mode") == "DRY_RUN" and passed("durable readback"):
+            rows = db.execute("SELECT id, state, confirmation FROM applications WHERE profile_id = ?",
+                              (profile_id,)).fetchall()
+            if (len(rows) != 1 or rows[0][1] != "DRY_RUN_COMPLETE"
+                    or rows[0][2] not in (None, "null")
+                    or observed.get("persisted_state") != "DRY_RUN_COMPLETE"
+                    or observed.get("application_id") != rows[0][0]
+                    or type(observed.get("submission_count")) is not int or observed["submission_count"] != 0):
+                raise ValueError("dry-run persistence missing or submission occurred")
+            receipt_path = root / "receipts.json"
+            if receipt_path.exists() and json.loads(receipt_path.read_text(encoding="utf-8")):
+                raise ValueError("dry-run receipt must be absent")
+            counts = json.loads((root / "request-counts.json").read_text(encoding="utf-8"))
+            operations = db.execute("SELECT state, params FROM worker_operations WHERE kind = 'APPLY_MOCK'").fetchall()
+            if (type(counts.get("submit")) is not int or counts["submit"] != 0
+                    or type(counts.get("review")) is not int or counts["review"] != 1 or len(operations) != 1
+                    or operations[0][0] != "COMPLETED"
+                    or json.loads(operations[0][1]).get("submit") is not False
+                    or not all(passed(name) for name in DRY_RUN_CHECKS)):
+                raise ValueError("dry-run zero-submission execution evidence missing")
+        elif passed("mock confirmation") or passed("duplicate-submission protection") or passed("durable readback"):
             row = db.execute("SELECT id, state, confirmation FROM applications WHERE profile_id = ?", (profile_id,)).fetchall()
             if len(row) != 1 or row[0][1] != "CONFIRMED":
                 raise ValueError("confirmed application persistence missing")
@@ -186,10 +270,10 @@ def _stop(process):
     process.finalize()
 
 
-def run_connected(*, fixture=False, timeout=120):
+def run_connected(*, fixture=False, timeout=120, mode="CONNECTED"):
     timeout = validate_connected_timeout(timeout)
     revision, source_hash = source_identity()
-    report = new_report(uuid4().hex, revision, source_hash)
+    report = new_report(uuid4().hex, revision, source_hash, mode=mode)
     if fixture is not True:
         report["checks"][CHECKS[0]] = {"status": "BLOCKED", "reason": "explicit --fixture admission required"}
         return report

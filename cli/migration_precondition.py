@@ -325,6 +325,24 @@ def require_private_parent(path):
     (_check_windows_parent if os.name=='nt' else _check_posix_parent)(path)
 
 
+def require_private_file(path):
+    """Validate one owned secret file, including its ACL and replacement ancestors.
+
+    Unlike a directory-only check this also protects Windows files whose DACL
+    grants access independently of their parent's traversal permissions.
+    """
+    if not path.is_absolute(): raise MigrationRefused('Private file must be absolute')
+    for node in (path, *path.parents):
+        info = node.lstat()
+        if (_link(node) or getattr(info, 'st_file_attributes', 0)
+                & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)):
+            raise MigrationRefused('Unsafe private file link')
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise MigrationRefused('Private file must be a single regular file')
+    (_check_windows_parent if os.name=='nt' else _check_posix_parent)(path)
+
+
 def require_private_archive(path):
     """NTFS traverse privilege makes a private parent alone insufficient."""
     require_private_parent(path)

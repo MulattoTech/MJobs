@@ -1,5 +1,9 @@
 # Local user-testing guide
 
+For a complete command-driven dry-run or a current installed-stack report,
+see [Verify the platform](runbooks/VERIFY_PLATFORM.md). The explicit dry-run
+executes discovery through browser validation and proves zero submissions.
+
 ## Start
 
 Install/start Docker Desktop in Linux-container mode. In PowerShell:

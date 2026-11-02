@@ -6,9 +6,10 @@ projects. The archive contains career profiles, application history, source
 catalog data, generated documents and uploaded base resumes. Treat it as sensitive personal data and
 store it outside this Git checkout on a protected local disk.
 
-The archive does **not** copy `.env` secrets, Redis's rebuildable queue, or
-Playwright browser profiles and cookies. Keep private host configuration through
-your normal protected local backup process. In particular, provider credentials
+The database/document archive does **not** copy `.env` secrets, Redis's rebuildable queue, or
+Playwright browser profiles and cookies. Use the separate encrypted configuration
+companion below for explicitly selected `.env` and private Compose files, or keep
+them through your established protected backup process. In particular, provider credentials
 remain encrypted in the database and require the original
 `MJOBS_CREDENTIAL_ENCRYPTION_KEY` from protected secret storage. A newly
 generated key cannot decrypt them. Keep the key outside the archive and restore
@@ -17,6 +18,80 @@ password may be newly generated for the fresh target. The PostgreSQL outbox
 requeues unfinished work when workers start. A restored browser flow may require
 fresh authentication and operator review; `SUBMISSION_UNCONFIRMED` must never be
 blindly resubmitted.
+
+## Back up and recover protected configuration
+
+`cli.protected_config_backup` captures exact bytes from explicitly selected files.
+It does not inspect environment variables, discover files recursively, interpret
+dotenv values, execute Compose, or change an active project. Keep the ordinary
+database/document archive and this configuration companion together in your
+recovery inventory; their independent recovery key belongs in a separate
+protected location. Stop editing the selected files while capturing them. The
+tool rejects a file that changes during capture.
+
+Prepare existing private directories for the recovery key, encrypted archive,
+and recovered files. On POSIX, these directories must be owned by the current
+user with no group/other access; selected source files must also be private
+(normally mode `0600`). On Windows the tool verifies NTFS ownership and DACLs
+for parents and each secret file. Only the current user, SYSTEM, and local
+Administrators may be granted access to a protected object; ancestors must not
+allow other principals to replace it. A directory or file that cannot be
+verified is refused. The tool does not modify existing permissions. A Python
+mode argument or `chmod` alone is not proof of private NTFS access.
+
+The example locations below must already satisfy these checks. The key location
+must be separate from the archive directory and the source/recovery directories.
+Keep a separately protected recovery copy of that key outside the computer whose
+failure the backup must survive. Never place it alongside the encrypted archive
+or include it in the selected configuration files.
+
+```powershell
+.venv\Scripts\python.exe -m cli.protected_config_backup keygen --key-file 'E:\MJobsRecoveryKeys\config.key'
+.venv\Scripts\python.exe -m cli.protected_config_backup backup --source-root 'C:\Tools\Dev\MJobs' --file '.env' --file 'compose.private.yml' --key-file 'E:\MJobsRecoveryKeys\config.key' --archive 'D:\PrivateBackups\mjobs-config-2026-11-02.mjpc'
+.venv\Scripts\python.exe -m cli.protected_config_backup verify --key-file 'E:\MJobsRecoveryKeys\config.key' --archive 'D:\PrivateBackups\mjobs-config-2026-11-02.mjpc'
+.venv\Scripts\python.exe -m cli.protected_config_backup restore --key-file 'E:\MJobsRecoveryKeys\config.key' --archive 'D:\PrivateBackups\mjobs-config-2026-11-02.mjpc' --destination 'D:\PrivateRecovery\mjobs-config-2026-11-02'
+```
+
+Select only files that exist and matter to that project; omit the second `--file`
+when there is no private Compose override. Accepted names are `.env` and flat
+`compose.<name>.yml` or `compose.<name>.yaml` files, where `<name>` starts with a
+lowercase letter/digit and contains up to 64 lowercase letters, digits,
+underscores, or hyphens. Public `compose.yml` remains in the ordinary archive.
+At most eight files, 2 MiB per file, and 8 MiB in total are accepted. Symlinks,
+junctions/reparse points, hardlinks, special files, subdirectories, and traversal
+names are refused.
+
+The versioned companion encrypts filenames and contents using AES-256-GCM with
+a fresh random nonce. The separate binary recovery key is 32 random bytes and
+is independent of `MJOBS_CREDENTIAL_ENCRYPTION_KEY`, which can be one of the
+values protected inside `.env`. The key is never printed or included in the
+archive. Losing the recovery key makes the companion unrecoverable. A new
+recovery key cannot decrypt an existing archive.
+
+`verify` authenticates the complete archive without writing plaintext. `restore`
+authenticates and validates all files before creating a fresh private directory.
+Wrong keys, corruption, unsafe members, and oversized data fail before that
+directory is created. Existing key files, archives, restore directories, and
+concurrently created output files are never overwritten. A write failure removes
+only objects still identifiable as created by this invocation; an ambiguous or
+occupied partial directory is left protected for operator inspection. Process
+termination can also leave private staging files. No active configuration is
+replaced, and no recovered content is executed.
+
+Successful publication requires removal of the staging link and verification
+that the final private output has exactly one link. A staging-cleanup failure
+reports failure, even if protected files must remain for operator inspection.
+Restore retains the original identity of each file it publishes; a concurrent
+replacement is never adopted as owned rollback material.
+
+Review the recovered files privately. Before the database restore below, install
+the recovered original `MJOBS_CREDENTIAL_ENCRYPTION_KEY` through your protected
+configuration process, and review any private Compose override separately. The
+existing database restore checks that this key decrypts saved provider
+credentials before application startup. Do not put recovered values in command
+output, shell arguments/history, issue comments, or public test evidence.
+This companion does not capture browser cookies or remove the need for fresh
+authentication and operator review.
 
 ## Back up a quiescent project
 
@@ -93,12 +168,14 @@ and port. For the default personal project:
 
 Use the matching repository version and Compose configuration. The archive's
 Compose SHA-256 must match the checkout. Before restoring, retrieve the original
-`MJOBS_CREDENTIAL_ENCRYPTION_KEY` from the protected local secret store used for
-the source project. The database dump contains encrypted provider credentials;
-the archive never contains their key. If `.env` is missing, `cli.init_env`
+`MJOBS_CREDENTIAL_ENCRYPTION_KEY` from the protected local secret store or the
+separately recovered encrypted configuration companion used for the source
+project. The database dump contains encrypted provider credentials; the ordinary
+database/document archive never contains their key. If `.env` is missing, `cli.init_env`
 creates a new private file with a new key, so replace that generated key with
 the original value using the protected local configuration process before
-restoring. Keep the key out of command output, shell history, and the archive.
+restoring. Keep the key out of command output, shell history, and the ordinary
+database/document archive.
 The PostgreSQL password in the fresh target's `.env` may be new.
 
 Build the application image from the matching checkout before restoring.
@@ -187,4 +264,5 @@ preserved its metadata and exact bytes while keeping every CareerFact unapproved
 archive also restored into a new project and upgraded to the new schema without
 losing its profile or 21 public jobs. Neither proof submitted a real external
 application. Protected host configuration, browser authentication and physical
-host restart remain outside this validation.
+host restart remain outside these historical validation runs; the encrypted
+configuration companion requires its own executed recovery evidence.
