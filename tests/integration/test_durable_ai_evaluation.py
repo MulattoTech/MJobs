@@ -704,6 +704,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
 
     def test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation(self):
         from concurrent.futures import ThreadPoolExecutor
+        import gc
         import threading
         import time
         import httpx
@@ -778,6 +779,13 @@ class DurableAIEvaluationTests(unittest.TestCase):
                                       watch_with_readiness), patch.object(
                             provider_transport._RequestGuard, 'interrupt',
                             interrupt_with_timestamp), ThreadPoolExecutor(max_workers=1) as pool:
+                        # Hundreds of earlier API fixtures can leave cyclic
+                        # application/route graphs for a process-wide collection.
+                        # Drain prior fixture debris during setup; automatic GC
+                        # stays enabled throughout the unchanged timed contract.
+                        gc_started = time.monotonic()
+                        collected = gc.collect()
+                        gc_setup_seconds = time.monotonic() - gc_started
                         work = pool.submit(run_to_terminal)
                         self.assertTrue(watcher_ready.wait(3),
                             'Request deadline watcher did not enter its guard')
@@ -807,12 +815,14 @@ class DurableAIEvaluationTests(unittest.TestCase):
                               f'ack={ack_phase}; interrupt_requested={interrupt_phase}; '
                               f'provider_return={provider_phase}; observed_peer_close={close_phase}; '
                               f'worker_terminal={elapsed * 1000:.1f}ms; '
-                              f'observation_lag={(observed_at - terminal_at) * 1000:.1f}ms')
+                              f'observation_lag={(observed_at - terminal_at) * 1000:.1f}ms; '
+                              f'fixture_gc={gc_setup_seconds * 1000:.1f}ms/{collected} objects')
                         self.assertLess(elapsed, 1,
                             f'provider={provider_type.name} cancel={cancel}; '
                             f'ack={ack_phase}; interrupt_requested={interrupt_phase}; '
                             f'provider_return={provider_phase}; observed_peer_close={close_phase}; '
-                            f'worker_terminal={elapsed * 1000:.1f}ms')
+                            f'worker_terminal={elapsed * 1000:.1f}ms; '
+                            f'fixture_gc={gc_setup_seconds * 1000:.1f}ms/{collected} objects')
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)
                     if not cancel:
