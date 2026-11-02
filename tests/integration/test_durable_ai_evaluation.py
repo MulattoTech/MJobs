@@ -711,26 +711,40 @@ class DurableAIEvaluationTests(unittest.TestCase):
         from services.ai.tasks import AITaskRouter
         from tests.unit.test_ai_header_deadline import HeaderServer, PROVIDERS
 
-        class TimedCloseEvent(threading.Event):
+        class TimedEvent(threading.Event):
             def __init__(self):
                 super().__init__()
-                self.closed_at = None
+                self.observed_at = None
                 self._timestamp_lock = threading.Lock()
 
             def set(self):
                 with self._timestamp_lock:
-                    if self.closed_at is None:
-                        self.closed_at = time.monotonic()
+                    if self.observed_at is None:
+                        self.observed_at = time.monotonic()
                     super().set()
 
         for provider_type in PROVIDERS:
             for cancel in (False, True):
                 with self.subTest(provider=provider_type.name, cancel=cancel), HeaderServer(provider_type) as server:
-                    # HeaderServer's close signal is set by its handler on FIN/reset.
-                    # Preserve that event contract while recording the exact observation phase.
-                    server.closed = TimedCloseEvent()
+                    # Record the boundary at the server actor, not after the
+                    # observer thread is eventually scheduled by the runner.
+                    server.started = TimedEvent()
+                    server.closed = TimedEvent()
+                    interrupt_requested = TimedEvent()
+                    provider_finished = TimedEvent()
                     watcher_ready = threading.Event()
                     original_watch = provider_transport._RequestGuard.watch
+                    original_interrupt = provider_transport._RequestGuard.interrupt
+
+                    def interrupt_with_timestamp(guard, *args, **kwargs):
+                        interrupt_requested.set()
+                        return original_interrupt(guard, *args, **kwargs)
+
+                    def run_to_terminal():
+                        result = self.run_worker(operation_id)
+                        # execute_operation returns after the durable terminal
+                        # commit. Capture completion in that same worker thread.
+                        return result, time.monotonic()
 
                     def watch_with_readiness(guard):
                         # The partial-header fixture can run before a newly spawned
@@ -748,7 +762,10 @@ class DurableAIEvaluationTests(unittest.TestCase):
 
                         def generate(self, **kwargs):
                             kwargs['timeout_seconds'] = budget
-                            return server.provider.generate(**kwargs)
+                            try:
+                                return server.provider.generate(**kwargs)
+                            finally:
+                                provider_finished.set()
 
                     self.router = lambda configuration: AITaskRouter(configuration,
                         provider_factory=lambda _name: BoundedProvider())
@@ -758,36 +775,43 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     operation_id = admitted.json()['operation_id']
                     path = '/profiles/fixture/ai-cost-plan/operations/' + operation_id
                     with patch.object(provider_transport._RequestGuard, 'watch',
-                                      watch_with_readiness), ThreadPoolExecutor(max_workers=1) as pool:
-                        work = pool.submit(self.run_worker, operation_id)
+                                      watch_with_readiness), patch.object(
+                            provider_transport._RequestGuard, 'interrupt',
+                            interrupt_with_timestamp), ThreadPoolExecutor(max_workers=1) as pool:
+                        work = pool.submit(run_to_terminal)
                         self.assertTrue(watcher_ready.wait(3),
                             'Request deadline watcher did not enter its guard')
                         self.assertTrue(server.started.wait(3), 'Pre-header provider boundary not reached')
-                        # Client setup stays outside this strict POST-entry through
-                        # durable worker-terminal timing contract.
-                        start = time.monotonic()
+                        # Timeout starts at the actor-owned POST boundary;
+                        # cancellation starts immediately before the cancel API call.
+                        start = time.monotonic() if cancel else server.started.observed_at
                         acknowledged_at = None
                         if cancel:
                             acknowledged = self.client.post(path + '/cancel')
                             acknowledged_at = time.monotonic()
                             self.assertEqual(acknowledged.status_code, 200, acknowledged.text)
-                        result = work.result(timeout=3)
-                        # execute_operation returns only after the terminal-state
-                        # transaction commits; the reopened readback below verifies it.
-                        terminal_at = time.monotonic()
+                        result, terminal_at = work.result(timeout=3)
+                        observed_at = time.monotonic()
                         response_closed = server.closed.wait(.4)
-                        response_closed_at = server.closed.closed_at
+                        response_closed_at = server.closed.observed_at
                         elapsed = terminal_at - start
                         ack_phase = ('n/a' if acknowledged_at is None else
                                      f'{(acknowledged_at - start) * 1000:.1f}ms')
                         close_phase = ('not observed' if response_closed_at is None else
                                        f'{(response_closed_at - start) * 1000:.1f}ms')
+                        interrupt_phase = ('not observed' if interrupt_requested.observed_at is None else
+                                           f'{(interrupt_requested.observed_at - start) * 1000:.1f}ms')
+                        provider_phase = ('not observed' if provider_finished.observed_at is None else
+                                          f'{(provider_finished.observed_at - start) * 1000:.1f}ms')
                         print(f'durable-ai-timing provider={provider_type.name} cancel={cancel}; '
-                              f'ack={ack_phase}; response_close={close_phase}; '
-                              f'worker_terminal={elapsed * 1000:.1f}ms')
+                              f'ack={ack_phase}; interrupt_requested={interrupt_phase}; '
+                              f'provider_return={provider_phase}; observed_peer_close={close_phase}; '
+                              f'worker_terminal={elapsed * 1000:.1f}ms; '
+                              f'observation_lag={(observed_at - terminal_at) * 1000:.1f}ms')
                         self.assertLess(elapsed, 1,
                             f'provider={provider_type.name} cancel={cancel}; '
-                            f'ack={ack_phase}; response_close={close_phase}; '
+                            f'ack={ack_phase}; interrupt_requested={interrupt_phase}; '
+                            f'provider_return={provider_phase}; observed_peer_close={close_phase}; '
                             f'worker_terminal={elapsed * 1000:.1f}ms')
                     expected = 'CANCELLED' if cancel else 'BLOCKED'
                     self.assertEqual(result['status'], expected, result)

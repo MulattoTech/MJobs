@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "NATIVE_PASS_HOSTED_RECHECK_PENDING",
+  "source_parent": "85d1bff4c1ae542773a75cf3d60efb50725d8591",
+  "failed_hosted_run": {
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41457526538/job/125317907114",
+    "test": "DurableAIEvaluationTests.test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation",
+    "provider": "openai-compatible",
+    "cancel": false,
+    "observed_worker_seconds": 1.0937226369999848,
+    "observed_peer_close_ms": 963.4,
+    "failed": 1,
+    "passed": 903,
+    "skipped": 20,
+    "subtests_passed": 579
+  },
+  "finding": "The test measured completion on the observing thread after future.result(), and measured the initial boundary after the observer resumed. These timestamps combine execution with observer scheduling and cannot diagnose which phase exceeded the limit.",
+  "correction": "Timestamp partial-header entry in the server handler and durable completion in the worker. Record cancellation API entry, interrupt request, provider return, peer-close observation and observer lag separately. Keep the 0.3-second provider budget, one-second terminal bound, exactly-one-request and durable no-partial-result assertions unchanged.",
+  "source_sha256": [
+    {
+      "path": "tests/integration/test_durable_ai_evaluation.py",
+      "sha256": "87f337432cc3de70aea6b1898bb6b78bf81125be0f024f61fd21eaf7c9df02d6"
+    }
+  ],
+  "native_run": {
+    "command": "python -m pytest -q -s tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation --junitxml=outputs/security-timing-native.xml",
+    "result": "PASS",
+    "passed": 1,
+    "subtests_passed": 10,
+    "skipped": 0,
+    "duration_seconds": 8.98,
+    "timeout_worker_terminal_ms_range": [328, 344],
+    "cancellation_worker_terminal_ms_range": [47, 62],
+    "receipt_sha256": "c4c8091814dd3171d97ab21ad67a8993521d4dd66d295b15b490cc8a02eed82c"
+  },
+  "limitations": [
+    "This correction does not establish the cause of the historical hosted overrun; phase diagnostics and the fresh protected run remain required.",
+    "Independent review identified a separate remaining MJ-REQ-004 risk: durable cancellation polling performs database work before the provider deadline check and may block the watcher. This patch makes no production deadline-independence claim and does not promote MJ-REQ-004 to PASS.",
+    "No timeout widened, protected check bypassed, paid provider called, or real employer application submitted."
+  ]
+}
