@@ -1,7 +1,7 @@
 """MJ-REQ-004: real TCP source reads below HTTPX's 64KiB aggregate.
 
 Public admission and execute_operation create the production cancellation/deadline
-check. Only its timeout setting and the provider endpoint are fixture seams.
+check. Its timeout, provider endpoint and SSL-context readiness are fixture seams.
 HTTPX transport, response streams, sockets, worker check and watchdog are real.
 """
 from contextlib import contextmanager
@@ -9,6 +9,7 @@ import os
 import ipaddress
 from pathlib import Path
 import socket
+import ssl
 import select as socket_select
 import subprocess
 import tempfile
@@ -20,6 +21,7 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 import httpx
+import httpx._transports.default as httpx_default
 from sqlalchemy import select
 
 from apps.api.main import create_app
@@ -207,7 +209,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
     def run_source(self, mode, *, cancel=False, worker_budget=.8, setup_delay=0,
                    unwind_delay=0, worker_entry_delay=0,
                    retryable_failure_after_transport=False, log_context_delay=0,
-                   hold_tls_peer_observer=False):
+                   hold_tls_peer_observer=False, ssl_setup_delay=0):
         with tempfile.TemporaryDirectory(prefix="mjobs-source-tcp-") as directory:
             root = Path(directory)
             database_url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -216,7 +218,36 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
             store.bind_workspace_mode("FIXTURE")
             outcome, errors = [], []
             worker = None
+            phases = {}
+            original_ssl_context = httpx_default.create_ssl_context
+            context_uses = []
+
+            def ready_ssl_context(verify=True, cert=None, trust_env=True):
+                if (threading.current_thread() is worker and verify is True
+                        and cert is None and trust_env is False):
+                    context_uses.append(time.monotonic())
+                    return ready_context
+                return original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
+
+            def record_timeout():
+                phases.setdefault("deadline_configured_at", time.monotonic())
+                return worker_budget
+
             try:
+                # These cases measure real socket interruption. Prepare the
+                # real verifying trust context before the unchanged worker
+                # budget, as the adjacent adapter-connect fixture does. Its
+                # separate cold-SSL case keeps initialization deadline coverage.
+                phases["ssl_setup_started_at"] = time.monotonic()
+                ssl_ready_deadline = time.monotonic() + ssl_setup_delay
+                while (remaining := ssl_ready_deadline - time.monotonic()) > 0:
+                    time.sleep(remaining)
+                ready_context = original_ssl_context(verify=True, cert=None, trust_env=False)
+                phases["ssl_ready_at"] = time.monotonic()
+                self.assertEqual(ready_context.verify_mode, ssl.CERT_REQUIRED)
+                self.assertTrue(ready_context.check_hostname)
+                self.assertGreaterEqual(phases["ssl_ready_at"] - phases["ssl_setup_started_at"],
+                                        ssl_setup_delay)
                 source = (tcp_connect_stall() if mode == "connect-stall"
                           else tcp_source(mode, hold_tls_peer_observer=hold_tls_peer_observer))
                 original_connect = socket.socket.connect
@@ -238,6 +269,7 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                 tls_exit = {}
 
                 def delayed_collect_source(*args, **kwargs):
+                    phases.setdefault("collector_entered_at", time.monotonic())
                     try:
                         if setup_delay:
                             time.sleep(setup_delay)
@@ -324,7 +356,8 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         "services.discovery.sources.http_transport._Stream.close",
                         new=observe_stream_close), patch(
                         "services.discovery.sources.remotive.API_URL", endpoint), patch(
-                        "workers.tasks.timeout", return_value=worker_budget):
+                        "workers.tasks.timeout", side_effect=record_timeout), patch(
+                        "httpx._transports.default.create_ssl_context", new=ready_ssl_context):
                     with TestClient(create_app(store, "http://127.0.0.1:1", root,
                                                "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
                         self.assertEqual(client.put("/profiles", json=PROFILE).status_code, 200)
@@ -340,12 +373,39 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                         identifier = admitted.json()["operation_id"]
 
                         def execute():
+                            phases.setdefault("worker_entered_at", time.monotonic())
                             try:
                                 if worker_entry_delay:
                                     time.sleep(worker_entry_delay)
                                 outcome.append(execute_operation(identifier))
                             except BaseException as error:
                                 errors.append(error)
+                            finally:
+                                phases.setdefault("worker_finished_at", time.monotonic())
+
+                        def phase_diagnostic():
+                            # Read only this fixture's operation, and only on a
+                            # failed phase assertion. Do not delay passing
+                            # transport clocks with diagnostic persistence reads.
+                            with store.engine.connect() as connection:
+                                saved = connection.execute(select(
+                                    m.operations.c.state, m.operations.c.error,
+                                    m.operations.c.attempt_count).where(
+                                    m.operations.c.id == identifier)).mappings().one()
+                            recorded_phases = dict(phases)
+                            origin = recorded_phases.get("deadline_configured_at", started)
+                            elapsed_ms = {key: round((value-origin)*1000, 1)
+                                          for key, value in recorded_phases.items()}
+                            return (f"state={saved['state']} error={saved['error']} "
+                                    f"attempts={saved['attempt_count']} alive={worker.is_alive()} "
+                                    f"exceptions={[type(error).__name__ for error in errors]} "
+                                    f"outcomes={[value.get('status') for value in outcome]} "
+                                    f"connects={transport_entry.get('connects', 0)} "
+                                    f"requests={socket_state['requests']} phases_ms={elapsed_ms}")
+
+                        def require_phase(event, timeout, message):
+                            if not event.wait(timeout):
+                                self.fail(message + "; " + phase_diagnostic())
 
                         started = time.monotonic()
                         worker = threading.Thread(target=execute, name="mjobs-owned-source-worker", daemon=True)
@@ -354,11 +414,11 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             transport_elapsed = None
                             if mode in {"connect-stall", "body-drip", "header-drip", "header-stall"}:
                                 # Setup precedes the existing engagement/deadline clocks.
-                                self.assertTrue(transport_entered.wait(3),
-                                                "Worker did not reach source HTTP transport")
+                                require_phase(transport_entered, 3,
+                                              "Worker did not reach source HTTP transport")
                             if mode == "tls-stall" and not cancel:
-                                self.assertTrue(tls_entered.wait(3),
-                                                "Worker did not reach TLS transport after fixture setup")
+                                require_phase(tls_entered, 3,
+                                              "Worker did not reach TLS transport after fixture setup")
                                 tls_deadline_end = tls_entry["at"] + 1.1
                                 engagement_wait = max(0, tls_deadline_end - time.monotonic())
                                 self.assertTrue(engaged.wait(engagement_wait),
@@ -456,6 +516,11 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
                             settled_elapsed = time.monotonic() - (requested if cancel else started)
                             self.assertEqual(errors, [])
                             self.assertEqual(len(outcome), 1)
+                            self.assertEqual(len(context_uses), 1,
+                                             "Owned source must use exactly one prepared verifying context")
+                            self.assertLessEqual(phases["ssl_ready_at"],
+                                                 phases["deadline_configured_at"])
+                            self.assertGreaterEqual(context_uses[0], phases["deadline_configured_at"])
                             saved = client.get(f"/operations/{identifier}").json()
                             expected = "COMPLETED" if mode.startswith("positive") else "CANCELLED" if cancel else "DEAD_LETTERED"
                             self.assertEqual(saved["state"], expected, saved)
@@ -541,6 +606,19 @@ class SourceHttpSocketBudgetTests(unittest.TestCase):
         for mode in ("body-drip", "header-drip", "header-stall"):
             with self.subTest(mode=mode):
                 self.run_source(mode, unwind_delay=.8)
+
+    def test_slow_ssl_setup_precedes_strict_header_transport_deadline(self):
+        self.run_source("header-drip", ssl_setup_delay=1.1, unwind_delay=.8)
+
+    def test_pre_transport_timeout_diagnostic_retains_real_terminal_state(self):
+        # A correct operation timeout before any socket must not masquerade as
+        # a transport-close timing regression. The transport-focused oracle
+        # still refuses that case; its diagnostic now explains the boundary.
+        with self.assertRaisesRegex(AssertionError,
+                r"Worker did not reach source HTTP transport; "
+                r"state=DEAD_LETTERED error=OPERATION_TIMEOUT attempts=1 alive=False "
+                r"exceptions=\[\] outcomes=\['DEAD_LETTERED'\] connects=0 requests=0"):
+            self.run_source("header-drip", setup_delay=1.1)
 
     def test_public_cancel_during_real_tcp_connect_stall(self):
         # Valid production operation budget; the source's minimum supported
