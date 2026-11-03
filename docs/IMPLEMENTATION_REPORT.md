@@ -18,6 +18,13 @@ and scoped changes are recorded in
 Historical evidence is identified as historical; no live collector or paid AI
 request was performed for this report.
 
+**Subsequent observations, 2026-11-03:** the original technical inventory and
+manifest remain immutable. The Documents section separately records PR #896,
+merged as `7e86511f409fb9d1e2dc79904b170cc74b88cd3d`, and Deployment records the
+verified `ea5fbf9f` rollout. These dated additions update the report without
+relabelling an earlier test or inventory revision. Other concurrent changes and
+canonical acceptance remain governed by their own protected receipts.
+
 ## Architecture
 
 MJobs is a self-hosted workspace for discovering jobs, matching them against
@@ -234,18 +241,20 @@ and leave the active denominator. Without a configured profile, the existing
 skill score is retained. The separate twelve-dimension matching engine exists
 but is not the default persisted-job scorer.
 
-The durable AI consumer performs **advisory job scoring**: bounded inputs,
+The queued AI job-scoring consumer performs **advisory job scoring**: bounded inputs,
 category/rationale and validated exact posting quotations. It does not replace
 deterministic scores or generate application documents. Controls include
 disabled defaults per task, structured schemas, provider/model configuration,
 credential binding, cost policies, deadlines, cancellation, freshness and
 durable checkpoints. Uncertain completion is not silently retried.
 
-Default funnel policy uses minimum score 75, at most 5,000 input candidates,
+The job-scoring funnel's default policy uses minimum score 75, at most 5,000 input candidates,
 75 AI candidates and 20 document candidates; document selection requires review.
 These limits do not imply that every job is sent to a provider. Naming an AI
 evaluation run during document preparation revalidates candidate context; it
-does not approve AI-written wording.
+does not approve AI-written wording. A separate explicit CLI consumer added
+after the inventory checkpoint requests resume wording proposals and passes
+reviewed drafts into the document pipeline described below.
 
 References: [persisted matching](../services/discovery/matching.py),
 [selected scoring](../services/matching/selected_search_scoring.py),
@@ -263,11 +272,12 @@ prioritization have separate accepted slices. No paid AI execution occurred here
 | Resume parsing | PDF, DOCX and UTF-8 TXT produce reviewable facts. Durable extraction pins owner, upload, content digest, request and extractor version. Extracted facts start unverified and unapproved. |
 | OCR and dates | Optional bounded local PDF OCR fallback preserves explicit uncertainty and lower confidence. Original wording, source IDs and supported date projections are retained. Ambiguous text does not create invented tenure, exact days or employer/role associations. |
 | Resume tailoring | Approved-fact ordering, explicit selection/omission, skill/responsibility emphasis, summary/bullet selection, optional contact header, page fitting and reviewed role/story selections. Broad factual rewriting remains incomplete. |
-| Reviewed rewrites | Eligible supplied summary, responsibility, experience, accomplishment, project and technology-experience proposals bind to source IDs/hashes, explicit review, protected dates/numbers and named source tokens. User review is not automated proof of semantic equivalence; supplied proposals are not AI-generated output. |
+| Reviewed rewrites | Eligible supplied summary, responsibility, experience, accomplishment, project and technology-experience proposals bind to source IDs/hashes, explicit review, protected dates/numbers and named source tokens. User review is not automated proof of semantic equivalence. Manually supplied proposals remain distinct from the subsequent CLI AI-draft path, which also requires explicit factual review. |
+| AI-assisted resume wording (subsequent PR #896) | Explicit CLI requests save private proposals and hash-bound audit receipts. Exact draft/fact confirmation and human review precede existing DOCX/PDF/TXT preparation. Drafting has no new web/API controls or queued proposal worker; saved-profile credentials are refused, and cover letters remain deterministic. |
 | Cover letters | Deterministic job/company templates rank relevant approved facts by normalized token overlap. Styles are professional, warm, technical, direct, conversational and formal; lengths are very short, concise, normal and detailed. Missing required job context or relevant approved facts blocks generation. Supplied company context stays content-unverified. |
 | Factual validation | Approved sourced facts with confidence at least 80, template assertion contracts, expected-content reconstruction, protected dates/numbers and reviewed-rewrite source binding. This supports the implemented deterministic/reviewed contracts, not arbitrary generated prose. |
 | Formats and publication | DOCX, PDF and UTF-8 TXT are checked for presence, readability, nonempty content, cross-format consistency and hashes before publication. File existence alone is not document readiness. |
-| History | Revisions retain profile version, fact IDs, artifact hashes, template, generation model/context and timestamp. Historical facts resolve against the original version; later profile edits do not rewrite history, and missing legacy evidence is not fabricated. |
+| History | Revisions retain profile version, fact IDs, artifact hashes, template, generation model/context and timestamp. Historical facts resolve against the original version; later profile edits do not rewrite history, and missing legacy evidence is not fabricated. Subsequent AI-resume revisions also retain proposal/provider/model metadata and source hashes validated against the saved completion receipt; deterministic renderer provenance remains separate. |
 
 References: [extraction](../services/career_profile/extraction.py),
 [durable extraction](../services/career_profile/durable_extraction.py),
@@ -278,10 +288,46 @@ References: [extraction](../services/career_profile/extraction.py),
 [output readiness](../services/documents/failure_status.py),
 [history](../services/documents/history.py).
 
-Recorded extraction, document-format and historical-trace slices are accepted,
-while MJ-REQ-095, 100 and 269 remain PARTIAL. No supported AI-generated document
-consumer retaining fact references is demonstrated. A controlled provider
-fixture could establish that future path without paid inference.
+At the original inventory checkpoint, extraction, document-format and historical
+trace slices were accepted while MJ-REQ-095, 100 and 269 remained PARTIAL. The
+subsequent implementation below establishes a supported AI-resume path; its
+canonical acceptance and deployment are separate recorded stages.
+
+### Subsequent integrated AI-resume path
+
+[PR #896](https://github.com/MulattoTech/MJobs/pull/896) merged at
+`7e86511f409fb9d1e2dc79904b170cc74b88cd3d` on 2026-11-03 at 04:38:29 UTC.
+Its [consumer source](https://github.com/MulattoTech/MJobs/blob/7e86511f409fb9d1e2dc79904b170cc74b88cd3d/services/documents/ai_resume.py)
+implements explicit CLI requests for resume wording from selected approved
+facts and bounded job context, with consent. A committed request receipt
+precedes the call; private drafts and hash-bound completion receipts preserve
+the proposal. Uncertain calls are not automatically replayed. Exact draft-hash
+and fact-selection confirmation, human factual review, and profile/job
+revalidation precede existing document preparation. Accepted history retains
+original facts, source hashes, proposal identity and configured provider/model
+attribution separately from the deterministic renderer.
+
+The [stored execution receipt](https://github.com/MulattoTech/MJobs/blob/7e86511f409fb9d1e2dc79904b170cc74b88cd3d/docs/evidence/2026-11-03-webpro-23e5-ai-resume/source-execution.json)
+records **48 tests plus 46 subtests, zero failures/skips, and 14 frontend tests**
+at source `9a5fcafa44ea3213b845db23eaa9838cedd1ac1f`. This includes four
+PostgreSQL cases, two Chromium cases and a real loopback HTTP-provider/CLI
+fixture. Relevant consumer and test files are unchanged at head `c2718534`;
+a [separate candidate checkpoint](https://github.com/MulattoTech/MJobs/pull/896#issuecomment-6595236833)
+reports focused execution there. Earlier fixture, dependency and state-readback
+failures remain in that worker's receipt. This report did not rerun those tests
+or perform paid inference.
+
+[Workflow limits](https://github.com/MulattoTech/MJobs/blob/7e86511f409fb9d1e2dc79904b170cc74b88cd3d/docs/AI_RESUME_DRAFTS.md)
+remain explicit: drafting is CLI-only, runtime credentials are supported,
+saved-profile credentials are refused, and there is no new drafting API,
+web drafting control or queued proposal worker. Cover letters remain
+deterministic. Token checks do not establish semantic equivalence; provider/model
+metadata records configured attribution, not independent remote-model
+attestation. The [acceptance candidate](https://github.com/MulattoTech/MJobs/blob/7e86511f409fb9d1e2dc79904b170cc74b88cd3d/docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance-candidate.json)
+keeps canonical promotion and deployment separate. At the observed merge,
+269's canonical status was still PARTIAL; later authoritative receipts govern
+any change. Broader tailoring, AI cover letters and whole-product completion
+are not established by this scope.
 
 ## Applications
 
@@ -412,6 +458,31 @@ personal-document workflows.
 
 ## Deployment
 
+### Subsequent verified rollout
+
+The baseline observations below were superseded by the guarded PR #893 rollout
+at **2026-11-03T04:27:55.591295+00:00**. The
+[deployment receipt](evidence/2026-11-03-webpro-642e4b-implementation-report/runtime-followup.json)
+and [protected PR record](https://github.com/MulattoTech/MJobs/pull/893#issuecomment-6595580184)
+identify source `ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b` and image
+`sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca`.
+All seven application services were healthy on that image; readiness passed
+PostgreSQL, Redis, scheduler, schema and all five worker roles. Five origin
+boundary probes passed using POST on GET-only `/__deployment`, without invoking
+a business mutation. Anonymous and synthetic-invalid sessions redirected to
+Access. Authenticated Brave returned the same source SHA and rendered
+**Services ready** with **External submission OFF**.
+
+The fresh database/document archive independently passed verification. The
+previous image and source were retained; a production restore or rollback drill
+was **NOT_RUN**. The installed updater matched reviewed source and used its
+native lock. The separately merged AI-resume revision `7e86511f` and pending
+Workday/report changes were **not included in this observed rollout**. This is
+a dated deployment observation, not a claim that production follows later main
+automatically.
+
+### Installation and earlier runtime baseline
+
 For a **fresh** Windows installation, install Git and Docker Desktop, start
 Docker Desktop in Linux-container mode, and run PowerShell:
 
@@ -486,7 +557,7 @@ belongs to the containing protected PR and sprint handoff.
 | 017 / 018 — sources and strategy | Five implemented collectors do not satisfy all provider/strategy breadth. WWR conflicting identity remains unresolved rather than silently merged. |
 | 171 / 172 — privacy and web security | PII umbrella verification remains unexecuted; web-request repairs are PARTIAL. Native multiuser authentication, complete Access-evaluator authorization and headerless-local legacy behavior are not fully accepted. |
 | 224 — adapter contract | Metadata/review, controlled rehearsals and mock journeys do not establish seven-dimension contracts across every adapter. Workday DOM/fixture upload remain unavailable. |
-| 269 / 095 / 100 — documents | Deterministic historical fact trace exists; AI-generated document fact propagation and broader tailoring/cover-letter requirements remain PARTIAL. |
+| 269 / 095 / 100 — documents | Reviewed CLI AI-resume proposals now preserve original fact references and attribution through accepted history. Broader tailoring and cover-letter scope remains incomplete; web drafting controls and automatic semantic verification are not supplied by this path. MJ-REQ-269's status follows its separate canonical receipt. |
 | Matching/AI | Useful scoring/configuration components exist; broad matching/provider requirements remain PARTIAL, and MJ-REQ-118 (Application Priority) remains NOT_RUN. |
 | Production readiness | The product is a developer preview. Healthy services, a protected merge, an architecture document or this report cannot accept all of 290/294/296–300. Real external submissions remain OFF. |
 
@@ -505,9 +576,10 @@ belongs to the containing protected PR and sprint handoff.
 5. Add genuinely bounded, owned-browser ATS operations and per-adapter contract
    journeys. Do not restore the prior Workday DOM prototype without an
    independent watchdog, cancellation and no-egress proof.
-6. Implement a durable, review-gated document-proposal consumer with fact-source
-   propagation, using a controlled provider fixture before any optional live
-   inference. Preserve profile/job scope, hashes and historical versions.
+6. Extend the reviewed CLI resume-draft path toward the remaining document
+   requirements and supported web workflows. Verify any queued integration or
+   additional document types with controlled provider fixtures, preserving
+   explicit acceptance, profile/job scope, source hashes and historical versions.
 7. Resolve source-specific reliability gaps with provenance, especially WWR's
    conflicting identity, and extend provider/strategy coverage only when the
    actual supported path is verified. A provider label or stale live result
