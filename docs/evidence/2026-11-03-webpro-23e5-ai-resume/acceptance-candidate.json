@@ -1,0 +1,24 @@
+{
+  "requirement_id": "MJ-REQ-269",
+  "literal_criterion": "For AI-generated documents, optionally retain references to the career facts used. This improves explainability.",
+  "source_commit": "9a5fcafa44ea3213b845db23eaa9838cedd1ac1f",
+  "candidate_result": "PASS for the supported AI-assisted resume wording path; authoritative promotion pending protected integration and deployment.",
+  "evidence": [
+    "Synthetic and real loopback provider responses produce changed resume wording from explicit approved fact IDs.",
+    "Sealed private proposal and metadata-only audit receipts survive restart; uncertain calls are never replayed.",
+    "Exact user review, current profile/job fences and protected-token validation precede DOCX/PDF/TXT publication.",
+    "Document context retains original profile version, fact IDs/source hashes, provider/model, prompt version and sealed proposal digest.",
+    "PostgreSQL and SQLite history reopening preserve original source facts after current profile edits.",
+    "Chromium reads original sources and reviewed AI wording, then downloads the corresponding TXT; cover letter carries no AI attribution.",
+    "Historical attribution survives draft-file archival and rejects modified provider/model attribution."
+  ],
+  "not_claimed": [
+    "AI cover letters",
+    "web drafting controls",
+    "automatic semantic verification",
+    "live provider availability",
+    "full MJ-REQ-292 journey",
+    "whole product completion"
+  ],
+  "canonical_accounting_changed": false
+}

@@ -1,0 +1,40 @@
+{
+  "review_kind": "INDEPENDENT_INTERNAL_CHATGPT_REVIEW",
+  "result": "PASS",
+  "source_commit": "9a5fcafa44ea3213b845db23eaa9838cedd1ac1f",
+  "scope": "AI resume CLI/service, generation/history integration, UI attribution, focused regression contracts",
+  "not_a_github_protected_approval": true,
+  "source_hashes": {
+    "services/documents/ai_resume.py": "009c3b3373aae07348f1579292fb70ddc3966bd5b2ac8ee62d99e64018d1d658"
+  },
+  "findings": [
+    {
+      "severity": "must-fix",
+      "finding": "Repeated draft acceptance reported PREPARED despite preserved DRY_RUN_COMPLETE application state.",
+      "resolution": "Return actual persisted state and document_version; independent correction test passed."
+    },
+    {
+      "severity": "compatibility",
+      "finding": "Future active prompt-version changes must preserve earlier historical attribution.",
+      "resolution": "Frozen supported-version registry; reconstruction uses saved prompt version; independent correction test passed."
+    }
+  ],
+  "independent_probes": {
+    "passed": [
+      "History after private-draft deletion",
+      "Historical original target context after job update",
+      "Tampered provider/model attribution rejected",
+      "Reordered multi-fact proposal normalization"
+    ],
+    "initial_failed": [
+      "Truthful state on repeated acceptance"
+    ],
+    "correction_tests": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "final_inspection": "Exact committed service bytes match working-tree bytes. Import/style changes preserve behavior. Non-file draft paths are refused before bounded reads. No remaining must-fix findings.",
+  "tools_limitation": "One read-only connector timeout; retry succeeded. No source or production mutations by reviewer."
+}

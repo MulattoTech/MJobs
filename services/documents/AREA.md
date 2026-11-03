@@ -8,8 +8,8 @@ Private originals live in the document volume's uploads directory, so the
 offline database/document backup must preserve metadata and bytes together.
 Interface: prepare(store, job_id, profile_id, output_dir) -> application_id.
 Requirements: MJ-REQ-092 through 099; MJ095 remains partial.
-Depend on domain safety/persistence, python-docx/reportlab. No AI or invented
-qualifications. Private files reside under ignored outputs or the document
+Depend on domain safety/persistence, python-docx/reportlab. Default preparation is deterministic. Explicit AI wording proposals require
+user review and immutable fact references; never invent qualifications. Private files reside under ignored outputs or the document
 volume, scoped to application and immutable profile version. Test:
 python -m unittest tests.integration.test_spine tests.integration.test_resume_upload.
 Named base resumes retain immutable version entries in resume_revisions; repeated
@@ -152,3 +152,12 @@ Both original cancel URLs reach persisted work across API instances. Historical
 inline records remain readable in operation history; no new inline extraction
 or uploaded-comparison work is admitted. Native parser and OCR children are
 reaped on all exits, including raised worker cancellation/deadline fences.
+
+MJ-REQ-269 adds the explicit CLI/service in cli.ai_resume and ai_resume.py.
+It uses the configured resume-tailoring provider with protected runtime credentials
+and synthetic-provider verification. Bounded private drafts are sealed by append-only
+metadata audit receipts; uncertain calls are never automatically replayed. Exact
+user review and current profile/job fences precede generation. Saved AI wording
+provenance stays separate from deterministic rendering provenance and is verified
+against original fact IDs and receipts on history readback. Cover letters remain
+deterministic. See docs/AI_RESUME_DRAFTS.md for credential limits and usage.
