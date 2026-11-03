@@ -36,6 +36,22 @@ Rejected requests keep no-store, nosniff, no-referrer and the existing restricti
 Content-Security-Policy. Their responses do not echo header values or private
 records.
 
+## Validation error response privacy
+
+Generic FastAPI 422 validation responses preserve a compact `detail` array
+with coarse location structure, nonnegative list indexes and fixed error
+categories. A dictionary key may itself contain an application answer or
+credential; custom validator messages and error-type strings can also contain
+rejected content. None is treated as safe response text. String location
+components are redacted to `[field]`; up to 32 errors and six location
+components per error are returned. Route-specific credential and AI-settings
+errors continue to use their fixed error codes.
+
+Clients must not rely on raw nested field names or free-form validator messages
+in 422 responses. This guard applies to the common RequestValidationError
+handler; it does not make arbitrary route-specific HTTPException detail or
+ValueError text safe. Those remain separate review surfaces.
+
 ## Security boundaries and limitations
 
 Local clients with no browser-origin headers remain trusted by the existing
