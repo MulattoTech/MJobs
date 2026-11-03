@@ -16,6 +16,7 @@ def validated_resume_preview(store, document, output_dir):
     """Validate immutable resume bytes and resolve any selected story revisions."""
     application = store.application(document["application_id"])
     document.setdefault("profile_id", application["profile_id"])
+    document.setdefault("job_id", application["job_id"])
     root = Path(output_dir).resolve()
     application_root = (root / document["application_id"]).resolve()
     if not application_root.is_relative_to(root):
@@ -34,6 +35,8 @@ def validated_resume_preview(store, document, output_dir):
     paragraphs = [paragraph.text for paragraph in Document(paths["docx"]).paragraphs]
     profile = store.profile(document["profile_id"], document["profile_version"])
     context = document.get("generation_context") or {}
+    from services.documents.ai_resume import validate_saved_trace
+    validate_saved_trace(store, document, profile, context)
     story_refs = context.get("story_refs", [])
     selected_stories = []
     if story_refs:
