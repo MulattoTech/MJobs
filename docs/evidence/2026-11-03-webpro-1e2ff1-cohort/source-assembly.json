@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "timestamp": "2026-11-03T04:58:03.243849+00:00",
+  "result": "ASSEMBLED_PENDING_COMBINED_VERIFICATION",
+  "integration_owner": "07cb9a0af294c16424a24a01719b0cdf6db2d8b6",
+  "base_main": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "source_assembled_commit": "12a899822068133321e010233cb3a9bfe81522b4",
+  "frozen_heads": {
+    "894": "b8619b26c731062503dbb67aaabd15550299f6ec",
+    "895": "c33b6ce178b54c949f8501fec1db710dde2ea657",
+    "897": "91bca4763eb578a25b8b44e8d7c2b2f4888fd9af",
+    "898": "c32febfb73f26d31a75133c5ede7a8e69d21f788",
+    "900": "cd6cdbe36858de1ba65f381f53c0de13c32a5fba",
+    "901": "205efc726153bd53ca32a5e9e4479fc2ece4137f"
+  },
+  "source_blob_equality": [
+    {
+      "pr": 894,
+      "path": "packages/persistence/store.py",
+      "git_blob": "debfbc88c452e58d10ff25274bf058b1e1c31cb5"
+    },
+    {
+      "pr": 894,
+      "path": "tests/integration/test_operation_control_pool_wait.py",
+      "git_blob": "1f537ffb35359a74b891e87e5268c3e29f0462c2"
+    },
+    {
+      "pr": 894,
+      "path": "tests/unit/test_database_pool_wait.py",
+      "git_blob": "983ba9d9a24a14b73d541531bb26b3da3edef3ca"
+    },
+    {
+      "pr": 894,
+      "path": "workers/operations.py",
+      "git_blob": "c04b36defff6f9213bc06ea3dc7cdca188c85a08"
+    },
+    {
+      "pr": 895,
+      "path": "services/documents/answers.py",
+      "git_blob": "dc3d8e99f5c1d502eb687a578d891f685aaa6048"
+    },
+    {
+      "pr": 895,
+      "path": "tests/integration/test_answer_export_privacy.py",
+      "git_blob": "db9174cdd1b80629de481b7f76e87de241fb32e1"
+    },
+    {
+      "pr": 895,
+      "path": "tests/unit/test_deployment_checks.py",
+      "git_blob": "e51f500d583101b2d7927d9db27ce8652814b5e9"
+    },
+    {
+      "pr": 897,
+      "path": "services/discovery/sources/greenhouse.py",
+      "git_blob": "51a2b9aa5d25b321a87abee5acf1ff8cdf87ad6d"
+    },
+    {
+      "pr": 897,
+      "path": "services/discovery/sources/remoteok.py",
+      "git_blob": "8751e9f94427ff357325183bca358500dd767849"
+    },
+    {
+      "pr": 897,
+      "path": "services/discovery/sources/remotive.py",
+      "git_blob": "159bd4f6959cde70d1a6daa35fac756ce128824a"
+    },
+    {
+      "pr": 897,
+      "path": "services/discovery/sources/retry_after.py",
+      "git_blob": "a6bcd65c970c3ffe499f0d8938e3eb341d90d84d"
+    },
+    {
+      "pr": 897,
+      "path": "services/discovery/sources/wwr.py",
+      "git_blob": "04df3c37ff3907caa9432af69a43f7d7b8712581"
+    },
+    {
+      "pr": 897,
+      "path": "tests/integration/test_source_retry_after.py",
+      "git_blob": "18f92d7a955c9e2ad2e8cbff9d89cdb200c59b4a"
+    },
+    {
+      "pr": 897,
+      "path": "tests/integration/test_source_retry_after_persistence.py",
+      "git_blob": "e139fbb1f1d9308941a0308d90af4eea4a422188"
+    },
+    {
+      "pr": 897,
+      "path": "tests/unit/test_source_retry_after.py",
+      "git_blob": "fe9830dd57b5e2b0bdeefc5676eebbcaf889a27d"
+    },
+    {
+      "pr": 898,
+      "path": "tests/unit/test_progress_journal_recovery.py",
+      "git_blob": "419604f08ddc4c20551be13da1d83f667ff86a00"
+    },
+    {
+      "pr": 898,
+      "path": "tools/verification/progress.py",
+      "git_blob": "1e37551a735d92a4998151fb9d0a69fe5d32b0ee"
+    },
+    {
+      "pr": 900,
+      "path": "services/applications/adapters/workday.py",
+      "git_blob": "7bf5e59eb40cd70d1a8c650f9fc2297a36454568"
+    },
+    {
+      "pr": 900,
+      "path": "tests/unit/test_fleet_t11_workday_dom_unavailable.py",
+      "git_blob": "788008139b3532e6abca4ac0aa63472927669af0"
+    },
+    {
+      "pr": 900,
+      "path": "tests/unit/test_workday_application_adapter.py",
+      "git_blob": "e59ec89a7d60699be9a65cf82a95ef5df61711a1"
+    },
+    {
+      "pr": 901,
+      "path": "services/company_discovery/requests.py",
+      "git_blob": "8e0477a63bc01c6f8f2d0159a4c88d36e27116b4"
+    },
+    {
+      "pr": 901,
+      "path": "tests/integration/test_discovery_request_candidate_refresh.py",
+      "git_blob": "58e29f5e92a71e4574a0b707fea6a4af9fe2f9ad"
+    },
+    {
+      "pr": 901,
+      "path": "tests/integration/test_discovery_request_candidate_refresh_postgres.py",
+      "git_blob": "ca29991d6739d29b94cecb450185c715e0ffd971"
+    }
+  ],
+  "assembly_events": [
+    {
+      "pr": 898,
+      "source_head": "c32febfb73f26d31a75133c5ede7a8e69d21f788",
+      "before": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+      "merge_commit": "e4bd1582a4c4c4e1d1cfd9b8223860f211047248",
+      "conflicts_resolved": []
+    },
+    {
+      "pr": 895,
+      "source_head": "c33b6ce178b54c949f8501fec1db710dde2ea657",
+      "before": "e4bd1582a4c4c4e1d1cfd9b8223860f211047248",
+      "merge_commit": "bf24ca8f5585d0a12f7b71058c6c7e59e4c3c312",
+      "conflicts_resolved": []
+    },
+    {
+      "pr": 894,
+      "source_head": "b8619b26c731062503dbb67aaabd15550299f6ec",
+      "before": "bf24ca8f5585d0a12f7b71058c6c7e59e4c3c312",
+      "merge_commit": "31a482c07cbb45c4028f13b8337c1d408fba9f93",
+      "conflicts_resolved": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ]
+    },
+    {
+      "pr": 897,
+      "source_head": "91bca4763eb578a25b8b44e8d7c2b2f4888fd9af",
+      "before": "31a482c07cbb45c4028f13b8337c1d408fba9f93",
+      "merge_commit": "3e0fce2c99f3e146a1fd61f81aa9c9cc68f4a06d",
+      "conflicts_resolved": []
+    },
+    {
+      "pr": 900,
+      "source_head": "cd6cdbe36858de1ba65f381f53c0de13c32a5fba",
+      "before": "3e0fce2c99f3e146a1fd61f81aa9c9cc68f4a06d",
+      "merge_commit": "da7d25fc83242073624044db7ef2a4620e693f39",
+      "conflicts_resolved": [
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "docs/PROGRESS_DASHBOARD.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REQUIREMENT_INDEX.json"
+      ]
+    },
+    {
+      "pr": 901,
+      "source_head": "205efc726153bd53ca32a5e9e4479fc2ece4137f",
+      "before": "da7d25fc83242073624044db7ef2a4620e693f39",
+      "merge_commit": "12a899822068133321e010233cb3a9bfe81522b4",
+      "conflicts_resolved": []
+    }
+  ],
+  "excluded_pr": 899,
+  "exclusion_reason": "Owner retains unresolved enrollment-fixture/concurrency failures; no source or269 acceptance receipt imported.",
+  "counts_after_source_reconciliation": {
+    "original": {
+      "PARTIAL": 83,
+      "PASS": 182,
+      "NOT_RUN": 101
+    },
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 14,
+      "NOT_RUN": 8
+    },
+    "P1": {
+      "PASS": 107,
+      "PARTIAL": 9
+    }
+  },
+  "newly_accepted_in_candidate": [
+    "MJ-REQ-295"
+  ],
+  "new_acceptance_scope": "Fourteen-section reporting deliverable only, owned/evidenced by run642e4b.",
+  "partial_requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-008",
+    "MJ-REQ-160",
+    "MJ-REQ-171",
+    "MJ-REQ-224",
+    "MJ-REQ-264"
+  ],
+  "source_proof": "Original component execution, failures, reviews and platform/live skips remain separate from pending combined-candidate results.",
+  "pending": [
+    "Combined focused execution",
+    "Five fresh protected gates",
+    "Actual merge/current-main verification",
+    "Separately claimed guarded rollout"
+  ],
+  "deployment_owner_intent": "webpro-20261103T034301Z-89c21f; requires separate ref/native lease after gates",
+  "reference_authority": "Original366 and separate59 criteria/denominators unchanged.",
+  "final_receipt": "Containing integration PR will record actual candidate, merge/main and deployment identities."
+}

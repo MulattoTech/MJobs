@@ -1667,12 +1667,440 @@
         "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
         "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-171-VERIFIED-20261103",
+      "timestamp": "2026-11-03T03:56:19.742924+00:00",
+      "current_phase": "Verified private answer-export storage; protected publication pending",
+      "completed_steps": [
+        "Reproduced three privacy failures at baseline63b843df using synthetic fixtures and a real child-process exit.",
+        "Implemented owner-only POSIX temporary files and exact-file recovery permission sync without broad chmod.",
+        "Verified immutable hashes, profile-scoped downloads after reopen, storage failures, mismatched bytes and hard-link preservation.",
+        "Recorded MJ-REQ-171 NOT_RUN to PARTIAL under an exclusive integration-preparation claim; no new PASS credit."
+      ],
+      "files_added": [
+        "tests/integration/test_answer_export_privacy.py",
+        "docs/security/application_answer_exports.md",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
+      ],
+      "files_modified": [
+        "services/documents/answers.py"
+      ],
+      "tests_completed": [
+        "Exact source 02db15748dae39b34848f6011327b6ce5c1cdf89: Linux45 PASS/0 SKIP; Windows39 PASS/26subtests/6POSIX SKIP, all six Linux counterparts PASS.",
+        "Catalogue, progress journal, dashboard, commit provenance and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Protected exact-head checks; actual merge-candidate checks; protected merge; main verification and guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only Brave baseline health and /__deployment at63b843df; not changed-behavior evidence."
+      ],
+      "known_errors": [
+        "Preserved baseline three expected permission FAIL results; final selected tests have zero failures."
+      ],
+      "known_limitations": [
+        "Only application-answer file storage is covered; full MJ-REQ-171 remains PARTIAL.",
+        "Windows ACL isolation and historical export/backups permission remediation are not established.",
+        "No independent human review has occurred; no paid review agent was launched."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "02db15748dae39b34848f6011327b6ce5c1cdf89",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-89C21F-POOL-WAIT-PARTIAL",
+      "timestamp": "2026-11-03T04:12:58.550Z",
+      "current_phase": "Publish scoped MJ-REQ-004 queue-pool capacity deadline through protected integration",
+      "completed_steps": [
+        "Bound Store QueuePool capacity waits to one second using the dialect-selected pool class at construction.",
+        "Preserve pool capacity, caller-owned transactions, memory SQLite identity and fixed unavailable-authority classification.",
+        "Verify saturation, returned capacity, disposal/recreation and durable worker BLOCKED readback after capacity returns.",
+        "Reconcile protected main ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b without changing parent acceptance."
+      ],
+      "files_added": [
+        "tests/unit/test_database_pool_wait.py",
+        "tests/integration/test_operation_control_pool_wait.py",
+        "docs/DATABASE_POOL_LIMITS.md",
+        "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/review.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-tests.xml"
+      ],
+      "files_modified": [
+        "packages/persistence/store.py",
+        "workers/operations.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact source b78e40517f239f26b575c746acf744361a704373: 75 PASS, 22 subtests PASS, 0 FAIL/ERROR/SKIP; isolated SQLite and PostgreSQL16.",
+        "Catalogue, progress journal, dashboard, diff and commit provenance checks PASS at source checkpoint.",
+        "Independent internal review and a separate sprint's PR894 static review found no blocker; neither substitutes for protected checks."
+      ],
+      "tests_remaining": [
+        "Actual updated PR/merge-candidate protected gates and independent main gates.",
+        "Guarded deployment and exact image/source/readiness verification.",
+        "Full connect/DNS/pre-ping/network/reset/recovery/finalization deadlines."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only local deployment and readiness: source63b843dfe2706e6a5ac1d567af7e5acb01e134a7; all checks ready. No deployment performed by this run."
+      ],
+      "known_errors": [
+        "Original saturated-pool control read exceeded the 2.5-second regression bound.",
+        "Initial expanded fixture had one workspace-binding error and five missing-psycopg errors; corrected only in the owned fixture/venv. Final focused suite passed."
+      ],
+      "known_limitations": [
+        "MJ-REQ-004 remains PARTIAL with zero new PASS acceptance.",
+        "All Store queue callers can fail sooner during sustained saturation; capacity remains unchanged.",
+        "Durable BLOCKED readback is proven after capacity returns, not while finalization remains starved.",
+        "No automatic write retry, live application submission, paid model call or destructive restore.",
+        "PR894 required gates, actual merge and production delivery remain pending at this checkpoint."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b78e40517f239f26b575c746acf744361a704373",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-WEB-SECURITY-INTEGRATED",
+      "timestamp": "2026-11-03T04:18:08.154659+00:00",
+      "current_phase": "Record protected MJ-REQ-172 integration while guarded deployment gates remain pending",
+      "completed_steps": [
+        "Merged PR 893 through all required gates under exact integration ownership.",
+        "Verified actual merge tree equals the independently tested proposed merge."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/candidate-tests.xml"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Candidate 151 tests/33 subtests PASS, 0 FAIL / 0 SKIP.",
+        "CI/PostgreSQL-Redis/Compose/dependency/secret gates PASS; CodeQL PASS."
+      ],
+      "tests_remaining": [
+        "Current-main deployment-candidate gates and guarded runtime verification."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-172 remains PARTIAL; local headerless compatibility and complete authorization remain incomplete.",
+        "Deployment is separate from protected merge."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-WORKDAY-CONTRACT-PARTIAL",
+      "timestamp": "2026-11-03T04:18:08.154659+00:00",
+      "current_phase": "Publish truthful Workday capability with the independently verified implementation report",
+      "completed_steps": [
+        "Workday no longer advertises unsupported fixture upload.",
+        "Unsupported operation rejects before touching browser,analysis or snapshots, while cancellation/deadline exceptions retain identity."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-tests.xml"
+      ],
+      "files_modified": [
+        "services/applications/adapters/workday.py",
+        "services/applications/AREA.md",
+        "tests/unit/test_workday_application_adapter.py",
+        "tests/unit/test_fleet_t11_workday_dom_unavailable.py"
+      ],
+      "tests_completed": [
+        "Exact source 1b8da8cf27c989a8a23e3733f6a9098fca5e00c3:55 tests/23 subtests PASS, 0 FAIL / 0 SKIP.",
+        "Independent internal code review found no blocker."
+      ],
+      "tests_remaining": [
+        "Actual combined merge-candidate tests and required hosted gates.",
+        "Guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Parent 224 stays PARTIAL; full per-adapter journeys remain incomplete.",
+        "Public ATS mutations/submissions remain OFF; controlled rehearsal is separate."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1b8da8cf27c989a8a23e3733f6a9098fca5e00c3",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-IMPLEMENTATION-REPORT-VERIFIED",
+      "timestamp": "2026-11-03T04:18:08.154659+00:00",
+      "current_phase": "Publish verified MJ-REQ-295 report and Workday correction through protected integration",
+      "completed_steps": [
+        "Completed and independently reviewed all 14 literal reporting sections.",
+        "Pinned complete source footprint and sprint delta; separated actual/historical/NOT_RUN and deployed observations.",
+        "Accepted only the factual reporting criterion; broader product remains PARTIAL."
+      ],
+      "files_added": [
+        "docs/IMPLEMENTATION_REPORT.md",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/validation.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/inventory.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/file-manifest.tsv",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/runtime-baseline.json"
+      ],
+      "files_modified": [
+        "README.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Independent content and final artifact review PASS.",
+        "2,874 manifest files, 59 local links, 14 sections, 5 built-in collectors, 11 adapters and exact Git source/tree/delta verified."
+      ],
+      "tests_remaining": [
+        "Containing PR actual merge-candidate tests and required hosted gates.",
+        "Protected integration,exact main verification and needed guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "This report does not accept the whole product or 290/294/296-300.",
+        "Fresh live source sweep,paid AI,public ATS submissions,physical restart,destructive restore and rollback drill NOT_RUN.",
+        "Other workers' concurrent changes require fresh main and canonical reconciliation before merge."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8ee14e8256596b39ffa3d0b25972856205680b0c",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-008-SOURCE-RECEIPT",
+      "timestamp": "2026-11-03T04:58:06.725754+00:00",
+      "current_phase": "Verified scoped 008 source preserved; combined verification pending",
+      "completed_steps": [
+        "Explicit sync repairs a stale/corrupt derivative after a real child exit between replacements; strict readers compare all11 fields and identity metadata. Canonical destinations are refused before any write. Source3027783f: Windows30PASS/21subtests; Linux30PASS;0SKIP. Full interruption, physical-host/power-loss and multi-writer obligations remain PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/destination-guard.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "Exact-source execution recorded in docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/source-execution.json; counts name that source, not this combined candidate."
+      ],
+      "tests_remaining": [
+        "Combined candidate execution and protected gates.",
+        "Remaining literal parent obligations; parent stays PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original reproduction, review and fixture failures remain retained in source receipts."
+      ],
+      "known_limitations": [
+        "No whole-product acceptance, protected merge or production delivery is implied."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "3027783ff56a82d2fae62dbfa485fb3038f0c681",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-160-SOURCE-RECEIPT",
+      "timestamp": "2026-11-03T04:58:06.753452+00:00",
+      "current_phase": "Verified scoped 160 source preserved; combined verification pending",
+      "completed_steps": [
+        "Sourcec75f8ba6 preserves bounded numeric/HTTP-date Retry-After across four read-only discovery adapters and the longest settled Greenhouse cooldown. Owner104PASS/125subtests/2 opt-in live-source SKIP; updated candidate17PASS/93subtests. No new retry loop or live-source claim; full retry breadth remains PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-89c21f-source-retry/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-source-retry/review.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "Exact-source execution recorded in docs/evidence/2026-11-03-webpro-89c21f-source-retry/source-execution.json; counts name that source, not this combined candidate."
+      ],
+      "tests_remaining": [
+        "Combined candidate execution and protected gates.",
+        "Remaining literal parent obligations; parent stays PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original reproduction, review and fixture failures remain retained in source receipts."
+      ],
+      "known_limitations": [
+        "No whole-product acceptance, protected merge or production delivery is implied."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c75f8ba69b582fc449b2e0251140b1a4f10cf5b0",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-89c21f-source-retry/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-171-SOURCE-RECEIPT",
+      "timestamp": "2026-11-03T04:58:06.802618+00:00",
+      "current_phase": "Verified scoped 171 source preserved; combined verification pending",
+      "completed_steps": [
+        "Sourcea37d7bbc also normalizes directory-creation and combined fsync/unlink failures. Linux78PASS/0SKIP; Windows72PASS/66subtests/6POSIX SKIP, with Linux counterparts passing. Full PII umbrella, Windows ACLs and historic-file remediation remain PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/review-followup.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "Exact-source execution recorded in docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/review-followup.json; counts name that source, not this combined candidate."
+      ],
+      "tests_remaining": [
+        "Combined candidate execution and protected gates.",
+        "Remaining literal parent obligations; parent stays PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original reproduction, review and fixture failures remain retained in source receipts."
+      ],
+      "known_limitations": [
+        "No whole-product acceptance, protected merge or production delivery is implied."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a37d7bbc8caec7f00ef56b3787725ebb557a217e",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/review-followup.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-264-SOURCE-RECEIPT",
+      "timestamp": "2026-11-03T04:58:06.859298+00:00",
+      "current_phase": "Verified scoped 264 source preserved; combined verification pending",
+      "completed_steps": [
+        "Sourcec8bf39e7 refreshes an unreviewed parked request from later persisted eligible native evidence, preserving authority and atomic single admission. Owner77PASS/69subtests/0SKIP includes real PostgreSQL lock deferral, concurrency, rollback and reopen. The pre-correction FK deadlock remains retained. General employer-origin discovery remains PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/review.json"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "Exact-source execution recorded in docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/source-execution.json; counts name that source, not this combined candidate."
+      ],
+      "tests_remaining": [
+        "Combined candidate execution and protected gates.",
+        "Remaining literal parent obligations; parent stays PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original reproduction, review and fixture failures remain retained in source receipts."
+      ],
+      "known_limitations": [
+        "No whole-product acceptance, protected merge or production delivery is implied."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c8bf39e7652e68bf1965ad2bd8ad0c9d271ee277",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-ASSEMBLED",
+      "timestamp": "2026-11-03T04:58:06.952783+00:00",
+      "current_phase": "Six-source cohort assembled; actual candidate verification and protected delivery pending",
+      "completed_steps": [
+        "Preserved six frozen source heads and verified every changed Python/TypeScript source blob.",
+        "Reconciled rows and milestone histories;295 reporting-only PASS is sole new acceptance."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-object-review.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        ".gitleaksignore"
+      ],
+      "tests_completed": [
+        "Source ancestry/blob equality assertions passed; original execution receipts preserved separately."
+      ],
+      "tests_remaining": [
+        "Combined native/PostgreSQL and Linux execution.",
+        "Fresh protected checks, actual merge/main and separately claimed rollout."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "900 scanner initially classified a verified source object as a credential; exact finding independently reviewed.",
+        "899 retained failures excluded."
+      ],
+      "known_limitations": [
+        "Whole product and004/008/160/171/224/264 remain PARTIAL;269 accounting remains with899.",
+        "POSIX cases require Linux; live-provider probes stay disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "12a899822068133321e010233cb3a9bfe81522b4",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-SOURCE-VERIFIED",
+      "timestamp": "2026-11-03T05:13:45.099255+00:00",
+      "current_phase": "Six-source cohort verified; actual merge candidate, protected integration and guarded deployment pending",
+      "completed_steps": [
+        "Executed frozen113081bc on Windows with owned PostgreSQL17 and in a read-only no-network Linux container.",
+        "Independent source/canonical/scanner-object review passed; original evidence and literal criteria retained."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/native-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/native-source-tests.xml",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/linux-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/report-verification.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/scanner-policy-tests.xml"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Windows/PostgreSQL417PASS,326 passing subtests,8SKIP,0FAIL/ERROR;one retained SQLAlchemy deprecation warning.",
+        "Linux108PASS/0SKIP;all six POSIX privacy counterparts passed.",
+        "Scanner-policy6PASS;report14 sections/60 local links/all2874 immutable manifest entries PASS."
+      ],
+      "tests_remaining": [
+        "Actual GitHub proposed merge revision and all fresh protected checks.",
+        "Protected merge/current-main verification and separately claimed guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original reproductions, foreign-key deadlock and historical scanner failure are retained in linked source receipts."
+      ],
+      "known_limitations": [
+        "Six POSIX cases skip on Windows and pass on Linux;two opt-in live probes stayNOT_RUN.",
+        "Local Ruff unavailable;CI still required.",
+        "Only295 reporting deliverable adds scopedPASS;004/008/160/171/224/264 stayPARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Publish scoped MJ-REQ-172 request-boundary repair through protected integration",
+  "current_phase": "Six-source cohort verified; actual merge candidate, protected integration and guarded deployment pending",
   "last_safe_checkpoint": {
-    "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
+    "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

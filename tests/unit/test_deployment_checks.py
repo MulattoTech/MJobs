@@ -7,6 +7,9 @@ import io
 import json
 import socket
 import ssl
+import threading
+import time
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
@@ -78,9 +81,12 @@ class DeploymentLookupTests(unittest.TestCase):
     def setUp(self):
         self.elapsed = 0.0
         self.sleeps = []
-        self.enterContext(patch.object(gate.time, "monotonic", side_effect=lambda: self.elapsed))
-        self.enterContext(patch.object(gate.time, "time", side_effect=lambda: 1700000000 + self.elapsed))
-        self.enterContext(patch.object(gate.time, "sleep", side_effect=self.sleep))
+        # Keep unrelated threads on the real process clock. Patching attributes
+        # on the shared time module lets their sleeps consume this test's budget.
+        clock = SimpleNamespace(monotonic=lambda: self.elapsed,
+                                time=lambda: 1700000000 + self.elapsed,
+                                sleep=self.sleep)
+        self.enterContext(patch.object(gate, "time", clock))
         self.enterContext(patch.dict(gate.os.environ, {"GH_TOKEN": PRIVATE}))
 
     def sleep(self, seconds):
@@ -258,6 +264,26 @@ class DeploymentLookupTests(unittest.TestCase):
         rows = [check("unrelated", id=index) for index in range(100)]
         result, request, _, _ = self.run_gate([self.response(rows) for _ in range(5)])
         self.assertEqual((result, request.call_count), (2, 5))
+        self.assertEqual(self.sleeps, [])
+
+    def test_background_thread_sleep_does_not_advance_simulated_gate_time(self):
+        calls = 0
+        rows = [check("unrelated", id=index) for index in range(100)]
+
+        def respond(*_args, **_kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 5:
+                worker = threading.Thread(
+                    target=lambda: time.sleep(.001), name="owned-gate-clock-fixture")
+                worker.start()
+                worker.join(timeout=2)
+                self.assertFalse(worker.is_alive())
+            return self.response(rows)
+
+        result, request, _, _ = self.run_gate(respond)
+        self.assertEqual((result, request.call_count), (2, 5))
+        self.assertEqual(self.elapsed, 0)
         self.assertEqual(self.sleeps, [])
 
     def test_each_page_request_timeout_uses_remaining_budget(self):

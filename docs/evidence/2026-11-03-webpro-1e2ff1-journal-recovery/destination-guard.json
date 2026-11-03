@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-03T04:38:34.294Z",
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "requirement_id": "MJ-REQ-008",
+  "result": "PARTIAL",
+  "acceptance_change": "NONE",
+  "baseline_publication_head": "561d2d5588d06896480d7b6353543c3f141cd071",
+  "source_sha": "3027783ff56a82d2fae62dbfa485fb3038f0c681",
+  "source_tree": "ecbe81f2f781832f1ff49dcf93d0ab8a4aaddf06",
+  "claim": {
+    "ref": "refs/heads/webpro-claims/MJ-REQ-008",
+    "owner": "18af7a5b4dc5ff76afda7699ddae08d55a2908d1"
+  },
+  "problem": "Explicit generated-output destinations could resolve to the canonical journal, replacing milestone history with its derived summary. Record could mutate both files before reporting invalid state.",
+  "change": "A shared resolved-destination guard refuses canonical output. Record checks before its canonical write; sync checks before its output write. Direct and normalized path aliases are covered with both files byte-identical after refusal.",
+  "baseline_reproduction": {
+    "result": "EXPECTED_FAIL",
+    "test_methods": 2,
+    "failed_subcases": 4,
+    "elapsed_seconds": 0.512,
+    "fixture_scope": "Owned temporary journals only; no real canonical journal or production data changed."
+  },
+  "verification": {
+    "windows": {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_progress_journal.py tests/unit/test_progress_journal_recovery.py tests/unit/test_progress_dashboard.py tests/unit/test_progress_card.py --junitxml=<private>/native-destination-3027783f.xml",
+      "passed": 30,
+      "subtests_passed": 21,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 4.17
+    },
+    "linux": {
+      "command": "python -m unittest -v tests.unit.test_progress_journal tests.unit.test_progress_journal_recovery tests.unit.test_progress_dashboard tests.unit.test_progress_card",
+      "passed": 30,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 3.672,
+      "environment": "Owned read-only container, no network, CPU1/memory512MiB/tmpfs128MiB",
+      "dependency_image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab"
+    },
+    "consistency": [
+      "Catalogue PASS",
+      "Progress journal PASS",
+      "Dashboard CURRENT",
+      "Diff PASS",
+      "Source commit provenance PASS"
+    ],
+    "local_ruff": "NOT_RUN: unavailable in the owned environment."
+  },
+  "history": "Initial interrupted-write and all-field validation evidence remains preserved in source-execution.json and native-source.xml.",
+  "limits": [
+    "The full MJ-REQ-008 remains PARTIAL; physical host restart, power-loss durability and multi-writer synchronization remain unverified.",
+    "No protected approval or independent execution is claimed. Latest-head protected checks and actual current-main integration remain pending.",
+    "This fix does not repair previously overwritten canonical history; it prevents the identified erroneous destination from overwriting it."
+  ],
+  "delivery_receipt": "See the containing PR for publication head, future integration/main/deployment hashes and claim release."
+}

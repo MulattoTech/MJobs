@@ -1,0 +1,152 @@
+{
+  "source_sha": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+  "source_tree": "f1729ba63cd5be10810fb5411889969ef802f598",
+  "started_at": "2026-11-03T04:59:49.950400+00:00",
+  "scope": [
+    "tests/integration/test_answer_export_privacy.py",
+    "tests/unit/test_answer_export_path_security.py",
+    "tests/integration/test_application_answer_export.py",
+    "tests/integration/test_application_answer_story_citation_export.py",
+    "tests/integration/test_reviewed_application_answer_durability.py",
+    "tests/unit/test_deployment_checks.py",
+    "tests/unit/test_progress_journal.py",
+    "tests/unit/test_progress_journal_recovery.py",
+    "tests/unit/test_progress_dashboard.py",
+    "tests/unit/test_progress_card.py",
+    "tests/unit/test_database_pool_wait.py",
+    "tests/unit/test_operation_control_reads.py",
+    "tests/integration/test_operation_control_pool_wait.py",
+    "tests/integration/test_request_deadline_database_lock.py",
+    "tests/unit/test_timeout_failure_classification.py",
+    "tests/integration/test_timeout_failure_readback.py",
+    "tests/unit/test_operation_concurrency.py",
+    "tests/unit/test_local_persistence_acceptance.py",
+    "tests/unit/test_persistence_input_security_226.py",
+    "tests/unit/test_source_retry_after.py",
+    "tests/integration/test_source_retry_after.py",
+    "tests/integration/test_source_retry_after_persistence.py",
+    "tests/integration/test_greenhouse.py",
+    "tests/integration/test_remotive.py",
+    "tests/integration/test_remoteok.py",
+    "tests/integration/test_wwr.py",
+    "tests/integration/test_source_policy_cadence_sustain_021.py",
+    "tests/unit/test_discovery_retry_policy.py",
+    "tests/unit/test_retry_matrix_sustain_161.py",
+    "tests/unit/test_workday_application_adapter.py",
+    "tests/unit/test_fleet_t11_workday_dom_unavailable.py",
+    "tests/unit/test_application_adapter_contract.py",
+    "tests/integration/test_fleet_t04_lead_workday_documents.py",
+    "tests/integration/test_discovery_request_candidate_refresh.py",
+    "tests/integration/test_discovery_request_candidate_refresh_postgres.py",
+    "tests/integration/test_discovery_requests.py",
+    "tests/integration/test_discovery_request_api.py",
+    "tests/integration/test_official_domain_acquisition.py",
+    "tests/unit/test_official_domain_acquisition.py",
+    "tests/integration/test_company_discovery_policy.py",
+    "tests/integration/test_ai_resume_fact_trace_postgres.py"
+  ],
+  "command": "python -m pytest -q -p no:cacheprovider <scope> --tb=short --junitxml=<private>/native-113081bc.xml",
+  "postgres": "Owned PostgreSQL17 loopback/tmpfs, separate UUID schemas; real database cases explicitly enabled",
+  "container_id": "be29dbb94c75942b52eb89f6527534c92118e485ce7b2c39312e41eef62725c9",
+  "network_id": "fd5541b4ac8460059c967627a07872a0368934be88d858f94ec2b3ff69ec04d4",
+  "live_sources": "DISABLED",
+  "exit_code": 0,
+  "elapsed_seconds": 552.312,
+  "ended_at": "2026-11-03T05:09:02.285507+00:00",
+  "final_sha": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+  "tracked_diff": "",
+  "result": "PASS",
+  "parent_tests_passed": 417,
+  "parent_tests_skipped": 8,
+  "passing_subtests": 326,
+  "failures": 0,
+  "errors": 0,
+  "pytest_seconds": 548.789,
+  "warning_count": 1,
+  "warning": "SQLAlchemy SADeprecationWarning: future memory URL default-pool selection; explicit compatibility behavior tested.",
+  "skip_details": [
+    {
+      "test": "tests.integration.test_answer_export_privacy.AnswerExportPrivacyTests.test_hardlinked_recovery_file_cannot_change_an_unrelated_file",
+      "reason": "POSIX hard-link semantics required"
+    },
+    {
+      "test": "tests.integration.test_answer_export_privacy.AnswerExportPrivacyTests.test_permission_failure_does_not_commit_an_export",
+      "reason": "POSIX permission semantics required"
+    },
+    {
+      "test": "tests.integration.test_answer_export_privacy.AnswerExportPrivacyTests.test_process_death_leaves_private_bytes_and_retry_remains_safe",
+      "reason": "POSIX permission semantics required"
+    },
+    {
+      "test": "tests.integration.test_answer_export_privacy.AnswerExportPrivacyTests.test_recovery_restricts_matching_bytes_before_recording_document",
+      "reason": "POSIX permission semantics required"
+    },
+    {
+      "test": "tests.integration.test_answer_export_privacy.AnswerExportPrivacyTests.test_recovery_sync_failure_does_not_record_unconfirmed_permissions",
+      "reason": "POSIX permission semantics required"
+    },
+    {
+      "test": "tests.integration.test_answer_export_privacy.AnswerExportPrivacyTests.test_temporary_and_published_bytes_are_private_under_permissive_umask",
+      "reason": "POSIX permission semantics required"
+    },
+    {
+      "test": "tests.integration.test_remoteok.RemoteOKTests.test_live_bounded_search_read_only",
+      "reason": "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1"
+    },
+    {
+      "test": "tests.integration.test_wwr.WeWorkRemotelyTests.test_live_bounded_search_read_only",
+      "reason": "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1"
+    }
+  ],
+  "database_case_readback": [
+    {
+      "test": "tests.integration.test_operation_control_pool_wait.PostgresPoolWaitTests.test_capacity_return_allows_waiting_control_read_to_finish",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_operation_control_pool_wait.PostgresPoolWaitTests.test_disposed_engine_recreates_pool_with_same_wait_bound",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_operation_control_pool_wait.PostgresPoolWaitTests.test_exhausted_pool_fails_closed_and_preserves_caller_transaction",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_operation_control_pool_wait.PostgresPoolWaitTests.test_general_store_checkout_also_stops_waiting_without_stealing_capacity",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_discovery_request_candidate_refresh_postgres.CandidateRefreshPostgreSQLTests.test_collector_job_lock_defers_competing_refresh_without_a_deadlock",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_discovery_request_candidate_refresh_postgres.CandidateRefreshPostgreSQLTests.test_concurrent_intakes_commit_one_refresh_and_one_operation",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_discovery_request_candidate_refresh_postgres.CandidateRefreshPostgreSQLTests.test_queue_failure_rolls_back_candidate_and_audit",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_discovery_request_candidate_refresh_postgres.CandidateRefreshPostgreSQLTests.test_refresh_revision_and_single_outbox_survive_reopen",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_ai_resume_fact_trace_postgres.AIResumePostgreSQLTests.test_acceptance_is_idempotent",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_ai_resume_fact_trace_postgres.AIResumePostgreSQLTests.test_changed_ai_wording_and_sources_survive_reopen",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_ai_resume_fact_trace_postgres.AIResumePostgreSQLTests.test_concurrent_request_calls_provider_once",
+      "result": "PASS"
+    },
+    {
+      "test": "tests.integration.test_ai_resume_fact_trace_postgres.AIResumePostgreSQLTests.test_stale_profile_and_job_refuse_preparation",
+      "result": "PASS"
+    }
+  ],
+  "junit": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/native-source-tests.xml"
+}

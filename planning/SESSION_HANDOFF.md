@@ -1,5 +1,41 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Latest coordinated sprint checkpoint — 2026-11-03
+
+Run: webpro-20261103T034313Z-1e2ff1. Base main: 7e86511f409fb9d1e2dc79904b170cc74b88cd3d.
+Integration preparation owner: 07cb9a0af294c16424a24a01719b0cdf6db2d8b6; requery before resuming.
+Candidate branch: work/webpro-20261103T034313Z-1e2ff1-cohort.
+Frozen source PRs: **894,895,897,898,900,901**. Exact heads/ancestry/source-blob proof:
+[cohort record](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json).
+Source commits, failure histories and milestone evidence remain preserved.
+
+**Only295 adds a proposed PASS**, for the fourteen-section reporting deliverable.
+004/008/160/171/224/264 stay PARTIAL.171 moves NOT_RUN to PARTIAL; no PII umbrella acceptance.
+899 is excluded pending owner corrections;269 bookkeeping stays with that owner.
+Original366 and reference59 criteria/denominators remain unchanged.
+
+Frozen source113081bc is now verified: Windows/PostgreSQL417PASS plus326 passing
+subtests,8SKIP; Linux108PASS/0SKIP; scanner-policy6PASS. The six POSIX Windows
+skips all pass on Linux; two live-source probes remain disabled. Report verification
+passed14 required sections,60 local links and all2874 immutable manifest entries.
+[Executed source receipt](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json).
+Actual proposed-merge execution, fresh protected gates, protected merge/current-main
+and guarded rollout remain pending. Tests bind113081bc, not this evidence successor.
+Intended rollout owner: run89c21f, after a separate deployment ref/native lease.
+Each source owner retains and releases their own objective refs; no branch rewrite.
+[Independent source/canonical review and owner89c21f cleanup checkpoint](https://github.com/MulattoTech/MJobs/pull/894#issuecomment-6595985003).
+That checkpoint preserves004/160/264 claims, frozen source worktrees and the exact
+owner89c21f disposable PostgreSQL resource; only its owner may clean it up.
+
+The containing integration PR final receipt will name actual candidate/merge/main,
+deployed SHA/image/readiness, skips, resource cleanup and exact claim releases.
+Owned worktree ends -1e2ff1-cohort; raw receipts/resources are in the run's
+private -1e2ff1-evidence/cohort directory. PostgreSQL is owned loopback/tmpfs.
+Do not run synthetic cases against production.
+
+## Earlier checkpoints — historical observations
+
+
 ## Exact source and publication state
 
 [PR890](https://github.com/MulattoTech/MJobs/pull/890) is protected-merged and guarded-deployed at **`e67c5dfcb14bfb126a93170819e2f5bd875665ec`**. Tested proposed `c7e3e7c0142c719110ab488bb03562d207451f4e` and actual merge share tree `c2eb3694105ad1d86b176ba9d6de319ac42d9b88`. Its [delivery evidence](../docs/evidence/2026-11-02-pro-boundaries/deployment.json) records image, seven services, backup, rollback image, actual runtime ACL/ORM probe and public readback.
@@ -74,3 +110,45 @@ removes workstation hostname metadata. Existing unrelated worktrees remain intac
 Next independent candidate: 224 adapter contract gaps; scope and claim must be
 rediscovered before writes. Original 171/224/269 and overarching P0 outcomes remain
 incomplete.
+
+## Web Pro checkpoint: verified report and Workday correction
+
+UTC: 2026-11-03T04:18:08.154659+00:00. Run: webpro-20261103T031738Z-642e4b.
+
+PR 893 / MJ-REQ-172 merged at ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b; its tree exactly equals the tested
+candidate. 151 tests/33 subtests and all five required gates PASS. Parent172 stays
+PARTIAL and issue173 remains open. Merge receipt:
+[protected integration](../docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json).
+
+Workday source 1b8da8cf27c989a8a23e3733f6a9098fca5e00c3:55 tests/23 subtests PASS,
+no skips; independent review found no blocker. It corrects unsupported fixture
+capability and preserves fail-closed DOM/deadline boundaries. Parent 224 remains
+PARTIAL; no real employer operation was performed.
+
+[Implementation report](../docs/IMPLEMENTATION_REPORT.md) is complete at artifact
+8ee14e8256596b39ffa3d0b25972856205680b0c, technical source1350f398386d0be8c9555aa8ec565daf186b2b84.
+All 14 literal sections and all inventories were independently verified. The only
+new PASS is MJ-REQ-295, the factual reporting deliverable. Broader product and
+other delivery-control requirements remain incomplete. Global counts must be
+refreshed on actual main after integration; do not attribute concurrent workers'
+changes to this run.
+
+Combined publication branch: work/webpro-20261103T031738Z-642e4b-295; worktree
+C:\Tools\Dev\MJobs-webpro-20261103T031738Z-642e4b-295. Source-only224 branch is retained.
+The containing PR's final receipt records its future candidate/checks/merge and
+deployment results; these were pending when this checkpoint was authored.
+No migrations, dependency upgrades, paid AI calls, public submissions, live
+restores, or fleet launches were performed by this run.
+
+Objective refs 172/224/295 remain owned respectively by
+1c26033405156715b21679f241182bd221971b52,
+0dc61e343fbd9f1ea2e121d9f6dd34734a2a757d,
+9f043f65c866a2de109d3d2939b1ed75cc9d3631.
+This scoped accounting preparation used integration owner c7cb05fff5beeb8a5cefa9bcaca95f34ad10b0a5.
+Verify live ownership; recorded hashes are not permission to reuse/delete refs.
+Preparation ownership is released after verification, before CI waits. Current
+main at preparation: ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b. Production observation remains the
+prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
+release verifies a new exact SHA. Other workers own 004/171/269; preserve their
+work, evidence and refs and re-discover their current status before selecting
+new work.
