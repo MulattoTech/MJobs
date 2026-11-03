@@ -2443,12 +2443,61 @@
         "git_commit": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
         "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-REVIEWED-RELIABILITY-COHORT-REFRESH",
+      "timestamp": "2026-11-03T07:11:02.147077+00:00",
+      "current_phase": "Reviewed reliability cohort preserved on current main; final combined candidate, protected gates and delivery pending",
+      "completed_steps": [
+        "Accepted bounded909 maintenance handoff and exact902/910 source-owner inclusion authorizations.",
+        "Preserved all81 incoming source/evidence blobs,32 prior journal payloads, all handoff sections and both HAR/journal ignores.",
+        "Appended actual907 protected merge and actual906 guarded deployment receipts without rewriting prior dated history.",
+        "Retained independently reproduced cold-SSL and historical-recovery failures and their reviewed corrections."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/independent-cold-ssl-review.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/prior-delivery.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Assembled sourceba08749f: source/canonical preservation, catalogue, strict journal, dashboard, diff and provenance checks PASS.",
+        "Independent sourceb7bb430d:5 parent tests+3subtests PASS; original real deadlines/cancellation negative control and clock restoration included.",
+        "Independent corrected recovery7295:8 parent tests+2subtests PASS, plus v1/v2 refusal and missing inventory NOT_RUN probes.",
+        "Historical prior909 candidated573:Windows36PASS+25subtests/1POSIXskip;Linux37PASS/0skip. These are prior-revision results, not new combined execution."
+      ],
+      "tests_remaining": [
+        "Final actual combined proposed-merge Windows/Linux journal, peer recovery and identity/document/clock/cancellation execution.",
+        "Independent final combined source/canonical preservation review and every strict protected exact-head gate.",
+        "Protected merge, fresh actual-main counts/release gates, separately claimed guarded rollout and exact objective-claim releases."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Historical899 missing cold_ssl_started_at failure and902 legacy-v2 false-PASS remain retained; exact hosted timing was not captured.",
+        "Preparation reconnaissance helper initially decoded UTF-8 Git text using the Windows locale and stopped read-only; explicit UTF-8 readback succeeded with the checkout unchanged."
+      ],
+      "known_limitations": [
+        "004/008/017/292 remainPARTIAL; only899's reviewed269 result changes candidate acceptance.",
+        "Controlled cold-SSL accounting does not prove synchronous setup wall latency; existing real-clock scopes remain distinct.",
+        "Journal protection covers cooperating local publishers; physical power loss, older/manual/network-filesystem writers and already-lost history remain unproved.",
+        "No final current-candidate, merge or new deployment is claimed by this checkpoint."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json"
+      }
     }
   ],
-  "current_phase": "Record the verified v3 recovery-inventory correction while MJ-REQ-292 remains PARTIAL",
+  "current_phase": "Reviewed reliability cohort preserved on current main; final combined candidate, protected gates and delivery pending",
   "last_safe_checkpoint": {
-    "git_commit": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json"
+    "git_commit": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

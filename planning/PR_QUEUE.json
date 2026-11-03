@@ -6201,20 +6201,25 @@
       ],
       "target_area": "Protected integration/canonical reconciliation",
       "depends_on": [],
-      "status": "PROTECTED_MERGED_GUARDED_ROLLOUT_PENDING",
+      "status": "GUARDED_DEPLOYMENT_VERIFIED",
       "branch": "work/webpro-20261103T034313Z-1e2ff1-cohort",
       "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
-      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL. Actual proposed62508d7c tree equals protected main9a21b98b; all15 PR checks passed; six source PRs marked merged. Current-main release gates subsequently passed and separately claimed owner89c21f is deploying; final rollout readback remains pending at this checkpoint. Owned PostgreSQL fixture/network cleanup verified separately.",
+      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL. Actual proposed62508d7c tree equals protected main9a21b98b; all15 PR checks passed; six source PRs marked merged. Current-main release gates subsequently passed and separately claimed owner89c21f is deploying; final rollout readback remains pending at this checkpoint. Owned PostgreSQL fixture/network cleanup verified separately. Final906 delivery was verified at9a21/imagef04dee47 with healthy services, backup/rollback and independent public readback; root171/clock claims and owned PostgreSQL fixtures were released. The earlier pending checkpoint remains historical.",
       "history": [
         {
           "recorded_at": "2026-11-03T06:06:15.840730+00:00",
           "previous_status": "SOURCE_VERIFIED_PENDING_PROTECTED_CANDIDATE",
           "previous_notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
+        },
+        {
+          "recorded_at": "2026-11-03T07:11:02.147077+00:00",
+          "previous_status": "PROTECTED_MERGED_GUARDED_ROLLOUT_PENDING",
+          "previous_notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL. Actual proposed62508d7c tree equals protected main9a21b98b; all15 PR checks passed; six source PRs marked merged. Current-main release gates subsequently passed and separately claimed owner89c21f is deploying; final rollout readback remains pending at this checkpoint. Owned PostgreSQL fixture/network cleanup verified separately."
         }
       ],
       "pr": 906,
       "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
-      "delivery_evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/cohort-protected-merge.json"
+      "delivery_evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/prior-delivery.json"
     },
     {
       "id": "MJ-PR-WEBPRO-1E2FF1-008-CONCURRENCY",
@@ -6236,22 +6241,45 @@
       "title": "Integrate corrected TalentHop evidence, company identity and journal concurrency",
       "priority": "P0",
       "requirements": [
+        "MJ-REQ-004",
         "MJ-REQ-008",
         "MJ-REQ-017",
-        "MJ-REQ-269"
+        "MJ-REQ-269",
+        "MJ-REQ-292"
       ],
       "target_area": "Protected integration/canonical reconciliation",
       "depends_on": [],
-      "status": "SOURCE_VERIFIED_PENDING_INPUT_GATE_DIAGNOSIS_AND_PROTECTED_CANDIDATE",
+      "status": "REVIEWED_INPUTS_PRESERVED_PENDING_CURRENT_CANDIDATE",
       "branch": "work/webpro-20261103T050255Z-1ba724-cohort",
       "source_prs": [
         899,
-        907,
-        908
+        902,
+        908,
+        910
       ],
-      "evidence": "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json",
-      "notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment."
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json",
+      "notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment. Refresh after protected907/63cb: authorized902/331df2ce and910/77c137a2 join frozen899/908 and prior909 ancestry. All81 incoming source/evidence blobs and32 prior journal payloads are preserved. Cold-SSL fixture and historical recovery false-PASS findings have independently executed corrections; their original failures remain. Actual combined-candidate execution, fresh independent preservation review and every protected gate remain pending. No additional acceptance beyond previously reviewed269;004/008/017/292 stayPARTIAL.",
+      "history": [
+        {
+          "recorded_at": "2026-11-03T07:11:02.147077+00:00",
+          "previous_status": "SOURCE_VERIFIED_PENDING_INPUT_GATE_DIAGNOSIS_AND_PROTECTED_CANDIDATE",
+          "previous_notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment.",
+          "previous_requirements": [
+            "MJ-REQ-008",
+            "MJ-REQ-017",
+            "MJ-REQ-269"
+          ],
+          "previous_source_prs": [
+            899,
+            907,
+            908
+          ],
+          "previous_evidence": "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json"
+        }
+      ],
+      "pr": 909,
+      "maintenance_owner": "webpro-20261103T034313Z-1e2ff1"
     }
   ],
-  "generated_at": "2026-11-03T06:27:32.479532+00:00"
+  "generated_at": "2026-11-03T07:11:02.147077+00:00"
 }
