@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-264",
+  "source_sha": "c8bf39e7652e68bf1965ad2bd8ad0c9d271ee277",
+  "reviewer": "Independent read-only ChatGPT internal reviewer /root/fact_trace_review; additional lock-order review by /root/next_objective_review",
+  "scope": "Static implementation/test/documentation and adjacent production lock-order review; exact committed blobs verified. No independent test rerun or protected GitHub approval.",
+  "result": "PASS - no remaining scoped release blocker found",
+  "reviewed_blobs": {
+    "services/company_discovery/requests.py": "8e0477a63bc01c6f8f2d0159a4c88d36e27116b4",
+    "tests/integration/test_discovery_request_candidate_refresh.py": "58e29f5e92a71e4574a0b707fea6a4af9fe2f9ad",
+    "tests/integration/test_discovery_request_candidate_refresh_postgres.py": "ca29991d6739d29b94cecb450185c715e0ffd971",
+    "docs/COMPANY_DISCOVERY_CANDIDATE_REFRESH.md": "2ae243664772908642e931874e22e43de4fb6d9f"
+  },
+  "resolved_findings": [
+    "Reproduced canonical-job/request FK lock inversion; refresh-only KEY SHARE SKIP LOCKED avoids waiting on a conflicting job while holding the request.",
+    "Retained established batch/profile lock ordering rather than introducing broad blocking job prelocks.",
+    "Incoming profile identity/version must match exactly; absent profile cannot bypass binding."
+  ],
+  "contracts_checked": [
+    "Same company/source snapshot and selected persisted candidate, existing native proof and current profile/source fences.",
+    "One revision increment and atomic replacement/audit/queue admission with rollback/replay preservation.",
+    "Actual PostgreSQL lock regression requires competing intake to complete while collector lock remains held and verifies later single admission.",
+    "No new observed conflicting candidate-FK edge; inspected candidate rows are immutable observations.",
+    "Candidate admission remains distinct from verified-domain authority and worker egress authorization."
+  ],
+  "limitations": [
+    "Static review and blob binding only; owner-executed JUnit is separate evidence.",
+    "PARTIAL parent and contention/general-origin/provider limits remain explicit."
+  ],
+  "created_utc": "2026-11-03T04:40:49.426591Z"
+}

@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034301Z-89c21f",
+  "requirement": "MJ-REQ-264",
+  "result": "PARTIAL",
+  "baseline_sha": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "source_sha": "c8bf39e7652e68bf1965ad2bd8ad0c9d271ee277",
+  "claim": {
+    "ref": "refs/heads/webpro-claims/MJ-REQ-264",
+    "owner_commit": "6afae1d16cb7bffa56d1622350e5f61465e3b04f"
+  },
+  "behavior": "A later eligible persisted native posting can replace unusable evidence on an otherwise unchanged parked company-discovery request. Candidate/job refresh, audit and one high-priority queue admission are atomic and preserve source/profile authority. PostgreSQL job-lock contention defers enrichment without creating a new job/request foreign-key lock cycle.",
+  "verification": {
+    "environment": "Isolated Windows venv, SQLAlchemy2.1.1/psycopg3.3.6, synthetic httpx transports and disposable SQLite files; PostgreSQL16 in an owned loopback-only disposable container, run-specific database and per-test UUID schemas. No production database or real employer request.",
+    "command": "MJOBS_TEST_POSTGRES_URL=<owned disposable PostgreSQL URL> python -m pytest -q tests/integration/test_discovery_request_candidate_refresh.py tests/integration/test_discovery_request_candidate_refresh_postgres.py tests/integration/test_discovery_requests.py tests/integration/test_discovery_request_api.py tests/integration/test_official_domain_acquisition.py tests/unit/test_official_domain_acquisition.py tests/integration/test_company_discovery_policy.py --junitxml=docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/source-tests.xml --tb=short",
+    "pytest_result": {
+      "passed": 77,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 69,
+      "seconds": 127.99
+    },
+    "junit": {
+      "file": "source-tests.xml",
+      "serialized_cases": 146,
+      "note": "77 passing cases plus69 successful subtests; not an additional total. Hostname removed."
+    },
+    "checks": {
+      "catalogue": "PASS",
+      "progress validate": "PASS",
+      "commit_provenance": "PASS",
+      "git diff --check": "PASS"
+    },
+    "cases": [
+      "Real synthetic source collection persists later eligible native evidence, queues one HIGH operation, rejects stale approval and survives Store reopen/replay.",
+      "Absent/different incoming profile, changed saved profile, invalid ATS origin, disabled source, altered observation and selected-candidate drift do not refresh.",
+      "Dismissed, authorized, queued, running, completed, blocked, cancelled and dead-lettered work preserves its original evidence.",
+      "Queue failure rolls back candidate/job replacement and refresh audit.",
+      "Disposable PostgreSQL verifies reopen, rollback, two concurrent intakes with one operation/audit, and actual canonical-job FOR UPDATE contention with prompt refresh deferral followed by single admission."
+    ]
+  },
+  "preserved_failures": [
+    {
+      "phase": "Initial baseline fixture",
+      "result": "Fixture error corrected",
+      "detail": "An artificial datetime.min polling clock overflowed during source backoff. The fixture now uses max(current UTC,due time+one second) before the actual regression was recorded."
+    },
+    {
+      "phase": "Actual baseline",
+      "result": "FAIL",
+      "detail": "The later candidate had admissible native proof, but the existing request remained NEEDS_ORIGIN_REVIEW instead of QUEUED."
+    },
+    {
+      "phase": "Additional profile fixture checks",
+      "result": "Two fixture failures corrected",
+      "detail": "Profile versions are strings, and public profile PUT requires the supported input profile shape rather than an expanded API readback. Corrected before final source execution."
+    },
+    {
+      "phase": "Initial source02b6ec19c2fef811ece235cd94667aa898b7573c",
+      "result": "76 tests and69 subtests PASS, then review-found defect",
+      "detail": "Initial green suite lacked conflicting collector-job lock coverage and was insufficient for release."
+    },
+    {
+      "phase": "Independent lock-order review and real PostgreSQL probe",
+      "result": "FAIL: psycopg.errors.DeadlockDetected",
+      "detail": "Collector held canonical_jobs FOR UPDATE while awaiting request; competing intake held request while changed trigger_job_id FK awaited canonical-job FOR KEY SHARE. This candidate was not published or deployed."
+    },
+    {
+      "phase": "Correction",
+      "result": "PASS on exact source",
+      "detail": "Refresh-only FOR KEY SHARE SKIP LOCKED defers when a collector holds the job. New real-lock regression plus the complete adjacent77-case suite passed at c8bf39e7652e68bf1965ad2bd8ad0c9d271ee277."
+    }
+  ],
+  "review": "review.json",
+  "limitations": [
+    "MJ-REQ-264 remains PARTIAL: general origin discovery, other native providers and resnapshotting across changed profile revisions remain outside this slice.",
+    "Contention defers until an eligible later intake; this is not a universal database deadline or a guarantee of progress under sustained contention.",
+    "The candidate only authorizes existing bounded corroboration. It grants no verified domain and performs no employer egress during intake.",
+    "The PostgreSQL regression uses real conflicting row locks and real intake transactions, not a full concurrent collector process.",
+    "No migration, paid API, live employer submission, credential change or non-idempotent replay.",
+    "Protected candidate checks, actual merge and guarded deployment remain pending at this source checkpoint."
+  ],
+  "created_utc": "2026-11-03T04:40:49.426591Z"
+}
