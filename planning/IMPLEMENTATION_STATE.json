@@ -2203,12 +2203,97 @@
         "git_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
         "evidence_path": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-PROTECTED-MERGE",
+      "timestamp": "2026-11-03T06:06:17.640703+00:00",
+      "current_phase": "Six-source cohort protected-merged; separately owned guarded rollout in progress",
+      "completed_steps": [
+        "Protected906 merge retained all six source ancestries and exact tested candidate tree; all six source PRs marked merged.",
+        "Refreshed actual-main original366 and separate59 counts; no follow-up acceptance promotion.",
+        "Verified and removed only own disposable PostgreSQL fixture and now-empty owned network."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/cohort-protected-merge.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/owned-resource-cleanup.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Candidate62508d7c native100PASS/189subtests/6POSIXskips and Linux50PASS/0skip.",
+        "All15 latest protected PR checks and later exact-main release workflows PASS."
+      ],
+      "tests_remaining": [
+        "Separately owned rollout and independent public SHA/readiness readback."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Historical reproductions, failures and skipped scopes are retained in linked receipts."
+      ],
+      "known_limitations": [
+        "004/008/160/171/224/264 remainPARTIAL; only peer reporting295 gainedPASS.",
+        "No live personal fixture, destructive restore or external employer operation performed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/cohort-protected-merge.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-JOURNAL-CONCURRENCY-SOURCE-VERIFIED",
+      "timestamp": "2026-11-03T06:06:17.728773+00:00",
+      "current_phase": "Journal concurrency source and initial proposed merge verified; final review and protected delivery pending",
+      "completed_steps": [
+        "Reproduced two successful writers losing one checkpoint while validation still passed.",
+        "Serialized cooperating record/sync read-validation-publication and CLI final validation; bounded busy refusal preserves bytes and retry succeeds.",
+        "Published source/evidence PR908 without full008 acceptance promotion."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/baseline-regressions.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/lost-update-reproduction.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/native-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/linux-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/candidate-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/candidate-native-tests.xml"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Committed source and initial proposed merge each Windows36PASS+25subtests/1POSIXskip and Linux37PASS/no skips.",
+        "Catalogue/progress/dashboard/diff/provenance checks passed; prior eight failing baseline assertions retained."
+      ],
+      "tests_remaining": [
+        "Independent review, final-head actual proposed merge and all fresh protected gates.",
+        "Protected delivery after the separate ongoing906 rollout."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Historical reproductions, failures and skipped scopes are retained in linked receipts."
+      ],
+      "known_limitations": [
+        "008 remainsPARTIAL; physical host/power-loss and nonparticipating/network filesystem writers remain outside proof.",
+        "Acquisition contention is bounded; arbitrary filesystem I/O is not.",
+        "Read-only observers can see in-progress derivative mismatch; already lost history cannot be recovered."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Exact reconciled 899 candidate verified; hosted checks, protected merge and guarded deployment pending",
+  "current_phase": "Journal concurrency source and initial proposed merge verified; final review and protected delivery pending",
   "last_safe_checkpoint": {
-    "git_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json"
+    "git_commit": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

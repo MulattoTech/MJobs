@@ -6201,11 +6201,36 @@
       ],
       "target_area": "Protected integration/canonical reconciliation",
       "depends_on": [],
-      "status": "SOURCE_VERIFIED_PENDING_PROTECTED_CANDIDATE",
+      "status": "PROTECTED_MERGED_GUARDED_ROLLOUT_PENDING",
       "branch": "work/webpro-20261103T034313Z-1e2ff1-cohort",
       "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
-      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
+      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL. Actual proposed62508d7c tree equals protected main9a21b98b; all15 PR checks passed; six source PRs marked merged. Current-main release gates subsequently passed and separately claimed owner89c21f is deploying; final rollout readback remains pending at this checkpoint. Owned PostgreSQL fixture/network cleanup verified separately.",
+      "history": [
+        {
+          "recorded_at": "2026-11-03T06:06:15.840730+00:00",
+          "previous_status": "SOURCE_VERIFIED_PENDING_PROTECTED_CANDIDATE",
+          "previous_notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
+        }
+      ],
+      "pr": 906,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "delivery_evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/cohort-protected-merge.json"
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1E2FF1-008-CONCURRENCY",
+      "title": "Prevent cooperating journal publishers from losing successful checkpoints",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-008"
+      ],
+      "target_area": "Implementation progress recovery",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_REVIEW_AND_PROTECTED_DELIVERY",
+      "pr": 908,
+      "branch": "work/webpro-20261103T034313Z-1e2ff1-008-concurrency",
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json",
+      "notes": "Source6c9dc906; evidence4272c0c1; initial candidate8c9cd974. Native36PASS/25subtests/1POSIXskip and Linux37PASS/no skips on source and candidate. Original lost-success reproduction/eight failing baseline assertions retained. Parent008 staysPARTIAL; final-head review/gates/current-candidate execution pending."
     }
   ],
-  "generated_at": "2026-11-03T05:13:45.099255+00:00"
+  "generated_at": "2026-11-03T06:06:15.840730+00:00"
 }
