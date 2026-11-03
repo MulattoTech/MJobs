@@ -113,7 +113,12 @@ class RecruiteeApplicationAdapter(GreenhouseApplicationAdapter):
         }
 
     def upload_mock_fixture_documents(self, page, analysis, snapshots, *, check=None):
-        """Reject fixture upload because this provider adapter exposes no upload."""
+        """Preserve cancellation before rejecting unsupported fixture upload.
+
+        The rejection must not inspect browser, form, or document inputs.
+        """
+        if check is not None:
+            check()
         raise ValueError("RECRUITEE_DOCUMENT_UPLOAD_UNSUPPORTED")
 
     @staticmethod
