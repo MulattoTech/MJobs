@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-292",
+  "issue": 293,
+  "utc": "2026-11-03T04:53:40.965009+00:00",
+  "source_revision": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
+  "source_blobs": {
+    "cli/compose_recovery.py": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+    "tests/integration/test_compose_recovery_target.py": "941536efd1b9c7b9fb88bccc5e4d597b19d5ad09",
+    "tests/integration/test_recovery_inventory_completeness.py": "9c9680712caa6cadd2379eea5fe756f0120974d5",
+    "docs/RECOVERY_JOB_INVENTORY.md": "f1edbdd858fe4491e7a5bdd0107d68ac9bbdaad5"
+  },
+  "result": "PASS",
+  "requirement_result": "PARTIAL",
+  "command": "python -m pytest -q tests/integration/test_recovery_inventory_completeness.py tests/integration/test_compose_recovery_target.py tests/integration/test_api_queue.py tests/unit/test_compose_recovery.py --tb=short --junitxml=outputs/recovery-292-exact-source.xml",
+  "tests": {
+    "passed": 42,
+    "subtests_passed": 43,
+    "junit_testcase_elements": 42,
+    "junit_declared_test_units": 85,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reported_seconds": 39.86,
+    "junit_seconds": 39.86,
+    "junit_started_at_utc": "2026-11-03T04:51:20.922575+00:00"
+  },
+  "validation": {
+    "catalogue": "PASS",
+    "progress_journal": "PASS",
+    "progress_dashboard": "CURRENT",
+    "commit_provenance": "PASS",
+    "diff_check": "PASS",
+    "ruff": {
+      "result": "NOT_RUN",
+      "reason": "Ruff is not installed in this run-owned virtual environment; attempted invocation reported No module named ruff."
+    }
+  },
+  "scope": "Bounded complete enumeration of the existing default public profile-context job view, at most 200 visible jobs. Request a 201st-row sentinel; reject overflow before detail reads and before initial recovery mutation. Preserve existing inventory schema and visibility filters.",
+  "failure_history": [
+    {
+      "result": "FAIL",
+      "stage": "evidence-formatting helper (corrected)",
+      "detail": "Initial helper expected 85 testcase elements, but pytest records 42 testcase elements and 85 declared test units for 42 tests plus 43 subtests. Assertion corrected after direct XML inspection; no product-test result changed."
+    },
+    {
+      "result": "DEFECT_REPRODUCED",
+      "source_revision": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+      "evidence": "baseline-reproduction.json",
+      "detail": "Real API default returned 200 of 201 jobs; modifying the omitted source payload left the recorded digest unchanged and comparator incorrectly returned PASS."
+    },
+    {
+      "result": "FAIL",
+      "source_revision": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+      "evidence": "baseline-regression.xml",
+      "tests_failed": 1,
+      "detail": "The new actual-API overflow regression failed on old source because no ValueError was raised."
+    },
+    {
+      "result": "PASS",
+      "detail": "Initial working-tree focused run passed 42 tests / 43 subtests in 40.30 seconds. Then an explicit real-API 201-row assertion and caller-scope documentation were added before the exact-source run above."
+    }
+  ],
+  "criteria": [
+    {
+      "criterion": "292 step55 limited verification boundary",
+      "result": "PASS",
+      "evidence": "Reject actual 201-job visible catalog before detail read; exactly 200 identities are complete and last-source change is detected."
+    },
+    {
+      "criterion": "Initial recovery mutation boundary",
+      "result": "PASS",
+      "evidence": "Valid baseline followed by oversized current listing raises before lifecycle commands/HTTP writes and creates no successful evidence."
+    },
+    {
+      "criterion": "Original 60-step MJ-REQ-292",
+      "result": "PARTIAL",
+      "evidence": "This slice does not establish the full connected journey, real sources, arbitrary-size inventories or restart/restore acceptance."
+    }
+  ],
+  "limitations": [
+    "Public view excludes hidden, not-interested and blacklisted jobs; profile context does not mean database ownership.",
+    "More than 200 visible jobs intentionally remain unverified; no pagination/API schema change.",
+    "No concurrent snapshot guarantee is introduced across listing and detail reads.",
+    "An inventory that grows past budget later in recovery fails after earlier actions; existing finalizer restores services.",
+    "Onboarding baseline capture now fails explicitly above budget; earlier UI actions may already have occurred.",
+    "No real Docker restart, production restore, live provider request, paid inference or employer submission performed for this slice.",
+    "Protected CI, actual combined merge candidate, canonical reconciliation and deployment remain separate pending stages."
+  ],
+  "review": "Independent exact-blob source and caller review PASS; see review.json. No reviewer test execution or formal GitHub approval."
+}

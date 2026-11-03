@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="mjobs-upload-privacy" tests="1" failures="0" errors="1" skipped="0" timestamp="2026-11-03T07:28:37.416790Z" time="0.088436">
+  <testcase classname="tests.unit.test_data_export.DataExportTests" name="test_backup_includes_verified_profile_document_bytes_without_local_paths" time="0.08778510498814285">
+    <error>Traceback (most recent call last):
+  File "/app/tests/unit/test_data_export.py", line 232, in test_backup_includes_verified_profile_document_bytes_without_local_paths
+    backup = export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/services/data_export.py", line 558, in export_profile_backup
+    "document_files": (_document_file_records(store, connection, profile_id, output_dir)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/services/data_export.py", line 411, in _document_file_records
+    raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
+services.data_export.DataExportError: EXPORT_FILE_UNAVAILABLE
+</error>
+  </testcase>
+</testsuite>

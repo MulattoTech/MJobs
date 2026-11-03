@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "observed_origin": "https://www.talenthop.com",
+  "captured_network": false,
+  "privacy": "Manual functional observations only. No account values, resume text, identifiers, cookies, tokens or raw traffic.",
+  "observations": [
+    {
+      "id": "TH-AUTH-002",
+      "route": "/",
+      "at": "2026-11-03T07:34Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Open the canonical homepage in the authorized Brave profile."
+      ],
+      "observed": [
+        "Signed-in navigation links to dashboard, jobs, tracker and resume settings.",
+        "Public category links point to the jobs route.",
+        "Footer exposes FAQ, contact, privacy, refund, terms and help routes."
+      ],
+      "scope": "UI_ONLY_NO_NETWORK_CAPTURE"
+    },
+    {
+      "id": "TH-UI-001",
+      "route": "/candidates-dashboard/dashboard",
+      "at": "2026-11-03T07:35Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Use the signed-in Dashboard navigation link."
+      ],
+      "observed": [
+        "Application count, preference-completion indicator and a resume-backed job matches region.",
+        "Application status tabs and saved-only filtering.",
+        "Empty tracker state.",
+        "Autofill is explicitly marked incoming/unavailable."
+      ],
+      "scope": "INITIAL_EMPTY_STATE_UI_ONLY"
+    },
+    {
+      "id": "TH-UI-002",
+      "route": "/candidates-dashboard/dashboard",
+      "at": "2026-11-03T07:38Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Wait for existing resume recommendations to render.",
+        "Open a visible match-percentage button.",
+        "Read Skills Match Analysis and close it."
+      ],
+      "observed": [
+        "Recommendations include match percentage, matched skills, age, compensation and employer.",
+        "The explanation separates profile fit from keyword match.",
+        "Unassessed profile fit is displayed as not assessed, not as zero.",
+        "Skills are grouped into full and partial matches.",
+        "Save, Pass, View Details and Apply controls are present; no application was submitted."
+      ],
+      "scope": "EXISTING_RECOMMENDATIONS_AND_READ_ONLY_EXPLANATION_UI_NO_CAPTURE"
+    },
+    {
+      "id": "TH-UI-003",
+      "route": "/jobs",
+      "at": "2026-11-03T07:39Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Open Find Jobs.",
+        "Open Search syntax help.",
+        "Dismiss help and open All Filters."
+      ],
+      "observed": [
+        "Job-title/company text search, location combobox and suggested searches.",
+        "Help advertises uppercase AND and OR operators.",
+        "Remote/hybrid/on-site, office allowance, travel allowance/level, work schedule, employment type, experience, education, posted age, quick apply and visa sponsorship controls.",
+        "Annual/hourly salary unit, minimum salary and salary-known-only toggle.",
+        "Filter Apply, Cancel and Reset controls."
+      ],
+      "scope": "CONTROLS_AND_HELP_OBSERVED_FILTER_EFFECT_PENDING"
+    },
+    {
+      "id": "TH-UI-004",
+      "route": "/jobs",
+      "at": "2026-11-03T07:44:47Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Search for a job title.",
+        "Apply Remote and inspect results.",
+        "Set hourly minimum salary to 30 and apply.",
+        "Read settled result state and URL.",
+        "Clear all filters."
+      ],
+      "observed": [
+        "Text search returns results with card and focus view options.",
+        "Focus view shows a job description, original-posting handoff and resume-match analysis entry point.",
+        "Remote filtering changes results and creates a removable chip.",
+        "Entering a positive minimum automatically enables salary-required.",
+        "Hourly salary criteria are reflected in the URL and chips; sampled visible cards have hourly ranges.",
+        "Transient loading retains the previously selected detail until new data settles.",
+        "A hyphenated test query containing real words returned word matches; no exact-match semantics inferred."
+      ],
+      "scope": "SEARCH_AND_FILTERS_EXERCISED_NO_NETWORK_CAPTURE"
+    },
+    {
+      "id": "TH-UI-005",
+      "route": "/jobs",
+      "at": "2026-11-03T07:44:47Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Submit a random alphabetic query with no expected job match.",
+        "Wait for the visible result state to settle."
+      ],
+      "observed": [
+        "The UI reports zero jobs and a No Jobs Found state.",
+        "The detail panel asks the user to select a job."
+      ],
+      "scope": "EMPTY_SEARCH_STATE_EXERCISED"
+    },
+    {
+      "id": "TH-UI-006",
+      "route": "/candidates-dashboard/job-tracker",
+      "at": "2026-11-03T07:46:34.019Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Save one previously unsaved job from search.",
+        "Navigate to the job tracker and read the settled list.",
+        "Enable Saved only and open Recently Viewed.",
+        "Return to All, unsave the temporary bookmark and disable Saved only.",
+        "Verify the tracker returns to its initial empty state."
+      ],
+      "observed": [
+        "A saved search result persisted across navigation into the tracker.",
+        "The saved row is explicitly labeled saved, not applied; Applied remains zero.",
+        "Status tabs, saved filtering and a separate recently viewed list are present.",
+        "Saved-only filtering is disabled with an explanation in Recently Viewed.",
+        "The footer counted a saved-only row as an application, despite the row distinguishing saved from applied.",
+        "The temporary bookmark was removed and the tracker returned to empty."
+      ],
+      "scope": "REVERSIBLE_BOOKMARK_WRITE_VERIFIED_AND_RESTORED_NO_APPLICATION_SUBMISSION"
+    },
+    {
+      "id": "TH-UI-007",
+      "route": "/candidates-dashboard/job-settings/resumes",
+      "at": "2026-11-03T07:48:23.182Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Open Base Resumes and the existing resume viewer, then close it.",
+        "Open Upload New Resume and cancel.",
+        "Open Job-Optimized Resumes and Create Optimized Resume."
+      ],
+      "observed": [
+        "Base resume cards have update timestamps, primary selection, viewing, deletion and match-to-job entry points.",
+        "The existing resume viewer opens.",
+        "Upload advertises PDF, DOC, DOCX, RTF and ODT with a 10 MB limit; name and file are required.",
+        "The optimized-resume list has an empty state and creation entry point.",
+        "Creation requires a base resume, company, job title, application URL and job description.",
+        "The form states a cover letter is generated with the optimized resume; generation remains unexercised."
+      ],
+      "scope": "EXISTING_VIEWER_AND_FORM_CONTROLS_ONLY_NO_UPLOAD_DELETE_OR_GENERATION"
+    },
+    {
+      "id": "TH-UI-008",
+      "route": "/candidates-dashboard/job-alerts",
+      "at": "2026-11-03T07:49:27.269Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Open Job Preferences from Job & Resume Settings.",
+        "Inspect field labels and controls without saving changes."
+      ],
+      "observed": [
+        "Role and target-location selection with removable selections.",
+        "Yearly/hourly minimum salary controls.",
+        "Benefit choices, remote/on-site/hybrid preferences, experience levels, education and work schedules.",
+        "Save control is present.",
+        "The route name contains job-alerts, but no notification frequency, delivery or schedule was evidenced in this form."
+      ],
+      "scope": "PREFERENCE_FORM_OBSERVED_PERSISTENCE_AND_ALERT_DELIVERY_UNEXERCISED"
+    },
+    {
+      "id": "TH-UI-009",
+      "route": "/candidates-dashboard/my-profile",
+      "at": "2026-11-03T07:51:53.029Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Open Account Info and inspect Edit Profile, then cancel.",
+        "Open Notifications and Subscription.",
+        "Follow Choose a plan to the upgrade page without continuing to checkout."
+      ],
+      "observed": [
+        "Profile editing exposes contact, location, photo and professional-link fields.",
+        "A change-password entry point is present.",
+        "Notifications expose email/SMS switches for platform news and job-match alerts, linked to job preferences.",
+        "Subscription has current-plan, payment-method and billing-history sections.",
+        "Upgrade advertises paid plans and renewal conditions; no purchase or subscription change was made."
+      ],
+      "scope": "ACCOUNT_AND_BILLING_CONTROLS_OBSERVED_NO_SAVED_CHANGES_OR_PAYMENT"
+    },
+    {
+      "id": "TH-UI-010",
+      "route": "/privacy-policy",
+      "at": "2026-11-03T07:52:29.797Z",
+      "role": "PUBLIC_PAGES_IN_AUTHORIZED_BROWSER",
+      "steps": [
+        "Visit the footer-linked FAQ, contact, help, privacy, terms, money-back and review routes.",
+        "Follow the optimized-list Job Search link target /remote-jobs."
+      ],
+      "observed": [
+        "FAQ, contact form and support information are reachable; no message was sent.",
+        "Privacy copy describes access, correction, deletion and portability rights; no self-service export/delete workflow was found in the inspected account screens.",
+        "The upgrade page advertises a 14-day guarantee while the separate money-back page states a 7-day request window. This is a visible content inconsistency, not a verified refund outcome.",
+        "The /remote-jobs link resolves to /jobs.",
+        "Review/testimonial content was viewed as a public claim, not independent validation."
+      ],
+      "scope": "PUBLIC_CONTENT_AND_ENTRY_POINTS_OBSERVED_NO_LEGAL_OR_PAYMENT_OUTCOME_TEST"
+    },
+    {
+      "id": "TH-UI-011",
+      "route": "/apply-with-ai/:job-id",
+      "at": "2026-11-03T07:56:07.641Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Open a recommendation through its View details link; follow the new tab.",
+        "Read the existing match explanation summary.",
+        "Open More actions > Report, inspect reasons and cancel.",
+        "Use View original posting, inspect the employer listing and close that new tab.",
+        "Return to Job Tracker and inspect the application count."
+      ],
+      "observed": [
+        "Job detail shows existing resume-match percentage and full/partial/missing skill counts.",
+        "An optimize-resume action is available; it was not invoked.",
+        "Report reasons include scam, recruiter, misleading, expired, duplicate, spam and other.",
+        "The original-posting control opened a matching listing on the employer's Workday origin.",
+        "No employer form was filled or application submitted.",
+        "Company information and a website link are present."
+      ],
+      "scope": "JOB_DETAIL_AND_EMPLOYER_HANDOFF_OBSERVED_NO_REPORT_OR_APPLICATION_SUBMISSION"
+    },
+    {
+      "id": "TH-UI-012",
+      "route": "/apply-with-ai/:job-id",
+      "at": "2026-11-03T07:57:05.702Z",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "steps": [
+        "Set a temporary 390 by 844 viewport.",
+        "Switch Job Description to Company Info.",
+        "Open and close the mobile navigation.",
+        "Restore the default viewport."
+      ],
+      "observed": [
+        "The mobile layout exposes separate description/company tabs and an expandable navigation menu.",
+        "The company tab changes the selected section.",
+        "The sampled document width did not exceed the viewport width.",
+        "Visible loading states were observed in search, tracker and resume lists.",
+        "Escape dismissed tested help/select overlays; no exhaustive keyboard or accessibility certification was performed.",
+        "Viewing an original employer posting left the tracker Applied count at zero."
+      ],
+      "scope": "REPRESENTATIVE_MOBILE_AND_LOADING_SMOKE_ONLY_NO_FULL_ACCESSIBILITY_OR_PERFORMANCE_AUDIT"
+    }
+  ]
+}

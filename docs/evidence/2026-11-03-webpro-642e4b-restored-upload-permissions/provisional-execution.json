@@ -1,0 +1,965 @@
+{
+  "schema_version": 1,
+  "scope": "MJ-REQ-171 / RESTORE-UPLOAD-PRIVATE-MODES; synthetic, offline, no real Compose restore",
+  "execution_source": {
+    "base_commit": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "base_tree": "9abb8f7ef1f4ab94c678ad6dfb91d406c543c3c8",
+    "production_git_blob": "603476b50de9e391d52a46d8a2c9662568f2b271",
+    "regression_git_blob": "956f0cc22c72d075c44c154d09d75d58571785ad",
+    "working_tree_execution": true,
+    "baseline_unchanged_production": false
+  },
+  "later_source_commit": {
+    "commit": "413fd1e7a41866c6324dec16519522f3c1248128",
+    "tree": "111ae748f08028454ea6d983e5159650be80f07f",
+    "execution_at_this_commit": false
+  },
+  "raw_receipt": {
+    "path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/execution-summary.json",
+    "sha256": "852760c52e99efe46054f0a0f66372d0bbe0d77bb8a9042f8426f95713496479"
+  },
+  "receipt": {
+    "started_at": "2026-11-03T08:37:45.887942Z",
+    "label": "provisional",
+    "head": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "tree": "9abb8f7ef1f4ab94c678ad6dfb91d406c543c3c8",
+    "tracked_diff_before": "cli/local_backup.py | 93 +++++++++++++++++++++++++++++++++++++++++++++++++++++\n 1 file changed, 93 insertions(+)",
+    "configuration": {
+      "label": "provisional",
+      "expected_head": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+      "selectors": [
+        "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests",
+        "tests.unit.test_local_backup.LocalBackupTests",
+        "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests",
+        "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests",
+        "tests.unit.test_data_export_bounds.DataExportReadBoundsTests"
+      ],
+      "linux": true,
+      "native": true,
+      "native_pytest": [
+        "tests/unit/test_backup_restore_snapshot.py",
+        "tests/unit/test_backup_fixture_receipts.py"
+      ]
+    },
+    "inputs": {
+      "cli/local_backup.py": {
+        "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa",
+        "bytes": 46481,
+        "git_blob": "603476b50de9e391d52a46d8a2c9662568f2b271",
+        "snapshot": "inputs\\cli__local_backup.py"
+      },
+      "tests/unit/test_restored_upload_privacy.py": {
+        "sha256": "bfdb5bb2f1a5e82c5788806fc24e9c69ddb95b6c85c928f93580b92bd5c9e46a",
+        "bytes": 18840,
+        "git_blob": "956f0cc22c72d075c44c154d09d75d58571785ad",
+        "snapshot": "inputs\\tests__unit__test_restored_upload_privacy.py"
+      },
+      "tests/unit/test_local_backup.py": {
+        "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+        "bytes": 7819,
+        "git_blob": "a2e82f2153f6c559406acd09188e7ea69030d3e6",
+        "snapshot": "inputs\\tests__unit__test_local_backup.py"
+      },
+      "tests/unit/test_backup_config_snapshot.py": {
+        "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+        "bytes": 22805,
+        "git_blob": "72c5b32c532e1495377e1167e7e2615250b488ba",
+        "snapshot": "inputs\\tests__unit__test_backup_config_snapshot.py"
+      },
+      "tests/unit/test_backup_credential_restore.py": {
+        "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+        "bytes": 8345,
+        "git_blob": "386e9875b321179b97707ee89b94963c0f7e8e8c",
+        "snapshot": "inputs\\tests__unit__test_backup_credential_restore.py"
+      },
+      "tests/unit/test_data_export_bounds.py": {
+        "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+        "bytes": 5998,
+        "git_blob": "4a917bc55c9c85ec82d0071ff2ea083585a420cd",
+        "snapshot": "inputs\\tests__unit__test_data_export_bounds.py"
+      },
+      "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py": {
+        "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+        "bytes": 4973,
+        "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+        "snapshot": "inputs\\docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py"
+      },
+      "outputs/run_restored_upload_checks.py": {
+        "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+        "bytes": 780,
+        "git_blob": "58c708c93655cdac67d714e0a8374ed8d036e65a",
+        "snapshot": "inputs\\outputs__run_restored_upload_checks.py"
+      },
+      "outputs/run_restored_upload_capsule.py": {
+        "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+        "bytes": 7837,
+        "git_blob": "79142a344504419ee0eb3e499b8b23a304e8e871",
+        "snapshot": "inputs\\outputs__run_restored_upload_capsule.py"
+      }
+    },
+    "commands": [
+      {
+        "argv": [
+          "docker",
+          "create",
+          "--name",
+          "mjobs-642e4b-restore-provisional-20261103t083745z",
+          "--label",
+          "mjobs.owner=webpro-20261103T031738Z-642e4b",
+          "--label",
+          "mjobs.requirement=MJ-REQ-171",
+          "--label",
+          "mjobs.role=restore-provisional",
+          "--network",
+          "none",
+          "--user",
+          "10001:10001",
+          "--cap-drop",
+          "ALL",
+          "--security-opt",
+          "no-new-privileges",
+          "--read-only",
+          "--tmpfs",
+          "/tmp:rw,nosuid,nodev,mode=1777,size=256m",
+          "--mount",
+          "type=bind,source=<owned-worktree>,target=/app,readonly",
+          "--mount",
+          "type=bind,source=<owned-worktree>\\outputs\\verification\\webpro-642e4b-restore-provisional-20261103T083745Z\\linux,target=/evidence",
+          "--workdir",
+          "/app",
+          "--env",
+          "PYTHONDONTWRITEBYTECODE=1",
+          "--env",
+          "PYTHONNOUSERSITE=1",
+          "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+          "python",
+          "outputs/run_restored_upload_checks.py",
+          "/evidence",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests",
+          "tests.unit.test_local_backup.LocalBackupTests",
+          "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests",
+          "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests",
+          "tests.unit.test_data_export_bounds.DataExportReadBoundsTests"
+        ],
+        "started_at": "2026-11-03T08:37:46.418076Z",
+        "finished_at": "2026-11-03T08:37:46.619289Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "inspect",
+          "2d9a4cf78d29a697f6e43a220c5b5ea7857ab9014194f4de7648d51960468b82"
+        ],
+        "started_at": "2026-11-03T08:37:46.619814Z",
+        "finished_at": "2026-11-03T08:37:46.714204Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "start",
+          "-a",
+          "2d9a4cf78d29a697f6e43a220c5b5ea7857ab9014194f4de7648d51960468b82"
+        ],
+        "started_at": "2026-11-03T08:37:46.714204Z",
+        "finished_at": "2026-11-03T08:37:51.265139Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "rm",
+          "2d9a4cf78d29a697f6e43a220c5b5ea7857ab9014194f4de7648d51960468b82"
+        ],
+        "started_at": "2026-11-03T08:37:51.267223Z",
+        "finished_at": "2026-11-03T08:37:51.424896Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "inspect",
+          "2d9a4cf78d29a697f6e43a220c5b5ea7857ab9014194f4de7648d51960468b82"
+        ],
+        "started_at": "2026-11-03T08:37:51.424896Z",
+        "finished_at": "2026-11-03T08:37:51.578620Z",
+        "exit_code": 1
+      },
+      {
+        "argv": [
+          "<native-python>",
+          "-B",
+          "outputs/run_restored_upload_checks.py",
+          "<owned-worktree>\\outputs\\verification\\webpro-642e4b-restore-provisional-20261103T083745Z\\native",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests",
+          "tests.unit.test_local_backup.LocalBackupTests",
+          "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests",
+          "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests",
+          "tests.unit.test_data_export_bounds.DataExportReadBoundsTests"
+        ],
+        "started_at": "2026-11-03T08:37:51.580131Z",
+        "finished_at": "2026-11-03T08:37:58.543759Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "<native-python>",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/unit/test_backup_restore_snapshot.py",
+          "tests/unit/test_backup_fixture_receipts.py",
+          "--junitxml=<owned-worktree>\\outputs\\verification\\webpro-642e4b-restore-provisional-20261103T083745Z\\native-existing\\tests.xml"
+        ],
+        "started_at": "2026-11-03T08:37:58.545274Z",
+        "finished_at": "2026-11-03T08:38:00.405027Z",
+        "exit_code": 0
+      }
+    ],
+    "linux": {
+      "container_id": "2d9a4cf78d29a697f6e43a220c5b5ea7857ab9014194f4de7648d51960468b82",
+      "image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "user": "10001:10001",
+      "network": "none",
+      "rootfs_readonly": true,
+      "tmpfs": {
+        "/tmp": "rw,nosuid,nodev,mode=1777,size=256m"
+      },
+      "mounts": [
+        {
+          "destination": "/app",
+          "read_write": false
+        },
+        {
+          "destination": "/evidence",
+          "read_write": true
+        }
+      ],
+      "exit_code": 0,
+      "execution": {
+        "schema_version": 1,
+        "command": [
+          "/usr/local/bin/python",
+          "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py",
+          "/evidence",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests",
+          "tests.unit.test_local_backup.LocalBackupTests",
+          "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests",
+          "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests",
+          "tests.unit.test_data_export_bounds.DataExportReadBoundsTests"
+        ],
+        "cwd": "/app",
+        "platform": "linux",
+        "os_name": "posix",
+        "started_utc": "2026-11-03T08:37:48.065477+00:00",
+        "finished_utc": "2026-11-03T08:37:51.096903+00:00",
+        "duration_seconds": 3.031426,
+        "source_bindings": {
+          "services.documents.uploads": {
+            "module_file": "/app/services/documents/uploads.py",
+            "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+          },
+          "tests.unit.test_restored_upload_privacy": {
+            "module_file": "/app/tests/unit/test_restored_upload_privacy.py",
+            "sha256": "bfdb5bb2f1a5e82c5788806fc24e9c69ddb95b6c85c928f93580b92bd5c9e46a"
+          },
+          "tests.unit.test_local_backup": {
+            "module_file": "/app/tests/unit/test_local_backup.py",
+            "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490"
+          },
+          "tests.unit.test_backup_config_snapshot": {
+            "module_file": "/app/tests/unit/test_backup_config_snapshot.py",
+            "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554"
+          },
+          "tests.unit.test_backup_credential_restore": {
+            "module_file": "/app/tests/unit/test_backup_credential_restore.py",
+            "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef"
+          },
+          "tests.unit.test_data_export_bounds": {
+            "module_file": "/app/tests/unit/test_data_export_bounds.py",
+            "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278"
+          }
+        },
+        "tests": 45,
+        "passed": 45,
+        "failed_testcases": 0,
+        "error_testcases": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "subtests_passed": 78,
+        "subtests_failed": 0,
+        "subtests_errors": 0,
+        "result": "PASS",
+        "records": [
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_existing_document_verification_stays_readonly",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.002049559960141778
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0017833589809015393
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_invalid_inventory_is_rejected_before_any_mode_change",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.003987564006820321
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_links_and_fifo_are_rejected_before_any_mode_change",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.005775579018518329
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_missing_platform_facilities_fail_closed_before_inventory",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0010020629852078855
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_missing_uploads_is_a_verified_noop",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0014983059954829514
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_normalization_keeps_bytes_parent_generated_and_archive_unchanged",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.006720072007738054
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_permission_failure_and_failed_mode_readback_close_descriptors",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.005504661006852984
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_preparation_failure_prevents_verification_startup_and_readiness",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.010425281012430787
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.011705564975272864
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_runtime_cli_dispatches_explicit_mutation_with_manifest_and_volume_root",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0014028509613126516
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_runtime_cli_rejects_invalid_json_without_echoing_input",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0016793669783510268
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_backup_refuses_any_running_writer",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 7.62679846957326e-05
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_backup_refuses_existing_destination_before_docker",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.9817134389886633
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_backup_requires_scheduler_and_company_discovery_to_be_quiescent",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0003392180078662932
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_captured_compose_output_is_bounded_and_sanitized",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.12340188602684066
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_large_database_dump_stream_is_not_counted_as_captured_metadata",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.022402533038984984
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_large_stderr_is_drained_without_becoming_returned_output",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.03104535798775032
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_process_timeout_is_classified_without_echoing_child_output",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.10298083105590194
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_restore_refuses_any_existing_target_volume",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.00022899400210008025
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_restored_document_tree_refuses_extra_file",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0007012389833107591
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_verify_accepts_complete_untampered_archive",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.8153022830374539
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_verify_rejects_tampered_document",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0026585899759083986
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_verify_rejects_unlisted_file",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0024854710209183395
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_backup_preserves_pinned_selection_but_excludes_all_named_and_legacy_cookies",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.013803268026094884
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_backup_writes_only_the_validated_runtime_projection_and_public_compose_source",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.011698585993144661
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_old_container_with_logging_and_notifications_still_captures_legacy_version",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0004703919985331595
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_partial_caps_in_runtime_environment_fail_instead_of_defaulting_a_snapshot",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.00018439698033034801
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_projection_keeps_only_bounded_allowlisted_api_settings",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.00025226903380826116
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_projection_rejects_invalid_allowlisted_values_without_echoing_them",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.00024370296159759164
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v2_records_submission_caps_without_private_values",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0002619780134409666
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v2_requires_all_caps_and_rejects_invalid_or_secret_fields",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.00034357700496912
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v3_log_level_validation_matches_worker_startup",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.45307322801090777
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v3_records_validated_nonsecret_configuration_without_private_values",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0005452579935081303
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v3_refuses_missing_invalid_or_private_configuration_without_echoing_it",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.001018990995362401
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_schema_two_archive_preserves_and_checks_known_configuration_files",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.004579033004119992
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_schema_two_rejects_secret_fields_and_unknown_configuration_files",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.008225492027122527
+          },
+          {
+            "id": "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests.test_recoverability_check_accepts_original_key_and_rejects_wrong_or_missing_key_safely",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.04696432396303862
+          },
+          {
+            "id": "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests.test_restore_checks_credentials_before_starting_application",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.030045335995964706
+          },
+          {
+            "id": "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests.test_restore_stops_before_document_or_application_start_when_key_check_fails",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.02814603695878759
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_document_collection_stops_before_reading_past_total_budget",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.05344871897250414
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_generated_document_uses_a_bounded_read",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.07280989602440968
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_growing_file_is_rejected_and_retry_reads_unchanged_database",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.06608064600732177
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_uploaded_resume_growth_is_rejected_before_checksum_and_retry_succeeds",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.051776209962554276
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_uploaded_resume_read_is_limited_to_its_recorded_size",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.04845736495917663
+          }
+        ]
+      },
+      "restore_source_binding": {
+        "module": "cli.local_backup",
+        "path": "/app/cli/local_backup.py",
+        "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa"
+      },
+      "cleanup": {
+        "remove_exit_code": 0,
+        "absence_inspect_exit_code": 1
+      }
+    },
+    "native": {
+      "exit_code": 0,
+      "execution": {
+        "schema_version": 1,
+        "command": [
+          "<native-python>",
+          "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py",
+          "<owned-worktree>\\outputs\\verification\\webpro-642e4b-restore-provisional-20261103T083745Z\\native",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests",
+          "tests.unit.test_local_backup.LocalBackupTests",
+          "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests",
+          "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests",
+          "tests.unit.test_data_export_bounds.DataExportReadBoundsTests"
+        ],
+        "cwd": "<owned-worktree>",
+        "platform": "win32",
+        "os_name": "nt",
+        "started_utc": "2026-11-03T08:37:52.215790+00:00",
+        "finished_utc": "2026-11-03T08:37:58.446819+00:00",
+        "duration_seconds": 6.231029,
+        "source_bindings": {
+          "services.documents.uploads": {
+            "module_file": "<owned-worktree>\\services\\documents\\uploads.py",
+            "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+          },
+          "tests.unit.test_restored_upload_privacy": {
+            "module_file": "<owned-worktree>\\tests\\unit\\test_restored_upload_privacy.py",
+            "sha256": "bfdb5bb2f1a5e82c5788806fc24e9c69ddb95b6c85c928f93580b92bd5c9e46a"
+          },
+          "tests.unit.test_local_backup": {
+            "module_file": "<owned-worktree>\\tests\\unit\\test_local_backup.py",
+            "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490"
+          },
+          "tests.unit.test_backup_config_snapshot": {
+            "module_file": "<owned-worktree>\\tests\\unit\\test_backup_config_snapshot.py",
+            "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554"
+          },
+          "tests.unit.test_backup_credential_restore": {
+            "module_file": "<owned-worktree>\\tests\\unit\\test_backup_credential_restore.py",
+            "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef"
+          },
+          "tests.unit.test_data_export_bounds": {
+            "module_file": "<owned-worktree>\\tests\\unit\\test_data_export_bounds.py",
+            "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278"
+          }
+        },
+        "tests": 45,
+        "passed": 37,
+        "failed_testcases": 0,
+        "error_testcases": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 8,
+        "subtests_passed": 69,
+        "subtests_failed": 0,
+        "subtests_errors": 0,
+        "result": "PASS_WITH_EXPLICIT_SKIPS",
+        "records": [
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_existing_document_verification_stays_readonly",
+            "status": "SKIP",
+            "details": [
+              "POSIX permission behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded",
+            "status": "SKIP",
+            "details": [
+              "POSIX descriptor behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_invalid_inventory_is_rejected_before_any_mode_change",
+            "status": "SKIP",
+            "details": [
+              "POSIX permission behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_links_and_fifo_are_rejected_before_any_mode_change",
+            "status": "SKIP",
+            "details": [
+              "POSIX filesystem nodes require Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_missing_platform_facilities_fail_closed_before_inventory",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.015000000013969839
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_missing_uploads_is_a_verified_noop",
+            "status": "SKIP",
+            "details": [
+              "POSIX permission behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_normalization_keeps_bytes_parent_generated_and_archive_unchanged",
+            "status": "SKIP",
+            "details": [
+              "POSIX permission behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_permission_failure_and_failed_mode_readback_close_descriptors",
+            "status": "SKIP",
+            "details": [
+              "POSIX descriptor behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_preparation_failure_prevents_verification_startup_and_readiness",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0470000000204891
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup",
+            "status": "SKIP",
+            "details": [
+              "POSIX permission behavior requires Linux execution"
+            ],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_runtime_cli_dispatches_explicit_mutation_with_manifest_and_volume_root",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.01600000000325963
+          },
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_runtime_cli_rejects_invalid_json_without_echoing_input",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_backup_refuses_any_running_writer",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_backup_refuses_existing_destination_before_docker",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.5939999999827705
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_backup_requires_scheduler_and_company_discovery_to_be_quiescent",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_captured_compose_output_is_bounded_and_sanitized",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.09299999999348074
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_large_database_dump_stream_is_not_counted_as_captured_metadata",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.06300000002374873
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_large_stderr_is_drained_without_becoming_returned_output",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.046999999962281436
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_process_timeout_is_classified_without_echoing_child_output",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.10899999999674037
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_restore_refuses_any_existing_target_volume",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_restored_document_tree_refuses_extra_file",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_verify_accepts_complete_untampered_archive",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.6089999999967404
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_verify_rejects_tampered_document",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.01600000000325963
+          },
+          {
+            "id": "tests.unit.test_local_backup.LocalBackupTests.test_verify_rejects_unlisted_file",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.01600000000325963
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_backup_preserves_pinned_selection_but_excludes_all_named_and_legacy_cookies",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.09299999999348074
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_backup_writes_only_the_validated_runtime_projection_and_public_compose_source",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.03200000000651926
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_old_container_with_logging_and_notifications_still_captures_legacy_version",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_partial_caps_in_runtime_environment_fail_instead_of_defaulting_a_snapshot",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_projection_keeps_only_bounded_allowlisted_api_settings",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_projection_rejects_invalid_allowlisted_values_without_echoing_them",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v2_records_submission_caps_without_private_values",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v2_requires_all_caps_and_rejects_invalid_or_secret_fields",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v3_log_level_validation_matches_worker_startup",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.34299999999348074
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v3_records_validated_nonsecret_configuration_without_private_values",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.01600000000325963
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_runtime_v3_refuses_missing_invalid_or_private_configuration_without_echoing_it",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_schema_two_archive_preserves_and_checks_known_configuration_files",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.06300000002374873
+          },
+          {
+            "id": "tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests.test_schema_two_rejects_secret_fields_and_unknown_configuration_files",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.045999999972991645
+          },
+          {
+            "id": "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests.test_recoverability_check_accepts_original_key_and_rejects_wrong_or_missing_key_safely",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.5630000000237487
+          },
+          {
+            "id": "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests.test_restore_checks_credentials_before_starting_application",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.4369999999762513
+          },
+          {
+            "id": "tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests.test_restore_stops_before_document_or_application_start_when_key_check_fails",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.4690000000409782
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_document_collection_stops_before_reading_past_total_budget",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.5160000000032596
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_generated_document_uses_a_bounded_read",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.5
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_growing_file_is_rejected_and_retry_reads_unchanged_database",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.5149999999557622
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_uploaded_resume_growth_is_rejected_before_checksum_and_retry_succeeds",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.4850000000442378
+          },
+          {
+            "id": "tests.unit.test_data_export_bounds.DataExportReadBoundsTests.test_uploaded_resume_read_is_limited_to_its_recorded_size",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.5309999999590218
+          }
+        ]
+      },
+      "restore_source_binding": {
+        "module": "cli.local_backup",
+        "path": "<owned-worktree>\\cli\\local_backup.py",
+        "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa"
+      },
+      "existing_pytest_exit_code": 0
+    },
+    "finished_at": "2026-11-03T08:38:00.405549Z",
+    "head_after": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "inputs_unchanged": true,
+    "artifact_sha256": {
+      "inputs\\cli__local_backup.py": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa",
+      "inputs\\docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "inputs\\execution-config.json": "7b1709f8fe7f2b8d0c1e9011a829892a0b61ca57807256489f56dc9391e70574",
+      "inputs\\outputs__run_restored_upload_capsule.py": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "inputs\\outputs__run_restored_upload_checks.py": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "inputs\\tests__unit__test_backup_config_snapshot.py": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+      "inputs\\tests__unit__test_backup_credential_restore.py": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+      "inputs\\tests__unit__test_data_export_bounds.py": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+      "inputs\\tests__unit__test_local_backup.py": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+      "inputs\\tests__unit__test_restored_upload_privacy.py": "bfdb5bb2f1a5e82c5788806fc24e9c69ddb95b6c85c928f93580b92bd5c9e46a",
+      "linux\\execution.json": "a149e478d29881d5abd8fcb2ed1b198fce2db081d63bf5a3eb691c589f2d7d01",
+      "linux\\restore-source-binding.json": "15733fe296d3123468479865344fd808b799fafd78fc0e9228b9b42e8c026ec0",
+      "linux\\tests.xml": "1d3cfde37fcc2c82b1dda50c6315788cb2da26993707b22f102a9c76b5498103",
+      "linux-console.log": "b011dcf138b5fd95ce767f5c3912fcaaf8b17eb6b745ceb848f42867baf78e1d",
+      "linux-create.log": "21ac45f81f9ff22e296ff4e0cba3ebf265cbd602f9c94d438a72332da37719ad",
+      "native\\execution.json": "8cc1dc3b7d61d1af36456f046d888ba1a769d62c31f74081138f3f9902b56d1b",
+      "native\\restore-source-binding.json": "74bd9cc8988b35a41d966f320e4ad5b63664d4888b850177d46f9796c6c86a32",
+      "native\\tests.xml": "96fdbbdb829994dee811d8e134cf7ee94a565c3a9483568476320c457b4c430a",
+      "native-console.log": "bae993b5b251d98bc301236505e36e45a0eebfab121fda9b93e7dc4b782dc93f",
+      "native-existing\\console.log": "1fc639266751bb58f8d04d01af161bd7cae441a4f18a076cd5180c007a9bef81",
+      "native-existing\\tests.xml": "cb7620015f58f6be4df4f5730c2b595bbcae5f52b5c9e9b525b1a5a1d471aacb"
+    }
+  },
+  "interpretation": "Reviewed working-tree source passed Linux45 parents/78 subtests and native37 parents/69 subtests with8 explicit POSIX skips. The two existing native pytest modules passed27 cases with1 POSIX skip. This does not replace hosted full-unit or actual Compose acceptance.",
+  "sanitization": [
+    "Native owned-worktree and interpreter paths replaced by descriptive placeholders.",
+    "Raw privately retained bytes and commands are hashed separately from these UTF-8 LF derivatives.",
+    "Linux /app and /evidence are controlled capsule paths, not private machine paths."
+  ]
+}

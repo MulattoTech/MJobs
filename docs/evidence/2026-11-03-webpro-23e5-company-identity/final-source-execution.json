@@ -1,0 +1,86 @@
+{
+  "source_commit": "323f3e1ce9f59046118815dec9c61a49c8bf1275",
+  "started_at_utc": "2026-11-03T05:10:41.828931+00:00",
+  "commands": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_aggregator_company_identity.py",
+        "tests/integration/test_aggregator_company_identity_postgres.py",
+        "tests/integration/test_aggregator_company_identity_history.py",
+        "tests/integration/test_source_enrollment_api.py",
+        "--tb=short",
+        "--junitxml=outputs/webpro-23e5-company-identity/final-source-tests.xml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 56.078,
+      "log": "outputs/webpro-23e5-company-identity/final-source-command-1.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "tests/integration/test_aggregator_company_identity.py",
+        "tests/integration/test_aggregator_company_identity_postgres.py",
+        "tests/integration/test_aggregator_company_identity_history.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.172,
+      "log": "outputs/webpro-23e5-company-identity/final-source-command-2.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "F821,F822,F823",
+        "services/discovery/sources/collect.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.171,
+      "log": "outputs/webpro-23e5-company-identity/final-source-command-3.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.141,
+      "log": "outputs/webpro-23e5-company-identity/final-source-command-4.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.156,
+      "log": "outputs/webpro-23e5-company-identity/final-source-command-5.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.125,
+      "log": "outputs/webpro-23e5-company-identity/final-source-command-6.log"
+    }
+  ],
+  "ended_at_utc": "2026-11-03T05:11:38.664185+00:00",
+  "final_commit": "323f3e1ce9f59046118815dec9c61a49c8bf1275",
+  "tracked_diff": ""
+}

@@ -1,0 +1,885 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-171",
+  "issue": 172,
+  "requirement_result": "PARTIAL",
+  "result": "PASS_FOR_SCOPED_SLICE",
+  "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+  "tested_source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+  "source_tree": "bcf7290b3719a80dff6fac2864fedefe5ed76b91",
+  "source_files": {
+    "services/documents/uploads.py": "67ee2bad25185295d2b5962b0e5684a7a103ba92",
+    "tests/integration/test_resume_upload_privacy.py": "2a7cfe86e23b17f9f9cc1f9c6c6b2ecaff6ee619",
+    "docs/security/resume_upload_storage.md": "96a195a1ea98c8e6c5dc209c3f821fb31961b4ae",
+    "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+    "tests/unit/test_data_export.py": "b65a2ce612963ba3d557481ce214ff440d7ddd65"
+  },
+  "execution_summary": {
+    "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+    "source_tree": "bcf7290b3719a80dff6fac2864fedefe5ed76b91",
+    "parent_source": "9a44b9958958a0dd0b545bbabdcdbb67f0e56a75",
+    "started_utc": "2026-11-03T07:33:10.559832+00:00",
+    "input_files": {
+      "services/documents/uploads.py": {
+        "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb",
+        "git_blob": "67ee2bad25185295d2b5962b0e5684a7a103ba92",
+        "bytes": 15749
+      },
+      "services/data_export.py": {
+        "sha256": "d26e5b5284a3ad194041f7c79a16f9fa4db7ef29b871e51a2008ff6fc2f02958",
+        "git_blob": "1e5136462952dc23be4d7efb4a86b52eaa334147",
+        "bytes": 28339
+      },
+      "services/profile_restore.py": {
+        "sha256": "c36d47c23066aafc9b88c6d99f6aaa526890616ec44922f90d42bc6a5870cced",
+        "git_blob": "270ed33b7dfb2d257b5609d9a8b80d4511569b3e",
+        "bytes": 52197
+      },
+      "tests/integration/test_resume_upload_privacy.py": {
+        "sha256": "f65a425bc5954c94585516d7da6f7b7e464f58a98a546b6a66a9c035402de16c",
+        "git_blob": "2a7cfe86e23b17f9f9cc1f9c6c6b2ecaff6ee619",
+        "bytes": 17919
+      },
+      "tests/integration/test_resume_upload.py": {
+        "sha256": "43125046c88dbcb418bb11087bf756293c0b0aaa6c63c3c15e1f8a067971a9c0",
+        "git_blob": "db6da4665510295acaf1d1cceed62f05ad88690c",
+        "bytes": 11326
+      },
+      "tests/unit/test_data_export.py": {
+        "sha256": "47448ca63c8b6b5de53aa0baea302884ff4590136c7b8e7db700f41c43ad7da6",
+        "git_blob": "b65a2ce612963ba3d557481ce214ff440d7ddd65",
+        "bytes": 14944
+      },
+      "tests/integration/test_profile_restore.py": {
+        "sha256": "79312d56263945a9bfe481800cc5ad3eb55c88aec392ae20f0049d58c8b340ff",
+        "git_blob": "63ea251640b8d8a5ed092990c655187b397a23c4",
+        "bytes": 70781
+      },
+      "tests/integration/test_document_library.py": {
+        "sha256": "04ccabd2c28370dd19b292e38db1e4a6bf202b50a6b71bba1b7e2a67ad32e764",
+        "git_blob": "c2aafd0e8d24f92bb0bb9312ac18c473874d6138",
+        "bytes": 12139
+      },
+      "tests/integration/test_durable_resume_extraction.py": {
+        "sha256": "6607ca11d8bb7c3d5a3fd652064ff90658a489a0e2bdda1c5c3a91eae1883242",
+        "git_blob": "44b5a2c9a9d018d6aa12010787cd976ff8ff2a50",
+        "bytes": 31552
+      },
+      "tests/integration/test_uploaded_resume_comparison.py": {
+        "sha256": "01038ccc77b382c42d0393cbbd018eb9fc40605af91c5f5a2d47b19fa552ef73",
+        "git_blob": "4fd9567c17050d36a2dc4c8aa9004897fa9c085d",
+        "bytes": 17639
+      },
+      "docs/security/resume_upload_storage.md": {
+        "sha256": "73b00224cc603ba3699060a7cc9464d11a31c9f5c9642c5d92b9601eb1976294",
+        "git_blob": "96a195a1ea98c8e6c5dc209c3f821fb31961b4ae",
+        "bytes": 3906
+      },
+      "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py": {
+        "sha256": "665ec7314f71b2430422fa0afcab09614c3e74b400a7559086b6d927b0b53553",
+        "git_blob": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+        "bytes": 4726
+      },
+      "outputs/run_upload_privacy_checks_v2.py": {
+        "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+        "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+        "bytes": 4973
+      }
+    },
+    "selectors": [
+      "tests.integration.test_resume_upload_privacy",
+      "tests.integration.test_resume_upload",
+      "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+      "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+      "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+      "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+      "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation"
+    ],
+    "requirement_result": "PARTIAL",
+    "finished_utc": "2026-11-03T07:33:35.143843+00:00",
+    "inputs_unchanged": true,
+    "working_tree_clean": true,
+    "results": [
+      {
+        "runtime": "read_only_gates",
+        "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+        "exit_code": 0,
+        "gates": [
+          {
+            "gate": "catalogue",
+            "command": [
+              "python",
+              "-m",
+              "tools.verification.catalogue"
+            ],
+            "exit_code": 0,
+            "started_utc": "2026-11-03T07:33:10.565919+00:00",
+            "finished_utc": "2026-11-03T07:33:10.646249+00:00"
+          },
+          {
+            "gate": "progress",
+            "command": [
+              "python",
+              "-m",
+              "tools.verification.progress",
+              "validate"
+            ],
+            "exit_code": 0,
+            "started_utc": "2026-11-03T07:33:10.646249+00:00",
+            "finished_utc": "2026-11-03T07:33:10.726580+00:00"
+          },
+          {
+            "gate": "dashboard",
+            "command": [
+              "python",
+              "-m",
+              "tools.verification.progress_dashboard",
+              "--check"
+            ],
+            "exit_code": 0,
+            "started_utc": "2026-11-03T07:33:10.726580+00:00",
+            "finished_utc": "2026-11-03T07:33:10.824712+00:00"
+          },
+          {
+            "gate": "provenance",
+            "command": [
+              "python",
+              "-m",
+              "tools.verification.commit_provenance",
+              "--commit",
+              "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954"
+            ],
+            "exit_code": 0,
+            "started_utc": "2026-11-03T07:33:10.824712+00:00",
+            "finished_utc": "2026-11-03T07:33:11.176801+00:00"
+          },
+          {
+            "gate": "diff",
+            "command": [
+              "git",
+              "diff",
+              "--check",
+              "63cb1042e08375f7bda1f9dad378209cca856167",
+              "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954"
+            ],
+            "exit_code": 0,
+            "started_utc": "2026-11-03T07:33:11.176801+00:00",
+            "finished_utc": "2026-11-03T07:33:11.225674+00:00"
+          }
+        ]
+      },
+      {
+        "runtime": "windows",
+        "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+        "exit_code": 0,
+        "actual_module_bindings_verified": true,
+        "summary": {
+          "result": "PASS_WITH_EXPLICIT_SKIPS",
+          "tests": 29,
+          "passed": 19,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 10,
+          "subtests_passed": 29,
+          "subtests_failed": 0,
+          "subtests_errors": 0,
+          "duration_seconds": 19.680843
+        }
+      },
+      {
+        "runtime": "linux",
+        "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+        "image": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+        "container_id": "aa7db8db7d19c0aa094316ba4b95cb846b84a97b8da13a70f7760628a5a5f3b7",
+        "exit_code": 0,
+        "container_started_utc": "2026-11-03T07:33:10.941378481Z",
+        "container_finished_utc": "2026-11-03T07:33:34.544447291Z",
+        "user": "10001:10001",
+        "network": "none",
+        "source_bind_read_only": true,
+        "root_filesystem_read_only": true,
+        "writable_ephemeral_tmpfs": [
+          "/tmp"
+        ],
+        "writable_owned_receipt_bind": "/evidence",
+        "actual_module_bindings_verified": true,
+        "summary": {
+          "result": "PASS",
+          "tests": 29,
+          "passed": 29,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "subtests_passed": 29,
+          "subtests_failed": 0,
+          "subtests_errors": 0,
+          "duration_seconds": 18.144807
+        }
+      }
+    ],
+    "result": "PASS_FOR_SCOPED_SLICE"
+  },
+  "executions": {
+    "linux": {
+      "schema_version": 1,
+      "command": [
+        "/usr/local/bin/python",
+        "outputs/run_upload_privacy_checks_v2.py",
+        "/evidence",
+        "tests.integration.test_resume_upload_privacy",
+        "tests.integration.test_resume_upload",
+        "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+        "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+        "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+        "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+        "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation"
+      ],
+      "cwd": "/app",
+      "platform": "linux",
+      "os_name": "posix",
+      "started_utc": "2026-11-03T07:33:14.206313+00:00",
+      "finished_utc": "2026-11-03T07:33:32.351120+00:00",
+      "duration_seconds": 18.144807,
+      "source_bindings": {
+        "services.documents.uploads": {
+          "module_file": "/app/services/documents/uploads.py",
+          "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+        },
+        "tests.integration.test_resume_upload_privacy": {
+          "module_file": "/app/tests/integration/test_resume_upload_privacy.py",
+          "sha256": "f65a425bc5954c94585516d7da6f7b7e464f58a98a546b6a66a9c035402de16c"
+        },
+        "tests.integration.test_resume_upload": {
+          "module_file": "/app/tests/integration/test_resume_upload.py",
+          "sha256": "43125046c88dbcb418bb11087bf756293c0b0aaa6c63c3c15e1f8a067971a9c0"
+        },
+        "tests.unit.test_data_export": {
+          "module_file": "/app/tests/unit/test_data_export.py",
+          "sha256": "47448ca63c8b6b5de53aa0baea302884ff4590136c7b8e7db700f41c43ad7da6"
+        },
+        "tests.integration.test_profile_restore": {
+          "module_file": "/app/tests/integration/test_profile_restore.py",
+          "sha256": "79312d56263945a9bfe481800cc5ad3eb55c88aec392ae20f0049d58c8b340ff"
+        },
+        "tests.integration.test_document_library": {
+          "module_file": "/app/tests/integration/test_document_library.py",
+          "sha256": "04ccabd2c28370dd19b292e38db1e4a6bf202b50a6b71bba1b7e2a67ad32e764"
+        },
+        "tests.integration.test_durable_resume_extraction": {
+          "module_file": "/app/tests/integration/test_durable_resume_extraction.py",
+          "sha256": "6607ca11d8bb7c3d5a3fd652064ff90658a489a0e2bdda1c5c3a91eae1883242"
+        },
+        "tests.integration.test_uploaded_resume_comparison": {
+          "module_file": "/app/tests/integration/test_uploaded_resume_comparison.py",
+          "sha256": "01038ccc77b382c42d0393cbbd018eb9fc40605af91c5f5a2d47b19fa552ef73"
+        }
+      },
+      "tests": 29,
+      "passed": 29,
+      "failed_testcases": 0,
+      "error_testcases": 0,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 29,
+      "subtests_failed": 0,
+      "subtests_errors": 0,
+      "result": "PASS",
+      "records": [
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_cleanup_failure_preserves_private_admission_error",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 1.1843162089935504
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_directory_creation_failure_is_sanitized_without_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.28102222096640617
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_download_and_duplicate_original_reads_are_bounded",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.31064993399195373
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fifo_original_is_refused_without_blocking_or_metadata_change",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 4.007200415013358
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_final_symlink_swap_is_refused_before_read",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.3642854019999504
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fresh_upload_is_private_under_permissive_umask",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.21926280698971823
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fstat_failure_closes_descriptors_without_reading_or_exposing_paths",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.22277272102655843
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_invalid_recorded_sizes_are_refused_before_original_open",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.2689266010420397
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_native_private_original_roundtrip_and_repeat_preserve_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.22103147400775924
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_original_filename_must_be_one_safe_component_before_open",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.1495960099855438
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_private_original_with_two_links_remains_readable_and_reusable",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.2049630979890935
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_private_read_only_original_remains_readable_and_reusable",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.41467104898765683
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_directory_without_mutation",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.40703273500548676
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_original_without_mutation",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.6448755239835009
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_directory_without_mutation",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.21033762203296646
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_original_without_mutation",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.21109763899585232
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_storage_open_failure_is_sanitized_and_preserves_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.21687183395260945
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_concurrent_mixed_extension_uploads_have_one_original",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.20729607401881367
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_duplicate_bytes_keep_first_authoritative_extension_and_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.6446943469927646
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_docx_and_txt_are_accepted_only_with_matching_types",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.25840748398331925
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_upload_is_persistent_unreviewed_and_integrity_checked",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.48570784501498565
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_upload_rejects_embedded_windows_executable_but_accepts_normal_pdf",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.3379094179836102
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_profile_scope_and_cross_site_read_are_enforced",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.29687094601104036
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_unsafe_or_mismatched_uploads_are_rejected_without_storage",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7194154750322923
+        },
+        {
+          "id": "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.054804399027489126
+        },
+        {
+          "id": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.9206066660117358
+        },
+        {
+          "id": "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.37411773699568585
+        },
+        {
+          "id": "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.2577563129598275
+        },
+        {
+          "id": "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 4.047391707019415
+        }
+      ]
+    },
+    "native_windows": {
+      "schema_version": 1,
+      "command": [
+        "python",
+        "<owned-source>\\outputs\\run_upload_privacy_checks_v2.py",
+        "<owned-source>\\outputs\\verification\\webpro-642e4b-171-final-source-20261103T073310Z\\windows",
+        "tests.integration.test_resume_upload_privacy",
+        "tests.integration.test_resume_upload",
+        "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+        "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+        "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+        "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+        "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation"
+      ],
+      "cwd": "<owned-source>",
+      "platform": "win32",
+      "os_name": "nt",
+      "started_utc": "2026-11-03T07:33:13.039874+00:00",
+      "finished_utc": "2026-11-03T07:33:32.720717+00:00",
+      "duration_seconds": 19.680843,
+      "source_bindings": {
+        "services.documents.uploads": {
+          "module_file": "<owned-source>\\services\\documents\\uploads.py",
+          "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+        },
+        "tests.integration.test_resume_upload_privacy": {
+          "module_file": "<owned-source>\\tests\\integration\\test_resume_upload_privacy.py",
+          "sha256": "f65a425bc5954c94585516d7da6f7b7e464f58a98a546b6a66a9c035402de16c"
+        },
+        "tests.integration.test_resume_upload": {
+          "module_file": "<owned-source>\\tests\\integration\\test_resume_upload.py",
+          "sha256": "43125046c88dbcb418bb11087bf756293c0b0aaa6c63c3c15e1f8a067971a9c0"
+        },
+        "tests.unit.test_data_export": {
+          "module_file": "<owned-source>\\tests\\unit\\test_data_export.py",
+          "sha256": "47448ca63c8b6b5de53aa0baea302884ff4590136c7b8e7db700f41c43ad7da6"
+        },
+        "tests.integration.test_profile_restore": {
+          "module_file": "<owned-source>\\tests\\integration\\test_profile_restore.py",
+          "sha256": "79312d56263945a9bfe481800cc5ad3eb55c88aec392ae20f0049d58c8b340ff"
+        },
+        "tests.integration.test_document_library": {
+          "module_file": "<owned-source>\\tests\\integration\\test_document_library.py",
+          "sha256": "04ccabd2c28370dd19b292e38db1e4a6bf202b50a6b71bba1b7e2a67ad32e764"
+        },
+        "tests.integration.test_durable_resume_extraction": {
+          "module_file": "<owned-source>\\tests\\integration\\test_durable_resume_extraction.py",
+          "sha256": "6607ca11d8bb7c3d5a3fd652064ff90658a489a0e2bdda1c5c3a91eae1883242"
+        },
+        "tests.integration.test_uploaded_resume_comparison": {
+          "module_file": "<owned-source>\\tests\\integration\\test_uploaded_resume_comparison.py",
+          "sha256": "01038ccc77b382c42d0393cbbd018eb9fc40605af91c5f5a2d47b19fa552ef73"
+        }
+      },
+      "tests": 29,
+      "passed": 19,
+      "failed_testcases": 0,
+      "error_testcases": 0,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 10,
+      "subtests_passed": 29,
+      "subtests_failed": 0,
+      "subtests_errors": 0,
+      "result": "PASS_WITH_EXPLICIT_SKIPS",
+      "records": [
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_cleanup_failure_preserves_private_admission_error",
+          "status": "SKIP",
+          "details": [
+            "POSIX permission semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_directory_creation_failure_is_sanitized_without_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.9689999999827705
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_download_and_duplicate_original_reads_are_bounded",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7030000000377186
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fifo_original_is_refused_without_blocking_or_metadata_change",
+          "status": "SKIP",
+          "details": [
+            "POSIX FIFO semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_final_symlink_swap_is_refused_before_read",
+          "status": "SKIP",
+          "details": [
+            "POSIX no-follow open required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fresh_upload_is_private_under_permissive_umask",
+          "status": "SKIP",
+          "details": [
+            "POSIX permission semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fstat_failure_closes_descriptors_without_reading_or_exposing_paths",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7349999999860302
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_invalid_recorded_sizes_are_refused_before_original_open",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.625
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_native_private_original_roundtrip_and_repeat_preserve_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7810000000172295
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_original_filename_must_be_one_safe_component_before_open",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.6089999999967404
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_private_original_with_two_links_remains_readable_and_reusable",
+          "status": "SKIP",
+          "details": [
+            "POSIX hard-link semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_private_read_only_original_remains_readable_and_reusable",
+          "status": "SKIP",
+          "details": [
+            "POSIX read-only file permissions required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_directory_without_mutation",
+          "status": "SKIP",
+          "details": [
+            "POSIX directory permission semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_original_without_mutation",
+          "status": "SKIP",
+          "details": [
+            "POSIX file permission semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_directory_without_mutation",
+          "status": "SKIP",
+          "details": [
+            "POSIX directory permission semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_original_without_mutation",
+          "status": "SKIP",
+          "details": [
+            "POSIX file permission semantics required"
+          ],
+          "duration_seconds": 0.0
+        },
+        {
+          "id": "tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_storage_open_failure_is_sanitized_and_preserves_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.6559999999590218
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_concurrent_mixed_extension_uploads_have_one_original",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7660000000032596
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_duplicate_bytes_keep_first_authoritative_extension_and_metadata",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7030000000377186
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_docx_and_txt_are_accepted_only_with_matching_types",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.7029999999795109
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_upload_is_persistent_unreviewed_and_integrity_checked",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.9849999999860302
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_upload_rejects_embedded_windows_executable_but_accepts_normal_pdf",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.6089999999967404
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_profile_scope_and_cross_site_read_are_enforced",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.6880000000237487
+        },
+        {
+          "id": "tests.integration.test_resume_upload.ResumeUploadTests.test_unsafe_or_mismatched_uploads_are_rejected_without_storage",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.875
+        },
+        {
+          "id": "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 0.5310000000172295
+        },
+        {
+          "id": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 2.905999999959022
+        },
+        {
+          "id": "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 1.1410000000032596
+        },
+        {
+          "id": "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 1.0150000000139698
+        },
+        {
+          "id": "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation",
+          "status": "PASS",
+          "details": [],
+          "duration_seconds": 3.672000000020489
+        }
+      ]
+    }
+  },
+  "commands": {
+    "linux_docker_create": [
+      "docker",
+      "create",
+      "--name",
+      "mjobs-webpro-642e4b-171-final-20261103t073310z",
+      "--label",
+      "mjobs.owner=webpro-20261103T031738Z-642e4b",
+      "--label",
+      "mjobs.requirement=MJ-REQ-171",
+      "--label",
+      "mjobs.role=privacy-final-source",
+      "--network",
+      "none",
+      "--user",
+      "10001:10001",
+      "--cap-drop",
+      "ALL",
+      "--security-opt",
+      "no-new-privileges",
+      "--read-only",
+      "--tmpfs",
+      "/tmp:rw,nosuid,nodev,mode=1777,size=256m",
+      "--mount",
+      "type=bind,source=<owned-source>,target=/app,readonly",
+      "--mount",
+      "type=bind,source=<owned-source>\\outputs\\verification\\webpro-642e4b-171-final-source-20261103T073310Z\\linux,target=/evidence",
+      "--workdir",
+      "/app",
+      "--env",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "--env",
+      "PYTHONNOUSERSITE=1",
+      "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "python",
+      "outputs/run_upload_privacy_checks_v2.py",
+      "/evidence",
+      "tests.integration.test_resume_upload_privacy",
+      "tests.integration.test_resume_upload",
+      "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+      "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+      "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+      "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+      "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation"
+    ],
+    "native_windows": [
+      "python",
+      "<owned-source>\\outputs\\run_upload_privacy_checks_v2.py",
+      "<owned-source>\\outputs\\verification\\webpro-642e4b-171-final-source-20261103T073310Z\\windows",
+      "tests.integration.test_resume_upload_privacy",
+      "tests.integration.test_resume_upload",
+      "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+      "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests.test_export_restores_into_empty_separate_database_and_reloads",
+      "tests.integration.test_document_library.DocumentLibraryTests.test_all_seven_kinds_share_bytes_but_keep_distinct_collections_and_versions",
+      "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests.test_completed_result_is_private_pending_only_and_profile_is_unchanged",
+      "tests.integration.test_uploaded_resume_comparison.UploadedResumeComparisonTests.test_native_formats_compare_exact_revision_without_profile_mutation"
+    ]
+  },
+  "gates": [
+    {
+      "gate": "catalogue",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-03T07:33:10.565919+00:00",
+      "finished_utc": "2026-11-03T07:33:10.646249+00:00"
+    },
+    {
+      "gate": "progress",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-03T07:33:10.646249+00:00",
+      "finished_utc": "2026-11-03T07:33:10.726580+00:00"
+    },
+    {
+      "gate": "dashboard",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-03T07:33:10.726580+00:00",
+      "finished_utc": "2026-11-03T07:33:10.824712+00:00"
+    },
+    {
+      "gate": "provenance",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-03T07:33:10.824712+00:00",
+      "finished_utc": "2026-11-03T07:33:11.176801+00:00"
+    },
+    {
+      "gate": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "63cb1042e08375f7bda1f9dad378209cca856167",
+        "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-03T07:33:11.176801+00:00",
+      "finished_utc": "2026-11-03T07:33:11.225674+00:00"
+    }
+  ],
+  "xml_receipts": {
+    "linux": {
+      "raw_path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux/tests.xml",
+      "raw_sha256": "31972db797d3eb99d5c57140d1ce4d9965bc8ea1dc1a9f4b022e461fb742cc1c",
+      "raw_bytes": 5697,
+      "raw_lf_normalized_sha256": "31972db797d3eb99d5c57140d1ce4d9965bc8ea1dc1a9f4b022e461fb742cc1c",
+      "published_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-linux.xml",
+      "published_sha256": "e0bb8fe1dd003f3bb0619438fbf77c5fcfbd4584fb0b4fc3f69c1f82d3fced69",
+      "published_lf_normalized_sha256": "e0bb8fe1dd003f3bb0619438fbf77c5fcfbd4584fb0b4fc3f69c1f82d3fced69",
+      "published_bytes": 5698,
+      "published_git_blob": "932ce0d2290d641f44a41f37f32fc08742860811"
+    },
+    "native_windows": {
+      "raw_path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows/tests.xml",
+      "raw_sha256": "35661b4a9446f3659d241209fcfb61eb98606a62180ef3c7039c126c694e6b73",
+      "raw_bytes": 6289,
+      "raw_lf_normalized_sha256": "1c003b698c864c0346f0ae0856ab7b3db431b044d26879e871a033271c2400e9",
+      "published_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-native.xml",
+      "published_sha256": "f7655efbeca416dc2efdf354436b8af49720f2c19b883ebbb150c840ed4ff0af",
+      "published_lf_normalized_sha256": "f7655efbeca416dc2efdf354436b8af49720f2c19b883ebbb150c840ed4ff0af",
+      "published_bytes": 6239,
+      "published_git_blob": "d8e61e58a92deb9caeb75ef52c3a7eae0f9be833"
+    }
+  },
+  "runtime_source_binding": "Actual imported module.__file__ and content hashes were checked against owned worktree inputs; Linux actual /app paths are retained, private native source/interpreter prefixes are normalized. Inputs and HEAD remained unchanged.",
+  "runtime_permissions": "Root filesystem and source bind are read-only; ephemeral /tmp tmpfs is writable for synthetic data and /evidence is a separate owned writable host receipt bind.",
+  "cleanup": {
+    "removed_container": "aa7db8db7d19c0aa094316ba4b95cb846b84a97b8da13a70f7760628a5a5f3b7",
+    "owner_verified": true
+  },
+  "known_limits": [
+    "POSIX skips in native Windows do not prove ACL privacy.",
+    "No production applicant data, live provider calls, paid agents, broad browser suite, actual protected merge or changed-code deployment is established.",
+    "Parent requirement remains PARTIAL."
+  ],
+  "scope": "Original24privacy/upload cases plus exactly5direct caller selectors: export, isolated restore/re-export, seven-kind library, durable extraction and native-format comparison."
+}

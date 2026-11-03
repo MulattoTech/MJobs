@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "scope": "MJ-REQ-171 / RESTORE-UPLOAD-PRIVATE-MODES; synthetic, offline, no real Compose restore",
+  "execution_source": {
+    "base_commit": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "base_tree": "9abb8f7ef1f4ab94c678ad6dfb91d406c543c3c8",
+    "production_git_blob": "80a176b25be38db2c00c91a3236f81b6984f5ad7",
+    "regression_git_blob": "882a9e4581ce99005623237c8d35b11c6c0c85de",
+    "working_tree_execution": true,
+    "baseline_unchanged_production": true
+  },
+  "later_source_commit": {
+    "commit": "413fd1e7a41866c6324dec16519522f3c1248128",
+    "tree": "111ae748f08028454ea6d983e5159650be80f07f",
+    "execution_at_this_commit": false
+  },
+  "raw_receipt": {
+    "path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/execution-summary.json",
+    "sha256": "47c9ab2e2fa7cfa0d5eafc94e46705e0be8d06e4c715af57609eab837940ee8d"
+  },
+  "receipt": {
+    "started_at": "2026-11-03T08:34:11.642381Z",
+    "label": "baseline",
+    "head": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "tree": "9abb8f7ef1f4ab94c678ad6dfb91d406c543c3c8",
+    "tracked_diff_before": "",
+    "configuration": {
+      "label": "baseline",
+      "expected_head": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+      "selectors": [
+        "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup"
+      ],
+      "linux": true,
+      "native": false
+    },
+    "inputs": {
+      "cli/local_backup.py": {
+        "sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f",
+        "bytes": 41728,
+        "git_blob": "80a176b25be38db2c00c91a3236f81b6984f5ad7",
+        "snapshot": "inputs\\cli__local_backup.py"
+      },
+      "tests/unit/test_restored_upload_privacy.py": {
+        "sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2",
+        "bytes": 6099,
+        "git_blob": "882a9e4581ce99005623237c8d35b11c6c0c85de",
+        "snapshot": "inputs\\tests__unit__test_restored_upload_privacy.py"
+      },
+      "tests/unit/test_local_backup.py": {
+        "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+        "bytes": 7819,
+        "git_blob": "a2e82f2153f6c559406acd09188e7ea69030d3e6",
+        "snapshot": "inputs\\tests__unit__test_local_backup.py"
+      },
+      "tests/unit/test_backup_config_snapshot.py": {
+        "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+        "bytes": 22805,
+        "git_blob": "72c5b32c532e1495377e1167e7e2615250b488ba",
+        "snapshot": "inputs\\tests__unit__test_backup_config_snapshot.py"
+      },
+      "tests/unit/test_backup_credential_restore.py": {
+        "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+        "bytes": 8345,
+        "git_blob": "386e9875b321179b97707ee89b94963c0f7e8e8c",
+        "snapshot": "inputs\\tests__unit__test_backup_credential_restore.py"
+      },
+      "tests/unit/test_data_export_bounds.py": {
+        "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+        "bytes": 5998,
+        "git_blob": "4a917bc55c9c85ec82d0071ff2ea083585a420cd",
+        "snapshot": "inputs\\tests__unit__test_data_export_bounds.py"
+      },
+      "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py": {
+        "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+        "bytes": 4973,
+        "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+        "snapshot": "inputs\\docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py"
+      },
+      "outputs/run_restored_upload_checks.py": {
+        "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+        "bytes": 780,
+        "git_blob": "58c708c93655cdac67d714e0a8374ed8d036e65a",
+        "snapshot": "inputs\\outputs__run_restored_upload_checks.py"
+      },
+      "outputs/run_restored_upload_capsule.py": {
+        "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+        "bytes": 7837,
+        "git_blob": "79142a344504419ee0eb3e499b8b23a304e8e871",
+        "snapshot": "inputs\\outputs__run_restored_upload_capsule.py"
+      }
+    },
+    "commands": [
+      {
+        "argv": [
+          "docker",
+          "create",
+          "--name",
+          "mjobs-642e4b-restore-baseline-20261103t083411z",
+          "--label",
+          "mjobs.owner=webpro-20261103T031738Z-642e4b",
+          "--label",
+          "mjobs.requirement=MJ-REQ-171",
+          "--label",
+          "mjobs.role=restore-baseline",
+          "--network",
+          "none",
+          "--user",
+          "10001:10001",
+          "--cap-drop",
+          "ALL",
+          "--security-opt",
+          "no-new-privileges",
+          "--read-only",
+          "--tmpfs",
+          "/tmp:rw,nosuid,nodev,mode=1777,size=256m",
+          "--mount",
+          "type=bind,source=<owned-worktree>,target=/app,readonly",
+          "--mount",
+          "type=bind,source=<owned-worktree>\\outputs\\verification\\webpro-642e4b-restore-baseline-20261103T083411Z\\linux,target=/evidence",
+          "--workdir",
+          "/app",
+          "--env",
+          "PYTHONDONTWRITEBYTECODE=1",
+          "--env",
+          "PYTHONNOUSERSITE=1",
+          "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+          "python",
+          "outputs/run_restored_upload_checks.py",
+          "/evidence",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup"
+        ],
+        "started_at": "2026-11-03T08:34:12.108323Z",
+        "finished_at": "2026-11-03T08:34:12.367726Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "inspect",
+          "0dcc29633b4c1a7137fffd242be385d83117e103badef4eadb3fd984387f8ce3"
+        ],
+        "started_at": "2026-11-03T08:34:12.368258Z",
+        "finished_at": "2026-11-03T08:34:12.590814Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "start",
+          "-a",
+          "0dcc29633b4c1a7137fffd242be385d83117e103badef4eadb3fd984387f8ce3"
+        ],
+        "started_at": "2026-11-03T08:34:12.590814Z",
+        "finished_at": "2026-11-03T08:34:14.054462Z",
+        "exit_code": 1
+      },
+      {
+        "argv": [
+          "docker",
+          "rm",
+          "0dcc29633b4c1a7137fffd242be385d83117e103badef4eadb3fd984387f8ce3"
+        ],
+        "started_at": "2026-11-03T08:34:14.055510Z",
+        "finished_at": "2026-11-03T08:34:14.272368Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "inspect",
+          "0dcc29633b4c1a7137fffd242be385d83117e103badef4eadb3fd984387f8ce3"
+        ],
+        "started_at": "2026-11-03T08:34:14.272368Z",
+        "finished_at": "2026-11-03T08:34:14.383488Z",
+        "exit_code": 1
+      }
+    ],
+    "linux": {
+      "container_id": "0dcc29633b4c1a7137fffd242be385d83117e103badef4eadb3fd984387f8ce3",
+      "image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "user": "10001:10001",
+      "network": "none",
+      "rootfs_readonly": true,
+      "tmpfs": {
+        "/tmp": "rw,nosuid,nodev,mode=1777,size=256m"
+      },
+      "mounts": [
+        {
+          "destination": "/app",
+          "read_write": false
+        },
+        {
+          "destination": "/evidence",
+          "read_write": true
+        }
+      ],
+      "exit_code": 1,
+      "execution": {
+        "schema_version": 1,
+        "command": [
+          "/usr/local/bin/python",
+          "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py",
+          "/evidence",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup"
+        ],
+        "cwd": "/app",
+        "platform": "linux",
+        "os_name": "posix",
+        "started_utc": "2026-11-03T08:34:13.896735+00:00",
+        "finished_utc": "2026-11-03T08:34:13.916694+00:00",
+        "duration_seconds": 0.019959,
+        "source_bindings": {
+          "services.documents.uploads": {
+            "module_file": "/app/services/documents/uploads.py",
+            "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+          },
+          "tests.unit.test_restored_upload_privacy": {
+            "module_file": "/app/tests/unit/test_restored_upload_privacy.py",
+            "sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2"
+          }
+        },
+        "tests": 1,
+        "passed": 0,
+        "failed_testcases": 1,
+        "error_testcases": 0,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "subtests_passed": 0,
+        "subtests_failed": 0,
+        "subtests_errors": 0,
+        "result": "FAIL",
+        "records": [
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup",
+            "status": "FAIL",
+            "details": [
+              "Traceback (most recent call last):\n  File \"/app/tests/unit/test_restored_upload_privacy.py\", line 101, in test_real_snapshot_copy_is_private_before_readonly_verification_and_startup\n    events, observed = self.restore_fixture(archive, manifest, target)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tests/unit/test_restored_upload_privacy.py\", line 90, in restore_fixture\n    local_backup.restore_backup(archive, \"synthetic-restored\", 18712)\n  File \"/app/cli/local_backup.py\", line 653, in restore_backup\n    return _restore_verified_snapshot(snapshot, manifest, project, port)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/cli/local_backup.py\", line 699, in _restore_verified_snapshot\n    _compose(project, \"run\", \"--rm\", \"--no-deps\", \"-T\", \"api\", \"python\", \"-m\",\n  File \"/usr/local/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tests/unit/test_restored_upload_privacy.py\", line 66, in compose\n    self.assertEqual(stat.S_IMODE((target / \"documents/uploads\").stat().st_mode), 0o700)\nAssertionError: 493 != 448\n"
+            ],
+            "duration_seconds": 0.01937361399177462
+          }
+        ]
+      },
+      "restore_source_binding": {
+        "module": "cli.local_backup",
+        "path": "/app/cli/local_backup.py",
+        "sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f"
+      },
+      "cleanup": {
+        "remove_exit_code": 0,
+        "absence_inspect_exit_code": 1
+      }
+    },
+    "native": {},
+    "finished_at": "2026-11-03T08:34:14.383488Z",
+    "head_after": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "inputs_unchanged": true,
+    "artifact_sha256": {
+      "inputs\\cli__local_backup.py": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f",
+      "inputs\\docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "inputs\\execution-config.json": "899df6c8d3b0db2c588cadf60ba734ac2dd2bac8029a042c82303a5e55576727",
+      "inputs\\outputs__run_restored_upload_capsule.py": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "inputs\\outputs__run_restored_upload_checks.py": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "inputs\\tests__unit__test_backup_config_snapshot.py": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+      "inputs\\tests__unit__test_backup_credential_restore.py": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+      "inputs\\tests__unit__test_data_export_bounds.py": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+      "inputs\\tests__unit__test_local_backup.py": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+      "inputs\\tests__unit__test_restored_upload_privacy.py": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2",
+      "linux\\execution.json": "ee3740a4e1a15a423066ddc73a6065dc2453f6c9d3b2c39fd4e71888bc545241",
+      "linux\\restore-source-binding.json": "54ba9f438964c65eb27c1af118e098bf5b9f61cf486a82fe28b254347031565c",
+      "linux\\tests.xml": "87348a1e8c4ef9dc540c7b47fe6d5be6f9f20e153bd48501063b59e5308a3d9f",
+      "linux-console.log": "a008a48431278e55755f06e41002b12214b2ae3de39fda8aa5df266883e1a449",
+      "linux-create.log": "c54cf618aa2318cb05bd8b9f60eb73505b0b7351b18c40dd22c766a0295f146b"
+    }
+  },
+  "interpretation": "Expected baseline FAIL: the actual restore snapshot/copy path reached read-only verification with uploads at0755, failing the expected0700 requirement before startup. The subsequent passing full-scope case also verifies the host snapshot original is0644 before target preparation.",
+  "sanitization": [
+    "Native owned-worktree and interpreter paths replaced by descriptive placeholders.",
+    "Raw privately retained bytes and commands are hashed separately from these UTF-8 LF derivatives.",
+    "Linux /app and /evidence are controlled capsule paths, not private machine paths."
+  ]
+}

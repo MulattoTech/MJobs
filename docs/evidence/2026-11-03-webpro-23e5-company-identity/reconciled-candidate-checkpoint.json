@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-03T05:59:31.437084+00:00",
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "source_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
+  "source_tree": "18239bc010e6035b6686788a3e53c6776ca22a27",
+  "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "prior_head": "2ed5431b2d81fe3ab2b1233a27b559f3415f8256",
+  "result": "OWNED_CANDIDATE_EXECUTION_PASS",
+  "execution_evidence": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json",
+  "junit_evidence": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-tests.xml",
+  "scoped_review": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-review.json",
+  "resolver_review_sha256": "1fb3d87bfd2cf04e6e8b47e5bc8cd31e644b10403e2dd5aefa1fc59059a1c3ab",
+  "test_summary": {
+    "parent_cases": 151,
+    "reported_tests": 234,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "subtests_passed": 83,
+  "requirements": {
+    "MJ-REQ-017": "PARTIAL",
+    "MJ-REQ-269": "PASS"
+  },
+  "preflight_history": [
+    {
+      "result": "FAIL",
+      "stage": "initial clean-worktree guard after merge commit",
+      "detail": "Planning regeneration left three CRLF-only worktree representations marked modified while Git diff was empty. Before restoring only those owned paths, exact UTF-8 text after newline decoding and JSON equality with the committed blobs were independently asserted. Committed tree and sources are unchanged; guard passed afterward. No tests ran during that failed preflight."
+    }
+  ],
+  "known_limitations": [
+    "npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required.",
+    "Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed."
+  ],
+  "pending": [
+    "Independent final combined-candidate peer review",
+    "Fresh hosted protected gates and proposed-merge verification",
+    "Protected merge and separate guarded deployment"
+  ],
+  "scope_limits": [
+    "No paid/live provider call, employer submission, production mutation, or restore.",
+    "Existing source/failure/acceptance receipts remain unchanged; overlapping test runs are not summed."
+  ]
+}
