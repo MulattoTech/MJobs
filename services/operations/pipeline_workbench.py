@@ -324,5 +324,5 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
     return {"profile_id": profile_id, "profile_version": profile_version, "items": items,
             "scoring_operation": {"operation_id": scoring_operation["id"], "state": scoring_operation["state"]}
             if scoring_operation else None,
-            "counts": {"total": len(items), "by_stage": by_stage},
+            "counts": {"total": total, "by_stage": by_stage},
             "truncated": total > len(items)}
