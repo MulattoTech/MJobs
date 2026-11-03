@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "timestamp": "2026-11-03T04:58:03.243849+00:00",
+  "reviewer": "Independent conversation1e2ff1; not report author",
+  "result": "CONFIRMED_SOURCE_OBJECT_FALSE_POSITIVE",
+  "reviewed_fingerprint": "cd6cdbe36858de1ba65f381f53c0de13c32a5fba:docs/evidence/2026-11-03-webpro-642e4b-implementation-report/runtime-followup.json:generic-api-key:9",
+  "verified_object": "059b073451557e2ff65b0982308c6848a6ed9d6b",
+  "object_type": "blob",
+  "object_path": "apps/api/main.py",
+  "object_revision": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "verification": "git rev-parse <object_revision>:apps/api/main.py; git cat-file -t <verified_object>",
+  "reason": "Redacted finding is exactly the Git object for deployed API source, not a credential.",
+  "failed_run": 41579992219,
+  "redacted_artifact": 13204154787,
+  "review_comment": "https://github.com/MulattoTech/MJobs/pull/900#issuecomment-6595739353",
+  "scope": "One immutable historical fingerprint; scanner version, checksum verification, rules and all-history scope unchanged. Fresh protected scan required."
+}

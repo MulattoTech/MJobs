@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-172",
+  "pr": 893,
+  "source_revision": "d096d03deba8aa749f478f9dd6c91029379ec50f",
+  "pr_head": "c988d307ce0d8208e60886d83fb1cea59ccb7e79",
+  "tested_candidate_revision": "cbc172fadfb66e5cf661ca6eff667f57f1db379f",
+  "tested_candidate_tree": "68712813bd808cb1b16572b26b2f4ab94ef52348",
+  "merge_revision": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "integrated_tree": "68712813bd808cb1b16572b26b2f4ab94ef52348",
+  "merged_utc": "2026-11-03T04:00:20Z",
+  "tree_equality_verified": true,
+  "candidate_tests": {
+    "primary_tests": 151,
+    "subtests": 33,
+    "junit_cases": 184,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "junit": "candidate-tests.xml",
+    "verification_scope": "Actual proposed merge tested; resulting protected merge tree verified identical."
+  },
+  "required_checks": [
+    {
+      "name": "CI / required",
+      "head_sha": "c988d307ce0d8208e60886d83fb1cea59ccb7e79",
+      "conclusion": "success",
+      "completed_at": "2026-11-03T03:38:37Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41573053502/job/125711327219"
+    },
+    {
+      "name": "Integration / PostgreSQL and Redis",
+      "head_sha": "c988d307ce0d8208e60886d83fb1cea59ccb7e79",
+      "conclusion": "success",
+      "completed_at": "2026-11-03T03:55:20Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41573053571/job/125716395717"
+    },
+    {
+      "name": "Disposable Compose / mock end-to-end",
+      "head_sha": "c988d307ce0d8208e60886d83fb1cea59ccb7e79",
+      "conclusion": "success",
+      "completed_at": "2026-11-03T03:42:15Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41573053559/job/125710181807"
+    },
+    {
+      "name": "Dependencies / introduced vulnerabilities",
+      "head_sha": "c988d307ce0d8208e60886d83fb1cea59ccb7e79",
+      "conclusion": "success",
+      "completed_at": "2026-11-03T03:35:03Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41573053576/job/125710181186"
+    },
+    {
+      "name": "Security / secret scan",
+      "head_sha": "c988d307ce0d8208e60886d83fb1cea59ccb7e79",
+      "conclusion": "success",
+      "completed_at": "2026-11-03T03:35:09Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41573053565/job/125710180978"
+    }
+  ],
+  "additional_codeql": "PASS",
+  "unresolved_review_threads": 0,
+  "independent_review": "review.json",
+  "formal_human_approval_claimed": false,
+  "acceptance": "PARTIAL",
+  "pass_count_increment": 0,
+  "issue_remains_open": true,
+  "integration_owner_commit": "078e51c54073b63a96fbdd472ed179804dbb0809",
+  "integration_claim_released": true,
+  "deployment": {
+    "status": "pending at integration",
+    "previous_observed_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+    "note": "Protected merge is not deployment acceptance. Current-main gates and separate deployment ownership required."
+  }
+}

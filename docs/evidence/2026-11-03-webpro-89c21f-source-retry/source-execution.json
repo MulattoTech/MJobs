@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034301Z-89c21f",
+  "requirement": "MJ-REQ-160",
+  "result": "PARTIAL",
+  "baseline_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "source_sha": "c75f8ba69b582fc449b2e0251140b1a4f10cf5b0",
+  "claim": {
+    "ref": "refs/heads/webpro-claims/MJ-REQ-160",
+    "owner_commit": "8890048679db9b18421a7c2dfcc7f9b7ff9e178a"
+  },
+  "behavior": "Four read-only discovery adapters preserve Retry-After dates/numeric cooldowns on429/5xx; Greenhouse preserves the longest settled response cooldown with fixed public classification. Existing durable scheduling/retry policy respects cooldowns without a new request retry loop.",
+  "verification": {
+    "environment": "Isolated Windows venv; SQLAlchemy2.1.1; synthetic httpx transports and disposable SQLite files. No live provider or Redis connection used.",
+    "command": "python -m pytest -q tests/unit/test_source_retry_after.py tests/integration/test_source_retry_after.py tests/integration/test_source_retry_after_persistence.py tests/integration/test_greenhouse.py tests/integration/test_remotive.py tests/integration/test_remoteok.py tests/integration/test_wwr.py tests/integration/test_source_policy_cadence_sustain_021.py tests/unit/test_discovery_retry_policy.py tests/unit/test_retry_matrix_sustain_161.py --junitxml=docs/evidence/2026-11-03-webpro-89c21f-source-retry/source-tests.xml",
+    "pytest_result": {
+      "passed": 104,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 2,
+      "subtests_passed": 125,
+      "seconds": 63.37
+    },
+    "junit": {
+      "file": "source-tests.xml",
+      "serialized_cases": 231,
+      "note": "Includes104 passed parent/parameterized cases,125 successful subtests,2 skipped cases; not an additional test total. Hostname and absolute workspace prefixes removed."
+    },
+    "skips": [
+      {
+        "test": "tests.integration.test_remoteok.RemoteOKTests.test_live_bounded_search_read_only",
+        "reason": "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1"
+      },
+      {
+        "test": "tests.integration.test_wwr.WeWorkRemotelyTests.test_live_bounded_search_read_only",
+        "reason": "NOT_RUN: bounded live source checks require MJOBS_ENABLE_LIVE_TESTS=1"
+      }
+    ],
+    "checks": {
+      "catalogue": "PASS",
+      "progress validate": "PASS",
+      "commit_provenance": "PASS",
+      "git diff --check": "PASS"
+    }
+  },
+  "preserved_failures": [
+    {
+      "phase": "Initial baseline fixture",
+      "result": "Fixture expectation corrected",
+      "detail": "Greenhouse legitimately performs two independent metadata/jobs GETs. Corrected the initial single-call test expectation before recording the actual date regression."
+    },
+    {
+      "phase": "Actual-adapter date baseline",
+      "result": "8 failing subcases",
+      "detail": "All four adapters ignored two-hour HTTP-date cooldowns on429/503, using60/300/86400-second fallbacks instead."
+    },
+    {
+      "phase": "Greenhouse maximum-cooldown baseline",
+      "result": "4 failing subcases",
+      "detail": "Both concurrency1/2 and429/503 showed that only the first failure cooldown survived."
+    },
+    {
+      "phase": "Independent review",
+      "result": "Findings fixed before committed-source execution",
+      "detail": "Added mixed HTTPX/provider failure cooldown retention, leap-second handling, UTC-normalized fifty-year cutoff and exact durable scheduler/outbox checks."
+    }
+  ],
+  "review": "review.json",
+  "limitations": [
+    "MJ-REQ-160 remains PARTIAL; browser/AI/queue retry breadth and complete original acceptance remain open.",
+    "Two opt-in live provider checks are SKIP/NOT_RUN, not PASS.",
+    "No live provider request, paid inference, application submission or non-idempotent write replay.",
+    "Receipt-clock interpretation assumes a trustworthy UTC host clock. This patch does not introduce server-Date clock-skew correction.",
+    "Source disable thresholds and operation attempt caps remain existing policy.",
+    "Protected candidate checks, actual merge and guarded deployment remain pending at this source checkpoint."
+  ],
+  "created_utc": "2026-11-03T04:13:43.455Z"
+}

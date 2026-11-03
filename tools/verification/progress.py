@@ -158,7 +158,9 @@ def validate_outputs_journal(root: Path, outputs_path: Path | None = None) -> li
     return errors
 
 
-def validate_journal(root: Path, journal_path: Path | None = None) -> list[str]:
+def validate_journal(root: Path, journal_path: Path | None = None, *,
+                     check_outputs: bool = True) -> list[str]:
+    """Validate canonical history and, by default, its derived output checkpoint."""
     root = root.resolve()
     target_state = (journal_path or (root / "planning/IMPLEMENTATION_STATE.json")).resolve()
     if not target_state.is_file():
@@ -193,16 +195,23 @@ def validate_journal(root: Path, journal_path: Path | None = None) -> list[str]:
             errors.append("Last safe checkpoint disagrees with last milestone")
 
     outputs_path = root / DEFAULT_OUTPUT_JOURNAL
-    if outputs_path.is_file() and not errors:
+    if check_outputs and outputs_path.is_file() and not errors:
         out_errors = validate_outputs_journal(root, outputs_path)
         errors.extend(out_errors)
         if not out_errors:
             out_data = json.loads(outputs_path.read_text(encoding="utf-8"))
-            if out_data.get("current_phase") != entries[-1].get("current_phase"):
-                errors.append("Outputs journal current_phase disagrees with latest milestone")
-            if out_data.get("last_safe_checkpoint") != entries[-1].get("last_safe_checkpoint"):
-                errors.append("Outputs journal last_safe_checkpoint disagrees with latest milestone")
+            expected = extract_machine_readable_state(entries[-1], state)
+            for key, value in expected.items():
+                if out_data.get(key) != value:
+                    errors.append(f"Outputs journal {key} disagrees with latest milestone")
     return errors
+
+
+def _output_journal_target(state_path: Path, output_path: Path | None = None) -> Path:
+    target = (output_path or (state_path.parent.parent / DEFAULT_OUTPUT_JOURNAL)).resolve()
+    if target == state_path.resolve():
+        raise ValueError("Output journal must be separate from canonical state")
+    return target
 
 
 def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None) -> Path:
@@ -215,12 +224,16 @@ def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None
     entries = state.get("milestone_journal")
     if not isinstance(entries, list) or not entries:
         raise ValueError("Implementation milestone journal is empty or missing")
-    errors = validate_journal(root)
+    # A process can exit after publishing canonical state but before publishing
+    # its derived output. Explicit sync must validate the authoritative source,
+    # not require the stale/corrupt file it is being asked to rebuild to agree.
+    # Ordinary validate, resume and record keep their strict consistency checks.
+    errors = validate_journal(root, check_outputs=False)
     if errors:
         raise ValueError("Cannot sync from invalid journal: " + "; ".join(errors))
     latest = entries[-1]
     machine_state = extract_machine_readable_state(latest, state)
-    target = (output_path or (root / DEFAULT_OUTPUT_JOURNAL)).resolve()
+    target = _output_journal_target(state_file, output_path)
     write_atomic_json(target, machine_state)
     return target
 
@@ -342,8 +355,9 @@ def resume_snapshot(root: Path = ROOT, source_path: Path | None = None) -> dict:
 
 
 def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path | None = None) -> None:
-    """Atomically replace state and output journal after validating the new checkpoint."""
+    """Publish canonical state, then derived output, with separate atomic writes."""
     root = state_path.parent.parent
+    out_target = _output_journal_target(state_path, output_state_path)
     errors = _entry_errors(root, entry)
     if errors:
         raise ValueError("; ".join(errors))
@@ -364,7 +378,6 @@ def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path |
     state["last_safe_checkpoint"] = entry["last_safe_checkpoint"]
 
     write_atomic_json(state_path, state)
-    out_target = (output_state_path or (root / DEFAULT_OUTPUT_JOURNAL)).resolve()
     machine_state = extract_machine_readable_state(entry, state)
     write_atomic_json(out_target, machine_state)
 

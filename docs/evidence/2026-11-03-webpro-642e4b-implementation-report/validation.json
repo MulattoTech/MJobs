@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-295",
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T04:04:22.365287+00:00",
+  "result": "PASS",
+  "command": "python -m outputs.validate_report",
+  "source_revision": "1350f398386d0be8c9555aa8ec565daf186b2b84",
+  "report_git_blob": "58a171c58e5008769e232b42530f78a69050bfd1",
+  "report_sha256": "6cc3de124c803a50e006d8aaf63b1aef0a54c8ebef1f0bcdd90ca017d695424c",
+  "sections": [
+    "Architecture",
+    "Files",
+    "Services",
+    "Sources",
+    "Company Discovery",
+    "Deduplication",
+    "Matching",
+    "Documents",
+    "Applications",
+    "Tests",
+    "External Limitations",
+    "Deployment",
+    "Known Limitations",
+    "Next Recommended Improvements"
+  ],
+  "source_providers": [
+    "lever",
+    "greenhouse",
+    "remotive",
+    "wwr",
+    "remoteok"
+  ],
+  "application_adapters": [
+    "ashby",
+    "bamboohr",
+    "breezy",
+    "generic_html",
+    "greenhouse",
+    "lever",
+    "recruitee",
+    "smartrecruiters",
+    "teamtailor",
+    "workable",
+    "workday"
+  ],
+  "local_links_checked": 59,
+  "manifest_files_verified": 2874,
+  "manifest_sha256": "741d66fcfb15d95669ecce5ef8472fefc47bd54b65c584c8781bc15d05bd699d",
+  "scope": "Artifact completeness, exact tracked-source manifest, inventory coverage and local link/blob integrity. Substantive claims also require independent source/content review; this is not product acceptance testing."
+}

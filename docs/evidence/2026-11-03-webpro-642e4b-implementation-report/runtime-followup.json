@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T04:31:37.194271+00:00",
+  "source_revision": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "deployed_at": "2026-11-03T04:27:55.591295+00:00",
+  "image_tag": "mjobs-micro:sha-ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+  "runtime_api_git_blob": "059b073451557e2ff65b0982308c6848a6ed9d6b",
+  "deployment": {
+    "commit": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+    "version": "0.1.0-dev",
+    "operation_mode": "PERSONAL"
+  },
+  "readiness": {
+    "status": "ready",
+    "checks": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "worker": true,
+      "scheduler": true,
+      "workers": {
+        "mjobs-ai": true,
+        "mjobs-application": true,
+        "mjobs-company-discovery": true,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      },
+      "schema": true
+    },
+    "db_backend": "postgresql"
+  },
+  "application_services": [
+    {
+      "service": "ai-worker",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    },
+    {
+      "service": "api",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    },
+    {
+      "service": "company-discovery-worker",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    },
+    {
+      "service": "document-worker",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    },
+    {
+      "service": "scheduler",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    },
+    {
+      "service": "source-worker",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    },
+    {
+      "service": "worker",
+      "image_id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca",
+      "health": "healthy"
+    }
+  ],
+  "log_error_counts": {
+    "api": {
+      "error_lines": 0,
+      "command_exit": 0
+    },
+    "scheduler": {
+      "error_lines": 0,
+      "command_exit": 0
+    },
+    "document-worker": {
+      "error_lines": 0,
+      "command_exit": 0
+    },
+    "worker": {
+      "error_lines": 0,
+      "command_exit": 0
+    },
+    "source-worker": {
+      "error_lines": 0,
+      "command_exit": 0
+    },
+    "company-discovery-worker": {
+      "error_lines": 0,
+      "command_exit": 0
+    },
+    "ai-worker": {
+      "error_lines": 0,
+      "command_exit": 0
+    }
+  },
+  "origin_boundary_probes": [
+    {
+      "case": "public_headerless",
+      "status": 403,
+      "expected": 403
+    },
+    {
+      "case": "public_foreign_referer",
+      "status": 403,
+      "expected": 403
+    },
+    {
+      "case": "public_valid_referer",
+      "status": 405,
+      "expected": 405
+    },
+    {
+      "case": "public_duplicate_origin",
+      "status": 400,
+      "expected": 400
+    },
+    {
+      "case": "public_null_origin",
+      "status": 403,
+      "expected": 403
+    }
+  ],
+  "public_access_denials": [
+    {
+      "case": "anonymous",
+      "status": 302,
+      "redirect_to_access": true
+    },
+    {
+      "case": "invalid_session",
+      "status": 302,
+      "redirect_to_access": true
+    }
+  ],
+  "backup": {
+    "archive": "20261103T042744Z-63b843dfe270",
+    "result": "PASS",
+    "schema_version": 2,
+    "created_at": "2026-11-03T04:27:46.736148+00:00",
+    "operation_mode": "PERSONAL",
+    "alembic_revision": "20261025di01"
+  },
+  "rollback_prerequisites": {
+    "prior_image_present": true,
+    "prior_source_present": true,
+    "prior_image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+    "restore_or_rollback_drill": "NOT_RUN"
+  },
+  "scope": "Local trusted-host origin probes use POST on GET-only /__deployment, so no business mutation is invoked. Public Access probes are anonymous/synthetic-invalid. Authenticated browser proof is recorded separately.",
+  "limitations": [
+    "MJ-REQ-172 remains PARTIAL",
+    "No live employer submission or production restore",
+    "This deployment predates pending PR900 Workday/report changes"
+  ],
+  "authenticated_browser": {
+    "observed_utc": "2026-11-03T04:33:02Z",
+    "browser": "Brave",
+    "deployment_commit": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+    "operation_mode": "PERSONAL",
+    "subsequent_root_ui": {
+      "services_ready": true,
+      "external_submission": "OFF"
+    },
+    "scope": "Read-only authenticated deployment response and root UI; no profile, application, credential or cookie data retained."
+  },
+  "durable_receipt": "https://github.com/MulattoTech/MJobs/pull/893#issuecomment-6595580184"
+}

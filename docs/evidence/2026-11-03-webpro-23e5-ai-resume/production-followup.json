@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-03T05:47:47.657834+00:00",
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "requirement_id": "MJ-REQ-269",
+  "historical_acceptance": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json",
+  "history_policy": "The 04:40 acceptance receipt and its then-PENDING deployment/Brave observations are retained unchanged. This dated follow-up supersedes those delivery observations only.",
+  "observed_production_source": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "current_main_when_recorded": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "source_equivalence": {
+    "module": "services/documents/ai_resume.py",
+    "lf_sha256": "009c3b3373aae07348f1579292fb70ddc3966bd5b2ac8ee62d99e64018d1d658",
+    "same_module_in_current_main": true
+  },
+  "delivery_result": "VERIFIED_READ_ONLY_SCOPE",
+  "operator_started_updater": false,
+  "durable_observation": "https://github.com/MulattoTech/MJobs/pull/896#issuecomment-6596168781",
+  "receipts": [
+    {
+      "path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-rollout-7e-readonly.json",
+      "sha256": "e66db85eb6a700e33d35a362ebfdcc36824bb185fc989f5e93dd69083762b97e"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-backup-7e-verification.json",
+      "sha256": "0fab39a0848be9dc23c61e4ffc5ab6e918a57b8dca34391ae49439483d2b091e"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-bounded-logs-7e.json",
+      "sha256": "6c76300434450d21a70f6eb78f9b80ee1b2af02e60b9f5cff4398481b2029024"
+    }
+  ],
+  "verified": [
+    "Origin and authenticated Brave bind deployed 7e86511f in PERSONAL mode.",
+    "All readiness checks true; seven application services healthy and on one exact image.",
+    "AI resume CLI context/draft/review/prepare present; deployed module digest equals reviewed source.",
+    "Existing updater success and backup metadata verified; independent existing backup CLI verification exited 0 for three files.",
+    "Previous source checkout, Compose files and image retained; bounded logs contain no error-marked lines in their stated scope."
+  ],
+  "limitations": [
+    "Actual generated-document history in production NOT_RUN: no production profile/application was available; no production records were created for verification.",
+    "Paid/live inference, provider availability and employer submission NOT_RUN.",
+    "Drafting is CLI-only; accepted history is available in the existing UI.",
+    "Human factual review remains mandatory; token checks do not establish semantic equivalence.",
+    "Saved-profile credential ambiguity is refused; cover letters remain deterministic.",
+    "No restore was run. Log inspection is limited to at most 80 recent lines per service since 05:02:45Z.",
+    "This is not evidence that current main 9a21b98b or PR899 is deployed and does not establish full MJ-REQ-292."
+  ]
+}
