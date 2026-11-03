@@ -29,7 +29,9 @@ RECOVERY_RESTART_SERVICES = (
 )
 RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
-JOB_INVENTORY_VERSION = 2
+# Version 3 binds new captures to the bounded completeness probe.
+# Legacy snapshots may be truncated even when their hashes match current data.
+JOB_INVENTORY_VERSION = 3
 JOB_INVENTORY_MAX_JOBS = 200
 CANONICAL_JOB_FIELDS = (
     "company_id", "requisition", "title", "description", "skills", "location",
@@ -400,13 +402,18 @@ def _stable_job_projection(value):
 
 
 def validate_public_job_inventory(inventory):
+    if (isinstance(inventory, dict)
+            and type(inventory.get("schema_version")) is int
+            and inventory["schema_version"] in (1, 2)):
+        raise ValueError("Legacy public job inventory requires a fresh complete baseline")
     if (not isinstance(inventory, dict)
             or set(inventory) != {"schema_version", "profile_id", "job_count",
                                   "source_copy_count", "jobs", "sha256"}
             or type(inventory["schema_version"]) is not int
             or inventory["schema_version"] != JOB_INVENTORY_VERSION
             or not isinstance(inventory["profile_id"], str) or not inventory["profile_id"]
-            or type(inventory["job_count"]) is not int or inventory["job_count"] < 1
+            or type(inventory["job_count"]) is not int
+            or not 1 <= inventory["job_count"] <= JOB_INVENTORY_MAX_JOBS
             or type(inventory["source_copy_count"]) is not int or inventory["source_copy_count"] < 1
             or not isinstance(inventory["jobs"], list)
             or len(inventory["jobs"]) != inventory["job_count"]

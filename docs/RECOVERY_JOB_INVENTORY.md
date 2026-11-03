@@ -36,20 +36,40 @@ if a catalog grows beyond the budget during recovery, later collection fails
 after earlier recovery actions, and the existing finalizer restores services.
 The no-mutation guarantee above applies to the initial recovery collection.
 
-Existing inventory schema, stable-field comparisons, lifecycle timestamp
-exclusions and legacy-baseline NOT_RUN behavior are unchanged. A matching visible
-job inventory is only one part of MJ-REQ-292; the complete 60-step end-to-end
-requirement remains PARTIAL. This change does not execute a production restart,
-restore, external provider request or employer submission.
+## Historical baselines
+
+New captures use inventory **version 3**, which identifies the bounded
+201-row completeness probe. The validator admits only 1 through 200 jobs in this
+version. The stored row fields, stable hashes and lifecycle timestamp exclusions
+are unchanged.
+
+Supplied version-1 and version-2 inventories are refused with the fixed error
+`Legacy public job inventory requires a fresh complete baseline`. They are never
+silently upgraded. A historical version-2 capture can contain only 200 of 201 jobs;
+if its omitted job disappears, its count and digest can match a newly complete
+200-job view despite the loss. A matching hash cannot establish that the earlier
+capture was complete.
+
+Keep historical evidence intact and obtain a fresh baseline with the current
+collector in the intended controlled environment. A new complete 200-job baseline
+remains supported. Both the recovery and backup-acceptance entrypoints reject a
+supplied legacy inventory before Compose resolution, target preflight, HTTP
+access, lifecycle actions or archive creation. Older baselines with no job
+inventory retain the separate NOT_RUN result for that inventory check.
+
+A matching visible job inventory is only one part of MJ-REQ-292; the complete
+60-step end-to-end requirement remains PARTIAL. This change does not execute a
+production restart, restore, external provider request or employer submission.
 
 ## Focused verification
 
 ```text
-python -m pytest -q tests/integration/test_recovery_inventory_completeness.py tests/integration/test_compose_recovery_target.py tests/integration/test_api_queue.py tests/unit/test_compose_recovery.py
+python -m pytest -q tests/integration/test_recovery_inventory_completeness.py tests/integration/test_compose_recovery_target.py tests/integration/test_api_queue.py tests/unit/test_compose_recovery.py tests/unit/test_backup_acceptance.py
 ```
 
 The new boundary tests use an in-process public API and disposable SQLite
 FIXTURE data. They cover actual default-page truncation, exactly 200-job admission,
 source-payload changes, refusal before detail requests, encoded profile IDs,
-and refusal before recovery mutation. Real Docker restart coverage remains a
+legacy truncated baselines after deletion of the omitted job, and refusal before
+recovery or backup mutation. Real Docker restart coverage remains a
 separate gate and is not inferred from these tests.

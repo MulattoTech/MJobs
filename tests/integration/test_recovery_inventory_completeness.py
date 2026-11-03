@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 
 from fastapi.testclient import TestClient
 
@@ -17,6 +17,7 @@ from tests.integration.test_spine import PROFILE
 
 
 BUDGET_ERROR = "Public job inventory exceeds the 200-job verification budget"
+LEGACY_ERROR = "Legacy public job inventory requires a fresh complete baseline"
 
 
 class PublicJobInventoryCompletenessTests(unittest.TestCase):
@@ -68,6 +69,103 @@ class PublicJobInventoryCompletenessTests(unittest.TestCase):
             return response.json()
         return get_json
 
+    def collect_legacy_version2_inventory(self, client):
+        """Freeze the old default-page request and v2 payload, without upgrading it."""
+        calls = []
+        get_json = self.read_json(client, calls)
+        profile = quote(PROFILE["id"], safe="")
+        listed = get_json("/jobs?profile_id=" + profile)["jobs"]
+        rows = []
+        for job_id in sorted(row["id"] for row in listed):
+            detail = get_json("/jobs/" + quote(job_id, safe="") + "?profile_id=" + profile)
+            canonical = {
+                "job_id": job_id,
+                "fields": compose_recovery._stable_job_projection({
+                    field: detail[field] for field in compose_recovery.CANONICAL_JOB_FIELDS}),
+                "routes": sorted(({
+                    field: route.get(field) for field in compose_recovery.JOB_ROUTE_FIELDS
+                } for route in detail["routes"]), key=lambda route: (
+                    str(route["provider"]), str(route["tenant"]),
+                    str(route["requisition"]), str(route["id"]))),
+            }
+            copies = [{
+                **{field: posting[field] for field in compose_recovery.SOURCE_COPY_FIELDS},
+                "raw_sha256": compose_recovery._inventory_digest(
+                    compose_recovery._stable_job_projection(posting.get("raw"))),
+            } for posting in detail["postings"]]
+            copies.sort(key=lambda row: (
+                str(row["source"]), str(row["source_job_id"]), str(row["source_url"])))
+            rows.append({
+                "job_id": job_id,
+                "canonical_sha256": compose_recovery._inventory_digest(canonical),
+                "source_copy_count": len(copies),
+                "source_copies_sha256": compose_recovery._inventory_digest(copies),
+            })
+        return {
+            "schema_version": 2, "profile_id": PROFILE["id"], "job_count": len(rows),
+            "source_copy_count": sum(row["source_copy_count"] for row in rows),
+            "jobs": rows, "sha256": compose_recovery._inventory_digest(rows),
+        }, calls
+
+    def legacy_baseline_after_omitted_job_loss(self, client):
+        ids = self.seed_jobs(201)
+        legacy, calls = self.collect_legacy_version2_inventory(client)
+        self.assertEqual(legacy["schema_version"], 2)
+        self.assertEqual(legacy["job_count"], 200)
+        self.assertEqual(len(calls), 201)
+        self.assertEqual(parse_qs(urlsplit(calls[0]).query), {"profile_id": [PROFILE["id"]]})
+        captured_ids = {row["job_id"] for row in legacy["jobs"]}
+        omitted = set(ids) - captured_ids
+        self.assertEqual(len(omitted), 1)
+        omitted_id = omitted.pop()
+        with self.store.engine.begin() as connection:
+            connection.execute(m.postings.delete().where(m.postings.c.job_id == omitted_id))
+            connection.execute(m.routes.delete().where(m.routes.c.job_id == omitted_id))
+            connection.execute(m.jobs.delete().where(m.jobs.c.id == omitted_id))
+        calls = []
+        complete = compose_recovery.collect_public_job_inventory(
+            self.read_json(client, calls), PROFILE["id"])
+        self.assertEqual(complete["schema_version"], 3)
+        self.assertEqual(complete["job_count"], 200)
+        self.assertEqual({row["job_id"] for row in complete["jobs"]}, set(ids) - {omitted_id})
+        self.assertEqual(parse_qs(urlsplit(calls[0]).query)["limit"], ["201"])
+        self.assertEqual(complete["jobs"], legacy["jobs"])
+        # Equal row hashes cannot establish that the historical page was complete.
+        self.assertEqual(complete["sha256"], legacy["sha256"])
+        return legacy, complete
+
+    def test_legacy_default_page_cannot_certify_recovery_after_omitted_job_loss(self):
+        with TestClient(self.app) as client:
+            legacy, complete = self.legacy_baseline_after_omitted_job_loss(client)
+        self.assertEqual(compose_recovery.compare_public_job_inventory(
+            {"job_inventory": complete}, complete, complete)["result"], "PASS")
+        with self.assertRaisesRegex(ValueError, "^" + LEGACY_ERROR + "$"):
+            compose_recovery.compare_public_job_inventory(
+                {"job_inventory": legacy}, complete, complete)
+
+    def test_legacy_default_page_aborts_recovery_before_target_or_http_access(self):
+        with TestClient(self.app) as client:
+            legacy, _ = self.legacy_baseline_after_omitted_job_loss(client)
+        baseline = {**BASELINE, "profile_id": PROFILE["id"], "job_inventory": legacy}
+        path = self.root / "legacy-baseline.json"
+        path.write_text(json.dumps(baseline), encoding="utf-8")
+        evidence = self.root / "legacy-recovery-evidence.json"
+        with patch.object(compose_recovery, "resolve_compose_files",
+                          side_effect=AssertionError("Legacy baseline reached target resolution")) as resolver, \
+                patch.object(compose_recovery, "preflight_recovery_targets",
+                             side_effect=AssertionError("Legacy baseline reached target preflight")) as preflight, \
+                patch.object(compose_recovery.httpx, "Client",
+                             side_effect=AssertionError("Legacy baseline reached HTTP access")) as transport, \
+                patch.object(compose_recovery, "compose",
+                             side_effect=AssertionError("Legacy baseline reached service mutation")) as lifecycle:
+            with self.assertRaisesRegex(ValueError, "^" + LEGACY_ERROR + "$"):
+                compose_recovery.run(path, evidence, PROJECT, PORT)
+            resolver.assert_not_called()
+            preflight.assert_not_called()
+            transport.assert_not_called()
+            lifecycle.assert_not_called()
+        self.assertFalse(evidence.exists())
+
     def test_api_inventory_refuses_truncated_catalog_before_detail_reads(self):
         ids = self.seed_jobs(201)
         with TestClient(self.app) as client:
@@ -91,6 +189,7 @@ class PublicJobInventoryCompletenessTests(unittest.TestCase):
             before = compose_recovery.collect_public_job_inventory(
                 self.read_json(client, calls), PROFILE["id"])
             self.assertEqual({row["job_id"] for row in before["jobs"]}, set(ids))
+            self.assertEqual(before["schema_version"], 3)
             self.assertEqual(before["job_count"], 200)
             self.assertEqual(len(calls), 201)
             self.assertEqual(parse_qs(urlsplit(calls[0]).query)["limit"], ["201"])
