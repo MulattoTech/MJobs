@@ -309,7 +309,9 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.add_job("a-job")
         first = self.read(limit=1)
         self.assertEqual(first, self.read(limit=1))
-        self.assertEqual(first["counts"]["total"], 1)
+        self.assertEqual(first["counts"]["total"], 2)
+        self.assertEqual(len(first["items"]), 1)
+        self.assertEqual(first["counts"]["by_stage"]["READY_TO_PREPARE"], 1)
         self.assertTrue(first.get("truncated"))
         self.assertEqual(first["items"][0]["job_id"], "a-job")
 
