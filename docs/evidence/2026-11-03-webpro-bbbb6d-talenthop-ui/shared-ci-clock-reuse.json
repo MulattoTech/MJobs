@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "frozen_input": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+  "source_commits": [
+    "19ea133ebbc1228a942fb06b2621f932a62db307",
+    "5a2e57712cd7c7b85d7a1cfa6155e655dcf23577",
+    "c6acb100335df7b85dc26c15ac2ebc40f927a322"
+  ],
+  "source_authorization": "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599144609",
+  "handoff": "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599241700",
+  "receiving_notice": "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599366566",
+  "previous_audit_head": "4ed3b521e80f621a6fcbac15b2a646499da08e44",
+  "receiving_source": "3a398b7645b509c142e367c6e52cb25a7d886ed3",
+  "baseline": {
+    "candidate": "334f817a130865e749b032594d468c59290bb497",
+    "started_at": "2026-11-03T08:56:36.070Z",
+    "exit_code": 1,
+    "assertion": "2 != 3",
+    "log_sha256": "ea99f2ae7f3414f11c0d005fbcb970afde17c873976f881b39dcf147740db63b"
+  },
+  "execution": {
+    "started_at": "2026-11-03T08:56:41.282Z",
+    "ended_at": "2026-11-03T08:57:04.169Z",
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_talenthop_catalog.py",
+      "tests/unit/test_har_sanitize.py",
+      "tests/unit/test_p0_evidence_secret_fingerprints.py",
+      "tests/unit/test_secret_scan_sustain_176.py",
+      "tests/integration/test_relative_posted_source_intake.py"
+    ],
+    "exit_code": 0,
+    "parent_tests_passed": 44,
+    "scope": "29 catalog/sanitizer, six scanner-policy, nine relative-intake cases; pytest discovers the two module-level policy tests.",
+    "log_sha256": "f6eba70c9374244ea87d5ae4ca240025c8266ea3189ca4079920781f63d0b369"
+  },
+  "preservation": {
+    "other_class_methods_exact": 14,
+    "target_assertions_exact": true,
+    "frozen_files_exact": [
+      {
+        "path": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/README.md",
+        "git_blob": "44089ca5dd4253c2a767df336d6e82b3461bc7c1"
+      },
+      {
+        "path": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/boundary-probe.py.txt",
+        "git_blob": "142a01ff93c2352ad309eb9e8b32292b516e4cd2"
+      },
+      {
+        "path": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/verification.json",
+        "git_blob": "05c74f6d52289abf7db30b3ceeb54af3c8662a2f"
+      },
+      {
+        "path": "tests/integration/test_relative_posted_source_intake.py",
+        "git_blob": "b92d722a43ce7f4e49ad2f4f0a8a1fe5c05732e9"
+      }
+    ]
+  },
+  "historical_scanner_count_correction": "The earlier unittest-only policy command ran four, not six, cases. Explicit pytest executed the missing two on candidate334f817a (PR921#6599167903); this receiving execution collects all six. Earlier output is retained.",
+  "scope": "Immutable reviewed input reuse only; no further date-test changes or source-claim transfer. No product filter, original/reference acceptance or raw HAR change.",
+  "protected_successor_gates": "PENDING"
+}

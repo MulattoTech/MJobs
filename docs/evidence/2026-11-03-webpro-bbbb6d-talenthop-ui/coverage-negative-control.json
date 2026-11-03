@@ -1,0 +1,12 @@
+{
+  "source_revision": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "validator": "BEFORE_FIX",
+  "baseline_errors": [],
+  "negative_cases": {
+    "marketing_promoted_to_observed": [],
+    "route_total_disagrees_with_rows": [],
+    "journey_total_disagrees_with_rows": [],
+    "missing_ui_artifact": []
+  },
+  "finding": "Invalid observed evidence and internally inconsistent coverage are accepted by the baseline validator."
+}

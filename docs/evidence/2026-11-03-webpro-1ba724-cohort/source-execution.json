@@ -1,0 +1,136 @@
+{
+  "run_id": "webpro-20261103T050255Z-1ba724",
+  "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "inputs": {
+    "899": "c5470f4bd4ca7708b517129773247b5d1e18fd36",
+    "907": "60021098ba0d97d0783a197311040d6a0cbae74e",
+    "908": "5367e7019e40d82af036bf7eff14597a2a79da8f"
+  },
+  "integration_owner": "2f46c24317a23dde75a98db9bf63666e9ba74eb4",
+  "source": "5ef483567899a31b7ac1039d3f7d9de31420374a",
+  "tree": "5aa85f19407bb8c5c42c44d519980bf6b20f2484",
+  "merges": [
+    {
+      "pr": 899,
+      "merge": "ed207bd7de430d5d6d381d1c9ff7af5e9ace1ff8",
+      "resolved_paths": []
+    },
+    {
+      "pr": 908,
+      "merge": "8815999f41b73bf7d65ebb77cf9ccdaac19d9897",
+      "resolved_paths": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ]
+    },
+    {
+      "pr": 907,
+      "merge": "5ef483567899a31b7ac1039d3f7d9de31420374a",
+      "resolved_paths": [
+        ".gitignore"
+      ]
+    }
+  ],
+  "source_files_preserved": 60,
+  "prior_journal_records_preserved": 29,
+  "requirement_status_deltas": [
+    [
+      "MJ-REQ-269",
+      "PARTIAL",
+      "PASS"
+    ]
+  ],
+  "original_counts": {
+    "PARTIAL": 82,
+    "PASS": 183,
+    "NOT_RUN": 101
+  },
+  "references_unchanged": true,
+  "status": "SOURCE_EXECUTED",
+  "as_of": "2026-11-03T06:23:22.868408+00:00",
+  "checks": [
+    {
+      "command": "python -m unittest tests.unit.test_har_sanitize tests.unit.test_talenthop_catalog tests.unit.test_progress_journal tests.unit.test_progress_journal_recovery tests.unit.test_progress_journal_concurrency -q",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 8.231609,
+      "output": "----------------------------------------------------------------------\nRan 50 tests in 8.007s\n\nOK (skipped=1)"
+    },
+    {
+      "command": "python -m tools.verification.talenthop_catalog",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 0.076298,
+      "output": "{\"status\": \"PASS\", \"errors\": []}"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 0.179876,
+      "output": "Catalogue validation: PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 0.17124,
+      "output": "Progress journal validation: PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 0.191331,
+      "output": "Progress dashboard: CURRENT"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit 5ef483567899a31b7ac1039d3f7d9de31420374a",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 0.259985,
+      "output": "PASS: no source-code changes in this commit"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "PASS",
+      "seconds": 0.096858,
+      "output": ""
+    }
+  ],
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10",
+    "network_use": "GitHub reads only; focused tests use synthetic isolated temporary files"
+  },
+  "not_run": [
+    "Combined collector/PostgreSQL/Redis execution is delegated to required hosted candidate gates and independent source-owner candidate verification.",
+    "Combined Linux POSIX counterpart; independently executed at unchanged908 source and its own candidate."
+  ],
+  "independent_input_reviews": [
+    "https://github.com/MulattoTech/MJobs/pull/899#issuecomment-6596810597",
+    "https://github.com/MulattoTech/MJobs/pull/907#discussion_r4451503634",
+    "https://github.com/MulattoTech/MJobs/pull/908#issuecomment-6596873918"
+  ],
+  "combined_review": "PENDING",
+  "hosted_checks": "PENDING",
+  "deployment": "NOT_DEPLOYED",
+  "acceptance_attribution": "Only899 carries269 literal PASS;907/908 add no acceptance.",
+  "focused_tests": {
+    "executed": 50,
+    "passed": 49,
+    "skipped": 1,
+    "failed": 0,
+    "skip_reason": "POSIX symlink behavior on Windows; unchanged908 Linux counterpart separately passed."
+  },
+  "incoming_gate_failure": {
+    "pr": 899,
+    "head": "c5470f4bd4ca7708b517129773247b5d1e18fd36",
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41588054400/job/125758487862",
+    "status": "FAILURE_UNDER_OWNER_DIAGNOSIS",
+    "coordination": "https://github.com/MulattoTech/MJobs/pull/906#issuecomment-6596998149",
+    "not_superseded_by_local_tests": true
+  },
+  "assembly_reader_note": "An initial read-only UTF-8 Git inspection used Windows' default decoding and refused a character. The explicit UTF-8 follow-up succeeded; no source mutation occurred during that failed read."
+}

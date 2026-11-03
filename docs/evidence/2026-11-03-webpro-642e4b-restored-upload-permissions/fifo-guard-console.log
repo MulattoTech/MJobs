@@ -1,0 +1,9 @@
+RESTORE_SOURCE_BINDING {"module": "cli.local_backup", "path": "/app/cli/local_backup.py", "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa"}
+RUNTIME_SOURCE_BINDINGS {"services.documents.uploads": {"module_file": "/app/services/documents/uploads.py", "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"}, "tests.unit.test_restored_upload_privacy": {"module_file": "/app/tests/unit/test_restored_upload_privacy.py", "sha256": "537eeaf85e2eb5f947493891c259751cab2c7c960cc38f2ed51528289b58eb55"}}
+RUNTIME_SUMMARY {"duration_seconds": 0.002345, "error_testcases": 0, "errors": 0, "failed_testcases": 0, "failures": 0, "finished_utc": "2026-11-03T08:46:09.400165+00:00", "os_name": "posix", "passed": 1, "platform": "linux", "result": "PASS", "schema_version": 1, "skipped": 0, "started_utc": "2026-11-03T08:46:09.397820+00:00", "subtests_errors": 0, "subtests_failed": 0, "subtests_passed": 0, "tests": 1}
+test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded (tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+OK

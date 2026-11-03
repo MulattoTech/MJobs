@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "requirement": "MJ-REQ-008",
+  "timestamp": "2026-11-03T05:58:44.090973+00:00",
+  "source": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+  "source_tree": "04d8eb8a3947f30a5022992a4aa64e74c71a5dc1",
+  "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "source_blobs": {
+    "tools/verification/progress.py": "a2e730729d06b0c52d49342650e07a8d7e306343",
+    "tests/unit/test_progress_journal_concurrency.py": "9e18574ebafdbabdc9e9bbd814ac313f3bcd17c8",
+    "docs/PROGRESS_RECOVERY.md": "c836c927966746da29e14f4e6440b7e06195109d",
+    ".gitignore": "f7cd86fb447379a58341bf19db8ec34baeea1098"
+  },
+  "result": "SOURCE_VERIFIED_PENDING_REVIEW_AND_PROTECTED_DELIVERY",
+  "defect": "Two successful concurrent records could overwrite each other's snapshots; sync could publish an older derivative after another record.",
+  "behavior": "Cooperating record/sync commands hold one persistent-file OS lock across state reads, validation and both publications. CLI record validation is also inside the lock. Contenders have a three-second acquisition budget and do not read or modify journal contents on timeout.",
+  "native": {
+    "passed": 36,
+    "subtests_passed": 25,
+    "skipped": 1,
+    "failed": 0,
+    "errors": 0,
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/native-execution.json"
+  },
+  "linux": {
+    "passed": 37,
+    "skipped": 0,
+    "failed": 0,
+    "errors": 0,
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/linux-execution.json"
+  },
+  "baseline": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/baseline-regressions.json",
+  "actual_lost_update": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/lost-update-reproduction.json",
+  "checks": [
+    "Catalogue PASS",
+    "Progress journal PASS",
+    "Progress dashboard CURRENT",
+    "Git diff PASS",
+    "Commit provenance PASS",
+    "Working tree clean before and after both committed-source executions"
+  ],
+  "coverage": [
+    "Real owned competing processes: record/record, record/sync, sync/record.",
+    "Bounded busy refusal with byte-identical journals, followed by successful retry.",
+    "Independent journals do not share a lock.",
+    "Canonical and coordination output destinations are refused, including normalized aliases.",
+    "Hard-linked coordination files refused on Windows and Linux; symlink counterpart passes on Linux.",
+    "Existing real os._exit73-after-canonical regression proves abandoned OS-lock recovery by a fresh CLI sync."
+  ],
+  "review": {
+    "self_review": "Read/validate/write exclusion, persistent inode identity, process exit/exception cleanup, fd validation, readonly-reader semantics and output guard reviewed.",
+    "independent": "PENDING; this self-review is not independent approval."
+  },
+  "limitations": [
+    "MJ-REQ-008 stays PARTIAL; host/power-loss/container/browser restart breadth is not established by these tests.",
+    "Acquisition contention is bounded; arbitrary filesystem I/O or flush duration is not.",
+    "Only cooperating updated tools on the same local journal are coordinated; network filesystems, manual editors, older tools and separate Git worktrees are outside this proof.",
+    "The persistent coordination file requires planning-directory creation permission on first use and must not be removed/replaced while publishers may run.",
+    "Read-only validate/resume can observe an in-flight canonical/derived mismatch; repeat after the publisher finishes.",
+    "Already lost historical entries cannot be reconstructed automatically.",
+    "Local Ruff NOT_RUN because unavailable; required hosted policy/static checks remain mandatory."
+  ],
+  "acceptance": "No result/criterion/denominator promotion. Canonical accounting requires a separately owned integration window.",
+  "previous_delivery": {
+    "pr": 906,
+    "main": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/cohort-protected-merge.json",
+    "deployment": "Pending separately owned current-main release/readback; do not infer deployment of this follow-up."
+  },
+  "platform_references": [
+    "https://docs.python.org/3/library/msvcrt.html",
+    "https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/locking?view=msvc-170",
+    "https://docs.python.org/3/library/fcntl.html"
+  ]
+}

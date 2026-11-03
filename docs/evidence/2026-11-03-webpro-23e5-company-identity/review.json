@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-017",
+  "defect": "AGGREGATOR-COMPANY-IDENTITY-COLLISION",
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "reviewed_source_commit": "9a8d138f1455190dabedb7c1e6253b54074c12d6",
+  "reviewer": "Independent internal ChatGPT read-only reviewer",
+  "result": "PASS",
+  "remaining_must_fix_findings": 0,
+  "reviewed_file": "services/discovery/sources/collect.py",
+  "collector_sha256": "1aaf022f75dc14c8b1f1284c94d0ecb83b31e992195a23c7806aaaf8e7f0e242",
+  "committed_source_matches_review": true,
+  "checks": [
+    "Within-batch conflicting labels rejected before dictionary replacement.",
+    "Persisted comparison follows the real company ingestion advisory lock.",
+    "NFC/whitespace/case comparison retains punctuation and non-ASCII distinctions.",
+    "Fixed allowlisted diagnostic; existing transaction rollback and ATS pathways preserved.",
+    "Reviewed PostgreSQL race fixture uses independent stores and actual advisory locking."
+  ],
+  "independent_execution": {
+    "result": "PASS",
+    "exit_code": 0,
+    "duration_seconds": 3.44,
+    "providers": [
+      "wwr",
+      "remoteok",
+      "remotive"
+    ],
+    "assertions": [
+      "Conflict leaves zero company/job rows.",
+      "Rejected-label canaries absent from exception, source diagnostics, quality observations and all audit tables.",
+      "Corrected synthetic batch recovers health and clears failure metadata after only the disposable cooldown is cleared."
+    ],
+    "temporary_databases_cleaned": true,
+    "production_or_external_provider_access": false
+  },
+  "limits": [
+    "Internal review is not a GitHub approval or protected check.",
+    "Equal normalized labels do not establish real employer ownership.",
+    "Genuine rebrands can require identity review; no automatic history repair.",
+    "MJ-REQ-017 remains PARTIAL."
+  ]
+}

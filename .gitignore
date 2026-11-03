@@ -27,6 +27,9 @@ events.jsonl
 # CI checkout of canonical shared controller source
 /.fleet-source/
 
+# Persistent local journal coordination; ownership is held by the OS lock.
+/planning/.implementation-progress.lock
+
 # Raw browser traffic may contain credentials and applicant records.
 *.har
 *.har.*

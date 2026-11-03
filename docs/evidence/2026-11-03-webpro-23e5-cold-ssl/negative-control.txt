@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect (tests.integration.owned_cold_ssl_no_clock_charge.SourceAdapterConnectCancellationTests.test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "OWNED_WORKTREE\tests\integration\test_source_adapter_connect_cancellation.py::owned-negative-control", line 708, in test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect
+  File "OWNED_WORKTREE\tests\integration\test_source_adapter_connect_cancellation.py::owned-negative-control", line 587, in run_source
+AssertionError: 0.0 not greater than or equal to 1.1 : Cold SSL construction must consume its operation-clock budget; phase_ms_from_deadline={'operation_deadline_started_at': 0.0, 'cold_ssl_started_at': 0.0, 'cold_ssl_completed_at': 0.0}; deadline_clock=controlled; ssl_factory_calls={'entered': 1, 'completed': 1}; phases={'worker_ready_at': 453645.5, 'worker_release_signaled_at': 453645.5, 'worker_released_at': 453645.5, 'deadline_guard_armed_at': 453645.515, 'deadline_guard_release_signaled_at': 453645.515, 'deadline_guard_released_at': 453645.515, 'operation_deadline_started_at': 0.0, 'collector_entered_at': 453645.515, 'cold_ssl_wall_started_at': 453645.531, 'cold_ssl_started_at': 0.0, 'cold_ssl_completed_at': 0.0, 'cold_ssl_wall_completed_at': 453645.859, 'transport_call': 'connect_ex', 'transport_call_entered_at': 453645.859, 'connect_ex_status': 10035, 'transport_call_completed_at': 453645.859, 'transport_operation_completed_at': 453646.671, 'worker_result_status': 'QUEUED', 'worker_outcome_at': 453646.703, 'worker_finished_at': 453646.703}; worker_errors=[]; outcomes=1; connects=1; requests=0; socket_fd=-1
+
+----------------------------------------------------------------------
+Ran 1 test in 2.791s
+
+FAILED (failures=1)
