@@ -2095,12 +2095,82 @@
         "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-RESUME-STORAGE-PRIVACY-PARTIAL",
+      "timestamp": "2026-11-03T07:54:26.390944+00:00",
+      "current_phase": "Record verified encountered-upload privacy admission while whole MJ-REQ-171 remains PARTIAL",
+      "completed_steps": [
+        "Reproduce four permissive-directory/original API admissions with exact synthetic baseline source retained.",
+        "Refuse encountered non-private POSIX originals/directories before bounded descriptor reads without historical chmod.",
+        "Preserve private0400/multiple-link compatibility, metadata, format/profile scope and fixed API errors.",
+        "Verify the export/restore/library/extraction/comparison callers after correcting only a synthetic export fixture."
+      ],
+      "files_added": [
+        "tests/integration/test_resume_upload_privacy.py",
+        "docs/security/resume_upload_storage.md",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-failures.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/evidence-manifest.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v1.py",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/initial-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/initial-source-linux.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/initial-source-native.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/provisional-linux-console.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/provisional-receipt-failure.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-linux.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-native.xml"
+      ],
+      "files_modified": [
+        "services/documents/uploads.py",
+        "tests/unit/test_data_export.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact source f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954: Linux29 parent tests and29 subtests PASS,0 failures/errors/skips.",
+        "Exact source: native Windows19 parent tests and29 subtests PASS,10 explicit POSIX skips,0 failures/errors.",
+        "Catalogue, strict journal, dashboard, provenance and diff checks PASS at exact source.",
+        "Independent static and retained-evidence readback PASS;62 raw inputs and all published artifacts bound by hashes."
+      ],
+      "tests_remaining": [
+        "Actual proposed-merge candidate verification and every required hosted gate.",
+        "Separately claimed guarded deployment and exact source/image/health/behavior verification.",
+        "Complete literal MJ-REQ-171 PII criteria, Windows ACL and historical-file remediation proof."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Unchanged63cb baseline: four expected API assertion failures; exact baseline source and log retained.",
+        "Provisional artifact-copy HARNESS_ERROR retained; missing Linux JSON/XML were not reconstructed.",
+        "Earlier9a44 scoped pass did not cover the export fixture; its separate positive selector produced1ERROR EXPORT_FILE_UNAVAILABLE before the private synthetic-fixture correction.",
+        "Preparation helper stopped on the reconciler-generated planning/LABELS.json status entry after validation. Exact normalized Git-blob and JSON-semantic equality were confirmed before restoring only unchanged generated LF bytes; no source or canonical semantic correction was needed."
+      ],
+      "known_limitations": [
+        "Whole171 remains PARTIAL; no status/count increment or issue172 closure.",
+        "Encountered POSIX admission does not certify ACLs, bulk historical remediation or continuing privacy after later path/mode changes.",
+        "Synthetic disposable execution only; no actual applicant originals or production records were used.",
+        "Directory-only deployed-volume compatibility is separate from deployment of this changed source."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Six-source cohort verified; actual merge candidate, protected integration and guarded deployment pending",
+  "current_phase": "Record verified encountered-upload privacy admission while whole MJ-REQ-171 remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
+    "git_commit": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

@@ -1963,7 +1963,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-047-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements. webpro-20261103T031738Z-642e4b: MJ-REQ-172 scoped request-boundary fixes and 151 tests / 33 subtests verified at d096d03deba8aa749f478f9dd6c91029379ec50f; parent advances NOT_RUN to PARTIAL only. Protected PR/merge/deployment receipt follows in the containing PR. Umbrella status stays QUEUED for remaining PII/web criteria.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements. webpro-20261103T031738Z-642e4b: MJ-REQ-172 scoped request-boundary fixes and 151 tests / 33 subtests verified at d096d03deba8aa749f478f9dd6c91029379ec50f; parent advances NOT_RUN to PARTIAL only. Protected PR/merge/deployment receipt follows in the containing PR. Umbrella status stays QUEUED for remaining PII/web criteria. 2026-11-03T07:54:26.390944+00:00 webpro-20261103T031738Z-642e4b: scoped171 uploaded-original private admission verified at f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954; Linux29PASS/29subtests/0SKIP, Windows19PASS/29subtests/10POSIXSKIP. Historical failure and evidence-capture records preserved. Parent171 and this umbrella remain PARTIAL/QUEUED; protected publication and deployment are separate gates.",
       "p0p1_20261013_232152": {
         "issue": 173,
         "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
@@ -6205,6 +6205,21 @@
       "branch": "work/webpro-20261103T034313Z-1e2ff1-cohort",
       "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
       "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-642E4B-171",
+      "title": "Refuse non-private stored uploaded originals before read or reuse",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-171"
+      ],
+      "target_area": "services/documents/uploads.py; upload/export privacy regressions and scoped evidence",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
+      "branch": "work/webpro-20261103T031738Z-642e4b-171",
+      "source_revision": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+      "evidence": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json",
+      "notes": "Source and five affected callers verified on Linux/native Windows; all four baseline privacy failures, receipt-capture HARNESS_ERROR and export-fixture error retained. Existing paths are not silently repaired. Whole171 remains PARTIAL; current-candidate gates, protected merge and deployment are pending."
     }
   ],
   "generated_at": "2026-11-03T05:13:45.099255+00:00"

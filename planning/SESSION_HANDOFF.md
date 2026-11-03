@@ -204,3 +204,18 @@ prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
 release verifies a new exact SHA. Other workers own 004/171/269; preserve their
 work, evidence and refs and re-discover their current status before selecting
 new work.
+
+
+## 2026-11-03T07:54:26.390944+00:00 — Web Pro 642e4b: uploaded-original private storage admission
+
+- Run/claim: webpro-20261103T031738Z-642e4b; MJ-REQ-171 owner040e15c143911cc512be6447678abc761d73b432 remains active.
+- Source f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954 (treebcf7290b3719a80dff6fac2864fedefe5ed76b91); reviewed evidence commit b3aa5548b9eaa8d4b1a3fefafb5694da5c71c57d; branch work/webpro-20261103T031738Z-642e4b-171. Evidence: docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json.
+- Four original API failures, the provisional capture HARNESS_ERROR/missing artifacts, the earlier9a44 scoped pass and the later export-fixture1ERROR are preserved. The baseline test source is retained exactly.
+- Exact final source: Linux29PASS+29subtests/0SKIP; native19PASS+29subtests/10POSIXSKIP;0 failures/errors. Five direct callers, catalogue/journal/dashboard/provenance/diff and independent source/evidence readback pass.
+- POSIX uploads-directory/original privacy is checked before reuse/read, with bounded descriptor IO and fixed errors. Private0400/multiple-link originals remain supported; no silent historical permission repair.
+- Parent171 staysPARTIAL. All366/59 statuses/counts and matrix timestamp remain unchanged; no whole PII/ACL/remediation claim.
+- Directory-only runtime compatibility and separately observed63cb/image8fc51eff health are in906 comment6597730536; this changed171 source is not thereby deployed.
+- Frozen902/331 remains in blocked909/e2ddb068; its monitoring-control failure is under the existing004 owner. No pending909 acceptance or journal content was imported into this separate171 append.
+- Packet manifest is a dated creation snapshot; its prior NOT_CREATED field is historical. The containing evidence commit above records publication after independent review without rewriting that snapshot.
+- Next: publish the scoped PR, release the exact preparation ref, verify actual candidate and every protected gate, coordinate main order, then claim and verify any required guarded deployment. No merge/deployment or issue closure yet.
+- Preparation guard receipt: reconciliation's unchanged generated labels/index files were normalized only after exact Git-blob and JSON equality checks; the initial helper stop is retained in outputs/171-canonical-preparation.json.
