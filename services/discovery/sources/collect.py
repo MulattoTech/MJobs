@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from contextlib import nullcontext
 import hashlib
 import json
+import unicodedata
 import httpx
 from urllib.parse import urlsplit
 
@@ -53,6 +54,7 @@ _SAFE_LEGACY_SOURCE_CODES = frozenset({
     "SOURCE_COOLDOWN",
     "SOURCE_DISABLED",
     "SOURCE_DUPLICATE_JOB_ID",
+    "SOURCE_COMPANY_IDENTITY_CONFLICT",
     "SOURCE_INVALID_CONTENT_TYPE",
     "SOURCE_INVALID_FORMAT",
     "SOURCE_INVALID_JOB",
@@ -74,6 +76,11 @@ _PUBLIC_TERMINAL_SOURCE_CATEGORIES = frozenset({
     "SOURCE_BLOCKED",
     "SOURCE_CHANGED",
 })
+
+
+def _company_label(name):
+    """Compare display labels without lossy slugging or punctuation removal."""
+    return unicodedata.normalize("NFC", " ".join(name.split())).casefold()
 
 
 def _safe_legacy_source_code(code):
@@ -347,6 +354,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 authority_rejected = True
                 raise
             bound = fresh_bound
+            first_party_ats = source["provider"] in {"greenhouse", "lever"}
+            aggregator_identity = not bound and not first_party_ats
             def company_identity(company):
                 return bound['company_id'] if bound else identity(*company.identity_parts)
             check()
@@ -358,6 +367,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             batch_identities = {}
             for company in ([batch.source_company] if batch.source_company else []) + [item.company for item, _ in normalized]:
                 company_id = company_identity(company)
+                previous_company = companies.get(company_id)
+                if (aggregator_identity and previous_company is not None
+                        and _company_label(previous_company.name) != _company_label(company.name)):
+                    raise SourceError("SOURCE_COMPANY_IDENTITY_CONFLICT")
                 companies[company_id] = company
             lock_company_ingestion(connection, companies)
             for company_id, company in sorted(companies.items()):
@@ -366,7 +379,11 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 )).mappings().one_or_none()
                 if existing_company is None:
                     new_companies.add(company_id)
-                first_party_ats = source["provider"] in {"greenhouse","lever"}
+                # The ingestion lock also serializes two collectors when this
+                # identity did not exist at either collector's initial read.
+                if (aggregator_identity and existing_company is not None
+                        and _company_label(existing_company["name"]) != _company_label(company.name)):
+                    raise SourceError("SOURCE_COMPANY_IDENTITY_CONFLICT")
                 # Aggregator adapters identify the listing origin, not an employer
                 # website or employer-specific ATS tenant. Keep that distinction in
                 # company records even when the feed attributes a posting to a company.
