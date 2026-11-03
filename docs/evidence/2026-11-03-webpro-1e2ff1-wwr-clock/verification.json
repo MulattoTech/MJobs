@@ -145,12 +145,14 @@
     "contribution_provenance": "PASS",
     "git_diff_check": "PASS"
   },
-  "boundary_harness_sha256": "dfa37a73e48e1c4c6e369c0323492005d5897f4437bedd02a6eaf80016c51518",
   "limits": [
     "The controlled API clock changes are private in-process fixture seams, not system clock changes.",
     "The three before/after probes repeat one test; they are not additional unique feature acceptance.",
     "This correction does not clear the distinct monitoring control-reader failure or restore privacy failure.",
     "Future combined/PR candidate execution and all hosted protected gates remain required.",
     "No new MJ-REQ-030 acceptance promotion or issue closure is claimed."
-  ]
+  ],
+  "boundary_harness_private_file_sha256": "dfa37a73e48e1c4c6e369c0323492005d5897f4437bedd02a6eaf80016c51518",
+  "boundary_harness_published_git_lf_sha256": "247855e76404f8e170154aeb9060cb69184d625a14ed20eec702db35f21107ac",
+  "boundary_harness_hash_disposition": "Initial evidence5a2e5771 labelled the retained Windows CRLF file hash without distinguishing Git LF normalization. The subprocess executed the same Python source string with LF. Both raw private-file and published Git LF hashes are now explicit; no code/result changed."
 }
