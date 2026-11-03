@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-160",
+  "source_sha": "c75f8ba69b582fc449b2e0251140b1a4f10cf5b0",
+  "reviewer": "Independent read-only ChatGPT internal reviewer /root/next_objective_review",
+  "scope": "Static review of final committed implementation, tests, docs and adjacent scheduler/retry contracts; no independent test execution or protected GitHub approval.",
+  "result": "PASS - no remaining scoped release blocker found",
+  "resolved_findings": [
+    "Mixed Greenhouse HTTPX-primary failure now preserves the other response cooldown with fixed SOURCE_NETWORK_ERROR.",
+    "Leap seconds and UTC-normalized RFC850 fifty-year cutoff corrected.",
+    "Valid large intervals retained; oversized input disables automatic collection through existing policy."
+  ],
+  "reviewed_blobs": {
+    "services/discovery/sources/retry_after.py": "a6bcd65c970c3ffe499f0d8938e3eb341d90d84d",
+    "services/discovery/sources/remotive.py": "159bd4f6959cde70d1a6daa35fac756ce128824a",
+    "services/discovery/sources/remoteok.py": "8751e9f94427ff357325183bca358500dd767849",
+    "services/discovery/sources/wwr.py": "04df3c37ff3907caa9432af69a43f7d7b8712581",
+    "services/discovery/sources/greenhouse.py": "51a2b9aa5d25b321a87abee5acf1ff8cdf87ad6d",
+    "tests/unit/test_source_retry_after.py": "fe9830dd57b5e2b0bdeefc5676eebbcaf889a27d",
+    "tests/integration/test_source_retry_after.py": "18f92d7a955c9e2ad2e8cbff9d89cdb200c59b4a",
+    "tests/integration/test_source_retry_after_persistence.py": "e139fbb1f1d9308941a0308d90af4eea4a422188",
+    "docs/SOURCE_RETRY_AFTER.md": "a178ff53e37a0a25086f563aa73c7988cf9b89f1"
+  },
+  "contracts_checked": [
+    "Bounded parser and fixed diagnostics without raw provider text.",
+    "All four adapter429/503 classifications, floors and fallbacks.",
+    "Store reopen, durable backoff, retry-plan and scheduler pre-due/exact-due/outbox behavior.",
+    "Healthy-source progress and extreme-interval disable policy.",
+    "No duplicate GET, new retry loop or non-idempotent submission replay."
+  ],
+  "limitations": [
+    "Static review only; JUnit is the executing owner's separate evidence.",
+    "Parent remains PARTIAL; full browser, AI and queue retry acceptance not claimed."
+  ],
+  "created_utc": "2026-11-03T04:13:44.803Z"
+}
