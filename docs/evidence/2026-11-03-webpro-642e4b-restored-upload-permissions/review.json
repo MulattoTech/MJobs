@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "source_commit": "413fd1e7a41866c6324dec16519522f3c1248128",
+  "source_tree": "111ae748f08028454ea6d983e5159650be80f07f",
+  "reviewed_blobs": {
+    "cli/local_backup.py": "603476b50de9e391d52a46d8a2c9662568f2b271",
+    "tests/unit/test_restored_upload_privacy.py": "b1f9535404cdc7c2d56aa8140d437eefdd3d238f"
+  },
+  "review": {
+    "kind": "Internal ChatGPT static review, not formal/human approval",
+    "author": "/root/adapter_contract_inventory",
+    "independent_reviewers": [
+      "/root",
+      "/root/security_review"
+    ],
+    "result": "No material source blocker identified on the two exact blobs",
+    "reviewers_executed_tests": false,
+    "execution_owner": "/root/adapter_contract_inventory"
+  },
+  "source_commit_provenance": {
+    "exit_code": 0,
+    "raw_log_sha256": "a95e6c2af67c3af3574ebce8bd00efa3ce1ef6e389df82e0b04c1e3a0bb42466",
+    "result": "PASS: provenance complete for 2 source files",
+    "execution_at_commit": false
+  },
+  "test_review_correction": {
+    "prior_full_suite_test_blob": "956f0cc22c72d075c44c154d09d75d58571785ad",
+    "successor_test_blob": "b1f9535404cdc7c2d56aa8140d437eefdd3d238f",
+    "change": "Add comment and NOFOLLOW/NONBLOCK assertions before real_open to prevent a future FIFO regression from hanging.",
+    "successor_execution": "Changed Linux FIFO case1PASS/0skip; full prior suites preserved at prior blob.",
+    "production_blob_unchanged": true
+  },
+  "behavior": [
+    "Fresh restore copies/chowns documents, then explicitly prepares upload permissions asUID/GID10001 before read-only verification/startup.",
+    "Exact document tree/hash validation precedes descriptor-relative no-follow/nonblocking type/link preflight and chmod.",
+    "Normalize uploaded-original directories0700 and regular files0600; verify exact modes and close descriptors.",
+    "Only the fresh uploads subtree is changed; source archive, shared documents parent and generated siblings remain unchanged.",
+    "Manifest stores bytes only:0400 originals intentionally become0600 in the fresh target; this is normalization, not mode restoration.",
+    "Missing POSIX, dirfd, fd-listing, fchmod or no-follow/nonblocking facilities fail closed with a fixed BackupError."
+  ],
+  "acceptance": {
+    "MJ-REQ-171": "PARTIAL",
+    "actual_compose_restore": "NOT_RUN by this scoped capsule",
+    "production_deployment": "NOT_RUN",
+    "live_user_documents": "NOT_ACCESSED",
+    "hostile_concurrent_writer_atomicity": "NOT_CLAIMED",
+    "historical_live_original_remediation": "NOT_PERFORMED",
+    "frozen_MJ_REQ_292_files": "UNCHANGED"
+  },
+  "historical_context": {
+    "bounds_checkpoint": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "prior_failure_checkpoint": "https://github.com/MulattoTech/MJobs/pull/920#issuecomment-6598871354",
+    "prior_test_results_remain_scoped_history": true,
+    "original_PR920_head": "9be83aa0906a24b04381773f01e69eb38efc01b9"
+  }
+}

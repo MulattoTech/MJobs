@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -696,6 +697,11 @@ def _restore_verified_snapshot(archive: Path, manifest: dict, project: str, port
              "10001:10001", "/data/documents", environment=environment,
              timeout=600, action="Restore document ownership")
     with (archive / "manifest.json").open("rb") as stream:
+        _compose(project, "run", "--rm", "--no-deps", "-T", "--user", "10001:10001",
+                 "api", "python", "-m", "cli.local_backup", "prepare-upload-permissions",
+                 environment=environment, stdin=stream, timeout=600,
+                 action="Prepare restored upload permissions")
+    with (archive / "manifest.json").open("rb") as stream:
         _compose(project, "run", "--rm", "--no-deps", "-T", "api", "python", "-m",
                  "cli.local_backup", "verify-documents", environment=environment,
                  stdin=stream, timeout=600, action="Verify restored documents")
@@ -742,6 +748,90 @@ def verify_document_tree(manifest: dict, root: Path) -> None:
             raise BackupError("Restored document checksum mismatch")
 
 
+def prepare_restored_upload_permissions(manifest: dict, root: Path) -> None:
+    """Normalize only a fresh, stopped restore target's uploaded originals.
+
+    The byte-only manifest does not retain original modes. The existing
+    inventory/hash check runs before mutation; descriptor checks then constrain
+    chmod to the uploads subtree. This is not an atomic hostile-writer defense.
+    """
+    error = "Restored upload permissions could not be prepared"
+    try:
+        if (os.name != "posix"
+                or os.open not in getattr(os, "supports_dir_fd", ())
+                or os.listdir not in getattr(os, "supports_fd", ())
+                or not callable(getattr(os, "fchmod", None))
+                or not callable(getattr(os, "fstat", None))
+                or any(not getattr(os, flag, 0)
+                       for flag in ("O_NOFOLLOW", "O_NONBLOCK", "O_DIRECTORY"))):
+            raise BackupError(error)
+        verify_document_tree(manifest, root)
+        flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | getattr(os, "O_CLOEXEC", 0)
+
+        def visit(directory_fd: int, *, normalize: bool) -> None:
+            if not stat.S_ISDIR(os.fstat(directory_fd).st_mode):
+                raise BackupError(error)
+            for name in sorted(os.listdir(directory_fd)):
+                if name in ("", ".", "..") or any(character in name for character in ("/", "\\", ":")):
+                    raise BackupError(error)
+                child = os.open(name, flags, dir_fd=directory_fd)
+                try:
+                    metadata = os.fstat(child)
+                    if stat.S_ISDIR(metadata.st_mode):
+                        visit(child, normalize=normalize)
+                    elif stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1:
+                        # Fresh copyfile/docker-cp targets have no shared file
+                        # links. Never change a potentially aliased original.
+                        if normalize:
+                            os.fchmod(child, 0o600)
+                            checked = os.fstat(child)
+                            if (not stat.S_ISREG(checked.st_mode) or checked.st_nlink != 1
+                                    or stat.S_IMODE(checked.st_mode) != 0o600):
+                                raise BackupError(error)
+                    else:
+                        raise BackupError(error)
+                finally:
+                    os.close(child)
+            if normalize:
+                os.fchmod(directory_fd, 0o700)
+                checked = os.fstat(directory_fd)
+                if not stat.S_ISDIR(checked.st_mode) or stat.S_IMODE(checked.st_mode) != 0o700:
+                    raise BackupError(error)
+
+        documents_fd = os.open(root / "documents", flags | os.O_DIRECTORY)
+        try:
+            if not stat.S_ISDIR(os.fstat(documents_fd).st_mode):
+                raise BackupError(error)
+            try:
+                uploads_fd = os.open("uploads", flags | os.O_DIRECTORY, dir_fd=documents_fd)
+            except FileNotFoundError:
+                if any(name.startswith("documents/uploads/") for name in manifest["files"]):
+                    raise BackupError(error) from None
+                return
+            try:
+                # Validate every node before changing any mode. Repeat type and
+                # link checks on descriptors during the mutating traversal.
+                visit(uploads_fd, normalize=False)
+                visit(uploads_fd, normalize=True)
+            finally:
+                os.close(uploads_fd)
+        finally:
+            os.close(documents_fd)
+    except (OSError, ValueError, TypeError, KeyError, AttributeError,
+            NotImplementedError, RecursionError):
+        raise BackupError(error) from None
+
+
+def prepare_upload_permissions_from_stdin() -> None:
+    """Explicit mutating step in the fresh application volume, as its API UID."""
+    try:
+        manifest = json.load(sys.stdin)
+    except (ValueError, TypeError):
+        raise BackupError("Restored upload permissions could not be prepared") from None
+    prepare_restored_upload_permissions(manifest, Path("/data"))
+    print("Restored upload permissions prepared")
+
+
 def verify_documents_from_stdin() -> None:
     """Run in the application image against its mounted document volume."""
     manifest = json.load(sys.stdin)
@@ -763,6 +853,7 @@ def main() -> int:
     restore.add_argument("--port", type=int, required=True)
     commands.add_parser("verify-credentials", help=argparse.SUPPRESS)
     commands.add_parser("verify-documents", help=argparse.SUPPRESS)
+    commands.add_parser("prepare-upload-permissions", help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
         if args.command == "verify":
@@ -784,6 +875,8 @@ def main() -> int:
             print(f"Saved provider credentials verified: {count}")
         elif args.command == "verify-documents":
             verify_documents_from_stdin()
+        elif args.command == "prepare-upload-permissions":
+            prepare_upload_permissions_from_stdin()
     except BackupError as exc:
         if args.command == "restore":
             parser.exit(2, f"Restore failed: {exc}. A new target may be partial; preserve it for diagnosis.\n")

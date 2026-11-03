@@ -1,0 +1,22 @@
+RUNTIME_SOURCE_BINDINGS {"services.documents.uploads": {"module_file": "/app/services/documents/uploads.py", "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"}, "tests.unit.test_data_export": {"module_file": "/app/tests/unit/test_data_export.py", "sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496"}}
+RUNTIME_SUMMARY {"duration_seconds": 0.088436, "error_testcases": 1, "errors": 1, "failed_testcases": 0, "failures": 0, "finished_utc": "2026-11-03T07:28:37.505226+00:00", "os_name": "posix", "passed": 0, "platform": "linux", "result": "FAIL", "schema_version": 1, "skipped": 0, "started_utc": "2026-11-03T07:28:37.416790+00:00", "subtests_errors": 0, "subtests_failed": 0, "subtests_passed": 0, "tests": 1}
+test_backup_includes_verified_profile_document_bytes_without_local_paths (tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths) ... ERROR
+
+======================================================================
+ERROR: test_backup_includes_verified_profile_document_bytes_without_local_paths (tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/unit/test_data_export.py", line 232, in test_backup_includes_verified_profile_document_bytes_without_local_paths
+    backup = export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/services/data_export.py", line 558, in export_profile_backup
+    "document_files": (_document_file_records(store, connection, profile_id, output_dir)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/services/data_export.py", line 411, in _document_file_records
+    raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
+services.data_export.DataExportError: EXPORT_FILE_UNAVAILABLE
+
+----------------------------------------------------------------------
+Ran 1 test in 0.088s
+
+FAILED (errors=1)

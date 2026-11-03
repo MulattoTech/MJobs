@@ -2494,6 +2494,76 @@
       }
     },
     {
+      "milestone_id": "WEBPRO-642E4B-RESUME-STORAGE-PRIVACY-PARTIAL",
+      "timestamp": "2026-11-03T07:54:26.390944+00:00",
+      "current_phase": "Record verified encountered-upload privacy admission while whole MJ-REQ-171 remains PARTIAL",
+      "completed_steps": [
+        "Reproduce four permissive-directory/original API admissions with exact synthetic baseline source retained.",
+        "Refuse encountered non-private POSIX originals/directories before bounded descriptor reads without historical chmod.",
+        "Preserve private0400/multiple-link compatibility, metadata, format/profile scope and fixed API errors.",
+        "Verify the export/restore/library/extraction/comparison callers after correcting only a synthetic export fixture."
+      ],
+      "files_added": [
+        "tests/integration/test_resume_upload_privacy.py",
+        "docs/security/resume_upload_storage.md",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-failures.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/evidence-manifest.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v1.py",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/initial-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/initial-source-linux.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/initial-source-native.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/provisional-linux-console.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/provisional-receipt-failure.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-linux.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-native.xml"
+      ],
+      "files_modified": [
+        "services/documents/uploads.py",
+        "tests/unit/test_data_export.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact source f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954: Linux29 parent tests and29 subtests PASS,0 failures/errors/skips.",
+        "Exact source: native Windows19 parent tests and29 subtests PASS,10 explicit POSIX skips,0 failures/errors.",
+        "Catalogue, strict journal, dashboard, provenance and diff checks PASS at exact source.",
+        "Independent static and retained-evidence readback PASS;62 raw inputs and all published artifacts bound by hashes."
+      ],
+      "tests_remaining": [
+        "Actual proposed-merge candidate verification and every required hosted gate.",
+        "Separately claimed guarded deployment and exact source/image/health/behavior verification.",
+        "Complete literal MJ-REQ-171 PII criteria, Windows ACL and historical-file remediation proof."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Unchanged63cb baseline: four expected API assertion failures; exact baseline source and log retained.",
+        "Provisional artifact-copy HARNESS_ERROR retained; missing Linux JSON/XML were not reconstructed.",
+        "Earlier9a44 scoped pass did not cover the export fixture; its separate positive selector produced1ERROR EXPORT_FILE_UNAVAILABLE before the private synthetic-fixture correction.",
+        "Preparation helper stopped on the reconciler-generated planning/LABELS.json status entry after validation. Exact normalized Git-blob and JSON-semantic equality were confirmed before restoring only unchanged generated LF bytes; no source or canonical semantic correction was needed."
+      ],
+      "known_limitations": [
+        "Whole171 remains PARTIAL; no status/count increment or issue172 closure.",
+        "Encountered POSIX admission does not certify ACLs, bulk historical remediation or continuing privacy after later path/mode changes.",
+        "Synthetic disposable execution only; no actual applicant originals or production records were used.",
+        "Directory-only deployed-volume compatibility is separate from deployment of this changed source."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json"
+      }
+    },
+    {
       "milestone_id": "WEBPRO-1E2FF1-INSTRUMENTED-COHORT-WWR-CLOCK",
       "timestamp": "2026-11-03T08:56:34.375770+00:00",
       "current_phase": "Reviewed instrumented reliability cohort prepared; actual candidate, protected gates and delivery pending",
@@ -2537,12 +2607,60 @@
         "git_commit": "b10008ef0d552276092a297465b6bad4594b9e21",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-171-POST909-CANONICAL-RECONCILIATION",
+      "timestamp": "2026-11-03T09:36:35.325456Z",
+      "current_phase": "Preserve protected909 history and reviewed171 corrections; new candidate, hosted gates and deployment pending",
+      "completed_steps": [
+        "Verify protected PR909 merge57e524abf4860a57cf6bdd68f4e78759c7d42e89/treeadb8447f2be7379fdb38126a23751b010342e1d6 at2026-11-03T09:19:53Z.",
+        "Preserve all34 incoming milestones, the unchanged historical171 record and every incoming requirement/queue record.",
+        "Retain reviewed source8875db8fd46d539bcb7abcf5387e2375ef833372/tree2138c2dc30d0de86b91b6c11a86a67f9fea13e0f, corrections3e/413/f544 and agreed clocke06 without rewriting failures or test identities."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Historical f4f31aeb upload source: Linux29+29PASS/0skip; native19+29PASS/10POSIXskip.",
+        "Historical corrected bounds fixture:5nativePASS on9be working tree plus exact4a917bc5 test; not later commit execution.",
+        "Historical restore603476b5/provisional956f0cc2:Linux45+78PASS/0skip; native37+69PASS/8POSIXskip; existing nativepytest27PASS/1skip.",
+        "Final restoreb1f95354:only changed LinuxFIFOcase1PASS; prior full-suite identity retained.",
+        "Independent historical source/evidence review and exact parent-object preservation; no product tests run by this reconciliation helper."
+      ],
+      "tests_remaining": [
+        "Execute the actual newly prepared merged candidate and every exact-head protected hosted gate.",
+        "Separately claimed guarded171 deployment and verification.",
+        "Remaining literal171 PII/ACL/historical-remediation criteria."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original hosted unit run41600807135/job125798816850:2FAIL,3611PASS,53SKIP,3867passing subtests; retained unchanged.",
+        "Original hosted Compose run41600807103/job125798816859:FAIL on restored synthetic original HTTP409; correction is not yet actual Compose acceptance.",
+        "Original hosted integration run41600807060/job125798817227: 1 FAIL, 931 PASS, 9 SKIP, 583 passing subtests; WWR expected 3 rows, observed 2. Both correction histories remain separately attributed.",
+        "Original four upload API failures, provisional missing-artifact HARNESS_ERROR, export-fixture1ERROR, restore0755 baseline1FAIL, XML-publication HARNESS_ERROR and staged-whitespace exit2 all remain retained."
+      ],
+      "known_limitations": [
+        "Whole171 remainsPARTIAL; incoming269PASS is preserved, not reaccepted by this run.",
+        "No actual newly merged candidate/hosted/deployment PASS is claimed; source8875 is the pre-merge checkpoint.",
+        "Fresh-target permission normalization does not remediate historical live originals or certify hostile concurrent writers/Windows ACLs."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8875db8fd46d539bcb7abcf5387e2375ef833372",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json"
+      }
     }
   ],
-  "current_phase": "Reviewed instrumented reliability cohort prepared; actual candidate, protected gates and delivery pending",
+  "current_phase": "Preserve protected909 history and reviewed171 corrections; new candidate, hosted gates and deployment pending",
   "last_safe_checkpoint": {
-    "git_commit": "b10008ef0d552276092a297465b6bad4594b9e21",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json"
+    "git_commit": "8875db8fd46d539bcb7abcf5387e2375ef833372",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

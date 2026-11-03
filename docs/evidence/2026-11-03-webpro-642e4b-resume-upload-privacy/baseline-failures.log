@@ -1,0 +1,55 @@
+test_reopened_read_refuses_permissive_directory_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_directory_without_mutation) ... FAIL
+test_reopened_read_refuses_permissive_original_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_original_without_mutation) ... FAIL
+test_repeat_upload_refuses_permissive_directory_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_directory_without_mutation) ... FAIL
+test_repeat_upload_refuses_permissive_original_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_original_without_mutation) ... FAIL
+
+======================================================================
+FAIL: test_reopened_read_refuses_permissive_directory_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_directory_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 89, in test_reopened_read_refuses_permissive_directory_without_mutation
+    self.assert_refused_without_mutation(directory_mode=0o755, file_mode=0o600, read=True)
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 82, in assert_refused_without_mutation
+    self.assertEqual(response.status_code, 409, response.text)
+AssertionError: 200 != 409 : Synthetic Contact
+synthetic@example.invalid
+Synthetic employment history
+
+
+======================================================================
+FAIL: test_reopened_read_refuses_permissive_original_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_original_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 97, in test_reopened_read_refuses_permissive_original_without_mutation
+    self.assert_refused_without_mutation(directory_mode=0o700, file_mode=0o644, read=True)
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 82, in assert_refused_without_mutation
+    self.assertEqual(response.status_code, 409, response.text)
+AssertionError: 200 != 409 : Synthetic Contact
+synthetic@example.invalid
+Synthetic employment history
+
+
+======================================================================
+FAIL: test_repeat_upload_refuses_permissive_directory_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_directory_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 93, in test_repeat_upload_refuses_permissive_directory_without_mutation
+    self.assert_refused_without_mutation(directory_mode=0o755, file_mode=0o600, read=False)
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 82, in assert_refused_without_mutation
+    self.assertEqual(response.status_code, 409, response.text)
+AssertionError: 201 != 409 : {"id":"b33460ff5cf07d1d884bc8d37d4dc15b9aef96ccae5cf4687e59e587993461dd","profile_id":"fixture","filename":"synthetic-private-resume.txt","format":"txt","media_type":"text/plain","size_bytes":73,"sha256":"777c8db36f4978e29e4a12e918a6dc1c1f3f0d94cd37247b34d520c436e9fa80","status":"STORED_UNREVIEWED","created_at":"2026-11-03T07:07:15.223728+00:00","series_id":"b33460ff5cf07d1d884bc8d37d4dc15b9aef96ccae5cf4687e59e587993461dd","label":"synthetic-private-resume.txt","version":1,"document_kind":"BASE_RESUME","revision_id":"9d75ba7c6a39c83303b61860c8972ad42b155c141597d61070763681965af1ae","version_created_at":"2026-11-03T07:07:15.224766+00:00"}
+
+======================================================================
+FAIL: test_repeat_upload_refuses_permissive_original_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_original_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 101, in test_repeat_upload_refuses_permissive_original_without_mutation
+    self.assert_refused_without_mutation(directory_mode=0o700, file_mode=0o644, read=False)
+  File "/app/tests/integration/test_resume_upload_privacy.py", line 82, in assert_refused_without_mutation
+    self.assertEqual(response.status_code, 409, response.text)
+AssertionError: 201 != 409 : {"id":"b33460ff5cf07d1d884bc8d37d4dc15b9aef96ccae5cf4687e59e587993461dd","profile_id":"fixture","filename":"synthetic-private-resume.txt","format":"txt","media_type":"text/plain","size_bytes":73,"sha256":"777c8db36f4978e29e4a12e918a6dc1c1f3f0d94cd37247b34d520c436e9fa80","status":"STORED_UNREVIEWED","created_at":"2026-11-03T07:07:15.526275+00:00","series_id":"b33460ff5cf07d1d884bc8d37d4dc15b9aef96ccae5cf4687e59e587993461dd","label":"synthetic-private-resume.txt","version":1,"document_kind":"BASE_RESUME","revision_id":"9d75ba7c6a39c83303b61860c8972ad42b155c141597d61070763681965af1ae","version_created_at":"2026-11-03T07:07:15.527236+00:00"}
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.596s
+
+FAILED (failures=4)

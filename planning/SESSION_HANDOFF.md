@@ -365,6 +365,21 @@ The original899 shard41588054400/125758487862 failure and same-path reproduction
 
 [Preservation/review evidence](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json) distinguishes prior-revision executions from the not-yet-run final combined candidate. After publication,1e2ff1 will run journal recovery on Windows/Linux,642e4b recovery51+43, and23e5 identity/document/clock/cancellation scope on the exact proposed merge. Fresh peer canonical review and all protected exact-head gates are mandatory. No rerun-only disposition, protection bypass, production fixture, restore, employer submission or paid agent call is claimed. The existing23e5 conversation will separately claim guarded MJobs rollout after protected merge and exact-main release gates.
 
+
+
+## 2026-11-03T07:54:26.390944+00:00 — Web Pro 642e4b: uploaded-original private storage admission
+
+- Run/claim: webpro-20261103T031738Z-642e4b; MJ-REQ-171 owner040e15c143911cc512be6447678abc761d73b432 remains active.
+- Source f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954 (treebcf7290b3719a80dff6fac2864fedefe5ed76b91); reviewed evidence commit b3aa5548b9eaa8d4b1a3fefafb5694da5c71c57d; branch work/webpro-20261103T031738Z-642e4b-171. Evidence: docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json.
+- Four original API failures, the provisional capture HARNESS_ERROR/missing artifacts, the earlier9a44 scoped pass and the later export-fixture1ERROR are preserved. The baseline test source is retained exactly.
+- Exact final source: Linux29PASS+29subtests/0SKIP; native19PASS+29subtests/10POSIXSKIP;0 failures/errors. Five direct callers, catalogue/journal/dashboard/provenance/diff and independent source/evidence readback pass.
+- POSIX uploads-directory/original privacy is checked before reuse/read, with bounded descriptor IO and fixed errors. Private0400/multiple-link originals remain supported; no silent historical permission repair.
+- Parent171 staysPARTIAL. All366/59 statuses/counts and matrix timestamp remain unchanged; no whole PII/ACL/remediation claim.
+- Directory-only runtime compatibility and separately observed63cb/image8fc51eff health are in906 comment6597730536; this changed171 source is not thereby deployed.
+- Frozen902/331 remains in blocked909/e2ddb068; its monitoring-control failure is under the existing004 owner. No pending909 acceptance or journal content was imported into this separate171 append.
+- Packet manifest is a dated creation snapshot; its prior NOT_CREATED field is historical. The containing evidence commit above records publication after independent review without rewriting that snapshot.
+- Next: publish the scoped PR, release the exact preparation ref, verify actual candidate and every protected gate, coordinate main order, then claim and verify any required guarded deployment. No merge/deployment or issue closure yet.
+- Preparation guard receipt: reconciliation's unchanged generated labels/index files were normalized only after exact Git-blob and JSON equality checks; the initial helper stop is retained in outputs/171-canonical-preparation.json.
 ## 2026-11-03T08:56:34.375770+00:00 - instrumented reliability cohort, run1e2ff1
 
 PR909 is prepared from e2ddb068 on exact protected main 63cb1042e08375f7bda1f9dad378209cca856167 with frozen922/60c19990938ac6d02f807483476e9f982cefa490 and agreed clock/c6acb100335df7b85dc26c15ac2ebc40f927a322. Assembled source b10008ef0d552276092a297465b6bad4594b9e21. All81 prior input blobs, prior source ancestry and evidence remain exact. Existing changes are two test methods/helpers; application logic is unchanged from the prior cohort. The full33 prior journal payloads and every queue record/history are preserved with one additive milestone. Matrix366, reference59, index and dashboard remain byte-identical; proposed counts stay183/82/101, P014/4/8, P1108/8/0. Actual main remains182/83/101, P1107/9/0.
@@ -374,3 +389,14 @@ The historical41596437400 monitoring failure remains FAIL; its trigger is UNKNOW
 Run642 recorded the immutable recovery handoff902#6599045923 and released its292 claim; no source alteration is authorized. Root4ba clock claim was deliberately released after the frozen-source handoff909#6599241946; sole editing ownership belongs to run642's separately verified clock claim. Root retains008/18af and scanner278. Preparation owner 129316ac60631d630efbe50d5b368106324e6bd9 will be released after publication before test/CI waits. No main merge/deploy occurred. Current production was independently observed at63cb/image8fc51e with all services healthy; authenticated public-edge smoke remained blocked by sign-in.
 
 Next: execute affected tests on actual proposed merge, obtain fresh independent source/canonical review, inspect every protected gate, then acquire a new integration ref for protected merge. Guarded production delivery requires a separate deployment claim and exact-main release gates. No failed run, missing evidence, acceptance denominator or incomplete004/008/017/292 criterion is waived.
+
+
+## 2026-11-03T09:36:35.325456Z - Web Pro642e4b:171 reconciliation after protected909
+
+- Protected909 merged at2026-11-03T09:19:53Z: main57e524abf4860a57cf6bdd68f4e78759c7d42e89, treeadb8447f2be7379fdb38126a23751b010342e1d6, parents63cb1042e08375f7bda1f9dad378209cca856167 anda106e77a2160173b997b00adeac38bcec3eab468.
+- Incoming366 results remain183PASS/82PARTIAL/101NOT_RUN;269PASS and171PARTIAL are preserved. No incoming matrix/queue timestamps or priorities were reset.
+- All34 incoming journal records and the original07:54171 record remain unchanged, followed by this new dated36th milestone. Both handoff histories are retained.
+- Pre-merge171 source8875db8fd46d539bcb7abcf5387e2375ef833372/tree2138c2dc30d0de86b91b6c11a86a67f9fea13e0f; bounds3e7863fed6e45bc71a4600db26c191462e8c4d5b, restore413fd1e7a41866c6324dec16519522f3c1248128, evidencef54453dd9c8fd2dff715a640b0cbec5130758bd9, agreed clocke06bdfd689c8127c43a6dbe8f408a8f1d535d851.
+- Original hosted unit 2 FAIL, Compose HTTP409 failure, and WWR integration 1 FAIL remain retained. Restore full-suite results belong to provisional test956; final b1 has only the FIFO case rerun. No historical result is relabeled as this new candidate.
+- Preservation evidence: docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json. Private preparation receipt records validators and exact staged tree; no commit/push is performed by the helper.
+- Next: review the staged preservation proof, execute the actual merged candidate and required hosted gates, then separately own and verify any171 rollout. Those gates remainPENDING.

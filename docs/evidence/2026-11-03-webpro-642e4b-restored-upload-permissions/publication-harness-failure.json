@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "result": "HARNESS_ERROR",
+  "stage": "Evidence publication only; source/tests unchanged",
+  "captured_at": "2026-11-03T08:52:20.609251Z",
+  "source_commit": "413fd1e7a41866c6324dec16519522f3c1248128",
+  "tool_reported_process_exit_code": 1,
+  "error": "xml.etree.ElementTree.ParseError: mismatched tag: line 1, column 2356",
+  "cause": "Unescaped angle-bracket path placeholder inserted into XML text by the first publication builder",
+  "retained_raw_console_kind": "Exact RDC read_process_output text capture including tool framing",
+  "partial_output_preserved": true,
+  "partial_file_count": 14,
+  "test_artifacts_missing": false,
+  "test_artifacts_reconstructed": false,
+  "planned_correction": "Sanitize parsed XML nodes and serialize with XML escaping; verify semantic equality after only disclosed transformations",
+  "raw_sha256": {
+    "failed-builder.py": "e18d03cd39fb2f8d411df7c5349892911f477b87c90d7c6e1f3b7ecbe0cecf8e",
+    "corrected-builder.py": "8c789477fa10c0c2f03cd805d0e16cf92e8181d6e70c09f80a84e15be238135c",
+    "rdc-output.txt": "6f0bbb17cde49eb578edef1aee0b0f92bbb876d90d246fde5cea2cc7114a614d"
+  }
+}

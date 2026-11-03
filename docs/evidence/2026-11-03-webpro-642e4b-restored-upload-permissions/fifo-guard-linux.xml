@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="mjobs-upload-privacy" tests="1" failures="0" errors="0" skipped="0" timestamp="2026-11-03T08:46:09.397820Z" time="0.002345">
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded" time="0.0018291580490767956" />
+</testsuite>
