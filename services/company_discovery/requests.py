@@ -462,13 +462,17 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
                 # A parked intent without current authority can acquire better
                 # evidence from a later job. Keep its identity and profile snapshot;
                 # an active or reviewed operation must never be resnapshotted.
-                # Intake can have waited on this request lock. Re-read the job
-                # winner without taking later locks in the opposite order.
-                current_job = connection.execute(select(m.jobs.c.company_id, m.jobs.c.attributes)
-                    .where(m.jobs.c.id == job_id)).mappings().one()
-                current_selected = (current_job['attributes'].get('source_resolution') or {}).get(
-                    'selected_candidate_id')
-                if current_job['company_id'] == request['company_id'] and current_selected == selected:
+                # Refreshing the job FK takes KEY SHARE. Never wait for that
+                # lock while holding the request: collectors lock jobs first.
+                # Contention leaves this durable intent for a later intake.
+                job_query = select(m.jobs.c.company_id, m.jobs.c.attributes).where(m.jobs.c.id == job_id)
+                if connection.dialect.name == 'postgresql':
+                    job_query = job_query.with_for_update(read=True, key_share=True, skip_locked=True)
+                current_job = connection.execute(job_query).mappings().one_or_none()
+                current_selected = ((current_job['attributes'].get('source_resolution') or {}).get(
+                    'selected_candidate_id') if current_job else None)
+                if (current_job and current_job['company_id'] == request['company_id']
+                        and current_selected == selected):
                     incoming = dict(request, candidate_id=selected, trigger_job_id=job_id)
                     try:
                         _source(connection, incoming)

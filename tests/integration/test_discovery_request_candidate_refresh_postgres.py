@@ -78,3 +78,38 @@ class CandidateRefreshPostgreSQLTests(unittest.TestCase):
             self.assertEqual(len(connection.execute(select(m.audit.c.id).where(
                 m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_CANDIDATE_REFRESHED")).all()), 1)
             self.assertEqual(connection.execute(select(m.company_domains)).all(), [])
+
+    def test_collector_job_lock_defers_competing_refresh_without_a_deadlock(self):
+        pending, job = self.case.staged_candidate()
+        store = self.case.case.store
+        profile = store.profile("fixture")
+        def intake():
+            with store.engine.begin() as connection:
+                return record_discovery_request(connection, job["id"], profile,
+                                                explicit_reason="USER_PREFERRED_COMPANY")
+        # A real collector owns the canonical job before it reaches intake.
+        # The competing request must not wait on that job while owning the
+        # request, because the collector will need the request next.
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            with store.engine.begin() as collector:
+                collector.execute(select(m.jobs.c.id).where(
+                    m.jobs.c.id == job["id"]).with_for_update()).one()
+                future = pool.submit(intake)
+                self.assertEqual(future.result(timeout=3), pending["id"])
+                deferred = collector.execute(select(m.company_discovery_requests)).mappings().one()
+                self.assertEqual(deferred["state"], "NEEDS_ORIGIN_REVIEW")
+                self.assertEqual(deferred["candidate_id"], pending["candidate_id"])
+                self.assertIsNone(deferred["operation_id"])
+                self.assertEqual(collector.execute(select(m.audit).where(
+                    m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_CANDIDATE_REFRESHED")).all(), [])
+                # The lock-owning collector can admit the same evidence once.
+                self.assertEqual(record_discovery_request(collector, job["id"], profile), pending["id"])
+        with store.engine.connect() as connection:
+            request = connection.execute(select(m.company_discovery_requests)).mappings().one()
+            self.assertEqual(request["state"], "QUEUED")
+            self.assertEqual(request["revision"], pending["revision"] + 1)
+            self.assertEqual(request["trigger_job_id"], job["id"])
+            self.assertEqual(len(connection.execute(select(m.operations).where(
+                m.operations.c.kind == "COMPANY_DISCOVER")).all()), 1)
+            self.assertEqual(len(connection.execute(select(m.audit).where(
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_CANDIDATE_REFRESHED")).all()), 1)

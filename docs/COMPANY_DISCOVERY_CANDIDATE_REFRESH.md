@@ -27,10 +27,15 @@ operation.
 
 This evidence refresh preserves the binding of authorized, queued, running,
 terminal and dismissed requests. The separate source-configuration renewal path
-retains its existing behavior. Neither path introduced here replays an operation
-or revises user approval.
-The fresh job read adds no inverted row-lock order; workers continue to validate
-current profile/source/proof authority before employer egress.
+retains its existing behavior. This refresh does not replay an operation or
+revise user approval.
+
+On PostgreSQL the fresh job read takes `FOR KEY SHARE SKIP LOCKED`, the lock
+needed by the changed foreign key. A competing collector's job lock therefore
+causes deferral instead of waiting while holding the request. The parked intent
+and its binding remain available; the collector or a later eligible intake can
+queue it. This avoids adding blocking batch/profile lock orders. Workers still
+validate current profile/source/proof authority before employer egress.
 
 ## Evidence and acceptance boundary
 
