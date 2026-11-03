@@ -132,3 +132,56 @@ def test_unknown_provider_and_cross_provider_route_fail_without_analysis():
         "reason": "PROVIDER_UNSUPPORTED",
         "fields": [],
     }
+
+
+class _ForbiddenFixtureInput:
+    """Any access to a page, form analysis, or document on a rejected path is a bug."""
+
+    def __getattribute__(self, name):
+        raise AssertionError("unsupported fixture input was inspected")
+
+
+@pytest.mark.parametrize("provider", CANONICAL_ROUTES)
+def test_advertised_fixture_upload_has_a_callable_entrypoint(provider):
+    adapter = get_provider(provider)
+    declared = capabilities(provider)
+    assert declared is not None
+    assert isinstance(declared.get("mock_fixture_upload", False), bool)
+    if declared.get("mock_fixture_upload", False):
+        assert callable(getattr(adapter, "upload_mock_fixture_documents", None))
+
+
+@pytest.mark.parametrize("provider", ("greenhouse", "lever", "recruitee", "workday"))
+def test_fixture_upload_cancellation_precedes_page_or_document_inspection(provider):
+    adapter = get_provider(provider)
+    upload = getattr(adapter, "upload_mock_fixture_documents")
+    cancelled = RuntimeError("controlled cancellation")
+    calls = []
+
+    def check():
+        calls.append("check")
+        raise cancelled
+
+    poison = _ForbiddenFixtureInput()
+    with pytest.raises(RuntimeError) as caught:
+        upload(poison, poison, poison, check=check)
+    assert caught.value is cancelled
+    assert calls == ["check"]
+
+
+@pytest.mark.parametrize(
+    "provider, error",
+    (
+        ("recruitee", "RECRUITEE_DOCUMENT_UPLOAD_UNSUPPORTED"),
+        ("workday", "WORKDAY_FIXTURE_UPLOAD_UNAVAILABLE"),
+    ),
+)
+def test_unadvertised_inherited_fixture_upload_is_side_effect_free(provider, error):
+    assert capabilities(provider)["mock_fixture_upload"] is False
+    checked = []
+    poison = _ForbiddenFixtureInput()
+    with pytest.raises(ValueError, match=f"^{error}$"):
+        get_provider(provider).upload_mock_fixture_documents(
+            poison, poison, poison, check=lambda: checked.append("check"),
+        )
+    assert checked == ["check"]
