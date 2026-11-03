@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from time import monotonic
 from typing import Literal, Annotated
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Query
@@ -115,6 +115,26 @@ BROWSER_SECURITY_HEADERS = {
 CREDENTIAL_PROBE_MAX_IN_FLIGHT = 4
 
 
+def _referrer_origin(value: str) -> tuple[str, str, int] | None:
+    """Read only a well-formed HTTP(S) origin; never trust a URL prefix match."""
+    if not value or any(ord(char) <= 32 or ord(char) >= 127 for char in value):
+        return None
+    if "\\" in value:
+        return None
+    try:
+        parsed = urlsplit(value)
+        if (parsed.scheme not in {"http", "https"} or not parsed.hostname
+                or parsed.username is not None or parsed.password is not None
+                or parsed.fragment or parsed.netloc.endswith(":")):
+            return None
+        port = parsed.port
+        if port is not None and not 1 <= port <= 65535:
+            return None
+        return parsed.scheme, parsed.hostname, port or (443 if parsed.scheme == "https" else 80)
+    except ValueError:
+        return None
+
+
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
 
@@ -134,20 +154,42 @@ class LocalOriginMiddleware:
             await send(message)
 
         request = Request(scope, receive)
+        # Different HTTP components can select different duplicate values. Never
+        # authorize a request using only the first security-relevant header.
+        if any(len(request.headers.getlist(name)) > 1 for name in
+               ("host", "origin", "referer", "sec-fetch-site")):
+            response = JSONResponse({"detail": "Ambiguous request security headers"}, status_code=400)
+            await response(scope, receive, send_with_security_headers)
+            return
+
         origin = request.headers.get("origin")
+        referer = request.headers.get("referer")
         unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
         expected_origin = str(request.base_url).rstrip("/")
-        if self.public_host and request.url.hostname == self.public_host:
+        public_request = bool(self.public_host and request.url.hostname == self.public_host)
+        if public_request:
             # The authenticated Cloudflare HTTPS origin terminates TLS at the edge.
             expected_origin = f"https://{self.public_host}"
         foreign_origin = origin is not None and origin != expected_origin
+        trusted_referrer = False
+        if origin is None and referer is not None:
+            referrer_origin = _referrer_origin(referer)
+            trusted_referrer = (referrer_origin is not None
+                                and referrer_origin == _referrer_origin(expected_origin))
+            foreign_origin = not trusted_referrer
         fetch_site = request.headers.get("sec-fetch-site")
         # Another port on localhost is same-site, but does not own this API.
-        # Missing metadata preserves native clients; explicit invalid metadata
-        # fails closed. Direct address-bar navigation is identified as "none".
+        # Headerless native clients retain the local API contract. Public-host
+        # mutations additionally require affirmative same-origin context below.
+        # Direct address-bar navigation is identified as "none".
         foreign_browser = fetch_site is not None and fetch_site not in {"same-origin", "none"}
         if unsafe_method and (foreign_origin or foreign_browser):
             response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
+            await response(scope, receive, send_with_security_headers)
+            return
+        trusted_source = origin == expected_origin or trusted_referrer or fetch_site == "same-origin"
+        if public_request and unsafe_method and not trusted_source:
+            response = JSONResponse({"detail": "Same-origin browser context required"}, status_code=403)
             await response(scope, receive, send_with_security_headers)
             return
         # API namespaces grow as new workflows are added. Protect them by

@@ -42,3 +42,35 @@ Owned native worktrees under `C:\Tools\Dev\`: `MJobs-pro-bounds-domain-20261102`
 Owned disposable PostgreSQL: `mjobs-pro-boundary-pg-20261102-01`, exact ID `bdf1629274d0ef8b769a163992a5802ec85c395b7ac482cc5e47e455b2024322`, label `mjobs.sprint=20261102-bounds`, loopback42692/tmpfs. Remove only this exact identified container after validation; final PR records cleanup. No live restore, host reboot or unrelated process termination.
 
 Next: **004** acquisition/connect/network/finalization deadlines; **264** safe automatic employer-origin discovery; **018/017** strategy/provider breadth. **008** host restart and **292** complete original journey remain unverified. **171/172/224/269** remain substantive gaps. Prior accepted162/167/175/208/267/275/288 and minimatch remediation predate this sprint. No paid AI, real submissions, fleets or standing worker claims are authorized by this handoff.
+
+## Latest sprint checkpoint: webpro-20261103T031738Z-642e4b
+
+UTC checkpoint: 2026-11-03T03:33:06.273418+00:00
+. Source branch: work/webpro-20261103T031738Z-642e4b-172.
+Source revision: d096d03deba8aa749f478f9dd6c91029379ec50f.
+Objective: MJ-REQ-172 / issue173; scoped web-origin repair, PARTIAL only.
+Exact committed-source scope: 151 tests and 33 subtests PASS, zero skips.
+Frontend build/typecheck PASS; independent internal code review found no blocker.
+Both earlier fixture failures and corrections are retained in
+[execution evidence](../docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json).
+No migration, credential change, real employer submission or paid model call.
+
+Baseline main and observed deployment:63b843dfe2706e6a5ac1d567af7e5acb01e134a7.
+Protected PR, actual merge, new main checks and deployment remain pending at this
+file's creation. Read the containing PR's final receipt for those future hashes.
+P0 remains 13/26 PASS. P1 remains 107/116 PASS; only 172 moves NOT_RUN to PARTIAL.
+Do not close issue173 or claim universal CSRF, auth-policy or product acceptance.
+
+Objective claim refs/heads/webpro-claims/MJ-REQ-172 is owned by
+1c26033405156715b21679f241182bd221971b52. Integration preparation used
+refs/heads/webpro-locks/integration at 59274c50197417458c7fb4a3418cfb2f7ac4c421.
+Requery both refs before any resume; this record does not preserve ownership.
+The preparation lock will be released while CI runs and reacquired for merge.
+No deployment lock has been acquired. The containing PR records final releases.
+
+Isolated worktree:C:\Tools\Dev\MJobs-webpro-20261103T031738Z-642e4b-172.
+Raw synthetic test receipts are under its outputs directory; public evidence
+removes workstation hostname metadata. Existing unrelated worktrees remain intact.
+Next independent candidate: 224 adapter contract gaps; scope and claim must be
+rediscovered before writes. Original 171/224/269 and overarching P0 outcomes remain
+incomplete.
