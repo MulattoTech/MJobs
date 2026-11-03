@@ -1,0 +1,28 @@
+{
+  "source_sha": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+  "started_at": "2026-11-03T04:59:45.114223+00:00",
+  "scope": [
+    "tests.integration.test_answer_export_privacy",
+    "tests.unit.test_answer_export_path_security",
+    "tests.integration.test_application_answer_export",
+    "tests.integration.test_application_answer_story_citation_export",
+    "tests.integration.test_reviewed_application_answer_durability",
+    "tests.unit.test_deployment_checks",
+    "tests.unit.test_progress_journal",
+    "tests.unit.test_progress_journal_recovery",
+    "tests.unit.test_progress_dashboard",
+    "tests.unit.test_progress_card"
+  ],
+  "environment": "Owned disposable read-only/no-network container, CPU1/memory1GiB/tmpfs256MiB",
+  "dependency_image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+  "exit_code": 0,
+  "elapsed_seconds": 50.016,
+  "ended_at": "2026-11-03T05:00:35.120082+00:00",
+  "result": "PASS",
+  "tests_passed": 108,
+  "tests_skipped": 0,
+  "failures": 0,
+  "errors": 0,
+  "unittest_seconds": 44.697,
+  "posix_counterparts": "All six Windows-skipped POSIX privacy cases executed and passed."
+}

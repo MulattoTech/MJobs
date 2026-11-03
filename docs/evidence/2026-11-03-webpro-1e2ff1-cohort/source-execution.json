@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "timestamp": "2026-11-03T05:13:45.099255+00:00",
+  "result": "SOURCE_VERIFICATION_PASS_PENDING_ACTUAL_CANDIDATE_AND_GATES",
+  "tested_source": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+  "tested_tree": "f1729ba63cd5be10810fb5411889969ef802f598",
+  "frozen_prs": [
+    894,
+    895,
+    897,
+    898,
+    900,
+    901
+  ],
+  "native": {
+    "passed": 417,
+    "subtests_passed": 326,
+    "skipped": 8,
+    "failed": 0,
+    "errors": 0,
+    "warning_count": 1,
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/native-source-execution.json"
+  },
+  "linux": {
+    "passed": 108,
+    "skipped": 0,
+    "failed": 0,
+    "errors": 0,
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/linux-source-execution.json"
+  },
+  "scanner_policy": {
+    "passed": 6,
+    "skipped": 0,
+    "failed": 0,
+    "errors": 0,
+    "seconds": 0.57,
+    "junit": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/scanner-policy-tests.xml",
+    "scope": "Policy regression tests only; fresh full protected all-history secret scan remains required."
+  },
+  "report": {
+    "result": "PASS",
+    "required_sections": 14,
+    "local_links": 60,
+    "immutable_manifest_entries": 2874,
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/report-verification.json"
+  },
+  "independent_review": {
+    "reviewer_run": "webpro-20261103T034301Z-89c21f",
+    "source_review": "https://github.com/MulattoTech/MJobs/pull/894#issuecomment-6595954542",
+    "canonical_review_and_cleanup": "https://github.com/MulattoTech/MJobs/pull/894#issuecomment-6595985003",
+    "scope": "Source/API review and original-evidence preservation; not reviewer runtime execution or human approval."
+  },
+  "retained_failures": [
+    "Original privacy failures and follow-up error-boundary failures retained in answer-privacy receipts.",
+    "Original journal recovery and canonical-destination corruption failures retained in journal-recovery receipts.",
+    "Peer PostgreSQL foreign-key deadlock retained in candidate-refresh receipt.",
+    "PR900 historical full-scanner failure retained with independently reviewed one-fingerprint source-object correction."
+  ],
+  "environment_recovery": [
+    "Docker default address pools were exhausted; a checked non-overlapping explicit owned subnet was used.",
+    "First owned internal network did not publish its loopback port; only exact verified empty owned test resources were recreated as a dedicated bridge.",
+    "Missing psycopg was installed at project-pinned3.3.6 in this run's isolated venv."
+  ],
+  "not_run": [
+    "Local Ruff executable unavailable; protected CI remains mandatory.",
+    "Live RemoteOK/WWR probes intentionally disabled.",
+    "Actual GitHub merge-candidate verification, protected merge and production rollout not yet performed."
+  ],
+  "acceptance": "Only295 reporting deliverable adds a proposed PASS.004/008/160/171/224/264 remain PARTIAL. No criteria or denominators changed.",
+  "rollout_owner": "webpro-20261103T034301Z-89c21f, after protected merge/current-main gates and separately acquired deployment ref/native lease.",
+  "delivery_record": "Containing integration PR will append actual candidate/merge/main/deployment identities and exact cleanup/release receipts."
+}

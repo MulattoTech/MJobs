@@ -482,9 +482,10 @@ def check_cancelled(store, operation_id, attempt_count=None, local_cancellation=
 def _read_operation_control(store, operation_id):
     """Bound SQL lock contention on this read's owned connection.
 
-    These query limits do not certify pool checkout, DNS/connect or a database
-    network black hole. They never change the engine's shared configuration or
-    turn an unavailable read into cancellation authorization.
+    Store queue pools separately limit capacity waiting to one second. Neither
+    limit certifies connection creation, pre-ping, DNS/network or close/reset.
+    This read never changes the engine's shared configuration or turns an
+    unavailable read into cancellation authorization.
     """
     try:
         with store.engine.connect() as connection:

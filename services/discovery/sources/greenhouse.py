@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.retry_after import retry_after_seconds
 from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
@@ -154,11 +155,12 @@ class Greenhouse:
                     if response.is_redirect:
                         raise SourceError("SOURCE_REDIRECT_BLOCKED")
                     if response.status_code == 429:
-                        try:
-                            seconds = int(response.headers.get("retry-after", "60"))
-                        except ValueError:
-                            seconds = 86400
-                        raise SourceError("SOURCE_RATE_LIMITED", max(60, seconds))
+                        seconds = retry_after_seconds(response.headers.get("retry-after"),
+                                                      default=60, minimum=60, invalid_default=86400)
+                        raise SourceError("SOURCE_RATE_LIMITED", seconds)
+                    if response.status_code >= 500:
+                        raise SourceError("SOURCE_HTTP_" + str(response.status_code), retry_after_seconds(
+                            response.headers.get("retry-after"), default=60, minimum=60))
                     if response.status_code != 200:
                         raise SourceError("SOURCE_HTTP_" + str(response.status_code))
                     if "application/json" not in response.headers.get("content-type", "").lower():
@@ -242,7 +244,17 @@ class Greenhouse:
                 # so a concurrent provider error cannot turn a local stop into
                 # a provider failure or poison source health/history.
                 self.check()
-                raise failures[0]
+                primary = failures[0]
+                cooldowns = [failure.retry_seconds for failure in failures
+                             if isinstance(failure, SourceError)]
+                if cooldowns:
+                    # Retain the first public classification and the longest
+                    # settled cooldown, including a network-primary failure.
+                    if isinstance(primary, SourceError):
+                        primary.retry_seconds = max(cooldowns)
+                    elif isinstance(primary, httpx.HTTPError):
+                        raise SourceError("SOURCE_NETWORK_ERROR", max(cooldowns)) from None
+                raise primary
         if not isinstance(board, dict) or not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
             raise SourceError("SOURCE_INVALID_FORMAT")
         if len(payload["jobs"]) > 1000:

@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.retry_after import retry_after_seconds
 from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
@@ -153,11 +154,7 @@ class RemoteOK:
                             raise SourceError("SOURCE_REDIRECT_BLOCKED")
 
                         if response.status_code == 429:
-                            retry_after = 60
-                            try:
-                                retry_after = max(int(response.headers.get("retry-after", "60")), 1)
-                            except (ValueError, TypeError):
-                                pass
+                            retry_after = retry_after_seconds(response.headers.get("retry-after"))
                             with self._status_lock:
                                 self.status = "SOURCE_RATE_LIMITED"
                                 self._request_failed = True
@@ -167,7 +164,8 @@ class RemoteOK:
                             with self._status_lock:
                                 self.status = "SOURCE_SERVER_ERROR"
                                 self._request_failed = True
-                            raise SourceError("SOURCE_SERVER_ERROR", retry_seconds=300)
+                            raise SourceError("SOURCE_SERVER_ERROR", retry_seconds=retry_after_seconds(
+                                response.headers.get("retry-after"), default=300, minimum=300))
 
                         if response.status_code != 200:
                             with self._status_lock:

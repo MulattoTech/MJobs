@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "source_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "expected_result": "FAIL",
+  "executed_result": "FAIL",
+  "tests": 3,
+  "failures": 3,
+  "skips": 0,
+  "duration_seconds": 4.357,
+  "cases": [
+    {
+      "name": "test_temporary_and_published_bytes_are_private_under_permissive_umask",
+      "observed_mode": "0666",
+      "required_mode": "0600"
+    },
+    {
+      "name": "test_process_death_leaves_private_bytes_and_retry_remains_safe",
+      "observed_mode": "0666",
+      "required_mode": "0600"
+    },
+    {
+      "name": "test_recovery_restricts_matching_bytes_before_recording_document",
+      "observed_mode": "0666",
+      "required_mode": "0600"
+    }
+  ],
+  "note": "Synthetic fixtures only. Regression tests were added to an isolated worktree before production source changes. Earlier failures are retained rather than overwritten by later passing evidence."
+}

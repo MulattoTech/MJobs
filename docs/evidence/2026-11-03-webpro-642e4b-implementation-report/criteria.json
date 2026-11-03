@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-295",
+  "utc": "2026-11-03T04:06:35Z",
+  "source_revision": "1350f398386d0be8c9555aa8ec565daf186b2b84",
+  "report": "docs/IMPLEMENTATION_REPORT.md",
+  "report_git_blob": "58a171c58e5008769e232b42530f78a69050bfd1",
+  "report_sha256": "6cc3de124c803a50e006d8aaf63b1aef0a54c8ebef1f0bcdd90ca017d695424c",
+  "result": "PASS",
+  "acceptance_boundary": "Reporting deliverable only; prepared for protected publication. This does not complete the product or accept MJ-REQ-290/294/296-300.",
+  "literal_requirement": "docs/spec/areas/delivery_control.md#295-final-implementation-report",
+  "issue": 296,
+  "criteria": [
+    {
+      "section": "Architecture",
+      "result": "PASS",
+      "verified_content": "Built system, reasons, persistence/queue/file trust boundaries and incomplete recovery."
+    },
+    {
+      "section": "Files",
+      "result": "PASS",
+      "verified_content": "Complete 2874-file Git manifest, exact baseline, 9 added/15 modified/0 removed source delta, later report additions explicitly scoped."
+    },
+    {
+      "section": "Services",
+      "result": "PASS",
+      "verified_content": "Frontend, backend, database, Redis, scheduler, five worker roles and browser implementation versus actual baseline observations."
+    },
+    {
+      "section": "Sources",
+      "result": "PASS",
+      "verified_content": "Every five default built-in collectors: strategy, implementation/evidence status and limitations; live history versus current NOT_RUN."
+    },
+    {
+      "section": "Company Discovery",
+      "result": "PASS",
+      "verified_content": "Domain resolution, career discovery,22 detectors,native Greenhouse/Lever enrollment,generic feeds,tested provider boundaries and narrow origin acquisition."
+    },
+    {
+      "section": "Deduplication",
+      "result": "PASS",
+      "verified_content": "Strong identity, lexical similarity, actual thresholds, unattached helper limitation and application-route dedupe."
+    },
+    {
+      "section": "Matching",
+      "result": "PASS",
+      "verified_content": "Persisted approved-skill coverage, selected scoring profiles, separate engine and advisory AI job-scoring controls."
+    },
+    {
+      "section": "Documents",
+      "result": "PASS",
+      "verified_content": "Resume parsing, optional OCR,deterministic tailoring,reviewed rewrites,factual validation,cover letters,DOCX/PDF/TXT and immutable history."
+    },
+    {
+      "section": "Applications",
+      "result": "PASS",
+      "verified_content": "Every11 built-in adapters: public autofill/upload/submit/confirmation boundaries,question analysis,fixture helper limits; separate controlled/mock flows."
+    },
+    {
+      "section": "Tests",
+      "result": "PASS",
+      "verified_content": "Actual commands/results with exact source/candidate revisions,retained corrected FAILs,zero-skip focused scopes,historical evidence and explicit NOT_RUN."
+    },
+    {
+      "section": "External Limitations",
+      "result": "PASS",
+      "verified_content": "CAPTCHA/account/source/changed-structure/question restrictions; Access external-evaluation uncertainty; headerless-local boundary."
+    },
+    {
+      "section": "Deployment",
+      "result": "PASS",
+      "verified_content": "Exact fresh Windows commands and ports; live baseline identity; guarded updater,backup and rollback boundaries; fresh install/deployment limitations."
+    },
+    {
+      "section": "Known Limitations",
+      "result": "PASS",
+      "verified_content": "Current partial/unexecuted recovery,E2E,pipeline,origins,sources,PII/security,adapter/document/matching and production outcomes."
+    },
+    {
+      "section": "Next Recommended Improvements",
+      "result": "PASS",
+      "verified_content": "Prioritized remaining engineering,without granting fresh acceptance to other requirements."
+    }
+  ],
+  "verification": [
+    "validation.json",
+    "review.json",
+    "inventory.json",
+    "file-manifest.tsv"
+  ],
+  "product_result": "PARTIAL",
+  "not_run": [
+    "Fresh live-provider sweep",
+    "Public ATS/employer submission",
+    "Paid AI inference",
+    "Physical-host restart",
+    "Destructive production restore",
+    "Production rollback drill",
+    "Fresh-install startup",
+    "Complete original MJ-REQ-292 journey"
+  ],
+  "publication_status": "Protected containing PR and resulting merge pending at this artifact checkpoint."
+}

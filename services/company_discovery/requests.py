@@ -453,6 +453,44 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
         else:
             from services.company_discovery.domain_acquisition import native_job_link, CANDIDATE
             proof = native_job_link(connection, request)
+            if (not proof and request['candidate_id'] != selected
+                    and request['source_snapshot'] == snapshot
+                    and request['operation_id'] is None and request['selected_website'] is None
+                    and request['authorization'] is None and request['domain_evidence'] == []
+                    and (request['profile_id'], request['profile_version']) == (
+                        profile['id'] if profile else None, profile['version'] if profile else None)):
+                # A parked intent without current authority can acquire better
+                # evidence from a later job. Keep its identity and profile snapshot;
+                # an active or reviewed operation must never be resnapshotted.
+                # Refreshing the job FK takes KEY SHARE. Never wait for that
+                # lock while holding the request: collectors lock jobs first.
+                # Contention leaves this durable intent for a later intake.
+                job_query = select(m.jobs.c.company_id, m.jobs.c.attributes).where(m.jobs.c.id == job_id)
+                if connection.dialect.name == 'postgresql':
+                    job_query = job_query.with_for_update(read=True, key_share=True, skip_locked=True)
+                current_job = connection.execute(job_query).mappings().one_or_none()
+                current_selected = ((current_job['attributes'].get('source_resolution') or {}).get(
+                    'selected_candidate_id') if current_job else None)
+                if (current_job and current_job['company_id'] == request['company_id']
+                        and current_selected == selected):
+                    incoming = dict(request, candidate_id=selected, trigger_job_id=job_id)
+                    try:
+                        _source(connection, incoming)
+                    except ValueError:
+                        pass
+                    else:
+                        proof = native_job_link(connection, incoming)
+                if proof:
+                    _audit(connection, request, 'COMPANY_DISCOVERY_REQUEST_CANDIDATE_REFRESHED',
+                        previous_candidate_id=request['candidate_id'], candidate_id=selected,
+                        previous_trigger_job_id=request['trigger_job_id'], trigger_job_id=job_id,
+                        new_revision=request['revision'] + 1)
+                    connection.execute(update(m.company_discovery_requests).where(
+                        m.company_discovery_requests.c.id == request_id).values(
+                            candidate_id=selected, trigger_job_id=job_id))
+                    request.update(candidate_id=selected, trigger_job_id=job_id)
+                    # The existing queue transition advances the revision once;
+                    # workers revalidate source and proof before employer egress.
             if proof:
                 _source(connection, request)
                 _queue(connection, request, proof['website'], CANDIDATE, [proof])

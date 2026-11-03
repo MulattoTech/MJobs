@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-295",
+  "utc": "2026-11-03T04:42:10.384319+00:00",
+  "result": "PASS",
+  "report": "docs/IMPLEMENTATION_REPORT.md",
+  "report_git_blob": "e2a1955c4ad655313a3cbff07a6fa480364287e0",
+  "report_sha256": "a3b02d617358a489893865ec6fadfc2e6ef361e68e18b6b67829dbf56464ab41",
+  "original_report_git_blob": "58a171c58e5008769e232b42530f78a69050bfd1",
+  "original_inventory_revision": "1350f398386d0be8c9555aa8ec565daf186b2b84",
+  "original_manifest_sha256": "741d66fcfb15d95669ecce5ef8472fefc47bd54b65c584c8781bc15d05bd699d",
+  "subsequent_integrated_revision": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "scope": "Dated report maintenance for separately merged PR896 and verified PR893 deployment; original inventory and execution receipts unchanged. No canonical acceptance edits or new product execution.",
+  "validation": {
+    "required_sections": [
+      "Architecture",
+      "Files",
+      "Services",
+      "Sources",
+      "Company Discovery",
+      "Deduplication",
+      "Matching",
+      "Documents",
+      "Applications",
+      "Tests",
+      "External Limitations",
+      "Deployment",
+      "Known Limitations",
+      "Next Recommended Improvements"
+    ],
+    "local_links_checked": 60,
+    "original_manifest_unchanged": true
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "Independent internal agent /root/security_review",
+    "utc": "2026-11-03T04:44:18.294963+00:00",
+    "report_git_blob": "e2a1955c4ad655313a3cbff07a6fa480364287e0",
+    "scope": "Compared maintenance diff, original inventory/hash, PR896 source/evidence and 269 matrix at merge, native deployment receipt,14 required sections. No material correction required. No test or runtime rerun; not formal GitHub approval."
+  },
+  "acceptance_boundary": "Only the reporting deliverable;269 promotion remains its owner's separate canonical work,224/172 remain PARTIAL,no whole-product acceptance.",
+  "deployment": "runtime-followup.json"
+}
