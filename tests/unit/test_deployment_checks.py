@@ -7,6 +7,7 @@ import io
 import json
 import socket
 import ssl
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
@@ -78,9 +79,13 @@ class DeploymentLookupTests(unittest.TestCase):
     def setUp(self):
         self.elapsed = 0.0
         self.sleeps = []
-        self.enterContext(patch.object(gate.time, "monotonic", side_effect=lambda: self.elapsed))
-        self.enterContext(patch.object(gate.time, "time", side_effect=lambda: 1700000000 + self.elapsed))
-        self.enterContext(patch.object(gate.time, "sleep", side_effect=self.sleep))
+        # Keep virtual time local to the gate: unrelated background sleeps
+        # must not consume this test's deterministic deadline.
+        self.enterContext(patch.object(gate, "time", SimpleNamespace(
+            monotonic=lambda: self.elapsed,
+            time=lambda: 1700000000 + self.elapsed,
+            sleep=self.sleep,
+        )))
         self.enterContext(patch.dict(gate.os.environ, {"GH_TOKEN": PRIVATE}))
 
     def sleep(self, seconds):
