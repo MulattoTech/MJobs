@@ -74,3 +74,40 @@ removes workstation hostname metadata. Existing unrelated worktrees remain intac
 Next independent candidate: 224 adapter contract gaps; scope and claim must be
 rediscovered before writes. Original 171/224/269 and overarching P0 outcomes remain
 incomplete.
+
+## Scoped pool-wait checkpoint: webpro-20261103T034301Z-89c21f
+
+UTC checkpoint: 2026-11-03T04:12:58.550Z. [PR894](https://github.com/MulattoTech/MJobs/pull/894)
+contains MJ-REQ-004 queue-capacity waiting progress, with no new PASS acceptance.
+Source b78e40517f239f26b575c746acf744361a704373 passed 75 tests and 22 subtests,
+zero failures/errors/skips; [execution](../docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-execution.json)
+retains baseline and fixture/environment failures. Independent internal and
+cross-sprint static reviews found no blocker. Current protected main
+ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b was merged without replacing prior evidence.
+
+One-second QueuePool capacity waiting preserves caller transactions, capacity and
+dialect-selected memory pools. Connect/DNS/pre-ping/network/reset/recovery and
+finalization deadlines remain incomplete. Worker durable BLOCKED evidence applies
+after held capacity returns. Ordinary Store callers also fail sooner under
+sustained saturation. No migration or new retry loop is introduced.
+
+Branch: work/webpro-20261103T034301Z-89c21f-004. Objective ref
+refs/heads/webpro-claims/MJ-REQ-004 owner49faf472e6a345f2b347441cca7da3db904f7e45.
+This reconciliation uses integration owner e613a6fb05b4214226f1eb47205fa0001dd0231d;
+the short lock will be released while hosted CI runs. Requery ownership before
+resuming; this record grants no continuing lock. Read PR894's final receipt for
+its future exact candidate/merge/main checks, deployment and release status.
+The observed live source remains63b843dfe2706e6a5ac1d567af7e5acb01e134a7, ready.
+No deployment is claimed here.
+
+The same run owns independent MJ-REQ-160 source-cooldown work at
+work/webpro-20261103T034301Z-89c21f-160 (owner8890048679db9b18421a7c2dfcc7f9b7ff9e178a).
+Its exact source c75f8ba69b582fc449b2e0251140b1a4f10cf5b0 passed104 tests and125
+subtests;2 opt-in live provider checks were skipped. It is a separate PARTIAL
+slice and will be published with its own review/execution evidence. This004 PR
+does not include160 implementation or count its tests toward004.
+
+Owned disposable PostgreSQL container mjobs-webpro-20261103t034301z-89c21f-pg,
+exact ID a95116d0961796ecc0d7342e7e1dabe6f0b9b67ed3029869fd8ed304b484ca1f,
+is synthetic and run-labelled. Retain it until candidate verification completes,
+then remove only that exact owned resource. Preserve all other workers and data.
