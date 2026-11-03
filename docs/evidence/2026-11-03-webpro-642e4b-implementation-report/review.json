@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-295",
+  "utc": "2026-11-03T04:06:35Z",
+  "source_revision": "1350f398386d0be8c9555aa8ec565daf186b2b84",
+  "report": "docs/IMPLEMENTATION_REPORT.md",
+  "report_git_blob": "58a171c58e5008769e232b42530f78a69050bfd1",
+  "report_sha256": "6cc3de124c803a50e006d8aaf63b1aef0a54c8ebef1f0bcdd90ca017d695424c",
+  "result": "PASS",
+  "review_type": "independent internal ChatGPT content and artifact review",
+  "formal_github_human_approval": false,
+  "draft_git_blob": "98c3debf246af1ed1acd40f50b4eee81f7e210a6",
+  "reviews": [
+    {
+      "scope": "Sources/company discovery/applications and literal14-section coverage",
+      "result": "No substantive blocker after corrected WWR observation date and built-in registry wording"
+    },
+    {
+      "scope": "Architecture/dedupe/matching/documents/limitations",
+      "result": "No substantive blocker after correcting MJ-REQ-118 title; optional OCR and required job context made precise"
+    },
+    {
+      "scope": "Services/tests/deployment and final artifact integrity",
+      "result": "PASS final artifact; timestamps,actual backup command,candidate/live distinction corrected"
+    }
+  ],
+  "corrections_confirmed": [
+    "Separate03:33:06 browser receipt from03:46:45 runtime snapshot",
+    "Use actual portable existing-backup archive command",
+    "Candidate request boundary does not imply deployed behavior or native-client authentication",
+    "WWR capture2026-11-01T23:41:49.164882Z versus retention2026-11-02T00:34:04.724825Z",
+    "Explicit built-in/default registry scope",
+    "MJ-REQ-118 is Application Priority",
+    "OCR optional; required job context distinguished from optional company context"
+  ],
+  "independent_final_checks": {
+    "sections": 14,
+    "local_links": 59,
+    "tracked_files": 2874,
+    "tracked_bytes": 27079873,
+    "source_tree": "4c42f9ec80abc2987d91ed7308c5ef90da4dc312",
+    "manifest_sha256": "741d66fcfb15d95669ecce5ef8472fefc47bd54b65c584c8781bc15d05bd699d",
+    "delta": {
+      "added": 9,
+      "modified": 15,
+      "removed": 0
+    },
+    "draft_markers_remaining": 0,
+    "source_ancestors": [
+      "d096d03deba8aa749f478f9dd6c91029379ec50f",
+      "1b8da8cf27c989a8a23e3733f6a9098fca5e00c3"
+    ],
+    "pr893_merged_at": "2026-11-03T04:00:20Z",
+    "merge_and_candidate_tree_equal": true
+  },
+  "acceptance_boundary": "MJ-REQ-295 report only. No post-change deployment or wider product acceptance inferred."
+}
