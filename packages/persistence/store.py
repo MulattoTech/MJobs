@@ -15,7 +15,9 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
+from sqlalchemy.pool import QueuePool
 
 from packages.domain.safety import Fact
 from packages.domain.profile import ContactDetails, JobPreferences
@@ -50,9 +52,17 @@ def upsert(connection, table, data, replace=False):
 class Store:
     def __init__(self, url):
         self.url = url
-        options = {"connect_args": {"check_same_thread": False, "timeout": 15}} if url.startswith("sqlite:") else {"connect_args": {"connect_timeout": 10}}
-        self.engine = create_engine(url, pool_pre_ping=True, hide_parameters=True, **options)
-        if url.startswith("sqlite:"):
+        database_url = make_url(url)
+        sqlite = database_url.get_backend_name() == "sqlite"
+        options = {"connect_args": {"check_same_thread": False, "timeout": 15}} if sqlite else {"connect_args": {"connect_timeout": 10}}
+        # Bound capacity waiting at construction, without mutating a shared pool
+        # around individual reads. Preserve the dialect's memory-pool identity.
+        # This does not bound connection creation, pre-ping or rollback/reset.
+        pool_class = database_url.get_dialect().get_pool_class(database_url)
+        if issubclass(pool_class, QueuePool):
+            options["pool_timeout"] = 1
+        self.engine = create_engine(url, poolclass=pool_class, pool_pre_ping=True, hide_parameters=True, **options)
+        if sqlite:
             @event.listens_for(self.engine, "connect")
             def foreign_keys(dbapi_connection, _):
                 dbapi_connection.execute("PRAGMA foreign_keys=ON")
