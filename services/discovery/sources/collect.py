@@ -55,6 +55,7 @@ _SAFE_LEGACY_SOURCE_CODES = frozenset({
     "SOURCE_DISABLED",
     "SOURCE_DUPLICATE_JOB_ID",
     "SOURCE_COMPANY_IDENTITY_CONFLICT",
+    "SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED",
     "SOURCE_INVALID_CONTENT_TYPE",
     "SOURCE_INVALID_FORMAT",
     "SOURCE_INVALID_JOB",
@@ -81,6 +82,130 @@ _PUBLIC_TERMINAL_SOURCE_CATEGORIES = frozenset({
 def _company_label(name):
     """Compare display labels without lossy slugging or punctuation removal."""
     return unicodedata.normalize("NFC", " ".join(name.split())).casefold()
+
+
+_COMPANY_LABEL_ACTION = "AGGREGATOR_COMPANY_LABEL_BOUND"
+_LEGACY_COMPANY_SNAPSHOT_LIMIT = 64
+
+
+def _legacy_company_label(provider, raw):
+    # Recover the full adapter label, never the 200-character display attribute.
+    from services.discovery.sources import remoteok, remotive, wwr
+    if type(raw) is not dict:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    adapter = {"wwr": wwr, "remoteok": remoteok, "remotive": remotive}.get(provider)
+    if provider == "wwr" and type(raw.get("title")) is str:
+        label = wwr._extract_company_title(raw["title"])[0]
+    elif provider == "remoteok":
+        label = remoteok.plain_text(raw.get("company") or "Unknown Company")
+    elif provider == "remotive":
+        label = remotive.plain_text(raw.get("company_name") or "Unknown Company")
+    else:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    return label, identity(provider, adapter.company_slug(label))
+
+
+def _retain_company_label(connection, company_id, company, provider, endpoint, check):
+    """Pin upstream identity separately from a user's mutable display name."""
+    receipt_id = identity("aggregator-company-label-v1", provider, company_id)
+    fingerprint = hashlib.sha256(_company_label(company.name).encode("utf-8")).hexdigest()
+    receipt = connection.execute(select(m.audit).where(
+        m.audit.c.id == receipt_id,
+    )).mappings().one_or_none()
+    if receipt is not None:
+        payload = receipt["payload"]
+        if (receipt["entity_id"] != company_id or receipt["action"] != _COMPANY_LABEL_ACTION
+                or type(payload) is not dict
+                or set(payload) != {"version", "provider", "label_sha256", "legacy_snapshot_ids"}
+                or type(payload.get("version")) is not int or payload["version"] != 1
+                or payload.get("provider") != provider
+                or type(payload.get("label_sha256")) is not str
+                or len(payload["label_sha256"]) != 64
+                or any(character not in "0123456789abcdef" for character in payload["label_sha256"])
+                or type(payload.get("legacy_snapshot_ids")) is not list
+                or len(payload["legacy_snapshot_ids"]) > _LEGACY_COMPANY_SNAPSHOT_LIMIT
+                or any(type(value) is not str for value in payload["legacy_snapshot_ids"])):
+            raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+        if payload["label_sha256"] != fingerprint:
+            raise SourceError("SOURCE_COMPANY_IDENTITY_CONFLICT")
+        return
+
+    # Existing immutable posting evidence can establish a legacy upstream label.
+    # Bound the recovery work; missing/ambiguous history requires explicit review.
+    candidate = m.posting_value_candidates
+    snapshot = m.posting_snapshots
+    qualifying_candidate = select(candidate.c.id).join(
+        m.company_sources, m.company_sources.c.id == candidate.c.company_source_id,
+    ).where(
+        candidate.c.posting_snapshot_id == snapshot.c.id,
+        candidate.c.posting_id == snapshot.c.posting_id,
+        candidate.c.normalized["attributes"]["provider"].as_string() == provider,
+        m.company_sources.c.company_id == company_id,
+        m.company_sources.c.provider == provider,
+        candidate.c.normalized["attributes"]["tenant"].as_string() == m.company_sources.c.tenant,
+        candidate.c.normalized["attributes"]["source_endpoint"].as_string() == m.postings.c.source_url,
+        candidate.c.normalized["attributes"]["source_id"].as_string().in_((
+            m.company_sources.c.id, m.company_sources.c.collector_source_id,
+        )),
+    ).correlate(snapshot, m.postings).exists()
+    posting_evidence = select(snapshot.c.id).where(
+        snapshot.c.posting_id == m.postings.c.id, qualifying_candidate,
+    ).correlate(m.postings).exists()
+    missing_posting_evidence = connection.execute(select(m.postings.c.id).select_from(
+        m.postings.join(m.jobs, m.jobs.c.id == m.postings.c.job_id),
+    ).where(
+        m.jobs.c.company_id == company_id,
+        or_(m.postings.c.source == endpoint, m.postings.c.source_url == endpoint),
+        ~posting_evidence,
+    ).limit(1)).first()
+    if missing_posting_evidence is not None:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    historical = snapshot.join(
+        m.postings, m.postings.c.id == snapshot.c.posting_id,
+    ).join(m.jobs, m.jobs.c.id == m.postings.c.job_id)
+    unproven = connection.execute(select(snapshot.c.id).select_from(historical).where(
+        m.jobs.c.company_id == company_id,
+        or_(m.postings.c.source == endpoint, m.postings.c.source_url == endpoint),
+        ~qualifying_candidate,
+    ).limit(1)).first()
+    if unproven is not None:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    rows = connection.execute(select(snapshot).select_from(historical).where(
+        m.jobs.c.company_id == company_id, qualifying_candidate,
+    ).order_by(snapshot.c.retrieved_at, snapshot.c.id).limit(
+        _LEGACY_COMPANY_SNAPSHOT_LIMIT + 1,
+    )).mappings().all()
+    if len(rows) > _LEGACY_COMPANY_SNAPSHOT_LIMIT:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    if not rows and connection.execute(select(m.routes.c.id).where(
+        m.routes.c.company_id == company_id, m.routes.c.provider == provider,
+    ).limit(1)).first() is not None:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    for row in rows:
+        check()
+        raw = row["raw"]
+        try:
+            checksum = hashlib.sha256(json.dumps(
+                raw, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+                allow_nan=False,
+            ).encode("utf-8")).hexdigest()
+        except (TypeError, ValueError):
+            raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED") from None
+        if (checksum != row["sha256"]
+                or row["id"] != identity(row["posting_id"], checksum)):
+            raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+        label, recovered_company_id = _legacy_company_label(provider, raw)
+        if recovered_company_id != company_id:
+            raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+        if _company_label(label) != _company_label(company.name):
+            raise SourceError("SOURCE_COMPANY_IDENTITY_CONFLICT")
+    connection.execute(m.audit.insert().values(
+        id=receipt_id, entity_id=company_id, action=_COMPANY_LABEL_ACTION,
+        timestamp=now(), payload={
+            "version": 1, "provider": provider, "label_sha256": fingerprint,
+            "legacy_snapshot_ids": [row["id"] for row in rows],
+        },
+    ))
 
 
 def _safe_legacy_source_code(code):
@@ -355,7 +480,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 raise
             bound = fresh_bound
             first_party_ats = source["provider"] in {"greenhouse", "lever"}
-            aggregator_identity = not bound and not first_party_ats
+            aggregator_identity = not bound and source["provider"] in {"wwr", "remoteok", "remotive"}
             def company_identity(company):
                 return bound['company_id'] if bound else identity(*company.identity_parts)
             check()
@@ -379,11 +504,13 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 )).mappings().one_or_none()
                 if existing_company is None:
                     new_companies.add(company_id)
-                # The ingestion lock also serializes two collectors when this
-                # identity did not exist at either collector's initial read.
-                if (aggregator_identity and existing_company is not None
-                        and _company_label(existing_company["name"]) != _company_label(company.name)):
-                    raise SourceError("SOURCE_COMPANY_IDENTITY_CONFLICT")
+                # The lock also serializes first-observation receipts. A curated
+                # display name is not evidence of the original upstream label.
+                if aggregator_identity:
+                    _retain_company_label(
+                        connection, company_id, company, source["provider"],
+                        batch.endpoint, check,
+                    )
                 # Aggregator adapters identify the listing origin, not an employer
                 # website or employer-specific ATS tenant. Keep that distinction in
                 # company records even when the feed attributes a posting to a company.
