@@ -17,7 +17,7 @@ Evidence:
 - [Functional observations](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json): steps, observed results, role, time and limits; no private account values or copied resumes.
 - [Capture capability record](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/capture-capability.json): actual capture limitation and artifact disposition.
 - [Coverage guard negative control](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/coverage-negative-control.json): baseline validator accepted marketing-only observed claims and inconsistent exercised totals.
-- [Deployed Fleet consumer compatibility](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/fleet-consumer-compatibility.json): the initial timestamp/blocker mismatch was rejected and corrected before integration; the exact deployed projection accepts 16 features. This is separate from a live refresh.
+- [Deployed Fleet consumer compatibility](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/fleet-consumer-compatibility.json): the initial timestamp/blocker mismatch was rejected and corrected before integration; both the previous 1ee726fd reader and the independently deployed 0258903 reader accept 16 features. The receipt corrects the original deployment attribution. This is separate from a live refresh.
 - The catalog validator now requires linked, bounded observation records for observed UI claims and reconciles the totals with individual route/journey records. It does not certify the truth of every observation, audit privacy automatically, or turn a UI observation into MJobs acceptance.
 
 ## HAR status
@@ -57,7 +57,7 @@ Current audit run: `webpro-20261103T073112Z-bbbb6d`. Inspected MJobs source base
 
 Canonical board: [MulattoTech Project 1](https://github.com/users/MulattoTech/projects/1). The CLI's missing `read:project` scope remains a separate blocker; no Project update or duplicate board is claimed.
 
-The existing Fleet Control Hub reads the catalog at an exact current-main SHA. Its previously deployed reader can ingest the added IDs and revised access/coverage counts after protected merge and refresh. A live receipt is required before claiming that refresh happened. Fleet merge/deployment/acceptance lineage and heartbeat limitations remain tracked in #905; quota and execution policies are unchanged.
+The existing Fleet Control Hub reads the catalog at an exact current-main SHA. Its independently deployed 0258903 reader accepts the added IDs and revised access/coverage counts; live ingestion still requires protected merge and refresh. A live receipt is required before claiming that refresh happened. Fleet now exposes bounded related-merge references; per-feature deployment/acceptance and heartbeat limitations remain tracked in #905; quota and execution policies are unchanged.
 
 ## Remaining work
 

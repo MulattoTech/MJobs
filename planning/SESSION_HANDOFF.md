@@ -1,5 +1,21 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Authorized TalentHop audit checkpoint - 2026-11-03T08:38:40.495Z
+
+Run webpro-20261103T073112Z-bbbb6d; isolated branch work/webpro-20261103T073112Z-bbbb6d-talenthop, source implementation 529fe43e78e107af04177cf6c4a628f4ce5d3b3c.
+Reviewable delivery is [PR921](https://github.com/MulattoTech/MJobs/pull/921); its final receipt records the successor, exact candidate, protected gates and merge/release outcome. This entry supersedes only the earlier private-access blocker and stale coverage, preserving historical evidence below.
+
+- User-authorized job-seeker UI audit: 21 reached route patterns including one redirect; 16 capability groups, 11 with scoped UI evidence, four publicly claimed, one unknown. [Report](../docs/talenthop/UI_AUDIT_2026-11-03.md) and [catalog/crosswalk](../docs/talenthop/README.md).
+- One temporary bookmark persisted and was removed; tracker returned empty. Original employer handoff was inspected without application submission. Resume generation, message delivery, purchases and destructive account actions were not executed.
+- No raw or partial HAR, captured sanitized derivative, byte count/hash or private archive exists. Full HAR is BLOCKED by the connected browser's missing recording/export capability; authorization is resolved. GitHub Project1 synchronization remains blocked by missing project scope.
+- Catalog evidence validation now requires bounded artifact-backed UI observations and consistent exercised totals. 29 focused catalog/sanitizer and six scanner-policy tests PASS; the initial four false-evidence controls now fail closed. Current deployed Fleet0258903 consumer projection PASS. Source/evidence receipts preserve initial failures and the exact reviewed two-file scanner disposition from e2ddb068.
+- Protected integration/Compose checks and exact proposed-merge verification remain pending at this checkpoint. Independent review was requested from existing conversations; no new worker or paid reviewer was launched. No application deployment or parity acceptance is claimed.
+- Follow-ups [#918](https://github.com/MulattoTech/MJobs/issues/918) / MJ-TH-013 (salary periods in main search) and [#919](https://github.com/MulattoTech/MJobs/issues/919) / MJ-TH-015 (bounded per-profile recent views) are separately claimable after fresh ownership checks. Existing resume/match/notification issues are reused.
+- Original366/reference59 acceptance authorities and P0/P1 denominators are unchanged; all16 parity verification records remain NOT_RUN. Issues903/904/905 remain open.
+- RECON owner 7f08fc7a18d16d14adbc9387ed856129bf6c7981 and ROADMAP owner d2519ca9257702d5bd6f3beefe0befd7d10d19e4 remain owned until exact-ref release is recorded on their issues. This short integration preparation claim is released while hosted checks run. Requery live refs, PR and current main before resuming.
+- Fleet PR12 was independently deployed at 0258903984e7e3f54124be93a1f6b2988300e65b. This audit made no Hub source edit or deployment. Live catalog refresh is pending MJobs merge; related merges remain distinct from per-feature delivery/acceptance.
+
+
 ## TalentHop evidence and Fleet checkpoint — 2026-11-03T05:39:10.516Z
 
 Run: webpro-20261103T050255Z-1ba724. Refreshed base main:

@@ -2,7 +2,6 @@
   "schema_version": 1,
   "run_id": "webpro-20261103T073112Z-bbbb6d",
   "checked_at": "2026-11-03T08:23:41.770Z",
-  "deployed_fleet_source": "1ee726fd030df7ba6ae110339277e0602538e90d",
   "module_path": "src/parity.js",
   "module_blob": "a2eead0cd3817c122d5cd205196245aadfb57e69",
   "module_sha256": "51162c896e30a19efe22753603ac3a6aab06fefa7c1010630a9d892d92db26df",
@@ -33,5 +32,34 @@
     "harStatus": "BLOCKED"
   },
   "correction": "Use the deployed UTC millisecond-Z format and existing blocker codes. Untested generation/export/delivery stays in limitations; no Fleet code or security policy changed.",
-  "live_refresh": "NOT_RUN_UNTIL_PROTECTED_MERGE"
+  "live_refresh": "NOT_RUN_UNTIL_PROTECTED_MERGE",
+  "previous_release_source": "1ee726fd030df7ba6ae110339277e0602538e90d",
+  "deployment_identity_correction": "The first test used the previously deployed 1ee726fd reader. An independent worker had already deployed 0258903. Both tests are retained; only the newly verified consumer below is called current.",
+  "current_deployed_consumer": {
+    "source": "0258903984e7e3f54124be93a1f6b2988300e65b",
+    "module_path": "src/parity.js",
+    "module_blob": "87915f715945e44536cb9871f7832d4347682a96",
+    "module_sha256": "d0fa2ed4257d4256140c38070afdf061c83b27faa313ccb0b1e4dcd545bb8b29",
+    "checked_at": "2026-11-03T08:38:40.494Z",
+    "deployment_receipt": "https://github.com/MulattoTech/Fleet-Control-Hub/pull/12#issuecomment-6598392455",
+    "projection_status": "PASS",
+    "projection": {
+      "features": 16,
+      "coverage": {
+        "routes": {
+          "identified": 21,
+          "exercised": 21
+        },
+        "journeys": {
+          "identified": 16,
+          "exercised": 11
+        }
+      },
+      "harStatus": "BLOCKED",
+      "blockers": [
+        "FULL_HAR_TOOL_UNAVAILABLE",
+        "PROJECT_AUTH_SCOPE_MISSING"
+      ]
+    }
+  }
 }
