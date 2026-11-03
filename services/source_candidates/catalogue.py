@@ -1,7 +1,8 @@
 """Passive, profile-scoped catalogue for user-supplied job source links."""
 from __future__ import annotations
 
-from urllib.parse import urlsplit, urlunsplit
+import re
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from sqlalchemy import case, select, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
@@ -55,11 +56,46 @@ def _safe_url(value: str | None) -> str | None:
     if not host or (port is not None and not 1 <= port <= 65535):
         return None
     netloc = host if port is None else f"{host}:{port}"
-    segments = parsed.path.split("/")
-    sensitive_segments = {"token", "session", "auth", "password", "secret", "credential", "access_key"}
-    for index, segment in enumerate(segments[:-1]):
-        if segment.casefold() in sensitive_segments:
-            segments[index + 1] = "[REDACTED]"
+    original_segments = parsed.path.split("/")
+    segments = original_segments.copy()
+    sensitive_segments = {
+        "token", "session", "auth", "password", "secret", "credential",
+        "access_key", "api_key", "access_token", "refresh_token",
+        "authorization", "bearer", "cookie", "csrf", "xsrf", "jwt",
+    }
+    for index, segment in enumerate(original_segments):
+        # Decode only to classify an opaque path segment; preserve safe original
+        # encoding so existing job routes do not silently change identity.
+        decoded = segment
+        for _ in range(8):
+            further = unquote(decoded)
+            if further == decoded:
+                break
+            decoded = further
+        ambiguous = (
+            "/" in decoded or "\\" in decoded
+            or "?" in decoded or "#" in decoded
+            or any(ord(char) < 32 or ord(char) == 127 for char in decoded)
+            or re.search(r"%[0-9a-fA-F]{2}", decoded) is not None
+        )
+        if ambiguous:
+            # Encoded separators or excessive nested escapes could hide a
+            # sensitive marker and its value. Fail closed for adjacent values.
+            segments[index] = "[REDACTED]"
+            if index + 1 < len(segments):
+                segments[index + 1] = "[REDACTED]"
+            continue
+        normalized = decoded.casefold().replace("-", "_")
+        parts = normalized.split(";")
+        sensitive = any(
+            re.split(r"[=:]", part, maxsplit=1)[0] in sensitive_segments
+            for part in parts
+        )
+        if sensitive:
+            if len(parts) != 1 or normalized not in sensitive_segments:
+                segments[index] = "[REDACTED]"
+            if index + 1 < len(segments):
+                segments[index + 1] = "[REDACTED]"
     path = "/".join(segments)[:1500]
     return urlunsplit((parsed.scheme.casefold(), netloc, path, "", ""))[:2000]
 
