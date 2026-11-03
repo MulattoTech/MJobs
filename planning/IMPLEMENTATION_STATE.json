@@ -2492,12 +2492,57 @@
         "git_commit": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-INSTRUMENTED-COHORT-WWR-CLOCK",
+      "timestamp": "2026-11-03T08:56:34.375770+00:00",
+      "current_phase": "Reviewed instrumented reliability cohort prepared; actual candidate, protected gates and delivery pending",
+      "completed_steps": [
+        "Preserved all81 prior input blobs and complete historical evidence and source ancestry.",
+        "Merged exact reviewed922 diagnostic input and the single agreed immutable WWR fixture correction.",
+        "Recorded UNKNOWN original monitoring trigger separately from demonstrated date-fixture correction and induced fail-closed probe.",
+        "Resolved duplicate clock editing scope by deliberate root claim release; recovery frozen-input handoff preserved."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Prior922 actual candidate45769a99: owner17+7 and root5 PASS; unchanged-method/hash/privacy review PASS.",
+        "Exact clock source19ea133e:9 parent tests+8subtests PASS; original baseline failed and three controlled before/after boundaries retained.",
+        "Assembly source/evidence/ancestry preservation PASS; current candidate execution pending."
+      ],
+      "tests_remaining": [
+        "Actual proposed-merge affected transport/date/journal execution and strict consistency checks.",
+        "Independent final source/canonical preservation review; every protected exact-head gate.",
+        "Protected merge and current-main counts/release gates; separately claimed guarded deploy and source-claim release."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original monitoring41596437400 failed with OPERATION_CONTROL_UNAVAILABLE; trigger UNKNOWN/NOT_REPRODUCED, not relabelled.",
+        "Original WWR date fixture failed on63cb after2026-11-03T08:00Z; controlled correction retains all original oracles.",
+        "Clock scope briefly had distinct concurrent claim keys; immutable root source was handed off and only root4ba released."
+      ],
+      "known_limitations": [
+        "No monitoring production fix or new004 acceptance is claimed.",
+        "Controlled fixture clocks do not certify all production date-filter behavior or new030 acceptance.",
+        "Prior product executions remain attached to their exact revisions; the new combined candidate and deployment are not yet verified."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b10008ef0d552276092a297465b6bad4594b9e21",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json"
+      }
     }
   ],
-  "current_phase": "Reviewed reliability cohort preserved on current main; final combined candidate, protected gates and delivery pending",
+  "current_phase": "Reviewed instrumented reliability cohort prepared; actual candidate, protected gates and delivery pending",
   "last_safe_checkpoint": {
-    "git_commit": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json"
+    "git_commit": "b10008ef0d552276092a297465b6bad4594b9e21",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
