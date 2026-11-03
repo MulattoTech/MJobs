@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T04:18:08.154659+00:00",
+  "timestamp": "2026-11-03T04:58:03.243849+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -163,9 +163,11 @@
         "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/destination-guard.json"
       ],
-      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN. Protected merged PR715 (248eb34f -> 9efaaab9) and PR716 (19e5a83b -> 41d51974) add scoped lease-loss/NULL-lease fencing, attempt/receipt recovery and consistent backup snapshots; exact-head hosted gates and qualified local evidence are recorded in docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json. Physical host restart, actual RQ maintenance redelivery, named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete; PARTIAL unchanged.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Preserve the canonical remaining limits: physical host restart, actual RQ maintenance redelivery, the named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete. Current fixture reopen and source-budget checks do not close those clauses. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN. Protected merged PR715 (248eb34f -> 9efaaab9) and PR716 (19e5a83b -> 41d51974) add scoped lease-loss/NULL-lease fencing, attempt/receipt recovery and consistent backup snapshots; exact-head hosted gates and qualified local evidence are recorded in docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json. Physical host restart, actual RQ maintenance redelivery, named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete; PARTIAL unchanged.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Preserve the canonical remaining limits: physical host restart, actual RQ maintenance redelivery, the named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete. Current fixture reopen and source-budget checks do not close those clauses. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-03 coordinated cohort: Explicit sync repairs a stale/corrupt derivative after a real child exit between replacements; strict readers compare all11 fields and identity metadata. Canonical destinations are refused before any write. Source3027783f: Windows30PASS/21subtests; Linux30PASS;0SKIP. Full interruption, physical-host/power-loss and multi-writer obligations remain PARTIAL.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -2011,9 +2013,11 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-07-dead-letter-queue.json",
-        "docs/evidence/2026-10-11-six-team-integration.json"
+        "docs/evidence/2026-10-11-six-team-integration.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-source-retry/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-source-retry/review.json"
       ],
-      "note": "Persisted capped transient discovery retries survive reopen and honor provider cooldown/backoff; attempt ownership/cancellation fenced; actual provider exception contracts unified. PostgreSQL and real collector boundary tests verified. Application/AI/browser retries and complete broader retry policy remain open; ambiguous applications never automatically resubmit.",
+      "note": "Persisted capped transient discovery retries survive reopen and honor provider cooldown/backoff; attempt ownership/cancellation fenced; actual provider exception contracts unified. PostgreSQL and real collector boundary tests verified. Application/AI/browser retries and complete broader retry policy remain open; ambiguous applications never automatically resubmit.\n\n2026-11-03 coordinated cohort: Sourcec75f8ba6 preserves bounded numeric/HTTP-date Retry-After across four read-only discovery adapters and the longest settled Greenhouse cooldown. Owner104PASS/125subtests/2 opt-in live-source SKIP; updated candidate17PASS/93subtests. No new retry loop or live-source claim; full retry breadth remains PARTIAL.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2166,9 +2170,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-least-data-profile-access.json",
-        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
+        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/review-followup.json"
       ],
-      "note": "Scoped MJ-REF-014 extension locally verified: task-scoped profile paths expose only approved values and record accessed fact IDs without values. Full PII/security requirement remains NOT_RUN.\n\n2026-11-03 Web Pro 1e2ff1, tested source 02db15748dae39b34848f6011327b6ce5c1cdf89: PARTIAL. Reviewed application-answer exports now create POSIX owner-only temporary files, retain private permissions after atomic publication and process death, and restrict/sync exact matching uncommitted recovery files before recording metadata. Corrupt or hard-linked artifacts are not reused or chmodded; storage failures are sanitized. 45 Linux tests PASS/0 SKIP; native Windows 39 PASS/26 subtests/6 POSIX SKIP, counterparts PASS in Linux. Profile-scoped download/reopen, hashes and no-store behavior verified. Full contact/resume/history/session security, Windows ACL isolation and historical-file remediation remain unproved. Protected merge/deployment are separate PR gates; no whole-requirement PASS.",
+      "note": "Scoped MJ-REF-014 extension locally verified: task-scoped profile paths expose only approved values and record accessed fact IDs without values. Full PII/security requirement remains NOT_RUN.\n\n2026-11-03 Web Pro 1e2ff1, tested source 02db15748dae39b34848f6011327b6ce5c1cdf89: PARTIAL. Reviewed application-answer exports now create POSIX owner-only temporary files, retain private permissions after atomic publication and process death, and restrict/sync exact matching uncommitted recovery files before recording metadata. Corrupt or hard-linked artifacts are not reused or chmodded; storage failures are sanitized. 45 Linux tests PASS/0 SKIP; native Windows 39 PASS/26 subtests/6 POSIX SKIP, counterparts PASS in Linux. Profile-scoped download/reopen, hashes and no-store behavior verified. Full contact/resume/history/session security, Windows ACL isolation and historical-file remediation remain unproved. Protected merge/deployment are separate PR gates; no whole-requirement PASS.\n\n2026-11-03 coordinated cohort: Sourcea37d7bbc also normalizes directory-creation and combined fsync/unlink failures. Linux78PASS/0SKIP; Windows72PASS/66subtests/6POSIX SKIP, with Linux counterparts passing. Full PII umbrella, Windows ACLs and historic-file remediation remain PARTIAL.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -3299,9 +3304,11 @@
       "evidence": [
         "docs/evidence/2026-10-09-company-discovery-policy.json",
         "docs/evidence/2026-11-02-pro-boundaries/priority-promotion.json",
-        "docs/evidence/2026-11-02-pro-boundaries/acceptance.json"
+        "docs/evidence/2026-11-02-pro-boundaries/acceptance.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/review.json"
       ],
-      "note": "Configured high-match scores enqueue durable high-priority company discovery only when eligible company-source discovery is needed; operation is ordered ahead of normal outbox work. Evidence: docs/evidence/2026-10-09-company-discovery-policy.json\n\n2026-11-02 Pro boundaries, protected source e67c5dfcb14bfb126a93170819e2f5bd875665ec: Acceptance correction: historical PASS was overstated. The original enqueue criterion does not contain the earlier note's extra eligible-origin qualification. A high-match job with no direct employer source, no verified origin and no narrow corroborated native link still creates NEEDS_ORIGIN_REVIEW with zero queued discovery operations. Retain original evidence and downgrade to PARTIAL. This publication also fixes in-place NORMAL-to-HIGH promotion and stale Redis-delivery claim ordering, preserving authorization, identity, queue age, retry/backoff and cancellation state; both PostgreSQL race orders pass. It does not complete automatic origin discovery or preempt running work.",
+      "note": "Configured high-match scores enqueue durable high-priority company discovery only when eligible company-source discovery is needed; operation is ordered ahead of normal outbox work. Evidence: docs/evidence/2026-10-09-company-discovery-policy.json\n\n2026-11-02 Pro boundaries, protected source e67c5dfcb14bfb126a93170819e2f5bd875665ec: Acceptance correction: historical PASS was overstated. The original enqueue criterion does not contain the earlier note's extra eligible-origin qualification. A high-match job with no direct employer source, no verified origin and no narrow corroborated native link still creates NEEDS_ORIGIN_REVIEW with zero queued discovery operations. Retain original evidence and downgrade to PARTIAL. This publication also fixes in-place NORMAL-to-HIGH promotion and stale Redis-delivery claim ordering, preserving authorization, identity, queue age, retry/backoff and cancellation state; both PostgreSQL race orders pass. It does not complete automatic origin discovery or preempt running work.\n\n2026-11-03 coordinated cohort: Sourcec8bf39e7 refreshes an unreviewed parked request from later persisted eligible native evidence, preserving authority and atomic single admission. Owner77PASS/69subtests/0SKIP includes real PostgreSQL lock deferral, concurrency, rollback and reopen. The pre-correction FK deadlock remains retained. General employer-origin discovery remains PARTIAL.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3687,9 +3694,11 @@
         "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json",
         "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/review.json",
         "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/validation.json",
-        "docs/IMPLEMENTATION_REPORT.md"
+        "docs/IMPLEMENTATION_REPORT.md",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/followup-validation.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/runtime-followup.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Completed the literal14-section implementation-report deliverable at artifact commit 8ee14e8256596b39ffa3d0b25972856205680b0c, technical inventory 1350f398386d0be8c9555aa8ec565daf186b2b84. Independent content and final artifact review PASS: all 5 built-in collectors, 11 application adapters, 22 detector signatures, 2,874 exact manifest files, 59 local links, source/tree/delta identities and retained FAIL/NOT_RUN boundaries. Report blob 58a171c58e5008769e232b42530f78a69050bfd1. The report explicitly keeps the product PARTIAL and does not accept 290/294/296-300. This is factual report acceptance, not live-provider, public-submission or production-readiness acceptance; protected publication is through the containing PR.",
+      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Completed the literal14-section implementation-report deliverable at artifact commit 8ee14e8256596b39ffa3d0b25972856205680b0c, technical inventory 1350f398386d0be8c9555aa8ec565daf186b2b84. Independent content and final artifact review PASS: all 5 built-in collectors, 11 application adapters, 22 detector signatures, 2,874 exact manifest files, 59 local links, source/tree/delta identities and retained FAIL/NOT_RUN boundaries. Report blob 58a171c58e5008769e232b42530f78a69050bfd1. The report explicitly keeps the product PARTIAL and does not accept 290/294/296-300. This is factual report acceptance, not live-provider, public-submission or production-readiness acceptance; protected publication is through the containing PR.\n\n2026-11-03 coordinated cohort: Dated follow-upcd6cdbe3 preserves original inventory/report receipts and separately describes merged896 and verified893 deployment. Reporting deliverable only; no whole-product acceptance or fresh live-provider test is inferred.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"

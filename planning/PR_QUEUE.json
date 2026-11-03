@@ -108,7 +108,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -287,7 +287,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
+      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -410,7 +410,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1947,7 +1947,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
+      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1978,7 +1978,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -2925,7 +2925,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
+      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2945,7 +2945,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3266,7 +3266,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",
@@ -6143,7 +6143,69 @@
       "branch": "work/webpro-20261103T034313Z-1e2ff1-171",
       "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json",
       "notes": "Run webpro-20261103T034313Z-1e2ff1; source 02db15748dae39b34848f6011327b6ce5c1cdf89. 45 Linux PASS/0 SKIP; Windows 39 PASS/26 subtests/6 POSIX SKIP. Only171 NOT_RUN to PARTIAL; zero new PASS credit. Exact candidate/main/CI/deployment receipts must be verified from the containing PR."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1E2FF1-008",
+      "title": "Verified scoped 008 source in coordinated integration candidate",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-008"
+      ],
+      "target_area": "Scoped recovery/reliability",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_COHORT",
+      "pr": 898,
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-recovery/source-execution.json",
+      "notes": "Frozen head c32febfb73f26d31a75133c5ede7a8e69d21f788. Parent remains PARTIAL; combined execution/merge/rollout are separate."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-89C21F-160",
+      "title": "Verified scoped 160 source in coordinated integration candidate",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-160"
+      ],
+      "target_area": "Scoped recovery/reliability",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_COHORT",
+      "pr": 897,
+      "evidence": "docs/evidence/2026-11-03-webpro-89c21f-source-retry/source-execution.json",
+      "notes": "Frozen head 91bca4763eb578a25b8b44e8d7c2b2f4888fd9af. Parent remains PARTIAL; combined execution/merge/rollout are separate."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-89C21F-264",
+      "title": "Verified scoped 264 source in coordinated integration candidate",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-264"
+      ],
+      "target_area": "Scoped recovery/reliability",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_COHORT",
+      "pr": 901,
+      "evidence": "docs/evidence/2026-11-03-webpro-89c21f-candidate-refresh/source-execution.json",
+      "notes": "Frozen head 205efc726153bd53ca32a5e9e4479fc2ece4137f. Parent remains PARTIAL; combined execution/merge/rollout are separate."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1E2FF1-COHORT",
+      "title": "Integrate six frozen parallel sources with preserved evidence",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-008",
+        "MJ-REQ-160",
+        "MJ-REQ-171",
+        "MJ-REQ-224",
+        "MJ-REQ-264",
+        "MJ-REQ-295"
+      ],
+      "target_area": "Protected integration/canonical reconciliation",
+      "depends_on": [],
+      "status": "ASSEMBLED_PENDING_CANDIDATE_VERIFICATION",
+      "branch": "work/webpro-20261103T034313Z-1e2ff1-cohort",
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json",
+      "notes": "Six source heads remain ancestors;899/269 accounting excluded. Only295 adds a scoped PASS."
     }
   ],
-  "generated_at": "2026-11-03T03:56:19.742924+00:00"
+  "generated_at": "2026-11-03T04:58:03.243849+00:00"
 }

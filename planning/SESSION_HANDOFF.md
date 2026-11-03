@@ -1,5 +1,33 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Latest coordinated sprint checkpoint — 2026-11-03
+
+Run: webpro-20261103T034313Z-1e2ff1. Base main: 7e86511f409fb9d1e2dc79904b170cc74b88cd3d.
+Integration preparation owner: 07cb9a0af294c16424a24a01719b0cdf6db2d8b6; requery before resuming.
+Candidate branch: work/webpro-20261103T034313Z-1e2ff1-cohort.
+Frozen source PRs: **894,895,897,898,900,901**. Exact heads/ancestry/source-blob proof:
+[cohort record](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json).
+Source commits, failure histories and milestone evidence remain preserved.
+
+**Only295 adds a proposed PASS**, for the fourteen-section reporting deliverable.
+004/008/160/171/224/264 stay PARTIAL.171 moves NOT_RUN to PARTIAL; no PII umbrella acceptance.
+899 is excluded pending owner corrections;269 bookkeeping stays with that owner.
+Original366 and reference59 criteria/denominators remain unchanged.
+
+Combined native/PostgreSQL and Linux verification, fresh protected gates,
+actual merge/main and guarded rollout are pending at this checkpoint.
+Intended rollout owner: run89c21f, after a separate deployment ref/native lease.
+Each source owner retains and releases their own objective refs; no branch rewrite.
+
+The containing integration PR final receipt will name actual candidate/merge/main,
+deployed SHA/image/readiness, skips, resource cleanup and exact claim releases.
+Owned worktree ends -1e2ff1-cohort; raw receipts/resources are in the run's
+private -1e2ff1-evidence/cohort directory. PostgreSQL is owned loopback/tmpfs.
+Do not run synthetic cases against production.
+
+## Earlier checkpoints — historical observations
+
+
 ## Exact source and publication state
 
 [PR890](https://github.com/MulattoTech/MJobs/pull/890) is protected-merged and guarded-deployed at **`e67c5dfcb14bfb126a93170819e2f5bd875665ec`**. Tested proposed `c7e3e7c0142c719110ab488bb03562d207451f4e` and actual merge share tree `c2eb3694105ad1d86b176ba9d6de319ac42d9b88`. Its [delivery evidence](../docs/evidence/2026-11-02-pro-boundaries/deployment.json) records image, seven services, backup, rollback image, actual runtime ACL/ORM probe and public readback.
