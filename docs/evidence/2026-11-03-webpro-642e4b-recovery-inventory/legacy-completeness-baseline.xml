@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="7.948" timestamp="2026-11-03T05:57:10.640042Z"><testcase classname="tests.integration.test_recovery_inventory_completeness.PublicJobInventoryCompletenessTests" name="test_legacy_default_page_cannot_certify_recovery_after_omitted_job_loss" time="5.374"><failure message="AssertionError: ValueError not raised">tests\integration\test_recovery_inventory_completeness.py:141: in test_legacy_default_page_cannot_certify_recovery_after_omitted_job_loss
+    with self.assertRaisesRegex(ValueError, "^" + LEGACY_ERROR + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: ValueError not raised</failure></testcase></testsuite></testsuites>
