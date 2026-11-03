@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "requirement": "MJ-REQ-030",
+  "claim": {
+    "key": "WWR-RSS-QUERY-CLOCK",
+    "owner": "4ba651b4d267bd0ddff449a8f32e126c7a8d7d8c"
+  },
+  "scope": "Test fixture query clock only. No product behavior, acceptance state or existing assertion changed.",
+  "base": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "source_commit": "19ea133ebbc1228a942fb06b2621f932a62db307",
+  "source_tree": "ee37c233cb7776386d8c91ac64e97a23ea50fed5",
+  "test_path": "tests/integration/test_relative_posted_source_intake.py",
+  "old_blob": "790e999660e8f5e3d788ffd99a24b06cd05ead42",
+  "new_blob": "b92d722a43ce7f4e49ad2f4f0a8a1fe5c05732e9",
+  "diagnosis": {
+    "database_clock": "apps.api.main.datetime",
+    "semantic_clock": "services.discovery.search_semantics.datetime",
+    "old_behavior": "Only semantic clock was fixed at 2026-10-18T20:00:00Z; API database cutoff used real time.",
+    "literal_oldest_posted_at": "2026-10-04T08:00:00Z",
+    "wall_boundary": "2026-11-03T08:00:00Z",
+    "correction": "Use existing _filtered(window, query_at=query_at) helper to bind both independent query layers."
+  },
+  "historical_hosted_failure": {
+    "run": 41600807060,
+    "job": 125798817227,
+    "head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+    "candidate": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+    "assertion": "2 != 3",
+    "failed": 1,
+    "passed": 931,
+    "skipped": 9,
+    "passing_subtests": 583,
+    "artifact": 13214991870,
+    "published_artifact_sha256": "cd24bb3ecae1957b8385128401e220468babd1ce2bcafb7867bbb95236dc0c2a",
+    "artifact_bytes_downloaded_by_this_run": false,
+    "source": "https://github.com/MulattoTech/MJobs/pull/920#issuecomment-6598957223"
+  },
+  "independent_baseline": {
+    "source": "63cb1042e08375f7bda1f9dad378209cca856167",
+    "started_at": "2026-11-03T08:36:02.627134+00:00",
+    "ended_at": "2026-11-03T08:36:06.660590+00:00",
+    "selector": "tests/integration/test_relative_posted_source_intake.py::RelativePostedSourceIntakeTests::test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen",
+    "exit_code": 1,
+    "failed": 1,
+    "assertion": "2 != 3",
+    "pytest_seconds": 3.37,
+    "worktree_clean": true
+  },
+  "controlled_boundary_before": [
+    {
+      "outer_api_clock": "2026-11-03T07:59:59+00:00",
+      "started_at": "2026-11-03T08:37:22.944184+00:00",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "success": true,
+      "failure_assertions": []
+    },
+    {
+      "outer_api_clock": "2026-11-03T08:00:01+00:00",
+      "started_at": "2026-11-03T08:37:24.408202+00:00",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "success": false,
+      "failure_assertions": [
+        "AssertionError: 2 != 3"
+      ]
+    },
+    {
+      "outer_api_clock": "2030-01-01T12:00:00+00:00",
+      "started_at": "2026-11-03T08:37:25.596129+00:00",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "success": false,
+      "failure_assertions": [
+        "AssertionError: 0 != 3"
+      ]
+    }
+  ],
+  "controlled_boundary_after": [
+    {
+      "outer_api_clock": "2026-11-03T07:59:59+00:00",
+      "started_at": "2026-11-03T08:37:29.158481+00:00",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "success": true,
+      "failure_assertions": []
+    },
+    {
+      "outer_api_clock": "2026-11-03T08:00:01+00:00",
+      "started_at": "2026-11-03T08:37:30.546696+00:00",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "success": true,
+      "failure_assertions": []
+    },
+    {
+      "outer_api_clock": "2030-01-01T12:00:00+00:00",
+      "started_at": "2026-11-03T08:37:31.747920+00:00",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "success": true,
+      "failure_assertions": []
+    }
+  ],
+  "source_execution": {
+    "source": "19ea133ebbc1228a942fb06b2621f932a62db307",
+    "started_at": "2026-11-03T08:37:33.120905+00:00",
+    "ended_at": "2026-11-03T08:37:54.337428+00:00",
+    "command": "python -B -m pytest -q tests/integration/test_relative_posted_source_intake.py",
+    "exit_code": 0,
+    "parent_tests_passed": 9,
+    "passing_subtests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "pytest_seconds": 19.04,
+    "junit_count_includes_subtests": 17,
+    "worktree_clean": true
+  },
+  "preservation": {
+    "unchanged_other_class_methods": 14,
+    "all_existing_target_assertion_ASTs_exact": true,
+    "literal_RSS_unchanged": true,
+    "production_files_unchanged": true,
+    "canonical_files_unchanged": true,
+    "original_366_reference_59_outcomes_unchanged": true
+  },
+  "guards": {
+    "catalogue": "PASS",
+    "progress_journal": "PASS",
+    "dashboard": "CURRENT",
+    "contribution_provenance": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "boundary_harness_sha256": "dfa37a73e48e1c4c6e369c0323492005d5897f4437bedd02a6eaf80016c51518",
+  "limits": [
+    "The controlled API clock changes are private in-process fixture seams, not system clock changes.",
+    "The three before/after probes repeat one test; they are not additional unique feature acceptance.",
+    "This correction does not clear the distinct monitoring control-reader failure or restore privacy failure.",
+    "Future combined/PR candidate execution and all hosted protected gates remain required.",
+    "No new MJ-REQ-030 acceptance promotion or issue closure is claimed."
+  ]
+}
