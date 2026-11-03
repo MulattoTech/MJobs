@@ -313,6 +313,8 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         # Keep the existing RSS fixture literal and its bounded windows stable
         # when this test is rerun after the fixture's publication month.
         query_at = datetime(2026, 10, 18, 20, tzinfo=timezone.utc)
+        # The API applies a database date cutoff before semantic filtering.
+        # Use the shared helper so both layers see the same fixture instant.
         rows = self._filtered('LAST_30_DAYS', query_at=query_at)
         recent = self._filtered('LAST_24_HOURS', query_at=query_at)
         self.assertEqual(len(rows), 3)
