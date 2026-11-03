@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "recorded_at": "2026-11-03T07:27:13.367482+00:00",
+  "base_head": "caaee5d6d6aeffd2e02905844e96223d732684c0",
+  "classification": "PUBLIC_GIT_OBJECT_METADATA_FALSE_POSITIVE",
+  "failed_workflow": 41594851457,
+  "failed_job": 125779763433,
+  "redacted_artifact": 13211656842,
+  "artifact_sha256": "dee96296814e662609fd2faf36cdb86919acb191c4cff53e429b74ae20669805",
+  "redacted_finding_count": 1,
+  "fingerprint": "caaee5d6d6aeffd2e02905844e96223d732684c0:docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json:generic-api-key:99",
+  "finding": {
+    "path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json",
+    "line": 99,
+    "rule_id": "generic-api-key"
+  },
+  "referenced_path": "tests/integration/test_source_enrollment_api.py",
+  "git_object": "bc8eb5c0dffc32d6c1bdbc34f21bf5f547c59a3c",
+  "source_bytes": 7488,
+  "source_sha256": "dcfcb2710b39cbd5f6c2e51825981d820cb23cb093b47912c13126bceaf6c268",
+  "verification": "Recomputed SHA-1 over blob header, byte length, NUL and raw committed file bytes. Matched exact frozen899 and current cohort objects, as well as independent GitHub base64 readback. The filename containing api caused the adjacent object identifier to match a generic key rule.",
+  "independent_reviews": [
+    "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597784463",
+    "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597815597",
+    "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597829394"
+  ],
+  "disposition": "One exact immutable commit/path/rule/line fingerprint. No rule, directory, pattern, scanner version, workflow or history-scope suppression.",
+  "preservation": "Original failed run and manifest remain unchanged. Application/test/canonical files remain exact; prior12a executions are not relabelled as successor execution.",
+  "validation_boundary": "Committed scanner-policy tests and fresh actual-candidate/full hosted scanner outcomes are recorded separately in the PR discussion."
+}
