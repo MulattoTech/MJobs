@@ -480,9 +480,13 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
                         source_version=source_version(self.fixture.source), revision=0, poll_interval=300,
                         request_timeout=2, rate_limit=rate))
                     self.assertEqual(response.status_code, 422, response.text)
-                    self.assertTrue(any(error['loc'][-1] == 'rate_limit' and error['type'] == 'greater_than_equal'
-                                        and '15' in error['msg']
+                    # Request validation returns safe structural diagnostics only;
+                    # submitted field names and dynamic constraint text are not reflected.
+                    self.assertTrue(any(error['loc'] == ['body', '[field]']
+                                        and error['type'] == 'greater_than_equal'
+                                        and error['msg'] == 'Value too small'
                                         for error in response.json()['detail']))
+                    self.assertNotIn('rate_limit', response.text)
         self.assertEqual(self.starts, [])
         self.assertEqual(self.fixture.store.count('company_source_monitoring'), 0)
         self.assertEqual(self.fixture.store.count('worker_operations'), 0)

@@ -99,8 +99,10 @@ class SensitiveAnswerPolicyIntegrationTests(unittest.TestCase):
         }
         response = self._save_profile(invalid)
         self.assertEqual(response.status_code, 422, response.text)
-        self.assertIn("USE_CONFIGURED_RESPONSE requires an explicit response",
-                      str(response.json()))
+        # Request validation must not reflect custom validator text or submitted values.
+        self.assertNotIn("USE_CONFIGURED_RESPONSE requires an explicit response",
+                         str(response.json()))
+        self.assertTrue(response.json()["detail"])
         self.assertNotIn("SYNTHETIC_USER_CONFIGURED_RESPONSE", str(response.json()))
 
         unknown_category = deepcopy(profile)
@@ -109,7 +111,8 @@ class SensitiveAnswerPolicyIntegrationTests(unittest.TestCase):
         }
         response = self._save_profile(unknown_category)
         self.assertEqual(response.status_code, 422, response.text)
-        self.assertIn("UNRECOGNIZED_CATEGORY", str(response.json()))
+        self.assertNotIn("UNRECOGNIZED_CATEGORY", str(response.json()))
+        self.assertTrue(response.json()["detail"])
 
         unchanged = self.client.get("/profiles/fixture").json()
         self.assertEqual(unchanged.get("preferences", {}).get("sensitive_answer_policies", {}), {})
