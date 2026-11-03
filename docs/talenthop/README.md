@@ -1,47 +1,67 @@
 # TalentHop capability inventory and MJobs crosswalk
 
-Issue/epic: [#904](https://github.com/MulattoTech/MJobs/issues/904). Reconnaissance: [#903](https://github.com/MulattoTech/MJobs/issues/903). Fleet: [#905](https://github.com/MulattoTech/MJobs/issues/905).
+Epic [#904](https://github.com/MulattoTech/MJobs/issues/904), reconnaissance [#903](https://github.com/MulattoTech/MJobs/issues/903), Fleet [#905](https://github.com/MulattoTech/MJobs/issues/905).
 
-This is an **incomplete, public-evidence checkpoint**, not a completed site audit or accepted parity. The machine-readable source is [catalog.json](catalog.json). It is additive to the original and reference acceptance matrices and never changes their denominators.
+The current checkpoint includes an **authorized signed-in UI audit**. It is still **PARTIAL**: no network capture, generated resume outcome, alert delivery, purchase, or employer submission was verified. The machine-readable source is [catalog.json](catalog.json); the detailed findings are in [UI_AUDIT_2026-11-03.md](UI_AUDIT_2026-11-03.md).
 
-## Coverage and access
+## Coverage and evidence
 
-At this checkpoint: **3 route patterns identified, 0 interactively exercised; 12 capability/journey groups identified, 0 exercised; 1 public homepage source retrieved.** The browser exposed an existing dashboard tab's route, then automatic approval review denied page observation because direct user authorization for private candidate data was absent. No page content, credentials, resume, candidate record, or session token was read. No blocked observation was retried through another surface.
+The audit reached **21 identified route patterns**, including the observed `/remote-jobs` redirect. **11 of 16 capability groups have recorded UI steps**. These denominators describe this discovered surface, not every feature the service might have. A read-only form inspection is explicitly distinguished from a persisted workflow or end-to-end result.
 
-Public source: [TalentHop homepage](https://www.talenthop.com/), retrieved November 3, 2026 UTC. Eight feature groups are PUBLICLY CLAIMED, two INACCESSIBLE / AUTHORIZATION REQUIRED, and two NOT FOUND / UNKNOWN; zero OBSERVED. Unknown does not mean absent. The third route pattern comes from the historical supplied-link example in [#517](https://github.com/MulattoTech/MJobs/issues/517), not current navigation.
+Discovery: **11 OBSERVED, 4 PUBLICLY CLAIMED, 0 INACCESSIBLE, 1 UNKNOWN**. MJobs source crosswalk: **3 ALREADY EXISTS, 12 PARTIAL, 1 MISSING**. **All 16 parity verification records remain NOT_RUN; none is newly accepted.** Existing code and original acceptance are separate from parity verification.
 
-HAR status: **BLOCKED**. The connected Browser exposes DOM, screenshot, console and page-asset capabilities, not full request/response HAR export. Private dashboard observation is independently blocked. No full HAR, partial network trace, raw archive, sanitized captured derivative, byte size or capture hash exists. The offline sanitizer is implemented and tested separately; its existence does not establish a capture. No approved private encrypted raw-artifact destination was established.
+The prior public-only checkpoint and its access denial are retained as dated history. The user's subsequent direct authorization resolved private-session access. The existing signed-in Brave session was used for normal job-seeker navigation, read-only forms and one reversible bookmark test. That bookmark was removed, and the tracker returned to empty. Viewing the employer's original posting left Applied at zero.
 
-Desktop/mobile UI, keyboard behavior, accessibility, error/offline states, network timings, pagination, subscriptions, auth choices and destructive settings were **NOT_RUN**. Robots/sitemap/linked-page breadth, technology/network architecture, hidden roles and paid tiers remain unknown. Search retrieval is not a substitute for exercising the real UI.
+Evidence:
 
-## Initial crosswalk
+- [Functional observations](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json): steps, observed results, role, time and limits; no private account values or copied resumes.
+- [Capture capability record](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/capture-capability.json): actual capture limitation and artifact disposition.
+- [Coverage guard negative control](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/coverage-negative-control.json): baseline validator accepted marketing-only observed claims and inconsistent exercised totals.
+- The catalog validator now requires linked, bounded observation records for observed UI claims and reconciles the totals with individual route/journey records. It does not certify the truth of every observation, audit privacy automatically, or turn a UI observation into MJobs acceptance.
 
-| Feature IDs | Qualified discovery lead | Existing MJobs basis / remaining work |
+## HAR status
+
+**BLOCKED — FULL_HAR_TOOL_UNAVAILABLE.** Authorization exists. The connected Browser API exposes DOM, screenshots, console messages and observed page assets, but no request/response recorder or full-content HAR export. The existing Brave process has no debugging endpoint, and the exposed workstation tools do not provide supported native DevTools UI capture.
+
+**No raw HAR, partial network trace, captured sanitized derivative, capture byte size or capture hash exists.** DOM observations and sanitizer fixtures are not network evidence. No private raw archive was established because nothing was captured. Request schemas, response bodies, authentication flow, cache/service-worker behavior, redirects at the HTTP layer and timing measurements remain unknown.
+
+A real DevTools Network export with content, or a supported recorder, is needed to finish this deliverable. Raw traffic must be retained privately with its actual hash, owner and expiry; only a reviewed derivative belongs in public artifacts. [HAR_PRIVACY.md](HAR_PRIVACY.md) describes the existing offline sanitizer, its limits and the distinction between capture completeness and redaction.
+
+## Capability crosswalk
+
+| ID | Reference evidence boundary | MJobs basis and next action |
 | --- | --- | --- |
-| 001–003 | Remote discovery, listing trust, preferences | Search semantics, source-candidate provenance and preference scoring exist. Validate actual facets, authenticity evidence and persistence; reuse #26/#517/#192. No claim that every listing is verified. |
-| 004–005 | Resume enhancement and ATS alignment | Bounded imports, reviewed AI drafts, fact trace, exports and comparisons exist. Reuse #91/#92/#96–#100; broader tailoring remains partial. |
-| 006 | Resume/job scoring and tailoring | Existing factor breakdown and explanation UI; reuse #113/#115, with deterministic positive/negative calibration and scope checks. |
-| 007 | New-role alerts | Operational notifications and scheduled searches are adjacent, not proof of a complete new-role delivery flow. #205 remains NOT_RUN in the original authority; reuse #192/#205 for opt-in, dedupe, delivery and recovery. |
-| 008 | Direct employer handoff | Original #268 is accepted in the inspected baseline. Parity is separately unverified. Preserve manual external-submission consent. |
-| 009–010 | Private account/dashboard surface | Content inaccessible. No functional equivalence or absence inferred. |
-| 011–012 | Data controls and saved-search persistence | TalentHop behavior unknown. Reuse #170/#192 when concrete gaps are observed. Billing/paywalls are not MJobs requirements merely because the reference offers them. |
+| 001 | Search, remote filtering and zero-result UI exercised | Existing search semantics; broader facet/pagination parity remains unverified. |
+| 002 | Freshness/verification labels and report reasons observed | Source-candidate provenance, route trust and risk signals exist. No evidence establishes the reference's authenticity checks or report processing. |
+| 003 | Preference form inspected | Existing preference/scoring and saved-profile modules; verify save/reload and downstream effects separately. |
+| 004 | Tailoring setup visible; generation/review untested | Reuse #91/#92/#96/#97 and reviewed, fact-grounded draft workflows. |
+| 005 | ATS/export claims unverified | Existing templates and export support; do not claim reference-output equivalence. |
+| 006 | Existing score explanation and skill groups exercised | Existing factor breakdown; keep unassessed components distinct from zero and preserve factual uncertainty. |
+| 007 | Delivery publicly claimed; no alert received | Reuse #192/#205 for opt-in, delivery, dedupe and recovery. |
+| 008 | Original posting opened on employer Workday | Existing employer-first route trust; a view or handoff is not a submitted application. |
+| 009 | Profile, notification, subscription and support controls inspected | Existing profile/settings UI; no automatic requirement to add a billing product. |
+| 010 | Save/reload/unsave and tracker empty state exercised | Existing job dispositions and application tracking; keep saved and applied counts separate. |
+| 011 | Policy states data rights; no export/delete outcome exercised | Existing settings transfer and #170 exports are partial overlap, not proof of full account-deletion parity. |
+| 012 | Named saved searches/learned feedback not found in inspected UI | Existing saved-search support; reference behavior remains UNKNOWN, not absent. |
+| 013 | Hourly minimum and salary-required behavior exercised | [#918](https://github.com/MulattoTech/MJobs/issues/918): expose existing salary-period semantics through main search API/UI and saved/history round trips. Related original #29 remains unchanged. |
+| 014 | Base resume viewer and upload/create setup exercised | Reuse resume library/workspace and #91/#92/#99; parser, primary change, deletion and new output were not tested on the reference. |
+| 015 | Recently Viewed list inspected | [#919](https://github.com/MulattoTech/MJobs/issues/919): add bounded per-profile job-view history. Existing #237 search execution history is a different event. |
+| 016 | Email/SMS category switches inspected | Reuse #205 provider abstraction and operational notifications; channel persistence and actual delivery require separate verification. |
 
-Every feature in the catalog has original issue/requirement links where known, inspected source paths, dependency IDs, evidence IDs and an independent verification record. Existing code and legacy acceptance are not new parity acceptance. At this checkpoint all twelve parity verification records are NOT_RUN.
+The catalog contains source paths, dependency IDs, issue/requirement links and a separate verification record for each feature. No TalentHop source, private API, asset, account data or job dataset is imported into MJobs.
 
 ## Coordination and Fleet
 
-Run: webpro-20261103T050255Z-1ba724. Source baseline: 7e86511f409fb9d1e2dc79904b170cc74b88cd3d. New code lives on work/webpro-20261103T050255Z-1ba724-talenthop until protected integration. Claim commits and release/continuation receipts live in #903/#904/#905; always requery refs.
+Current audit run: `webpro-20261103T073112Z-bbbb6d`. Inspected MJobs source baseline: `63cb1042e08375f7bda1f9dad378209cca856167`. Objective ownership and release receipts are in #903/#904; always re-read actual refs. This checkpoint does not change original or reference acceptance authorities.
 
-The canonical board is [MulattoTech Project 1](https://github.com/users/MulattoTech/projects/1), identified by existing repository tools. The current CLI lacks read:project; no board changes succeeded and no duplicate board was made. The existing sync utility must not be run with expanded permission without authorization. After access is available, inspect actual fields and reconcile only under the integration claim.
+Canonical board: [MulattoTech Project 1](https://github.com/users/MulattoTech/projects/1). The CLI's missing `read:project` scope remains a separate blocker; no Project update or duplicate board is claimed.
 
-Canonical Fleet source is MulattoTech/Fleet-Control-Hub. The companion change reads this catalog at an exact current-main SHA and independently refreshes safe GitHub metadata. It must show unavailable while the catalog is not on main. Open issues, claims and PRs are coordination evidence; merge/deployment/acceptance remain separate. Original fleet quotas, reserves and execution state are outside this change.
+The existing Fleet Control Hub reads the catalog at an exact current-main SHA. Its previously deployed reader can ingest the added IDs and revised access/coverage counts after protected merge and refresh. A live receipt is required before claiming that refresh happened. Fleet merge/deployment/acceptance lineage and heartbeat limitations remain tracked in #905; quota and execution policies are unchanged.
 
-## Next authorized steps
+## Remaining work
 
-1. Obtain direct authorization for reading the existing TalentHop job-seeker session; preserve the normal private-account boundary and avoid external writes.
-2. Obtain a supported full-content HAR capture/export route and approved private raw storage. Do not relabel DOM or console output as HAR.
-3. Exercise public and authorized journeys, then update stable IDs and coverage incrementally under a new claim. Add new IDs; do not reuse existing IDs for different capabilities.
-4. Verify gaps against current MJobs source and existing issues before opening new feature tickets. Run literal tests, protected CI, serialized merge and guarded rollout.
-5. Reconcile Project and deployed Fleet only when actual permission and delivery evidence exist.
-
-Validation: python -m tools.verification.talenthop_catalog. Privacy procedure: [HAR_PRIVACY.md](HAR_PRIVACY.md).
+1. Capture real full-content network evidence through a supported route, privately retain it, then sanitize and validate it.
+2. Exercise authorized, affordable generation/output and delivery outcomes only within the governing scope; maintain explicit untested boundaries.
+3. Implement #918 and #919 under separate atomic claims after checking active API/UI ownership.
+4. Complete Project reconciliation when the existing board is accessible.
+5. Verify each implemented capability on its actual candidate, protected merge and required deployment before changing acceptance.
