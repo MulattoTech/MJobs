@@ -3,11 +3,11 @@
   "source": "MJobs canonical acceptance matrices; verified checkpoints, not real-time coding activity",
   "original": {
     "pass": 181,
-    "partial": 81,
-    "not_run": 104,
+    "partial": 82,
+    "not_run": 103,
     "total": 366,
     "accepted_percent": 49.5,
-    "as_of": "2026-11-02T21:00:45.470859+00:00"
+    "as_of": "2026-11-03T03:33:06.273418+00:00"
   },
   "reference": {
     "pass": 19,
