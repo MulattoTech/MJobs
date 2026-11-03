@@ -182,3 +182,44 @@ class LocalOriginSecurityTests(unittest.TestCase):
         recovered = self.client.get('/search-profiles/private-search')
         self.assertEqual(recovered.status_code, 200, recovered.text)
         self.assertEqual(recovered.json()['name'], self.search['name'])
+
+    def test_referrer_and_duplicate_header_rejections_preserve_saved_state_after_reopen(self):
+        self.assertEqual(self.client.put("/search-profiles", json=self.search).status_code, 200)
+        for headers, expected in (
+            ({"referer": "https://foreign.example/form"}, 403),
+            ([("origin", "http://testserver"), ("origin", "https://foreign.example")], 400),
+            ([("sec-fetch-site", "same-origin"), ("sec-fetch-site", "cross-site")], 400),
+        ):
+            with self.subTest(headers=headers):
+                response = self.client.put(
+                    "/search-profiles", json={**self.search, "name": "Rejected replacement"},
+                    headers=headers,
+                )
+                self.assertEqual(response.status_code, expected, response.text)
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.client = self._client()
+        reopened = self.client.get("/search-profiles/private-search")
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        self.assertEqual(reopened.json()["name"], self.search["name"])
+
+    def test_same_origin_referrer_fallback_saves_and_foreign_referrer_cannot_read_it(self):
+        response = self.client.put("/search-profiles", json=self.search, headers={
+            "referer": "http://testserver/settings?tab=searches",
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.client = self._client()
+        rejected = self.client.get("/search-profiles/private-search", headers={
+            "referer": "http://testserver:9999/sibling-app",
+        })
+        self.assertEqual(rejected.status_code, 403, rejected.text)
+        self.assertNotIn(self.search["name"], rejected.text)
+        reopened = self.client.get("/search-profiles/private-search", headers={
+            "referer": "http://testserver:80/settings",
+        })
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        self.assertEqual(reopened.json()["name"], self.search["name"])
