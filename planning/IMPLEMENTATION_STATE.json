@@ -2147,12 +2147,72 @@
         "git_commit": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
         "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-RECOVERY-V3-COMPLETENESS",
+      "timestamp": "2026-11-03T06:32:09.695858+00:00",
+      "current_phase": "Record the verified v3 recovery-inventory correction while MJ-REQ-292 remains PARTIAL",
+      "completed_steps": [
+        "Reproduced the historical-v2 201-to-200 deletion false PASS missed by the earlier independent review.",
+        "Require a fresh v3 inventory, reject every supplied v1/v2 inventory, and enforce the 1-200 job budget.",
+        "Verify rejection before recovery/backup runtime access and preserve missing-inventory NOT_RUN.",
+        "Preserve prior notes, milestone and receipts; prospectively supersede the earlier schema-safety conclusion."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/legacy-completeness-baseline.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/legacy-completeness-baseline.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-initial-provenance-failure.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-initial-provenance-failure.xml",
+        "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-review.json"
+      ],
+      "files_modified": [
+        "cli/compose_recovery.py",
+        "docs/RECOVERY_JOB_INVENTORY.md",
+        "tests/integration/test_recovery_inventory_completeness.py",
+        "tests/unit/test_backup_acceptance.py",
+        "tests/unit/test_compose_recovery.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Historical-v2 baseline: 1 expected failing regression retained.",
+        "Exact source 7295de87ad87ba06ca1f2c4ef4d114801489c6f5: 51 tests and 43 subtests PASS, 0 failures/errors/skips.",
+        "Exact amended SHA provenance PASS after retaining the initial date-format failure on an identical source tree.",
+        "Independent static review PASS for four changed files; integration regression received author readback."
+      ],
+      "tests_remaining": [
+        "Refreshed merge-candidate verification and all required hosted gates on the exact candidate revision.",
+        "Complete the original 60-step MJ-REQ-292 journey; checks not executed in the receipts remain NOT_RUN.",
+        "Any separately required real restart, restore or deployment verification."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "The earlier independent review missed the historical-v2 completeness defect; its old PASS receipt is preserved.",
+        "Legacy source 2b07e787d2f1cbf793b6caaea3339948df04e050 records the expected failing deletion regression.",
+        "Initial source 6966b738e2e0d9455e0918478072703f4e2b0bea failed provenance date-format validation; its 51+43 passing test results and failure receipt are retained. The amended source has the identical tree and an exact-SHA rerun PASS."
+      ],
+      "known_limitations": [
+        "Whole MJ-REQ-292 remains PARTIAL; no issue #293 closure or acceptance-count change.",
+        "Only the existing visible public profile-context view is covered; hidden, not-interested and blacklisted jobs remain excluded. Inventories above 200 jobs and concurrent snapshot consistency remain unverified.",
+        "Historical v1/v2 inventories cannot certify completeness and require a fresh controlled v3 capture.",
+        "The temporary historical regression test blob was not retained; the baseline receipt discloses that limit. The corrected exact-source regression is retained.",
+        "No real stack restart, production restore, deployment, paid inference or employer submission was executed for this source correction."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json"
+      }
     }
   ],
-  "current_phase": "Record verified bounded recovery-inventory repair while whole MJ-REQ-292 remains PARTIAL",
+  "current_phase": "Record the verified v3 recovery-inventory correction while MJ-REQ-292 remains PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-execution.json"
+    "git_commit": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
