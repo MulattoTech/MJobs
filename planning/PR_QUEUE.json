@@ -6230,7 +6230,28 @@
       "branch": "work/webpro-20261103T034313Z-1e2ff1-008-concurrency",
       "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json",
       "notes": "Source6c9dc906; evidence4272c0c1; initial candidate8c9cd974. Native36PASS/25subtests/1POSIXskip and Linux37PASS/no skips on source and candidate. Original lost-success reproduction/eight failing baseline assertions retained. Parent008 staysPARTIAL; final-head review/gates/current-candidate execution pending."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1BA724-COHORT",
+      "title": "Integrate corrected TalentHop evidence, company identity and journal concurrency",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-008",
+        "MJ-REQ-017",
+        "MJ-REQ-269"
+      ],
+      "target_area": "Protected integration/canonical reconciliation",
+      "depends_on": [],
+      "status": "SOURCE_VERIFIED_PENDING_INPUT_GATE_DIAGNOSIS_AND_PROTECTED_CANDIDATE",
+      "branch": "work/webpro-20261103T050255Z-1ba724-cohort",
+      "source_prs": [
+        899,
+        907,
+        908
+      ],
+      "evidence": "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json",
+      "notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment."
     }
   ],
-  "generated_at": "2026-11-03T06:06:15.840730+00:00"
+  "generated_at": "2026-11-03T06:27:32.479532+00:00"
 }

@@ -2288,12 +2288,55 @@
         "git_commit": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1BA724-BOUNDED-COHORT-SOURCE-VERIFIED",
+      "timestamp": "2026-11-03T06:27:32.479532+00:00",
+      "current_phase": "Bounded899/907/908 cohort focused-verified; source899 gate diagnosis, combined review and protected delivery pending",
+      "completed_steps": [
+        "Preserved all three owner-authorized frozen ancestries,60 incoming source/evidence blobs and29 distinct prior journal payloads.",
+        "Reconciled only disjoint008/017/269 evidence, complete historical handoffs and both HAR/journal ignore additions.",
+        "Independent input reviews cleared899,908 and the corrected907 argv privacy finding."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json"
+      ],
+      "files_modified": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact source5ef48356:49 PASS,1 POSIX-on-Windows SKIP,0 failures across50 privacy/catalog/journal tests.",
+        "Catalog,original catalogue,journal,dashboard,provenance and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Diagnose899 exact-head integration shard1 failure125758487862; preserve the failure.",
+        "Independent combined source/canonical review and actual proposed-merge execution.",
+        "Every protected candidate gate, resulting current-main verification and separate guarded rollout."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "899 final-head integration shard1 reported FAILURE and is under its owner's diagnosis; local focused success does not clear it.",
+        "Earlier malformed-argv privacy failure and all original source failures remain preserved in linked evidence."
+      ],
+      "known_limitations": [
+        "Only899 carries269 literal functional PASS;017/008 remainPARTIAL; TalentHop adds zero acceptance.",
+        "Private TalentHop access,full HAR export and Project authorization remain blocked.",
+        "Combined collector/PostgreSQL/Redis and POSIX execution are not claimed by this Windows-focused run.",
+        "906 deployment9a21 is independently verified by its owner; this cohort is not deployed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "5ef483567899a31b7ac1039d3f7d9de31420374a",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Journal concurrency source and initial proposed merge verified; final review and protected delivery pending",
+  "current_phase": "Bounded899/907/908 cohort focused-verified; source899 gate diagnosis, combined review and protected delivery pending",
   "last_safe_checkpoint": {
-    "git_commit": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json"
+    "git_commit": "5ef483567899a31b7ac1039d3f7d9de31420374a",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

@@ -291,3 +291,16 @@ Worktree:C:\Tools\Dev\MJobs-webpro-20261103T034313Z-1e2ff1-008-concurrency.
 Safe next step: independently review908, execute its final current-base candidate,
 require all protected gates, and serialize merge after the ongoing906 rollout.
 Preserve899/902/907 work and907's distinct .gitignore additions on reconciliation.
+
+
+## 2026-11-03T06:27:32.479532+00:00 — bounded integration candidate, run1ba724
+
+Frozen inputs: PR899 c5470f4bd4ca7708b517129773247b5d1e18fd36; PR907 60021098ba0d97d0783a197311040d6a0cbae74e; PR908 5367e7019e40d82af036bf7eff14597a2a79da8f. Their owners authorized this bounded cohort in the PR906 conversation.902 remains excluded while corrected. New worktree ends -1ba724-cohort; branch work/webpro-20261103T050255Z-1ba724-cohort.
+
+All three source ancestries,60 incoming source/evidence files,29 previous journal payloads,all handoff sections and both ignore additions are preserved. Source5ef483567899a31b7ac1039d3f7d9de31420374a passed49 focused tests with one POSIX-on-Windows skip and no failures, plus catalog/canonical/journal/dashboard/provenance/diff checks. Source/evidence receipt: ../docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json. No combined PostgreSQL/Redis or Linux run is claimed here.
+
+Independent source reviews clear the frozen inputs, including907's corrected malformed-argv privacy finding and independently rerun16 privacy tests.899's final-head hosted integration shard1 subsequently failed and remains under owner diagnosis; do not merge until disposition and all fresh combined/protected gates pass. The containing PR must record its actual future candidate,review,main merge and guarded rollout. Historical pending statements above remain dated history.
+
+Only899 carries the previously reviewed269 literalPASS;017/008 stayPARTIAL. Original366 and separate59 criteria remain intact; this run adds no TalentHop acceptance.906's prior9a21 deployment is independently verified by run89c21f. Fleet Hub main0bf297c7b88186848eb0bf4fc6558712ce1af4b2 is tested/staged but its rollout waits for the catalog on MJobs main. No current-cohort or Hub deployment is claimed here.
+
+Preparation integration owner2f46c24317a23dde75a98db9bf63666e9ba74eb4 is released after publication, before hosted CI; reacquire and reread main/owners before any later canonical edit or merge. Source owners retain their objective refs. Private TalentHop audit/full HAR and Project1 remain blocked for the reasons in907. The final PR/issue receipts record later delivery and exact claim release; preserve all prior failures and evidence.
