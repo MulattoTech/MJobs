@@ -6129,7 +6129,21 @@
       "branch": "work/pro-test-matrix-20261102",
       "evidence": "docs/evidence/2026-11-02-pro-test-matrix/acceptance.json",
       "notes": "72 original scenarios/65 primary selectors executed PASS, no selected skips; new real API/reopen/stale-worker deletion regression. Only291 accepted. The containing PR final description records its own future merge/gates/deployment and issue closure; no criteria changes or whole-product claim."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1E2FF1-171",
+      "title": "Protect reviewed application-answer export files through writes and recovery",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-171"
+      ],
+      "target_area": "application-answer export storage and scoped PII evidence",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
+      "branch": "work/webpro-20261103T034313Z-1e2ff1-171",
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json",
+      "notes": "Run webpro-20261103T034313Z-1e2ff1; source 02db15748dae39b34848f6011327b6ce5c1cdf89. 45 Linux PASS/0 SKIP; Windows 39 PASS/26 subtests/6 POSIX SKIP. Only171 NOT_RUN to PARTIAL; zero new PASS credit. Exact candidate/main/CI/deployment receipts must be verified from the containing PR."
     }
   ],
-  "generated_at": "2026-11-02T21:00:45.470859+00:00"
+  "generated_at": "2026-11-03T03:56:19.742924+00:00"
 }

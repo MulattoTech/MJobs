@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-02T21:00:45.470859+00:00",
+  "timestamp": "2026-11-03T03:56:19.742924+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2161,11 +2161,12 @@
     },
     {
       "requirement_id": "MJ-REQ-171",
-      "result": "NOT_RUN",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-06-least-data-profile-access.json"
+        "docs/evidence/2026-10-06-least-data-profile-access.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
       ],
-      "note": "Scoped MJ-REF-014 extension locally verified: task-scoped profile paths expose only approved values and record accessed fact IDs without values. Full PII/security requirement remains NOT_RUN.",
+      "note": "Scoped MJ-REF-014 extension locally verified: task-scoped profile paths expose only approved values and record accessed fact IDs without values. Full PII/security requirement remains NOT_RUN.\n\n2026-11-03 Web Pro 1e2ff1, tested source 02db15748dae39b34848f6011327b6ce5c1cdf89: PARTIAL. Reviewed application-answer exports now create POSIX owner-only temporary files, retain private permissions after atomic publication and process death, and restrict/sync exact matching uncommitted recovery files before recording metadata. Corrupt or hard-linked artifacts are not reused or chmodded; storage failures are sanitized. 45 Linux tests PASS/0 SKIP; native Windows 39 PASS/26 subtests/6 POSIX SKIP, counterparts PASS in Linux. Profile-scoped download/reopen, hashes and no-store behavior verified. Full contact/resume/history/session security, Windows ACL isolation and historical-file remediation remain unproved. Protected merge/deployment are separate PR gates; no whole-requirement PASS.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"

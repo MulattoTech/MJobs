@@ -1607,12 +1607,54 @@
         "git_commit": "821171122a44332853339a798d717c5c11dd9ad5",
         "evidence_path": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-171-VERIFIED-20261103",
+      "timestamp": "2026-11-03T03:56:19.742924+00:00",
+      "current_phase": "Verified private answer-export storage; protected publication pending",
+      "completed_steps": [
+        "Reproduced three privacy failures at baseline63b843df using synthetic fixtures and a real child-process exit.",
+        "Implemented owner-only POSIX temporary files and exact-file recovery permission sync without broad chmod.",
+        "Verified immutable hashes, profile-scoped downloads after reopen, storage failures, mismatched bytes and hard-link preservation.",
+        "Recorded MJ-REQ-171 NOT_RUN to PARTIAL under an exclusive integration-preparation claim; no new PASS credit."
+      ],
+      "files_added": [
+        "tests/integration/test_answer_export_privacy.py",
+        "docs/security/application_answer_exports.md",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
+      ],
+      "files_modified": [
+        "services/documents/answers.py"
+      ],
+      "tests_completed": [
+        "Exact source 02db15748dae39b34848f6011327b6ce5c1cdf89: Linux45 PASS/0 SKIP; Windows39 PASS/26subtests/6POSIX SKIP, all six Linux counterparts PASS.",
+        "Catalogue, progress journal, dashboard, commit provenance and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Protected exact-head checks; actual merge-candidate checks; protected merge; main verification and guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only Brave baseline health and /__deployment at63b843df; not changed-behavior evidence."
+      ],
+      "known_errors": [
+        "Preserved baseline three expected permission FAIL results; final selected tests have zero failures."
+      ],
+      "known_limitations": [
+        "Only application-answer file storage is covered; full MJ-REQ-171 remains PARTIAL.",
+        "Windows ACL isolation and historical export/backups permission remediation are not established.",
+        "No independent human review has occurred; no paid review agent was launched."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "02db15748dae39b34848f6011327b6ce5c1cdf89",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Publish verified72-scenario P0 test matrix and deletion data-preservation regression",
+  "current_phase": "Verified private answer-export storage; protected publication pending",
   "last_safe_checkpoint": {
-    "git_commit": "821171122a44332853339a798d717c5c11dd9ad5",
-    "evidence_path": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
+    "git_commit": "02db15748dae39b34848f6011327b6ce5c1cdf89",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
