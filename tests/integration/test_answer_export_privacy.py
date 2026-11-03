@@ -208,6 +208,41 @@ with patch.object(answers.os, "fsync", side_effect=crash):
         self.assertFalse(self.path.exists())
         self.assertEqual(list(self.path.parent.glob(".*.tmp")), [])
 
+    def test_failed_flush_and_cleanup_keep_fixed_error_and_private_orphan(self):
+        with patch.object(answers.os, "fsync", side_effect=OSError(
+                "synthetic-private-storage-location")), \
+                patch.object(Path, "unlink", side_effect=PermissionError(
+                    "synthetic-private-cleanup-location")):
+            response = self.export()
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(response.json()["detail"], "ANSWER_EXPORT_STORAGE_UNAVAILABLE")
+        self.assertNotIn("synthetic-private", response.text)
+        self.assertEqual(self.rows(), [])
+        self.assertFalse(self.path.exists())
+        temporary = list(self.path.parent.glob(".*.tmp"))
+        self.assertEqual(len(temporary), 1)
+        self.assertEqual(temporary[0].read_bytes(), CONTENT)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(temporary[0].stat().st_mode), 0o600)
+
+    def test_directory_permission_failures_are_sanitized_without_metadata(self):
+        original_mkdir = Path.mkdir
+        for refused in (self.root / self.application_id,
+                        self.root / self.application_id / "answers", self.path.parent):
+            with self.subTest(directory=refused.name):
+                def unavailable(path, *args, **kwargs):
+                    if path == refused:
+                        raise PermissionError("synthetic-private-directory-location")
+                    return original_mkdir(path, *args, **kwargs)
+
+                with patch.object(Path, "mkdir", new=unavailable):
+                    response = self.export()
+                self.assertEqual(response.status_code, 422, response.text)
+                self.assertEqual(response.json()["detail"], "ANSWER_EXPORT_STORAGE_UNAVAILABLE")
+                self.assertNotIn("synthetic-private", response.text)
+                self.assertEqual(self.rows(), [])
+                self.assertFalse(self.path.exists())
+
     def test_reopened_download_preserves_scope_hash_and_cache_policy(self):
         response = self.export()
         self.assertEqual(response.status_code, 201, response.text)

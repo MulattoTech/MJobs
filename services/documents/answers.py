@@ -1,4 +1,5 @@
 """Deterministic, explicitly reviewed application answer exports."""
+from contextlib import suppress
 from datetime import datetime, timezone
 import hashlib
 import os
@@ -298,9 +299,16 @@ def _recover_private_answer_export(path, content, digest):
         raise ValueError("ANSWER_EXPORT_STORAGE_UNAVAILABLE") from None
 
 
+def _create_private_export_directory(path, *, parents=False):
+    try:
+        path.mkdir(mode=0o700, parents=parents, exist_ok=True)
+    except OSError:
+        raise ValueError("ANSWER_EXPORT_STORAGE_UNAVAILABLE") from None
+
+
 def export_answers(store, application_id, output_dir, items):
     _root, application_root = _answer_export_application_root(output_dir, application_id)
-    application_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    _create_private_export_directory(application_root, parents=True)
     with _export_lock(application_id):
         with store.engine.begin() as connection:
             if store.engine.dialect.name == "sqlite":
@@ -388,8 +396,8 @@ def export_answers(store, application_id, output_dir, items):
             file_name = f"{document_id}-{digest}.txt"
             relative = f"answers/{version}/{file_name}"
             path = _answer_export_path(application_root, version, file_name)
-            (application_root / "answers").mkdir(mode=0o700, exist_ok=True)
-            path.parent.mkdir(mode=0o700, exist_ok=True)
+            _create_private_export_directory(application_root / "answers")
+            _create_private_export_directory(path.parent)
             path = _answer_export_path(application_root, version, file_name)
             # Content-address the immutable path so a crash after file creation
             # but before the DB commit cannot poison a later attempt at this
@@ -416,7 +424,10 @@ def export_answers(store, application_id, output_dir, items):
                     raise ValueError("ANSWER_EXPORT_STORAGE_UNAVAILABLE") from None
                 finally:
                     if temporary is not None:
-                        temporary.unlink(missing_ok=True)
+                        # Preserve the original fixed storage/path error if
+                        # cleanup is unavailable; the orphan is already private.
+                        with suppress(OSError):
+                            temporary.unlink(missing_ok=True)
             record = {"id": document_id, "application_id": application_id,
                       "kind": "application-answer-export", "version": version,
                       "profile_version": profile["version"], "files": {"txt": relative},

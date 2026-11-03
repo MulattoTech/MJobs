@@ -17,7 +17,10 @@ are not recursively changed.
 
 A process death during writing can leave a private temporary file. It cannot
 publish partial content or commit a document record. A subsequent export can
-proceed independently without deleting that orphan or unrelated files.
+proceed independently without deleting that orphan or unrelated files. Directory
+creation failures use the same fixed storage error. If a failed write also cannot
+remove its temporary file, the private orphan is retained and cleanup does not
+mask the original classification.
 
 ## Recovery of a completed but uncommitted file
 
