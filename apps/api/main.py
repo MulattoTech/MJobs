@@ -928,17 +928,54 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             code = ("AI_TASK_CONFIG_INVALID" if request.url.path.endswith("/ai-task-settings")
                     else "AI_FUNNEL_POLICY_INVALID")
             return JSONResponse({"detail": {"code": code}}, status_code=422)
-        # Pydantic's default response includes each rejected value under
-        # `input`. Validation failures can contain credentials, application
-        # answers, or other private user data, so retain only structural
-        # diagnostics that cannot echo request content.
+        # A dict key in a Pydantic error location, or text in a custom
+        # validator message/type, can originate in applicant input. Do not
+        # reflect any of those strings. Preserve a bounded structural shape,
+        # numeric list indexes and a closed set of useful error categories.
+        safe_messages = {
+            "missing": "Required field missing",
+            "extra_forbidden": "Unexpected field",
+            "string_type": "Expected a string",
+            "string_too_short": "String too short",
+            "string_too_long": "String too long",
+            "string_pattern_mismatch": "Invalid string format",
+            "int_type": "Expected an integer",
+            "int_parsing": "Expected an integer",
+            "float_type": "Expected a number",
+            "float_parsing": "Expected a number",
+            "finite_number": "Expected a finite number",
+            "bool_type": "Expected a boolean",
+            "bool_parsing": "Expected a boolean",
+            "literal_error": "Unsupported choice",
+            "list_type": "Expected a list",
+            "dict_type": "Expected an object",
+            "greater_than": "Value too small",
+            "greater_than_equal": "Value too small",
+            "less_than": "Value too large",
+            "less_than_equal": "Value too large",
+            "json_invalid": "Invalid JSON",
+            "value_error": "Invalid request value",
+        }
         safe_errors = []
-        for item in error.errors():
-            location = item.get("loc", ())
+        for item in error.errors()[:32]:
+            raw_location = item.get("loc", ())
+            safe_location = []
+            for index, part in enumerate(raw_location):
+                if index >= 6:
+                    break
+                if index == 0 and part in ("body", "query", "path", "header", "cookie"):
+                    safe_location.append(part)
+                elif type(part) is int and 0 <= part <= 100_000:
+                    safe_location.append(part)
+                else:
+                    safe_location.append("[field]")
+            error_type = item.get("type")
+            if not isinstance(error_type, str) or error_type not in safe_messages:
+                error_type = "value_error"
             safe_errors.append({
-                "loc": [str(part) for part in location],
-                "msg": str(item.get("msg", "Invalid request"))[:240],
-                "type": str(item.get("type", "value_error"))[:96],
+                "loc": safe_location,
+                "msg": safe_messages[error_type],
+                "type": error_type,
             })
         return JSONResponse({"detail": safe_errors}, status_code=422)
 
