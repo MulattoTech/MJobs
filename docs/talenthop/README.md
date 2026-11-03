@@ -17,6 +17,7 @@ Evidence:
 - [Functional observations](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json): steps, observed results, role, time and limits; no private account values or copied resumes.
 - [Capture capability record](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/capture-capability.json): actual capture limitation and artifact disposition.
 - [Coverage guard negative control](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/coverage-negative-control.json): baseline validator accepted marketing-only observed claims and inconsistent exercised totals.
+- [Deployed Fleet consumer compatibility](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/fleet-consumer-compatibility.json): the initial timestamp/blocker mismatch was rejected and corrected before integration; the exact deployed projection accepts 16 features. This is separate from a live refresh.
 - The catalog validator now requires linked, bounded observation records for observed UI claims and reconciles the totals with individual route/journey records. It does not certify the truth of every observation, audit privacy automatically, or turn a UI observation into MJobs acceptance.
 
 ## HAR status

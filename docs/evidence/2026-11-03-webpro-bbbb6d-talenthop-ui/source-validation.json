@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "run_id": "webpro-20261103T073112Z-bbbb6d",
-  "tested_at": "2026-11-03T08:14:02.939229+00:00",
+  "tested_at": "2026-11-03T08:27:25.659842+00:00",
   "baseline_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
   "commands": [
     {
@@ -48,7 +48,7 @@
       "status": "PASS"
     }
   ],
-  "focused_tests": 27,
+  "focused_tests": 29,
   "negative_controls_after_fix": {
     "marketing_promoted_to_observed": [
       "FEATURE_OBSERVATION_EVIDENCE_MISSING",
@@ -76,19 +76,19 @@
   "source_hashes": [
     {
       "path": "tools/verification/talenthop_catalog.py",
-      "sha256": "d506cca068601ddec07fac76d3b0d883c280d432f038c763f97b4b340180f6d8"
+      "sha256": "165f2629ba4a7fd97cf830bf45f95f9c56e4468afec4713c3c1b38830999a0bc"
     },
     {
       "path": "tests/unit/test_talenthop_catalog.py",
-      "sha256": "9c92a59d818054f7410c86a083c13f2ade78f7333a5afd4d9ceef35571aa0abf"
+      "sha256": "d64461a8b80cb2ea1b12075544ce3d9d8049e40a72139629437985e6ef92f6a1"
     },
     {
       "path": "docs/talenthop/catalog.json",
-      "sha256": "01997a8924beaed22410847be8f919b3e0bd2c7b98686ee22241f42042eb7f82"
+      "sha256": "9f0496d2588aa5f6137b0940b62d4375a844702079df00b767b1083adb82357c"
     },
     {
       "path": "docs/talenthop/README.md",
-      "sha256": "57e2d88169fc7cfa041a0fbd51cd4593913daf3ce8c8e0ca46e7a2a24e6c5792"
+      "sha256": "3ee25e48cad07100bb2627d549578e9a99043efe7ebc48dfa26c32302bce51bd"
     },
     {
       "path": "docs/talenthop/UI_AUDIT_2026-11-03.md",

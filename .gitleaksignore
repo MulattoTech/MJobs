@@ -315,3 +315,7 @@ c31e90e050113ed0633af6d7d631f730841524b8:docs/evidence/2026-11-02-pro-route/resu
 # Verified Git source object, not a credential; one historical finding only.
 # Proof: docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-object-review.json
 cd6cdbe36858de1ba65f381f53c0de13c32a5fba:docs/evidence/2026-11-03-webpro-642e4b-implementation-report/runtime-followup.json:generic-api-key:9
+
+# Independently recomputed public Git blob; one historical finding, not a credential.
+# Proof: docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-object-review.json
+caaee5d6d6aeffd2e02905844e96223d732684c0:docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json:generic-api-key:99

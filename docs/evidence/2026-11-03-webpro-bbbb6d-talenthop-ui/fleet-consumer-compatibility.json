@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "checked_at": "2026-11-03T08:23:41.770Z",
+  "deployed_fleet_source": "1ee726fd030df7ba6ae110339277e0602538e90d",
+  "module_path": "src/parity.js",
+  "module_blob": "a2eead0cd3817c122d5cd205196245aadfb57e69",
+  "module_sha256": "51162c896e30a19efe22753603ac3a6aab06fefa7c1010630a9d892d92db26df",
+  "baseline_pr_head": "5eff4a44fe0e2c37ac44fc1f735cf42a4f2cc7b3",
+  "before": {
+    "status": "REJECTED"
+  },
+  "timestamp_only": {
+    "status": "REJECTED"
+  },
+  "after": {
+    "status": "PASS",
+    "features": 16,
+    "coverage": {
+      "routes": {
+        "identified": 21,
+        "exercised": 21
+      },
+      "journeys": {
+        "identified": 16,
+        "exercised": 11
+      }
+    },
+    "blockers": [
+      "FULL_HAR_TOOL_UNAVAILABLE",
+      "PROJECT_AUTH_SCOPE_MISSING"
+    ],
+    "harStatus": "BLOCKED"
+  },
+  "correction": "Use the deployed UTC millisecond-Z format and existing blocker codes. Untested generation/export/delivery stays in limitations; no Fleet code or security policy changed.",
+  "live_refresh": "NOT_RUN_UNTIL_PROTECTED_MERGE"
+}

@@ -1,3 +1,4 @@
+test_catalog_timestamp_matches_deployed_fleet_contract (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_catalog_timestamp_matches_deployed_fleet_contract) ... ok
 test_closed_issue_does_not_establish_delivery_evidence (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_closed_issue_does_not_establish_delivery_evidence) ... ok
 test_coverage_and_har_cannot_be_inflated_without_evidence (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_coverage_and_har_cannot_be_inflated_without_evidence) ... ok
 test_current_catalog_is_valid_and_acceptance_files_are_unchanged (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_current_catalog_is_valid_and_acceptance_files_are_unchanged) ... ok
@@ -6,6 +7,7 @@ test_exercised_counts_must_match_records_not_just_fit_denominators (tests.unit.t
 test_journey_and_route_records_require_boolean_states_and_scopes (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_journey_and_route_records_require_boolean_states_and_scopes) ... ok
 test_marketing_evidence_does_not_establish_observed_ui (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_marketing_evidence_does_not_establish_observed_ui) ... ok
 test_missing_record_wrong_timestamp_and_duplicate_evidence_fail (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_missing_record_wrong_timestamp_and_duplicate_evidence_fail) ... ok
+test_new_blocker_codes_require_coordinated_consumer_support (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_new_blocker_codes_require_coordinated_consumer_support) ... ok
 test_observed_evidence_requires_a_real_bounded_record (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_observed_evidence_requires_a_real_bounded_record) ... ok
 test_original_denominators_cannot_be_redirected_to_new_catalog (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_original_denominators_cannot_be_redirected_to_new_catalog) ... ok
 test_route_observation_cannot_use_a_marketing_claim (tests.unit.test_talenthop_catalog.TalentHopCatalogTests.test_route_observation_cannot_use_a_marketing_claim) ... ok
@@ -27,6 +29,6 @@ test_second_artifact_failure_rolls_back_only_own_output (tests.unit.test_har_san
 test_validator_rejects_tampered_headers_extensions_body_and_free_strings (tests.unit.test_har_sanitize.HarSanitizeTests.test_validator_rejects_tampered_headers_extensions_body_and_free_strings) ... ok
 
 ----------------------------------------------------------------------
-Ran 27 tests in 0.147s
+Ran 29 tests in 0.190s
 
 OK

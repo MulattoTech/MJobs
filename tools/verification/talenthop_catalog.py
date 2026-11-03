@@ -12,6 +12,10 @@ IMPLEMENTATION = {"ALREADY EXISTS", "PARTIAL", "MISSING", "BLOCKED", "VERIFIED I
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 
 
+# Match the deployed Fleet projection contract; extend both consumers together.
+KNOWN_BLOCKERS = {"PRIVATE_SITE_AUTHORIZATION_REQUIRED", "FULL_HAR_TOOL_UNAVAILABLE",
+                  "PROJECT_AUTH_SCOPE_MISSING", "INTERACTIVE_COVERAGE_NOT_RUN"}
+
 def _ui_evidence_ids(evidence: list[dict], root: Path, errors: list[str]) -> set[str]:
     """Resolve observed UI claims to bounded, committed observation records."""
     verified = set()
@@ -77,6 +81,14 @@ def validate_catalog(data: object, root: Path) -> list[str]:
         return ["CATALOG_SCHEMA_INVALID"]
     if data.get("repository") != "MulattoTech/MJobs" or not SHA.fullmatch(str(data.get("source_revision", ""))):
         errors.append("CATALOG_PROVENANCE_INVALID")
+    stamp = data.get("as_of")
+    try:
+        if (not isinstance(stamp, str) or not re.fullmatch(
+                r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:[.][0-9]{1,3})?Z", stamp)):
+            raise ValueError("Unsupported timestamp representation")
+        datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    except ValueError:
+        errors.append("CATALOG_TIMESTAMP_INVALID")
     rows = data.get("features")
     if not isinstance(rows, list) or not 1 <= len(rows) <= 100:
         return errors + ["FEATURES_INVALID"]
@@ -146,6 +158,10 @@ def validate_catalog(data: object, root: Path) -> list[str]:
     if not all(visit(node) for node in graph):
         errors.append("FEATURE_DEPENDENCY_CYCLE")
     audit = data.get("audit", {})
+    blockers = audit.get("blockers")
+    if (not isinstance(blockers, list) or any(not isinstance(code, str)
+            or code not in KNOWN_BLOCKERS for code in blockers)):
+        errors.append("AUDIT_BLOCKERS_INVALID")
     coverage = audit.get("coverage", {})
     for group in ("routes", "journeys"):
         identified, exercised = coverage.get(group + "_identified"), coverage.get(group + "_exercised")

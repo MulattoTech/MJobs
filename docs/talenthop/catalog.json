@@ -4,7 +4,7 @@
   "title": "TalentHop Functional Parity and MJobs Experience Expansion",
   "repository": "MulattoTech/MJobs",
   "source_revision": "63cb1042e08375f7bda1f9dad378209cca856167",
-  "as_of": "2026-11-03T08:05:56.528728+00:00",
+  "as_of": "2026-11-03T08:05:56.528Z",
   "epic_issue": 904,
   "project": {
     "owner": "MulattoTech",
@@ -38,8 +38,7 @@
     },
     "blockers": [
       "FULL_HAR_TOOL_UNAVAILABLE",
-      "PROJECT_AUTH_SCOPE_MISSING",
-      "GENERATION_EXPORT_DELIVERY_NOT_RUN"
+      "PROJECT_AUTH_SCOPE_MISSING"
     ],
     "authorization": {
       "status": "AUTHORIZED",

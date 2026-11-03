@@ -102,6 +102,18 @@ class TalentHopCatalogTests(unittest.TestCase):
         self.assertIn("JOURNEY_SCOPE_INVALID", errors)
         self.assertIn("ROUTE_STATE_INVALID", errors)
 
+    def test_catalog_timestamp_matches_deployed_fleet_contract(self):
+        for stamp in ("2026-11-03T08:00:00.123456Z", "2026-11-03T08:00:00+00:00",
+                      "2026-02-30T08:00:00Z", "not-a-time", None):
+            with self.subTest(stamp=stamp):
+                data = copy.deepcopy(self.data)
+                data["as_of"] = stamp
+                self.assertIn("CATALOG_TIMESTAMP_INVALID", validate_catalog(data, ROOT))
+
+    def test_new_blocker_codes_require_coordinated_consumer_support(self):
+        self.data["audit"]["blockers"].append("GENERATION_EXPORT_DELIVERY_NOT_RUN")
+        self.assertIn("AUDIT_BLOCKERS_INVALID", validate_catalog(self.data, ROOT))
+
     def test_original_denominators_cannot_be_redirected_to_new_catalog(self):
         self.data["legacy_acceptance"]["original"] = "docs/talenthop/catalog.json"
         self.assertIn("ACCEPTANCE_AUTHORITY_CHANGED", validate_catalog(self.data, ROOT))
