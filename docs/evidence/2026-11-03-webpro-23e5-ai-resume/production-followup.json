@@ -18,15 +18,20 @@
   "receipts": [
     {
       "path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-rollout-7e-readonly.json",
-      "sha256": "e66db85eb6a700e33d35a362ebfdcc36824bb185fc989f5e93dd69083762b97e"
+      "sha256": "e66db85eb6a700e33d35a362ebfdcc36824bb185fc989f5e93dd69083762b97e",
+      "sha256_representation": "Exact published Git blob bytes (LF line endings)"
     },
     {
       "path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-backup-7e-verification.json",
-      "sha256": "0fab39a0848be9dc23c61e4ffc5ab6e918a57b8dca34391ae49439483d2b091e"
+      "sha256": "506856894bbc2731c3a05493b08310f2d73335aa61a4359501ffe056ad819a18",
+      "original_windows_bytes_sha256": "0fab39a0848be9dc23c61e4ffc5ab6e918a57b8dca34391ae49439483d2b091e",
+      "sha256_representation": "Exact published Git blob bytes (LF line endings)"
     },
     {
       "path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-bounded-logs-7e.json",
-      "sha256": "6c76300434450d21a70f6eb78f9b80ee1b2af02e60b9f5cff4398481b2029024"
+      "sha256": "dc5fb40225fa9555273b79acdb929c493bc3491d9bd1e9d048de2ac7c8206c4b",
+      "original_windows_bytes_sha256": "6c76300434450d21a70f6eb78f9b80ee1b2af02e60b9f5cff4398481b2029024",
+      "sha256_representation": "Exact published Git blob bytes (LF line endings)"
     }
   ],
   "verified": [
@@ -44,5 +49,16 @@
     "Saved-profile credential ambiguity is refused; cover letters remain deterministic.",
     "No restore was run. Log inspection is limited to at most 80 recent lines per service since 05:02:45Z.",
     "This is not evidence that current main 9a21b98b or PR899 is deployed and does not establish full MJ-REQ-292."
-  ]
+  ],
+  "artifact_hash_followup": {
+    "recorded_at_utc": "2026-11-03T06:08:40.556696+00:00",
+    "prior_publication": "84b9b479bd76922c2eff74f66b673445f6a54d07",
+    "corrected_paths": [
+      "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-backup-7e-verification.json",
+      "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-bounded-logs-7e.json"
+    ],
+    "reason": "Two copied receipts were initially hashed as Windows CRLF bytes. Their semantic contents are unchanged. The sha256 field now identifies the linked Git LF artifact; original Windows-byte hashes are explicitly retained.",
+    "receipt_content_changed": false,
+    "implementation_or_test_change": false
+  }
 }
