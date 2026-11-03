@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-171",
+  "issue": 172,
+  "requirement_result": "PARTIAL",
+  "result": "EXPECTED_EXISTING_FIXTURE_FAILURE",
+  "source_sha": "9a44b9958958a0dd0b545bbabdcdbb67f0e56a75",
+  "tests": 1,
+  "failures": 0,
+  "errors": 1,
+  "skipped": 0,
+  "diagnostic": "DataExportError: EXPORT_FILE_UNAVAILABLE",
+  "raw_execution_summary": {
+    "source_sha": "9a44b9958958a0dd0b545bbabdcdbb67f0e56a75",
+    "source_tree": "1f98f609eed90860ad9a6632e79e9b771f74c938",
+    "input_files": {
+      "services/documents/uploads.py": {
+        "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb",
+        "git_blob": "67ee2bad25185295d2b5962b0e5684a7a103ba92",
+        "bytes": 15749
+      },
+      "services/data_export.py": {
+        "sha256": "d26e5b5284a3ad194041f7c79a16f9fa4db7ef29b871e51a2008ff6fc2f02958",
+        "git_blob": "1e5136462952dc23be4d7efb4a86b52eaa334147",
+        "bytes": 28339
+      },
+      "tests/unit/test_data_export.py": {
+        "sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496",
+        "git_blob": "0dd36af202ace4210968d90e6545f793997b5908",
+        "bytes": 14817
+      },
+      "outputs/run_upload_privacy_checks_v2.py": {
+        "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+        "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+        "bytes": 4973
+      }
+    },
+    "command": [
+      "python",
+      "outputs/run_upload_privacy_checks_v2.py",
+      "/evidence",
+      "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths"
+    ],
+    "docker_create_argv": [
+      "docker",
+      "create",
+      "--name",
+      "mjobs-webpro-642e4b-171-export-baseline-20261103t072835z",
+      "--label",
+      "mjobs.owner=webpro-20261103T031738Z-642e4b",
+      "--label",
+      "mjobs.requirement=MJ-REQ-171",
+      "--label",
+      "mjobs.role=privacy-export-fixture-baseline",
+      "--network",
+      "none",
+      "--user",
+      "10001:10001",
+      "--cap-drop",
+      "ALL",
+      "--security-opt",
+      "no-new-privileges",
+      "--read-only",
+      "--tmpfs",
+      "/tmp:rw,nosuid,nodev,mode=1777,size=256m",
+      "--mount",
+      "type=bind,source=<owned-source>,target=/app,readonly",
+      "--mount",
+      "type=bind,source=<owned-source>\\outputs\\verification\\webpro-642e4b-171-export-fixture-baseline-20261103T072835Z\\linux,target=/evidence",
+      "--workdir",
+      "/app",
+      "--env",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "--env",
+      "PYTHONNOUSERSITE=1",
+      "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "python",
+      "outputs/run_upload_privacy_checks_v2.py",
+      "/evidence",
+      "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths"
+    ],
+    "expected_result": "existing positive export fixture is rejected because its synthetic uploads directory/original have0755/0644 modes underumask022",
+    "fixture_source_snapshot": "baseline-test-data-export.py",
+    "started_utc": "2026-11-03T07:28:35.719681+00:00",
+    "finished_utc": "2026-11-03T07:28:37.782279+00:00",
+    "container_id": "aeb87814256f6a64de105421cd93a59835917aeccfe0b128e0fa0722fe169ed0",
+    "exit_code": 1,
+    "summary": {
+      "result": "FAIL",
+      "tests": 1,
+      "passed": 0,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "subtests_passed": 0,
+      "duration_seconds": 0.088436
+    },
+    "source_runtime_binding_verified": true
+  },
+  "execution": {
+    "schema_version": 1,
+    "command": [
+      "/usr/local/bin/python",
+      "outputs/run_upload_privacy_checks_v2.py",
+      "/evidence",
+      "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths"
+    ],
+    "cwd": "/app",
+    "platform": "linux",
+    "os_name": "posix",
+    "started_utc": "2026-11-03T07:28:37.416790+00:00",
+    "finished_utc": "2026-11-03T07:28:37.505226+00:00",
+    "duration_seconds": 0.088436,
+    "source_bindings": {
+      "services.documents.uploads": {
+        "module_file": "/app/services/documents/uploads.py",
+        "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+      },
+      "tests.unit.test_data_export": {
+        "module_file": "/app/tests/unit/test_data_export.py",
+        "sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496"
+      }
+    },
+    "tests": 1,
+    "passed": 0,
+    "failed_testcases": 0,
+    "error_testcases": 1,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 0,
+    "subtests_passed": 0,
+    "subtests_failed": 0,
+    "subtests_errors": 0,
+    "result": "FAIL",
+    "records": [
+      {
+        "id": "tests.unit.test_data_export.DataExportTests.test_backup_includes_verified_profile_document_bytes_without_local_paths",
+        "status": "ERROR",
+        "details": [
+          "Traceback (most recent call last):\n  File \"/app/tests/unit/test_data_export.py\", line 232, in test_backup_includes_verified_profile_document_bytes_without_local_paths\n    backup = export_profile_backup(self.store, \"profile-a\", output_dir=self.output_dir)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/services/data_export.py\", line 558, in export_profile_backup\n    \"document_files\": (_document_file_records(store, connection, profile_id, output_dir)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/services/data_export.py\", line 411, in _document_file_records\n    raise DataExportError(\"EXPORT_FILE_UNAVAILABLE\") from None\nservices.data_export.DataExportError: EXPORT_FILE_UNAVAILABLE\n"
+        ],
+        "duration_seconds": 0.08778510498814285
+      }
+    ]
+  },
+  "xml": {
+    "raw_path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux/tests.xml",
+    "raw_sha256": "68a080875e75ec663a5ccee1c967637d6c6e811988fbd7f35891878f148afad2",
+    "raw_bytes": 1198,
+    "raw_lf_normalized_sha256": "68a080875e75ec663a5ccee1c967637d6c6e811988fbd7f35891878f148afad2",
+    "published_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.xml",
+    "published_sha256": "e40de77a786e096884adc9c3c69ce432125360a53e0ff02fc60458284cd2ada0",
+    "published_lf_normalized_sha256": "e40de77a786e096884adc9c3c69ce432125360a53e0ff02fc60458284cd2ada0",
+    "published_bytes": 1199,
+    "published_git_blob": "28bb217e35dc600b8c7354b15e9b601eebab2644"
+  },
+  "console": {
+    "raw_path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux-console.log",
+    "raw_sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+    "raw_bytes": 2212,
+    "raw_lf_normalized_sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+    "published_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/export-fixture-baseline.log",
+    "published_sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+    "published_lf_normalized_sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+    "published_bytes": 2212,
+    "published_git_blob": "bd95c6cb1c179e38462dc17dfaf422226f8bb062"
+  },
+  "original_test_source": {
+    "commit": "9a44b9958958a0dd0b545bbabdcdbb67f0e56a75",
+    "path": "tests/unit/test_data_export.py",
+    "git_blob": "0dd36af202ace4210968d90e6545f793997b5908",
+    "exact_raw_snapshot": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/baseline-test-data-export.py",
+    "raw_snapshot_sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496",
+    "retention": "The exact test source is retained in the9a44 Git ancestor and in this raw snapshot."
+  },
+  "correction": {
+    "commit": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+    "path": "tests/unit/test_data_export.py",
+    "git_blob": "b65a2ce612963ba3d557481ce214ff440d7ddd65",
+    "scope": "Only the synthetic uploads directory requests0700 and its freshly written original is chmodded0600. Assertions and production guard remain unchanged."
+  },
+  "cleanup": {
+    "removed_container": "aeb87814256f6a64de105421cd93a59835917aeccfe0b128e0fa0722fe169ed0",
+    "owner_verified": true
+  }
+}

@@ -1,0 +1,31 @@
+RUNTIME_SOURCE_BINDINGS {"services.documents.uploads": {"module_file": "/app/services/documents/uploads.py", "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"}, "tests.integration.test_resume_upload": {"module_file": "/app/tests/integration/test_resume_upload.py", "sha256": "43125046c88dbcb418bb11087bf756293c0b0aaa6c63c3c15e1f8a067971a9c0"}, "tests.integration.test_resume_upload_privacy": {"module_file": "/app/tests/integration/test_resume_upload_privacy.py", "sha256": "f65a425bc5954c94585516d7da6f7b7e464f58a98a546b6a66a9c035402de16c"}}
+RUNTIME_SUMMARY {"duration_seconds": 11.654913, "error_testcases": 0, "errors": 0, "failed_testcases": 0, "failures": 0, "finished_utc": "2026-11-03T07:18:17.957309+00:00", "os_name": "posix", "passed": 24, "platform": "linux", "result": "PASS", "schema_version": 1, "skipped": 0, "started_utc": "2026-11-03T07:18:06.302396+00:00", "subtests_errors": 0, "subtests_failed": 0, "subtests_passed": 26, "tests": 24}
+test_cleanup_failure_preserves_private_admission_error (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_cleanup_failure_preserves_private_admission_error) ... ok
+test_directory_creation_failure_is_sanitized_without_metadata (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_directory_creation_failure_is_sanitized_without_metadata) ... ok
+test_download_and_duplicate_original_reads_are_bounded (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_download_and_duplicate_original_reads_are_bounded) ... ok
+test_fifo_original_is_refused_without_blocking_or_metadata_change (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fifo_original_is_refused_without_blocking_or_metadata_change) ... ok
+test_final_symlink_swap_is_refused_before_read (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_final_symlink_swap_is_refused_before_read) ... ok
+test_fresh_upload_is_private_under_permissive_umask (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fresh_upload_is_private_under_permissive_umask) ... ok
+test_fstat_failure_closes_descriptors_without_reading_or_exposing_paths (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_fstat_failure_closes_descriptors_without_reading_or_exposing_paths) ... ok
+test_invalid_recorded_sizes_are_refused_before_original_open (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_invalid_recorded_sizes_are_refused_before_original_open) ... ok
+test_native_private_original_roundtrip_and_repeat_preserve_metadata (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_native_private_original_roundtrip_and_repeat_preserve_metadata) ... ok
+test_original_filename_must_be_one_safe_component_before_open (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_original_filename_must_be_one_safe_component_before_open) ... ok
+test_private_original_with_two_links_remains_readable_and_reusable (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_private_original_with_two_links_remains_readable_and_reusable) ... ok
+test_private_read_only_original_remains_readable_and_reusable (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_private_read_only_original_remains_readable_and_reusable) ... ok
+test_reopened_read_refuses_permissive_directory_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_directory_without_mutation) ... ok
+test_reopened_read_refuses_permissive_original_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_reopened_read_refuses_permissive_original_without_mutation) ... ok
+test_repeat_upload_refuses_permissive_directory_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_directory_without_mutation) ... ok
+test_repeat_upload_refuses_permissive_original_without_mutation (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_repeat_upload_refuses_permissive_original_without_mutation) ... ok
+test_storage_open_failure_is_sanitized_and_preserves_metadata (tests.integration.test_resume_upload_privacy.ResumeUploadPrivacyTests.test_storage_open_failure_is_sanitized_and_preserves_metadata) ... ok
+test_concurrent_mixed_extension_uploads_have_one_original (tests.integration.test_resume_upload.ResumeUploadTests.test_concurrent_mixed_extension_uploads_have_one_original) ... ok
+test_duplicate_bytes_keep_first_authoritative_extension_and_metadata (tests.integration.test_resume_upload.ResumeUploadTests.test_duplicate_bytes_keep_first_authoritative_extension_and_metadata) ... ok
+test_pdf_docx_and_txt_are_accepted_only_with_matching_types (tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_docx_and_txt_are_accepted_only_with_matching_types) ... ok
+test_pdf_upload_is_persistent_unreviewed_and_integrity_checked (tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_upload_is_persistent_unreviewed_and_integrity_checked) ... ok
+test_pdf_upload_rejects_embedded_windows_executable_but_accepts_normal_pdf (tests.integration.test_resume_upload.ResumeUploadTests.test_pdf_upload_rejects_embedded_windows_executable_but_accepts_normal_pdf) ... ok
+test_profile_scope_and_cross_site_read_are_enforced (tests.integration.test_resume_upload.ResumeUploadTests.test_profile_scope_and_cross_site_read_are_enforced) ... ok
+test_unsafe_or_mismatched_uploads_are_rejected_without_storage (tests.integration.test_resume_upload.ResumeUploadTests.test_unsafe_or_mismatched_uploads_are_rejected_without_storage) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 11.656s
+
+OK

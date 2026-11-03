@@ -1,0 +1,36 @@
+RESTORE_SOURCE_BINDING {"module": "cli.local_backup", "path": "/app/cli/local_backup.py", "sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f"}
+RUNTIME_SOURCE_BINDINGS {"services.documents.uploads": {"module_file": "/app/services/documents/uploads.py", "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"}, "tests.unit.test_restored_upload_privacy": {"module_file": "/app/tests/unit/test_restored_upload_privacy.py", "sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2"}}
+RUNTIME_SUMMARY {"duration_seconds": 0.019959, "error_testcases": 0, "errors": 0, "failed_testcases": 1, "failures": 1, "finished_utc": "2026-11-03T08:34:13.916694+00:00", "os_name": "posix", "passed": 0, "platform": "linux", "result": "FAIL", "schema_version": 1, "skipped": 0, "started_utc": "2026-11-03T08:34:13.896735+00:00", "subtests_errors": 0, "subtests_failed": 0, "subtests_passed": 0, "tests": 1}
+test_real_snapshot_copy_is_private_before_readonly_verification_and_startup (tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup) ... FAIL
+
+======================================================================
+FAIL: test_real_snapshot_copy_is_private_before_readonly_verification_and_startup (tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_real_snapshot_copy_is_private_before_readonly_verification_and_startup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/app/tests/unit/test_restored_upload_privacy.py", line 101, in test_real_snapshot_copy_is_private_before_readonly_verification_and_startup
+    events, observed = self.restore_fixture(archive, manifest, target)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/unit/test_restored_upload_privacy.py", line 90, in restore_fixture
+    local_backup.restore_backup(archive, "synthetic-restored", 18712)
+  File "/app/cli/local_backup.py", line 653, in restore_backup
+    return _restore_verified_snapshot(snapshot, manifest, project, port)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/cli/local_backup.py", line 699, in _restore_verified_snapshot
+    _compose(project, "run", "--rm", "--no-deps", "-T", "api", "python", "-m",
+  File "/usr/local/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/unit/test_restored_upload_privacy.py", line 66, in compose
+    self.assertEqual(stat.S_IMODE((target / "documents/uploads").stat().st_mode), 0o700)
+AssertionError: 493 != 448
+
+----------------------------------------------------------------------
+Ran 1 test in 0.019s
+
+FAILED (failures=1)

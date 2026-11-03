@@ -1,0 +1,133 @@
+{
+  "source_commit": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+  "started_at_utc": "2026-11-03T04:07:43.534610+00:00",
+  "commands": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_ai_resume_fact_trace.py",
+        "tests/integration/test_ai_resume_fact_trace_postgres.py",
+        "tests/browser/test_ai_resume_fact_trace.py",
+        "tests/browser/test_document_fact_trace.py",
+        "tests/unit/test_resume_rewrite_review.py",
+        "tests/integration/test_resume_rewrite_review_api.py",
+        "tests/integration/test_document_provenance.py",
+        "tests/integration/test_prompt_provenance.py",
+        "--tb=short",
+        "--junitxml=outputs/webpro-23e5/candidate-tests.xml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 58.422,
+      "log": "outputs/webpro-23e5/candidate-command-1.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "services/documents/ai_resume.py",
+        "cli/ai_resume.py",
+        "tests/integration/test_ai_resume_fact_trace.py",
+        "tests/integration/test_ai_resume_fact_trace_postgres.py",
+        "tests/browser/test_ai_resume_fact_trace.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.125,
+      "log": "outputs/webpro-23e5/candidate-command-2.log"
+    },
+    {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "test",
+        "--",
+        "--run",
+        "src/document-history.test.tsx"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.781,
+      "log": "outputs/webpro-23e5/candidate-command-3.log"
+    },
+    {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.563,
+      "log": "outputs/webpro-23e5/candidate-command-4.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.109,
+      "log": "outputs/webpro-23e5/candidate-command-5.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.078,
+      "log": "outputs/webpro-23e5/candidate-command-6.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.094,
+      "log": "outputs/webpro-23e5/candidate-command-7.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.047,
+      "log": "outputs/webpro-23e5/candidate-command-8.log"
+    }
+  ],
+  "ended_at_utc": "2026-11-03T04:08:44.750701+00:00",
+  "final_commit": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+  "tracked_diff": "",
+  "tested_tree": "734ad7aed27dbef76e142aa2bdd467a46dbd3538",
+  "observed_proposed_merge": "e8923555a43dc4635964089e969d8cae26ec9d8e",
+  "proposed_merge_tree_matches": true,
+  "summary": {
+    "pytest_pass": 48,
+    "subtests_pass": 46,
+    "fail": 0,
+    "errors": 0,
+    "skip": 0,
+    "frontend_tests_pass": 14
+  },
+  "scope": "Local exact-candidate execution; hosted gates and deployment are separate receipts."
+}

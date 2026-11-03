@@ -1,10 +1,11 @@
 """Store unreviewed base resumes locally; never turn file contents into facts."""
 from __future__ import annotations
 
-from contextlib import nullcontext
+from contextlib import ExitStack, nullcontext
 from io import BytesIO
 import hashlib
 import os
+import stat
 from pathlib import Path
 import tempfile
 import unicodedata
@@ -96,15 +97,79 @@ def _contains_embedded_pe(data: bytes) -> bool:
             return True
 
 
-def _uploads_root(output_dir: str | Path, *, create: bool) -> Path:
-    root = Path(output_dir).resolve()
-    uploads = root / "uploads"
-    if create:
-        uploads.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if not uploads.is_dir() or uploads.is_symlink() or uploads.resolve().parent != root:
+def _require_private_entry(info, *, directory: bool = False) -> None:
+    expected_type = stat.S_ISDIR if directory else stat.S_ISREG
+    if not expected_type(info.st_mode):
         raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe")
-    return uploads
+    if os.name == "posix" and stat.S_IMODE(info.st_mode) & 0o077:
+        raise UploadIntegrityError("Uploaded resume storage is not private")
 
+
+def _directory_flags() -> int:
+    return (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+            getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0))
+
+
+def _uploads_root(output_dir: str | Path, *, create: bool) -> Path:
+    try:
+        root = Path(output_dir).resolve()
+        uploads = root / "uploads"
+        if create:
+            uploads.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if not uploads.is_dir() or uploads.is_symlink() or uploads.resolve().parent != root:
+            raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe")
+        if os.name == "posix":
+            descriptor = os.open(uploads, _directory_flags())
+            try:
+                _require_private_entry(os.fstat(descriptor), directory=True)
+            finally:
+                os.close(descriptor)
+        return uploads
+    except OSError as error:
+        raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe") from error
+
+
+def _read_original(uploads: Path, filename: str, expected_size: int, expected_sha256: str) -> bytes:
+    """Read the exact original through one bounded, privately admitted descriptor."""
+    if type(expected_size) is not int or not 1 <= expected_size <= MAX_UPLOAD_BYTES:
+        raise UploadIntegrityError("Uploaded resume size changed")
+    if (not isinstance(filename, str) or not filename or filename in (".", "..") or
+            any(character in filename for character in ("/", "\\", ":", "\0")) or
+            Path(filename).name != filename):
+        raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe")
+    path = uploads / filename
+    flags = (os.O_RDONLY | getattr(os, "O_BINARY", 0) |
+             getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0))
+    try:
+        if path.is_symlink():
+            raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe")
+        with ExitStack() as resources:
+            directory_descriptor = None
+            if os.name == "posix":
+                directory_descriptor = os.open(uploads, _directory_flags())
+                resources.callback(os.close, directory_descriptor)
+                _require_private_entry(os.fstat(directory_descriptor), directory=True)
+                descriptor = os.open(filename, flags, dir_fd=directory_descriptor)
+            else:
+                descriptor = os.open(path, flags)
+            resources.callback(os.close, descriptor)
+            info = os.fstat(descriptor)
+            _require_private_entry(info)
+            if info.st_size != expected_size:
+                raise UploadIntegrityError("Uploaded resume size changed")
+            stream = resources.enter_context(os.fdopen(descriptor, "rb", closefd=False))
+            data = stream.read(expected_size + 1)
+            after = os.fstat(descriptor)
+            _require_private_entry(after)
+            if after.st_size != expected_size or len(data) != expected_size:
+                raise UploadIntegrityError("Uploaded resume size changed")
+            if directory_descriptor is not None:
+                _require_private_entry(os.fstat(directory_descriptor), directory=True)
+            if hashlib.sha256(data).hexdigest() != expected_sha256:
+                raise UploadIntegrityError("Uploaded resume checksum changed")
+            return data
+    except OSError as error:
+        raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe") from error
 
 def list_resumes(store, profile_id: str, *, document_kind: str | None = 'BASE_RESUME') -> list[dict]:
     store.profile(profile_id)
@@ -135,12 +200,14 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
     requested_series = series_id
     series_id = series_id or (identifier if document_kind == 'BASE_RESUME' else identity('document-series', document_kind, identifier))
     uploads = _uploads_root(output_dir, create=True)
-    with tempfile.NamedTemporaryFile(dir=uploads, prefix=".upload-", delete=False) as staged:
-        staged_path = Path(staged.name)
-        staged.write(data)
-        staged.flush()
-        os.fsync(staged.fileno())
+    staged_path = None
+    completed = False
     try:
+        with tempfile.NamedTemporaryFile(dir=uploads, prefix=".upload-", delete=False) as staged:
+            staged_path = Path(staged.name)
+            staged.write(data)
+            staged.flush()
+            os.fsync(staged.fileno())
         with store.engine.begin() as connection:
             # Serialize metadata lookup, authoritative format selection, and file
             # creation so mixed-extension repeats cannot create alternate paths.
@@ -162,11 +229,10 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
             destination = uploads / f"{identifier}.{authoritative_extension}"
             try:
                 os.link(staged_path, destination)
-                os.chmod(destination, 0o600)
             except FileExistsError:
-                if destination.is_symlink() or destination.stat().st_size != len(data) or hashlib.sha256(
-                        destination.read_bytes()).hexdigest() != digest:
-                    raise UploadIntegrityError("Existing uploaded resume does not match its checksum")
+                _read_original(uploads, destination.name, len(data), digest)
+            else:
+                os.chmod(destination, 0o600)
             record = dict(existing) if existing else {"id": identifier, "profile_id": profile_id,
                 "filename": filename, "format": extension, "media_type": media_type,
                 "size_bytes": len(data), "sha256": digest, "status": "STORED_UNREVIEWED", "created_at": now()}
@@ -181,11 +247,21 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
                             'label':last['label'] if last else (label or filename).strip(),
                             'version':last['version'] + 1 if last else 1, 'created_at':now(), 'document_kind':document_kind}
                 upsert(connection, m.resume_revisions, revision)
-            return {**record, **{key:revision[key] for key in ('series_id','label','version','document_kind')},
-                    'revision_id':revision['id'], 'version_created_at':revision['created_at']}
+            result = {**record, **{key:revision[key] for key in ('series_id','label','version','document_kind')},
+                      'revision_id':revision['id'], 'version_created_at':revision['created_at']}
+        completed = True
+        return result
+    except OSError as error:
+        raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe") from error
     finally:
-        staged_path.unlink(missing_ok=True)
-
+        if staged_path is not None:
+            try:
+                staged_path.unlink(missing_ok=True)
+            except OSError as error:
+                # Preserve an earlier integrity/permission refusal. A cleanup-only
+                # failure may leave a private temporary; never expose its path.
+                if completed:
+                    raise UploadIntegrityError("Uploaded resume storage path is unavailable or unsafe") from error
 
 def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str, *, document_kind: str = 'BASE_RESUME', connection=None) -> tuple[dict, bytes]:
     with (nullcontext(connection) if connection is not None else store.engine.connect()) as connection:
@@ -197,16 +273,5 @@ def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str,
     if record["format"] not in MEDIA_TYPES:
         raise UploadIntegrityError("Uploaded resume format metadata is unsafe")
     uploads = _uploads_root(output_dir, create=False)
-    path = uploads / f"{record['id']}.{record['format']}"
-    if path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(uploads):
-        raise UploadIntegrityError("Uploaded resume is missing or path is unsafe")
-    if path.stat().st_size != record["size_bytes"] or record["size_bytes"] > MAX_UPLOAD_BYTES:
-        raise UploadIntegrityError("Uploaded resume size changed")
-    # The file may grow after stat; never read beyond the recorded size.
-    with path.open("rb") as stream:
-        data = stream.read(record["size_bytes"] + 1)
-    if len(data) != record["size_bytes"]:
-        raise UploadIntegrityError("Uploaded resume size changed")
-    if hashlib.sha256(data).hexdigest() != record["sha256"]:
-        raise UploadIntegrityError("Uploaded resume checksum changed")
-    return record, data
+    filename = f"{record['id']}.{record['format']}"
+    return record, _read_original(uploads, filename, record["size_bytes"], record["sha256"])

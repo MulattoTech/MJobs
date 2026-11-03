@@ -1,0 +1,724 @@
+{
+  "case_limit_seconds": 30.0,
+  "cases": [
+    {
+      "case": "normal_1",
+      "child_exit_code": 0,
+      "control_failures": [],
+      "durable": {
+        "canonical_job_count": 8,
+        "captured_before_fixture_cleanup": true,
+        "import_receipt_count": 1,
+        "monitor_count": 1,
+        "monitor_receipt_present": [
+          true
+        ],
+        "operation_count": 1,
+        "operations": [
+          {
+            "error": null,
+            "state": "COMPLETED"
+          }
+        ]
+      },
+      "elapsed_seconds": 11.875,
+      "errors": 0,
+      "events": [
+        {
+          "at_seconds": 2.609,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.609,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.0,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.64,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.64,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.985,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.656,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.656,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.984,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 4.687,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 4.719,
+          "elapsed_seconds": 0.032,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.958354,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 5.687,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 5.687,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 1.0,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 7.015,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 7.031,
+          "elapsed_seconds": 0.016,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.672,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 8.031,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 8.031,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.672,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 9.031,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 9.031,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.688,
+          "thread": "mjobs_monitor_link_0"
+        }
+      ],
+      "events_dropped": 0,
+      "failures": 0,
+      "hosted_cause_established": false,
+      "injection": {
+        "connection_closed": false,
+        "controller_joined": false,
+        "journal_mode": null,
+        "lock_acquired": false,
+        "refusal_seen_while_held": false,
+        "requested": false,
+        "rollback_ok": false
+      },
+      "live_monitor_threads": 0,
+      "negative_guards": null,
+      "post_source_guard": {
+        "result": "PASS"
+      },
+      "server_joined": true,
+      "skips": 0,
+      "source_commit": "2566b5ca59fe3a3fed294599eacebfd06cccde34",
+      "source_tree": "14f8e197def0cb894f8321a5484b22ff90bf6177",
+      "status": "PASS",
+      "test_outcomes": [],
+      "tests_run": 1,
+      "worker_returns": [
+        {
+          "error_category": null,
+          "failure": null,
+          "status": "COMPLETED"
+        },
+        {
+          "error_category": null,
+          "failure": null,
+          "status": "ALREADY_CLAIMED_OR_CAPACITY"
+        }
+      ]
+    },
+    {
+      "case": "normal_2",
+      "child_exit_code": 0,
+      "control_failures": [],
+      "durable": {
+        "canonical_job_count": 8,
+        "captured_before_fixture_cleanup": true,
+        "import_receipt_count": 1,
+        "monitor_count": 1,
+        "monitor_receipt_present": [
+          true
+        ],
+        "operation_count": 1,
+        "operations": [
+          {
+            "error": null,
+            "state": "COMPLETED"
+          }
+        ]
+      },
+      "elapsed_seconds": 11.719,
+      "errors": 0,
+      "events": [
+        {
+          "at_seconds": 2.453,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.453,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.0,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.469,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.469,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.984,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.469,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.484,
+          "elapsed_seconds": 0.015,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.984,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 4.516,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 4.516,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.953,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 5.469,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 5.469,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 1.003261,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 6.797,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 6.797,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.687,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 7.828,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 7.828,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.659682,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 8.828,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 8.828,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.672,
+          "thread": "mjobs_monitor_link_0"
+        }
+      ],
+      "events_dropped": 0,
+      "failures": 0,
+      "hosted_cause_established": false,
+      "injection": {
+        "connection_closed": false,
+        "controller_joined": false,
+        "journal_mode": null,
+        "lock_acquired": false,
+        "refusal_seen_while_held": false,
+        "requested": false,
+        "rollback_ok": false
+      },
+      "live_monitor_threads": 0,
+      "negative_guards": null,
+      "post_source_guard": {
+        "result": "PASS"
+      },
+      "server_joined": true,
+      "skips": 0,
+      "source_commit": "2566b5ca59fe3a3fed294599eacebfd06cccde34",
+      "source_tree": "14f8e197def0cb894f8321a5484b22ff90bf6177",
+      "status": "PASS",
+      "test_outcomes": [],
+      "tests_run": 1,
+      "worker_returns": [
+        {
+          "error_category": null,
+          "failure": null,
+          "status": "COMPLETED"
+        },
+        {
+          "error_category": null,
+          "failure": null,
+          "status": "ALREADY_CLAIMED_OR_CAPACITY"
+        }
+      ]
+    },
+    {
+      "case": "normal_3",
+      "child_exit_code": 0,
+      "control_failures": [],
+      "durable": {
+        "canonical_job_count": 8,
+        "captured_before_fixture_cleanup": true,
+        "import_receipt_count": 1,
+        "monitor_count": 1,
+        "monitor_receipt_present": [
+          true
+        ],
+        "operation_count": 1,
+        "operations": [
+          {
+            "error": null,
+            "state": "COMPLETED"
+          }
+        ]
+      },
+      "elapsed_seconds": 11.531,
+      "errors": 0,
+      "events": [
+        {
+          "at_seconds": 2.312,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.328,
+          "elapsed_seconds": 0.016,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.0,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.344,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.344,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.984,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.344,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.359,
+          "elapsed_seconds": 0.015,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.984,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 4.406,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 4.406,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.938,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 5.359,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 5.359,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 1.0,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 6.687,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 6.687,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.672428,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 7.703,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 7.703,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.672,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 8.719,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 8.719,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.656,
+          "thread": "mjobs_monitor_link_0"
+        }
+      ],
+      "events_dropped": 0,
+      "failures": 0,
+      "hosted_cause_established": false,
+      "injection": {
+        "connection_closed": false,
+        "controller_joined": false,
+        "journal_mode": null,
+        "lock_acquired": false,
+        "refusal_seen_while_held": false,
+        "requested": false,
+        "rollback_ok": false
+      },
+      "live_monitor_threads": 0,
+      "negative_guards": null,
+      "post_source_guard": {
+        "result": "PASS"
+      },
+      "server_joined": true,
+      "skips": 0,
+      "source_commit": "2566b5ca59fe3a3fed294599eacebfd06cccde34",
+      "source_tree": "14f8e197def0cb894f8321a5484b22ff90bf6177",
+      "status": "PASS",
+      "test_outcomes": [],
+      "tests_run": 1,
+      "worker_returns": [
+        {
+          "error_category": null,
+          "failure": null,
+          "status": "COMPLETED"
+        },
+        {
+          "error_category": null,
+          "failure": null,
+          "status": "ALREADY_CLAIMED_OR_CAPACITY"
+        }
+      ]
+    },
+    {
+      "case": "exclusive_lock",
+      "child_exit_code": 0,
+      "control_failures": [
+        {
+          "at_seconds": 5.843,
+          "contexts": [
+            {
+              "connection_invalidated": false,
+              "dbapi_class": "OperationalError",
+              "exception_class": "OperationalError",
+              "guard_code": null,
+              "sqlite_code": 5,
+              "sqlite_name": "SQLITE_BUSY"
+            },
+            {
+              "connection_invalidated": false,
+              "dbapi_class": null,
+              "exception_class": "OperationalError",
+              "guard_code": null,
+              "sqlite_code": 5,
+              "sqlite_name": "SQLITE_BUSY"
+            }
+          ],
+          "control_raise_line": 523,
+          "elapsed_seconds": 0.437
+        }
+      ],
+      "durable": {
+        "canonical_job_count": 0,
+        "captured_before_fixture_cleanup": true,
+        "import_receipt_count": 0,
+        "monitor_count": 1,
+        "monitor_receipt_present": [
+          false
+        ],
+        "operation_count": 1,
+        "operations": [
+          {
+            "error": "OPERATION_CONTROL_UNAVAILABLE",
+            "state": "BLOCKED"
+          }
+        ]
+      },
+      "elapsed_seconds": 7.0,
+      "errors": 0,
+      "events": [
+        {
+          "at_seconds": 2.328,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.343,
+          "elapsed_seconds": 0.015,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.0,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.359,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 2.359,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.984,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.375,
+          "event": "reserve_enter",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 3.39,
+          "elapsed_seconds": 0.015,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.968,
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 4.437,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 4.437,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 0.922,
+          "thread": "mjobs_monitor_link_0"
+        },
+        {
+          "at_seconds": 5.375,
+          "event": "reserve_enter",
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 5.375,
+          "elapsed_seconds": 0.0,
+          "event": "reserve_exit",
+          "result": "RETURNED",
+          "returned_wait_seconds": 1.0,
+          "thread": "mjobs_monitor_link_1"
+        },
+        {
+          "at_seconds": 5.843,
+          "contexts": [
+            {
+              "connection_invalidated": false,
+              "dbapi_class": "OperationalError",
+              "exception_class": "OperationalError",
+              "guard_code": null,
+              "sqlite_code": 5,
+              "sqlite_name": "SQLITE_BUSY"
+            },
+            {
+              "connection_invalidated": false,
+              "dbapi_class": null,
+              "exception_class": "OperationalError",
+              "guard_code": null,
+              "sqlite_code": 5,
+              "sqlite_name": "SQLITE_BUSY"
+            }
+          ],
+          "control_raise_line": 523,
+          "elapsed_seconds": 0.437,
+          "event": "control_unavailable",
+          "thread": "MainThread"
+        },
+        {
+          "at_seconds": 6.687,
+          "event": "server_request_error",
+          "exception_class": "SSLEOFError",
+          "thread": "UNEXPECTED_IDENTIFIER"
+        }
+      ],
+      "events_dropped": 0,
+      "failures": 1,
+      "hosted_cause_established": false,
+      "injection": {
+        "active_before_acquire": 1,
+        "connection_closed": true,
+        "controller_joined": true,
+        "journal_mode": "delete",
+        "lock_acquired": true,
+        "lock_acquired_seconds": 5.39,
+        "lock_released_seconds": 5.843,
+        "lock_requested_seconds": 5.39,
+        "refusal_seen_while_held": true,
+        "requested": true,
+        "rollback_ok": true
+      },
+      "live_monitor_threads": 0,
+      "negative_guards": {
+        "durable_blocked_and_no_import": true,
+        "exact_blocked_result": true,
+        "injection_before_refusal": true,
+        "no_skips": true,
+        "one_original_positive_assertion_failed": true,
+        "ordinary_journal_and_clean_lock_release": true,
+        "original_cleanup_completed": true,
+        "source_unchanged": true,
+        "sqlite_lock_refusal": true
+      },
+      "post_source_guard": {
+        "result": "PASS"
+      },
+      "server_joined": true,
+      "skips": 0,
+      "source_commit": "2566b5ca59fe3a3fed294599eacebfd06cccde34",
+      "source_tree": "14f8e197def0cb894f8321a5484b22ff90bf6177",
+      "status": "EXPECTED_FAULT_INJECTION_REFUSAL",
+      "test_outcomes": [
+        {
+          "exception_class": "AssertionError",
+          "kind": "FAILURE",
+          "test_frames": [
+            {
+              "function": "test_real_tls_worker_policy_parallel_sampling_receipt_and_fresh_readback",
+              "line": 173
+            },
+            {
+              "function": "_real_tls_worker_policy_samples",
+              "line": 139
+            }
+          ]
+        }
+      ],
+      "tests_run": 1,
+      "worker_returns": [
+        {
+          "error_category": "OPERATION_CONTROL_UNAVAILABLE",
+          "failure": {
+            "category": null,
+            "code": "OPERATION_CONTROL_UNAVAILABLE"
+          },
+          "status": "BLOCKED"
+        }
+      ]
+    }
+  ],
+  "elapsed_seconds": 43.625,
+  "ended_at_utc": "2026-11-03T08:06:50.085722+00:00",
+  "fixed_plan": [
+    "normal_1",
+    "normal_2",
+    "normal_3",
+    "exclusive_lock"
+  ],
+  "harness_sha256": "2783c07417bb775a1a4e74fc61f06776055b98042de9fdf249888e620ea926c5",
+  "hosted_failure_disposition": "UNRESOLVED; diagnostic passes do not clear the original CI failure",
+  "result": "DIAGNOSTICS_COMPLETED",
+  "schema_version": 1,
+  "source_commit": "2566b5ca59fe3a3fed294599eacebfd06cccde34",
+  "source_tree": "14f8e197def0cb894f8321a5484b22ff90bf6177",
+  "started_at_utc": "2026-11-03T08:06:06.568244+00:00",
+  "total_limit_seconds": 145.0
+}

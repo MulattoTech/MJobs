@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="6" time="5.180" timestamp="2026-11-02T22:13:46.112301-06:00"><testcase classname="tests.integration.test_aggregator_company_identity" name="test_conflicting_batch_rolls_back_without_choosing_a_company[forward-punctuation-wwr]" time="0.565"><failure message="Failed: DID NOT RAISE SourceError">tests\integration\test_aggregator_company_identity.py:126: in test_conflicting_batch_rolls_back_without_choosing_a_company
+    with pytest.raises(SourceError, match="^" + CONFLICT + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SourceError</failure></testcase><testcase classname="tests.integration.test_aggregator_company_identity" name="test_conflicting_batch_rolls_back_without_choosing_a_company[forward-non_ascii-wwr]" time="0.544"><failure message="Failed: DID NOT RAISE SourceError">tests\integration\test_aggregator_company_identity.py:126: in test_conflicting_batch_rolls_back_without_choosing_a_company
+    with pytest.raises(SourceError, match="^" + CONFLICT + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SourceError</failure></testcase><testcase classname="tests.integration.test_aggregator_company_identity" name="test_conflicting_batch_rolls_back_without_choosing_a_company[forward-truncated-wwr]" time="0.478"><failure message="Failed: DID NOT RAISE SourceError">tests\integration\test_aggregator_company_identity.py:126: in test_conflicting_batch_rolls_back_without_choosing_a_company
+    with pytest.raises(SourceError, match="^" + CONFLICT + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SourceError</failure></testcase><testcase classname="tests.integration.test_aggregator_company_identity" name="test_conflicting_batch_rolls_back_without_choosing_a_company[reverse-punctuation-wwr]" time="0.477"><failure message="Failed: DID NOT RAISE SourceError">tests\integration\test_aggregator_company_identity.py:126: in test_conflicting_batch_rolls_back_without_choosing_a_company
+    with pytest.raises(SourceError, match="^" + CONFLICT + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SourceError</failure></testcase><testcase classname="tests.integration.test_aggregator_company_identity" name="test_conflicting_batch_rolls_back_without_choosing_a_company[reverse-non_ascii-wwr]" time="0.520"><failure message="Failed: DID NOT RAISE SourceError">tests\integration\test_aggregator_company_identity.py:126: in test_conflicting_batch_rolls_back_without_choosing_a_company
+    with pytest.raises(SourceError, match="^" + CONFLICT + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SourceError</failure></testcase><testcase classname="tests.integration.test_aggregator_company_identity" name="test_conflicting_batch_rolls_back_without_choosing_a_company[reverse-truncated-wwr]" time="0.508"><failure message="Failed: DID NOT RAISE SourceError">tests\integration\test_aggregator_company_identity.py:126: in test_conflicting_batch_rolls_back_without_choosing_a_company
+    with pytest.raises(SourceError, match="^" + CONFLICT + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SourceError</failure></testcase></testsuite></testsuites>

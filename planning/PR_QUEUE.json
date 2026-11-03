@@ -108,7 +108,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -123,7 +123,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-005-core-search-model",
       "draft_until_verified": true,
-      "notes": "Merged as 602fc26e411953d5adec48fc8642ec1a406ec147 after exact-head required checks. MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL with Greenhouse the sole production adapter. Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 PARTIAL; MJ-REQ-017 NOT_RUN. Live GitHub reconciliation: PR #429 merged at 602fc26e411953d5adec48fc8642ec1a406ec147. Verified 2026-10-15 campaign record: MJ-REQ-018; bounded evidence update only; original PARTIAL unchanged. See docs/evidence/2026-10-15-verified-delivery-closeout.json. Current final-source e17 hosted Integration/Connected proof is separate from author Windows and reviewer NOT_RUN evidence; protected recording integration/Project readback remain primary-owned. Historical item status and queue policy unchanged.",
+      "notes": "Merged as 602fc26e411953d5adec48fc8642ec1a406ec147 after exact-head required checks. MJ-REQ-016 source adapter interface PASS; MJ-REQ-018 strategy PARTIAL with Greenhouse the sole production adapter. Attributed multi-company persistence and duplicate-requisition provenance verified. MJ-REQ-015 PARTIAL; MJ-REQ-017 NOT_RUN. Live GitHub reconciliation: PR #429 merged at 602fc26e411953d5adec48fc8642ec1a406ec147. Verified 2026-10-15 campaign record: MJ-REQ-018; bounded evidence update only; original PARTIAL unchanged. See docs/evidence/2026-10-15-verified-delivery-closeout.json. Current final-source e17 hosted Integration/Connected proof is separate from author Windows and reviewer NOT_RUN evidence; protected recording integration/Project readback remain primary-owned. Historical item status and queue policy unchanged.\n\n2026-11-03T04:40:51.175294+00:00 PR #899 source 9a8d138f adds scoped aggregator company-label conflict refusal with 141 tests/25 subtests PASS and 2 live-probe skips. Parent017 remains PARTIAL. Historical package merge identity/status preserved. See docs/evidence/2026-11-03-webpro-23e5-company-identity/acceptance-candidate.json.",
       "pr_number": 429,
       "merge_commit": "602fc26e411953d5adec48fc8642ec1a406ec147",
       "merged_at": "2026-10-01T00:49:46Z"
@@ -287,7 +287,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -410,7 +410,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1947,7 +1947,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1963,7 +1963,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-047-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements. webpro-20261103T031738Z-642e4b: MJ-REQ-172 scoped request-boundary fixes and 151 tests / 33 subtests verified at d096d03deba8aa749f478f9dd6c91029379ec50f; parent advances NOT_RUN to PARTIAL only. Protected PR/merge/deployment receipt follows in the containing PR. Umbrella status stays QUEUED for remaining PII/web criteria.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements. webpro-20261103T031738Z-642e4b: MJ-REQ-172 scoped request-boundary fixes and 151 tests / 33 subtests verified at d096d03deba8aa749f478f9dd6c91029379ec50f; parent advances NOT_RUN to PARTIAL only. Protected PR/merge/deployment receipt follows in the containing PR. Umbrella status stays QUEUED for remaining PII/web criteria. 2026-11-03T07:54:26.390944+00:00 webpro-20261103T031738Z-642e4b: scoped171 uploaded-original private admission verified at f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954; Linux29PASS/29subtests/0SKIP, Windows19PASS/29subtests/10POSIXSKIP. Historical failure and evidence-capture records preserved. Parent171 and this umbrella remain PARTIAL/QUEUED; protected publication and deployment are separate gates. 2026-11-03T09:36:35.325456Z: post909 canonical preservation and171 corrections recorded;171 remainsPARTIAL and new candidate/hosted/deployment gates remainPENDING.",
       "p0p1_20261013_232152": {
         "issue": 173,
         "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
@@ -1978,7 +1978,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -2925,7 +2925,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2945,7 +2945,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3266,7 +3266,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",
@@ -3478,7 +3478,7 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "main",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-268 manual application status tracking passed local connected UI/API persistence and profile-scope acceptance at 95ef4c151ba01e666a1a2a982a0f4b21aefb2a31; evidence docs/evidence/2026-10-09-application-status-tracking.json. MJ-REQ-269 is PARTIAL: connected immutable generated-document fact trace is verified at 1db36c4fe10eff95880ad37d5941829e31770000, evidence docs/evidence/2026-10-09-document-fact-trace.json; live AI provider path remains NOT_RUN. MJ-REQ-270/271 remain unverified and declared dependencies MJ-PR-072/MJ-PR-063 remain incomplete; package stays partial. Hosted checks NOT_RUN; external submission OFF. Verified 2026-10-15 campaign record: MJ-REQ-270; original literal acceptance candidate recorded PASS. See docs/evidence/2026-10-15-verified-delivery-closeout.json. Current final-source e17 hosted Integration/Connected proof is separate from author Windows and reviewer NOT_RUN evidence; protected recording integration/Project readback remain primary-owned. Historical item status and queue policy unchanged."
+      "notes": "MJ-REQ-268 manual application status tracking passed local connected UI/API persistence and profile-scope acceptance at 95ef4c151ba01e666a1a2a982a0f4b21aefb2a31; evidence docs/evidence/2026-10-09-application-status-tracking.json. MJ-REQ-269 is PARTIAL: connected immutable generated-document fact trace is verified at 1db36c4fe10eff95880ad37d5941829e31770000, evidence docs/evidence/2026-10-09-document-fact-trace.json; live AI provider path remains NOT_RUN. MJ-REQ-270/271 remain unverified and declared dependencies MJ-PR-072/MJ-PR-063 remain incomplete; package stays partial. Hosted checks NOT_RUN; external submission OFF. Verified 2026-10-15 campaign record: MJ-REQ-270; original literal acceptance candidate recorded PASS. See docs/evidence/2026-10-15-verified-delivery-closeout.json. Current final-source e17 hosted Integration/Connected proof is separate from author Windows and reviewer NOT_RUN evidence; protected recording integration/Project readback remain primary-owned. Historical item status and queue policy unchanged.\n\n2026-11-03T04:40:51.175294+00:00 PR #896 verified 269 functional PASS at merge 7e86511f409fb9d1e2dc79904b170cc74b88cd3d. See docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json. Package remains INTEGRATED_PARTIAL because declared dependencies remain incomplete; deployment/issue closure are separate."
     },
     {
       "id": "MJ-PR-074",
@@ -4682,7 +4682,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-145-delivery-control",
       "draft_until_verified": true,
-      "notes": "Restores catalogued requirements omitted from the original queue; full acceptance remains required."
+      "notes": "Restores catalogued requirements omitted from the original queue; full acceptance remains required. webpro-20261103T031738Z-642e4b: PR #902 verifies the bounded public recovery inventory at 3414e7400e57b3f2f2d2d85298e40a2aabf21253 (42 tests and 43 subtests PASS, 0 skips); MJ-REQ-292 remains PARTIAL and the 290-293 umbrella stays QUEUED. Source/evidence at docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-execution.json; protected integration and deployment stages remain separately recorded. webpro-20261103T031738Z-642e4b, WEBPRO-642E4B-RECOVERY-V3-COMPLETENESS: PR #902 corrects the historical-v2 false PASS missed by the prior review. Fresh v3 captures are required; explicit v1/v2 inventories require recapture, the admitted budget is 1-200 jobs, and missing inventory remains NOT_RUN. Exact source 7295de87ad87ba06ca1f2c4ef4d114801489c6f5: 51 tests and 43 subtests PASS; legacy 1 FAIL and the initial provenance failure remain recorded. Prior receipts and notes are preserved. MJ-REQ-292 remains PARTIAL; the 290-293 umbrella stays QUEUED. Evidence: docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json."
     },
     {
       "id": "MJ-PR-146",
@@ -6201,11 +6201,151 @@
       ],
       "target_area": "Protected integration/canonical reconciliation",
       "depends_on": [],
-      "status": "SOURCE_VERIFIED_PENDING_PROTECTED_CANDIDATE",
+      "status": "GUARDED_DEPLOYMENT_VERIFIED",
       "branch": "work/webpro-20261103T034313Z-1e2ff1-cohort",
       "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
-      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
+      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL. Actual proposed62508d7c tree equals protected main9a21b98b; all15 PR checks passed; six source PRs marked merged. Current-main release gates subsequently passed and separately claimed owner89c21f is deploying; final rollout readback remains pending at this checkpoint. Owned PostgreSQL fixture/network cleanup verified separately. Final906 delivery was verified at9a21/imagef04dee47 with healthy services, backup/rollback and independent public readback; root171/clock claims and owned PostgreSQL fixtures were released. The earlier pending checkpoint remains historical.",
+      "history": [
+        {
+          "recorded_at": "2026-11-03T06:06:15.840730+00:00",
+          "previous_status": "SOURCE_VERIFIED_PENDING_PROTECTED_CANDIDATE",
+          "previous_notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
+        },
+        {
+          "recorded_at": "2026-11-03T07:11:02.147077+00:00",
+          "previous_status": "PROTECTED_MERGED_GUARDED_ROLLOUT_PENDING",
+          "previous_notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL. Actual proposed62508d7c tree equals protected main9a21b98b; all15 PR checks passed; six source PRs marked merged. Current-main release gates subsequently passed and separately claimed owner89c21f is deploying; final rollout readback remains pending at this checkpoint. Owned PostgreSQL fixture/network cleanup verified separately."
+        }
+      ],
+      "pr": 906,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "delivery_evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/prior-delivery.json"
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1E2FF1-008-CONCURRENCY",
+      "title": "Prevent cooperating journal publishers from losing successful checkpoints",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-008"
+      ],
+      "target_area": "Implementation progress recovery",
+      "depends_on": [],
+      "status": "VERIFIED_SOURCE_PENDING_REVIEW_AND_PROTECTED_DELIVERY",
+      "pr": 908,
+      "branch": "work/webpro-20261103T034313Z-1e2ff1-008-concurrency",
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json",
+      "notes": "Source6c9dc906; evidence4272c0c1; initial candidate8c9cd974. Native36PASS/25subtests/1POSIXskip and Linux37PASS/no skips on source and candidate. Original lost-success reproduction/eight failing baseline assertions retained. Parent008 staysPARTIAL; final-head review/gates/current-candidate execution pending."
+    },
+    {
+      "id": "MJ-PR-WEBPRO-1BA724-COHORT",
+      "title": "Integrate corrected TalentHop evidence, company identity and journal concurrency",
+      "priority": "P0",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-008",
+        "MJ-REQ-017",
+        "MJ-REQ-030",
+        "MJ-REQ-269",
+        "MJ-REQ-292"
+      ],
+      "target_area": "Protected integration/canonical reconciliation",
+      "depends_on": [],
+      "status": "INSTRUMENTED_SUCCESSOR_PENDING_CURRENT_CANDIDATE",
+      "branch": "work/webpro-20261103T050255Z-1ba724-cohort",
+      "source_prs": [
+        899,
+        902,
+        908,
+        910,
+        922
+      ],
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json",
+      "notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment. Refresh after protected907/63cb: authorized902/331df2ce and910/77c137a2 join frozen899/908 and prior909 ancestry. All81 incoming source/evidence blobs and32 prior journal payloads are preserved. Cold-SSL fixture and historical recovery false-PASS findings have independently executed corrections; their original failures remain. Actual combined-candidate execution, fresh independent preservation review and every protected gate remain pending. No additional acceptance beyond previously reviewed269;004/008/017/292 stayPARTIAL. Instrumented successor adds reviewed922 real-control diagnostic observer and one agreed deterministic WWR fixture correction. All old product/source/evidence and canonical history remain; the original monitoring failure is retained with UNKNOWN cause. Actual successor execution and all protected gates are pending. No new acceptance or production repair claim.",
+      "history": [
+        {
+          "recorded_at": "2026-11-03T07:11:02.147077+00:00",
+          "previous_status": "SOURCE_VERIFIED_PENDING_INPUT_GATE_DIAGNOSIS_AND_PROTECTED_CANDIDATE",
+          "previous_notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment.",
+          "previous_requirements": [
+            "MJ-REQ-008",
+            "MJ-REQ-017",
+            "MJ-REQ-269"
+          ],
+          "previous_source_prs": [
+            899,
+            907,
+            908
+          ],
+          "previous_evidence": "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json"
+        },
+        {
+          "recorded_at": "2026-11-03T08:56:34.375770+00:00",
+          "previous_status": "REVIEWED_INPUTS_PRESERVED_PENDING_CURRENT_CANDIDATE",
+          "previous_notes": "Frozen inputs899/c5470f4b,907/60021098,908/5367e701; complete source ancestry and historical payloads retained. Exact source5ef48356:49PASS/1POSIXskip,canonical checksPASS.899 shard1 failure remains under diagnosis; combined review/candidate/full protected gates required. Only899 carries269 literalPASS;008/017PARTIAL; no TalentHop acceptance or deployment. Refresh after protected907/63cb: authorized902/331df2ce and910/77c137a2 join frozen899/908 and prior909 ancestry. All81 incoming source/evidence blobs and32 prior journal payloads are preserved. Cold-SSL fixture and historical recovery false-PASS findings have independently executed corrections; their original failures remain. Actual combined-candidate execution, fresh independent preservation review and every protected gate remain pending. No additional acceptance beyond previously reviewed269;004/008/017/292 stayPARTIAL.",
+          "previous_requirements": [
+            "MJ-REQ-004",
+            "MJ-REQ-008",
+            "MJ-REQ-017",
+            "MJ-REQ-269",
+            "MJ-REQ-292"
+          ],
+          "previous_source_prs": [
+            899,
+            902,
+            908,
+            910
+          ],
+          "previous_evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json"
+        }
+      ],
+      "pr": 909,
+      "maintenance_owner": "webpro-20261103T034313Z-1e2ff1",
+      "additional_frozen_inputs": [
+        {
+          "scope": "WWR-RSS-QUERY-CLOCK",
+          "head": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+          "review": "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599366566"
+        }
+      ]
+    },
+    {
+      "id": "MJ-PR-WEBPRO-642E4B-171",
+      "title": "Refuse non-private stored uploaded originals before read or reuse",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-171"
+      ],
+      "target_area": "services/documents/uploads.py; upload/export privacy regressions and scoped evidence",
+      "depends_on": [],
+      "status": "CANONICAL_RECONCILIATION_PENDING_CURRENT_CANDIDATE",
+      "branch": "work/webpro-20261103T031738Z-642e4b-171",
+      "source_revision": "8875db8fd46d539bcb7abcf5387e2375ef833372",
+      "evidence": "docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json",
+      "notes": "Source and five affected callers verified on Linux/native Windows; all four baseline privacy failures, receipt-capture HARNESS_ERROR and export-fixture error retained. Existing paths are not silently repaired. Whole171 remains PARTIAL; current-candidate gates, protected merge and deployment are pending. 2026-11-03T09:36:35.325456Z: old item preserved in full under history; source8875 includes bounds/restore/clock corrections. Actual new merge-candidate tests, hosted gates and deployment remain pending.",
+      "history": [
+        {
+          "kind": "Complete original171 queue item retained unchanged",
+          "source_commit": "81edf2e9bff01557c72cbd2c2285c8f6f97cdf1e",
+          "item": {
+            "id": "MJ-PR-WEBPRO-642E4B-171",
+            "title": "Refuse non-private stored uploaded originals before read or reuse",
+            "priority": "P1",
+            "requirements": [
+              "MJ-REQ-171"
+            ],
+            "target_area": "services/documents/uploads.py; upload/export privacy regressions and scoped evidence",
+            "depends_on": [],
+            "status": "VERIFIED_SOURCE_PENDING_PROTECTED_PUBLICATION",
+            "branch": "work/webpro-20261103T031738Z-642e4b-171",
+            "source_revision": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+            "evidence": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json",
+            "notes": "Source and five affected callers verified on Linux/native Windows; all four baseline privacy failures, receipt-capture HARNESS_ERROR and export-fixture error retained. Existing paths are not silently repaired. Whole171 remains PARTIAL; current-candidate gates, protected merge and deployment are pending."
+          }
+        }
+      ],
+      "pr": 920,
+      "incoming_main": "57e524abf4860a57cf6bdd68f4e78759c7d42e89"
     }
   ],
-  "generated_at": "2026-11-03T05:13:45.099255+00:00"
+  "generated_at": "2026-11-03T08:56:34.375770+00:00"
 }
