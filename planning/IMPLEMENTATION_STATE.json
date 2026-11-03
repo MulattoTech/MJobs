@@ -2155,12 +2155,60 @@
         "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-23E5-RECONCILED-899-VERIFIED",
+      "timestamp": "2026-11-03T05:59:31.437084+00:00",
+      "current_phase": "Exact reconciled 899 candidate verified; hosted checks, protected merge and guarded deployment pending",
+      "completed_steps": [
+        "Preserved protected cohort 9a21b98b29809a41771d963cd2d5679cf8c31f9a while reconciling 017/269 in candidate 11d5e7f48fde0c919faae02534c36edc4d1ff950.",
+        "Preserved all 26 prior journal entries and source-owner evidence; selected the cohort's complete deployment-clock fixture."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json",
+        "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-tests.xml",
+        "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-review.json",
+        "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-checkpoint.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Exact candidate: 151 parent cases plus 83 subtests (234 reported), zero failures/errors/skips; all eight command records exit 0.",
+        "Owned npm ci and TypeScript/Vite build PASS; catalogue, progress, dashboard, commit provenance and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Independent final combined-candidate peer review",
+        "Fresh hosted protected gates and proposed-merge verification",
+        "Protected merge and separate guarded deployment"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Retained preflight FAIL: initial clean-worktree guard after merge commit: Planning regeneration left three CRLF-only worktree representations marked modified while Git diff was empty. Before restoring only those owned paths, exact UTF-8 text after newline decoding and JSON equality with the committed blobs were independently asserted. Committed tree and sources are unchanged; guard passed afterward. No tests ran during that failed preflight."
+      ],
+      "known_limitations": [
+        "npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required.",
+        "Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed.",
+        "No paid/live provider call, employer submission, production mutation, or restore.",
+        "Existing source/failure/acceptance receipts remain unchanged; overlapping test runs are not summed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json"
+      }
     }
   ],
-  "current_phase": "Six-source cohort verified; actual merge candidate, protected integration and guarded deployment pending",
+  "current_phase": "Exact reconciled 899 candidate verified; hosted checks, protected merge and guarded deployment pending",
   "last_safe_checkpoint": {
-    "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
+    "git_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

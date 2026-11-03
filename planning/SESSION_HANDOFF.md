@@ -189,3 +189,13 @@ Protected cohort 906 is now main 9a21b98b29809a41771d963cd2d5679cf8c31f9a. The p
 269 literal functional PASS is recorded with the unchanged earlier acceptance receipt and the new [read-only production follow-up](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-followup.json) at deployed 7e86511f. Production document history remains NOT_RUN because no profile/application exists. The final identity source 323f3e1c has 72 focused PASS; parent 017 stays PARTIAL. Its earlier failures/review correction remain retained. Current main 9a21b98b and 899 are not claimed deployed here.
 
 Fresh combined-candidate execution and all five protected gates are still required before 899 merge. The integration owner is 95def0475e3527981e501607656d511b0409438c for this preparation only; it will be released during hosted verification. Source claims 269/a0948cd5 and identity/f11768a3 remain owned, revalidate exact refs before any continuation. The agreed 906 rollout remains with run 89c21f. No production write, provider call, restore or fleet launch was performed.
+
+## 2026-11-03T05:59:31.437084+00:00 — run23e5 exact reconciled candidate verified
+
+Candidate `11d5e7f48fde0c919faae02534c36edc4d1ff950` / tree `18239bc010e6035b6686788a3e53c6776ca22a27` passed 151 parent cases plus 83 subtests (234 reported), zero failures/errors/skips. All eight recorded commands passed, including owned npm ci/build. [Execution receipt](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json) and [checkpoint](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-checkpoint.json) preserve the earlier preflight refusal and warnings.
+
+The initial CRLF/stat-only clean-tree guard refusal ran no tests; exact normalized text and JSON equality proved the three owned paths unchanged before their restoration. All prior source/checkpoint/failure history remains retained. The complete cohort clock fixture is preserved, with no duplicate claim or acceptance credit.
+
+017 stays PARTIAL and 269 stays PASS under its existing scoped acceptance. Resolver-helper review is explicitly limited; independent final combined peer review and fresh hosted protected checks remain pending. Protected merge and the separately owned guarded rollout remain pending; this evidence successor is not claimed deployed. No push, merge, claim release, paid/live provider call or production write was performed by finalization.
+
+npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required. Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed.
