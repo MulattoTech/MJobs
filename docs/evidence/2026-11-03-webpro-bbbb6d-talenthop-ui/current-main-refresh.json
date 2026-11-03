@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "started_at": "2026-11-03T09:27:41.218Z",
+  "previous_head": "2d3ba47f9414cc514313ee9989b6a25bf83f184c",
+  "previous_base": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "refreshed_base": "57e524abf4860a57cf6bdd68f4e78759c7d42e89",
+  "method": "Ordinary merge of current main; preserve all canonical data and both handoff additions; no force push.",
+  "integration_owner": "61e26873b84f2717622a64bd4bb1d8d26b929e0b",
+  "handoff": {
+    "incoming_main_sha256": "5619871431788fcfb8a0960b05dbe89a318ef0f20bb410809718b8025cdb7c4f",
+    "retained_prior_audit_section_sha256": "c7f7c723a110cd85a86280ddcd08973f05827f9b4403448165975125fe6a8cdf",
+    "incoming_main_text_exact_after_removing_only_our_two_additions": true,
+    "conflicts_resolved": []
+  },
+  "core_audit_blobs_unchanged": [
+    "tools/verification/talenthop_catalog.py",
+    "tests/unit/test_talenthop_catalog.py",
+    "docs/talenthop/catalog.json",
+    "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+    "tools/verification/har_sanitize.py"
+  ],
+  "execution": {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_talenthop_catalog.py",
+      "tests/unit/test_har_sanitize.py",
+      "tests/unit/test_p0_evidence_secret_fingerprints.py",
+      "tests/unit/test_secret_scan_sustain_176.py",
+      "tests/integration/test_relative_posted_source_intake.py"
+    ],
+    "exit_code": 0,
+    "summary": "............................... [ 70%]\n.............                                                    [100%]\n44 passed, 49 subtests passed in 19.79s\n",
+    "log_sha256": "ad460b437b84a65cf19ab8db05163ef259e42b22020e21871a7bfa7afe7f29eb",
+    "completed_at": "2026-11-03T09:28:07.936Z"
+  },
+  "original_reference_and_canonical_guard": "PASS against current main; incoming peer outcomes retained, zero credited to this audit",
+  "protected_successor_gates": "PENDING"
+}

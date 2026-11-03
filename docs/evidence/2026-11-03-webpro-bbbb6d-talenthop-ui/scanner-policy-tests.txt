@@ -1,0 +1,9 @@
+test_checksum_mismatch_stops_before_archive_or_execution (tests.unit.test_secret_scan_sustain_176.SecretScanSustain176Tests.test_checksum_mismatch_stops_before_archive_or_execution) ... ok
+test_main_confines_child_output_and_retains_only_redacted_report (tests.unit.test_secret_scan_sustain_176.SecretScanSustain176Tests.test_main_confines_child_output_and_retains_only_redacted_report) ... ok
+test_oversized_archive_member_stops_before_execution (tests.unit.test_secret_scan_sustain_176.SecretScanSustain176Tests.test_oversized_archive_member_stops_before_execution) ... ok
+test_unsafe_archive_member_type_stops_before_execution (tests.unit.test_secret_scan_sustain_176.SecretScanSustain176Tests.test_unsafe_archive_member_type_stops_before_execution) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.034s
+
+OK
