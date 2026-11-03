@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T050255Z-1ba724",
+  "as_of": "2026-11-03T06:14:57.813344+00:00",
+  "source_sha": "a585fbf1abde50ec7a1e6ad76e332057a74513b9",
+  "source_tree": "7174813f391bfa1b7db8f254023c3a66c6a46ff8",
+  "base_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "status": "LOCAL_SOURCE_VERIFIED_HOSTED_CI_PENDING",
+  "review_findings": [
+    {
+      "url": "https://github.com/MulattoTech/MJobs/pull/907#issuecomment-6596530661",
+      "status": "FIX_IMPLEMENTED_PENDING_INDEPENDENT_READBACK",
+      "superseded_head": "e01a6afadeb8fbc8e007d8c124cd44a0918b8f08",
+      "corroboration": "https://github.com/MulattoTech/MJobs/pull/907#discussion_r4451460682",
+      "change": "Override argparse.error before raw argument text prints; use a fixed program name for help; add no-input/no-publication regressions."
+    }
+  ],
+  "checks": [
+    {
+      "command": "python -m unittest tests.unit.test_har_sanitize tests.unit.test_talenthop_catalog -q",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": "----------------------------------------------------------------------\nRan 21 tests in 0.070s\n\nOK"
+    },
+    {
+      "command": "python -m tools.verification.talenthop_catalog",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": "{\"status\": \"PASS\", \"errors\": []}"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit a585fbf1abde50ec7a1e6ad76e332057a74513b9",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 2 source files"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "synthetic malformed-argv subprocess probe",
+      "status": "PASS",
+      "exit_code": 2,
+      "stdout_empty": true,
+      "stderr_fixed_category": true,
+      "input_absent": true,
+      "published_files": 0
+    },
+    {
+      "command": "python -m tools.verification.har_sanitize --help",
+      "status": "PASS",
+      "exit_code": 0,
+      "stderr_empty": true
+    }
+  ],
+  "focused_tests": {
+    "passed": 21,
+    "failures": 0,
+    "skipped": 0
+  },
+  "capture_status": "NOT_CAPTURED",
+  "new_accepted_requirements": [],
+  "hosted_ci": "PENDING_FOR_PUBLISHED_SUCCESSOR",
+  "integration": "NOT_MERGED",
+  "deployment": "NOT_DEPLOYED"
+}
