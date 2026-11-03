@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034301Z-89c21f",
+  "requirement": "MJ-REQ-004",
+  "result": "PARTIAL",
+  "baseline_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "source_sha": "b78e40517f239f26b575c746acf744361a704373",
+  "claim": {
+    "ref": "refs/heads/webpro-claims/MJ-REQ-004",
+    "owner_commit": "49faf472e6a345f2b347441cca7da3db904f7e45"
+  },
+  "behavior": "Store QueuePool capacity waits are one second; existing capacity, caller ownership and dialect-selected memory pools are preserved. Control saturation remains unavailable, never forged cancellation.",
+  "verification": {
+    "environment": "Isolated Windows venv, synthetic SQLite files and an owned disposable PostgreSQL16 container; SQLAlchemy2.1.1, psycopg3.3.6.",
+    "command": "python -m pytest -q tests/unit/test_database_pool_wait.py tests/unit/test_operation_control_reads.py tests/integration/test_operation_control_pool_wait.py tests/integration/test_request_deadline_database_lock.py tests/unit/test_timeout_failure_classification.py tests/integration/test_timeout_failure_readback.py tests/unit/test_operation_concurrency.py tests/unit/test_local_persistence_acceptance.py tests/unit/test_persistence_input_security_226.py --junitxml=docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-tests.xml",
+    "pytest_result": {
+      "passed": 75,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 22,
+      "warnings": 1,
+      "seconds": 24.78
+    },
+    "junit": "source-tests.xml",
+    "checks": {
+      "catalogue": "PASS",
+      "progress validate": "PASS",
+      "progress_dashboard --check": "PASS",
+      "git diff --check": "PASS",
+      "commit_provenance": "PASS"
+    }
+  },
+  "preserved_failures": [
+    {
+      "phase": "baseline reproduction before production edits",
+      "test": "SQLitePoolWaitTests.test_exhausted_pool_fails_closed_and_preserves_caller_transaction",
+      "result": "FAIL (expected regression)",
+      "detail": "Original Store control read remained blocked beyond2.5s with all fifteen real connections held. Fixture released capacity and joined its waiter; no abandoned connection thread."
+    },
+    {
+      "phase": "initial expanded fixture execution",
+      "result": "6 FAIL,20 PASS,5 subtests PASS",
+      "detail": "One worker fixture tried binding workspace identity after seeding; corrected to bind before seed. Five PostgreSQL cases could not load missing psycopg; installed repository-pinned SQLAlchemy/psycopg only in the owned venv. Then the same scoped set plus adjacent tests passed."
+    }
+  ],
+  "warning": "Pinned SQLAlchemy emits its existing mode=memory default-pool deprecation warning. No warning is suppressed or counted as a failure.",
+  "review": "review.json",
+  "limitations": [
+    "Queue capacity waiting only; no complete connect/DNS/pre-ping/network/rollback/reset deadline.",
+    "All Store queue callers fail sooner under sustained exhaustion; capacity is not increased.",
+    "Worker durable BLOCKED readback is established after fixture-held capacity returns, not while finalization stays starved.",
+    "No automatic write retry, live data mutation, external submission, paid inference, or destructive restore.",
+    "MJ-REQ-004 remains PARTIAL; no new PASS acceptance or production-deployment claim."
+  ],
+  "created_utc": "2026-11-03T03:53:32.713Z"
+}

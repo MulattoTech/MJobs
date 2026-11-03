@@ -1709,12 +1709,67 @@
         "git_commit": "02db15748dae39b34848f6011327b6ce5c1cdf89",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-89C21F-POOL-WAIT-PARTIAL",
+      "timestamp": "2026-11-03T04:12:58.550Z",
+      "current_phase": "Publish scoped MJ-REQ-004 queue-pool capacity deadline through protected integration",
+      "completed_steps": [
+        "Bound Store QueuePool capacity waits to one second using the dialect-selected pool class at construction.",
+        "Preserve pool capacity, caller-owned transactions, memory SQLite identity and fixed unavailable-authority classification.",
+        "Verify saturation, returned capacity, disposal/recreation and durable worker BLOCKED readback after capacity returns.",
+        "Reconcile protected main ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b without changing parent acceptance."
+      ],
+      "files_added": [
+        "tests/unit/test_database_pool_wait.py",
+        "tests/integration/test_operation_control_pool_wait.py",
+        "docs/DATABASE_POOL_LIMITS.md",
+        "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/review.json",
+        "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-tests.xml"
+      ],
+      "files_modified": [
+        "packages/persistence/store.py",
+        "workers/operations.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact source b78e40517f239f26b575c746acf744361a704373: 75 PASS, 22 subtests PASS, 0 FAIL/ERROR/SKIP; isolated SQLite and PostgreSQL16.",
+        "Catalogue, progress journal, dashboard, diff and commit provenance checks PASS at source checkpoint.",
+        "Independent internal review and a separate sprint's PR894 static review found no blocker; neither substitutes for protected checks."
+      ],
+      "tests_remaining": [
+        "Actual updated PR/merge-candidate protected gates and independent main gates.",
+        "Guarded deployment and exact image/source/readiness verification.",
+        "Full connect/DNS/pre-ping/network/reset/recovery/finalization deadlines."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only local deployment and readiness: source63b843dfe2706e6a5ac1d567af7e5acb01e134a7; all checks ready. No deployment performed by this run."
+      ],
+      "known_errors": [
+        "Original saturated-pool control read exceeded the 2.5-second regression bound.",
+        "Initial expanded fixture had one workspace-binding error and five missing-psycopg errors; corrected only in the owned fixture/venv. Final focused suite passed."
+      ],
+      "known_limitations": [
+        "MJ-REQ-004 remains PARTIAL with zero new PASS acceptance.",
+        "All Store queue callers can fail sooner during sustained saturation; capacity remains unchanged.",
+        "Durable BLOCKED readback is proven after capacity returns, not while finalization remains starved.",
+        "No automatic write retry, live application submission, paid model call or destructive restore.",
+        "PR894 required gates, actual merge and production delivery remain pending at this checkpoint."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b78e40517f239f26b575c746acf744361a704373",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Verified private answer-export storage; protected publication pending",
+  "current_phase": "Publish scoped MJ-REQ-004 queue-pool capacity deadline through protected integration",
   "last_safe_checkpoint": {
-    "git_commit": "02db15748dae39b34848f6011327b6ce5c1cdf89",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-answer-privacy/source-execution.json"
+    "git_commit": "b78e40517f239f26b575c746acf744361a704373",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-89c21f-pool-wait/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
