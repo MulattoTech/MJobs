@@ -30,6 +30,7 @@ RECOVERY_RESTART_SERVICES = (
 RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 JOB_INVENTORY_VERSION = 2
+JOB_INVENTORY_MAX_JOBS = 200
 CANONICAL_JOB_FIELDS = (
     "company_id", "requisition", "title", "description", "skills", "location",
     "remote_type", "attributes", "company",
@@ -434,14 +435,22 @@ def validate_public_job_inventory(inventory):
 
 
 def collect_public_job_inventory(get_json, profile_id):
-    """Hash canonical jobs and their source copies through public profile-scoped read routes."""
+    """Hash a complete bounded public profile view, refusing a possibly truncated page.
+
+    Request one sentinel row beyond the detail-read budget. Visibility defaults
+    remain those of GET /jobs; this is not an unfiltered database inventory.
+    """
     if not isinstance(profile_id, str) or not profile_id:
         raise ValueError("Job inventory requires a profile ID")
     encoded_profile = quote(profile_id, safe="")
-    listed = get_json("/jobs?profile_id=" + encoded_profile)
+    listed = get_json(
+        "/jobs?profile_id=" + encoded_profile + f"&limit={JOB_INVENTORY_MAX_JOBS + 1}")
     rows = listed.get("jobs") if isinstance(listed, dict) else None
     if not isinstance(rows, list) or not rows:
         raise ValueError("Public job inventory requires at least one profile-scoped job")
+    if len(rows) > JOB_INVENTORY_MAX_JOBS:
+        raise ValueError(
+            f"Public job inventory exceeds the {JOB_INVENTORY_MAX_JOBS}-job verification budget")
     job_ids = [row.get("id") for row in rows if isinstance(row, dict)]
     if len(job_ids) != len(rows) or any(not isinstance(value, str) or not value for value in job_ids):
         raise ValueError("Public job listing contains an invalid job identity")
@@ -502,7 +511,7 @@ def compare_public_job_inventory(baseline, before_restart, after_restart):
     return {"result": "PASS", "profile_id": before["profile_id"],
             "job_count": before["job_count"], "source_copy_count": before["source_copy_count"],
             "sha256": before["sha256"],
-            "scope": "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes via public GET /jobs readback"}
+            "scope": "Same-profile public job view, application routes, posting source identities and source-copy payload hashes via bounded GET /jobs readback; hidden, not-interested and blacklisted jobs are excluded"}
 
 
 def verify_recovered_application(request, baseline):
