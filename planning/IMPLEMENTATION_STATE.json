@@ -1667,12 +1667,131 @@
         "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
         "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-WEB-SECURITY-INTEGRATED",
+      "timestamp": "2026-11-03T04:18:08.154659+00:00",
+      "current_phase": "Record protected MJ-REQ-172 integration while guarded deployment gates remain pending",
+      "completed_steps": [
+        "Merged PR 893 through all required gates under exact integration ownership.",
+        "Verified actual merge tree equals the independently tested proposed merge."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/candidate-tests.xml"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Candidate 151 tests/33 subtests PASS, 0 FAIL / 0 SKIP.",
+        "CI/PostgreSQL-Redis/Compose/dependency/secret gates PASS; CodeQL PASS."
+      ],
+      "tests_remaining": [
+        "Current-main deployment-candidate gates and guarded runtime verification."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-172 remains PARTIAL; local headerless compatibility and complete authorization remain incomplete.",
+        "Deployment is separate from protected merge."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-WORKDAY-CONTRACT-PARTIAL",
+      "timestamp": "2026-11-03T04:18:08.154659+00:00",
+      "current_phase": "Publish truthful Workday capability with the independently verified implementation report",
+      "completed_steps": [
+        "Workday no longer advertises unsupported fixture upload.",
+        "Unsupported operation rejects before touching browser,analysis or snapshots, while cancellation/deadline exceptions retain identity."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-tests.xml"
+      ],
+      "files_modified": [
+        "services/applications/adapters/workday.py",
+        "services/applications/AREA.md",
+        "tests/unit/test_workday_application_adapter.py",
+        "tests/unit/test_fleet_t11_workday_dom_unavailable.py"
+      ],
+      "tests_completed": [
+        "Exact source 1b8da8cf27c989a8a23e3733f6a9098fca5e00c3:55 tests/23 subtests PASS, 0 FAIL / 0 SKIP.",
+        "Independent internal code review found no blocker."
+      ],
+      "tests_remaining": [
+        "Actual combined merge-candidate tests and required hosted gates.",
+        "Guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Parent 224 stays PARTIAL; full per-adapter journeys remain incomplete.",
+        "Public ATS mutations/submissions remain OFF; controlled rehearsal is separate."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1b8da8cf27c989a8a23e3733f6a9098fca5e00c3",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json"
+      }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-IMPLEMENTATION-REPORT-VERIFIED",
+      "timestamp": "2026-11-03T04:18:08.154659+00:00",
+      "current_phase": "Publish verified MJ-REQ-295 report and Workday correction through protected integration",
+      "completed_steps": [
+        "Completed and independently reviewed all 14 literal reporting sections.",
+        "Pinned complete source footprint and sprint delta; separated actual/historical/NOT_RUN and deployed observations.",
+        "Accepted only the factual reporting criterion; broader product remains PARTIAL."
+      ],
+      "files_added": [
+        "docs/IMPLEMENTATION_REPORT.md",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/validation.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/inventory.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/file-manifest.tsv",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/runtime-baseline.json"
+      ],
+      "files_modified": [
+        "README.md",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Independent content and final artifact review PASS.",
+        "2,874 manifest files, 59 local links, 14 sections, 5 built-in collectors, 11 adapters and exact Git source/tree/delta verified."
+      ],
+      "tests_remaining": [
+        "Containing PR actual merge-candidate tests and required hosted gates.",
+        "Protected integration,exact main verification and needed guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "This report does not accept the whole product or 290/294/296-300.",
+        "Fresh live source sweep,paid AI,public ATS submissions,physical restart,destructive restore and rollback drill NOT_RUN.",
+        "Other workers' concurrent changes require fresh main and canonical reconciliation before merge."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "8ee14e8256596b39ffa3d0b25972856205680b0c",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json"
+      }
     }
   ],
-  "current_phase": "Publish scoped MJ-REQ-172 request-boundary repair through protected integration",
+  "current_phase": "Publish verified MJ-REQ-295 report and Workday correction through protected integration",
   "last_safe_checkpoint": {
-    "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
+    "git_commit": "8ee14e8256596b39ffa3d0b25972856205680b0c",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

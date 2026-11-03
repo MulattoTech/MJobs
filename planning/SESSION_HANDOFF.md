@@ -74,3 +74,45 @@ removes workstation hostname metadata. Existing unrelated worktrees remain intac
 Next independent candidate: 224 adapter contract gaps; scope and claim must be
 rediscovered before writes. Original 171/224/269 and overarching P0 outcomes remain
 incomplete.
+
+## Web Pro checkpoint: verified report and Workday correction
+
+UTC: 2026-11-03T04:18:08.154659+00:00. Run: webpro-20261103T031738Z-642e4b.
+
+PR 893 / MJ-REQ-172 merged at ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b; its tree exactly equals the tested
+candidate. 151 tests/33 subtests and all five required gates PASS. Parent172 stays
+PARTIAL and issue173 remains open. Merge receipt:
+[protected integration](../docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json).
+
+Workday source 1b8da8cf27c989a8a23e3733f6a9098fca5e00c3:55 tests/23 subtests PASS,
+no skips; independent review found no blocker. It corrects unsupported fixture
+capability and preserves fail-closed DOM/deadline boundaries. Parent 224 remains
+PARTIAL; no real employer operation was performed.
+
+[Implementation report](../docs/IMPLEMENTATION_REPORT.md) is complete at artifact
+8ee14e8256596b39ffa3d0b25972856205680b0c, technical source1350f398386d0be8c9555aa8ec565daf186b2b84.
+All 14 literal sections and all inventories were independently verified. The only
+new PASS is MJ-REQ-295, the factual reporting deliverable. Broader product and
+other delivery-control requirements remain incomplete. Global counts must be
+refreshed on actual main after integration; do not attribute concurrent workers'
+changes to this run.
+
+Combined publication branch: work/webpro-20261103T031738Z-642e4b-295; worktree
+C:\Tools\Dev\MJobs-webpro-20261103T031738Z-642e4b-295. Source-only224 branch is retained.
+The containing PR's final receipt records its future candidate/checks/merge and
+deployment results; these were pending when this checkpoint was authored.
+No migrations, dependency upgrades, paid AI calls, public submissions, live
+restores, or fleet launches were performed by this run.
+
+Objective refs 172/224/295 remain owned respectively by
+1c26033405156715b21679f241182bd221971b52,
+0dc61e343fbd9f1ea2e121d9f6dd34734a2a757d,
+9f043f65c866a2de109d3d2939b1ed75cc9d3631.
+This scoped accounting preparation used integration owner c7cb05fff5beeb8a5cefa9bcaca95f34ad10b0a5.
+Verify live ownership; recorded hashes are not permission to reuse/delete refs.
+Preparation ownership is released after verification, before CI waits. Current
+main at preparation: ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b. Production observation remains the
+prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
+release verifies a new exact SHA. Other workers own 004/171/269; preserve their
+work, evidence and refs and re-discover their current status before selecting
+new work.

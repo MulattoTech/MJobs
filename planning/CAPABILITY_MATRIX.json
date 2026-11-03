@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T03:33:06.273418+00:00",
+  "timestamp": "2026-11-03T04:18:08.154659+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -806,7 +806,7 @@
         "docs/evidence/2026-10-03-company-discovery-requests.json",
         "docs/evidence/2026-10-09-official-domain-evidence-order.json"
       ],
-      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company\u2019s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete.",
+      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company’s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete.",
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature"
@@ -2175,9 +2175,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json",
-        "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json"
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b, source d096d03deba8aa749f478f9dd6c91029379ec50f: Verified PARTIAL web-request slice: strict Referer-origin fallback, duplicate security-header rejection, public-host mutation admission, durable saved-data preservation and controlled Chromium proxy-condition coverage. Exact source: 151 tests / 33 subtests PASS, no skips; independent internal review found no blocker. Headerless local-native compatibility remains an explicit exception. Complete authentication/authorization coverage, including the external-evaluation Access policy, remains unverified. No whole-parent PASS or production rollout is claimed by this source record; containing PR final receipt records protected delivery.",
+      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b, source d096d03deba8aa749f478f9dd6c91029379ec50f: Verified PARTIAL web-request slice: strict Referer-origin fallback, duplicate security-header rejection, public-host mutation admission, durable saved-data preservation and controlled Chromium proxy-condition coverage. Exact source: 151 tests / 33 subtests PASS, no skips; independent internal review found no blocker. Headerless local-native compatibility remains an explicit exception. Complete authentication/authorization coverage, including the external-evaluation Access policy, remains unverified. No whole-parent PASS or production rollout is claimed by this source record; containing PR final receipt records protected delivery.\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Protected PR #893 merged at ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b, tree 68712813bd808cb1b16572b26b2f4ab94ef52348 identical to tested candidate cbc172fadfb66e5cf661ca6eff667f57f1db379f. Candidate 151 tests/33 subtests PASS, no skips; all five required hosted gates and CodeQL PASS. Parent remains PARTIAL. New-main deployment gates and guarded rollout were pending at this integration checkpoint; see protected-merge.json and containing PR final release receipt.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2266,7 +2267,7 @@
       "evidence": [
         "docs/evidence/2026-10-07-compose-log-rotation.json"
       ],
-      "note": "All nine Compose services render finite json-file rotation at 10 MiB \u00d7 5 files. An isolated no-network Docker Engine test emitted 50 large lines under a 1 MiB \u00d7 2 cap and retained 11; container removed and existing personal MJobs services untouched. Existing live-feedback tests verify 30-day managed-session cleanup and no raw trace file; prior source inventory found no HTML snapshot writers. Focused Compose/live-feedback/document-artifact suite 20 PASS; Compose config and local validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue #179 CLOSED after readback. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "note": "All nine Compose services render finite json-file rotation at 10 MiB × 5 files. An isolated no-network Docker Engine test emitted 50 large lines under a 1 MiB × 2 cap and retained 11; container removed and existing personal MJobs services untouched. Existing live-feedback tests verify 30-day managed-session cleanup and no raw trace file; prior source inventory found no HTML snapshot writers. Focused Compose/live-feedback/document-artifact suite 20 PASS; Compose config and local validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue #179 CLOSED after readback. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2835,9 +2836,11 @@
         "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/review.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Source 1b8da8cf27c989a8a23e3733f6a9098fca5e00c3 corrects Workday's advertised fixture-upload capability and rejects the unsupported helper before browser/analysis/document access, preserving cancellation/deadline exception identity. Exact-source55 tests/23 subtests PASS, 0 FAIL / 0 SKIP; independent internal code review found no blocker. Separate controlled Workday rehearsal remains unchanged. Parent stays PARTIAL: all seven contract dimensions across every registered adapter are not accepted, and public ATS mutation/submission stays OFF. Protected delivery of the containing PR remains a separate final receipt.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -2886,7 +2889,7 @@
         "docs/evidence/2026-11-01-pro-p1-delivery.json",
         "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources\u2014Remotive, RemoteOK and Greenhouse\u2014have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources—Remotive, RemoteOK and Greenhouse—have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3077,7 +3080,7 @@
         "docs/evidence/2026-10-09-source-failure-recovery.json",
         "docs/evidence/2026-10-09-source-failure-rediscovery.json"
       ],
-      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY \u2192 DEGRADED \u2192 FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN.",
+      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY → DEGRADED → FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN.",
       "priority": "P2",
       "area": "performance_learning_history",
       "category": "major-feature"
@@ -3676,9 +3679,14 @@
     },
     {
       "requirement_id": "MJ-REQ-295",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/validation.json",
+        "docs/IMPLEMENTATION_REPORT.md"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Completed the literal14-section implementation-report deliverable at artifact commit 8ee14e8256596b39ffa3d0b25972856205680b0c, technical inventory 1350f398386d0be8c9555aa8ec565daf186b2b84. Independent content and final artifact review PASS: all 5 built-in collectors, 11 application adapters, 22 detector signatures, 2,874 exact manifest files, 59 local links, source/tree/delta identities and retained FAIL/NOT_RUN boundaries. Report blob 58a171c58e5008769e232b42530f78a69050bfd1. The report explicitly keeps the product PARTIAL and does not accept 290/294/296-300. This is factual report acceptance, not live-provider, public-submission or production-readiness acceptance; protected publication is through the containing PR.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"
