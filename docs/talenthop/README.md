@@ -66,3 +66,7 @@ The existing Fleet Control Hub reads the catalog at an exact current-main SHA. I
 3. Implement #918 and #919 under separate atomic claims after checking active API/UI ownership.
 4. Complete Project reconciliation when the existing board is accessible.
 5. Verify each implemented capability on its actual candidate, protected merge and required deployment before changing acceptance.
+
+## Shared integration prerequisite
+
+[Receiving clock-fixture evidence](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/shared-ci-clock-reuse.json) retains the receiving branch's actual date-boundary failure and 44 passing focused cases after exact authorized reuse of c6acb100. The four source-owner files are unchanged. The receipt also corrects the earlier scanner unittest collection count. Production search filters and all acceptance outcomes are unchanged; fresh protected successor gates remain required.
