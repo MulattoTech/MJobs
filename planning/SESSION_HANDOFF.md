@@ -14,10 +14,18 @@ Source commits, failure histories and milestone evidence remain preserved.
 899 is excluded pending owner corrections;269 bookkeeping stays with that owner.
 Original366 and reference59 criteria/denominators remain unchanged.
 
-Combined native/PostgreSQL and Linux verification, fresh protected gates,
-actual merge/main and guarded rollout are pending at this checkpoint.
+Frozen source113081bc is now verified: Windows/PostgreSQL417PASS plus326 passing
+subtests,8SKIP; Linux108PASS/0SKIP; scanner-policy6PASS. The six POSIX Windows
+skips all pass on Linux; two live-source probes remain disabled. Report verification
+passed14 required sections,60 local links and all2874 immutable manifest entries.
+[Executed source receipt](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json).
+Actual proposed-merge execution, fresh protected gates, protected merge/current-main
+and guarded rollout remain pending. Tests bind113081bc, not this evidence successor.
 Intended rollout owner: run89c21f, after a separate deployment ref/native lease.
 Each source owner retains and releases their own objective refs; no branch rewrite.
+[Independent source/canonical review and owner89c21f cleanup checkpoint](https://github.com/MulattoTech/MJobs/pull/894#issuecomment-6595985003).
+That checkpoint preserves004/160/264 claims, frozen source worktrees and the exact
+owner89c21f disposable PostgreSQL resource; only its owner may clean it up.
 
 The containing integration PR final receipt will name actual candidate/merge/main,
 deployed SHA/image/readiness, skips, resource cleanup and exact claim releases.

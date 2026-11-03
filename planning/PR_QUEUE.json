@@ -6201,11 +6201,11 @@
       ],
       "target_area": "Protected integration/canonical reconciliation",
       "depends_on": [],
-      "status": "ASSEMBLED_PENDING_CANDIDATE_VERIFICATION",
+      "status": "SOURCE_VERIFIED_PENDING_PROTECTED_CANDIDATE",
       "branch": "work/webpro-20261103T034313Z-1e2ff1-cohort",
-      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json",
-      "notes": "Six source heads remain ancestors;899/269 accounting excluded. Only295 adds a scoped PASS."
+      "evidence": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
+      "notes": "Frozen113081bc verified: native417PASS/326subtests/8SKIP;Linux108PASS;scanner-policy6PASS;report14sections/60links/2874entries. Actual proposed merge and fresh protected gates pending. Only295 scoped newPASS; six parents stayPARTIAL."
     }
   ],
-  "generated_at": "2026-11-03T04:58:03.243849+00:00"
+  "generated_at": "2026-11-03T05:13:45.099255+00:00"
 }

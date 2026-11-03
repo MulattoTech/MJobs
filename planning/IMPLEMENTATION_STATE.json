@@ -2050,12 +2050,57 @@
         "git_commit": "12a899822068133321e010233cb3a9bfe81522b4",
         "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-1E2FF1-COHORT-SOURCE-VERIFIED",
+      "timestamp": "2026-11-03T05:13:45.099255+00:00",
+      "current_phase": "Six-source cohort verified; actual merge candidate, protected integration and guarded deployment pending",
+      "completed_steps": [
+        "Executed frozen113081bc on Windows with owned PostgreSQL17 and in a read-only no-network Linux container.",
+        "Independent source/canonical/scanner-object review passed; original evidence and literal criteria retained."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/native-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/native-source-tests.xml",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/linux-source-execution.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/report-verification.json",
+        "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/scanner-policy-tests.xml"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Windows/PostgreSQL417PASS,326 passing subtests,8SKIP,0FAIL/ERROR;one retained SQLAlchemy deprecation warning.",
+        "Linux108PASS/0SKIP;all six POSIX privacy counterparts passed.",
+        "Scanner-policy6PASS;report14 sections/60 local links/all2874 immutable manifest entries PASS."
+      ],
+      "tests_remaining": [
+        "Actual GitHub proposed merge revision and all fresh protected checks.",
+        "Protected merge/current-main verification and separately claimed guarded deployment."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Original reproductions, foreign-key deadlock and historical scanner failure are retained in linked source receipts."
+      ],
+      "known_limitations": [
+        "Six POSIX cases skip on Windows and pass on Linux;two opt-in live probes stayNOT_RUN.",
+        "Local Ruff unavailable;CI still required.",
+        "Only295 reporting deliverable adds scopedPASS;004/008/160/171/224/264 stayPARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Six-source cohort assembled; actual candidate verification and protected delivery pending",
+  "current_phase": "Six-source cohort verified; actual merge candidate, protected integration and guarded deployment pending",
   "last_safe_checkpoint": {
-    "git_commit": "12a899822068133321e010233cb3a9bfe81522b4",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-assembly.json"
+    "git_commit": "113081bcf2047f1bed2567ce5aead59d69a3575d",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
