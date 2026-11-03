@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T03:56:19.742924+00:00",
+  "timestamp": "2026-11-03T04:04:40.231398+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2173,9 +2173,12 @@
     },
     {
       "requirement_id": "MJ-REQ-172",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b, source d096d03deba8aa749f478f9dd6c91029379ec50f: Verified PARTIAL web-request slice: strict Referer-origin fallback, duplicate security-header rejection, public-host mutation admission, durable saved-data preservation and controlled Chromium proxy-condition coverage. Exact source: 151 tests / 33 subtests PASS, no skips; independent internal review found no blocker. Headerless local-native compatibility remains an explicit exception. Complete authentication/authorization coverage, including the external-evaluation Access policy, remains unverified. No whole-parent PASS or production rollout is claimed by this source record; containing PR final receipt records protected delivery.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
