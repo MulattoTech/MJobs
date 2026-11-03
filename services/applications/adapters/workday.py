@@ -40,7 +40,7 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
             "route_normalization": True,
             "form_metadata_extraction": True,
             "human_review_for_uncertainty": True,
-            "mock_fixture_upload": True,
+            "mock_fixture_upload": False,
             "document_upload": False,
             "live_form_interaction": False,
             "submission": False,
@@ -58,6 +58,17 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
         if check is not None:
             check()
         return {"status": "UNKNOWN", "reason": "WORKDAY_DOM_INSPECTION_UNAVAILABLE"}
+
+    def upload_mock_fixture_documents(self, page, analysis, snapshots, *, check=None):
+        """Refuse unavailable upload without inspecting a caller-owned browser.
+
+        The inherited helper requires DOM analysis that Workday deliberately
+        defers until evaluation has a renderer-independent deadline. Separate
+        controlled rehearsal is not this adapter's upload capability.
+        """
+        if check is not None:
+            check()
+        raise ValueError("WORKDAY_FIXTURE_UPLOAD_UNAVAILABLE")
 
     def normalize_route(self, route: Mapping) -> dict | None:
         """Accept only strict tenant.wdN.myworkdayjobs.com job routes."""
