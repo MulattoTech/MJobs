@@ -1,5 +1,57 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## TalentHop evidence and Fleet checkpoint — 2026-11-03T05:39:10.516Z
+
+Run: webpro-20261103T050255Z-1ba724. Refreshed base main:
+9a21b98b29809a41771d963cd2d5679cf8c31f9a. Scoped publication:
+[PR907](https://github.com/MulattoTech/MJobs/pull/907), branch
+work/webpro-20261103T050255Z-1ba724-talenthop. The containing PR's final receipt
+records future protected checks, candidate/merge identity, claim releases and rollout.
+
+- [Catalog and crosswalk](../docs/talenthop/README.md), with stable MJ-TH-001 through
+  MJ-TH-012: 0 OBSERVED, 8 PUBLICLY CLAIMED, 2 INACCESSIBLE, 2 UNKNOWN.
+  Routes 0/3 and journey groups 0/12 exercised; one public source retrieved.
+  No complete-site or hidden-feature coverage is claimed.
+- [Recon issue903](https://github.com/MulattoTech/MJobs/issues/903),
+  [epic904](https://github.com/MulattoTech/MJobs/issues/904), and
+  [Fleet issue905](https://github.com/MulattoTech/MJobs/issues/905) remain open.
+  Existing exact requirement/issues are reused; original366 and reference59
+  acceptance authorities, P0/P1 denominators and criteria are unchanged.
+- Offline HAR sanitizer reconstructs an allowlisted schema-only derivative,
+  aliases identities, drops source strings, limits input/output/depth, refuses
+  overwrite and retains separate safe hash manifests. No real raw HAR, sanitized
+  capture, partial network trace or private artifact has been produced.
+  [Privacy/capture boundary](../docs/talenthop/HAR_PRIVACY.md).
+- 19 focused privacy/catalog tests PASS on original source bc7c3ec5 and after
+  refresh65eff2c5. The synthetic CLI fixture clarification fdd13643 has successful
+  CodeQL checks. Initial source receipt:
+  [executed validation](../docs/evidence/2026-11-03-webpro-1ba724-talenthop/source-validation.json).
+  Earlier test/CI failures remain preserved. Fresh refreshed-branch protected
+  CI and actual proposed-merge execution are still pending at this checkpoint.
+- Shared Fleet Hub [PR9](https://github.com/MulattoTech/Fleet-Control-Hub/pull/9)
+  merged as5535c11daaf4683a76442e971fd81c03daee30e6, exact tested tree
+  e66cf48f662b268b866a75953344637834f48118. Full hosted Node24 workflow PASS;
+  actual candidate9fee4e5e passed65 Hub tests and package/UI integrity checks.
+  Synthetic Brave desktop/manual refresh and12-row mobile overflow PASS.
+  Production rollout is pending. Delivery/acceptance lineage and heartbeat stay
+  explicitly unknown; no native fleet, quota, budget or emergency policy changed.
+
+Blocking evidence: automatic browser approval review denied reading the existing
+private TalentHop candidate dashboard without direct user authorization; no
+private content was read. Supported browser capabilities expose no full HAR export.
+Current GitHub token lacks read:project, so Project1 items/fields were not changed.
+No missing authority was bypassed and no replacement board was created.
+
+Objective refs MJ-TH-RECON/ROADMAP/FLEET remain owned by this run until its durable
+completion or handoff; owner SHAs are recorded in issues903/904/905. This refresh
+uses exclusive integration owner140bc721423e2ce1bdda4a7689b4daf6970cd2a4 and
+releases it while CI runs. Requery every ref and current main before resuming.
+MJobs source worktree ends -1ba724-talenthop; companion Fleet worktrees end
+-1ba724-parity and -1ba724-parity-merge. They contain no raw site capture.
+Next steps: protected PR907 integration, separately locked Hub rollout and live
+readback, direct session/capture authorization, Project-capable access, then claimed
+capability slices. This checkpoint grants zero new original or parity acceptance.
+
 ## Latest coordinated sprint checkpoint — 2026-11-03
 
 Run: webpro-20261103T034313Z-1e2ff1. Base main: 7e86511f409fb9d1e2dc79904b170cc74b88cd3d.

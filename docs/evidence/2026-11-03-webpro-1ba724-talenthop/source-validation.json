@@ -1,0 +1,92 @@
+{
+  "run": "webpro-20261103T050255Z-1ba724",
+  "source_commit": "bc7c3ec550731c98bbd2c091ffc240a2c0ed2cb4",
+  "recorded_at": "2026-11-03T05:22:42.605881+00:00",
+  "environment": "isolated Windows worktree; Python 3.12",
+  "results": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "tests.unit.test_har_sanitize",
+        "tests.unit.test_talenthop_catalog"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.39,
+      "output": "...................\n----------------------------------------------------------------------\nRan 19 tests in 0.092s\n\nOK"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.talenthop_catalog"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.157,
+      "output": "{\"status\": \"PASS\", \"errors\": []}"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.125,
+      "output": "Catalogue validation: PASS"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.125,
+      "output": "Progress journal validation: PASS"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.14,
+      "output": "Progress dashboard: CURRENT"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.125,
+      "output": ""
+    }
+  ],
+  "focused_tests": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0
+  },
+  "review": "Self-review only; no independent or protected human approval claimed",
+  "preserved_initial_failure": "One initial Linux fixture expected a specific host alias number; a redirect consumed that alias. The test now checks same-origin equality and distinct-origin separation instead of ordinal implementation detail. All 14 privacy tests subsequently passed on Linux and Windows.",
+  "limitations": [
+    "TalentHop UI observation denied by automatic approval review",
+    "No raw HAR or captured sanitized derivative",
+    "GitHub Projects scope missing",
+    "Candidate merge and hosted checks pending",
+    "No deployment or parity acceptance claimed"
+  ]
+}
