@@ -207,6 +207,13 @@ def validate_journal(root: Path, journal_path: Path | None = None, *,
     return errors
 
 
+def _output_journal_target(state_path: Path, output_path: Path | None = None) -> Path:
+    target = (output_path or (state_path.parent.parent / DEFAULT_OUTPUT_JOURNAL)).resolve()
+    if target == state_path.resolve():
+        raise ValueError("Output journal must be separate from canonical state")
+    return target
+
+
 def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None) -> Path:
     """Generate or refresh outputs/job-platform-implementation-state.json from the current state."""
     root = root.resolve()
@@ -226,7 +233,7 @@ def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None
         raise ValueError("Cannot sync from invalid journal: " + "; ".join(errors))
     latest = entries[-1]
     machine_state = extract_machine_readable_state(latest, state)
-    target = (output_path or (root / DEFAULT_OUTPUT_JOURNAL)).resolve()
+    target = _output_journal_target(state_file, output_path)
     write_atomic_json(target, machine_state)
     return target
 
@@ -350,6 +357,7 @@ def resume_snapshot(root: Path = ROOT, source_path: Path | None = None) -> dict:
 def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path | None = None) -> None:
     """Publish canonical state, then derived output, with separate atomic writes."""
     root = state_path.parent.parent
+    out_target = _output_journal_target(state_path, output_state_path)
     errors = _entry_errors(root, entry)
     if errors:
         raise ValueError("; ".join(errors))
@@ -370,7 +378,6 @@ def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path |
     state["last_safe_checkpoint"] = entry["last_safe_checkpoint"]
 
     write_atomic_json(state_path, state)
-    out_target = (output_state_path or (root / DEFAULT_OUTPUT_JOURNAL)).resolve()
     machine_state = extract_machine_readable_state(entry, state)
     write_atomic_json(out_target, machine_state)
 

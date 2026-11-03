@@ -26,7 +26,11 @@ Sync does not append, remove or rewrite canonical milestones. It refuses an
 invalid canonical journal even when the generated copy is valid. It cannot
 recover missing canonical evidence or decide between competing writers.
 An explicit `--output` writes only that destination; it does not repair a
-different default output as a side effect.
+different default output as a side effect. Both `sync --output` and
+`record --output-path` refuse a destination that resolves to the canonical
+journal, including normalized aliases. Refusal happens before either journal
+is written, so a mistaken output path cannot replace canonical history with
+its generated summary.
 
 Strict consistency checks compare every generated authoritative field and the
 milestone ID, timestamp and schema version. A matching phase and commit alone

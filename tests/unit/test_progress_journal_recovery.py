@@ -193,6 +193,37 @@ progress.append_milestone(state, json.loads(sys.argv[2]))
         self.assertEqual(self.state.read_bytes(), before[0])
         self.assert_current_output()
 
+    def test_sync_cannot_publish_a_derived_copy_over_canonical_history(self):
+        before = self.state.read_bytes(), self.output.read_bytes()
+        destinations = (self.state, self.state.parent / ".." / "planning" / self.state.name)
+        for destination in destinations:
+            with self.subTest(destination=str(destination.relative_to(self.root))):
+                self.state.write_bytes(before[0])
+                self.output.write_bytes(before[1])
+                refused = self.cli("sync", "--output", destination)
+                self.assertNotEqual(refused.returncode, 0)
+                self.assertIn("Output journal must be separate from canonical state", refused.stderr)
+                self.assertEqual((self.state.read_bytes(), self.output.read_bytes()), before)
+
+    def test_record_refuses_canonical_output_before_appending_a_milestone(self):
+        entry = {
+            **self.entry, "milestone_id": "CHECKPOINT-2",
+            "timestamp": "2026-11-03T00:01:00Z", "current_phase": "SECOND",
+        }
+        entry_path = self.root / "docs/evidence/entry.json"
+        entry_path.write_text(json.dumps(entry), encoding="utf-8")
+        before = self.state.read_bytes(), self.output.read_bytes()
+        destinations = (self.state, self.state.parent / ".." / "planning" / self.state.name)
+        for destination in destinations:
+            with self.subTest(destination=str(destination.relative_to(self.root))):
+                self.state.write_bytes(before[0])
+                self.output.write_bytes(before[1])
+                refused = self.cli("record", "--entry", entry_path,
+                                   "--output-path", destination)
+                self.assertNotEqual(refused.returncode, 0)
+                self.assertIn("Output journal must be separate from canonical state", refused.stderr)
+                self.assertEqual((self.state.read_bytes(), self.output.read_bytes()), before)
+
     def test_custom_sync_destination_does_not_silently_repair_default_output(self):
         self.interrupt_after_canonical_replace()
         before = self.state.read_bytes(), self.output.read_bytes()
