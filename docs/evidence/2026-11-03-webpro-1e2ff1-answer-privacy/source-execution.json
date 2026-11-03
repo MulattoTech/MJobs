@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "requirement_id": "MJ-REQ-171",
+  "issue": 172,
+  "timestamp": "2026-11-03T03:55:04.856Z",
+  "baseline_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "tested_source_sha": "02db15748dae39b34848f6011327b6ce5c1cdf89",
+  "result": "PASS_FOR_SCOPED_SLICE",
+  "requirement_result": "PARTIAL",
+  "scope": "Private reviewed-application-answer file creation, atomic publication, process interruption and exact-file recovery.",
+  "changes": [
+    "Create temporary answer files with the standard exclusive private-file primitive; POSIX bytes begin at mode 0600.",
+    "Request mode 0700 only for newly created scoped directories; preserve existing directory permissions.",
+    "Recover only exact expected bytes from a regular file with one hard link; reject final symlink aliases where supported and avoid blocking on special-file open.",
+    "Restrict and fsync the matched POSIX file descriptor before recording the recovered document.",
+    "Classify file storage failures with fixed safe output and preserve immutable hashes, profile scope and no-store downloads."
+  ],
+  "verification": [
+    {
+      "environment": "isolated Linux container, nonroot UID 10001, network disabled, read-only source",
+      "command": "python -m unittest -v tests.integration.test_answer_export_privacy tests.unit.test_answer_export_path_security tests.integration.test_application_answer_export tests.integration.test_application_answer_story_citation_export tests.integration.test_reviewed_application_answer_durability",
+      "source_sha": "02db15748dae39b34848f6011327b6ce5c1cdf89",
+      "result": "PASS",
+      "tests": 45,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "duration_seconds": 36.937,
+      "image": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "note": "Existing runtime image supplies dependencies only; all tested source and tests are mounted from the identified isolated worktree."
+    },
+    {
+      "environment": "isolated native Windows virtual environment with existing installed dependencies",
+      "command": "python -m pytest -q -p no:cacheprovider tests/integration/test_answer_export_privacy.py tests/unit/test_answer_export_path_security.py tests/integration/test_application_answer_export.py tests/integration/test_application_answer_story_citation_export.py tests/integration/test_reviewed_application_answer_durability.py --junitxml=native-source.xml",
+      "source_sha": "02db15748dae39b34848f6011327b6ce5c1cdf89",
+      "result": "PASS_WITH_EXPLICIT_SKIPS",
+      "passed": 39,
+      "skipped": 6,
+      "subtests_passed": 26,
+      "failures": 0,
+      "duration_seconds": 61.4,
+      "skip_reason": "POSIX permission and hard-link semantics; all six selected cases passed in Linux.",
+      "receipt": "native-source.xml"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "baseline_reproduction": {
+    "source_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+    "tests": 3,
+    "expected_failures": 3,
+    "environment": "isolated Linux with synthetic data",
+    "observed": "Initial write, process death at fsync, and matching uncommitted-file recovery each retained mode 0666 under permissive umask; expected 0600.",
+    "receipt": "baseline-reproduction.json"
+  },
+  "production_observation": {
+    "result": "BASELINE_ONLY",
+    "public_url": "https://mjobs.m-techlabs.com",
+    "source_sha": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+    "browser": "Brave",
+    "visible_health": "Services ready",
+    "external_submission": "OFF",
+    "deployment_readback": "/__deployment",
+    "operation_mode": "PERSONAL",
+    "document_mount": "Docker volume",
+    "note": "This observation predates deployment of the fix and is not changed-behavior acceptance."
+  },
+  "limitations": [
+    "Full original PII requirement remains incomplete; this slice does not establish all contact/resume/history/session protections.",
+    "Native Windows ACL isolation was not tested or changed.",
+    "Historical exports and backups are not scanned or rewritten; only new writes and an exact encountered recovery artifact are covered.",
+    "No production applicant data, external employer submissions, live AI calls or paid agents were used.",
+    "Protected CI, actual candidate merge verification, merge and deployment remain separate pending gates."
+  ],
+  "review": {
+    "kind": "author security/data-integrity review",
+    "independent_human_review": "NOT_RUN",
+    "claims": [
+      "No middleware, adapter, database-control, dependency, migration or fleet configuration changes.",
+      "Fsync and permission failures leave document metadata uncommitted.",
+      "Corrupt and hard-linked recovery files preserve unrelated bytes and permissions.",
+      "No global umask changes in production code; the permissive umask is confined to isolated tests."
+    ]
+  }
+}
