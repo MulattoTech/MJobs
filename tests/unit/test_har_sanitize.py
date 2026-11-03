@@ -198,8 +198,10 @@ class HarSanitizeTests(unittest.TestCase):
     def test_cli_failure_does_not_print_private_path_or_payload(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            source = root / (SECRET + ".har")
-            source.write_text(SECRET, encoding="utf-8")
+            # Invalid JSON with an explicit synthetic marker, never captured data.
+            marker = "synthetic-cli-error-fixture"
+            source = root / (marker + ".har")
+            source.write_text(marker, encoding="utf-8")
             stderr = io.StringIO()
             with contextlib.redirect_stderr(stderr):
                 code = main([str(source), "--output", str(root / "out.json"), "--manifest", str(root / "manifest.json")])
