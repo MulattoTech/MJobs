@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "integration_owner": "129316ac60631d630efbe50d5b368106324e6bd9",
+  "base": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "prior_head": "e2ddb0683f91e9a69e518b3183c6566836f29ef4",
+  "observer": "60c19990938ac6d02f807483476e9f982cefa490",
+  "clock": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+  "clock_review": "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599366566",
+  "started_at": "2026-11-03T08:56:34.375770+00:00",
+  "source_claim_snapshot": {
+    "refs/heads/webpro-claims/MJ-REQ-008": "18af7a5b4dc5ff76afda7699ddae08d55a2908d1",
+    "refs/heads/webpro-claims/MJ-REQ-171": "040e15c143911cc512be6447678abc761d73b432",
+    "refs/heads/webpro-claims/MJ-TH-RECON": "7f08fc7a18d16d14adbc9387ed856129bf6c7981",
+    "refs/heads/webpro-claims/MJ-TH-ROADMAP": "d2519ca9257702d5bd6f3beefe0befd7d10d19e4",
+    "refs/heads/webpro-claims/RESTORE-UPLOAD-PRIVATE-MODES": "a2e1cd1b76cbe1bf647d50a0add4f7f84b52d7af",
+    "refs/heads/webpro-claims/SECRET-SCAN-COHORT-SOURCE-BLOB": "27831393221fb05dcdbe74dc0b7306d30bbdee20",
+    "refs/heads/webpro-claims/WWR-RSS-DATE-FIXTURE-CLOCK": "e66e520afa2b6b3d333fb15a449115041c681528"
+  },
+  "assembled_source": "b10008ef0d552276092a297465b6bad4594b9e21",
+  "assembled_tree": "207391bccb5b7e044bf0b17d5fa79f4c18c50424",
+  "merge_steps": [
+    {
+      "label": "control-observer-922",
+      "before": "e2ddb0683f91e9a69e518b3183c6566836f29ef4",
+      "incoming": "60c19990938ac6d02f807483476e9f982cefa490",
+      "commit": "1e912971da16f3b55e3ab28fe9b035af6244788e"
+    },
+    {
+      "label": "wwr-clock",
+      "before": "1e912971da16f3b55e3ab28fe9b035af6244788e",
+      "incoming": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+      "commit": "b10008ef0d552276092a297465b6bad4594b9e21"
+    }
+  ],
+  "incoming_exact_files": [
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": ".gitleaksignore",
+      "git_blob": "dd56b9f6b5aad00df72c4608b1a450cacc9e6fe2"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-object-review.json",
+      "git_blob": "bb6571a6ff44f9622e31e5a51176a377ee641542"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "docs/evidence/2026-11-03-webpro-23e5-control-diagnostics/README.md",
+      "git_blob": "19ced1b09460e309e69b247b84b700904175ff16"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "docs/evidence/2026-11-03-webpro-23e5-control-diagnostics/diagnostic-plan-source.py.txt",
+      "git_blob": "0ff9fdc83499a3ae9f3d5feb8463b6af81e2e629"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "docs/evidence/2026-11-03-webpro-23e5-control-diagnostics/diagnostic-results.json",
+      "git_blob": "742490cdefe8f90fb268836623a95d5becddd189"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "docs/evidence/2026-11-03-webpro-23e5-control-diagnostics/source-validation.json",
+      "git_blob": "8b4823fad26c061824149433ff1d86f64ec51e1d"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "docs/evidence/2026-11-03-webpro-23e5-control-diagnostics/tests.xml",
+      "git_blob": "ef6b64decdca759fa9f21bc6b5080e2ce8044abf"
+    },
+    {
+      "source": "60c19990938ac6d02f807483476e9f982cefa490",
+      "path": "tests/integration/test_company_monitoring_policy_transport.py",
+      "git_blob": "1f8885810ed4ce94de6c6740d08cebd6a1f02ad3"
+    },
+    {
+      "source": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+      "path": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/README.md",
+      "git_blob": "44089ca5dd4253c2a767df336d6e82b3461bc7c1"
+    },
+    {
+      "source": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+      "path": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/boundary-probe.py.txt",
+      "git_blob": "142a01ff93c2352ad309eb9e8b32292b516e4cd2"
+    },
+    {
+      "source": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+      "path": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/verification.json",
+      "git_blob": "05c74f6d52289abf7db30b3ceeb54af3c8662a2f"
+    },
+    {
+      "source": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+      "path": "tests/integration/test_relative_posted_source_intake.py",
+      "git_blob": "b92d722a43ce7f4e49ad2f4f0a8a1fe5c05732e9"
+    }
+  ],
+  "prior_source_evidence_blobs_preserved": 81,
+  "prior_manifest": "e2ddb0683f91e9a69e518b3183c6566836f29ef4:docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json",
+  "changed_existing_paths": [
+    "tests/integration/test_company_monitoring_policy_transport.py",
+    "tests/integration/test_relative_posted_source_intake.py"
+  ],
+  "prior_evidence_deleted": false,
+  "production_logic_changed_from_e2": false,
+  "canonical_before_checkpoint_exact_to_e2": true,
+  "monitoring_disposition": {
+    "original_run": 41596437400,
+    "original_job": 125785299216,
+    "result": "FAIL",
+    "trigger": "UNKNOWN / NOT_REPRODUCED",
+    "change": "Test-only real-reader observer retains bounded safe metadata without changing delegation, exception, deadline or original positive oracle.",
+    "induced_SQLITE_BUSY_probe": "Demonstrated fail-closed refusal, no imported jobs/receipts; not proof of hosted trigger.",
+    "release_boundary": "Old failure is retained, not relabelled or waived. A successor may be considered only on its own complete passing protected gates and exact-candidate review. No monitoring production repair or full004 acceptance claimed."
+  },
+  "clock_disposition": {
+    "source": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+    "review": "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599366566",
+    "baseline": "Unchanged main63cb test fails2!=3 after actual30-day boundary; controlled before PASS/FAIL/FAIL and after PASS/PASS/PASS.",
+    "change": "Existing helper freezes API database and semantic query clocks together; all existing assertions and literal RSS remain unchanged.",
+    "scope_collision": "Root4ba claim deliberately released at08:47 after frozen-source handoff. Current source-claim state is captured separately; no duplicate correction is integrated."
+  },
+  "prior_results_not_relabelled": [
+    "12a060d2 journal36+25 Windows/1POSIXskip and37 Linux; identity/documents169+94",
+    "2566b5ca recovery51+43 and scanner6",
+    "922 candidate45769a99 owner17+7 and root5",
+    "Clock source19ea133e9+8 plus separately labelled boundary probes"
+  ],
+  "current_combined_execution": "PENDING_PUBLICATION",
+  "protected_gates": "PENDING_FRESH_EXACT_HEAD",
+  "merged": false,
+  "deployed": false
+}

@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "source_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
+  "source_tree": "18239bc010e6035b6686788a3e53c6776ca22a27",
+  "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "prior_head": "2ed5431b2d81fe3ab2b1233a27b559f3415f8256",
+  "started_at_utc": "2026-11-03T05:52:06.871836+00:00",
+  "ended_at_utc": "2026-11-03T05:54:05.145704+00:00",
+  "result": "PASS",
+  "scope": "Owned isolated SQLite/PostgreSQL and Chromium; controlled providers including loopback HTTP; no production writes or paid provider calls.",
+  "commands": [
+    {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "ci",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 8.594,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-1.log"
+    },
+    {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.422,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-2.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_aggregator_company_identity.py",
+        "tests/integration/test_aggregator_company_identity_postgres.py",
+        "tests/integration/test_aggregator_company_identity_history.py",
+        "tests/integration/test_source_enrollment_api.py",
+        "tests/integration/test_ai_resume_fact_trace.py",
+        "tests/integration/test_ai_resume_fact_trace_postgres.py",
+        "tests/browser/test_ai_resume_fact_trace.py",
+        "tests/browser/test_document_fact_trace.py",
+        "tests/unit/test_resume_rewrite_review.py",
+        "tests/integration/test_resume_rewrite_review_api.py",
+        "tests/integration/test_document_provenance.py",
+        "tests/integration/test_prompt_provenance.py",
+        "tests/unit/test_deployment_checks.py",
+        "--tb=short",
+        "--junitxml=outputs\\webpro-23e5-company-identity\\reconciled-candidate-tests.xml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 106.031,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-3.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.156,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-4.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.157,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-5.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.14,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-6.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.235,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-7.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.171,
+      "log": "outputs/webpro-23e5-company-identity/reconciled-candidate-command-8.log"
+    }
+  ],
+  "test_summary": {
+    "parent_cases": 151,
+    "reported_tests": 234,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "subtests_passed": 83,
+  "tracked_diff": "",
+  "source_receipt_sha256": "5a4646508f40bda16b55aa944470ec2d6c2bd14da7ae224f7e4e86d230a629ed",
+  "source_xml_sha256": "433b50719edda67a284a7d744d7df50f7dd1e55b86d44faec4e1f0c8a6177b32",
+  "xml_sha256": "98428a0f7268d7a6ed765fa2e17cae3c299bac85678fad3e9617df39d8c7583a",
+  "preflight_history": [
+    {
+      "result": "FAIL",
+      "stage": "initial clean-worktree guard after merge commit",
+      "detail": "Planning regeneration left three CRLF-only worktree representations marked modified while Git diff was empty. Before restoring only those owned paths, exact UTF-8 text after newline decoding and JSON equality with the committed blobs were independently asserted. Committed tree and sources are unchanged; guard passed afterward. No tests ran during that failed preflight."
+    }
+  ],
+  "sanitization": "Command executable paths normalized; JUnit hostnames/output/properties removed. Full logs remain private in the run-owned ignored outputs.",
+  "known_limitations": [
+    "npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required.",
+    "Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed."
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "source_commit": "69fac92cd20f5cb1c0ddd1233dc3c0385ab963d1",
+  "started_at_utc": "2026-11-03T04:43:37.950918+00:00",
+  "commands": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_aggregator_company_identity.py",
+        "tests/integration/test_aggregator_company_identity_postgres.py",
+        "tests/integration/test_wwr.py",
+        "tests/integration/test_remoteok.py",
+        "tests/integration/test_remotive.py",
+        "tests/integration/test_greenhouse.py",
+        "tests/integration/test_source_collection_error_categories.py",
+        "tests/integration/test_source_value_integrity.py",
+        "tests/unit/test_source_strategy_admission.py",
+        "tests/unit/test_deployment_checks.py",
+        "--tb=short",
+        "--junitxml=outputs/webpro-23e5-company-identity/candidate-tests.xml"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 92.812,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-1.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "tests/integration/test_aggregator_company_identity.py",
+        "tests/integration/test_aggregator_company_identity_postgres.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.094,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-2.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "F821,F822,F823",
+        "services/discovery/sources/collect.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.109,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-3.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.079,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-4.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.078,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-5.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.093,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-6.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.047,
+      "log": "outputs/webpro-23e5-company-identity/candidate-command-7.log"
+    }
+  ],
+  "ended_at_utc": "2026-11-03T04:45:11.274991+00:00",
+  "final_commit": "69fac92cd20f5cb1c0ddd1233dc3c0385ab963d1",
+  "tracked_diff": ""
+}

@@ -1,0 +1,464 @@
+"""Fixed, private-fixture diagnostics; never a clearance of the hosted failure.
+
+Run with the owning venv: python -B monitor_policy_diagnostics.py --root REPO.
+The output directory must already exist. Existing results are never replaced.
+Only the exact frozen Git candidate is admitted. No production action is used.
+"""
+from __future__ import annotations
+
+import argparse
+from collections import deque
+from contextlib import ExitStack, redirect_stderr, redirect_stdout
+from datetime import datetime, timezone
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import sqlite3
+import subprocess
+import sys
+import threading
+import time
+import unittest
+from unittest.mock import patch
+
+EXPECTED_HEAD = "2566b5ca59fe3a3fed294599eacebfd06cccde34"
+EXPECTED_TREE = "14f8e197def0cb894f8321a5484b22ff90bf6177"
+TEST_NAME = "test_real_tls_worker_policy_parallel_sampling_receipt_and_fresh_readback"
+CASES = ("normal_1", "normal_2", "normal_3", "exclusive_lock")
+OUTPUT = Path("outputs/webpro-23e5-company-identity/monitoring-policy-shard2-diagnostics/diagnostic-results.json")
+CASE_LIMIT_SECONDS = 30.0
+TOTAL_LIMIT_SECONDS = 145.0  # Leaves five seconds below the requested outer ceiling.
+
+
+class GuardError(RuntimeError):
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
+
+class Discard(io.TextIOBase):
+    def write(self, value):
+        return len(value)
+
+    def flush(self):
+        pass
+
+
+def utc_now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def token(value):
+    """Only fixed identifier-shaped diagnostic metadata is serializable."""
+    if value is None:
+        return None
+    return value if isinstance(value, str) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,95}", value) else "UNEXPECTED_IDENTIFIER"
+
+
+def exception_metadata(error):
+    original = getattr(error, "orig", None)
+    code = getattr(original if original is not None else error, "sqlite_errorcode", None)
+    name = getattr(original if original is not None else error, "sqlite_errorname", None)
+    return {
+        "exception_class": token(type(error).__name__),
+        "guard_code": token(error.code) if isinstance(error, GuardError) else None,
+        "dbapi_class": token(type(original).__name__) if original is not None else None,
+        "sqlite_code": code if type(code) is int else None,
+        "sqlite_name": token(name),
+        "connection_invalidated": getattr(error, "connection_invalidated", None) is True,
+    }
+
+
+def source_guard(root):
+    if sys.flags.optimize:
+        raise GuardError("OPTIMIZATION_FORBIDDEN")
+    command = ["git", "-C", str(root), "rev-parse", "HEAD", "HEAD^{tree}"]
+    result = subprocess.run(command, capture_output=True, text=True, timeout=5, check=False)
+    if result.returncode or result.stdout.splitlines() != [EXPECTED_HEAD, EXPECTED_TREE]:
+        raise GuardError("FROZEN_SOURCE_MISMATCH")
+    result = subprocess.run(["git", "-C", str(root), "diff", "--quiet", "HEAD", "--"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
+    if result.returncode:
+        raise GuardError("TRACKED_SOURCE_NOT_CLEAN")
+
+
+class SanitizedResult(unittest.TestResult):
+    def __init__(self):
+        super().__init__()
+        self.details = []
+
+    def _record(self, kind, test, error):
+        frames = []
+        tb = error[2]
+        while tb is not None:
+            if tb.tb_frame.f_code.co_filename.replace("\\", "/").endswith(
+                    "/tests/integration/test_company_monitoring_policy_transport.py"):
+                frames.append({"function": tb.tb_frame.f_code.co_name, "line": tb.tb_lineno})
+            tb = tb.tb_next
+        self.details.append({"kind": kind, "exception_class": token(error[0].__name__), "test_frames": frames[-8:]})
+
+    def addFailure(self, test, error):
+        self.failures.append((test, ""))
+        self._record("FAILURE", test, error)
+
+    def addError(self, test, error):
+        self.errors.append((test, ""))
+        self._record("ERROR", test, error)
+
+    def addSkip(self, test, reason):
+        self.skipped.append((test, ""))
+
+
+def run_case(root, case_name):
+    started = time.monotonic()
+    # Guard before any repository import; no Store or provider exists yet.
+    source_guard(root)
+    os.chdir(root)
+    sys.path.insert(0, str(root))
+    sys.dont_write_bytecode = True
+    from sqlalchemy import func, select
+    from packages.persistence import models as m
+    from packages.persistence.store import Store
+    from services.company_discovery import monitoring
+    from tests.integration import test_company_monitoring_policy_transport as transport_test
+    from workers import operations
+
+    events = deque(maxlen=128)
+    diagnostic_lock = threading.Lock()
+    dropped = [0]
+    returns = []
+    control_failures = []
+    durable = {}
+    injection = {"requested": case_name == "exclusive_lock", "journal_mode": None,
+                 "lock_acquired": False, "rollback_ok": False, "connection_closed": False,
+                 "controller_joined": False, "refusal_seen_while_held": False}
+    unavailable = threading.Event()
+    controller_stop = threading.Event()
+    controller = [None]
+    case = transport_test.CompanyMonitoringPolicyTransportTests(TEST_NAME)
+    result = SanitizedResult()
+
+    def elapsed():
+        return round(time.monotonic() - started, 6)
+
+    def record(event, **values):
+        # No printing, file I/O, SQL, exception messages, or delays in observers.
+        item = {"event": event, "at_seconds": elapsed(),
+                "thread": token(threading.current_thread().name.replace("-", "_")), **values}
+        with diagnostic_lock:
+            if len(events) == events.maxlen:
+                dropped[0] += 1
+            events.append(item)
+
+    original_read = operations._read_operation_control
+    original_reserve = monitoring.reserve_request
+    original_execute = transport_test.execute_operation
+
+    def observed_read(store, operation_id):
+        beginning = time.monotonic()
+        try:
+            return original_read(store, operation_id)
+        except operations.OperationControlUnavailable as failure:
+            try:
+                contexts = []
+                context = failure.__context__
+                for _ in range(4):
+                    if context is None:
+                        break
+                    contexts.append(exception_metadata(context))
+                    context = context.__context__
+                line = None
+                tb = failure.__traceback__
+                while tb is not None:
+                    if tb.tb_frame.f_code.co_name == "_read_operation_control":
+                        line = tb.tb_lineno
+                    tb = tb.tb_next
+                item = {"at_seconds": elapsed(), "control_raise_line": line,
+                        "elapsed_seconds": round(time.monotonic() - beginning, 6), "contexts": contexts}
+                with diagnostic_lock:
+                    if len(control_failures) < 32:
+                        control_failures.append(item)
+                record("control_unavailable", **{key: value for key, value in item.items() if key != "at_seconds"})
+            except BaseException:
+                try:
+                    record("control_metadata_unavailable", code="OBSERVER_METADATA_UNAVAILABLE")
+                except BaseException:
+                    pass
+            try:
+                unavailable.set()
+            except BaseException:
+                pass
+            # Metadata failure must never replace the original control refusal.
+            raise
+
+    def observed_reserve(*args, **kwargs):
+        beginning = time.monotonic()
+        record("reserve_enter")
+        try:
+            value = original_reserve(*args, **kwargs)
+        except BaseException as failure:
+            record("reserve_exit", elapsed_seconds=round(time.monotonic() - beginning, 6),
+                   result="ERROR", exception_class=token(type(failure).__name__))
+            raise
+        record("reserve_exit", elapsed_seconds=round(time.monotonic() - beginning, 6),
+               result="RETURNED", returned_wait_seconds=value)
+        return value
+
+    def observed_execute(*args, **kwargs):
+        value = original_execute(*args, **kwargs)
+        failure = value.get("failure")
+        returns.append({"status": token(value.get("status")), "error_category": token(value.get("error_category")),
+                        "failure": {"code": token(failure.get("code")), "category": token(failure.get("category"))}
+                        if isinstance(failure, dict) else None})
+        return value
+
+    def capture_durable():
+        fresh = None
+        try:
+            fresh = Store(case.fixture.store.url)
+            with fresh.engine.connect() as connection:
+                rows = connection.execute(select(m.operations.c.state, m.operations.c.error)).mappings().all()
+                monitors = connection.execute(select(m.company_source_monitoring.c.completed_operation_id,
+                                                     m.company_source_monitoring.c.status)).mappings().all()
+                receipts = connection.execute(select(func.count()).select_from(m.audit).where(
+                    m.audit.c.action == "COMPANY_SOURCE_REFRESHED")).scalar_one()
+                jobs = connection.execute(select(func.count()).select_from(m.jobs)).scalar_one()
+            durable.update({"captured_before_fixture_cleanup": True,
+                            "operation_count": len(rows), "operations": [
+                                {"state": token(row["state"]), "error": token(row["error"])} for row in rows],
+                            "monitor_count": len(monitors), "monitor_receipt_present": [
+                                row["completed_operation_id"] is not None for row in monitors],
+                            "import_receipt_count": receipts, "canonical_job_count": jobs})
+        except BaseException as failure:
+            durable.update({"captured_before_fixture_cleanup": False, "error": exception_metadata(failure)})
+        finally:
+            if fresh is not None:
+                fresh.engine.dispose()
+
+    def lock_controller():
+        connection = None
+        try:
+            database = case.fixture.root / "monitor.db"
+            if database.is_symlink() or not database.is_file() or case.fixture.store.url != "sqlite:///" + database.as_posix():
+                raise GuardError("PRIVATE_FIXTURE_DATABASE_REQUIRED")
+            connection = sqlite3.connect(str(database), timeout=0.5)
+            mode = connection.execute("PRAGMA journal_mode").fetchone()[0]
+            injection["journal_mode"] = mode if mode == "delete" else "UNEXPECTED"
+            if mode != "delete":
+                raise GuardError("ORDINARY_JOURNAL_MODE_REQUIRED")
+            until = time.monotonic() + 12.0
+            while not controller_stop.is_set() and time.monotonic() < until:
+                with case.lock:
+                    active = case.active
+                if active > 0:
+                    break
+                controller_stop.wait(0.005)
+            else:
+                raise GuardError("ACTIVE_JOB_PHASE_NOT_OBSERVED")
+            if unavailable.is_set():
+                raise GuardError("REFUSAL_PRECEDED_INJECTION")
+            injection["active_before_acquire"] = active
+            injection["lock_requested_seconds"] = elapsed()
+            connection.execute("BEGIN EXCLUSIVE")
+            injection["lock_acquired_seconds"] = elapsed()
+            injection["lock_acquired"] = True
+            injection["refusal_seen_while_held"] = unavailable.wait(1.0)
+        except BaseException as failure:
+            injection["controller_error"] = exception_metadata(failure)
+        finally:
+            if connection is not None:
+                try:
+                    connection.rollback()
+                    injection["rollback_ok"] = True
+                except BaseException as failure:
+                    injection["rollback_error"] = exception_metadata(failure)
+                finally:
+                    injection["lock_released_seconds"] = elapsed()
+                    try:
+                        connection.close()
+                        injection["connection_closed"] = True
+                    except BaseException as failure:
+                        injection["close_error"] = exception_metadata(failure)
+
+    def stop_controller():
+        controller_stop.set()
+        if controller[0] is not None:
+            controller[0].join(2.0)
+            injection["controller_joined"] = not controller[0].is_alive()
+            if controller[0].is_alive():
+                raise GuardError("CONTROLLER_DID_NOT_JOIN")
+
+    original_setup = case.setUp
+
+    def observed_setup():
+        original_setup()
+        # Unittest cleanups are LIFO: join controller, read committed state,
+        # then the original server and private-fixture cleanup execute.
+        case.addCleanup(capture_durable)
+        case.addCleanup(stop_controller)
+        original_server_error = case.server.handle_error
+
+        def observed_server_error(request, client_address):
+            error = sys.exc_info()[1]
+            record("server_request_error", exception_class=token(type(error).__name__))
+            return original_server_error(request, client_address)
+
+        case.server.handle_error = observed_server_error
+        if injection["requested"]:
+            controller[0] = threading.Thread(target=lock_controller, name="diagnostic-private-lock", daemon=True)
+            controller[0].start()
+
+    case.setUp = observed_setup
+    with ExitStack() as stack:
+        stack.enter_context(patch.object(operations, "_read_operation_control", observed_read))
+        stack.enter_context(patch.object(monitoring, "reserve_request", observed_reserve))
+        # Observe the test's imported binding only; return the original object.
+        stack.enter_context(patch.object(transport_test, "execute_operation", observed_execute))
+        case.run(result)
+    post_source_guard = {"result": "PASS"}
+    try:
+        source_guard(root)
+    except BaseException as failure:
+        post_source_guard = {"result": "FAIL", "error": exception_metadata(failure)}
+    live_samples = sum(thread.name.startswith("mjobs-monitor-link") for thread in threading.enumerate())
+    server_joined = hasattr(case, "thread") and not case.thread.is_alive()
+    with diagnostic_lock:
+        failure_snapshot = list(control_failures)
+        event_snapshot = list(events)
+        dropped_snapshot = dropped[0]
+    first = failure_snapshot[0] if failure_snapshot else None
+    locked_error = bool(first and any(entry["sqlite_code"] is not None and
+                        entry["sqlite_code"] & 255 in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)
+                        for entry in first["contexts"]))
+    positive_assertion = len(result.details) == 1 and result.details[0]["kind"] == "FAILURE" and any(
+        frame == {"function": "_real_tls_worker_policy_samples", "line": 139}
+        for frame in result.details[0]["test_frames"])
+    guards = {
+        "one_original_positive_assertion_failed": positive_assertion,
+        "exact_blocked_result": returns == [{"status": "BLOCKED", "error_category": "OPERATION_CONTROL_UNAVAILABLE",
+                                            "failure": {"code": "OPERATION_CONTROL_UNAVAILABLE", "category": None}}],
+        "injection_before_refusal": bool(first and injection.get("lock_acquired") and
+            injection["lock_acquired_seconds"] <= first["at_seconds"] <= injection.get("lock_released_seconds", -1)),
+        "sqlite_lock_refusal": locked_error,
+        "ordinary_journal_and_clean_lock_release": injection.get("journal_mode") == "delete" and
+            injection["refusal_seen_while_held"] and injection["rollback_ok"] and
+            injection["connection_closed"] and injection["controller_joined"] and "controller_error" not in injection,
+        "durable_blocked_and_no_import": durable.get("captured_before_fixture_cleanup") is True and
+            durable.get("operation_count") == 1 and durable.get("operations") == [
+                {"state": "BLOCKED", "error": "OPERATION_CONTROL_UNAVAILABLE"}] and
+            durable.get("monitor_count") == 1 and durable.get("monitor_receipt_present") == [False] and
+            durable.get("import_receipt_count") == 0 and durable.get("canonical_job_count") == 0,
+        "original_cleanup_completed": server_joined and live_samples == 0 and not result.errors,
+        "no_skips": not result.skipped and result.testsRun == 1,
+        "source_unchanged": post_source_guard["result"] == "PASS",
+    }
+    if injection["requested"]:
+        status = "EXPECTED_FAULT_INJECTION_REFUSAL" if all(guards.values()) else "FAULT_PROBE_NOT_PROVEN"
+    else:
+        status = "PASS" if result.wasSuccessful() and not result.skipped and result.testsRun == 1 and server_joined and live_samples == 0 and durable.get("captured_before_fixture_cleanup") and post_source_guard["result"] == "PASS" else "NORMAL_FAILURE_RETAINED"
+    return {"case": case_name, "status": status, "source_commit": EXPECTED_HEAD,
+            "source_tree": EXPECTED_TREE, "elapsed_seconds": elapsed(), "tests_run": result.testsRun,
+            "failures": len(result.failures), "errors": len(result.errors), "skips": len(result.skipped),
+            "test_outcomes": result.details, "worker_returns": returns, "control_failures": failure_snapshot,
+            "events": event_snapshot, "events_dropped": dropped_snapshot, "durable": durable,
+            "injection": injection, "negative_guards": guards if injection["requested"] else None,
+            "server_joined": server_joined, "live_monitor_threads": live_samples,
+            "post_source_guard": post_source_guard,
+            "hosted_cause_established": False}
+
+
+def supervisor(root):
+    beginning = time.monotonic()
+    source_guard(root)
+    destination = root / OUTPUT
+    if not destination.parent.is_dir() or destination.parent.is_symlink():
+        raise GuardError("OWNED_OUTPUT_DIRECTORY_REQUIRED")
+    if destination.exists() or destination.is_symlink():
+        raise GuardError("REFUSE_EXISTING_RESULT")
+    script = Path(__file__).resolve()
+    artifact = {"schema_version": 1, "started_at_utc": utc_now(), "source_commit": EXPECTED_HEAD,
+                "source_tree": EXPECTED_TREE, "harness_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
+                "fixed_plan": list(CASES), "case_limit_seconds": CASE_LIMIT_SECONDS,
+                "total_limit_seconds": TOTAL_LIMIT_SECONDS, "cases": [], "result": "RUNNING",
+                "hosted_failure_disposition": "UNRESOLVED; diagnostic passes do not clear the original CI failure"}
+    # Exclusive creation reserves this run's result; subsequent writes use only
+    # this owned descriptor so no pre-existing receipt can be overwritten.
+    with destination.open("x", encoding="utf-8", newline="\n") as output:
+        def persist():
+            output.seek(0)
+            json.dump(artifact, output, indent=2, sort_keys=True, allow_nan=False)
+            output.write("\n")
+            output.truncate()
+            output.flush()
+            os.fsync(output.fileno())
+
+        persist()
+        for name in CASES:
+            available = TOTAL_LIMIT_SECONDS - (time.monotonic() - beginning) - 3.0
+            if available <= 0:
+                item = {"case": name, "status": "TOTAL_BUDGET_EXHAUSTED"}
+            else:
+                command = [sys.executable, "-B", str(script), "--root", str(root), "--case", name]
+                process = subprocess.Popen(command, cwd=root, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                           text=True, encoding="utf-8")
+                try:
+                    stdout, _ = process.communicate(timeout=min(CASE_LIMIT_SECONDS, available))
+                    if len(stdout.encode("utf-8")) > 256_000:
+                        raise GuardError("CHILD_OUTPUT_LIMIT")
+                    item = json.loads(stdout)
+                    if not isinstance(item, dict) or item.get("case") != name:
+                        raise GuardError("CHILD_RESULT_INVALID")
+                    item["child_exit_code"] = process.returncode
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    try:
+                        process.communicate(timeout=2)
+                        reaped = True
+                    except subprocess.TimeoutExpired:
+                        reaped = False
+                    item = {"case": name, "status": "CASE_TIMEOUT", "child_reaped": reaped}
+                except BaseException as failure:
+                    item = {"case": name, "status": "HARNESS_ERROR", "error": exception_metadata(failure)}
+                finally:
+                    if process.poll() is None:
+                        process.kill()
+            artifact["cases"].append(item)
+            persist()
+            print(json.dumps(item, sort_keys=True, allow_nan=False), flush=True)
+        good = [entry["status"] for entry in artifact["cases"]] == ["PASS"] * 3 + ["EXPECTED_FAULT_INJECTION_REFUSAL"]
+        artifact.update({"result": "DIAGNOSTICS_COMPLETED" if good else "DIAGNOSTIC_FAILURES_RETAINED",
+                         "ended_at_utc": utc_now(), "elapsed_seconds": round(time.monotonic() - beginning, 6)})
+        persist()
+    print(json.dumps({"summary": artifact["result"], "case_statuses": [entry["status"] for entry in artifact["cases"]],
+                      "elapsed_seconds": artifact["elapsed_seconds"], "hosted_cause_established": False,
+                      "artifact": OUTPUT.as_posix()}, sort_keys=True), flush=True)
+    return 0 if good else 1
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, required=True)
+    parser.add_argument("--case", choices=CASES, help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    root = args.root.resolve(strict=True)
+    sys.dont_write_bytecode = True
+    if args.case:
+        try:
+            with redirect_stdout(Discard()), redirect_stderr(Discard()):
+                item = run_case(root, args.case)
+        except BaseException as failure:
+            item = {"case": args.case, "status": "HARNESS_ERROR", "error": exception_metadata(failure)}
+        print(json.dumps(item, sort_keys=True, allow_nan=False), flush=True)
+        return 0 if item["status"] in {"PASS", "EXPECTED_FAULT_INJECTION_REFUSAL"} else 1
+    try:
+        return supervisor(root)
+    except BaseException as failure:
+        print(json.dumps({"summary": "PREFLIGHT_OR_HARNESS_REFUSAL", "error": exception_metadata(failure)}, sort_keys=True), flush=True)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

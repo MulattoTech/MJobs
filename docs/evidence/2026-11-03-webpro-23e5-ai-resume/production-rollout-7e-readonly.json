@@ -1,0 +1,220 @@
+{
+  "ai_resume_cli_help": {
+    "exit_code": 0,
+    "observed_at": "2026-11-03T05:14:29.744112+00:00",
+    "provider_or_document_workflow_invoked": false,
+    "stderr_present": false,
+    "stdout_sha256": "43ae16269b3056952ef37ff59030ab3977023373a7ca9520ce5669ea88ee8e4f",
+    "subcommands_seen": {
+      "context": true,
+      "draft": true,
+      "prepare": true,
+      "review": true
+    },
+    "usage_seen": true
+  },
+  "ai_resume_module": {
+    "committed_sha256_lf": "009c3b3373aae07348f1579292fb70ddc3966bd5b2ac8ee62d99e64018d1d658",
+    "deployed": {
+      "bytes": 20268,
+      "module": "services.documents.ai_resume",
+      "sha256_lf": "009c3b3373aae07348f1579292fb70ddc3966bd5b2ac8ee62d99e64018d1d658"
+    },
+    "matches_committed_pr896_source": true,
+    "observed_at": "2026-11-03T05:14:30.142390+00:00",
+    "source_commit": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "source_path": "services/documents/ai_resume.py"
+  },
+  "app_services": {
+    "all_match_current_image_tag": true,
+    "all_seven_running_healthy": true,
+    "observed_at": "2026-11-03T05:14:27.147781+00:00",
+    "services": [
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-api-1",
+        "running": true,
+        "status": "running"
+      },
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-worker-1",
+        "running": true,
+        "status": "running"
+      },
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-source-worker-1",
+        "running": true,
+        "status": "running"
+      },
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-document-worker-1",
+        "running": true,
+        "status": "running"
+      },
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-ai-worker-1",
+        "running": true,
+        "status": "running"
+      },
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-company-discovery-worker-1",
+        "running": true,
+        "status": "running"
+      },
+      {
+        "health": "healthy",
+        "image_id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9",
+        "name": "/mjobs-micro-scheduler-1",
+        "running": true,
+        "status": "running"
+      }
+    ],
+    "single_image_id": true
+  },
+  "backup": {
+    "alembic_revision": "20261025di01",
+    "archive_contents_opened": false,
+    "archive_exists": true,
+    "archive_id": "20261103T050228Z-ea5fbf9f0c3c",
+    "created_at": "2026-11-03T05:02:35.498954+00:00",
+    "database_dump_exists": true,
+    "database_dump_listed": true,
+    "documents_directory_exists": true,
+    "listed_document_file_count": 0,
+    "listed_file_count": 3,
+    "manifest_sha256": "0d5534e4dd4fc304e6100e61dc3b8a83960c1f475dc5c08d5b9d5abf60945b21",
+    "operation_mode": "PERSONAL",
+    "restore_exercised": false,
+    "schema_version": 2,
+    "source_project": "mjobs-micro",
+    "verification_evidence": "Existing guarded-updater BACKUP_VERIFIED log event before current release SUCCESS"
+  },
+  "current_and_previous_images": [
+    {
+      "available": true,
+      "image_tag": "mjobs-micro:sha-7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+      "metadata": {
+        "created": "2026-11-03T05:01:50.796722798Z",
+        "id": "sha256:161a90ff12cac3f86bb2952bf760b43c0b93ac5b4e6082069a5c6f38e3b3a3c9"
+      },
+      "sha": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d"
+    },
+    {
+      "available": true,
+      "image_tag": "mjobs-micro:sha-ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+      "metadata": {
+        "created": "2026-11-03T04:27:07.842822086Z",
+        "id": "sha256:5527283317257f4669dedf96d290e3f751e66d922e0896cd07d3e22fa9aa36ca"
+      },
+      "sha": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b"
+    }
+  ],
+  "expected_deployed_sha": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "finished_at": "2026-11-03T05:14:30.625161+00:00",
+  "legacy_cap_counts": {
+    "exit_code": 0,
+    "finished_at": "2026-11-03T05:14:28.369180+00:00",
+    "result": {
+      "counts": [
+        {
+          "identities_over_64_qualified_snapshots": 0,
+          "identities_with_qualified_snapshots": 0,
+          "known_company_identities": 0,
+          "provider": "remoteok"
+        },
+        {
+          "identities_over_64_qualified_snapshots": 0,
+          "identities_with_qualified_snapshots": 0,
+          "known_company_identities": 0,
+          "provider": "remotive"
+        },
+        {
+          "identities_over_64_qualified_snapshots": 0,
+          "identities_with_qualified_snapshots": 0,
+          "known_company_identities": 0,
+          "provider": "wwr"
+        }
+      ],
+      "read_only": true,
+      "snapshot_cap": 64,
+      "statement_timeout_ms": 5000,
+      "status": "COUNTS_ONLY"
+    },
+    "script_basename": "production-cap-count-readonly-20261103T051426Z.py",
+    "script_sha256": "5df38968c781e30c778db48c92bae5b2e843a7db71a2133f89756ae931111e5a",
+    "started_at": "2026-11-03T05:14:27.148315+00:00",
+    "stderr_present": false
+  },
+  "limitations": [
+    "Aggregate counts are a cap estimate, not a complete provenance or employer-identity audit.",
+    "Aggregate counts do not exclude identities that already have valid label receipts.",
+    "Backup success is corroborated by updater log and manifest metadata; no restore or full archive-content verification was run by this review.",
+    "No deployment, collection, provider call, migration, restore, or canonical-source edit was performed."
+  ],
+  "operator_started_updater": false,
+  "parent_browser_evidence": {
+    "observed_at": "2026-11-03T05:07:00Z",
+    "origin_and_authenticated_brave_agree": true,
+    "ready_all_checks_true": true,
+    "reported_by": "root",
+    "sha": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d"
+  },
+  "previous_release": {
+    "compose_exists": true,
+    "micro_overlay_exists": true,
+    "source_basename": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+    "source_exists": true,
+    "source_head_matches_previous_sha": true
+  },
+  "production_generated_document_history_workflow": {
+    "reason": "Root observed no real profile or document in production UI.",
+    "status": "NOT_RUN"
+  },
+  "review_mode": "READ_ONLY_PRODUCTION_VERIFICATION",
+  "schema_version": 1,
+  "started_at": "2026-11-03T05:14:26.942700+00:00",
+  "state_after": {
+    "deployed_at": "2026-11-03T05:02:45.344134+00:00",
+    "image": "mjobs-micro:sha-7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "sha": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "source_basename": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d"
+  },
+  "state_before": {
+    "deployed_at": "2026-11-03T05:02:45.344134+00:00",
+    "image": "mjobs-micro:sha-7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "sha": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "source_basename": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d"
+  },
+  "state_stable_during_verification": true,
+  "status": "VERIFIED_READ_ONLY_SCOPE",
+  "updater": {
+    "backup_verified": {
+      "at": "2026-11-03T05:02:36+00:00",
+      "event": "BACKUP_VERIFIED"
+    },
+    "current_success": {
+      "at": "2026-11-03T05:02:45+00:00",
+      "event": "SUCCESS",
+      "sha": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d"
+    },
+    "installed_script_sha256": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+    "previous_success": {
+      "at": "2026-11-03T04:27:55+00:00",
+      "event": "SUCCESS",
+      "sha": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b"
+    },
+    "previous_success_matches_recovery_sha": true,
+    "state_timestamp_matches_success_second": true
+  }
+}
