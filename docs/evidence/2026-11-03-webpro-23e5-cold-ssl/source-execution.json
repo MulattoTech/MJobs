@@ -81,7 +81,7 @@
     "errors": 0,
     "skips": 0
   },
-  "xml_sha256": "ba462d5ed7bf55f1fcd9c95d333a50cc9e277fe241f9ff98b42e6fc60b5d9b19",
+  "xml_sha256": "7bda1466a642709723edfa3451f53230279679230ff31ba8226fa7c1a7d17a81",
   "negative_control": {
     "result": "EXPECTED_FAILURE_CONFIRMED",
     "mutant": "in-memory fixture omits operation-clock setup charge",
@@ -114,6 +114,13 @@
       "expected": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
       "observed": "63cb1042e08375f7bda1f9dad378209cca856167",
       "disposition": "Refreshed readback verifies protected907 merge; tested004 file and production dependencies unchanged. Source execution remains bound to its original9a base; actual proposed merge verification remains pending."
+    },
+    {
+      "result": "REFUSED_ARTIFACT_HASH_MISMATCH_BEFORE_PUSH",
+      "detail": "ElementTree's XML declaration contained one CRLF; Git normalized it to LF. Exact normalized bytes were proven equal. Original Windows digest is retained; xml_sha256 now identifies published Git bytes.",
+      "followup_at": "2026-11-03T06:53:06.995590+00:00"
     }
-  ]
+  ],
+  "xml_original_windows_bytes_sha256": "ba462d5ed7bf55f1fcd9c95d333a50cc9e277fe241f9ff98b42e6fc60b5d9b19",
+  "xml_sha256_representation": "Exact published Git LF bytes"
 }
