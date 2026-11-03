@@ -26,3 +26,8 @@ events.jsonl
 
 # CI checkout of canonical shared controller source
 /.fleet-source/
+
+# Raw browser traffic may contain credentials and applicant records.
+*.har
+*.har.*
+private/har/
