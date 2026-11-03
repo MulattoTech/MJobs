@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "final_source_commit": "323f3e1ce9f59046118815dec9c61a49c8bf1275",
+  "parent_requirement": "MJ-REQ-017",
+  "parent_acceptance": "PARTIAL",
+  "original_hosted_failure": {
+    "head": "10f2b9d9fa65bb010b4d70fa325b1dfeafa9ce2a",
+    "run": "https://github.com/MulattoTech/MJobs/actions/runs/41577559841",
+    "job": "https://github.com/MulattoTech/MJobs/actions/runs/41577559841/job/125724502115",
+    "test": "SourceEnrollmentApiTests::test_global_collection_keeps_aggregator_provenance_without_claiming_ats_or_employer_domain",
+    "result": "1 FAIL, 900 PASS, 10 SKIP, 453 subtests PASS",
+    "cause": "Initial guard used stored display name as upstream label authority."
+  },
+  "retained_local_failure": {
+    "head": "69fac92cd20f5cb1c0ddd1233dc3c0385ab963d1",
+    "result": "1 FAIL, 170 PASS, 2 SKIP, 62 subtests PASS",
+    "test": "GreenhouseTests::test_per_source_concurrency_bounds_parallel_read_requests",
+    "diagnosis": "Direct unchanged Greenhouse.search path; timed overlap is scheduler-sensitive. Specific scheduler delay was not measured.",
+    "targeted_recheck": "1 PASS, 3.92 seconds; does not erase the original failed run."
+  },
+  "intermediate_source": {
+    "commit": "e229e5f66c8372a40bc512c9f2a2c942d5279461",
+    "result": "207 PASS, 2 SKIP, 62 subtests PASS",
+    "remaining_review_gap": "Bare preexisting company with an arbitrary mismatched name was accepted without source evidence; final source tightens this rule."
+  },
+  "final_source": {
+    "commit": "323f3e1ce9f59046118815dec9c61a49c8bf1275",
+    "result": "72 passed in 54.64s",
+    "fail": 0,
+    "skip": 0,
+    "checks": [
+      "New-test Ruff PASS",
+      "Collector undefined-name checks PASS",
+      "Progress validation PASS",
+      "Dashboard check PASS",
+      "Diff check PASS"
+    ],
+    "collector_sha256_lf": "4db2e08aaf4a3035c61ba72d039bf006401427c1f6fe1f66d2a20a714321986f"
+  },
+  "final_test_scope": {
+    "existing_sqlite_collision_cases": 31,
+    "postgres_races": 2,
+    "history_and_bootstrap_cases": 35,
+    "source_enrollment_api_methods": 4
+  },
+  "not_run": [
+    "Live WWR and RemoteOK probes remained opt-in SKIP in the broader run.",
+    "No live feed polling, paid model call or employer submission.",
+    "Protected candidate gates, integration and deployment of the identity repair remain pending."
+  ],
+  "clock_overlap": {
+    "own_ref": "refs/heads/webpro-claims/CI-DEPLOYMENT-PAGINATION-CLOCK",
+    "own_owner": "fc7a4b6d08cf3fff555a45381df072ef3659b171",
+    "status": "RELEASED for supersession; no duplicate acceptance credit",
+    "frozen_own_commit": "4eb58a1d55d1445c62c7b407382d39d82bbdbd6d",
+    "established_owner_ref": "refs/heads/webpro-claims/DEPLOYMENT-GATE-CLOCK-ISOLATION",
+    "established_owner_commit": "a4b3daa1dcd48f6d140c8ef298588c3aaa5951a4",
+    "replacement_source": "c5ac9464a0b7a2e588d427f55ae68a1007785798",
+    "next_step": "Preserve the existing owner correction/regression through protected cohort reconciliation; production deployment gate remains unchanged."
+  },
+  "limitations": [
+    "64 distinct legacy snapshot cap is a conservative availability limit requiring review above the cap.",
+    "The guard is not real-world employer verification or historical repair.",
+    "Equal labels including Unknown Company can still refer to distinct employers.",
+    "No new alias/rename API or database-level tamper resistance is introduced."
+  ],
+  "setup_note": "PowerShell Get-FileHash was unavailable during an earlier commit wrapper; Python subsequently verified exact reviewed source/test hashes before final verification.",
+  "recorded_at_utc": "2026-11-03T05:13:53.115335+00:00"
+}

@@ -152,3 +152,50 @@ prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
 release verifies a new exact SHA. Other workers own 004/171/269; preserve their
 work, evidence and refs and re-discover their current status before selecting
 new work.
+
+## Latest sprint checkpoint: webpro-20261103T034424Z-23e5
+
+PR #896 is protected-merged at `7e86511f409fb9d1e2dc79904b170cc74b88cd3d`;
+its tree equals the tested candidate `c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20`.
+All five required gates and CodeQL passed. Source/candidate tests: 48 PASS plus
+46 passing subtests, UI 14/build PASS, no skips; independent internal review PASS.
+This checkpoint records **269 PASS for the literal AI document fact-trace contract**.
+Drafting is CLI-only, selected saved-profile keys are unsupported, and paid/live
+inference is NOT_RUN. Deployment and issue #270 closure remain separate gates.
+
+PR #899 adds the collector company-identity conflict repair: source `9a8d138f`
+passed 141 tests plus 25 subtests; two opt-in live feed probes remain SKIP/NOT_RUN.
+Parent 017 remains PARTIAL. A full-CI pagination fixture failure was independently
+reproduced and corrected at `4eb58a1d` without changing the production gate or its
+assertion; the module passed 30 tests plus 37 subtests. Final hosted rerun pending.
+Read [269 acceptance](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json),
+[896 merge proof](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json),
+and [source/CI evidence](../docs/evidence/2026-11-03-webpro-23e5-company-identity/).
+
+Source worktrees: `C:\Tools\Dev\MJobs-webpro-20261103T034424Z-23e5-269` and
+`C:\Tools\Dev\MJobs-webpro-20261103T034424Z-23e5-company-identity`.
+Objective claims: MJ-REQ-269 (`a0948cd5`), AGGREGATOR-COMPANY-IDENTITY-COLLISION
+(`f11768a3`), and CI-DEPLOYMENT-PAGINATION-CLOCK (`fc7a4b6d`). Requery exact live
+refs before resuming. Integration preparation owner is `58e50228`; release after
+publication, reacquire before protected merge. No deployment lock is held by this run.
+The containing PR's final receipt must record its future actual merge/main gates,
+guarded deployed SHA/image/backup/rollback, issue state and exact claim releases.
+No production restore, employer submission, paid provider call or fleet mutation.
+
+## 2026-11-03T05:47:47.657834+00:00 — run23e5 reconciliation follow-up
+
+Protected cohort 906 is now main 9a21b98b29809a41771d963cd2d5679cf8c31f9a. The preceding dated exclusions and pending observations are retained as history. This owned preparation merges its complete clock regression and reviewed historical scanner fingerprint into 899, preserves all source-owner acceptance/evidence, and reconciles only 017/269. The redundant clock claim was released; no duplicate delivery credit is claimed.
+
+269 literal functional PASS is recorded with the unchanged earlier acceptance receipt and the new [read-only production follow-up](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-followup.json) at deployed 7e86511f. Production document history remains NOT_RUN because no profile/application exists. The final identity source 323f3e1c has 72 focused PASS; parent 017 stays PARTIAL. Its earlier failures/review correction remain retained. Current main 9a21b98b and 899 are not claimed deployed here.
+
+Fresh combined-candidate execution and all five protected gates are still required before 899 merge. The integration owner is 95def0475e3527981e501607656d511b0409438c for this preparation only; it will be released during hosted verification. Source claims 269/a0948cd5 and identity/f11768a3 remain owned, revalidate exact refs before any continuation. The agreed 906 rollout remains with run 89c21f. No production write, provider call, restore or fleet launch was performed.
+
+## 2026-11-03T05:59:31.437084+00:00 — run23e5 exact reconciled candidate verified
+
+Candidate `11d5e7f48fde0c919faae02534c36edc4d1ff950` / tree `18239bc010e6035b6686788a3e53c6776ca22a27` passed 151 parent cases plus 83 subtests (234 reported), zero failures/errors/skips. All eight recorded commands passed, including owned npm ci/build. [Execution receipt](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json) and [checkpoint](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-checkpoint.json) preserve the earlier preflight refusal and warnings.
+
+The initial CRLF/stat-only clean-tree guard refusal ran no tests; exact normalized text and JSON equality proved the three owned paths unchanged before their restoration. All prior source/checkpoint/failure history remains retained. The complete cohort clock fixture is preserved, with no duplicate claim or acceptance credit.
+
+017 stays PARTIAL and 269 stays PASS under its existing scoped acceptance. Resolver-helper review is explicitly limited; independent final combined peer review and fresh hosted protected checks remain pending. Protected merge and the separately owned guarded rollout remain pending; this evidence successor is not claimed deployed. No push, merge, claim release, paid/live provider call or production write was performed by finalization.
+
+npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required. Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed.
