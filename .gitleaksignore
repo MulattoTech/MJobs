@@ -319,3 +319,9 @@ cd6cdbe36858de1ba65f381f53c0de13c32a5fba:docs/evidence/2026-11-03-webpro-642e4b-
 # Independently recomputed public Git blob; one historical finding, not a credential.
 # Proof: docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-object-review.json
 caaee5d6d6aeffd2e02905844e96223d732684c0:docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json:generic-api-key:99
+
+# Recomputed public source-file SHA-256; three exact immutable inventory findings.
+# Proof: docs/evidence/2026-11-03-webpro-1e2ff1-restore-hash-scan/source-hash-review.json
+f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/fifo-guard-execution.json:generic-api-key:263
+f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/baseline-execution.json:generic-api-key:265
+f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/provisional-execution.json:generic-api-key:942

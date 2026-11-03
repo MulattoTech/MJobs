@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "checked_at": "2026-11-03T08:05:56.528217+00:00",
+  "status": "BLOCKED",
+  "authorization": "AUTHORIZED_EXISTING_JOB_SEEKER_SESSION",
+  "browser_family": "Brave",
+  "browser_capabilities": [
+    "viewport",
+    "management"
+  ],
+  "tab_capabilities": [
+    "pageAssets"
+  ],
+  "supported_capture_api": false,
+  "native_capture_tool_exposed": false,
+  "existing_debug_endpoint": false,
+  "raw_captured": false,
+  "partial_network_trace_captured": false,
+  "sanitized_derivative_captured": false,
+  "raw_size_bytes": null,
+  "raw_sha256": null,
+  "request_count": null,
+  "response_content_completeness": "NOT_MEASURED",
+  "raw_retention": "NO_RAW_ARTIFACT_EXISTS",
+  "private_store": "NOT_ESTABLISHED",
+  "reason": "The connected browser has no request/response recorder or HAR export; the existing Brave process has no debugging endpoint and no supported native DevTools UI capture tool is exposed.",
+  "not_network_evidence": [
+    "DOM observations",
+    "route inventory",
+    "screenshots",
+    "offline sanitizer tests"
+  ],
+  "next_capture_requirement": "A real DevTools Network export with content from the authorized session, or an exposed supported recorder; retain raw privately and sanitize before dissemination."
+}

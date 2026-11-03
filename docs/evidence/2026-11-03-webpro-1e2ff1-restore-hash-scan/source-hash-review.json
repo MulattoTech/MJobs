@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "recorded_at": "2026-11-03T09:32:37.204694+00:00",
+  "base": "57e524abf4860a57cf6bdd68f4e78759c7d42e89",
+  "classification": "PUBLIC_SOURCE_FILE_CHECKSUM_FALSE_POSITIVE",
+  "failed_main_scan": {
+    "run": 41610149193,
+    "job": 125829716023,
+    "artifact": 13219420455,
+    "artifact_zip_sha256": "9e1983e10d93ef33d3095f474db261ef0864ce840bd5c68f2aa9122bb56b7019",
+    "result": "FAIL",
+    "redacted_findings": 3
+  },
+  "blocked_deployment_candidate": {
+    "run": 41610148561,
+    "job": 125829713834,
+    "result": "FAIL_BEFORE_IMAGE_BUILD",
+    "reason": "Independent main secret-scan gate failed."
+  },
+  "referenced_source": {
+    "commit": "f54453dd9c8fd2dff715a640b0cbec5130758bd9",
+    "path": "tests/unit/test_backup_credential_restore.py",
+    "git_blob": "386e9875b321179b97707ee89b94963c0f7e8e8c",
+    "bytes": 8345,
+    "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef"
+  },
+  "findings": [
+    {
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/fifo-guard-execution.json",
+      "line": 263,
+      "git_blob": "5b2da125aeb6559a353c9b08c2dd09aa9ebffbfc",
+      "fingerprint": "f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/fifo-guard-execution.json:generic-api-key:263",
+      "bytes": 12331,
+      "sha256": "762112b633bdd36c393c9ecec41db6a8980bb381f5eb001f264324ea17ebc2ad"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/baseline-execution.json",
+      "line": 265,
+      "git_blob": "2ef3414cc4721a46dec466821a4beabfe6230895",
+      "fingerprint": "f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/baseline-execution.json:generic-api-key:265",
+      "bytes": 13856,
+      "sha256": "a7fb01b3768747ed1b3944f43216c0e962bcf9f64cb8a4adbe4c5f03d3b75681"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/provisional-execution.json",
+      "line": 942,
+      "git_blob": "eb43f9cfee649d14c44441c9fde2c57eab1df80f",
+      "fingerprint": "f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/provisional-execution.json:generic-api-key:942",
+      "bytes": 44426,
+      "sha256": "2bdfd9c940590308b0f7e133e76605534037b3a4b4f83ec4204158f083a39f80"
+    }
+  ],
+  "verification": [
+    "Downloaded the redacted main-run ZIP and verified its published SHA-256.",
+    "Read exact committed public input bytes; recomputed SHA-256 and Git SHA-1 including blob header and byte length.",
+    "Read every exact historical evidence file, checked its source-object identity and literal line, and matched both receipt input metadata and artifact digest to the recomputed file bytes.",
+    "The credential word in a source filename made its adjacent checksum match the generic rule; the matched value is not credential material."
+  ],
+  "disposition": "Add exactly the three immutable commit/path/rule/line fingerprints; preserve every prior ignore entry and all failed runs.",
+  "preservation": {
+    "source_evidence_unchanged": true,
+    "application_tests_canonical_unchanged": true,
+    "scanner_version_rules_workflow_and_all_history_scope_unchanged": true,
+    "no_requirement_promotion": true
+  },
+  "validation_boundary": "Source policy-test results, independent review, actual receiving-candidate execution and fresh full-history scans are recorded separately. This file does not claim current-main deployment or replace an actual hosted gate."
+}

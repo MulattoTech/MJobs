@@ -3,8 +3,8 @@
   "initiative_id": "MJ-TH",
   "title": "TalentHop Functional Parity and MJobs Experience Expansion",
   "repository": "MulattoTech/MJobs",
-  "source_revision": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
-  "as_of": "2026-11-03T05:13:16.370Z",
+  "source_revision": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "as_of": "2026-11-03T08:05:56.528Z",
   "epic_issue": 904,
   "project": {
     "owner": "MulattoTech",
@@ -19,25 +19,43 @@
   "audit": {
     "status": "PARTIAL",
     "origin": "https://www.talenthop.com/",
-    "access": "PUBLIC_RETRIEVAL_ONLY",
+    "access": "AUTHORIZED_JOB_SEEKER_UI",
     "coverage": {
-      "routes_identified": 3,
-      "routes_exercised": 0,
-      "journeys_identified": 12,
-      "journeys_exercised": 0,
-      "public_sources_retrieved": 1
+      "routes_identified": 21,
+      "routes_exercised": 21,
+      "journeys_identified": 16,
+      "journeys_exercised": 11,
+      "public_sources_retrieved": 9,
+      "boundary": "Counts cover identified route patterns (including one redirect) and capability groups with one or more recorded UI steps. They do not mean all site features or end-to-end outcomes are verified."
     },
     "har": {
       "status": "BLOCKED",
       "raw_captured": false,
       "derivative_captured": false,
-      "reason": "NO_AUTHORIZED_CAPTURE_SURFACE"
+      "reason": "FULL_HAR_TOOL_UNAVAILABLE",
+      "capability_evidence": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/capture-capability.json",
+      "manifest": null
     },
     "blockers": [
-      "PRIVATE_SITE_AUTHORIZATION_REQUIRED",
       "FULL_HAR_TOOL_UNAVAILABLE",
-      "PROJECT_AUTH_SCOPE_MISSING",
-      "INTERACTIVE_COVERAGE_NOT_RUN"
+      "PROJECT_AUTH_SCOPE_MISSING"
+    ],
+    "authorization": {
+      "status": "AUTHORIZED",
+      "scope": "Existing signed-in job-seeker workflows and necessary reversible audit writes; direct user instruction in the active conversation."
+    },
+    "limitations": [
+      "Observed UI is not end-to-end feature acceptance.",
+      "No request/response bodies, timings, cache/service-worker behavior or private API contracts were captured.",
+      "No paid generation, new upload, application submission, message/report submission, purchase/cancel/refund, deletion or delivery outcome was tested.",
+      "Unknown roles, unlinked/hidden routes, sign-in/onboarding, pagination, offline/retry and exhaustive accessibility remain outside exercised coverage."
+    ],
+    "external_handoffs": [
+      {
+        "origin": "https://logicalis.wd3.myworkdayjobs.com",
+        "evidence": "TH-UI-011",
+        "scope": "Matching employer listing opened; no application form filled or submitted."
+      }
     ]
   },
   "evidence": [
@@ -53,7 +71,8 @@
       "url": "https://www.talenthop.com/candidates-dashboard/dashboard",
       "kind": "ACCESS_BLOCKED",
       "retrieved_at": "2026-11-03T05:04:00Z",
-      "note": "Route identified from browser tab metadata only. Automatic approval review denied page observation; no candidate content was read."
+      "note": "Route identified from browser tab metadata only. Automatic approval review denied page observation; no candidate content was read.",
+      "superseded_by": "TH-AUTH-002"
     },
     {
       "id": "TH-UNKNOWN-001",
@@ -61,26 +80,301 @@
       "kind": "UNEXERCISED",
       "retrieved_at": "2026-11-03T05:04:00Z",
       "note": "No authorized interactive coverage; unknown is not an assertion of absence."
+    },
+    {
+      "id": "TH-AUTH-002",
+      "url": "https://www.talenthop.com/",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:34Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "UI_ONLY_NO_NETWORK_CAPTURE"
+    },
+    {
+      "id": "TH-UI-001",
+      "url": "https://www.talenthop.com/candidates-dashboard/dashboard",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:35Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "INITIAL_EMPTY_STATE_UI_ONLY"
+    },
+    {
+      "id": "TH-UI-002",
+      "url": "https://www.talenthop.com/candidates-dashboard/dashboard",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:38Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "EXISTING_RECOMMENDATIONS_AND_READ_ONLY_EXPLANATION_UI_NO_CAPTURE"
+    },
+    {
+      "id": "TH-UI-003",
+      "url": "https://www.talenthop.com/jobs",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:39Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "CONTROLS_AND_HELP_OBSERVED_FILTER_EFFECT_PENDING"
+    },
+    {
+      "id": "TH-UI-004",
+      "url": "https://www.talenthop.com/jobs",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:44:47Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "SEARCH_AND_FILTERS_EXERCISED_NO_NETWORK_CAPTURE"
+    },
+    {
+      "id": "TH-UI-005",
+      "url": "https://www.talenthop.com/jobs",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:44:47Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "EMPTY_SEARCH_STATE_EXERCISED"
+    },
+    {
+      "id": "TH-UI-006",
+      "url": "https://www.talenthop.com/candidates-dashboard/job-tracker",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:46:34.019Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "REVERSIBLE_BOOKMARK_WRITE_VERIFIED_AND_RESTORED_NO_APPLICATION_SUBMISSION"
+    },
+    {
+      "id": "TH-UI-007",
+      "url": "https://www.talenthop.com/candidates-dashboard/job-settings/resumes",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:48:23.182Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "EXISTING_VIEWER_AND_FORM_CONTROLS_ONLY_NO_UPLOAD_DELETE_OR_GENERATION"
+    },
+    {
+      "id": "TH-UI-008",
+      "url": "https://www.talenthop.com/candidates-dashboard/job-alerts",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:49:27.269Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "PREFERENCE_FORM_OBSERVED_PERSISTENCE_AND_ALERT_DELIVERY_UNEXERCISED"
+    },
+    {
+      "id": "TH-UI-009",
+      "url": "https://www.talenthop.com/candidates-dashboard/my-profile",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:51:53.029Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "ACCOUNT_AND_BILLING_CONTROLS_OBSERVED_NO_SAVED_CHANGES_OR_PAYMENT"
+    },
+    {
+      "id": "TH-UI-010",
+      "url": "https://www.talenthop.com/privacy-policy",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:52:29.797Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "PUBLIC_CONTENT_AND_ENTRY_POINTS_OBSERVED_NO_LEGAL_OR_PAYMENT_OUTCOME_TEST"
+    },
+    {
+      "id": "TH-UI-011",
+      "url": "https://www.talenthop.com/apply-with-ai/:job-id",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:56:07.641Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "JOB_DETAIL_AND_EMPLOYER_HANDOFF_OBSERVED_NO_REPORT_OR_APPLICATION_SUBMISSION"
+    },
+    {
+      "id": "TH-UI-012",
+      "url": "https://www.talenthop.com/apply-with-ai/:job-id",
+      "kind": "INTERACTIVE_UI",
+      "retrieved_at": "2026-11-03T07:57:05.702Z",
+      "artifact": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "note": "REPRESENTATIVE_MOBILE_AND_LOADING_SMOKE_ONLY_NO_FULL_ACCESSIBILITY_OR_PERFORMANCE_AUDIT"
     }
   ],
   "routes": [
     {
       "pattern": "/",
-      "state": "PUBLICLY CLAIMED",
-      "evidence": "TH-PUBLIC-001",
-      "exercised": false
+      "state": "OBSERVED",
+      "evidence": "TH-AUTH-002",
+      "exercised": true,
+      "entry_point": "Canonical homepage",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
     },
     {
       "pattern": "/candidates-dashboard/dashboard",
-      "state": "INACCESSIBLE / AUTHORIZATION REQUIRED",
-      "evidence": "TH-ACCESS-001",
-      "exercised": false
+      "state": "OBSERVED",
+      "evidence": "TH-UI-002",
+      "exercised": true,
+      "entry_point": "Signed-in navigation",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/jobs",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-004",
+      "exercised": true,
+      "entry_point": "Find Jobs and search controls",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/job-tracker",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-006",
+      "exercised": true,
+      "entry_point": "Signed-in navigation",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/job-settings/resumes",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-007",
+      "exercised": true,
+      "entry_point": "Job & Resume Settings",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/job-settings/optimized-resumes",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-007",
+      "exercised": true,
+      "entry_point": "Job-Optimized Resumes tab",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/job-settings/optimized-resumes/create",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-007",
+      "exercised": true,
+      "entry_point": "Create Optimized Resume link",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/job-alerts",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-008",
+      "exercised": true,
+      "entry_point": "Job Preferences tab",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/my-profile",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-009",
+      "exercised": true,
+      "entry_point": "Account & Billing",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/my-profile/notifications",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-009",
+      "exercised": true,
+      "entry_point": "Notifications tab",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/candidates-dashboard/my-profile/subscription",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-009",
+      "exercised": true,
+      "entry_point": "Subscription tab",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/upgrade",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-009",
+      "exercised": true,
+      "entry_point": "Choose a plan link; informational screen only",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/faq",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/contact",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link; form not submitted",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/help-support",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/privacy-policy",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/terms",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/money-back-policy",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/review",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Footer link",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
+    },
+    {
+      "pattern": "/remote-jobs",
+      "state": "OBSERVED",
+      "evidence": "TH-UI-010",
+      "exercised": true,
+      "entry_point": "Observed Job Search link; redirects to /jobs",
+      "role": "PUBLIC_OR_AUTHORIZED_SESSION",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
     },
     {
       "pattern": "/apply-with-ai/:job-id",
-      "state": "NOT FOUND / UNKNOWN",
-      "evidence": "https://github.com/MulattoTech/MJobs/issues/517",
-      "exercised": false
+      "state": "OBSERVED",
+      "evidence": "TH-UI-011",
+      "exercised": true,
+      "entry_point": "Recommendation View details link; opens a new tab",
+      "role": "AUTHORIZED_JOB_SEEKER",
+      "scope": "Rendered UI or ordinary redirect reached; coverage is limited to recorded steps."
     }
   ],
   "workstreams": [
@@ -101,7 +395,7 @@
     {
       "id": "MJ-TH-001",
       "title": "Remote job discovery",
-      "discovery_state": "PUBLICLY CLAIMED",
+      "discovery_state": "OBSERVED",
       "implementation_state": "ALREADY EXISTS",
       "priority": "P1",
       "issues": [
@@ -115,7 +409,9 @@
       ],
       "dependencies": [],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-UI-003",
+        "TH-UI-004",
+        "TH-UI-005"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -123,12 +419,17 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Text search, remote/hourly filtering and an empty result state exercised; other facet combinations, Boolean results and pagination remain untested.",
+      "journey": {
+        "exercised": true,
+        "scope": "Text search, remote/hourly filtering and an empty result state exercised; other facet combinations, Boolean results and pagination remain untested."
       }
     },
     {
       "id": "MJ-TH-002",
       "title": "Listing trust and provenance",
-      "discovery_state": "PUBLICLY CLAIMED",
+      "discovery_state": "OBSERVED",
       "implementation_state": "PARTIAL",
       "priority": "P1",
       "issues": [
@@ -143,7 +444,8 @@
         "MJ-TH-001"
       ],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-UI-004",
+        "TH-UI-011"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -151,12 +453,17 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Freshness/verification labels and report reasons observed. Actual listing authenticity, review cadence, duplicate detection and report processing are unverified.",
+      "journey": {
+        "exercised": true,
+        "scope": "Freshness/verification labels and report reasons observed. Actual listing authenticity, review cadence, duplicate detection and report processing are unverified."
       }
     },
     {
       "id": "MJ-TH-003",
       "title": "Job search preferences",
-      "discovery_state": "PUBLICLY CLAIMED",
+      "discovery_state": "OBSERVED",
       "implementation_state": "PARTIAL",
       "priority": "P1",
       "issues": [
@@ -171,7 +478,7 @@
       ],
       "dependencies": [],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-UI-008"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -179,6 +486,11 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Preference controls inspected; saving changes and downstream recommendation effects were not tested.",
+      "journey": {
+        "exercised": true,
+        "scope": "Preference controls inspected; saving changes and downstream recommendation effects were not tested."
       }
     },
     {
@@ -206,7 +518,9 @@
       ],
       "dependencies": [],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-PUBLIC-001",
+        "TH-UI-007",
+        "TH-UI-011"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -214,6 +528,11 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Tailoring setup and entry points observed; no generated draft, factual validation or before/after review outcome was exercised.",
+      "journey": {
+        "exercised": false,
+        "scope": "Tailoring setup and entry points observed; no generated draft, factual validation or before/after review outcome was exercised."
       }
     },
     {
@@ -240,7 +559,8 @@
         "MJ-TH-004"
       ],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-PUBLIC-001",
+        "TH-UI-007"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -248,12 +568,17 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "ATS/output claims remain unverified; no optimized output existed in the inspected list and no output was generated.",
+      "journey": {
+        "exercised": false,
+        "scope": "ATS/output claims remain unverified; no optimized output existed in the inspected list and no output was generated."
       }
     },
     {
       "id": "MJ-TH-006",
       "title": "Explainable resume to job matching",
-      "discovery_state": "PUBLICLY CLAIMED",
+      "discovery_state": "OBSERVED",
       "implementation_state": "PARTIAL",
       "priority": "P1",
       "issues": [
@@ -273,7 +598,8 @@
         "MJ-TH-004"
       ],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-UI-002",
+        "TH-UI-011"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -281,6 +607,11 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Existing match explanations exercised, including an unassessed component and full/partial skill groups; score correctness and model internals are unknown.",
+      "journey": {
+        "exercised": true,
+        "scope": "Existing match explanations exercised, including an unassessed component and full/partial skill groups; score correctness and model internals are unknown."
       }
     },
     {
@@ -306,7 +637,8 @@
         "MJ-TH-003"
       ],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-PUBLIC-001",
+        "TH-UI-009"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -314,12 +646,17 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Alert channel settings are observed separately in MJ-TH-016; no actual notification delivery or frequency was verified.",
+      "journey": {
+        "exercised": false,
+        "scope": "Alert channel settings are observed separately in MJ-TH-016; no actual notification delivery or frequency was verified."
       }
     },
     {
       "id": "MJ-TH-008",
       "title": "Employer application handoff",
-      "discovery_state": "PUBLICLY CLAIMED",
+      "discovery_state": "OBSERVED",
       "implementation_state": "ALREADY EXISTS",
       "priority": "P1",
       "issues": [
@@ -335,7 +672,8 @@
         "MJ-TH-001"
       ],
       "evidence": [
-        "TH-PUBLIC-001"
+        "TH-UI-011",
+        "TH-UI-012"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -343,22 +681,31 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Original-posting handoff reached an employer listing and did not mark Applied; no application was submitted.",
+      "journey": {
+        "exercised": true,
+        "scope": "Original-posting handoff reached an employer listing and did not mark Applied; no application was submitted."
       }
     },
     {
       "id": "MJ-TH-009",
       "title": "Account subscription and support flows",
-      "discovery_state": "INACCESSIBLE / AUTHORIZATION REQUIRED",
-      "implementation_state": "BLOCKED",
+      "discovery_state": "OBSERVED",
+      "implementation_state": "PARTIAL",
       "priority": "P2",
       "issues": [
-        903
+        904
       ],
       "requirements": [],
-      "source_paths": [],
+      "source_paths": [
+        "apps/web/src/main.tsx",
+        "apps/api/main.py"
+      ],
       "dependencies": [],
       "evidence": [
-        "TH-ACCESS-001"
+        "TH-UI-009",
+        "TH-UI-010"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -366,24 +713,34 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Profile editor and account/billing/support information inspected; no billing or credential change. Reference billing is not an automatic MJobs product requirement.",
+      "journey": {
+        "exercised": true,
+        "scope": "Profile editor and account/billing/support information inspected; no billing or credential change. Reference billing is not an automatic MJobs product requirement."
       }
     },
     {
       "id": "MJ-TH-010",
       "title": "Candidate application dashboard",
-      "discovery_state": "INACCESSIBLE / AUTHORIZATION REQUIRED",
-      "implementation_state": "BLOCKED",
+      "discovery_state": "OBSERVED",
+      "implementation_state": "PARTIAL",
       "priority": "P1",
       "issues": [
-        903
+        904
       ],
       "requirements": [],
-      "source_paths": [],
+      "source_paths": [
+        "services/tracking/jobs.py",
+        "services/tracking/applications.py",
+        "apps/web/src/main.tsx"
+      ],
       "dependencies": [
         "MJ-TH-008"
       ],
       "evidence": [
-        "TH-ACCESS-001"
+        "TH-UI-001",
+        "TH-UI-006"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -391,13 +748,18 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Save persisted into tracker and was removed; empty state restored. Application lifecycle transitions were not submitted.",
+      "journey": {
+        "exercised": true,
+        "scope": "Save persisted into tracker and was removed; empty state restored. Application lifecycle transitions were not submitted."
       }
     },
     {
       "id": "MJ-TH-011",
       "title": "Account data portability and deletion",
-      "discovery_state": "NOT FOUND / UNKNOWN",
-      "implementation_state": "BLOCKED",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "PARTIAL",
       "priority": "P2",
       "issues": [
         170,
@@ -406,10 +768,12 @@
       "requirements": [
         "MJ-REQ-169"
       ],
-      "source_paths": [],
+      "source_paths": [
+        "services/settings_transfer.py"
+      ],
       "dependencies": [],
       "evidence": [
-        "TH-UNKNOWN-001"
+        "TH-UI-010"
       ],
       "verification": {
         "status": "NOT_RUN",
@@ -417,6 +781,11 @@
         "merge_sha": null,
         "deployed_sha": null,
         "acceptance_evidence": []
+      },
+      "discovery_scope": "Privacy copy states data rights; no self-service export/deletion workflow or request outcome was exercised.",
+      "journey": {
+        "exercised": false,
+        "scope": "Privacy copy states data rights; no self-service export/deletion workflow or request outcome was exercised."
       }
     },
     {
@@ -438,8 +807,161 @@
         "MJ-TH-003"
       ],
       "evidence": [
-        "TH-UNKNOWN-001"
+        "TH-UNKNOWN-001",
+        "TH-UI-003",
+        "TH-UI-008"
       ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      },
+      "discovery_scope": "Bookmarking is observed in MJ-TH-010. Named saved searches and learned-feedback persistence were not found in the inspected UI; absence is not proven.",
+      "journey": {
+        "exercised": false,
+        "scope": "Bookmarking is observed in MJ-TH-010. Named saved searches and learned-feedback persistence were not found in the inspected UI; absence is not proven."
+      }
+    },
+    {
+      "id": "MJ-TH-013",
+      "title": "Explicit hourly and annual salary search",
+      "discovery_state": "OBSERVED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        918,
+        29
+      ],
+      "requirements": [
+        "MJ-REQ-028"
+      ],
+      "source_paths": [
+        "services/discovery/search_profiles.py",
+        "services/discovery/search_semantics.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx"
+      ],
+      "dependencies": [
+        "MJ-TH-001"
+      ],
+      "evidence": [
+        "TH-UI-004"
+      ],
+      "discovery_scope": "Hourly minimum and salary-required behavior exercised. MJobs parses periods but its main API/UI bounds are annual-only at the inspected baseline; #918 tracks the integrated gap.",
+      "journey": {
+        "exercised": true,
+        "scope": "Hourly minimum and salary-required behavior exercised. MJobs parses periods but its main API/UI bounds are annual-only at the inspected baseline; #918 tracks the integrated gap."
+      },
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-014",
+      "title": "Base resume versions and tailoring setup",
+      "discovery_state": "OBSERVED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        91,
+        92,
+        99
+      ],
+      "requirements": [
+        "MJ-REQ-090",
+        "MJ-REQ-091",
+        "MJ-REQ-098"
+      ],
+      "source_paths": [
+        "apps/web/src/resume-library.tsx",
+        "apps/web/src/resume-workspace-connected.tsx",
+        "services/documents/resume_workspace.py"
+      ],
+      "dependencies": [],
+      "evidence": [
+        "TH-UI-007"
+      ],
+      "discovery_scope": "Existing base resume viewer opened; upload and tailoring setup inspected. Upload parsing, primary switching, deletion, generated versions and export were not performed.",
+      "journey": {
+        "exercised": true,
+        "scope": "Existing base resume viewer opened; upload and tailoring setup inspected. Upload parsing, primary switching, deletion, generated versions and export were not performed."
+      },
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-015",
+      "title": "Recently viewed jobs",
+      "discovery_state": "OBSERVED",
+      "implementation_state": "MISSING",
+      "priority": "P2",
+      "issues": [
+        919,
+        237
+      ],
+      "requirements": [],
+      "source_paths": [
+        "services/tracking/jobs.py",
+        "services/discovery/search_history.py"
+      ],
+      "dependencies": [
+        "MJ-TH-001",
+        "MJ-TH-010"
+      ],
+      "evidence": [
+        "TH-UI-006"
+      ],
+      "discovery_scope": "Recent-view list and its disabled saved filter observed. Existing MJobs search history is an adjacent different event; dedicated job-view history was not found in inspected modules.",
+      "journey": {
+        "exercised": true,
+        "scope": "Recent-view list and its disabled saved filter observed. Existing MJobs search history is an adjacent different event; dedicated job-view history was not found in inspected modules."
+      },
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-016",
+      "title": "Notification category and channel preferences",
+      "discovery_state": "OBSERVED",
+      "implementation_state": "PARTIAL",
+      "priority": "P2",
+      "issues": [
+        205
+      ],
+      "requirements": [
+        "MJ-REQ-204"
+      ],
+      "source_paths": [
+        "apps/web/src/operation-notifications.tsx",
+        "apps/web/src/saved-search-schedule.tsx"
+      ],
+      "dependencies": [
+        "MJ-TH-003"
+      ],
+      "evidence": [
+        "TH-UI-009"
+      ],
+      "discovery_scope": "Email/SMS switches for platform news and job-match alerts observed; no preference mutation, provider delivery, dedupe or retry result tested.",
+      "journey": {
+        "exercised": true,
+        "scope": "Email/SMS switches for platform news and job-match alerts observed; no preference mutation, provider delivery, dedupe or retry result tested."
+      },
       "verification": {
         "status": "NOT_RUN",
         "pr": null,
