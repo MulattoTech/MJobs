@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "observation_utc": "2026-11-03T03:46:45Z",
+  "source_revision": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "operation_mode": "PERSONAL",
+  "version": "0.1.0-dev",
+  "image_tag": "mjobs-micro:sha-63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+  "ready": true,
+  "checks": {
+    "configuration": true,
+    "database": true,
+    "queue": true,
+    "worker": true,
+    "scheduler": true,
+    "schema": true
+  },
+  "worker_roles": {
+    "ai": true,
+    "application": true,
+    "company_discovery": true,
+    "discovery": true,
+    "document": true
+  },
+  "healthy_application_services": 7,
+  "postgres_healthy": true,
+  "redis_healthy": true,
+  "updater": {
+    "installed_matches_source": true,
+    "sha256": "93783ed0aa164fb1a37519b57e1bb3e9e1f3f83859064a66eddc0b6a711546ad",
+    "scheduled_task_state": "Ready",
+    "multiple_instances": "IgnoreNew",
+    "observed_running_process": false,
+    "lock_file_existence_is_not_ownership": true
+  },
+  "backup": {
+    "archive": "20261102T215244Z-821171122a44",
+    "verify_result": "PASS",
+    "files": 3,
+    "mode": "PERSONAL",
+    "schema_version": 2,
+    "alembic_revision": "20261025di01",
+    "created_at": "2026-11-02T21:52:47.134180+00:00",
+    "prior_release_only": true
+  },
+  "limitations": [
+    "Prechange read-only observation; not post-change deployment acceptance",
+    "No production restore or rollback drill",
+    "Off-PC recovery copy not verified",
+    "Authenticated UI observation comes from separate earlier web-security receipt"
+  ]
+}

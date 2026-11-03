@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-03T04:22:45.955875+00:00",
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "requirement": "MJ-REQ-171",
+  "result": "PARTIAL",
+  "acceptance_change": "NO_NEW_PASS",
+  "baseline_sha": "96375817af9ac65b05f1e38ca6fcf3cb92d5f2c7",
+  "source_sha": "a37d7bbc8caec7f00ef56b3787725ebb557a217e",
+  "source_tree": "c3d39aa3a9ac64b8f13d051db2a076c667a15e39",
+  "clock_fixture_commit": "c5ac9464a0b7a2e588d427f55ae68a1007785798",
+  "independent_static_review": {
+    "reviewed_head": "96375817af9ac65b05f1e38ca6fcf3cb92d5f2c7",
+    "reviewer_run": "webpro-20261103T034301Z-89c21f",
+    "url": "https://github.com/MulattoTech/MJobs/pull/895#issuecomment-6595238220",
+    "result": "No blocking issue; nonblocking cleanup/directory error-classification gap identified and now addressed.",
+    "limits": "Read-only static review; no independent runtime rerun or protected/human approval claimed."
+  },
+  "review_followup": [
+    "Classify failure to create application, answers or version directories with fixed ANSWER_EXPORT_STORAGE_UNAVAILABLE.",
+    "If a failed write also cannot unlink its private temporary file, retain it without masking the original fixed storage/path error. No document metadata is committed."
+  ],
+  "clock_failure": {
+    "hosted_run": "https://github.com/MulattoTech/MJobs/actions/runs/41576052098",
+    "failed_head": "96375817af9ac65b05f1e38ca6fcf3cb92d5f2c7",
+    "test": "DeploymentLookupTests.test_full_pagination_limit_remains_fail_closed",
+    "actual": [
+      1,
+      5
+    ],
+    "expected": [
+      2,
+      5
+    ],
+    "diagnosis": "The fixture mutated the process-wide time module. An owned background thread sleeping11 fake seconds on page5 reproduced exit1/deadline exhaustion with five requests. The ordinary isolated module passed30 tests/37subtests.",
+    "fix": "Inject a fixture clock only into tools.deploy.wait_for_checks. Production gate code and all required-check policies are unchanged.",
+    "claim_owner": "a4b3daa1dcd48f6d140c8ef298588c3aaa5951a4"
+  },
+  "new_regression_baseline": {
+    "test_methods": 3,
+    "failed_assertions": 5,
+    "elapsed_seconds": 3.099,
+    "result": "EXPECTED_FAIL",
+    "details": "Clock isolation failed; combined fsync/unlink and three directory permission errors returned generic safe500 instead of fixed422. No HTTP secret disclosure is claimed."
+  },
+  "exact_source_execution": {
+    "native_windows": {
+      "passed": 72,
+      "subtests_passed": 66,
+      "skipped": 6,
+      "failed": 0,
+      "errors": 0,
+      "elapsed_seconds": 55.35,
+      "junit_testcase_nodes": 78,
+      "junit_reported_tests": 144
+    },
+    "isolated_linux": {
+      "passed": 78,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "elapsed_seconds": 39.013,
+      "subtest_reporting": "unittest folds successful subtests into parent methods.",
+      "runtime": "Read-only current source mount, network none, CPU1, memory1GiB, tmpfs256MiB, disposable owned container.",
+      "dependency_image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab"
+    },
+    "scope": [
+      "tests/integration/test_answer_export_privacy.py",
+      "tests/unit/test_answer_export_path_security.py",
+      "tests/integration/test_application_answer_export.py",
+      "tests/integration/test_application_answer_story_citation_export.py",
+      "tests/integration/test_reviewed_application_answer_durability.py",
+      "tests/unit/test_deployment_checks.py"
+    ],
+    "commands": [
+      "python -m pytest -q -p no:cacheprovider <scope> --junitxml=<private>/native-source-a37d7bbc.xml",
+      "python -m unittest -v <same module scope>"
+    ],
+    "platform_note": "All six native POSIX skips passed on Linux. Reported XML totals include subtests and are not additional independent tests."
+  },
+  "limits": [
+    "MJ-REQ-171 remains PARTIAL; full PII/session security, Windows ACL isolation, historic file remediation, hostile ancestor replacement and host/power-loss durability remain unproved.",
+    "Source records do not establish a protected merge or deployment. Required latest-head checks, actual candidate, main gates and guarded release remain pending.",
+    "The original source45-test execution and initial three permission failures remain in source-execution.json; overlapping runs are not summed."
+  ],
+  "delivery_receipt": "PR895 final receipt records future head, actual merge, latest main, deployment and exact claim releases."
+}

@@ -50,3 +50,19 @@ Hints neither rewrite application URLs nor authorize execution. Only explicit
 mock routes in a bound FIXTURE workspace advertise the installed mock adapter;
 real providers report UNSUPPORTED and external submission stays disabled.
 Tests: `python -m unittest tests.integration.test_application_knowledge -v`.
+
+## Workday fixture capability boundary (MJ-REQ-224)
+
+The Workday adapter does not advertise fixture upload while its DOM inspection
+and validation remain unavailable. Its direct upload entry point preserves the
+caller's cancellation/deadline check, then returns the fixed
+WORKDAY_FIXTURE_UPLOAD_UNAVAILABLE failure without reading Page, analysis or
+prepared document inputs. This avoids inheriting a Greenhouse upload path whose
+required Workday analysis cannot succeed.
+
+Pure Workday markup review, dynamic-question metadata and the separately fenced
+controlled rehearsal remain available under their existing contracts. They do
+not prove this adapter's upload or the full seven-dimension application-adapter
+requirement. Restoring live DOM inspection requires a renderer-independent
+operation deadline and the preserved privacy/deadline regressions; delegating to
+a parent locator timeout does not establish that bound.

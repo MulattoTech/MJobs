@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T03:47:27.050401+00:00",
+  "requirement": "MJ-REQ-224",
+  "source_revision": "1b8da8cf27c989a8a23e3733f6a9098fca5e00c3",
+  "baseline_revision": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "branch": "work/webpro-20261103T031738Z-642e4b-224",
+  "acceptance": "PARTIAL",
+  "defect": {
+    "advertised_mock_fixture_upload": true,
+    "observed_baseline": "The inherited upload helper accessed page.url although Workday DOM analysis deliberately returns WORKDAY_DOM_INSPECTION_UNAVAILABLE; the advertised fixture contract was unusable.",
+    "regression": "Registry lookup now reports false and raises WORKDAY_FIXTURE_UPLOAD_UNAVAILABLE before reading page, analysis or document inputs."
+  },
+  "implemented": [
+    "Set Workday mock_fixture_upload capability to false.",
+    "Add an explicit unsupported upload operation that checks cancellation/deadline first and then raises a stable error.",
+    "Prove no browser, analysis or document input is inspected on the unsupported path.",
+    "Preserve exception identity for cancellation and deadline callbacks.",
+    "Document that static form review and separate controlled Workday rehearsal do not establish public or fixture-upload capability."
+  ],
+  "tests": {
+    "command": "python -m pytest -q tests/unit/test_workday_application_adapter.py tests/unit/test_fleet_t11_workday_dom_unavailable.py tests/unit/test_application_adapter_contract.py tests/integration/test_fleet_t04_lead_workday_documents.py",
+    "result": "PASS",
+    "primary_tests": 55,
+    "subtests": 23,
+    "junit_cases_including_subtests": 78,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "duration_seconds": 17.148,
+    "junit": "source-tests.xml",
+    "raw_junit_sha256": "6215c53c33515fcd8fddd3681402c82672abe7f20596d21cfcc0344d2c996608"
+  },
+  "source_verification": {
+    "commit_provenance": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "preserved_failures": [],
+  "previous_fail_closed_rationale": {
+    "removal_commit": "2d0fae485d11ab47ba424cacd45116757cbbcf47",
+    "recovery_commit": "38a0e78d4fa568f8f5e1543cb1a8619fcbdce7c5",
+    "note": "Earlier real-browser and stalled-renderer deadline failures are preserved in repository history. This change does not restore unbounded DOM operations or claim those historical failures were solved."
+  },
+  "limitations": [
+    "MJ-REQ-224 remains PARTIAL; complete seven-dimension journeys across every registered adapter remain incomplete.",
+    "Workday production DOM inspection and fixture-upload helper are unavailable.",
+    "The separate controlled Workday fixture rehearsal has its own runner and is not changed by this capability correction.",
+    "All public ATS mutation and external employer submission capabilities remain disabled.",
+    "No public ATS upload or employer submission, paid model call, schema migration, configuration or dependency change was performed.",
+    "Protected CI, actual merge-candidate verification and guarded deployment are pending at this source checkpoint."
+  ]
+}
