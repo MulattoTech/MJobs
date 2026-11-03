@@ -152,3 +152,14 @@ prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
 release verifies a new exact SHA. Other workers own 004/171/269; preserve their
 work, evidence and refs and re-discover their current status before selecting
 new work.
+
+## Latest sprint checkpoint: webpro-20261103T031738Z-642e4b (MJ-REQ-292)
+
+UTC: 2026-11-03T05:40:54.230665+00:00. Refreshed main: 9a21b98b29809a41771d963cd2d5679cf8c31f9a.
+
+PR #902 / issue #293 remains PARTIAL. Branch work/webpro-20261103T031738Z-642e4b-292, tested source 3414e7400e57b3f2f2d2d85298e40a2aabf21253.
+The existing default public job view is verified only up to 200 visible jobs; a 201st-row sentinel now refuses incomplete evidence before detail reads and initial recovery mutation. The original 201-job false PASS reproduction and failing baseline regression are retained.
+
+Exact source: 42 tests and 43 subtests PASS, 0 failures/errors/skips; independent internal source/caller review PASS. Ruff NOT_RUN (not installed); no real restart/restore or full 60-step acceptance. Current actual-candidate and protected merge stages remain pending at this preparation checkpoint; later observed receipts govern. No acceptance counts changed; issue #293 stays open.
+
+Evidence: docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-execution.json. Own worktree: C:\Tools\Dev\MJobs-webpro-20261103T031738Z-642e4b-292. Objective ref refs/heads/webpro-claims/MJ-REQ-292 owner 20d0892e81d4724d9f1fc5620f7aa6b69be4ad57; current integration owner 214e5eb534830d6b96eacd4be697c0abd2a293a0. Revalidate all refs and current main before resuming. Do not infer ongoing ownership or a later deployment from this historical checkpoint.
