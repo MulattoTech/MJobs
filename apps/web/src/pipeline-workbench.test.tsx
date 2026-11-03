@@ -87,6 +87,24 @@ describe('PipelineWorkbenchView',()=>{
     }
   });
 
+  it('distinguishes complete profile totals from the bounded readiness page',()=>{
+    const capped:PipelineWorkbenchResponse={...workbench,
+      items:[workbench.items[0]],counts:{total:201,by_stage:{READY_TO_PREPARE:1}},
+    };
+    const parsed=parsePipelineWorkbench(capped,'profile-a');
+    expect(parsed.counts.total).toBe(201);
+    const html=renderToStaticMarkup(<PipelineWorkbenchView profileId="profile-a" workbench={parsed}
+      loading={false} error={false} onRetry={vi.fn()} onPrepare={vi.fn()}/>);
+    expect(html).toContain('201 jobs in this profile');
+    expect(html).toContain('Showing 1 of 201 jobs; readiness counts cover only displayed jobs');
+    expect(html).toContain('Ready to prepare: 1');
+    expect(html).not.toContain('Newly discovered:');
+    expect(()=>parsePipelineWorkbench({...capped,counts:{total:0,by_stage:{READY_TO_PREPARE:1}}},'profile-a'))
+      .toThrow('PIPELINE_RESPONSE_INVALID');
+    expect(()=>parsePipelineWorkbench({...capped,counts:{total:201,by_stage:{READY_TO_PREPARE:2}}},'profile-a'))
+      .toThrow('PIPELINE_RESPONSE_INVALID');
+  });
+
   it('opens an existing application only through the supplied callback',()=>{
     const onOpenApplication=vi.fn();
     const ready=workbench.items[0];
