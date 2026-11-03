@@ -4,8 +4,9 @@ import hashlib
 import os
 from pathlib import Path
 import re
+import stat
+import tempfile
 from threading import Lock
-from uuid import uuid4
 
 from sqlalchemy import func, select, text
 
@@ -271,9 +272,35 @@ def match_answer_question(question, saved_question, minimum_confidence=0.75):
     return {"method": "FUZZY", "score": score}
 
 
+def _recover_private_answer_export(path, content, digest):
+    """Reuse only one owned regular file with the expected immutable bytes.
+
+    Restrict that exact open file before committing a recovered document. Never
+    chmod an alias, a hard-linked unrelated file, or a mismatched crash artifact.
+    Windows retains the deployment directory's ACL; POSIX mode is not a Windows
+    ACL guarantee.
+    """
+    flags = (os.O_RDONLY | getattr(os, "O_BINARY", 0)
+             | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0))
+    try:
+        descriptor = os.open(path, flags)
+        with os.fdopen(descriptor, "rb") as existing_file:
+            metadata = os.fstat(existing_file.fileno())
+            if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+                raise ValueError(_PATH_ERROR)
+            existing = existing_file.read(len(content) + 1)
+            if existing != content or hashlib.sha256(existing).hexdigest() != digest:
+                raise ValueError("Answer export path contains different immutable bytes")
+            if os.name == "posix":
+                os.fchmod(existing_file.fileno(), 0o600)
+                os.fsync(existing_file.fileno())
+    except OSError:
+        raise ValueError("ANSWER_EXPORT_STORAGE_UNAVAILABLE") from None
+
+
 def export_answers(store, application_id, output_dir, items):
     _root, application_root = _answer_export_application_root(output_dir, application_id)
-    application_root.mkdir(parents=True, exist_ok=True)
+    application_root.mkdir(mode=0o700, parents=True, exist_ok=True)
     with _export_lock(application_id):
         with store.engine.begin() as connection:
             if store.engine.dialect.name == "sqlite":
@@ -361,30 +388,35 @@ def export_answers(store, application_id, output_dir, items):
             file_name = f"{document_id}-{digest}.txt"
             relative = f"answers/{version}/{file_name}"
             path = _answer_export_path(application_root, version, file_name)
-            path.parent.mkdir(parents=True, exist_ok=True)
+            (application_root / "answers").mkdir(mode=0o700, exist_ok=True)
+            path.parent.mkdir(mode=0o700, exist_ok=True)
             path = _answer_export_path(application_root, version, file_name)
             # Content-address the immutable path so a crash after file creation
             # but before the DB commit cannot poison a later attempt at this
             # version. Reuse only byte-identical output at the same digest path.
             if path.exists():
-                existing = path.read_bytes()
-                if existing != content or hashlib.sha256(existing).hexdigest() != digest:
-                    raise ValueError("Answer export path contains different immutable bytes")
+                _recover_private_answer_export(path, content, digest)
             else:
-                # Write to a unique same-directory temporary file and atomically
-                # promote it only after all bytes are present. A crash during the
-                # write leaves no partial file at the immutable revision path.
+                # tempfile creates owner-only bytes from the first write on
+                # POSIX, even with a permissive umask. Atomic replacement keeps
+                # that mode; a process death leaves only a private temp file.
                 path = _answer_export_path(application_root, version, file_name)
-                temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+                temporary = None
                 try:
-                    with temporary.open("xb") as output:
+                    with tempfile.NamedTemporaryFile(
+                            mode="wb", prefix=f".{path.name}.", suffix=".tmp",
+                            dir=path.parent, delete=False) as output:
+                        temporary = Path(output.name)
                         output.write(content)
                         output.flush()
                         os.fsync(output.fileno())
                     path = _answer_export_path(application_root, version, file_name)
                     os.replace(temporary, path)
+                except OSError:
+                    raise ValueError("ANSWER_EXPORT_STORAGE_UNAVAILABLE") from None
                 finally:
-                    temporary.unlink(missing_ok=True)
+                    if temporary is not None:
+                        temporary.unlink(missing_ok=True)
             record = {"id": document_id, "application_id": application_id,
                       "kind": "application-answer-export", "version": version,
                       "profile_version": profile["version"], "files": {"txt": relative},
