@@ -41,14 +41,16 @@ class PublicHostTests(unittest.TestCase):
     def test_browser_mutation_accepts_only_configured_https_origin(self):
         with TestClient(self.app()) as client:
             headers = {"Host": HOST, "Sec-Fetch-Site": "same-origin"}
-            allowed = client.post("/nonexistent-browser-action",
+            allowed = client.post("/__deployment",
                                   headers={**headers, "Origin": "https://" + HOST})
-            self.assertEqual(allowed.status_code, 404)
+            # A real GET-only route is stable before and after the SPA build;
+            # an unknown path changes from 404 to StaticFiles' 405 when mounted.
+            self.assertEqual(allowed.status_code, 405)
             for origin in ("https://evil.example", "http://" + HOST):
-                denied = client.post("/nonexistent-browser-action",
+                denied = client.post("/__deployment",
                                      headers={**headers, "Origin": origin})
                 self.assertEqual(denied.status_code, 403)
-            denied_fetch = client.post("/nonexistent-browser-action",
+            denied_fetch = client.post("/__deployment",
                                       headers={"Host": HOST, "Origin": "https://" + HOST,
                                                "Sec-Fetch-Site": "cross-site"})
             self.assertEqual(denied_fetch.status_code, 403)

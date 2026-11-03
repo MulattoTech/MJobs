@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T03:33:06.273418+00:00",
+  "requirement": "MJ-REQ-172",
+  "source_revision": "d096d03deba8aa749f478f9dd6c91029379ec50f",
+  "baseline_revision": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "branch": "work/webpro-20261103T031738Z-642e4b-172",
+  "acceptance": "PARTIAL",
+  "implemented": [
+    "Parse Referer origin when Origin is absent; compare scheme, host and effective port.",
+    "Reject duplicate Host, Origin, Referer and Sec-Fetch-Site before dispatch.",
+    "Require affirmative same-origin context for configured-public-host mutations.",
+    "Preserve rejected-request privacy headers, saved data and local native-client compatibility.",
+    "Correct the public-host test's unknown-route assertion for built and unbuilt frontend states."
+  ],
+  "tests": {
+    "command": "python -m pytest -q tests/unit/test_request_security_boundary.py tests/unit/test_public_host_deployment.py tests/integration/test_local_origin_security.py tests/browser/test_referrer_security.py tests/browser/test_local_origin_security.py tests/browser/test_local_origin_privacy.py tests/browser/test_csp_object_policy.py tests/browser/test_local_error_privacy.py tests/unit/test_structured_text_web_security_sustain_173.py tests/unit/test_persistence_input_security_226.py",
+    "result": "PASS",
+    "primary_tests": 151,
+    "subtests": 33,
+    "junit_cases_including_subtests": 184,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "junit": "source-tests.xml",
+    "raw_junit_sha256": "385a5d3aab6ef5792b2e2742d02ff196d20a6088cb7c6428f2d4622ede538302"
+  },
+  "build": {
+    "npm_ci": "PASS",
+    "typecheck": "PASS",
+    "production_build": "PASS",
+    "warnings": [
+      "Existing native npm/Node compatibility warning",
+      "Existing bundle chunk-size advisory"
+    ],
+    "dependencies_changed": false
+  },
+  "baseline_reproduction": [
+    {
+      "headers": "foreign Referer only",
+      "observed_status": 200,
+      "handler_executed": true
+    },
+    {
+      "headers": "matching Origin followed by conflicting Origin",
+      "observed_status": 200,
+      "handler_executed": true
+    },
+    {
+      "headers": "same-origin Sec-Fetch-Site followed by cross-site",
+      "observed_status": 200,
+      "handler_executed": true
+    }
+  ],
+  "preserved_failures": [
+    {
+      "run": "initial-browser-adjacent",
+      "result": "FAIL",
+      "failed": 1,
+      "passed": 12,
+      "reason": "Chromium re-added Sec-Fetch-Site after route-header omission.",
+      "correction": "Test-only ASGI proxy strips metadata and asserts incoming and forwarded headers; corrected test passed."
+    },
+    {
+      "source_revision": "d09522e2d7068dfd1b18ec7e46839f3c3479ca3b",
+      "result": "FAIL",
+      "failed": 1,
+      "passed": 150,
+      "subtests": 33,
+      "reason": "Existing unknown-route assertion expected404; mounted SPA correctly returned405.",
+      "correction": "Use stable real GET-only deployment route; all4 public-host tests and final151-test source scope pass."
+    }
+  ],
+  "limitations": [
+    "Original web-security requirement is not fully accepted.",
+    "Headerless local clients remain trusted; universal legacy-browser CSRF protection is not proven.",
+    "Authentication and authorization depend on Cloudflare; the external-evaluation allow policy is not fully verified.",
+    "No native multiuser authentication is added.",
+    "Controlled Chromium metadata stripping is a test proxy condition, not native browser behavior.",
+    "Live employer submissions and paid model calls were not performed.",
+    "Hosted required gates, candidate merge verification and deployment are pending at this source checkpoint."
+  ],
+  "prechange_deployment": {
+    "source_revision": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+    "local_readiness": "ready",
+    "authenticated_brave_ui": "PASS",
+    "external_submission_enabled": false,
+    "unauthenticated_read_status": 302,
+    "invalid_session_read_status": 302,
+    "bootstrap_cookie_attributes": {
+      "secure": true,
+      "http_only": true,
+      "same_site": "not explicitly observed"
+    },
+    "access_app_http_only": true,
+    "access_allow_policy_types": [
+      "email",
+      "external_evaluation"
+    ],
+    "tunnel_access_required": true,
+    "tunnel_audience_count": 1,
+    "note": "Metadata only. No cookie, credential, email or applicant values published. This is not post-change deployment proof."
+  }
+}

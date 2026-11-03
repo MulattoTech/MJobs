@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T03:33:06.273418+00:00",
+  "review_type": "independent internal ChatGPT code review",
+  "result": "No blocking finding",
+  "protected_github_approval": false,
+  "reviewed_blobs": {
+    "apps/api/main.py": "059b073451557e2ff65b0982308c6848a6ed9d6b",
+    "tests/unit/test_request_security_boundary.py": "89bb1ed5eaf2f9480395c0474fa74e53693c6f48",
+    "tests/integration/test_local_origin_security.py": "ab743125774c4145edca3fd295e1043f9ad8774a",
+    "tests/browser/test_referrer_security.py": "a49ba068e3f7a67172cb3088264040851b52bff9"
+  },
+  "independent_asgi_probes": [
+    {
+      "case": "public mutation without source headers",
+      "status": 403,
+      "dispatched": false,
+      "body_read": false
+    },
+    {
+      "case": "foreign Referer",
+      "status": 403,
+      "dispatched": false,
+      "body_read": false
+    },
+    {
+      "case": "duplicate Origin",
+      "status": 400,
+      "dispatched": false,
+      "body_read": false
+    },
+    {
+      "case": "Origin null plus same-origin fetch metadata",
+      "status": 403,
+      "dispatched": false,
+      "body_read": false
+    },
+    {
+      "case": "trusted HTTPS referrer with port443",
+      "status": 200,
+      "dispatched": true,
+      "body_read": false
+    }
+  ],
+  "required_limitations": [
+    "Original web-security requirement is not fully accepted.",
+    "Headerless local clients remain trusted; universal legacy-browser CSRF protection is not proven.",
+    "Authentication and authorization depend on Cloudflare; the external-evaluation allow policy is not fully verified.",
+    "No native multiuser authentication is added."
+  ],
+  "compatibility_note": "Public-host native mutations now require normal authentication plus an explicit trusted Origin or equivalent same-origin signal.",
+  "test_delta_review": "Test-only ASGI proxy simulation reviewed separately after the initial interception assumption failed; no blocker.",
+  "additional_test_fix": "Root reviewed the stable GET-only route correction; final source suite passes."
+}
