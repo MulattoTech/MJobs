@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "objective": "WWR-RSS-DATE-FIXTURE-CLOCK",
+  "owner_run": "webpro-20261103T031738Z-642e4b",
+  "claim_sha": "e66e520afa2b6b3d333fb15a449115041c681528",
+  "base_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "hosted_failure": {
+    "pr": 920,
+    "head_sha": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+    "candidate_sha": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+    "run_id": 41600807060,
+    "job_id": 125798817227,
+    "result": "FAIL",
+    "summary": "1 failed, 931 passed, 9 skipped, 583 subtests passed in 865.41s",
+    "failure": "AssertionError: 2 != 3 at test_relative_posted_source_intake.py:323"
+  },
+  "baseline_source": {
+    "path": "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-test-source.py",
+    "git_blob": "790e999660e8f5e3d788ffd99a24b06cd05ead42",
+    "sha256": "27afbc044829450d37b8bf2b0eee8d68e0b985977a831f72214cbb70f2934b1c",
+    "matches_original_blob": true
+  },
+  "corrected_file_git_blob": "b1955b49794b34b637d38336fdc890f583f96cc6",
+  "fixture_preserved_git_blob": "d23c07665b329fb9b1572549138ec73db17ea269",
+  "implementation_change": "Replace the redundant single-clock wrapper with two calls to existing _filtered(window, query_at=query_at). Literal fixture and every assertion remain unchanged.",
+  "result": "PASS_FOR_NARROW_TEST_CLOCK_CORRECTION",
+  "acceptance_status_changes": false,
+  "canonical_changes": false,
+  "product_source_changes": false,
+  "not_run": [
+    "Hosted CI on the correction",
+    "Production deployment",
+    "Real provider network",
+    "Broad product suite"
+  ],
+  "sanitization": "Published console/XML normalize owned source, interpreter and user-profile prefixes; XML hostname is native-test-host. Raw logs/XML and private invocation/import mapping remain in ignored outputs. Raw and published hashes are recorded separately."
+}

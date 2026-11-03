@@ -1,0 +1,16 @@
+CLOCK_SOURCE_BINDING {"cwd": "<owned-clock-worktree>", "modules": {"apps.api.main": {"path": "apps/api/main.py", "sha256": "088514c829dd426681a33d6144b462d95a81219e4c4627fb16a62b2218b57b54"}, "packages.persistence.store": {"path": "packages/persistence/store.py", "sha256": "6739bf2231f0a9991cb6b02e8aed895f7b6d5ac558e5f33d096c6a2bf0828b9d"}, "services.discovery.search_semantics": {"path": "services/discovery/search_semantics.py", "sha256": "e9330f2f5c2fbb3d11335d50878213a1e1ea0aac7e28ec1390ac57980e2bc4d3"}, "services.discovery.sources.wwr": {"path": "services/discovery/sources/wwr.py", "sha256": "1926d316762e6a3f95139aa6f64bb9e35a0d3ed117e369081daf3527c0abcd96"}, "tests.integration.test_relative_posted_source_intake": {"path": "tests/integration/test_relative_posted_source_intake.py", "sha256": "27afbc044829450d37b8bf2b0eee8d68e0b985977a831f72214cbb70f2934b1c"}, "tests.integration.test_wwr": {"path": "tests/integration/test_wwr.py", "sha256": "cfc47cb850699474687514faa38414fdba16bf79c9717b6dc09716b37ed631f1"}}, "os_name": "nt", "python_version": "3.12.10"}
+F                                                                        [100%]
+================================== FAILURES ===================================
+_ RelativePostedSourceIntakeTests.test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen _
+tests\integration\test_relative_posted_source_intake.py:323: in test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen
+    self.assertEqual(len(rows), 3)
+E   AssertionError: 2 != 3
+============================== warnings summary ===============================
+..\..\..\Users\Dylan\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\config\__init__.py:1507
+  <native-python>\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_relative_posted_source_intake.py::RelativePostedSourceIntakeTests::test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen
+1 failed, 1 warning in 1.76s

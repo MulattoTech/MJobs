@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "scope": "WWR-RSS-DATE-FIXTURE-CLOCK",
+  "requirement_id": "MJ-REQ-030",
+  "acceptance_change": false,
+  "label": "baseline-execution",
+  "result": "EXPECTED_BASELINE_FAILURE",
+  "started_utc": "2026-11-03T08:42:59.861095+00:00",
+  "finished_utc": "2026-11-03T08:43:03.920710+00:00",
+  "head_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "source_state": "unchanged protected main",
+  "tested_file": "tests/integration/test_relative_posted_source_intake.py",
+  "tested_file_git_blob": "790e999660e8f5e3d788ffd99a24b06cd05ead42",
+  "tested_file_lf_sha256": "27afbc044829450d37b8bf2b0eee8d68e0b985977a831f72214cbb70f2934b1c",
+  "command": [
+    "<existing-native-python>",
+    "-B",
+    "outputs/clock_pytest_driver.py",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--tb=short",
+    "tests/integration/test_relative_posted_source_intake.py::RelativePostedSourceIntakeTests::test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen",
+    "--junitxml=outputs\\wwr-clock\\baseline-execution.xml"
+  ],
+  "cwd": "<owned-clock-worktree>",
+  "exit_code": 1,
+  "junit_testcase_elements": 1,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "pytest_summary": "1 failed, 1 warning in 1.76s",
+  "clock_policy": "Real unmodified API clock; only the original test freezes the semantic clock",
+  "network_policy": "Existing httpx.HTTPTransport fixture interception; no real WWR request; no browser or paid API",
+  "artifacts": {
+    "console": {
+      "raw_ignored_path": "outputs/wwr-clock/baseline-execution.log",
+      "raw_sha256": "c1c893b25d31e0abb613c14ea9e7ae8be0fbea6b23406e0eac74dc312cfca427",
+      "published_path": "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-execution.log",
+      "published_sha256": "44d35664853adb9409a045d6b3a8138957c463b61cdb39dddd87087c98562853",
+      "published_git_blob": "ec5c3a36b9375c7754dab437589c1b627a0bd740"
+    },
+    "xml": {
+      "raw_ignored_path": "outputs/wwr-clock/baseline-execution.xml",
+      "raw_sha256": "8a335bb3c32642f5b956362ccc11d1a1351eaf09b3a656ac60ef3b8967d527a7",
+      "published_path": "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-execution.xml",
+      "published_sha256": "109ee0637a6cf9530328634c565028c3733eac6099c78e10c6940b1689353808",
+      "published_git_blob": "eddfcbdd944138d0d6de0d9698854bef82ef0c0b"
+    }
+  },
+  "junit_declared_test_units": 1,
+  "parent_tests": 1,
+  "passing_subtests": 0,
+  "sanitization": "Published console/XML normalize private source/interpreter/user-profile prefixes; XML hostname is native-test-host. Original raw logs/XML remain unchanged in ignored outputs."
+}
