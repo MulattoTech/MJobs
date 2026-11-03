@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073405Z-20bc",
+  "requirement": "MJ-REQ-172",
+  "scope": "Generic FastAPI 422 validation response privacy",
+  "source_main": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "claim_ref": "refs/heads/webpro-claims/MJ-REQ-172",
+  "claim_owner_commit": "da6c681f36894b860d2f8d0e26b991a70ee8b4fc",
+  "fixture": "Synthetic Pydantic mapping key and custom validator answer; no user records or network",
+  "baseline": {
+    "state": "FAIL reproduced on unchanged current main handler",
+    "command": "python -m pytest -q tests/unit/test_validation_error_privacy.py",
+    "tests": "2 expected privacy/bounds failures, 1 pre-existing fixed-code control PASS",
+    "details": [
+      "Dynamic dict key and validator error message echoed synthetic applicant data in 422 response",
+      "150 error entries emitted without count limit"
+    ]
+  },
+  "corrected_source": {
+    "files": [
+      "apps/api/main.py",
+      "tests/unit/test_validation_error_privacy.py",
+      "docs/security/web_request_boundary.md"
+    ],
+    "behavior": [
+      "422 error count <=32; per-error location depth <=6",
+      "Untrusted string location components replaced by [field]",
+      "Error messages and type codes chosen from static whitelist; unknown types fail closed",
+      "Credential and AI-settings fixed-code exceptions preserved"
+    ]
+  },
+  "verification": [
+    {
+      "cmd": "python -m pytest -q tests/unit/test_validation_error_privacy.py tests/unit/test_request_security_boundary.py tests/unit/test_public_host_deployment.py tests/integration/test_local_origin_security.py",
+      "result": "PASS",
+      "tests": 142,
+      "subtests": 33,
+      "failures": 0,
+      "skips": 0,
+      "runtime_seconds": 14.15
+    }
+  ],
+  "non_claims": [
+    "MJ-REQ-172 remains PARTIAL; other app exceptions, session/access policy and real authenticated edge checks are not covered",
+    "No P0/P1 acceptance count changes proposed",
+    "No production deployment, external employer submission, paid inference, or private data access"
+  ],
+  "recorded_at_utc": "2026-11-03T07:45:25.409Z"
+}

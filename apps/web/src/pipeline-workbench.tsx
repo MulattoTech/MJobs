@@ -141,6 +141,11 @@ export function parsePipelineWorkbench(value:unknown,profileId:string):PipelineW
       ...(row.operation_id!==undefined?{operation_id:row.operation_id}:{}),
     });
   }
+  // Counts by stage describe the bounded page; total describes the whole profile.
+  // Never render an inconsistent page as a complete or authoritative inventory.
+  if(value.counts.total<items.length||PIPELINE_STAGES.some(
+    stage=>(byStage[stage]||0)!==items.filter(item=>item.stage===stage).length
+  ))throw new Error('PIPELINE_RESPONSE_INVALID');
   const scoring=value.scoring_operation;
   if(scoring===undefined||(scoring!==null&&(!isRecord(scoring)||typeof scoring.operation_id!=='string'||!scoring.operation_id||
     scoring.operation_id.length>200||!isPipelineOperationState(scoring.state))))throw new Error('PIPELINE_RESPONSE_INVALID');
@@ -256,7 +261,10 @@ export function PipelineWorkbenchView({profileId,workbench,loading,error,notice,
   const groups=stageFilter==='ALL'?PIPELINE_STAGES:[stageFilter];
   return <section className="panel pipeline-workbench" aria-label="Pipeline workbench">
     <div className="toolbar"><div><h2>Pipeline workbench</h2>
-      <p>{workbench.counts.total} jobs in this profile. Readiness is profile-specific and may change when facts, routes, or documents change.</p></div>
+      <p>{workbench.counts.total} jobs in this profile.
+        {workbench.counts.total>workbench.items.length
+          ? ` Showing ${workbench.items.length} of ${workbench.counts.total} jobs; readiness counts cover only displayed jobs.`
+          : ''} Readiness is profile-specific and may change when facts, routes, or documents change.</p></div>
       <button type="button" onClick={onRetry}>Refresh readiness</button></div>
     {onRefreshScores&&<div><button type="button" onClick={onRefreshScores}
       disabled={scoringActive||!!busyJobId||workbench.items.some(item=>item.stage==='PREPARING')}>
