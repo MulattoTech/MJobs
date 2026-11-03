@@ -1,0 +1,63 @@
+{
+  "status": "HISTORICAL_FAILURE_RETAINED",
+  "hosted": {
+    "head": "c5470f4bd4ca7708b517129773247b5d1e18fd36",
+    "actual_proposed_merge": "c480c67a5555299a15e081d49a5bfcd5c89f1192",
+    "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+    "run": 41588054400,
+    "job": 125758487862,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41588054400/job/125758487862",
+    "test": "SourceAdapterConnectCancellationTests.test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect",
+    "exception": "KeyError: cold_ssl_started_at",
+    "line": 545,
+    "shard": {
+      "failed": 1,
+      "passed": 821,
+      "skipped": 1,
+      "passing_subtests": 436
+    },
+    "phase_timing": "NOT_CAPTURED",
+    "durable_error_assertion": "NOT_REACHED"
+  },
+  "same_mechanism_reproductions": [
+    {
+      "head": "c5470f4bd4ca7708b517129773247b5d1e18fd36",
+      "scope": "existing synthetic fixture with pretransport delay",
+      "transport_setup_delay_seconds": 1.0,
+      "cold_ssl_delay_seconds": 1.1,
+      "source_mutations": false,
+      "provider_network": "loopback-only",
+      "historical_hosted_job": 125758487862,
+      "diagnostic": "REPRODUCED_MISSING_COLD_SSL_TIMESTAMP",
+      "exception": "KeyError",
+      "missing_key": "cold_ssl_started_at",
+      "worker_results": [
+        {
+          "status": "DEAD_LETTERED"
+        }
+      ]
+    },
+    {
+      "head": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "scope": "existing synthetic fixture with pretransport delay",
+      "transport_setup_delay_seconds": 1.0,
+      "cold_ssl_delay_seconds": 1.1,
+      "source_mutations": false,
+      "provider_network": "loopback-only",
+      "historical_hosted_job": 125758487862,
+      "diagnostic": "REPRODUCED_MISSING_COLD_SSL_TIMESTAMP",
+      "exception": "KeyError",
+      "missing_key": "cold_ssl_started_at",
+      "worker_results": [
+        {
+          "status": "DEAD_LETTERED"
+        }
+      ]
+    }
+  ],
+  "reproduction_scope": "Existing fixture delay after collector entry; worker DEAD_LETTERED and missing SSL marker. Terminal error was not captured by these old-fixture probes.",
+  "diagnosis": "A legitimate pre-SSL deadline can finish the worker without entering the real SSL factory. The old fixture unconditionally indexed its absent marker.",
+  "hosted_cause_limit": "The exact hosted delay is not proven; deterministic same-mechanism reproduction is not a claim to have measured it.",
+  "product_relation": "Test, adapter, transport, worker and collector prefix through adapter.search are unchanged from base; new aggregator identity handling occurs later.",
+  "new_verification": "source-execution.json and source-tests.xml retain separate cold-accounting and real pre-SSL timeout oracles."
+}

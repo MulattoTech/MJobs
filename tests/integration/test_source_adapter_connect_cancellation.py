@@ -1,7 +1,9 @@
 """MJ-REQ-004: real public-worker connect cancellation for remaining adapters.
 
 Provider endpoints, operation timeout and SSL-context readiness are fixture seams.
-No production transport/check/stream is replaced. Synthetic loopback stores only.
+Only cold-SSL accounting uses an owned operation clock; socket/cancellation
+budgets retain the real clock. No production transport/check/stream is replaced.
+Synthetic loopback stores only.
 """
 from contextlib import ExitStack, contextmanager
 import asyncio
@@ -16,6 +18,7 @@ import tempfile
 import threading
 import time
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import urlsplit
 from uuid import uuid4
@@ -124,7 +127,9 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                    cancel_dispatch_delay=0, cancel_service_delay=0):
         tenant = tenant or source_tenant(provider)
         cold_ssl = mode == "cold_ssl_deadline"
-        finite_deadline = mode == "deadline" or cold_ssl
+        pre_ssl_deadline = mode == "pre_ssl_deadline"
+        unprepared_ssl = cold_ssl or pre_ssl_deadline
+        finite_deadline = mode == "deadline" or unprepared_ssl
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
             url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -150,17 +155,24 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             transport_completed = threading.Event()
             transport_operation_completed = threading.Event()
             phases = {}
+            # Only the cold-SSL accounting case uses a controlled operation
+            # clock. The production deadline is still created once at worker
+            # entry; its clock advances only inside the real SSL factory below.
+            cold_clock_value = [0.0]
+            cold_clock = SimpleNamespace(monotonic=lambda: cold_clock_value[0]) if cold_ssl else None
+            ssl_factory_calls = {"entered": 0, "completed": 0}
             cancel_calls = []
             worker_finished_at = []
             worker = None
 
             # Transport-ready cases prepare the trust store separately. The
-            # distinct cold-context case below keeps initialization timed.
+            # cold-context case charges real factory completion to its owned
+            # operation clock. The separate pre-SSL case keeps the real clock.
             # Keep the real verifying context and real
             # SourceTransport/backend; only its construction is made ready before
             # the unchanged operation-start clock. Never cache a transport/check.
             original_ssl_context = httpx_default.create_ssl_context
-            if not cold_ssl:
+            if not unprepared_ssl:
                 ssl_setup_started_at = time.monotonic()
                 if ssl_setup_delay:
                     time.sleep(ssl_setup_delay)
@@ -174,11 +186,23 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             def ready_ssl_context(verify=True, cert=None, trust_env=True):
                 if (threading.current_thread() is worker and verify is True
                         and cert is None and trust_env is False):
-                    if cold_ssl:
-                        phases["cold_ssl_started_at"] = time.monotonic()
-                        time.sleep(ssl_setup_delay)
+                    if unprepared_ssl:
+                        ssl_factory_calls["entered"] += 1
+                        phases["cold_ssl_wall_started_at"] = time.monotonic()
+                        phases["cold_ssl_started_at"] = (
+                            cold_clock.monotonic() if cold_ssl else time.monotonic())
+                        if not cold_ssl:
+                            time.sleep(ssl_setup_delay)
                         context = original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
-                        phases["cold_ssl_completed_at"] = time.monotonic()
+                        if cold_ssl:
+                            # Model setup cost without timing unrelated fixture
+                            # scheduling. Never move/reset the existing deadline
+                            # or replace its production cancellation checks.
+                            cold_clock_value[0] += ssl_setup_delay
+                        phases["cold_ssl_completed_at"] = (
+                            cold_clock.monotonic() if cold_ssl else time.monotonic())
+                        phases["cold_ssl_wall_completed_at"] = time.monotonic()
+                        ssl_factory_calls["completed"] += 1
                         self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
                         self.assertTrue(context.check_hostname)
                         return context
@@ -197,6 +221,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "worker_outcome_at", "worker_error_at",
                     "worker_finished_at", "terminal_readback_at",
                     "cold_ssl_started_at", "cold_ssl_completed_at",
+                    "cold_ssl_wall_started_at", "cold_ssl_wall_completed_at",
                 )
                 timestamps = {}
                 for key in timestamp_keys:
@@ -204,14 +229,21 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     if isinstance(value, (int, float)):
                         timestamps[key] = value
                 if deadline_start is not None:
+                    # Do not subtract a controlled operation timestamp from a
+                    # wall-clock observation. Wall phases remain in phases below.
+                    operation_keys = {"operation_deadline_started_at",
+                                      "cold_ssl_started_at", "cold_ssl_completed_at"}
                     relative_ms = {
                         key: round((value - deadline_start) * 1000, 1)
                         for key, value in timestamps.items()
+                        if not cold_ssl or key in operation_keys
                     }
                 else:
                     relative_ms = {}
                 connection = state.get("connecting_socket")
-                return (f"phase_ms_from_deadline={relative_ms}; phases={phases!r}; "
+                return (f"phase_ms_from_deadline={relative_ms}; "
+                        f"deadline_clock={'controlled' if cold_ssl else 'real'}; "
+                        f"ssl_factory_calls={ssl_factory_calls!r}; phases={phases!r}; "
                         f"worker_errors={errors!r}; outcomes={len(outcome)}; "
                         f"connects={state.get('connects', 0)}; requests={state.get('requests', 0)}; "
                         f"socket_fd={connection.fileno() if connection is not None else None}")
@@ -291,7 +323,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     # The coordinator delay is fixture setup, not part of the
                     # strict real-transport deadline. Start the unchanged .8s
                     # budget only after both sides cross the causal gate.
-                    started_at = time.monotonic()
+                    started_at = cold_clock.monotonic() if cold_ssl else time.monotonic()
                     deadline_started_at.append(started_at)
                     phases["operation_deadline_started_at"] = started_at
                     deadline_guard_released.set()
@@ -327,6 +359,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     "workers.tasks.collect_source", new=observe_collect_source), patch(
                     "workers.tasks.timeout", side_effect=record_timeout), patch(
                     "httpx._transports.default.create_ssl_context", new=ready_ssl_context):
+                if cold_ssl:
+                    # Replace this module binding, never attributes on the
+                    # process-wide time module used by other timing fixtures.
+                    endpoints.enter_context(patch.object(worker_tasks, "time", cold_clock))
                 if provider == "lever":
                     from services.discovery.sources.lever import endpoint as production_endpoint
                     # Resolve the real regional endpoint first; only replace its origin.
@@ -538,20 +574,39 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 0, worker_finished_at[0] - response_finished_at)
                         self.assertEqual(errors, [])
                         self.assertEqual(len(outcome), 1)
-                        if cold_ssl:
-                            self.assertEqual(len(deadline_started_at), 1)
-                            self.assertEqual(ssl_context_uses, [], "Cold setup must not use a prebuilt context")
-                            self.assertGreater(ssl_setup_delay, .8)
-                            self.assertGreaterEqual(phases["cold_ssl_started_at"], deadline_started_at[0])
-                            self.assertGreaterEqual(
-                                phases["cold_ssl_completed_at"] - phases["cold_ssl_started_at"], ssl_setup_delay)
-                            self.assertGreater(phases["cold_ssl_completed_at"] - deadline_started_at[0], .8)
-                            self.assertFalse(transport_entered.is_set(), "Expired setup must not start a socket connect")
-                            self.assertFalse(transport_completed.is_set(), "Cold timeout cannot report transport success")
+                        if unprepared_ssl:
+                            self.assertEqual(len(deadline_started_at), 1, phase_diagnostic())
+                            self.assertEqual(ssl_context_uses, [],
+                                             f"Unprepared setup must not use a prebuilt context; {phase_diagnostic()}")
+                            if cold_ssl:
+                                self.assertEqual(ssl_factory_calls, {"entered": 1, "completed": 1},
+                                    f"Cold SSL must execute the real factory exactly once; {phase_diagnostic()}")
+                                self.assertGreater(ssl_setup_delay, .8)
+                                self.assertGreaterEqual(phases["cold_ssl_started_at"], deadline_started_at[0],
+                                                        phase_diagnostic())
+                                self.assertGreaterEqual(
+                                    phases["cold_ssl_completed_at"] - phases["cold_ssl_started_at"], ssl_setup_delay,
+                                    f"Cold SSL construction must consume its operation-clock budget; {phase_diagnostic()}")
+                                self.assertGreater(phases["cold_ssl_completed_at"] - deadline_started_at[0], .8,
+                                                   phase_diagnostic())
+                                self.assertGreaterEqual(phases["cold_ssl_wall_completed_at"],
+                                                        phases["cold_ssl_wall_started_at"], phase_diagnostic())
+                            else:
+                                self.assertGreater(transport_setup_delay, .8)
+                                self.assertEqual(ssl_factory_calls, {"entered": 0, "completed": 0},
+                                    f"Pre-SSL timeout must precede the real factory; {phase_diagnostic()}")
+                                self.assertNotIn("cold_ssl_started_at", phases, phase_diagnostic())
+                                self.assertNotIn("cold_ssl_completed_at", phases, phase_diagnostic())
+                                self.assertGreaterEqual(phases["worker_outcome_at"] - deadline_started_at[0],
+                                                        transport_setup_delay, phase_diagnostic())
+                            self.assertFalse(transport_entered.is_set(),
+                                             f"Expired setup must not start a socket connect; {phase_diagnostic()}")
+                            self.assertFalse(transport_completed.is_set(),
+                                             f"Setup timeout cannot report transport success; {phase_diagnostic()}")
                         elif provider == "remoteok":
                             self.assertTrue(ssl_context_uses,
                                 "Owned remoteok transport did not use its ready SSL context")
-                        if not cold_ssl:
+                        if not unprepared_ssl:
                             self.assertTrue(all(used_at >= ssl_context_ready_at for used_at in ssl_context_uses))
                         expected = "COMPLETED" if mode == "positive" else "CANCELLED" if mode == "cancel" else "DEAD_LETTERED"
                         reopened = Store(url)
@@ -581,7 +636,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         finally:
                             reopened.engine.dispose()
                         self.assertEqual(state["requests"], (2 if provider == "greenhouse" else 1) if mode == "positive" else 0)
-                        if cold_ssl:
+                        if unprepared_ssl:
                             self.assertEqual(state["connects"], 0)
                             self.assertIsNone(state.get("connecting_socket"))
                         elif mode != "positive":
@@ -648,7 +703,17 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 ssl_setup_delay=1.1 if provider == "remoteok" else 0)
 
     def test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect(self):
+        # Genuine SSL setup must consume the original logical deadline even
+        # when unrelated fixture scheduling would exceed its real-time budget.
         self.run_source("remoteok", "cold_ssl_deadline", ssl_setup_delay=1.1)
+
+    def test_remoteok_real_deadline_expires_before_ssl_setup_without_connect(self):
+        self.run_source("remoteok", "pre_ssl_deadline",
+                        transport_setup_delay=1.0, ssl_setup_delay=1.1)
+
+    def test_remoteok_cold_ssl_accounting_survives_pre_ssl_fixture_delay(self):
+        self.run_source("remoteok", "cold_ssl_deadline",
+                        transport_setup_delay=1.0, ssl_setup_delay=1.1)
 
     def test_lever_global_public_cancel_during_real_tcp_connect(self):
         self.run_source("lever", "cancel", tenant="global:synthetic",
