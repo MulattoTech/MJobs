@@ -146,5 +146,46 @@ class SourceCandidateCatalogueReplayTests(unittest.TestCase):
         self.assertEqual(len(other_observations), 1)
 
 
+    def test_encoded_sensitive_path_markers_never_persist_secrets(self):
+        url = "https://www.talenthop.com/%74oken/private-secret?session=hidden#fragment"
+        hops = [
+            "https://referrer.example/%2574oken/double-encoded-secret",
+            "https://referrer.example/auth%2Fslash-secret",
+            "https://referrer.example/token%3Dembedded-secret",
+            "https://referrer.example/token/%73ession/chain-secret",
+            "https://referrer.example/apply%3Bsession%3Dmatrix-secret",
+            "https://referrer.example/apply%3Ftoken%3Dquerylike-secret",
+            "https://referrer.example/jobs/role%20name",
+        ]
+        candidate_id = self._capture(
+            request_id="encoded-private", url=url, hops=hops,
+        )
+        replayed_id = self._capture(
+            request_id="encoded-private", url=url, hops=hops,
+        )
+        candidate, observations = self._candidate(candidate_id)
+        self.assertEqual(candidate["domain"], "talenthop.com")
+        self.assertEqual(replayed_id, candidate_id)
+        self.assertEqual(len(observations), 1)
+        self.assertEqual(
+            observations[0]["application_url"],
+            "https://www.talenthop.com/%74oken/[REDACTED]",
+        )
+        self.assertEqual(observations[0]["observed_hops"], [
+            "https://referrer.example/%2574oken/[REDACTED]",
+            "https://referrer.example/[REDACTED]",
+            "https://referrer.example/[REDACTED]",
+            "https://referrer.example/token/[REDACTED]/[REDACTED]",
+            "https://referrer.example/[REDACTED]",
+            "https://referrer.example/[REDACTED]",
+            "https://referrer.example/jobs/role%20name",
+        ])
+        for secret in (
+                "private-secret", "double-encoded-secret",
+                "slash-secret", "embedded-secret", "chain-secret",
+                "matrix-secret", "querylike-secret", "hidden"):
+            self.assertNotIn(secret, str(observations))
+
+
 if __name__ == "__main__":
     unittest.main()
