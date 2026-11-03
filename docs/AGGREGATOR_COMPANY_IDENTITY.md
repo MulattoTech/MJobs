@@ -13,11 +13,14 @@ row. The receipt is scoped to the provider and company, across configured
 tenants. It stores a versioned canonical-label SHA-256 and bounded evidence
 references in the existing audit table; it does not store a rejected label.
 
-The company display name and domain remain independently curated. A preseeded
-company with no source observations can acquire its first source-label receipt
-without overwriting those fields. Later curation cannot replace the retained
-upstream identity. First-party Greenhouse/Lever bindings and extension adapters
-keep their established behavior.
+The company display name and domain are preserved independently. A preexisting
+company without source history may acquire its first receipt only when its stored
+name is equivalent to the incoming full label. A different stored name requires
+identity review; the lossy ID alone does not establish an authorized alias.
+Validated source history or an existing receipt remains authoritative if stored
+display fields later change. This change does not add a company-renaming API.
+First-party Greenhouse/Lever bindings and extension adapters keep their established
+behavior.
 
 A refused batch rolls back company, source-link, job, route, posting, snapshot,
 candidate and newly proposed receipt changes. Existing source-health/backoff

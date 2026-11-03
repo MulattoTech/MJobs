@@ -105,7 +105,7 @@ def _legacy_company_label(provider, raw):
     return label, identity(provider, adapter.company_slug(label))
 
 
-def _retain_company_label(connection, company_id, company, provider, endpoint, check):
+def _retain_company_label(connection, company_id, company, provider, endpoint, check, existing_company):
     """Pin upstream identity separately from a user's mutable display name."""
     receipt_id = identity("aggregator-company-label-v1", provider, company_id)
     fingerprint = hashlib.sha256(_company_label(company.name).encode("utf-8")).hexdigest()
@@ -180,6 +180,10 @@ def _retain_company_label(connection, company_id, company, provider, endpoint, c
     if not rows and connection.execute(select(m.routes.c.id).where(
         m.routes.c.company_id == company_id, m.routes.c.provider == provider,
     ).limit(1)).first() is not None:
+        raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
+    if (not rows and existing_company is not None
+            and _company_label(existing_company["name"]) != _company_label(company.name)):
+        # A bare row keyed by a lossy slug cannot authorize an arbitrary alias.
         raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
     for row in rows:
         check()
@@ -509,7 +513,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 if aggregator_identity:
                     _retain_company_label(
                         connection, company_id, company, source["provider"],
-                        batch.endpoint, check,
+                        batch.endpoint, check, existing_company,
                     )
                 # Aggregator adapters identify the listing origin, not an employer
                 # website or employer-specific ATS tenant. Keep that distinction in

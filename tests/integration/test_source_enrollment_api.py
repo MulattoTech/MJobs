@@ -108,7 +108,7 @@ class SourceEnrollmentApiTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             upsert(connection, m.companies, {
                 "id": identity("remotive", "example-employer"),
-                "name": "Curated Employer Name",
+                "name": "EXAMPLE  EMPLOYER",
                 "domain": "https://employer.example",
             })
 
@@ -138,7 +138,7 @@ class SourceEnrollmentApiTests(unittest.TestCase):
             identity("remotive", "new-employer"): "",
         })
         self.assertEqual({row["id"]: row["name"] for row in companies}, {
-            identity("remotive", "example-employer"): "Curated Employer Name",
+            identity("remotive", "example-employer"): "EXAMPLE  EMPLOYER",
             identity("remotive", "new-employer"): "New Employer",
         })
         self.assertEqual(len(authorities), 2)

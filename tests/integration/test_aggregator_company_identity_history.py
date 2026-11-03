@@ -72,11 +72,11 @@ def assert_refusal_preserves_history(database, provider, source_id, name, error)
 
 
 @pytest.mark.parametrize("provider", PROVIDERS)
-def test_first_upstream_receipt_preserves_preseeded_curated_name_and_domain(store, provider):
+def test_first_upstream_receipt_preserves_equivalent_preseeded_name_and_domain(store, provider):
     company_id = identity(provider, "example-employer")
     with store.engine.begin() as connection:
         connection.execute(m.companies.insert().values(
-            id=company_id, name="Curated Employer Name", domain="https://employer.example",
+            id=company_id, name="EXAMPLE  EMPLOYER", domain="https://employer.example",
         ))
     _, result = collect_names(store, provider, ["Example Employer", "New Employer"])
     assert result["jobs_seen"] == 2
@@ -85,7 +85,7 @@ def test_first_upstream_receipt_preserves_preseeded_curated_name_and_domain(stor
             m.companies.c.id == company_id,
         )).mappings().one()
         companies = connection.execute(select(m.companies)).mappings().all()
-    assert curated["name"] == "Curated Employer Name"
+    assert curated["name"] == "EXAMPLE  EMPLOYER"
     assert curated["domain"] == "https://employer.example"
     assert len(companies) == 2
     receipt = receipt_for(store, provider, company_id)
@@ -95,6 +95,33 @@ def test_first_upstream_receipt_preserves_preseeded_curated_name_and_domain(stor
     assert receipt["payload"]["version"] == 1
     assert receipt["payload"]["legacy_snapshot_ids"] == []
     assert "Example Employer" not in json.dumps(receipt)
+
+
+@pytest.mark.parametrize("provider", PROVIDERS)
+def test_bare_arbitrary_label_mismatch_requires_review_and_rolls_back_entire_batch(store, provider):
+    company_id = identity(provider, "example-employer")
+    source_id = configure_source(store, "default", provider=provider, rate_limit=600)
+    with store.engine.begin() as connection:
+        connection.execute(m.companies.insert().values(
+            id=company_id, name="Curated Employer Name", domain="https://employer.example",
+        ))
+    before = domain_snapshot(store)
+    with pytest.raises(SourceError, match="^" + REVIEW + "$"):
+        collect_names(
+            store, provider, ["Unrelated Synthetic Employer", "Example Employer"],
+            source_id=source_id,
+        )
+    assert domain_snapshot(store) == before
+    assert receipt_for(store, provider, company_id) is None
+    with store.engine.connect() as connection:
+        assert not connection.execute(select(m.audit.c.id).where(
+            m.audit.c.action == ACTION,
+        )).first()
+        source = connection.execute(select(m.job_sources).where(
+            m.job_sources.c.id == source_id,
+        )).mappings().one()
+    assert source["last_error"] == REVIEW
+    assert source["health_status"] == "FAILED"
 
 
 @pytest.mark.parametrize("provider", PROVIDERS)
