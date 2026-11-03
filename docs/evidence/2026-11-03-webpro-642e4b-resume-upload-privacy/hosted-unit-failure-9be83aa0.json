@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "recorded_at": "2026-11-03T08:20:18.610879+00:00",
+  "pr": 920,
+  "failed_head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+  "failed_candidate": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+  "failed_candidate_tree": "b05573af53abab5eb4b9da7230f42ec8f9aa1d20",
+  "hosted_failure": {
+    "run_id": 41600807135,
+    "job_id": 125798816850,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41600807135/job/125798816850",
+    "result": "FAIL",
+    "passed": 3611,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 53,
+    "subtests_passed": 3867,
+    "duration_seconds": 246.57,
+    "artifact_id": 13214655599,
+    "artifact_published_zip_sha256": "38d88703c4b7daf8798cd0982242edd3181824de84b1f0891d9273a0249f9743",
+    "artifact_bytes_independently_downloaded": false,
+    "source_binding": "Hosted checkout log explicitly fetches and checks out actual merge candidate 959407ad1237e0cad7ed9d3e402f229b4cace2e4.",
+    "failure_excerpt": "hosted-unit-failure-9be83aa0.log",
+    "failure_excerpt_sha256": "cee247a10e0ae09e3c76c95d4c057e6d9234bca9ca954992e980850bc05ef845",
+    "tests": [
+      "DataExportReadBoundsTests.test_uploaded_resume_growth_is_rejected_before_checksum_and_retry_succeeds",
+      "DataExportReadBoundsTests.test_uploaded_resume_read_is_limited_to_its_recorded_size"
+    ]
+  },
+  "diagnosis": "These existing tests intercepted Path.open, which the descriptor-based uploaded-original reader no longer invokes. The prior 29-case focused selection omitted this five-case bounds module. The hosted failure remains a failure, independent of scoped passes.",
+  "correction": {
+    "path": "tests/unit/test_data_export_bounds.py",
+    "old_blob": "c18a669e234ba0b7c45a9791b1308a162f6b998f",
+    "new_blob": "4a917bc55c9c85ec82d0071ff2ea083585a420cd",
+    "scope": "Import os and change only the two uploaded-original test methods. Identify the fixture inode through samestat/fstat, delegate original fdopen arguments including closefd=False, preserve the exact 19-byte read request and size-change/refreshed export oracles. Assert growth injection occurred and checksum was never called. Other three generated-document/budget tests remain unchanged.",
+    "production_source_changed": false,
+    "canonical_files_changed": false,
+    "independent_design_review": "Separate internal read-only source review supports this instrumentation boundary; immutable commit readback and fresh candidate/hosted gates remain separate.",
+    "old_and_new_method_ast_comparison": "Only the two named test methods differ; all other methods have equal AST."
+  },
+  "prior_scoped_candidate_execution": {
+    "candidate": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+    "overall": "NOT_CLEARED",
+    "linux": {
+      "passed": 29,
+      "subtests_passed": 29,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native_windows": {
+      "passed": 19,
+      "subtests_passed": 29,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 10
+    },
+    "native_scanner_policy": {
+      "passed": 6
+    },
+    "linux_scanner_policy": {
+      "result": "HARNESS_ERROR",
+      "exit_code": 1,
+      "tests_collected": 0,
+      "reason": "Pinned image has no pytest module",
+      "xml": "NOT_CREATED",
+      "dependencies_installed": false,
+      "rerun": false
+    },
+    "gates": {
+      "catalogue": "PASS",
+      "journal": "PASS",
+      "dashboard": "PASS",
+      "diff": "PASS"
+    },
+    "raw_receipt_sha256": "f049b846c7638c0c961e4331c83576c9a4fde2e7949e5326ef4504f88e9f8e7a",
+    "owned_containers_removed_and_absence_verified": 2,
+    "upload_module_raw_sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+  },
+  "verification_boundary": "Native corrected-module execution is recorded below at base 9be83aa0 plus the exact new test blob. This does not relabel earlier source/candidate results. The successor actual candidate and all fresh required hosted checks are still pending. Full MJ-REQ-171 remains PARTIAL; no merge or deployment is claimed.",
+  "corrected_module_native_execution": {
+    "command": "python -B -m pytest -q tests/unit/test_data_export_bounds.py --junitxml=outputs/171-bounds-source-native.xml",
+    "base_head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+    "changed_test_blob": "4a917bc55c9c85ec82d0071ff2ea083585a420cd",
+    "result": "PASS",
+    "counts": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "xml_time_seconds": 3.466,
+    "suite_timestamps": [
+      "2026-11-03T02:16:06.043197-06:00"
+    ],
+    "raw_junit_sha256": "28ee2f9142857ef2458517b6b0cad502fc215d573189ff1484cd6cf7caf360a9",
+    "raw_junit_location": "outputs/171-bounds-source-native.xml",
+    "execution_state": "Owned working tree at base head with exactly the named test-file delta; no new commit identity is claimed for this earlier execution."
+  }
+}
