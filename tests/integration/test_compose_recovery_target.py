@@ -172,7 +172,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         def collect():
             return compose_recovery.collect_public_job_inventory(
-                lambda path: {"jobs": state["rows"]} if path == "/jobs?profile_id=profile-fixture-1"
+                lambda path: {"jobs": state["rows"]} if path == "/jobs?profile_id=profile-fixture-1&limit=201"
                 else state["detail"], "profile-fixture-1")
 
         baseline = collect()
@@ -255,7 +255,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         def get_json(path):
             calls.append(path)
-            if path == "/jobs?profile_id=profile-fixture-1":
+            if path == "/jobs?profile_id=profile-fixture-1&limit=201":
                 return {"jobs": rows}
             return details[path.split("/jobs/", 1)[1].split("?", 1)[0]]
 
@@ -301,7 +301,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                            "raw": {"title": "Data Engineer", "skills": ["Python", "SQL"]}}]}
         job_list = {"jobs": [{"id": "profile-job-1", "title": "Data Engineer"}]}
         def public_jobs(path):
-            if path == "/jobs?profile_id=profile-fixture-1":
+            if path == "/jobs?profile_id=profile-fixture-1&limit=201":
                 return job_list
             if path == "/jobs/profile-job-1?profile_id=profile-fixture-1":
                 return job_details
@@ -321,7 +321,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         def request(method, path, **kwargs):
             http_calls.append((method, path, kwargs))
             events.append(("http", method, path))
-            if method == "GET" and path == "/jobs?profile_id=profile-fixture-1":
+            if method == "GET" and path == "/jobs?profile_id=profile-fixture-1&limit=201":
                 return _Response(job_list)
             if method == "GET" and path == "/jobs/profile-job-1?profile_id=profile-fixture-1":
                 return _Response(job_details)

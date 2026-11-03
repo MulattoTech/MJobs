@@ -1,0 +1,153 @@
+{
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "source_revision": "6966b738e2e0d9455e0918478072703f4e2b0bea",
+  "tree": "ca84746f9b387719e53659765f7698af864c7632",
+  "source_blobs": {
+    "cli/compose_recovery.py": "6947793ece57339222324a80aa7f53b0d426e2c7",
+    "docs/RECOVERY_JOB_INVENTORY.md": "28de9ae15c41108396e862721c4cf26519fcf2d1",
+    "tests/integration/test_recovery_inventory_completeness.py": "9138cd90495928fb179d369d51a667b2477057cd",
+    "tests/unit/test_backup_acceptance.py": "28a44364644b41f6f1875875f8707a8ff6424d69",
+    "tests/unit/test_compose_recovery.py": "503ff23caec91cb84e4a867513d87ec492c961c9"
+  },
+  "inventory_version": 3,
+  "started_at_utc": "2026-11-03T06:01:54.147150+00:00",
+  "ended_at_utc": "2026-11-03T06:03:01.179499+00:00",
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/integration/test_recovery_inventory_completeness.py",
+    "tests/integration/test_compose_recovery_target.py",
+    "tests/integration/test_api_queue.py",
+    "tests/unit/test_compose_recovery.py",
+    "tests/unit/test_backup_acceptance.py",
+    "tests/unit/test_ui_e2e_onboarding.py::UIE2EOnboardingGuardTests::test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure",
+    "--tb=short",
+    "--junitxml=outputs/recovery-292-v3-source.xml"
+  ],
+  "scope": [
+    "tests/integration/test_recovery_inventory_completeness.py",
+    "tests/integration/test_compose_recovery_target.py",
+    "tests/integration/test_api_queue.py",
+    "tests/unit/test_compose_recovery.py",
+    "tests/unit/test_backup_acceptance.py",
+    "tests/unit/test_ui_e2e_onboarding.py::UIE2EOnboardingGuardTests::test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 67.031,
+  "parent_tests": 51,
+  "passing_subtests": 43,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "pytest_seconds": 62.182,
+  "final_head": "6966b738e2e0d9455e0918478072703f4e2b0bea",
+  "tracked_diff": "",
+  "checks": {
+    "catalogue": {
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS"
+    },
+    "journal": {
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS"
+    },
+    "dashboard": {
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT"
+    },
+    "provenance": {
+      "exit_code": 1,
+      "output": "FAIL: UTC-Date must be a valid UTC ISO-8601 timestamp"
+    },
+    "diff": {
+      "exit_code": 0,
+      "output": ""
+    }
+  },
+  "result": "FAIL",
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "requirement_result": "PARTIAL",
+  "test_result": "PASS",
+  "result_basis": "Tests passed, but the aggregate validation failed the UTC-Date provenance check.",
+  "publication_status_at_failure": "LOCAL_ONLY_UNPUBLISHED",
+  "command_sanitization": "The raw receipt stores interpreter arguments; python is prepended for a portable display. No execution was performed during evidence publication.",
+  "junit": "v3-initial-provenance-failure.xml",
+  "junit_testcase_elements": 51,
+  "junit_declared_test_units": 94,
+  "pytest_seconds_basis": "JUnit testsuite duration, not the rounded console summary",
+  "console_pytest_seconds": 62.21,
+  "provenance_failure": {
+    "exit_code": 1,
+    "diagnostic": "FAIL: UTC-Date must be a valid UTC ISO-8601 timestamp",
+    "invalid_trailer": "UTC-Date: 2026-11-03",
+    "corrected_trailer": "UTC-Date: 2026-11-03T06:05:28Z"
+  },
+  "raw_execution_receipt": {
+    "path": "outputs/v3-provenance-failure/recovery-292-v3-source-execution.json",
+    "sha256_worktree_bytes": "8013c78f3005b1c9949cb2f3c8f670f8ec37c81299a12bf9e6a11fa11f11593a"
+  },
+  "raw_console": {
+    "path": "outputs/v3-provenance-failure/recovery-292-v3-source-console.txt",
+    "sha256_worktree_bytes": "12a40e551e6d52443f9fdb61a1de999f351b7c7c215846ae6b51b21850ca82af"
+  },
+  "xml_evidence": {
+    "raw_input": "outputs/v3-provenance-failure/recovery-292-v3-source.xml",
+    "raw_worktree_bytes_sha256": "3050b4e36273a0c3ee3df4f958ad5fa436c7d6f7cfdf4af3f85636a84b70592c",
+    "raw_size_bytes": 8965,
+    "raw_crlf_count": 0,
+    "raw_bare_cr_count": 0,
+    "published_file": "v3-initial-provenance-failure.xml",
+    "published_worktree_bytes_sha256": "6a953c836d2a9bb8a1c9e35803b8d3a09fc1e465f450269ad7fef24fb134332e",
+    "published_git_lf_bytes_sha256": "6a953c836d2a9bb8a1c9e35803b8d3a09fc1e465f450269ad7fef24fb134332e",
+    "published_git_blob": "d7e0d4498129887e95662909d008a66b2b7ca69c",
+    "published_size_bytes": 8936,
+    "published_encoding": "UTF-8",
+    "published_line_endings": "LF",
+    "git_normalization_verified": "git hash-object --stdin --path matches the exact published LF bytes",
+    "removed_hostname_attributes": 1,
+    "timestamp_conversions": [
+      {
+        "original_with_offset": "2026-11-03T00:01:54.739686-06:00",
+        "published_utc": "2026-11-03T06:01:54.739686Z"
+      }
+    ],
+    "failure_body": "Retained parsed diagnostic text and message; no failures removed or rewritten.",
+    "counts": {
+      "junit_testcase_elements": 51,
+      "junit_declared_test_units": 94,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "metadata_only_correction": {
+    "initial_unpublished_commit": "6966b738e2e0d9455e0918478072703f4e2b0bea",
+    "corrected_commit": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+    "same_tree": "ca84746f9b387719e53659765f7698af864c7632",
+    "source_and_test_blobs_unchanged": true,
+    "change": "Only the UTC-Date commit-message line was corrected from date-only 2026-11-03 to 2026-11-03T06:05:28Z.",
+    "old_commit_object_available_for_readback": true,
+    "verification": "Git confirms identical trees and parents and no other commit-message line change; both execution receipts bind the same five file blobs.",
+    "publication_boundary": "The initial commit was local-only and unpublished; its aggregate provenance failure is retained rather than relabelled PASS."
+  },
+  "history": {
+    "prior_source_revision": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
+    "prior_refreshed_head": "2b07e787d2f1cbf793b6caaea3339948df04e050",
+    "prior_production_blob": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+    "preservation": "All existing receipts remain unchanged.",
+    "scope_correction": "The earlier passing cases established fresh-capture overflow behavior but did not prove historical-v2 baseline completeness. Prior no-further-correction statements were wrong.",
+    "acknowledgment": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596557297"
+  },
+  "limitations": [
+    "MJ-REQ-292 remains PARTIAL; this is a bounded inventory-verification correction, not the complete original end-to-end journey.",
+    "The certified scope is 1 through 200 jobs in the existing visible public profile-context view; hidden, not-interested and blacklisted jobs are excluded.",
+    "Inventories larger than 200 remain unverified; no concurrent snapshot guarantee is introduced across listing and detail reads.",
+    "No real Docker restart, production restore, live provider request, paid inference or employer submission was performed for these local checks.",
+    "Protected candidate checks, publication, merge and deployment are separate stages and are not inferred from local test or static-review results."
+  ]
+}
