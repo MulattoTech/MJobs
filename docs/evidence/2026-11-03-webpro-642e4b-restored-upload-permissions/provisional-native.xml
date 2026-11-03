@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="mjobs-upload-privacy" tests="45" failures="0" errors="0" skipped="8" timestamp="2026-11-03T08:37:52.215790Z" time="6.231029">
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_existing_document_verification_stays_readonly" time="0.0">
+    <skipped>POSIX permission behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded" time="0.0">
+    <skipped>POSIX descriptor behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_invalid_inventory_is_rejected_before_any_mode_change" time="0.0">
+    <skipped>POSIX permission behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_links_and_fifo_are_rejected_before_any_mode_change" time="0.0">
+    <skipped>POSIX filesystem nodes require Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_missing_platform_facilities_fail_closed_before_inventory" time="0.015000000013969839" />
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_missing_uploads_is_a_verified_noop" time="0.0">
+    <skipped>POSIX permission behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_normalization_keeps_bytes_parent_generated_and_archive_unchanged" time="0.0">
+    <skipped>POSIX permission behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_permission_failure_and_failed_mode_readback_close_descriptors" time="0.0">
+    <skipped>POSIX descriptor behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_preparation_failure_prevents_verification_startup_and_readiness" time="0.0470000000204891" />
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_real_snapshot_copy_is_private_before_readonly_verification_and_startup" time="0.0">
+    <skipped>POSIX permission behavior requires Linux execution</skipped>
+  </testcase>
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_runtime_cli_dispatches_explicit_mutation_with_manifest_and_volume_root" time="0.01600000000325963" />
+  <testcase classname="tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests" name="test_runtime_cli_rejects_invalid_json_without_echoing_input" time="0.0" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_backup_refuses_any_running_writer" time="0.0" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_backup_refuses_existing_destination_before_docker" time="0.5939999999827705" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_backup_requires_scheduler_and_company_discovery_to_be_quiescent" time="0.0" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_captured_compose_output_is_bounded_and_sanitized" time="0.09299999999348074" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_large_database_dump_stream_is_not_counted_as_captured_metadata" time="0.06300000002374873" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_large_stderr_is_drained_without_becoming_returned_output" time="0.046999999962281436" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_process_timeout_is_classified_without_echoing_child_output" time="0.10899999999674037" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_restore_refuses_any_existing_target_volume" time="0.0" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_restored_document_tree_refuses_extra_file" time="0.0" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_verify_accepts_complete_untampered_archive" time="0.6089999999967404" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_verify_rejects_tampered_document" time="0.01600000000325963" />
+  <testcase classname="tests.unit.test_local_backup.LocalBackupTests" name="test_verify_rejects_unlisted_file" time="0.01600000000325963" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_backup_preserves_pinned_selection_but_excludes_all_named_and_legacy_cookies" time="0.09299999999348074" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_backup_writes_only_the_validated_runtime_projection_and_public_compose_source" time="0.03200000000651926" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_old_container_with_logging_and_notifications_still_captures_legacy_version" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_partial_caps_in_runtime_environment_fail_instead_of_defaulting_a_snapshot" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_projection_keeps_only_bounded_allowlisted_api_settings" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_projection_rejects_invalid_allowlisted_values_without_echoing_them" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_v2_records_submission_caps_without_private_values" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_v2_requires_all_caps_and_rejects_invalid_or_secret_fields" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_v3_log_level_validation_matches_worker_startup" time="0.34299999999348074" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_v3_records_validated_nonsecret_configuration_without_private_values" time="0.01600000000325963" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_runtime_v3_refuses_missing_invalid_or_private_configuration_without_echoing_it" time="0.0" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_schema_two_archive_preserves_and_checks_known_configuration_files" time="0.06300000002374873" />
+  <testcase classname="tests.unit.test_backup_config_snapshot.BackupConfigurationSnapshotTests" name="test_schema_two_rejects_secret_fields_and_unknown_configuration_files" time="0.045999999972991645" />
+  <testcase classname="tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests" name="test_recoverability_check_accepts_original_key_and_rejects_wrong_or_missing_key_safely" time="0.5630000000237487" />
+  <testcase classname="tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests" name="test_restore_checks_credentials_before_starting_application" time="0.4369999999762513" />
+  <testcase classname="tests.unit.test_backup_credential_restore.BackupCredentialRestoreTests" name="test_restore_stops_before_document_or_application_start_when_key_check_fails" time="0.4690000000409782" />
+  <testcase classname="tests.unit.test_data_export_bounds.DataExportReadBoundsTests" name="test_document_collection_stops_before_reading_past_total_budget" time="0.5160000000032596" />
+  <testcase classname="tests.unit.test_data_export_bounds.DataExportReadBoundsTests" name="test_generated_document_uses_a_bounded_read" time="0.5" />
+  <testcase classname="tests.unit.test_data_export_bounds.DataExportReadBoundsTests" name="test_growing_file_is_rejected_and_retry_reads_unchanged_database" time="0.5149999999557622" />
+  <testcase classname="tests.unit.test_data_export_bounds.DataExportReadBoundsTests" name="test_uploaded_resume_growth_is_rejected_before_checksum_and_retry_succeeds" time="0.4850000000442378" />
+  <testcase classname="tests.unit.test_data_export_bounds.DataExportReadBoundsTests" name="test_uploaded_resume_read_is_limited_to_its_recorded_size" time="0.5309999999590218" />
+</testsuite>
