@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-11-03T05:29:04.063680+00:00",
+  "source": "62508d7c5f80067e30ff23a4bbc276c42a98da67",
+  "module_blob": "1e37551a735d92a4998151fb9d0a69fe5d32b0ee",
+  "writer_a_exit": 0,
+  "writer_b_exit": 0,
+  "final_ids": [
+    "CHECKPOINT-1",
+    "CONCURRENT-A"
+  ],
+  "validation_errors": [],
+  "lost_successful_milestone": "CONCURRENT-B",
+  "result": "REPRODUCED_EXISTING_MULTIWRITER_LIMITATION",
+  "scope": "Two owned child processes and a synthetic copied journal/module; no canonical repository or production state changed."
+}

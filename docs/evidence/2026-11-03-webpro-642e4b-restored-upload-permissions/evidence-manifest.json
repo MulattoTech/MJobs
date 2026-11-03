@@ -1,0 +1,674 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-03T08:52:21.761453Z",
+  "source_commit": "413fd1e7a41866c6324dec16519522f3c1248128",
+  "source_tree": "111ae748f08028454ea6d983e5159650be80f07f",
+  "product_acceptance": "MJ-REQ-171 remains PARTIAL",
+  "raw_inputs": {
+    "baseline/execution-summary.json": {
+      "sha256": "47c9ab2e2fa7cfa0d5eafc94e46705e0be8d06e4c715af57609eab837940ee8d",
+      "bytes": 12163,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/execution-summary.json"
+    },
+    "baseline/inputs/cli__local_backup.py": {
+      "sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f",
+      "bytes": 41728,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/cli__local_backup.py"
+    },
+    "baseline/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py": {
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py"
+    },
+    "baseline/inputs/execution-config.json": {
+      "sha256": "899df6c8d3b0db2c588cadf60ba734ac2dd2bac8029a042c82303a5e55576727",
+      "bytes": 296,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/execution-config.json"
+    },
+    "baseline/inputs/outputs__run_restored_upload_capsule.py": {
+      "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "bytes": 7837,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/outputs__run_restored_upload_capsule.py"
+    },
+    "baseline/inputs/outputs__run_restored_upload_checks.py": {
+      "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "bytes": 780,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/outputs__run_restored_upload_checks.py"
+    },
+    "baseline/inputs/tests__unit__test_backup_config_snapshot.py": {
+      "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+      "bytes": 22805,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/tests__unit__test_backup_config_snapshot.py"
+    },
+    "baseline/inputs/tests__unit__test_backup_credential_restore.py": {
+      "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+      "bytes": 8345,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/tests__unit__test_backup_credential_restore.py"
+    },
+    "baseline/inputs/tests__unit__test_data_export_bounds.py": {
+      "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+      "bytes": 5998,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/tests__unit__test_data_export_bounds.py"
+    },
+    "baseline/inputs/tests__unit__test_local_backup.py": {
+      "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+      "bytes": 7819,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/tests__unit__test_local_backup.py"
+    },
+    "baseline/inputs/tests__unit__test_restored_upload_privacy.py": {
+      "sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2",
+      "bytes": 6099,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/tests__unit__test_restored_upload_privacy.py"
+    },
+    "baseline/linux/execution.json": {
+      "sha256": "ee3740a4e1a15a423066ddc73a6065dc2453f6c9d3b2c39fd4e71888bc545241",
+      "bytes": 3076,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux/execution.json"
+    },
+    "baseline/linux/restore-source-binding.json": {
+      "sha256": "54ba9f438964c65eb27c1af118e098bf5b9f61cf486a82fe28b254347031565c",
+      "bytes": 153,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux/restore-source-binding.json"
+    },
+    "baseline/linux/tests.xml": {
+      "sha256": "87348a1e8c4ef9dc540c7b47fe6d5be6f9f20e153bd48501063b59e5308a3d9f",
+      "bytes": 1976,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux/tests.xml"
+    },
+    "baseline/linux-console.log": {
+      "sha256": "a008a48431278e55755f06e41002b12214b2ae3de39fda8aa5df266883e1a449",
+      "bytes": 3210,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux-console.log"
+    },
+    "baseline/linux-create.log": {
+      "sha256": "c54cf618aa2318cb05bd8b9f60eb73505b0b7351b18c40dd22c766a0295f146b",
+      "bytes": 65,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux-create.log"
+    },
+    "provisional/execution-summary.json": {
+      "sha256": "852760c52e99efe46054f0a0f66372d0bbe0d77bb8a9042f8426f95713496479",
+      "bytes": 42675,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/execution-summary.json"
+    },
+    "provisional/inputs/cli__local_backup.py": {
+      "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa",
+      "bytes": 46481,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/cli__local_backup.py"
+    },
+    "provisional/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py": {
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py"
+    },
+    "provisional/inputs/execution-config.json": {
+      "sha256": "7b1709f8fe7f2b8d0c1e9011a829892a0b61ca57807256489f56dc9391e70574",
+      "bytes": 625,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/execution-config.json"
+    },
+    "provisional/inputs/outputs__run_restored_upload_capsule.py": {
+      "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "bytes": 7837,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/outputs__run_restored_upload_capsule.py"
+    },
+    "provisional/inputs/outputs__run_restored_upload_checks.py": {
+      "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "bytes": 780,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/outputs__run_restored_upload_checks.py"
+    },
+    "provisional/inputs/tests__unit__test_backup_config_snapshot.py": {
+      "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+      "bytes": 22805,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/tests__unit__test_backup_config_snapshot.py"
+    },
+    "provisional/inputs/tests__unit__test_backup_credential_restore.py": {
+      "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+      "bytes": 8345,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/tests__unit__test_backup_credential_restore.py"
+    },
+    "provisional/inputs/tests__unit__test_data_export_bounds.py": {
+      "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+      "bytes": 5998,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/tests__unit__test_data_export_bounds.py"
+    },
+    "provisional/inputs/tests__unit__test_local_backup.py": {
+      "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+      "bytes": 7819,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/tests__unit__test_local_backup.py"
+    },
+    "provisional/inputs/tests__unit__test_restored_upload_privacy.py": {
+      "sha256": "bfdb5bb2f1a5e82c5788806fc24e9c69ddb95b6c85c928f93580b92bd5c9e46a",
+      "bytes": 18840,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/inputs/tests__unit__test_restored_upload_privacy.py"
+    },
+    "provisional/linux/execution.json": {
+      "sha256": "a149e478d29881d5abd8fcb2ed1b198fce2db081d63bf5a3eb691c589f2d7d01",
+      "bytes": 13314,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux/execution.json"
+    },
+    "provisional/linux/restore-source-binding.json": {
+      "sha256": "15733fe296d3123468479865344fd808b799fafd78fc0e9228b9b42e8c026ec0",
+      "bytes": 153,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux/restore-source-binding.json"
+    },
+    "provisional/linux/tests.xml": {
+      "sha256": "1d3cfde37fcc2c82b1dda50c6315788cb2da26993707b22f102a9c76b5498103",
+      "bytes": 8683,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux/tests.xml"
+    },
+    "provisional/linux-console.log": {
+      "sha256": "b011dcf138b5fd95ce767f5c3912fcaaf8b17eb6b745ceb848f42867baf78e1d",
+      "bytes": 10764,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux-console.log"
+    },
+    "provisional/linux-create.log": {
+      "sha256": "21ac45f81f9ff22e296ff4e0cba3ebf265cbd602f9c94d438a72332da37719ad",
+      "bytes": 65,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux-create.log"
+    },
+    "provisional/native/execution.json": {
+      "sha256": "8cc1dc3b7d61d1af36456f046d888ba1a769d62c31f74081138f3f9902b56d1b",
+      "bytes": 14042,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native/execution.json"
+    },
+    "provisional/native/restore-source-binding.json": {
+      "sha256": "74bd9cc8988b35a41d966f320e4ad5b63664d4888b850177d46f9796c6c86a32",
+      "bytes": 212,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native/restore-source-binding.json"
+    },
+    "provisional/native/tests.xml": {
+      "sha256": "96fdbbdb829994dee811d8e134cf7ee94a565c3a9483568476320c457b4c430a",
+      "bytes": 9037,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native/tests.xml"
+    },
+    "provisional/native-console.log": {
+      "sha256": "bae993b5b251d98bc301236505e36e45a0eebfab121fda9b93e7dc4b782dc93f",
+      "bytes": 11690,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native-console.log"
+    },
+    "provisional/native-existing/console.log": {
+      "sha256": "1fc639266751bb58f8d04d01af161bd7cae441a4f18a076cd5180c007a9bef81",
+      "bytes": 112,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native-existing/console.log"
+    },
+    "provisional/native-existing/tests.xml": {
+      "sha256": "cb7620015f58f6be4df4f5730c2b595bbcae5f52b5c9e9b525b1a5a1d471aacb",
+      "bytes": 4654,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native-existing/tests.xml"
+    },
+    "fifo-guard/execution-summary.json": {
+      "sha256": "cbb6e47db32fa0ccbd5a75e86e4aed3cd86f925300084c58177c3a0cb081cee7",
+      "bytes": 10645,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/execution-summary.json"
+    },
+    "fifo-guard/inputs/cli__local_backup.py": {
+      "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa",
+      "bytes": 46481,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/cli__local_backup.py"
+    },
+    "fifo-guard/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py": {
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py"
+    },
+    "fifo-guard/inputs/execution-config.json": {
+      "sha256": "4b6f084c87eb35ffa3183e176d55a3d62bdf7cc4d2f0651effe6a644baf314b1",
+      "bytes": 294,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/execution-config.json"
+    },
+    "fifo-guard/inputs/outputs__run_restored_upload_capsule.py": {
+      "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "bytes": 7837,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/outputs__run_restored_upload_capsule.py"
+    },
+    "fifo-guard/inputs/outputs__run_restored_upload_checks.py": {
+      "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "bytes": 780,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/outputs__run_restored_upload_checks.py"
+    },
+    "fifo-guard/inputs/tests__unit__test_backup_config_snapshot.py": {
+      "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+      "bytes": 22805,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/tests__unit__test_backup_config_snapshot.py"
+    },
+    "fifo-guard/inputs/tests__unit__test_backup_credential_restore.py": {
+      "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+      "bytes": 8345,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/tests__unit__test_backup_credential_restore.py"
+    },
+    "fifo-guard/inputs/tests__unit__test_data_export_bounds.py": {
+      "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+      "bytes": 5998,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/tests__unit__test_data_export_bounds.py"
+    },
+    "fifo-guard/inputs/tests__unit__test_local_backup.py": {
+      "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+      "bytes": 7819,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/tests__unit__test_local_backup.py"
+    },
+    "fifo-guard/inputs/tests__unit__test_restored_upload_privacy.py": {
+      "sha256": "537eeaf85e2eb5f947493891c259751cab2c7c960cc38f2ed51528289b58eb55",
+      "bytes": 19023,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/inputs/tests__unit__test_restored_upload_privacy.py"
+    },
+    "fifo-guard/linux/execution.json": {
+      "sha256": "c54c477d738cb687ab9531b04d20f31d302935756fc93ac3c87a63565ac08c89",
+      "bytes": 1452,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux/execution.json"
+    },
+    "fifo-guard/linux/restore-source-binding.json": {
+      "sha256": "15733fe296d3123468479865344fd808b799fafd78fc0e9228b9b42e8c026ec0",
+      "bytes": 153,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux/restore-source-binding.json"
+    },
+    "fifo-guard/linux/tests.xml": {
+      "sha256": "a3da2b99cd41daf1c4bfed4e13e0f0e9d51d79d094361f61d5162fa65d4cb3e8",
+      "bytes": 395,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux/tests.xml"
+    },
+    "fifo-guard/linux-console.log": {
+      "sha256": "54c3efdd7ae8c76a77959b6723c86f185675f51d22f84b135933f906fa1513e7",
+      "bytes": 1270,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux-console.log"
+    },
+    "fifo-guard/linux-create.log": {
+      "sha256": "bf25b3d9425792ba0eeafe9296401ecd9054badd7f2e33882432c8f7afe03223",
+      "bytes": 65,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux-create.log"
+    },
+    "publication-harness/attempt.json": {
+      "sha256": "a8f2e931a13c846393c3724bae04cc4750199b6f58524e909dcb5b7f11847086",
+      "bytes": 1154,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/attempt.json"
+    },
+    "publication-harness/corrected-builder.py": {
+      "sha256": "8c789477fa10c0c2f03cd805d0e16cf92e8181d6e70c09f80a84e15be238135c",
+      "bytes": 17320,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/corrected-builder.py"
+    },
+    "publication-harness/failed-builder.py": {
+      "sha256": "e18d03cd39fb2f8d411df7c5349892911f477b87c90d7c6e1f3b7ecbe0cecf8e",
+      "bytes": 15989,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/failed-builder.py"
+    },
+    "publication-harness/partial-packet/baseline-console.log": {
+      "sha256": "a008a48431278e55755f06e41002b12214b2ae3de39fda8aa5df266883e1a449",
+      "bytes": 3210,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/baseline-console.log"
+    },
+    "publication-harness/partial-packet/baseline-execution.json": {
+      "sha256": "a7fb01b3768747ed1b3944f43216c0e962bcf9f64cb8a4adbe4c5f03d3b75681",
+      "bytes": 13856,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/baseline-execution.json"
+    },
+    "publication-harness/partial-packet/baseline-linux.xml": {
+      "sha256": "87348a1e8c4ef9dc540c7b47fe6d5be6f9f20e153bd48501063b59e5308a3d9f",
+      "bytes": 1976,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/baseline-linux.xml"
+    },
+    "publication-harness/partial-packet/baseline-source.py": {
+      "sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f",
+      "bytes": 41728,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/baseline-source.py"
+    },
+    "publication-harness/partial-packet/baseline-test-source.py": {
+      "sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2",
+      "bytes": 6099,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/baseline-test-source.py"
+    },
+    "publication-harness/partial-packet/fifo-guard-console.log": {
+      "sha256": "54c3efdd7ae8c76a77959b6723c86f185675f51d22f84b135933f906fa1513e7",
+      "bytes": 1270,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/fifo-guard-console.log"
+    },
+    "publication-harness/partial-packet/fifo-guard-execution.json": {
+      "sha256": "762112b633bdd36c393c9ecec41db6a8980bb381f5eb001f264324ea17ebc2ad",
+      "bytes": 12331,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/fifo-guard-execution.json"
+    },
+    "publication-harness/partial-packet/fifo-guard-linux.xml": {
+      "sha256": "a3da2b99cd41daf1c4bfed4e13e0f0e9d51d79d094361f61d5162fa65d4cb3e8",
+      "bytes": 395,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/fifo-guard-linux.xml"
+    },
+    "publication-harness/partial-packet/focused-test-driver-v2.py": {
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/focused-test-driver-v2.py"
+    },
+    "publication-harness/partial-packet/provisional-execution.json": {
+      "sha256": "2bdfd9c940590308b0f7e133e76605534037b3a4b4f83ec4204158f083a39f80",
+      "bytes": 44426,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/provisional-execution.json"
+    },
+    "publication-harness/partial-packet/provisional-linux.xml": {
+      "sha256": "1d3cfde37fcc2c82b1dda50c6315788cb2da26993707b22f102a9c76b5498103",
+      "bytes": 8683,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/provisional-linux.xml"
+    },
+    "publication-harness/partial-packet/provisional-native.xml": {
+      "sha256": "ac5d977f902bd2eb9c3e288da15e3fc42c3c93d2228b508a68e2ac9ddfa64f8b",
+      "bytes": 8974,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/provisional-native.xml"
+    },
+    "publication-harness/partial-packet/verification-controller.py": {
+      "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "bytes": 7837,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/verification-controller.py"
+    },
+    "publication-harness/partial-packet/verification-wrapper.py": {
+      "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "bytes": 780,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/partial-packet/verification-wrapper.py"
+    },
+    "publication-harness/rdc-output.txt": {
+      "sha256": "6f0bbb17cde49eb578edef1aee0b0f92bbb876d90d246fde5cea2cc7114a614d",
+      "bytes": 911,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/rdc-output.txt"
+    },
+    "source-commit/commit-message.txt": {
+      "sha256": "11e0c624e7bfb4a973f760b729c53a00ad68613017376c8902f8c939c760a5dc",
+      "bytes": 988,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-source-commit-20261103T084745Z/commit-message.txt"
+    },
+    "source-commit/commit-provenance.log": {
+      "sha256": "a95e6c2af67c3af3574ebce8bd00efa3ce1ef6e389df82e0b04c1e3a0bb42466",
+      "bytes": 46,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-source-commit-20261103T084745Z/commit-provenance.log"
+    },
+    "source-commit/source-commit.json": {
+      "sha256": "e45f466d23ae1cec3573f81a326197439e27184f615773003909109b128fdb95",
+      "bytes": 940,
+      "retained_path": "outputs/verification/webpro-642e4b-restore-source-commit-20261103T084745Z/source-commit.json"
+    }
+  },
+  "published_artifacts": {
+    "baseline-test-source.py": {
+      "sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2",
+      "bytes": 6099,
+      "git_blob": "882a9e4581ce99005623237c8d35b11c6c0c85de",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/tests__unit__test_restored_upload_privacy.py",
+      "raw_sha256": "d0060c537a4001398cec381a58c662aaa13f77346ac194a25669a16aa682ecc2"
+    },
+    "baseline-source.py": {
+      "sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f",
+      "bytes": 41728,
+      "git_blob": "80a176b25be38db2c00c91a3236f81b6984f5ad7",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/cli__local_backup.py",
+      "raw_sha256": "d5544404ad0807bb8a81049d9fc5fab70492f24e74a73c27ed8af75401f6232f"
+    },
+    "verification-controller.py": {
+      "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "bytes": 7837,
+      "git_blob": "79142a344504419ee0eb3e499b8b23a304e8e871",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/outputs__run_restored_upload_capsule.py",
+      "raw_sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1"
+    },
+    "verification-wrapper.py": {
+      "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "bytes": 780,
+      "git_blob": "58c708c93655cdac67d714e0a8374ed8d036e65a",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/outputs__run_restored_upload_checks.py",
+      "raw_sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242"
+    },
+    "focused-test-driver-v2.py": {
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973,
+      "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/inputs/docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py",
+      "raw_sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e"
+    },
+    "baseline-execution.json": {
+      "sha256": "a7fb01b3768747ed1b3944f43216c0e962bcf9f64cb8a4adbe4c5f03d3b75681",
+      "bytes": 13856,
+      "git_blob": "2ef3414cc4721a46dec466821a4beabfe6230895",
+      "transforms": [
+        "Recursive disclosed path normalization",
+        "Add explicit provenance/interpretation envelope"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/execution-summary.json",
+      "raw_sha256": "47c9ab2e2fa7cfa0d5eafc94e46705e0be8d06e4c715af57609eab837940ee8d"
+    },
+    "provisional-execution.json": {
+      "sha256": "2bdfd9c940590308b0f7e133e76605534037b3a4b4f83ec4204158f083a39f80",
+      "bytes": 44426,
+      "git_blob": "eb43f9cfee649d14c44441c9fde2c57eab1df80f",
+      "transforms": [
+        "Recursive disclosed path normalization",
+        "Add explicit provenance/interpretation envelope"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/execution-summary.json",
+      "raw_sha256": "852760c52e99efe46054f0a0f66372d0bbe0d77bb8a9042f8426f95713496479"
+    },
+    "fifo-guard-execution.json": {
+      "sha256": "762112b633bdd36c393c9ecec41db6a8980bb381f5eb001f264324ea17ebc2ad",
+      "bytes": 12331,
+      "git_blob": "5b2da125aeb6559a353c9b08c2dd09aa9ebffbfc",
+      "transforms": [
+        "Recursive disclosed path normalization",
+        "Add explicit provenance/interpretation envelope"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/execution-summary.json",
+      "raw_sha256": "cbb6e47db32fa0ccbd5a75e86e4aed3cd86f925300084c58177c3a0cb081cee7"
+    },
+    "baseline-linux.xml": {
+      "sha256": "13656a294d58122e0615490f8fe1e0d9b3d99845036f4a8d606430b910174047",
+      "bytes": 1977,
+      "git_blob": "d047c6786a7ac18cfd9bb63c036ebf1b0ef2f080",
+      "transforms": [
+        "Remove hostname attributes",
+        "Convert timezone-aware XML timestamps to UTC",
+        "Normalize disclosed paths in parsed text/attributes",
+        "Serialize XML with escaped placeholders and LF; preserve testcase identities/counts/durations/skips/diagnostics"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux/tests.xml",
+      "raw_sha256": "87348a1e8c4ef9dc540c7b47fe6d5be6f9f20e153bd48501063b59e5308a3d9f",
+      "xml_suites": [
+        {
+          "name": "mjobs-upload-privacy",
+          "tests": "1",
+          "failures": "1",
+          "errors": "0",
+          "skipped": "0",
+          "timestamp": "2026-11-03T08:34:13.896735Z",
+          "time": "0.019959"
+        }
+      ]
+    },
+    "baseline-console.log": {
+      "sha256": "a008a48431278e55755f06e41002b12214b2ae3de39fda8aa5df266883e1a449",
+      "bytes": 3210,
+      "git_blob": "a06a899ff050a625b86d19ce7e1b61589aa38aa4",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-baseline-20261103T083411Z/linux-console.log",
+      "raw_sha256": "a008a48431278e55755f06e41002b12214b2ae3de39fda8aa5df266883e1a449"
+    },
+    "fifo-guard-linux.xml": {
+      "sha256": "1cda0020bfb15a6e949f6dbc697f8393a53cb1d64f197858678d0d48a9f2f452",
+      "bytes": 396,
+      "git_blob": "b4161c5eed9aeba04dce58e1d4c88d4f4857acf5",
+      "transforms": [
+        "Remove hostname attributes",
+        "Convert timezone-aware XML timestamps to UTC",
+        "Normalize disclosed paths in parsed text/attributes",
+        "Serialize XML with escaped placeholders and LF; preserve testcase identities/counts/durations/skips/diagnostics"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux/tests.xml",
+      "raw_sha256": "a3da2b99cd41daf1c4bfed4e13e0f0e9d51d79d094361f61d5162fa65d4cb3e8",
+      "xml_suites": [
+        {
+          "name": "mjobs-upload-privacy",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "timestamp": "2026-11-03T08:46:09.397820Z",
+          "time": "0.002345"
+        }
+      ]
+    },
+    "fifo-guard-console.log": {
+      "sha256": "54c3efdd7ae8c76a77959b6723c86f185675f51d22f84b135933f906fa1513e7",
+      "bytes": 1270,
+      "git_blob": "80bf17471e5cde40b87474972f0a157f8ffb66b2",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/linux-console.log",
+      "raw_sha256": "54c3efdd7ae8c76a77959b6723c86f185675f51d22f84b135933f906fa1513e7"
+    },
+    "provisional-linux.xml": {
+      "sha256": "04a9ebc76be02d62fcba33b3c18b1ed60abe5b9633aade1f05c9d197d27ec22a",
+      "bytes": 8684,
+      "git_blob": "a8644a95082d81817f721f1a3fb9f1b6c501b708",
+      "transforms": [
+        "Remove hostname attributes",
+        "Convert timezone-aware XML timestamps to UTC",
+        "Normalize disclosed paths in parsed text/attributes",
+        "Serialize XML with escaped placeholders and LF; preserve testcase identities/counts/durations/skips/diagnostics"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux/tests.xml",
+      "raw_sha256": "1d3cfde37fcc2c82b1dda50c6315788cb2da26993707b22f102a9c76b5498103",
+      "xml_suites": [
+        {
+          "name": "mjobs-upload-privacy",
+          "tests": "45",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "timestamp": "2026-11-03T08:37:48.065477Z",
+          "time": "3.031426"
+        }
+      ]
+    },
+    "provisional-native.xml": {
+      "sha256": "3d99051b36f104514d0cdae1b78369320965bb750ae225fcd0d3da7642eb50da",
+      "bytes": 8975,
+      "git_blob": "135e6afeb7fbb2da7bfbf124c99c57cc200c157a",
+      "transforms": [
+        "Remove hostname attributes",
+        "Convert timezone-aware XML timestamps to UTC",
+        "Normalize disclosed paths in parsed text/attributes",
+        "Serialize XML with escaped placeholders and LF; preserve testcase identities/counts/durations/skips/diagnostics"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native/tests.xml",
+      "raw_sha256": "96fdbbdb829994dee811d8e134cf7ee94a565c3a9483568476320c457b4c430a",
+      "xml_suites": [
+        {
+          "name": "mjobs-upload-privacy",
+          "tests": "45",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "8",
+          "timestamp": "2026-11-03T08:37:52.215790Z",
+          "time": "6.231029"
+        }
+      ]
+    },
+    "provisional-native-existing.xml": {
+      "sha256": "68bd101b6b2a29e4f87e94a06b8dc5d3672069771a038e2a7ffd1035f8309456",
+      "bytes": 4594,
+      "git_blob": "4801aa993fca992bbc1d5f05972e587a89191f73",
+      "transforms": [
+        "Remove hostname attributes",
+        "Convert timezone-aware XML timestamps to UTC",
+        "Normalize disclosed paths in parsed text/attributes",
+        "Serialize XML with escaped placeholders and LF; preserve testcase identities/counts/durations/skips/diagnostics"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native-existing/tests.xml",
+      "raw_sha256": "cb7620015f58f6be4df4f5730c2b595bbcae5f52b5c9e9b525b1a5a1d471aacb",
+      "xml_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "1",
+          "tests": "28",
+          "time": "1.347",
+          "timestamp": "2026-11-03T08:37:58.978233Z"
+        }
+      ]
+    },
+    "provisional-linux-console.log": {
+      "sha256": "b011dcf138b5fd95ce767f5c3912fcaaf8b17eb6b745ceb848f42867baf78e1d",
+      "bytes": 10764,
+      "git_blob": "582861f144c50b1944d6b78aa4deccc40f07070f",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/linux-console.log",
+      "raw_sha256": "b011dcf138b5fd95ce767f5c3912fcaaf8b17eb6b745ceb848f42867baf78e1d"
+    },
+    "provisional-native-console.log": {
+      "sha256": "2b0dfd628955780d275c4086c9e8f9b2ce0eb406164363243644f986f7cced26",
+      "bytes": 11357,
+      "git_blob": "96bbfab4100f0e90acd87c19f53ac4e174a92f80",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native-console.log",
+      "raw_sha256": "bae993b5b251d98bc301236505e36e45a0eebfab121fda9b93e7dc4b782dc93f"
+    },
+    "provisional-native-existing-console.log": {
+      "sha256": "8cdbb86c65e1d45b2268ad43ce71ae7c9e481cfd15a5b19c80c88e4de7f24227",
+      "bytes": 110,
+      "git_blob": "2785f61b40b67116ef1944728a49252cb75b33d0",
+      "transforms": [
+        "LF line endings; disclosed path/hostname normalization where present"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-provisional-20261103T083745Z/native-existing/console.log",
+      "raw_sha256": "1fc639266751bb58f8d04d01af161bd7cae441a4f18a076cd5180c007a9bef81"
+    },
+    "publication-harness-failure.json": {
+      "sha256": "a8f2e931a13c846393c3724bae04cc4750199b6f58524e909dcb5b7f11847086",
+      "bytes": 1154,
+      "git_blob": "5b4d6a3e23f46ac64af3e034e26b2ddd3c5e6501",
+      "transforms": [
+        "Disclosed path normalization"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/attempt.json",
+      "raw_sha256": "a8f2e931a13c846393c3724bae04cc4750199b6f58524e909dcb5b7f11847086"
+    },
+    "publication-harness-failure.log": {
+      "sha256": "f998e11eeefbeb5a474d5469315fa7f12d7d160becbacb36c5879fb56929ffc1",
+      "bytes": 717,
+      "git_blob": "565085ed5af303387da2fa22601b5d3cc88fb424",
+      "transforms": [
+        "Disclosed native path/hostname normalization",
+        "Remove remote tool device identity line",
+        "Remove one extra terminal blank line reported by git diff --check; retain final newline"
+      ],
+      "raw_path": "outputs/verification/webpro-642e4b-restore-evidence-harness-20261103T085220Z/rdc-output.txt",
+      "raw_sha256": "6f0bbb17cde49eb578edef1aee0b0f92bbb876d90d246fde5cea2cc7114a614d"
+    },
+    "review.json": {
+      "sha256": "44e92ebe50b6ea0429177c62ebcdcf64afc52afa577a4f7eeaf05f0f14a78e27",
+      "bytes": 2931,
+      "git_blob": "5f67925a6ad43eb17893f1aa56e736287d77fe68",
+      "transforms": [
+        "New source-review and acceptance-boundary receipt"
+      ]
+    }
+  },
+  "hash_policy": "SHA256 raw bytes and published UTF-8 LF bytes are distinct; listed Git blobs use git hash-object --path normalization.",
+  "baseline_reproducibility": "Exact baseline test, controller, wrapper, driver and production source are retained in this packet; raw Windows-byte originals are separately hashed.",
+  "publication_harness_history": "One XML escaping HARNESS_ERROR was retained separately; all original test JSON/XML/logs stayed intact and were not reconstructed.",
+  "scope": "Offline synthetic capsule plus mocked restore command orchestration; no actual Compose restart/restore, provider access or production operation.",
+  "runtime": "Linux dependency image pinned by digest; source and root filesystem read-only, network none, UID/GID10001, writable ephemeral/tmp and separate owned/evidence bind."
+}

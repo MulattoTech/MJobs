@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "scope": "WWR-RSS-DATE-FIXTURE-CLOCK",
+  "requirement_id": "MJ-REQ-030",
+  "acceptance_change": false,
+  "label": "corrected-module",
+  "result": "PASS",
+  "started_utc": "2026-11-03T08:43:08.959294+00:00",
+  "finished_utc": "2026-11-03T08:43:29.683644+00:00",
+  "head_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "source_state": "owned uncommitted test-only delta on protected main",
+  "tested_file": "tests/integration/test_relative_posted_source_intake.py",
+  "tested_file_git_blob": "b1955b49794b34b637d38336fdc890f583f96cc6",
+  "tested_file_lf_sha256": "ab32c17982b439000bf3149e832f7eb4ecaa662500f4ead0d43c38cd821629d6",
+  "command": [
+    "<existing-native-python>",
+    "-B",
+    "outputs/clock_pytest_driver.py",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--tb=short",
+    "tests/integration/test_relative_posted_source_intake.py",
+    "--junitxml=outputs\\wwr-clock\\corrected-module.xml"
+  ],
+  "cwd": "<owned-clock-worktree>",
+  "exit_code": 0,
+  "junit_testcase_elements": 9,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "pytest_summary": "9 passed, 1 warning, 8 subtests passed in 16.80s",
+  "clock_policy": "Existing helper freezes API and semantic clocks to the test query_at",
+  "network_policy": "Existing httpx.HTTPTransport fixture interception; no real WWR request; no browser or paid API",
+  "artifacts": {
+    "console": {
+      "raw_ignored_path": "outputs/wwr-clock/corrected-module.log",
+      "raw_sha256": "a57047d7627080855540b59cb9bae06ce082b517db63eb3c12ba3f087a28d63d",
+      "published_path": "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-module.log",
+      "published_sha256": "a3a141a86152fceaa46b5035bf6891e7aca9ff452828eb481473fd221fb5ba67",
+      "published_git_blob": "cb19c2eab78bf3ab24f1cb35091367705521ac99"
+    },
+    "xml": {
+      "raw_ignored_path": "outputs/wwr-clock/corrected-module.xml",
+      "raw_sha256": "f9d93bc527d5b16e8323dc141430c57286a8b317a7454bc16ecb960a7e32434a",
+      "published_path": "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-module.xml",
+      "published_sha256": "3c04571bdf191d2ede717bb327b3bf5984a31d507572f0281699a350f3abff2f",
+      "published_git_blob": "32043b3dcc9d1bdc7c065313d6f209b688bfd3c6"
+    }
+  },
+  "junit_declared_test_units": 17,
+  "parent_tests": 9,
+  "passing_subtests": 8,
+  "sanitization": "Published console/XML normalize private source/interpreter/user-profile prefixes; XML hostname is native-test-host. Original raw logs/XML remain unchanged in ignored outputs."
+}

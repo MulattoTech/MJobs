@@ -1,0 +1,70 @@
+{
+  "checked_at_utc": "2026-11-03T04:31:12.888609+00:00",
+  "pull_request": 896,
+  "url": "https://github.com/MulattoTech/MJobs/pull/896",
+  "head_sha": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+  "base_sha": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "proposed_merge": "e8923555a43dc4635964089e969d8cae26ec9d8e",
+  "proposed_tree": "734ad7aed27dbef76e142aa2bdd467a46dbd3538",
+  "local_tested_candidate": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+  "tree_matches_local_execution": true,
+  "required_checks": [
+    {
+      "name": "CI / required",
+      "head_sha": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/41576384139/job/125722407941",
+      "completed_at": "2026-11-03T04:14:09Z"
+    },
+    {
+      "name": "Integration / PostgreSQL and Redis",
+      "head_sha": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/41576384123/job/125727498538",
+      "completed_at": "2026-11-03T04:30:14Z"
+    },
+    {
+      "name": "Disposable Compose / mock end-to-end",
+      "head_sha": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/41576384255/job/125721186378",
+      "completed_at": "2026-11-03T04:17:28Z"
+    },
+    {
+      "name": "Dependencies / introduced vulnerabilities",
+      "head_sha": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/41576384086/job/125720739312",
+      "completed_at": "2026-11-03T04:09:06Z"
+    },
+    {
+      "name": "Security / secret scan",
+      "head_sha": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/41576384175/job/125720738939",
+      "completed_at": "2026-11-03T04:09:04Z"
+    }
+  ],
+  "ruleset": {
+    "id": 24886459,
+    "enforcement": "active",
+    "bypass_actors": [],
+    "required_approving_review_count": 0,
+    "required_review_thread_resolution": true,
+    "strict_required_status_checks_policy": true
+  },
+  "unresolved_threads_observed": 0,
+  "formal_reviews_observed": 0,
+  "internal_independent_review": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/review.json",
+  "merge_status_at_capture": "open",
+  "production_deployment_of_this_change": "NOT_RUN",
+  "actual_merge": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "merged_at": "2026-11-03T04:38:29Z",
+  "actual_merge_tree": "734ad7aed27dbef76e142aa2bdd467a46dbd3538",
+  "main_verified_after_merge": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "project": "https://github.com/users/MulattoTech/projects/1",
+  "title": "MJobs - Delivery and Release Readiness",
+  "verified_at": "2026-11-03T09:17:12.069411+00:00",
+  "method": "Existing signed-in browser UI; six existing GitHub items added, existing Status field used; reload and DOM readback verified; visual screenshot inspected in conversation only.",
+  "items": [
+    {
+      "number": 903,
+      "kind": "issue",
+      "status": "In Progress"
+    },
+    {
+      "number": 904,
+      "kind": "issue",
+      "status": "In Progress"
+    },
+    {
+      "number": 905,
+      "kind": "issue",
+      "status": "In Progress"
+    },
+    {
+      "number": 918,
+      "kind": "issue",
+      "status": "Todo"
+    },
+    {
+      "number": 919,
+      "kind": "issue",
+      "status": "Todo"
+    },
+    {
+      "number": 921,
+      "kind": "PR",
+      "status": "In Progress"
+    }
+  ],
+  "view_filter": "Original restored; no shared view saved",
+  "api_sync": "BLOCKED_AUTH_SCOPE unchanged for CLI/API; manual item association/status is separately verified",
+  "scope": "No new project, field, assignee, issue, acceptance change or public screenshot artifact. Other original/reference items untouched.",
+  "integration_owner": "53f264012a08dd025c4c870c30b7f1cee88803af",
+  "integration_released_at": "2026-11-03T09:17:14.348283+00:00",
+  "scope_note": "This is a verified six-item manual UI snapshot; the catalog project.sync_status and PROJECT_AUTH_SCOPE_MISSING refer to the unchanged CLI/API credential limitation, not denial of normal browser access."
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "requirement_id": "MJ-REQ-017",
+  "issue": 18,
+  "source_commit": "9a8d138f1455190dabedb7c1e6253b54074c12d6",
+  "claim_ref": "refs/heads/webpro-claims/AGGREGATOR-COMPANY-IDENTITY-COLLISION",
+  "owner_commit": "f11768a3c54edaf9b48a3da8b509816961fa7a88",
+  "original_requirement": "Initial Global Source Targets",
+  "parent_acceptance": "PARTIAL",
+  "scoped_result": "PASS",
+  "scope": "Refuse conflicting aggregator company labels that collide on an existing source identity, preserving all prior imported records.",
+  "baseline": {
+    "source_commit": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+    "executed_regression_cases": 6,
+    "result": "FAIL",
+    "reason": "Actual WWR collector did not raise for punctuation, non-ASCII or truncated-name collisions in either order.",
+    "evidence": "baseline-tests.xml"
+  },
+  "validation": {
+    "pytest_pass": 141,
+    "subtests_pass": 25,
+    "fail": 0,
+    "errors": 0,
+    "skip": 2,
+    "new_sqlite_cases_pass": 31,
+    "new_postgresql_race_cases_pass": 2,
+    "skip_reason": "Two existing opt-in live WWR/RemoteOK checks remain NOT_RUN; no live polling authorized for this scoped repair."
+  },
+  "checks": [
+    "Focused test Ruff PASS",
+    "Existing collector undefined-name checks PASS",
+    "Catalogue PASS",
+    "Progress validate PASS",
+    "Dashboard check PASS",
+    "git diff --check PASS"
+  ],
+  "remaining": [
+    "Full source-provider breadth is not implemented or accepted by this repair.",
+    "Hosted protected gates and actual merge/deployment are pending at this source checkpoint."
+  ],
+  "no_migration": true,
+  "no_adapter_id_changes": true,
+  "no_production_data_repair": true
+}

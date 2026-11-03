@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "scope": "MJ-REQ-171 / RESTORE-UPLOAD-PRIVATE-MODES; synthetic, offline, no real Compose restore",
+  "execution_source": {
+    "base_commit": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "base_tree": "9abb8f7ef1f4ab94c678ad6dfb91d406c543c3c8",
+    "production_git_blob": "603476b50de9e391d52a46d8a2c9662568f2b271",
+    "regression_git_blob": "b1f9535404cdc7c2d56aa8140d437eefdd3d238f",
+    "working_tree_execution": true,
+    "baseline_unchanged_production": false
+  },
+  "later_source_commit": {
+    "commit": "413fd1e7a41866c6324dec16519522f3c1248128",
+    "tree": "111ae748f08028454ea6d983e5159650be80f07f",
+    "execution_at_this_commit": false
+  },
+  "raw_receipt": {
+    "path": "outputs/verification/webpro-642e4b-restore-fifo-guard-20261103T084607Z/execution-summary.json",
+    "sha256": "cbb6e47db32fa0ccbd5a75e86e4aed3cd86f925300084c58177c3a0cb081cee7"
+  },
+  "receipt": {
+    "started_at": "2026-11-03T08:46:07.121844Z",
+    "label": "fifo-guard",
+    "head": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "tree": "9abb8f7ef1f4ab94c678ad6dfb91d406c543c3c8",
+    "tracked_diff_before": "cli/local_backup.py | 93 +++++++++++++++++++++++++++++++++++++++++++++++++++++\n 1 file changed, 93 insertions(+)",
+    "configuration": {
+      "label": "fifo-guard",
+      "expected_head": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+      "selectors": [
+        "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded"
+      ],
+      "linux": true,
+      "native": false
+    },
+    "inputs": {
+      "cli/local_backup.py": {
+        "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa",
+        "bytes": 46481,
+        "git_blob": "603476b50de9e391d52a46d8a2c9662568f2b271",
+        "snapshot": "inputs\\cli__local_backup.py"
+      },
+      "tests/unit/test_restored_upload_privacy.py": {
+        "sha256": "537eeaf85e2eb5f947493891c259751cab2c7c960cc38f2ed51528289b58eb55",
+        "bytes": 19023,
+        "git_blob": "b1f9535404cdc7c2d56aa8140d437eefdd3d238f",
+        "snapshot": "inputs\\tests__unit__test_restored_upload_privacy.py"
+      },
+      "tests/unit/test_local_backup.py": {
+        "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+        "bytes": 7819,
+        "git_blob": "a2e82f2153f6c559406acd09188e7ea69030d3e6",
+        "snapshot": "inputs\\tests__unit__test_local_backup.py"
+      },
+      "tests/unit/test_backup_config_snapshot.py": {
+        "sha256": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+        "bytes": 22805,
+        "git_blob": "72c5b32c532e1495377e1167e7e2615250b488ba",
+        "snapshot": "inputs\\tests__unit__test_backup_config_snapshot.py"
+      },
+      "tests/unit/test_backup_credential_restore.py": {
+        "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+        "bytes": 8345,
+        "git_blob": "386e9875b321179b97707ee89b94963c0f7e8e8c",
+        "snapshot": "inputs\\tests__unit__test_backup_credential_restore.py"
+      },
+      "tests/unit/test_data_export_bounds.py": {
+        "sha256": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+        "bytes": 5998,
+        "git_blob": "4a917bc55c9c85ec82d0071ff2ea083585a420cd",
+        "snapshot": "inputs\\tests__unit__test_data_export_bounds.py"
+      },
+      "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py": {
+        "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+        "bytes": 4973,
+        "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+        "snapshot": "inputs\\docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py"
+      },
+      "outputs/run_restored_upload_checks.py": {
+        "sha256": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+        "bytes": 780,
+        "git_blob": "58c708c93655cdac67d714e0a8374ed8d036e65a",
+        "snapshot": "inputs\\outputs__run_restored_upload_checks.py"
+      },
+      "outputs/run_restored_upload_capsule.py": {
+        "sha256": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+        "bytes": 7837,
+        "git_blob": "79142a344504419ee0eb3e499b8b23a304e8e871",
+        "snapshot": "inputs\\outputs__run_restored_upload_capsule.py"
+      }
+    },
+    "commands": [
+      {
+        "argv": [
+          "docker",
+          "create",
+          "--name",
+          "mjobs-642e4b-restore-fifo-guard-20261103t084607z",
+          "--label",
+          "mjobs.owner=webpro-20261103T031738Z-642e4b",
+          "--label",
+          "mjobs.requirement=MJ-REQ-171",
+          "--label",
+          "mjobs.role=restore-fifo-guard",
+          "--network",
+          "none",
+          "--user",
+          "10001:10001",
+          "--cap-drop",
+          "ALL",
+          "--security-opt",
+          "no-new-privileges",
+          "--read-only",
+          "--tmpfs",
+          "/tmp:rw,nosuid,nodev,mode=1777,size=256m",
+          "--mount",
+          "type=bind,source=<owned-worktree>,target=/app,readonly",
+          "--mount",
+          "type=bind,source=<owned-worktree>\\outputs\\verification\\webpro-642e4b-restore-fifo-guard-20261103T084607Z\\linux,target=/evidence",
+          "--workdir",
+          "/app",
+          "--env",
+          "PYTHONDONTWRITEBYTECODE=1",
+          "--env",
+          "PYTHONNOUSERSITE=1",
+          "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+          "python",
+          "outputs/run_restored_upload_checks.py",
+          "/evidence",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded"
+        ],
+        "started_at": "2026-11-03T08:46:07.629093Z",
+        "finished_at": "2026-11-03T08:46:07.840843Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "inspect",
+          "1b939ed34b08d607dc8c25b08d0cb5259a9866f9ff77006a862b6f2ca53db232"
+        ],
+        "started_at": "2026-11-03T08:46:07.840843Z",
+        "finished_at": "2026-11-03T08:46:08.047383Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "start",
+          "-a",
+          "1b939ed34b08d607dc8c25b08d0cb5259a9866f9ff77006a862b6f2ca53db232"
+        ],
+        "started_at": "2026-11-03T08:46:08.047383Z",
+        "finished_at": "2026-11-03T08:46:09.511086Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "rm",
+          "1b939ed34b08d607dc8c25b08d0cb5259a9866f9ff77006a862b6f2ca53db232"
+        ],
+        "started_at": "2026-11-03T08:46:09.512154Z",
+        "finished_at": "2026-11-03T08:46:09.632796Z",
+        "exit_code": 0
+      },
+      {
+        "argv": [
+          "docker",
+          "inspect",
+          "1b939ed34b08d607dc8c25b08d0cb5259a9866f9ff77006a862b6f2ca53db232"
+        ],
+        "started_at": "2026-11-03T08:46:09.633327Z",
+        "finished_at": "2026-11-03T08:46:09.742661Z",
+        "exit_code": 1
+      }
+    ],
+    "linux": {
+      "container_id": "1b939ed34b08d607dc8c25b08d0cb5259a9866f9ff77006a862b6f2ca53db232",
+      "image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "user": "10001:10001",
+      "network": "none",
+      "rootfs_readonly": true,
+      "tmpfs": {
+        "/tmp": "rw,nosuid,nodev,mode=1777,size=256m"
+      },
+      "mounts": [
+        {
+          "destination": "/app",
+          "read_write": false
+        },
+        {
+          "destination": "/evidence",
+          "read_write": true
+        }
+      ],
+      "exit_code": 0,
+      "execution": {
+        "schema_version": 1,
+        "command": [
+          "/usr/local/bin/python",
+          "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/focused-test-driver-v2.py",
+          "/evidence",
+          "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded"
+        ],
+        "cwd": "/app",
+        "platform": "linux",
+        "os_name": "posix",
+        "started_utc": "2026-11-03T08:46:09.397820+00:00",
+        "finished_utc": "2026-11-03T08:46:09.400165+00:00",
+        "duration_seconds": 0.002345,
+        "source_bindings": {
+          "services.documents.uploads": {
+            "module_file": "/app/services/documents/uploads.py",
+            "sha256": "a84a0560d91d5c6cc7bca4facc0e73ff0b391f1e7b017d3baba60102d806fdcb"
+          },
+          "tests.unit.test_restored_upload_privacy": {
+            "module_file": "/app/tests/unit/test_restored_upload_privacy.py",
+            "sha256": "537eeaf85e2eb5f947493891c259751cab2c7c960cc38f2ed51528289b58eb55"
+          }
+        },
+        "tests": 1,
+        "passed": 1,
+        "failed_testcases": 0,
+        "error_testcases": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "subtests_passed": 0,
+        "subtests_failed": 0,
+        "subtests_errors": 0,
+        "result": "PASS",
+        "records": [
+          {
+            "id": "tests.unit.test_restored_upload_privacy.RestoredUploadPrivacyTests.test_fifo_substituted_after_inventory_is_nonblocking_and_never_chmodded",
+            "status": "PASS",
+            "details": [],
+            "duration_seconds": 0.0018291580490767956
+          }
+        ]
+      },
+      "restore_source_binding": {
+        "module": "cli.local_backup",
+        "path": "/app/cli/local_backup.py",
+        "sha256": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa"
+      },
+      "cleanup": {
+        "remove_exit_code": 0,
+        "absence_inspect_exit_code": 1
+      }
+    },
+    "native": {},
+    "finished_at": "2026-11-03T08:46:09.742661Z",
+    "head_after": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "inputs_unchanged": true,
+    "artifact_sha256": {
+      "inputs\\cli__local_backup.py": "d2b8e2b3c0d77190fc7caa8437e5bb41fde849b1250dae1d3986b484e62b51fa",
+      "inputs\\docs__evidence__2026-11-03-webpro-642e4b-resume-upload-privacy__focused-test-driver-v2.py": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "inputs\\execution-config.json": "4b6f084c87eb35ffa3183e176d55a3d62bdf7cc4d2f0651effe6a644baf314b1",
+      "inputs\\outputs__run_restored_upload_capsule.py": "3aa5597c661a77517cfb22fa6d9d121dc73ebb1b3d5bdb6873628a0886c913c1",
+      "inputs\\outputs__run_restored_upload_checks.py": "d13ae592ba22522a0379e5631b700905c7ea87434234baffadc321aa41779242",
+      "inputs\\tests__unit__test_backup_config_snapshot.py": "a5134bd65082e445cdd05a26e25810e12954e2c2e5f8f0f9c13623f531739554",
+      "inputs\\tests__unit__test_backup_credential_restore.py": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef",
+      "inputs\\tests__unit__test_data_export_bounds.py": "7520bd2d7fc1b7211fec5207db54217d26a26f1a15fc2ce8ddd64ce5ba8f7278",
+      "inputs\\tests__unit__test_local_backup.py": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490",
+      "inputs\\tests__unit__test_restored_upload_privacy.py": "537eeaf85e2eb5f947493891c259751cab2c7c960cc38f2ed51528289b58eb55",
+      "linux\\execution.json": "c54c477d738cb687ab9531b04d20f31d302935756fc93ac3c87a63565ac08c89",
+      "linux\\restore-source-binding.json": "15733fe296d3123468479865344fd808b799fafd78fc0e9228b9b42e8c026ec0",
+      "linux\\tests.xml": "a3da2b99cd41daf1c4bfed4e13e0f0e9d51d79d094361f61d5162fa65d4cb3e8",
+      "linux-console.log": "54c3efdd7ae8c76a77959b6723c86f185675f51d22f84b135933f906fa1513e7",
+      "linux-create.log": "bf25b3d9425792ba0eeafe9296401ecd9054badd7f2e33882432c8f7afe03223"
+    }
+  },
+  "interpretation": "The successor test adds pre-open NOFOLLOW/NONBLOCK assertions so a flag regression cannot hang on a FIFO. Only that changed Linux case was rerun:1PASS/0skip. Production blob remains603476b5; the preceding complete scope remains tied to its earlier exact test blob956f0cc2.",
+  "sanitization": [
+    "Native owned-worktree and interpreter paths replaced by descriptive placeholders.",
+    "Raw privately retained bytes and commands are hashed separately from these UTF-8 LF derivatives.",
+    "Linux /app and /evidence are controlled capsule paths, not private machine paths."
+  ]
+}

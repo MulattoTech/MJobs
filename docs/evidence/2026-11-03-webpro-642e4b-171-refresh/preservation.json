@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T09:36:35.325456Z",
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "integration_ref": "refs/heads/webpro-locks/integration",
+  "integration_owner": "649aa5145754c37e7277b3ecb490e02aaaf00718",
+  "kind": "Canonical preservation and pending 171 preparation; not candidate execution acceptance",
+  "baseline": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "original_171_canonical": "81edf2e9bff01557c72cbd2c2285c8f6f97cdf1e",
+  "old_admitted_pr920_head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+  "pre_merge_171_source": "8875db8fd46d539bcb7abcf5387e2375ef833372",
+  "pre_merge_171_tree": "2138c2dc30d0de86b91b6c11a86a67f9fea13e0f",
+  "incoming_protected_merge": {
+    "pr": 909,
+    "head": "a106e77a2160173b997b00adeac38bcec3eab468",
+    "merge_commit": "57e524abf4860a57cf6bdd68f4e78759c7d42e89",
+    "merge_tree": "adb8447f2be7379fdb38126a23751b010342e1d6",
+    "parents": [
+      "63cb1042e08375f7bda1f9dad378209cca856167",
+      "a106e77a2160173b997b00adeac38bcec3eab468"
+    ],
+    "merged_at": "2026-11-03T09:19:53Z",
+    "url": "https://github.com/MulattoTech/MJobs/pull/909"
+  },
+  "corrections": {
+    "bounds": "3e7863fed6e45bc71a4600db26c191462e8c4d5b",
+    "restore": "413fd1e7a41866c6324dec16519522f3c1248128",
+    "restore_evidence": "f54453dd9c8fd2dff715a640b0cbec5130758bd9",
+    "agreed_clock_merge": "e06bdfd689c8127c43a6dbe8f408a8f1d535d851"
+  },
+  "incoming_canonical_blobs": {
+    "planning/CAPABILITY_MATRIX.json": "3f39010e73f14ef22faa1c9277afad99eb98e263",
+    "planning/PR_QUEUE.json": "19e873d5a98619006463ea52040f5472ed3ab2ea",
+    "planning/IMPLEMENTATION_STATE.json": "f6f9418c41c56895bda246dcbbcda8e7406993bc",
+    "planning/SESSION_HANDOFF.md": "16750215723d50c0caa25a9b316166b413a99cb6"
+  },
+  "original_171_canonical_blobs": {
+    "planning/CAPABILITY_MATRIX.json": "4a6e3d2b0713295d45c99d5d603462c016710a67",
+    "planning/PR_QUEUE.json": "bda74eef1ecd38fdb977911a8550247cb18c3848",
+    "planning/IMPLEMENTATION_STATE.json": "823607b06417537c479b6c965f0603c09f1ddecd",
+    "planning/SESSION_HANDOFF.md": "ce512ab38b3b0422c5adc8241db5a8818fd5b47b"
+  },
+  "preservation": {
+    "requirement_count": 366,
+    "result_counts": {
+      "PARTIAL": 82,
+      "PASS": 183,
+      "NOT_RUN": 101
+    },
+    "matrix_timestamp_preserved": "2026-11-03T05:59:31.437084+00:00",
+    "queue_generated_at_preserved": "2026-11-03T08:56:34.375770+00:00",
+    "incoming_queue_count": 204,
+    "final_queue_count": 205,
+    "incoming_milestone_count": 34,
+    "historical_171_record_preserved": "WEBPRO-642E4B-RESUME-STORAGE-PRIVACY-PARTIAL",
+    "new_milestone": "WEBPRO-642E4B-171-POST909-CANONICAL-RECONCILIATION",
+    "final_milestone_count": 36,
+    "all_incoming_journal_objects_and_order_preserved": true,
+    "old_171_queue_item_preserved_in_full": true,
+    "both_handoff_histories_preserved": true
+  },
+  "noncanonical_source_proof": {
+    "manifest": "parent-source-preservation.json",
+    "sha256": "8110dcb058bb6bb00c3400c8722eeaeb263636453155772d8949491088cdcb67",
+    "our_changed_count": 70,
+    "incoming_changed_count": 93,
+    "overlaps": [
+      ".gitleaksignore",
+      "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-object-review.json",
+      "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/README.md",
+      "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/boundary-probe.py.txt",
+      "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/verification.json",
+      "tests/integration/test_relative_posted_source_intake.py"
+    ]
+  },
+  "historical_execution_and_failures": {
+    "original_upload_source": {
+      "source": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+      "linux": "29 PASS +29 passing subtests;0 skips",
+      "native": "19 PASS +29 passing subtests;10 POSIX skips",
+      "retained_failures": "Four original API failures; provisional receipt-copy HARNESS_ERROR with absent Linux JSON/XML; export fixture1ERROR before the synthetic mode correction"
+    },
+    "hosted_original_unit_failure": {
+      "head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+      "actual_candidate": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+      "run": 41600807135,
+      "job": 125798816850,
+      "result": "2 FAIL /3611 PASS /53 SKIP /3867 passing subtests",
+      "evidence": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/hosted-unit-failure-9be83aa0.json",
+      "correction_scope": "5 native tests passed on9be working tree plus exact bounds test4a917bc5; not an execution of later commit3e7863fe",
+      "retained_other_harness_error": "Earlier Linux policy pytest HARNESS_ERROR: pytest absent, zero collected, no reconstructed XML"
+    },
+    "hosted_original_compose_failure": {
+      "head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+      "actual_candidate": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+      "run": 41600807103,
+      "job": 125798816859,
+      "result": "FAIL: post-restore synthetic uploaded-original GET returned409",
+      "checkpoint": "https://github.com/MulattoTech/MJobs/pull/920#issuecomment-6598871354"
+    },
+    "restore": {
+      "baseline": "1 expected0755!=0700 FAIL on unchanged3e production; exact source/scripts retained",
+      "production_blob": "603476b50de9e391d52a46d8a2c9662568f2b271",
+      "provisional_test_blob": "956f0cc22c72d075c44c154d09d75d58571785ad",
+      "provisional_linux": "45 PASS +78 passing subtests;0 skips",
+      "provisional_native": "37 PASS +69 passing subtests;8 POSIX skips",
+      "native_existing_pytest": "27 PASS /1 POSIX skip",
+      "final_test_blob": "b1f9535404cdc7c2d56aa8140d437eefdd3d238f",
+      "final_test_execution": "Only changed Linux FIFO case rerun:1 PASS; full provisional suite remains attributed to956f0cc2",
+      "later_commit_executed": false,
+      "evidence": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/evidence-manifest.json",
+      "manifest_sha256": "288df662b2ad0204b16767eae83d3c2e90310e3c1f5224590e5828e494434226",
+      "retained_publication_failures": "XML escaping HARNESS_ERROR/exit1 with original artifacts intact; initial staged diff-check exit2 for a surplus terminal blank line, both retained"
+    },
+    "clock": {
+      "agreed_merge": "e06bdfd689c8127c43a6dbe8f408a8f1d535d851",
+      "chosen_test_blob": "b92d722a43ce7f4e49ad2f4f0a8a1fe5c05732e9",
+      "original_hosted_failure": {
+        "head": "9be83aa0906a24b04381773f01e69eb38efc01b9",
+        "actual_candidate": "959407ad1237e0cad7ed9d3e402f229b4cace2e4",
+        "run": 41600807060,
+        "job": 125798817227,
+        "result": "1 FAIL / 931 PASS / 9 SKIP / 583 passing subtests; expected 3 rows, observed 2",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41600807060/job/125798817227"
+      },
+      "scope": "Both original clock histories and chosen peer source retained; no clock/source result is relabeled as execution of8875 or the new merge candidate"
+    },
+    "checkpoint_publication": {
+      "head": "8875db8fd46d539bcb7abcf5387e2375ef833372",
+      "checkpoint": "https://github.com/MulattoTech/MJobs/pull/920#issuecomment-6599702489",
+      "retained_helper_stop": "Exit 1 after the source merge but before push: embedded read-only preflight lacked the reviewed file's extra terminal LF. Exact reviewed bytes restored, AST identical, no source/test/commit changed.",
+      "original_partial_receipt_sha256": "13e6cc361e910273506bc88229e7cce2aafb66a477c9cc1d768565df6f24f475"
+    }
+  },
+  "acceptance": {
+    "MJ-REQ-171": "PARTIAL",
+    "MJ-REQ-269": "Preserve incoming PASS; no new acceptance decision",
+    "new_merged_candidate_execution": "PENDING",
+    "new_exact_head_hosted_gates": "PENDING",
+    "171_changed_code_deployment": "PENDING",
+    "current_8875_tests_executed_by_this_helper": false
+  },
+  "validation_boundary": "Preparation validators and source/index checks are recorded in the private dated receipt; this artifact alone asserts no execution PASS.",
+  "no_product_data_or_employer_provider_access": true,
+  "github_coordination_reads_performed": true,
+  "prepared_canonical_blobs": {
+    "planning/CAPABILITY_MATRIX.json": "715ebb1660a64611de380467cd1d85cc3750e331",
+    "planning/PR_QUEUE.json": "64394b254dc1aedd6ee54092dd773f39ec6548fd",
+    "planning/IMPLEMENTATION_STATE.json": "fdb424b4e00c64473941518f3de7c4f128575441",
+    "planning/SESSION_HANDOFF.md": "efa9fce83982ae96794637ded79f029a0707caa3"
+  }
+}

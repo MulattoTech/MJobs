@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "timestamp": "2026-11-03T05:43:20.167199+00:00",
+  "exit_code": 1,
+  "elapsed_seconds": 4.281,
+  "failed_assertions": 8,
+  "failure_detail": "Four failing parent methods plus four failing output-destination subcases; pytest reports8failed/2passed/1skipped, including the parent wrapper of failed subcases.",
+  "failures": [
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_competing_record_refuses_without_losing_success_and_can_retry",
+      "failure_index": 1,
+      "message": "AssertionError: 0 != 3 :"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_coordination_file_is_refused_as_direct_or_normalized_output",
+      "failure_index": 1,
+      "message": "AssertionError: 0 == 0"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_coordination_file_is_refused_as_direct_or_normalized_output",
+      "failure_index": 2,
+      "message": "AssertionError: 'Output journal must be separate from coordination lock' not found in ''"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_coordination_file_is_refused_as_direct_or_normalized_output",
+      "failure_index": 3,
+      "message": "AssertionError: 0 == 0"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_coordination_file_is_refused_as_direct_or_normalized_output",
+      "failure_index": 4,
+      "message": "AssertionError: 'Output journal must be separate from coordination lock' not found in ''"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_hardlinked_coordination_file_is_refused_without_touching_other_bytes",
+      "failure_index": 1,
+      "message": "AssertionError: 0 == 0"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_record_cannot_overtake_an_older_sync_snapshot",
+      "failure_index": 1,
+      "message": "AssertionError: 0 != 3 :"
+    },
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_sync_cannot_publish_inside_an_unfinished_record",
+      "failure_index": 1,
+      "message": "AssertionError: 0 != 3 :"
+    }
+  ],
+  "skips": [
+    {
+      "test": "test_symlink_coordination_file_is_refused_without_touching_target",
+      "reason": "POSIX symlink creation without Windows elevation"
+    }
+  ],
+  "privacy": "Private fixture paths and host metadata removed; original raw logs and XML retained privately."
+}

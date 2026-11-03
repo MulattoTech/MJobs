@@ -1,0 +1,55 @@
+{
+  "observed_at_utc": "2026-11-03T05:23:09.646900+00:00",
+  "deployment": {
+    "commit": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "version": "0.1.0-dev",
+    "operation_mode": "PERSONAL"
+  },
+  "scope": "At most 80 recent log lines per service since 05:02:45 UTC; older truncated lines are not covered.",
+  "services": [
+    {
+      "service": "api",
+      "exit_code": 0,
+      "returned_lines": 80,
+      "error_marked_lines": 0
+    },
+    {
+      "service": "worker",
+      "exit_code": 0,
+      "returned_lines": 0,
+      "error_marked_lines": 0
+    },
+    {
+      "service": "source-worker",
+      "exit_code": 0,
+      "returned_lines": 0,
+      "error_marked_lines": 0
+    },
+    {
+      "service": "document-worker",
+      "exit_code": 0,
+      "returned_lines": 0,
+      "error_marked_lines": 0
+    },
+    {
+      "service": "ai-worker",
+      "exit_code": 0,
+      "returned_lines": 0,
+      "error_marked_lines": 0
+    },
+    {
+      "service": "company-discovery-worker",
+      "exit_code": 0,
+      "returned_lines": 0,
+      "error_marked_lines": 0
+    },
+    {
+      "service": "scheduler",
+      "exit_code": 0,
+      "returned_lines": 0,
+      "error_marked_lines": 0
+    }
+  ],
+  "raw_logs_retained": false,
+  "pattern_self_check": "PASS"
+}
