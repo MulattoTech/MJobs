@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-269",
+  "result": "PASS",
+  "recorded_at_utc": "2026-11-03T04:40:51.175294+00:00",
+  "literal_criterion": "For AI-generated documents, optionally retain references to the career facts used. This improves explainability.",
+  "source_commit": "9a5fcafa44ea3213b845db23eaa9838cedd1ac1f",
+  "tested_candidate": "c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20",
+  "protected_merge": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "pull_request": 896,
+  "verified_contract": [
+    "Explicit configured-provider CLI creates bounded, sealed AI resume wording proposals from selected approved facts.",
+    "Human review binds exact proposal hash and fact order; stale inputs, unselected fact IDs and changed protected tokens are refused.",
+    "Prepared DOCX/PDF/TXT and reopened history retain original immutable fact snapshots, reviewed wording and separate AI attribution.",
+    "Accepted trace survives private draft archival; corrupt attribution refuses validated history.",
+    "Provider request and acceptance are idempotent, with uncertain requests never automatically replayed."
+  ],
+  "execution": {
+    "pytest_pass": 48,
+    "subtests_pass": 46,
+    "frontend_tests_pass": 14,
+    "fail": 0,
+    "skip": 0,
+    "independent_internal_review": "PASS",
+    "protected_required_checks": "5 PASS"
+  },
+  "scope_limits": [
+    "Drafting is CLI-only; accepted history is visible in the existing UI.",
+    "Selected saved-profile provider credentials are explicitly unsupported; runtime configuration is used.",
+    "Controlled provider fixtures and real loopback HTTP transport were executed; paid/live inference was not run.",
+    "Human review is required; token checks do not establish semantic equivalence.",
+    "Cover letters remain deterministic.",
+    "This is literal functional acceptance, not production deployment verification."
+  ],
+  "deployment": {
+    "status": "PENDING",
+    "issue_270": "Keep open until needed rollout verification is complete.",
+    "authenticated_Brave": "NOT_RUN: controls unavailable in this session."
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "source_head": "2b07e787d2f1cbf793b6caaea3339948df04e050",
+  "production_blob_before": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+  "test_blob": "da027e0d1c9aa31f222f35e5a97d7541d25cc404",
+  "started_at": "2026-11-03T05:57:10.060205+00:00",
+  "ended_at": "2026-11-03T05:57:18.902075+00:00",
+  "elapsed_seconds": 8.844,
+  "command": [
+    "python",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/integration/test_recovery_inventory_completeness.py::PublicJobInventoryCompletenessTests::test_legacy_default_page_cannot_certify_recovery_after_omitted_job_loss",
+    "--tb=short",
+    "--junitxml=outputs/verification/webpro-642e4b-292-legacy-baseline-20261103T055709Z/baseline-regression.xml"
+  ],
+  "exit_code": 1,
+  "production_blob_after": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+  "head_after": "2b07e787d2f1cbf793b6caaea3339948df04e050",
+  "junit": "legacy-completeness-baseline.xml",
+  "expected_failure": "ValueError not raised for explicit legacy-v2 baseline after omitted synthetic job loss",
+  "scope": "One real in-process API/disposable SQLite regression; no Docker, production data, or external provider/network calls",
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement_id": "MJ-REQ-292",
+  "requirement_result": "PARTIAL",
+  "result": "EXPECTED_FAIL",
+  "test_result": "FAIL",
+  "source_revision": "2b07e787d2f1cbf793b6caaea3339948df04e050",
+  "command_sanitization": "Absolute interpreter location is displayed as python; the JUnit output argument is repository-relative. The command was not rerun during publication.",
+  "parent_tests": 1,
+  "passing_subtests": 0,
+  "failed": 1,
+  "errors": 0,
+  "skipped": 0,
+  "junit_testcase_elements": 1,
+  "junit_declared_test_units": 1,
+  "pytest_seconds": 7.948,
+  "pytest_seconds_basis": "JUnit testsuite duration",
+  "console_pytest_seconds": 7.94,
+  "source_blobs": {
+    "cli/compose_recovery.py": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+    "tests/integration/test_recovery_inventory_completeness.py": "da027e0d1c9aa31f222f35e5a97d7541d25cc404"
+  },
+  "historical_test_source_retention": {
+    "recorded_in_progress_test_blob_fingerprint": "da027e0d1c9aa31f222f35e5a97d7541d25cc404",
+    "full_python_snapshot_retained": false,
+    "git_blob_object_available": false,
+    "retained_inputs": [
+      "execution JSON",
+      "console log",
+      "JUnit XML"
+    ],
+    "limitation": "The initial regression was in progress and its exact full Python source was not archived. The fingerprint is not a published or retrievable Git object. The final committed regression adds explicit v3 assertions and is separately bound to the corrected source.",
+    "final_committed_test_blob": "9138cd90495928fb179d369d51a667b2477057cd"
+  },
+  "scenario": [
+    "Seed 201 visible synthetic jobs in an actual in-process API and disposable SQLite fixture.",
+    "Capture the old default 200-row page as a version-2 baseline.",
+    "Remove only the omitted synthetic job and its owned route/posting rows.",
+    "Collect the remaining complete 200 rows with the then-current sentinel collector.",
+    "The old comparator incorrectly returns PASS; the new regression fails because the required ValueError is not raised."
+  ],
+  "raw_execution_receipt": {
+    "path": "outputs/verification/webpro-642e4b-292-legacy-baseline-20261103T055709Z/baseline-execution.json",
+    "sha256_worktree_bytes": "6c8d9344ea2764c5d57b20aae7239b2019f7c8adcb9bfa9d126cd86a5eae131c"
+  },
+  "raw_log": {
+    "path": "outputs/verification/webpro-642e4b-292-legacy-baseline-20261103T055709Z/baseline-regression.log",
+    "sha256_worktree_bytes": "9672d00c9ac2dea77bd12481def7d550f1138aebd7fe4917bf951fbf0f7a94e2"
+  },
+  "xml_evidence": {
+    "raw_input": "outputs/verification/webpro-642e4b-292-legacy-baseline-20261103T055709Z/baseline-regression.xml",
+    "raw_worktree_bytes_sha256": "4e928d840698e4041c28b922e8668f79d5f0e42d0ecb8d9c8d5b289d8e804342",
+    "raw_size_bytes": 856,
+    "raw_crlf_count": 3,
+    "raw_bare_cr_count": 0,
+    "published_file": "legacy-completeness-baseline.xml",
+    "published_worktree_bytes_sha256": "85f3805561bc89e8d85990b33d17eb6afc7b2a2fd1bf132060974bd49abe4cb7",
+    "published_git_lf_bytes_sha256": "85f3805561bc89e8d85990b33d17eb6afc7b2a2fd1bf132060974bd49abe4cb7",
+    "published_git_blob": "4fcae459f2aaf1cc7cc1c070c0085a077541f4f9",
+    "published_size_bytes": 824,
+    "published_encoding": "UTF-8",
+    "published_line_endings": "LF",
+    "git_normalization_verified": "git hash-object --stdin --path matches the exact published LF bytes",
+    "removed_hostname_attributes": 1,
+    "timestamp_conversions": [
+      {
+        "original_with_offset": "2026-11-02T23:57:10.640042-06:00",
+        "published_utc": "2026-11-03T05:57:10.640042Z"
+      }
+    ],
+    "failure_body": "Retained parsed diagnostic text and message; no failures removed or rewritten.",
+    "counts": {
+      "junit_testcase_elements": 1,
+      "junit_declared_test_units": 1,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "history": {
+    "prior_source_revision": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
+    "prior_refreshed_head": "2b07e787d2f1cbf793b6caaea3339948df04e050",
+    "prior_production_blob": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+    "preservation": "All existing receipts remain unchanged.",
+    "scope_correction": "The earlier passing cases established fresh-capture overflow behavior but did not prove historical-v2 baseline completeness. Prior no-further-correction statements were wrong.",
+    "acknowledgment": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596557297"
+  },
+  "limitations": [
+    "MJ-REQ-292 remains PARTIAL; this is a bounded inventory-verification correction, not the complete original end-to-end journey.",
+    "The certified scope is 1 through 200 jobs in the existing visible public profile-context view; hidden, not-interested and blacklisted jobs are excluded.",
+    "Inventories larger than 200 remain unverified; no concurrent snapshot guarantee is introduced across listing and detail reads.",
+    "No real Docker restart, production restore, live provider request, paid inference or employer submission was performed for these local checks.",
+    "Protected candidate checks, publication, merge and deployment are separate stages and are not inferred from local test or static-review results."
+  ]
+}

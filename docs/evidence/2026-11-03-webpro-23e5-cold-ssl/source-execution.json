@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "owner": "825c871f86e89163b8bc18e794a8d6b6a2470a37",
+  "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "source": "b7bb430d3e8c5e42600c45eb8e6272734872448c",
+  "tree": "6e3de9ac1c083cc47b21dd792ec545bd078200cd",
+  "test_blob": "3e9e49213bafb8a66f7179034d1d79379851237b",
+  "started_at": "2026-11-03T06:45:20.223731+00:00",
+  "checks": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_source_adapter_connect_cancellation.py",
+        "--tb=short",
+        "--junitxml=OWNED_WORKTREE\\outputs\\webpro-23e5-cold-ssl\\source-tests.xml"
+      ],
+      "exit_code": 0,
+      "seconds": 68.438
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "seconds": 0.187
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "seconds": 0.172
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.172
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "seconds": 0.64
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.141
+    }
+  ],
+  "scope": "Synthetic loopback SQLite/API/worker tests; no production, paid or provider calls",
+  "production_changes": false,
+  "acceptance": "MJ-REQ-004 remains PARTIAL; no counts change",
+  "tests": {
+    "parents": 18,
+    "reported_units": 29,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "xml_sha256": "7bda1466a642709723edfa3451f53230279679230ff31ba8226fa7c1a7d17a81",
+  "negative_control": {
+    "result": "EXPECTED_FAILURE_CONFIRMED",
+    "mutant": "in-memory fixture omits operation-clock setup charge",
+    "tests_run": 1,
+    "expected_failures": 1,
+    "errors": 0,
+    "required_assertion": "Cold SSL construction must consume its operation-clock budget",
+    "production_mutation": false,
+    "tracked_source_mutation": false,
+    "module_clock_restored": true
+  },
+  "result": "PASS",
+  "ended_at": "2026-11-03T06:46:35.517113+00:00",
+  "limits": [
+    "Controlled cold-SSL operation-clock accounting is not elapsed-time proof for synchronous SSL construction.",
+    "Existing real-clock socket/cancellation tests and one new real-clock pre-SSL test retain wall-clock coverage.",
+    "The earlier hosted failure lacks phase timing; its exact trigger remains unmeasured.",
+    "Current candidate/hosted checks and delivery are separate pending stages."
+  ],
+  "published_representation": {
+    "encoding": "UTF-8 LF",
+    "junit": "hostname/properties/stdout/stderr removed",
+    "command_paths": "OWNED_WORKTREE",
+    "full_command_logs": "retained in run-owned ignored outputs"
+  },
+  "original_test_methods_ast_preserved": 16,
+  "publication_guard_history": [
+    {
+      "result": "REFUSED_STALE_MAIN_BEFORE_WRITES",
+      "expected": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "observed": "63cb1042e08375f7bda1f9dad378209cca856167",
+      "disposition": "Refreshed readback verifies protected907 merge; tested004 file and production dependencies unchanged. Source execution remains bound to its original9a base; actual proposed merge verification remains pending."
+    },
+    {
+      "result": "REFUSED_ARTIFACT_HASH_MISMATCH_BEFORE_PUSH",
+      "detail": "ElementTree's XML declaration contained one CRLF; Git normalized it to LF. Exact normalized bytes were proven equal. Original Windows digest is retained; xml_sha256 now identifies published Git bytes.",
+      "followup_at": "2026-11-03T06:53:06.995590+00:00"
+    }
+  ],
+  "xml_original_windows_bytes_sha256": "ba462d5ed7bf55f1fcd9c95d333a50cc9e277fe241f9ff98b42e6fc60b5d9b19",
+  "xml_sha256_representation": "Exact published Git LF bytes"
+}

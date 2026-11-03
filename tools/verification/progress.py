@@ -2,18 +2,25 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 from datetime import datetime, timedelta
+import errno
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import tempfile
+from time import monotonic, sleep
 
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "planning/IMPLEMENTATION_STATE.json"
 DEFAULT_OUTPUT_JOURNAL = "outputs/job-platform-implementation-state.json"
 OUTPUT_STATE_PATH = ROOT / DEFAULT_OUTPUT_JOURNAL
+JOURNAL_LOCK_NAME = ".implementation-progress.lock"
+JOURNAL_LOCK_TIMEOUT_SECONDS = 3.0
+JOURNAL_BUSY = "Implementation journal is busy; retry after the active writer finishes"
 LIST_FIELDS = (
     "completed_steps", "files_added", "files_modified", "tests_completed",
     "tests_remaining", "migrations_applied", "live_integrations_tested",
@@ -99,6 +106,62 @@ def extract_machine_readable_state(entry: dict, state: dict | None = None) -> di
     if state and "schema_version" in state:
         result["schema_version"] = state["schema_version"]
     return result
+
+
+def _journal_lock_path(state_path: Path) -> Path:
+    return state_path.resolve().with_name(JOURNAL_LOCK_NAME)
+
+
+def _set_journal_lock(handle: int, *, unlock: bool = False) -> None:
+    if os.name == "nt":
+        import msvcrt
+
+        os.lseek(handle, 0, os.SEEK_SET)
+        msvcrt.locking(handle, msvcrt.LK_UNLCK if unlock else msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+
+        mode = fcntl.LOCK_UN if unlock else (fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(handle, mode)
+
+
+@contextmanager
+def _journal_lock(state_path: Path):
+    """Serialize cooperating publishers; file presence is not lock ownership."""
+    lock_path = _journal_lock_path(state_path)
+    if lock_path.is_symlink():
+        raise ValueError("Progress coordination lock cannot be a symbolic link")
+    flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
+    flags |= getattr(os, "O_NONBLOCK", 0)
+    handle = os.open(lock_path, flags, 0o600)
+    held = False
+    try:
+        metadata = os.fstat(handle)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+            raise ValueError("Progress coordination lock must be a single-link regular file")
+        deadline = monotonic() + JOURNAL_LOCK_TIMEOUT_SECONDS
+        while True:
+            try:
+                _set_journal_lock(handle)
+            except OSError as error:
+                if error.errno not in (errno.EACCES, errno.EAGAIN):
+                    raise
+                remaining = deadline - monotonic()
+                if remaining <= 0:
+                    raise TimeoutError(JOURNAL_BUSY) from None
+                sleep(min(0.05, remaining))
+            else:
+                held = True
+                break
+        yield
+    finally:
+        try:
+            if held:
+                _set_journal_lock(handle, unlock=True)
+        finally:
+            os.close(handle)
+        # Never unlink the coordination file: a waiting process may already
+        # hold a descriptor for this inode. A new inode would split ownership.
 
 
 def write_atomic_json(target_path: Path, data: dict) -> None:
@@ -211,30 +274,31 @@ def _output_journal_target(state_path: Path, output_path: Path | None = None) ->
     target = (output_path or (state_path.parent.parent / DEFAULT_OUTPUT_JOURNAL)).resolve()
     if target == state_path.resolve():
         raise ValueError("Output journal must be separate from canonical state")
+    if target == _journal_lock_path(state_path).resolve():
+        raise ValueError("Output journal must be separate from coordination lock")
     return target
 
 
 def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None) -> Path:
-    """Generate or refresh outputs/job-platform-implementation-state.json from the current state."""
+    """Refresh the derived checkpoint while excluding cooperating publishers."""
     root = root.resolve()
     state_file = root / "planning/IMPLEMENTATION_STATE.json"
     if not state_file.is_file():
         raise FileNotFoundError(f"State file not found: {state_file}")
-    state = json.loads(state_file.read_text(encoding="utf-8"))
-    entries = state.get("milestone_journal")
-    if not isinstance(entries, list) or not entries:
-        raise ValueError("Implementation milestone journal is empty or missing")
-    # A process can exit after publishing canonical state but before publishing
-    # its derived output. Explicit sync must validate the authoritative source,
-    # not require the stale/corrupt file it is being asked to rebuild to agree.
-    # Ordinary validate, resume and record keep their strict consistency checks.
-    errors = validate_journal(root, check_outputs=False)
-    if errors:
-        raise ValueError("Cannot sync from invalid journal: " + "; ".join(errors))
-    latest = entries[-1]
-    machine_state = extract_machine_readable_state(latest, state)
     target = _output_journal_target(state_file, output_path)
-    write_atomic_json(target, machine_state)
+    with _journal_lock(state_file):
+        state = json.loads(state_file.read_text(encoding="utf-8"))
+        entries = state.get("milestone_journal")
+        if not isinstance(entries, list) or not entries:
+            raise ValueError("Implementation milestone journal is empty or missing")
+        # Explicit sync validates the authoritative source independently of a
+        # stale/corrupt derivative. Keep that source snapshot stable until publish.
+        errors = validate_journal(root, check_outputs=False)
+        if errors:
+            raise ValueError("Cannot sync from invalid journal: " + "; ".join(errors))
+        latest = entries[-1]
+        machine_state = extract_machine_readable_state(latest, state)
+        write_atomic_json(target, machine_state)
     return target
 
 
@@ -354,8 +418,9 @@ def resume_snapshot(root: Path = ROOT, source_path: Path | None = None) -> dict:
         raise FileNotFoundError(f"Neither implementation state nor output journal found in {root}")
 
 
-def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path | None = None) -> None:
-    """Publish canonical state, then derived output, with separate atomic writes."""
+def _append_milestone_locked(state_path: Path, entry: dict, *,
+                             output_state_path: Path | None = None) -> None:
+    """Publish both checkpoints while the caller holds the journal lock."""
     root = state_path.parent.parent
     out_target = _output_journal_target(state_path, output_state_path)
     errors = _entry_errors(root, entry)
@@ -382,6 +447,13 @@ def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path |
     write_atomic_json(out_target, machine_state)
 
 
+def append_milestone(state_path: Path, entry: dict, *, output_state_path: Path | None = None) -> None:
+    """Read, validate and publish one milestone under a bounded journal lock."""
+    _output_journal_target(state_path, output_state_path)
+    with _journal_lock(state_path):
+        _append_milestone_locked(state_path, entry, output_state_path=output_state_path)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     command = parser.add_subparsers(dest="command", required=True)
@@ -400,8 +472,12 @@ def main() -> int:
 
     args = parser.parse_args()
     if args.command == "record":
-        append_milestone(STATE_PATH, json.loads(args.entry.read_text(encoding="utf-8")),
-                         output_state_path=args.output_path)
+        entry = json.loads(args.entry.read_text(encoding="utf-8"))
+        _output_journal_target(STATE_PATH, args.output_path)
+        with _journal_lock(STATE_PATH):
+            _append_milestone_locked(STATE_PATH, entry, output_state_path=args.output_path)
+            # Validate this publication before another writer can begin its two-file update.
+            errors = validate_journal(ROOT)
     elif args.command == "sync":
         synced = sync_implementation_state(ROOT, output_path=args.output)
         print(f"Synchronized implementation state to {synced}")
@@ -409,7 +485,8 @@ def main() -> int:
     elif args.command == "resume":
         print(json.dumps(resume_snapshot(ROOT, source_path=args.source), indent=2, ensure_ascii=False))
         return 0
-    errors = validate_journal(ROOT, journal_path=args.state if args.command == "validate" else None)
+    else:
+        errors = validate_journal(ROOT, journal_path=args.state)
     for error in errors:
         print(error)
     print(f"Progress journal validation: {'FAIL' if errors else 'PASS'}")

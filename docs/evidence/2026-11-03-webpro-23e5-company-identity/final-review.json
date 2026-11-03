@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "source_commit": "323f3e1ce9f59046118815dec9c61a49c8bf1275",
+  "result": "PASS",
+  "review_type": "Independent internal static review; not a GitHub approval",
+  "reviewer_task": "/root/review_doc_trace_design",
+  "collector_sha256_lf": "4db2e08aaf4a3035c61ba72d039bf006401427c1f6fe1f66d2a20a714321986f",
+  "collector_sha256_working_file": "d413d182a7652d55a213add7a96c21e0e4959c7ae7723789575e2cb412ba9fd5",
+  "collector_git_blob": "d377cc09c5a6f70aa04d21289d2ad7c38e596c40",
+  "history_tests_sha256": "563d1c202d9550c461909426e0bc82761a3b2132008a8fde555e6ace191cd5eb",
+  "remaining_must_fix": [],
+  "final_correction": [
+    "Bare preexisting company plus no receipt/history requires canonical-equivalent name; unexplained mismatch requires review before receipt insertion.",
+    "Existing valid receipt or validated raw history remains the authority for upstream labels independently of display metadata.",
+    "The existing API fixture preserves exact equivalent spelling/domain and all original source/ATS/route-authority assertions.",
+    "Three-provider negative cases preserve the original arbitrary mismatch and assert complete rollback, including an unrelated batch item and receipts."
+  ],
+  "review_correction": "Earlier approval of arbitrary differently named bare company rows is withdrawn; the old fixture did not establish a supported alias/rename authorization.",
+  "scope_limitations": [
+    "MJ-REQ-017 remains PARTIAL.",
+    "64-snapshot legacy cap can require manual review for legitimate mature companies.",
+    "No schema, adapter ID, ATS authorization, production data repair or new rename API changes."
+  ]
+}
