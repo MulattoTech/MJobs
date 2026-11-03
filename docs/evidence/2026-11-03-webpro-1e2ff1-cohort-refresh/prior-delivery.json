@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-03T07:11:02.147077+00:00",
+  "prior_cohort906": {
+    "merge": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+    "tree": "05f41f9482f2b11ceffd63cf93fa100ef3bdb1af",
+    "deployment_owner": "webpro-20261103T034301Z-89c21f",
+    "deployed_at": "2026-11-03T06:00:58Z",
+    "image": "mjobs-micro:sha-9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+    "image_id": "sha256:f04dee47c95512ed941b23d53e9a71ce991c21ed37df7666ef6e052daf67a888",
+    "verification": "Guarded updater exit0; seven app services healthy on exact image, migration exit0; PostgreSQL/Redis healthy; bounded logs clear; backup and retained rollback verified by owner. Root independently read exact public deployment SHA and complete readiness at06:07-06:08UTC.",
+    "counts_when_verified": {
+      "original366": {
+        "PASS": 182,
+        "PARTIAL": 83,
+        "NOT_RUN": 101
+      },
+      "P0": {
+        "PASS": 14,
+        "PARTIAL": 4,
+        "NOT_RUN": 8
+      },
+      "P1": {
+        "PASS": 107,
+        "PARTIAL": 9,
+        "NOT_RUN": 0
+      }
+    },
+    "receipt": "https://github.com/MulattoTech/MJobs/pull/906#issuecomment-6596720377",
+    "independent_readback": "https://github.com/MulattoTech/MJobs/pull/906#issuecomment-6596812285",
+    "owned_claim_releases": "https://github.com/MulattoTech/MJobs/pull/895#issuecomment-6596845509"
+  },
+  "catalog907": {
+    "head": "60021098ba0d97d0783a197311040d6a0cbae74e",
+    "merge": "63cb1042e08375f7bda1f9dad378209cca856167",
+    "merged_at": "2026-11-03T06:40:52Z",
+    "tree": "51c60c8e80600cba4bc36d811351b960c8ea38b1",
+    "verification": "Actual protected merge tree equals executed candidate;15 latest contexts passed including all five strict gates and CodeQL.21 owner-focused cases and independent argv correction review/execution retained.",
+    "receipt": "https://github.com/MulattoTech/MJobs/pull/907#issuecomment-6597245758",
+    "acceptance_credit": 0,
+    "application_rollout": "NOT_PERFORMED_BY_907"
+  },
+  "this_refresh": {
+    "current_protected_main": "63cb1042e08375f7bda1f9dad378209cca856167",
+    "assembled_source": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
+    "merged": false,
+    "deployed": false,
+    "note": "Prior delivery facts are historical receipts, not a claim that the refreshed cohort is merged or deployed."
+  }
+}

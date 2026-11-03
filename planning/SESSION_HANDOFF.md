@@ -1,5 +1,30 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Current authorized-audit integration checkpoint - 2026-11-03T09:27:45.402Z
+
+Run webpro-20261103T073112Z-bbbb6d; [PR921](https://github.com/MulattoTech/MJobs/pull/921). The audit branch now incorporates independently merged main57e524ab through an ordinary merge. All latest canonical matrices, journal/queue and the full incoming handoff text are preserved; the audit adds no original or parity acceptance. Its containing PR records exact refreshed source/candidate checks and final merge/release.
+
+The UI inventory remains21 identified route patterns and16 groups with11 scoped observations. Full/partial HAR remains absent because recording/export is unsupported. Six existing Project1 items were manually associated through the signed-in owner browser and verified after reload:903/904/905/921 In Progress,918/919 Todo. Existing Status vocabulary and the original view were preserved. CLI/API synchronization still lacks Project scope; the manual UI route is now documented separately in the evidence and #904. This supersedes broad statements that no Project update was possible, without changing the catalog's API-scope limitation.
+
+Core audit validator/tests/catalog/observation blobs remain unchanged from the independently reviewed audit source. Shared scanner and agreed clock corrections are retained with their owners' history; they are now also in incoming main. All old failures and prior test-accounting corrections remain. Current exact-candidate/hosted revalidation is required after this refresh. Only this run's RECON/ROADMAP refs remain held until their exact releases; the short preparation lock releases while CI runs. No application or Hub deployment and no fleet launch occurred.
+
+
+## Authorized TalentHop audit checkpoint - 2026-11-03T08:38:40.495Z
+
+Run webpro-20261103T073112Z-bbbb6d; isolated branch work/webpro-20261103T073112Z-bbbb6d-talenthop, source implementation 529fe43e78e107af04177cf6c4a628f4ce5d3b3c.
+Reviewable delivery is [PR921](https://github.com/MulattoTech/MJobs/pull/921); its final receipt records the successor, exact candidate, protected gates and merge/release outcome. This entry supersedes only the earlier private-access blocker and stale coverage, preserving historical evidence below.
+
+- User-authorized job-seeker UI audit: 21 reached route patterns including one redirect; 16 capability groups, 11 with scoped UI evidence, four publicly claimed, one unknown. [Report](../docs/talenthop/UI_AUDIT_2026-11-03.md) and [catalog/crosswalk](../docs/talenthop/README.md).
+- One temporary bookmark persisted and was removed; tracker returned empty. Original employer handoff was inspected without application submission. Resume generation, message delivery, purchases and destructive account actions were not executed.
+- No raw or partial HAR, captured sanitized derivative, byte count/hash or private archive exists. Full HAR is BLOCKED by the connected browser's missing recording/export capability; authorization is resolved. GitHub Project1 synchronization remains blocked by missing project scope.
+- Catalog evidence validation now requires bounded artifact-backed UI observations and consistent exercised totals. 29 focused catalog/sanitizer and six scanner-policy tests PASS; the initial four false-evidence controls now fail closed. Current deployed Fleet0258903 consumer projection PASS. Source/evidence receipts preserve initial failures and the exact reviewed two-file scanner disposition from e2ddb068.
+- Protected integration/Compose checks and exact proposed-merge verification remain pending at this checkpoint. Independent review was requested from existing conversations; no new worker or paid reviewer was launched. No application deployment or parity acceptance is claimed.
+- Follow-ups [#918](https://github.com/MulattoTech/MJobs/issues/918) / MJ-TH-013 (salary periods in main search) and [#919](https://github.com/MulattoTech/MJobs/issues/919) / MJ-TH-015 (bounded per-profile recent views) are separately claimable after fresh ownership checks. Existing resume/match/notification issues are reused.
+- Original366/reference59 acceptance authorities and P0/P1 denominators are unchanged; all16 parity verification records remain NOT_RUN. Issues903/904/905 remain open.
+- RECON owner 7f08fc7a18d16d14adbc9387ed856129bf6c7981 and ROADMAP owner d2519ca9257702d5bd6f3beefe0befd7d10d19e4 remain owned until exact-ref release is recorded on their issues. This short integration preparation claim is released while hosted checks run. Requery live refs, PR and current main before resuming.
+- Fleet PR12 was independently deployed at 0258903984e7e3f54124be93a1f6b2988300e65b. This audit made no Hub source edit or deployment. Live catalog refresh is pending MJobs merge; related merges remain distinct from per-feature delivery/acceptance.
+
+
 ## TalentHop evidence and Fleet checkpoint — 2026-11-03T05:39:10.516Z
 
 Run: webpro-20261103T050255Z-1ba724. Refreshed base main:
@@ -204,3 +229,174 @@ prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
 release verifies a new exact SHA. Other workers own 004/171/269; preserve their
 work, evidence and refs and re-discover their current status before selecting
 new work.
+
+## Latest sprint checkpoint: webpro-20261103T034424Z-23e5
+
+PR #896 is protected-merged at `7e86511f409fb9d1e2dc79904b170cc74b88cd3d`;
+its tree equals the tested candidate `c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20`.
+All five required gates and CodeQL passed. Source/candidate tests: 48 PASS plus
+46 passing subtests, UI 14/build PASS, no skips; independent internal review PASS.
+This checkpoint records **269 PASS for the literal AI document fact-trace contract**.
+Drafting is CLI-only, selected saved-profile keys are unsupported, and paid/live
+inference is NOT_RUN. Deployment and issue #270 closure remain separate gates.
+
+PR #899 adds the collector company-identity conflict repair: source `9a8d138f`
+passed 141 tests plus 25 subtests; two opt-in live feed probes remain SKIP/NOT_RUN.
+Parent 017 remains PARTIAL. A full-CI pagination fixture failure was independently
+reproduced and corrected at `4eb58a1d` without changing the production gate or its
+assertion; the module passed 30 tests plus 37 subtests. Final hosted rerun pending.
+Read [269 acceptance](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json),
+[896 merge proof](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json),
+and [source/CI evidence](../docs/evidence/2026-11-03-webpro-23e5-company-identity/).
+
+Source worktrees: `C:\Tools\Dev\MJobs-webpro-20261103T034424Z-23e5-269` and
+`C:\Tools\Dev\MJobs-webpro-20261103T034424Z-23e5-company-identity`.
+Objective claims: MJ-REQ-269 (`a0948cd5`), AGGREGATOR-COMPANY-IDENTITY-COLLISION
+(`f11768a3`), and CI-DEPLOYMENT-PAGINATION-CLOCK (`fc7a4b6d`). Requery exact live
+refs before resuming. Integration preparation owner is `58e50228`; release after
+publication, reacquire before protected merge. No deployment lock is held by this run.
+The containing PR's final receipt must record its future actual merge/main gates,
+guarded deployed SHA/image/backup/rollback, issue state and exact claim releases.
+No production restore, employer submission, paid provider call or fleet mutation.
+
+## 2026-11-03T05:47:47.657834+00:00 — run23e5 reconciliation follow-up
+
+Protected cohort 906 is now main 9a21b98b29809a41771d963cd2d5679cf8c31f9a. The preceding dated exclusions and pending observations are retained as history. This owned preparation merges its complete clock regression and reviewed historical scanner fingerprint into 899, preserves all source-owner acceptance/evidence, and reconciles only 017/269. The redundant clock claim was released; no duplicate delivery credit is claimed.
+
+269 literal functional PASS is recorded with the unchanged earlier acceptance receipt and the new [read-only production follow-up](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-followup.json) at deployed 7e86511f. Production document history remains NOT_RUN because no profile/application exists. The final identity source 323f3e1c has 72 focused PASS; parent 017 stays PARTIAL. Its earlier failures/review correction remain retained. Current main 9a21b98b and 899 are not claimed deployed here.
+
+Fresh combined-candidate execution and all five protected gates are still required before 899 merge. The integration owner is 95def0475e3527981e501607656d511b0409438c for this preparation only; it will be released during hosted verification. Source claims 269/a0948cd5 and identity/f11768a3 remain owned, revalidate exact refs before any continuation. The agreed 906 rollout remains with run 89c21f. No production write, provider call, restore or fleet launch was performed.
+
+## 2026-11-03T05:59:31.437084+00:00 — run23e5 exact reconciled candidate verified
+
+Candidate `11d5e7f48fde0c919faae02534c36edc4d1ff950` / tree `18239bc010e6035b6686788a3e53c6776ca22a27` passed 151 parent cases plus 83 subtests (234 reported), zero failures/errors/skips. All eight recorded commands passed, including owned npm ci/build. [Execution receipt](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json) and [checkpoint](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-checkpoint.json) preserve the earlier preflight refusal and warnings.
+
+The initial CRLF/stat-only clean-tree guard refusal ran no tests; exact normalized text and JSON equality proved the three owned paths unchanged before their restoration. All prior source/checkpoint/failure history remains retained. The complete cohort clock fixture is preserved, with no duplicate claim or acceptance credit.
+
+017 stays PARTIAL and 269 stays PASS under its existing scoped acceptance. Resolver-helper review is explicitly limited; independent final combined peer review and fresh hosted protected checks remain pending. Protected merge and the separately owned guarded rollout remain pending; this evidence successor is not claimed deployed. No push, merge, claim release, paid/live provider call or production write was performed by finalization.
+
+npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required. Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed.
+
+## Web Pro checkpoint: protected cohort delivery and journal concurrency
+
+UTC: 2026-11-03T06:06:15.840730+00:00. Run: webpro-20261103T034313Z-1e2ff1.
+
+Protected PR906 merged as9a21b98b29809a41771d963cd2d5679cf8c31f9a,
+tree05f41f9482f2b11ceffd63cf93fa100ef3bdb1af, equal to executed candidate62508d7c.
+Source PRs894/895/897/898/900/901 are merged. All15 final PR checks passed.
+Actual main counts were refreshed: original366=182PASS/83PARTIAL/101NOT_RUN;
+P0=14/4/8 of26 and P1=107/9/0 of116. Only the295 reporting deliverable
+adds full acceptance in that cohort, attributable to run642e4b; these are not
+new acceptances claimed by the journal follow-up. Separate59 references unchanged.
+The exact-main CI, PostgreSQL/Redis, secret scan and deployment-candidate gates
+subsequently passed. Run89c21f owns deploymentb6c64e75; rollout verification
+remains pending at this checkpoint. Read the final906 discussion for later receipts.
+
+PR908 binds source6c9dc906 and evidence4272c0c1 to the reproduced successful-writer
+lost-update defect. Record and sync now share a persistent local OS lock across
+read, validation and both publications, with a three-second contention budget.
+Native Windows36PASS+25subtests/1POSIXskip and Linux37PASS/no skips were executed
+on committed source and initial proposed merge8c9cd974. The POSIX case passes on
+Linux, and real process death releases the lock for fresh-process repair.
+Independent review and final-head candidate/protected checks remain pending.
+MJ-REQ-008 staysPARTIAL; all physical-host/power-loss, older/manual writer,
+network filesystem and already-lost-history limits remain explicit.
+
+Evidence: ../docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json;
+candidate-execution.json; cohort-protected-merge.json; owned-resource-cleanup.json.
+Owned disposable PostgreSQL containerbe29dbb9 and networkfd5541b4 were removed
+after exact ID/name/label, sole endpoint and zero-other-client verification.
+Owned worktrees, source branches and raw execution receipts are retained.
+
+008 objective ref18af7a5b remains owned. This preparation uses integrationccad8a38
+only for additive canonical reconciliation and will release it after publication,
+before waiting on review/CI. Requery refs before resuming; this file grants no
+ownership. No main advance or competing deployment is performed in this window.
+Worktree:C:\Tools\Dev\MJobs-webpro-20261103T034313Z-1e2ff1-008-concurrency.
+Safe next step: independently review908, execute its final current-base candidate,
+require all protected gates, and serialize merge after the ongoing906 rollout.
+Preserve899/902/907 work and907's distinct .gitignore additions on reconciliation.
+
+
+## 2026-11-03T06:27:32.479532+00:00 — bounded integration candidate, run1ba724
+
+Frozen inputs: PR899 c5470f4bd4ca7708b517129773247b5d1e18fd36; PR907 60021098ba0d97d0783a197311040d6a0cbae74e; PR908 5367e7019e40d82af036bf7eff14597a2a79da8f. Their owners authorized this bounded cohort in the PR906 conversation.902 remains excluded while corrected. New worktree ends -1ba724-cohort; branch work/webpro-20261103T050255Z-1ba724-cohort.
+
+All three source ancestries,60 incoming source/evidence files,29 previous journal payloads,all handoff sections and both ignore additions are preserved. Source5ef483567899a31b7ac1039d3f7d9de31420374a passed49 focused tests with one POSIX-on-Windows skip and no failures, plus catalog/canonical/journal/dashboard/provenance/diff checks. Source/evidence receipt: ../docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json. No combined PostgreSQL/Redis or Linux run is claimed here.
+
+Independent source reviews clear the frozen inputs, including907's corrected malformed-argv privacy finding and independently rerun16 privacy tests.899's final-head hosted integration shard1 subsequently failed and remains under owner diagnosis; do not merge until disposition and all fresh combined/protected gates pass. The containing PR must record its actual future candidate,review,main merge and guarded rollout. Historical pending statements above remain dated history.
+
+Only899 carries the previously reviewed269 literalPASS;017/008 stayPARTIAL. Original366 and separate59 criteria remain intact; this run adds no TalentHop acceptance.906's prior9a21 deployment is independently verified by run89c21f. Fleet Hub main0bf297c7b88186848eb0bf4fc6558712ce1af4b2 is tested/staged but its rollout waits for the catalog on MJobs main. No current-cohort or Hub deployment is claimed here.
+
+Preparation integration owner2f46c24317a23dde75a98db9bf63666e9ba74eb4 is released after publication, before hosted CI; reacquire and reread main/owners before any later canonical edit or merge. Source owners retain their objective refs. Private TalentHop audit/full HAR and Project1 remain blocked for the reasons in907. The final PR/issue receipts record later delivery and exact claim release; preserve all prior failures and evidence.
+
+## Latest sprint checkpoint: webpro-20261103T031738Z-642e4b (MJ-REQ-292)
+
+UTC: 2026-11-03T05:40:54.230665+00:00. Refreshed main: 9a21b98b29809a41771d963cd2d5679cf8c31f9a.
+
+PR #902 / issue #293 remains PARTIAL. Branch work/webpro-20261103T031738Z-642e4b-292, tested source 3414e7400e57b3f2f2d2d85298e40a2aabf21253.
+The existing default public job view is verified only up to 200 visible jobs; a 201st-row sentinel now refuses incomplete evidence before detail reads and initial recovery mutation. The original 201-job false PASS reproduction and failing baseline regression are retained.
+
+Exact source: 42 tests and 43 subtests PASS, 0 failures/errors/skips; independent internal source/caller review PASS. Ruff NOT_RUN (not installed); no real restart/restore or full 60-step acceptance. Current actual-candidate and protected merge stages remain pending at this preparation checkpoint; later observed receipts govern. No acceptance counts changed; issue #293 stays open.
+
+Evidence: docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-execution.json. Own worktree: C:\Tools\Dev\MJobs-webpro-20261103T031738Z-642e4b-292. Objective ref refs/heads/webpro-claims/MJ-REQ-292 owner 20d0892e81d4724d9f1fc5620f7aa6b69be4ad57; current integration owner 214e5eb534830d6b96eacd4be697c0abd2a293a0. Revalidate all refs and current main before resuming. Do not infer ongoing ownership or a later deployment from this historical checkpoint.
+
+## Latest sprint checkpoint: webpro-20261103T031738Z-642e4b (MJ-REQ-292 v3 correction)
+
+UTC: 2026-11-03T06:32:09.695858+00:00. Refreshed main: 9a21b98b29809a41771d963cd2d5679cf8c31f9a.
+
+PR #902 / issue #293 remains PARTIAL. Tested source: 7295de87ad87ba06ca1f2c4ef4d114801489c6f5; tree: ca84746f9b387719e53659765f7698af864c7632.
+
+The earlier independent review missed a historical version-2 baseline defect: a truncated 200-of-201 capture could compare PASS after the omitted job disappeared. That review, its 42-test receipt, and the original milestone remain historical evidence; this correction prospectively supersedes the earlier schema-safety conclusion. Fresh captures must use version 3. All explicitly supplied version-1 and version-2 inventories require recapture and are rejected before recovery or backup runtime access. Version 3 admits 1 through 200 jobs; the collector retains the 201st-row completeness sentinel. Baselines with no job inventory retain NOT_RUN for that check. The legacy regression records 1 expected failure. Exact source 7295de87ad87ba06ca1f2c4ef4d114801489c6f5 records 51 tests and 43 subtests PASS, with 0 failures, errors or skips. The initial provenance date-format failure is retained; the metadata-only amend preserved tree ca84746f9b387719e53659765f7698af864c7632 and the exact amended SHA rerun, including provenance, passed. The new static review covers four changed files independently, with author readback of the integration regression. The visible public profile-context boundary and concurrent-snapshot limitation remain. Whole MJ-REQ-292 stays PARTIAL: no acceptance-count credit, issue #293 closure, real stack restart, production restore or deployment is claimed.
+
+Evidence: docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json; docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-review.json. The legacy failure and initial provenance failure are retained beside these receipts. All 26 prior milestone entries, matrix timestamp, acceptance statuses, reference matrix and dashboard remain unchanged. Actual refreshed candidate and protected-merge outcomes must be recorded separately; no deployment follows from this checkpoint.
+
+Owned worktree: C:\Tools\Dev\MJobs-webpro-20261103T031738Z-642e4b-292. Objective ref: refs/heads/webpro-claims/MJ-REQ-292 at 20d0892e81d4724d9f1fc5620f7aa6b69be4ad57; integration lock at this checkpoint: 02353f2b65b9d884e46f8d1f0a03a7a0ba845439. Revalidate ownership and current main before resuming; these are historical observations.
+
+## 2026-11-03T07:11:02.147077+00:00 ? reviewed reliability cohort refresh, run1e2ff1
+
+Run1ba724 handed off maintenance of PR909/branch work/webpro-20261103T050255Z-1ba724-cohort to existing run1e2ff1; source objective ownership is unchanged. Worktree: the1e2ff1-cohort909-refresh checkout. Exact integration preparation owner eef6d6a31925a4973f1648a871f85074cafe4800 will be released after publication, before CI/peer waits. Requery ownership before continuing; this checkpoint grants no claim.
+
+Protected main is 63cb1042e08375f7bda1f9dad378209cca856167 after907's separately cleared catalog/privacy merge at06:40:52UTC, tree51c60c8e. Prior906 is actually deployed as9a21/imagef04dee47 with owner health/log/backup/rollback proof and independent public readback. [Delivery receipts](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/prior-delivery.json) append these facts without rewriting earlier dated pending statements. This refreshed cohort is not merged or deployed.
+
+Frozen inputs are899/c5470f4bd4ca7708b517129773247b5d1e18fd36,902/331df2ce467df7b6bc41b0648eb6c27545f745a8,908/5367e7019e40d82af036bf7eff14597a2a79da8f and910/77c137a25ecf0f07eabab775c949120d7e727464, alongside prior909/276e936ef2f1403028953c2b45dfa2a85a7d4e9a and all907 ancestry.902's explicit inclusion authorization supersedes the earlier902-first plan. The owner's new171 slice is excluded. Assembled source ba08749f1c3910be3c2c872e7a8180701b72bddb preserves all81 incoming source/evidence Git blobs and32 unique prior journal payloads. Matrix reconciliation adds only disjoint292 evidence plus the scoped004 correction note;269's earlier reviewed result remains the sole full acceptance change. Candidate original366=183PASS/82PARTIAL/101NOT_RUN, P0=14/4/8, P1=108/8/0; actual main remains182/83/101 and P1=107/9/0. Separate59 and literal criteria are unchanged.
+
+The original899 shard41588054400/125758487862 failure and same-path reproduction remain.910 corrects that fixture with a real SSL factory and controlled cost accounting, plus separate real-clock pre-SSL expiry; it does not measure real cold trust-store latency or change production004 behavior. Owner18+11 and independent5+3 source tests pass.902's missed historicalv2 baseline false-PASS and initial provenance failure remain in history; corrected7295 v3 source was independently executed8+2 and published blobs reverified.004/008/017/292 stayPARTIAL.
+
+[Preservation/review evidence](../docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-preservation.json) distinguishes prior-revision executions from the not-yet-run final combined candidate. After publication,1e2ff1 will run journal recovery on Windows/Linux,642e4b recovery51+43, and23e5 identity/document/clock/cancellation scope on the exact proposed merge. Fresh peer canonical review and all protected exact-head gates are mandatory. No rerun-only disposition, protection bypass, production fixture, restore, employer submission or paid agent call is claimed. The existing23e5 conversation will separately claim guarded MJobs rollout after protected merge and exact-main release gates.
+
+
+
+## 2026-11-03T07:54:26.390944+00:00 — Web Pro 642e4b: uploaded-original private storage admission
+
+- Run/claim: webpro-20261103T031738Z-642e4b; MJ-REQ-171 owner040e15c143911cc512be6447678abc761d73b432 remains active.
+- Source f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954 (treebcf7290b3719a80dff6fac2864fedefe5ed76b91); reviewed evidence commit b3aa5548b9eaa8d4b1a3fefafb5694da5c71c57d; branch work/webpro-20261103T031738Z-642e4b-171. Evidence: docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json.
+- Four original API failures, the provisional capture HARNESS_ERROR/missing artifacts, the earlier9a44 scoped pass and the later export-fixture1ERROR are preserved. The baseline test source is retained exactly.
+- Exact final source: Linux29PASS+29subtests/0SKIP; native19PASS+29subtests/10POSIXSKIP;0 failures/errors. Five direct callers, catalogue/journal/dashboard/provenance/diff and independent source/evidence readback pass.
+- POSIX uploads-directory/original privacy is checked before reuse/read, with bounded descriptor IO and fixed errors. Private0400/multiple-link originals remain supported; no silent historical permission repair.
+- Parent171 staysPARTIAL. All366/59 statuses/counts and matrix timestamp remain unchanged; no whole PII/ACL/remediation claim.
+- Directory-only runtime compatibility and separately observed63cb/image8fc51eff health are in906 comment6597730536; this changed171 source is not thereby deployed.
+- Frozen902/331 remains in blocked909/e2ddb068; its monitoring-control failure is under the existing004 owner. No pending909 acceptance or journal content was imported into this separate171 append.
+- Packet manifest is a dated creation snapshot; its prior NOT_CREATED field is historical. The containing evidence commit above records publication after independent review without rewriting that snapshot.
+- Next: publish the scoped PR, release the exact preparation ref, verify actual candidate and every protected gate, coordinate main order, then claim and verify any required guarded deployment. No merge/deployment or issue closure yet.
+- Preparation guard receipt: reconciliation's unchanged generated labels/index files were normalized only after exact Git-blob and JSON equality checks; the initial helper stop is retained in outputs/171-canonical-preparation.json.
+## 2026-11-03T08:56:34.375770+00:00 - instrumented reliability cohort, run1e2ff1
+
+PR909 is prepared from e2ddb068 on exact protected main 63cb1042e08375f7bda1f9dad378209cca856167 with frozen922/60c19990938ac6d02f807483476e9f982cefa490 and agreed clock/c6acb100335df7b85dc26c15ac2ebc40f927a322. Assembled source b10008ef0d552276092a297465b6bad4594b9e21. All81 prior input blobs, prior source ancestry and evidence remain exact. Existing changes are two test methods/helpers; application logic is unchanged from the prior cohort. The full33 prior journal payloads and every queue record/history are preserved with one additive milestone. Matrix366, reference59, index and dashboard remain byte-identical; proposed counts stay183/82/101, P014/4/8, P1108/8/0. Actual main remains182/83/101, P1107/9/0.
+
+The historical41596437400 monitoring failure remains FAIL; its trigger is UNKNOWN/NOT_REPRODUCED.922 adds bounded test diagnostics and preserves real control-reader behavior, exception identity and all positive oracles. The separate induced SQLite lock proves fail-closed refusal only. Clock19ea133e independently reproduces and corrects the real-time date-fixture drift using the existing helper; original assertions remain. Prior revisions' executions are not renamed as this successor. See docs/evidence/2026-11-03-webpro-1e2ff1-cohort-instrumented/preservation-and-disposition.json.
+
+Run642 recorded the immutable recovery handoff902#6599045923 and released its292 claim; no source alteration is authorized. Root4ba clock claim was deliberately released after the frozen-source handoff909#6599241946; sole editing ownership belongs to run642's separately verified clock claim. Root retains008/18af and scanner278. Preparation owner 129316ac60631d630efbe50d5b368106324e6bd9 will be released after publication before test/CI waits. No main merge/deploy occurred. Current production was independently observed at63cb/image8fc51e with all services healthy; authenticated public-edge smoke remained blocked by sign-in.
+
+Next: execute affected tests on actual proposed merge, obtain fresh independent source/canonical review, inspect every protected gate, then acquire a new integration ref for protected merge. Guarded production delivery requires a separate deployment claim and exact-main release gates. No failed run, missing evidence, acceptance denominator or incomplete004/008/017/292 criterion is waived.
+
+
+## 2026-11-03T09:36:35.325456Z - Web Pro642e4b:171 reconciliation after protected909
+
+- Protected909 merged at2026-11-03T09:19:53Z: main57e524abf4860a57cf6bdd68f4e78759c7d42e89, treeadb8447f2be7379fdb38126a23751b010342e1d6, parents63cb1042e08375f7bda1f9dad378209cca856167 anda106e77a2160173b997b00adeac38bcec3eab468.
+- Incoming366 results remain183PASS/82PARTIAL/101NOT_RUN;269PASS and171PARTIAL are preserved. No incoming matrix/queue timestamps or priorities were reset.
+- All34 incoming journal records and the original07:54171 record remain unchanged, followed by this new dated36th milestone. Both handoff histories are retained.
+- Pre-merge171 source8875db8fd46d539bcb7abcf5387e2375ef833372/tree2138c2dc30d0de86b91b6c11a86a67f9fea13e0f; bounds3e7863fed6e45bc71a4600db26c191462e8c4d5b, restore413fd1e7a41866c6324dec16519522f3c1248128, evidencef54453dd9c8fd2dff715a640b0cbec5130758bd9, agreed clocke06bdfd689c8127c43a6dbe8f408a8f1d535d851.
+- Original hosted unit 2 FAIL, Compose HTTP409 failure, and WWR integration 1 FAIL remain retained. Restore full-suite results belong to provisional test956; final b1 has only the FIFO case rerun. No historical result is relabeled as this new candidate.
+- Preservation evidence: docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json. Private preparation receipt records validators and exact staged tree; no commit/push is performed by the helper.
+- Next: review the staged preservation proof, execute the actual merged candidate and required hosted gates, then separately own and verify any171 rollout. Those gates remainPENDING.

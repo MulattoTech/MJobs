@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "claim": "CI-DEPLOYMENT-PAGINATION-CLOCK",
+  "owner": "fc7a4b6d08cf3fff555a45381df072ef3659b171",
+  "reported_failure": {
+    "pr": 899,
+    "head": "10f2b9d9fa65bb010b4d70fa325b1dfeafa9ce2a",
+    "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/41577559950",
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/41577559950/job/125724502465",
+    "test": "tests/unit/test_deployment_checks.py::DeploymentLookupTests::test_full_pagination_limit_remains_fail_closed",
+    "expected": [
+      2,
+      5
+    ],
+    "actual": [
+      1,
+      5
+    ],
+    "unit_pass": 3565,
+    "subtests_pass": 3776,
+    "fail": 1,
+    "skip": 53
+  },
+  "root_cause": "The fixture replaced attributes of the process-wide time module. An unrelated background sleep can advance this test's fake elapsed time and change the fail-closed diagnostic.",
+  "reproduction": {
+    "network_calls": 0,
+    "controlled_background_sleep_at_page": 5,
+    "original": {
+      "result": 1,
+      "requests": 5,
+      "fake_elapsed": 10,
+      "sleeps": [
+        10
+      ]
+    },
+    "isolated_clock": {
+      "result": 2,
+      "requests": 5,
+      "fake_elapsed": 0,
+      "sleeps": []
+    },
+    "exact_hosted_background_caller": "NOT_IDENTIFIED"
+  },
+  "correction": {
+    "file": "tests/unit/test_deployment_checks.py",
+    "method": "Patch only gate.time with a SimpleNamespace clock object; retain the original pagination (2,5) assertion.",
+    "production_gate_changed": false,
+    "assertion_weakened": false
+  },
+  "verification": {
+    "independent_in_memory_module_tests_pass": 30,
+    "local_module_tests_pass": 30,
+    "local_subtests_pass": 37,
+    "fail": 0,
+    "error": 0,
+    "skip": 0,
+    "local_junit": "clock-fix-tests.xml",
+    "hosted_final_head": "PENDING"
+  },
+  "parent_acceptance_change": "None; MJ-REQ-291 remains unchanged.",
+  "independent_review": {
+    "result": "PASS",
+    "correction_commit": "4eb58a1d55d1445c62c7b407382d39d82bbdbd6d",
+    "fixture_sha256": "d0e512337a11f9b695e9a860fafca7edaa2765accca35035474fead817452f13",
+    "production_gate_sha256": "889fc6aefb7dcd6838ae2b9f41ca5716eb4b170333bd82673c81abbe042486f0",
+    "production_gate_unchanged": true,
+    "pagination_test_ast_unchanged": true,
+    "remaining_must_fix_findings": 0
+  }
+}

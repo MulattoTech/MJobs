@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-03T05:59:31.437084+00:00",
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "source_commit": "11d5e7f48fde0c919faae02534c36edc4d1ff950",
+  "result": "SCOPED_RESOLUTION_HELPER_REVIEW_ONLY",
+  "reviewer_task": "/root/next_objective_scout",
+  "reviewed_helper": "resolve-integration-899.py",
+  "reviewed_helper_sha256": "1fb3d87bfd2cf04e6e8b47e5bc8cd31e644b10403e2dd5aefa1fc59059a1c3ab",
+  "review_scope": "Independent internal static review of pinned resolution predicates, canonical/history preservation, and JSON logic; syntax parsed without executing the resolver.",
+  "final_combined_candidate_peer_review": "NOT_RUN",
+  "hosted_protected_gates": "PENDING_FOR_EVIDENCE_SUCCESSOR",
+  "prior_source_review": "docs/evidence/2026-11-03-webpro-23e5-company-identity/final-review.json",
+  "execution_evidence": "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json",
+  "limitations": [
+    "npm 12.2.1 warned that installed Node 27.0.0-alpha is unsupported; owned npm ci and TypeScript/Vite build nevertheless passed. Hosted pinned-toolchain verification remains required.",
+    "Vite retained its bundle-chunk warning for a chunk larger than 500 KB. No dependency or global runtime was changed.",
+    "The helper review does not certify the entire combined implementation or independently repeat its execution."
+  ]
+}

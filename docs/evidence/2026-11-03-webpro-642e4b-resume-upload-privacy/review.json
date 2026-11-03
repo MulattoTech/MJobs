@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-171",
+  "issue": 172,
+  "requirement_result": "PARTIAL",
+  "result": "PASS_FOR_SCOPED_STATIC_REVIEW",
+  "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+  "source_tree": "bcf7290b3719a80dff6fac2864fedefe5ed76b91",
+  "initial_source_sha": "9a44b9958958a0dd0b545bbabdcdbb67f0e56a75",
+  "initial_four_reviewed_files": {
+    "services/documents/uploads.py": "67ee2bad25185295d2b5962b0e5684a7a103ba92",
+    "tests/integration/test_resume_upload_privacy.py": "2a7cfe86e23b17f9f9cc1f9c6c6b2ecaff6ee619",
+    "docs/security/resume_upload_storage.md": "96a195a1ea98c8e6c5dc209c3f821fb31961b4ae",
+    "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c"
+  },
+  "final_reviewed_files": {
+    "services/documents/uploads.py": "67ee2bad25185295d2b5962b0e5684a7a103ba92",
+    "tests/integration/test_resume_upload_privacy.py": "2a7cfe86e23b17f9f9cc1f9c6c6b2ecaff6ee619",
+    "docs/security/resume_upload_storage.md": "96a195a1ea98c8e6c5dc209c3f821fb31961b4ae",
+    "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+    "tests/unit/test_data_export.py": "b65a2ce612963ba3d557481ce214ff440d7ddd65"
+  },
+  "review_kind": "Internal ChatGPT static review and independent retained-evidence readback; not formal or human approval.",
+  "source_author": "/root/adapter_contract_inventory",
+  "static_reviewers": [
+    "/root",
+    "/root/security_review"
+  ],
+  "security_reviewer_authored_these_files": false,
+  "security_reviewer_executed_tests": false,
+  "test_executor": "/root/adapter_contract_inventory",
+  "source_findings": [
+    "No remaining material blocker in the reviewed bounded admission patch.",
+    "Both reuse and download use one bounded descriptor reader; mode/type/size are checked before bytes are consumed.",
+    "Private0400 originals and private multiple-link originals remain admitted; no blanket nlink1 restriction.",
+    "POSIX directory-relative final open, safe filename component, no-follow/nonblocking behavior, fixed errors and descriptor cleanup are covered.",
+    "The fixture-only successor preserves all assertions and production blobs."
+  ],
+  "independent_raw_evidence_readback": {
+    "reviewer": "/root/security_review",
+    "source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+    "result": "No discrepancy",
+    "checked": [
+      "Five reviewed blobs unchanged except the authorized fixture successor.",
+      "Thirteen final raw input hashes and twelve committed blobs match; driver copy matches.",
+      "Linux29PASS+29subtests/0skip and native19PASS+29subtests/10explicit POSIX skips agree with JSON/XML records.",
+      "All five added direct callers individually pass.",
+      "Eight imported module paths/content hashes match owned sources.",
+      "Provisional capture HARNESS_ERROR is retained; missing Linux JSON/XML are absent and were not reconstructed.",
+      "Runtime permissions and owned-container cleanup match retained commands/receipts."
+    ]
+  },
+  "runtime_compatibility": {
+    "kind": "Read-only metadata compatibility observation, separate from test execution or171deployment",
+    "source": "https://github.com/MulattoTech/MJobs/pull/906#issuecomment-6597730536",
+    "requirement_note": "https://github.com/MulattoTech/MJobs/issues/172#issuecomment-6597730809",
+    "observed_utc": "2026-11-03T07:08:20Z",
+    "reported_by": "/root/deployment_report_inputs; independently read back by/root",
+    "facts": {
+      "runtime": "Linux POSIX",
+      "uid": 10001,
+      "gid": 10001,
+      "document_output": "/data/documents",
+      "mount_kind": "Docker RW volume",
+      "filesystem": "ext4",
+      "document_output_mode": "0755",
+      "uploads_child": "ABSENT"
+    },
+    "interpretation": "A new private0700uploads child is compatible with the observed volume semantics. The guard applies to the uploads child, not the0755parent. Existing original contents, names and database data were not inspected. This does not establish171deployment."
+  },
+  "owned_resources_final_readback": {
+    "checked_utc": "2026-11-03T07:42:14.685457+00:00",
+    "owned_container_results": [
+      {
+        "container_id": "69a64137443004ca54b1d357eafee383189eda0e3547473161e9d5f748240c16",
+        "inspect_exit_code": 1,
+        "result": "ABSENT",
+        "stdout": "[]\n",
+        "stderr": "error: no such object: 69a64137443004ca54b1d357eafee383189eda0e3547473161e9d5f748240c16\n"
+      },
+      {
+        "container_id": "d51eeef77a1f7d74cd69616d47391e899ea9861c2d69899e5a4e64db9064b963",
+        "inspect_exit_code": 1,
+        "result": "ABSENT",
+        "stdout": "[]\n",
+        "stderr": "error: no such object: d51eeef77a1f7d74cd69616d47391e899ea9861c2d69899e5a4e64db9064b963\n"
+      },
+      {
+        "container_id": "4fb79040af595dd4e2deea35bf4f3d83097f922d7e979055a14cc20ae8a592e7",
+        "inspect_exit_code": 1,
+        "result": "ABSENT",
+        "stdout": "[]\n",
+        "stderr": "error: no such object: 4fb79040af595dd4e2deea35bf4f3d83097f922d7e979055a14cc20ae8a592e7\n"
+      },
+      {
+        "container_id": "aeb87814256f6a64de105421cd93a59835917aeccfe0b128e0fa0722fe169ed0",
+        "inspect_exit_code": 1,
+        "result": "ABSENT",
+        "stdout": "[]\n",
+        "stderr": "error: no such object: aeb87814256f6a64de105421cd93a59835917aeccfe0b128e0fa0722fe169ed0\n"
+      },
+      {
+        "container_id": "aa7db8db7d19c0aa094316ba4b95cb846b84a97b8da13a70f7760628a5a5f3b7",
+        "inspect_exit_code": 1,
+        "result": "ABSENT",
+        "stdout": "[]\n",
+        "stderr": "error: no such object: aa7db8db7d19c0aa094316ba4b95cb846b84a97b8da13a70f7760628a5a5f3b7\n"
+      }
+    ]
+  },
+  "acceptance_and_delivery": {
+    "requirement_status": "PARTIAL",
+    "source_commit_local_and_root_coordinated_publication": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+    "protected_CI_merge_and_171_deployment": "Separate pending delivery gates; not established by this packet.",
+    "no_formal_approval": true
+  },
+  "limitations": [
+    "No bulk historical-file remediation or automatic chmod of existing user paths.",
+    "No Windows ACL acceptance or continuous monitoring of later permission changes.",
+    "Whole-ancestor hostile replacement and filesystem snapshot guarantees remain outside scope.",
+    "Full contact/history/session/backup PII protection is not accepted by this slice."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-292",
+  "source_revision": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
+  "reviewer": "Independent internal agent /root/security_review",
+  "result": "PASS",
+  "source_blobs": {
+    "cli/compose_recovery.py": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+    "tests/integration/test_compose_recovery_target.py": "941536efd1b9c7b9fb88bccc5e4d597b19d5ad09",
+    "tests/integration/test_recovery_inventory_completeness.py": "9c9680712caa6cadd2379eea5fe756f0120974d5",
+    "docs/RECOVERY_JOB_INVENTORY.md": "f1edbdd858fe4491e7a5bdd0107d68ac9bbdaad5"
+  },
+  "findings": [],
+  "checks": [
+    "201-row sentinel is compatible with 1\u2013500 API limit and default visibility filters; exactly 200 jobs admitted.",
+    "Overflow is refused before detail reads and before initial recovery lifecycle/HTTP writes; fixed error contains no profile/job/source values.",
+    "ui_e2e catches the failure, records FAIL/remaining NOT_RUN, rethrows and cannot reach successful evidence emission.",
+    "Late-recovery overflow uses existing service restoration; docs scope no-mutation guarantee to initial collection.",
+    "New tests prove actual API page boundary, full admitted identity set, changed source copy, encoded profile parameters and no-mutation rejection.",
+    "Inventory schema, stable-field semantics and legacy NOT_RUN preserved; original 60-step 292 remains PARTIAL."
+  ],
+  "limitations": [
+    "Static read-only review; no test execution by reviewer.",
+    "Not a protected GitHub approval or whole-product security scan."
+  ],
+  "recorded_at_utc": "2026-11-03T04:55:26.645045+00:00"
+}

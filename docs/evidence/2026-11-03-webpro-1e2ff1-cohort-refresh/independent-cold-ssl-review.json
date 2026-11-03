@@ -1,0 +1,48 @@
+{
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "source": "b7bb430d3e8c5e42600c45eb8e6272734872448c",
+  "tree": "6e3de9ac1c083cc47b21dd792ec545bd078200cd",
+  "test_blob": "3e9e49213bafb8a66f7179034d1d79379851237b",
+  "started_at": "2026-11-03T06:50:49.478648+00:00",
+  "ended_at": "2026-11-03T06:51:12.673173+00:00",
+  "wall_seconds": 23.203,
+  "tests": [
+    "test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect",
+    "test_remoteok_real_deadline_expires_before_ssl_setup_without_connect",
+    "test_remoteok_cold_ssl_accounting_survives_pre_ssl_fixture_delay",
+    "test_finite_worker_deadline_during_real_tcp_connect",
+    "test_public_cancel_budget_rejects_delay_after_handler_admission"
+  ],
+  "exit_code": 0,
+  "junit_counts": {
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "worker_clock_binding_restored": true,
+  "checks": {
+    "diff": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "provenance": {
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 1 source files\n"
+    }
+  },
+  "clean": true,
+  "head_unchanged": true,
+  "junit_sha256": "60e1dde0f703cb39abb584768a290edfeec7785449f2cd257838c1daea0734e5",
+  "scope": "Synthetic owned loopback and SQLite; no production or live-provider access. Five parent tests include three existing deadline provider subtests. No source mutation.",
+  "published_head": "77c137a25ecf0f07eabab775c949120d7e727464",
+  "parent_tests_passed": 5,
+  "passing_subtests": 3,
+  "published_binding": "Exact test blob independently verified via authenticated GitHub readback and combined source; evidence-only successor",
+  "combined_candidate_execution": "NOT_YET_RUN",
+  "limitations": [
+    "Controlled deadline accounting is not real cold trust-store latency measurement.",
+    "One benign in-process pytest AnyIO assert-rewrite warning is retained in the private raw log.",
+    "These five parent tests are not the owner's complete18-case source execution."
+  ]
+}

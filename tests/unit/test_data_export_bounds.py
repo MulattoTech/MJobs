@@ -2,6 +2,7 @@
 from pathlib import Path
 import unittest
 import hashlib
+import os
 from unittest.mock import patch
 
 from packages.persistence import models as m
@@ -72,7 +73,8 @@ class DataExportReadBoundsTests(unittest.TestCase):
 
     def test_uploaded_resume_read_is_limited_to_its_recorded_size(self):
         upload = self.fixture.output_dir / "uploads/upload-a.pdf"
-        original_open = Path.open
+        upload_info = upload.stat()
+        original_fdopen = os.fdopen
         sizes = []
 
         class Reader:
@@ -89,11 +91,11 @@ class DataExportReadBoundsTests(unittest.TestCase):
                 sizes.append(size)
                 return self.stream.read(size)
 
-        def tracked_open(path, *args, **kwargs):
-            stream = original_open(path, *args, **kwargs)
-            return Reader(stream) if path == upload else stream
+        def tracked_fdopen(descriptor, *args, **kwargs):
+            stream = original_fdopen(descriptor, *args, **kwargs)
+            return Reader(stream) if os.path.samestat(os.fstat(descriptor), upload_info) else stream
 
-        with patch.object(Path, "open", tracked_open):
+        with patch("services.documents.uploads.os.fdopen", tracked_fdopen):
             self.export()
         self.assertEqual(sizes, [len(b"uploaded pdf bytes") + 1])
 
@@ -122,19 +124,25 @@ class DataExportReadBoundsTests(unittest.TestCase):
 
     def test_uploaded_resume_growth_is_rejected_before_checksum_and_retry_succeeds(self):
         upload = self.fixture.output_dir / "uploads/upload-a.pdf"
-        original_open = Path.open
+        upload_info = upload.stat()
+        original_fdopen = os.fdopen
         changed = False
 
-        def grow_on_open(path, *args, **kwargs):
+        def grow_on_fdopen(descriptor, *args, **kwargs):
             nonlocal changed
-            if path == upload and not changed:
+            if os.path.samestat(os.fstat(descriptor), upload_info) and not changed:
                 changed = True
-                with original_open(path, "wb") as stream:
-                    stream.write(b"x" * 100_000)
-            return original_open(path, *args, **kwargs)
+                # Grow the admitted inode after the initial fstat, before its read.
+                upload.write_bytes(b"x" * 100_000)
+            return original_fdopen(descriptor, *args, **kwargs)
 
-        with patch.object(Path, "open", grow_on_open):
+        with patch("services.documents.uploads.os.fdopen", grow_on_fdopen), patch(
+            "services.documents.uploads.hashlib.sha256",
+            side_effect=AssertionError("growth must be refused before checksum"),
+        ) as checksum:
             with self.assertRaisesRegex(UploadIntegrityError, "size changed"):
                 read_resume(self.fixture.store, self.fixture.output_dir, "profile-a", "upload-a")
+        self.assertTrue(changed)
+        checksum.assert_not_called()
         upload.write_bytes(b"uploaded pdf bytes")
         self.assertTrue(self.export()["document_files"])

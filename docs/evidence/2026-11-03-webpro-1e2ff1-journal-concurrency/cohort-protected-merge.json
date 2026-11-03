@@ -1,0 +1,164 @@
+{
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "timestamp": "2026-11-03T05:36:23.639834+00:00",
+  "merge_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+  "tree": "05f41f9482f2b11ceffd63cf93fa100ef3bdb1af",
+  "tested_candidate": "62508d7c5f80067e30ff23a4bbc276c42a98da67",
+  "candidate_tree_equal": true,
+  "base": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "head": "0c4a74cce59bf04288932776674ebd56282bf51d",
+  "source_prs": [
+    {
+      "number": 894,
+      "head": "b8619b26c731062503dbb67aaabd15550299f6ec",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:46Z"
+    },
+    {
+      "number": 895,
+      "head": "c33b6ce178b54c949f8501fec1db710dde2ea657",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:46Z"
+    },
+    {
+      "number": 897,
+      "head": "91bca4763eb578a25b8b44e8d7c2b2f4888fd9af",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:46Z"
+    },
+    {
+      "number": 898,
+      "head": "c32febfb73f26d31a75133c5ede7a8e69d21f788",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:46Z"
+    },
+    {
+      "number": 900,
+      "head": "cd6cdbe36858de1ba65f381f53c0de13c32a5fba",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:46Z"
+    },
+    {
+      "number": 901,
+      "head": "205efc726153bd53ca32a5e9e4479fc2ece4137f",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:46Z"
+    },
+    {
+      "number": 906,
+      "head": "0c4a74cce59bf04288932776674ebd56282bf51d",
+      "merged": true,
+      "merge_commit": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "merged_at": "2026-11-03T05:35:44Z"
+    }
+  ],
+  "baseline_counts": {
+    "original": {
+      "PARTIAL": 81,
+      "PASS": 181,
+      "NOT_RUN": 104
+    },
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 13,
+      "NOT_RUN": 9
+    },
+    "P1": {
+      "PASS": 107,
+      "PARTIAL": 7,
+      "NOT_RUN": 2
+    }
+  },
+  "current_counts": {
+    "original": {
+      "PARTIAL": 83,
+      "PASS": 182,
+      "NOT_RUN": 101
+    },
+    "P0": {
+      "PARTIAL": 4,
+      "PASS": 14,
+      "NOT_RUN": 8
+    },
+    "P1": {
+      "PASS": 107,
+      "PARTIAL": 9
+    }
+  },
+  "scoped_statuses": {
+    "MJ-REQ-004": "PARTIAL",
+    "MJ-REQ-008": "PARTIAL",
+    "MJ-REQ-160": "PARTIAL",
+    "MJ-REQ-171": "PARTIAL",
+    "MJ-REQ-224": "PARTIAL",
+    "MJ-REQ-264": "PARTIAL",
+    "MJ-REQ-269": "PARTIAL",
+    "MJ-REQ-292": "PARTIAL",
+    "MJ-REQ-295": "PASS"
+  },
+  "fresh_main_runs": [
+    {
+      "id": 41584855458,
+      "name": "Verification-only documentation review",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584855458"
+    },
+    {
+      "id": 41584828337,
+      "name": "Integration - PostgreSQL and Redis",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584828337"
+    },
+    {
+      "id": 41584828356,
+      "name": "Documentation site",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584828356"
+    },
+    {
+      "id": 41584828301,
+      "name": "CI - fast",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584828301"
+    },
+    {
+      "id": 41584828340,
+      "name": "MJobs deployment candidate",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584828340"
+    },
+    {
+      "id": 41584828482,
+      "name": "Secret scan - reviewed history",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584828482"
+    },
+    {
+      "id": 41584827259,
+      "name": "Push on main",
+      "head_sha": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41584827259"
+    }
+  ],
+  "deployment": "PENDING_SEPARATE_OWNER_AND_CURRENT_MAIN_RELEASE_GATES"
+}

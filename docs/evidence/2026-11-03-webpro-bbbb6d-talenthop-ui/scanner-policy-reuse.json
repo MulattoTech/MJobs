@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "at": "2026-11-03T08:27:25.054707+00:00",
+  "failed_pr_head": "5eff4a44fe0e2c37ac44fc1f735cf42a4f2cc7b3",
+  "failed_run": 41602127706,
+  "failed_job": 125803117186,
+  "redacted_artifact": 13215111292,
+  "artifact_sha256": "df708f5909dcb6d9b433a01e016475efd487b03fe0fd4b3972464a9f34325e8a",
+  "finding_count": 1,
+  "classification": "EXISTING_PUBLIC_GIT_OBJECT_METADATA_FALSE_POSITIVE",
+  "frozen_correction_source": "e2ddb0683f91e9a69e518b3183c6566836f29ef4",
+  "coordination": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6598421758",
+  "receiving_notice": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6598856208",
+  "recomputed_git_object": "bc8eb5c0dffc32d6c1bdbc34f21bf5f547c59a3c",
+  "source_bytes": 7488,
+  "source_sha256": "dcfcb2710b39cbd5f6c2e51825981d820cb23cb093b47912c13126bceaf6c268",
+  "exact_reused_files": [
+    {
+      "path": ".gitleaksignore",
+      "sha256": "222481bbb4d67f0f18b39f94c6f0ce43e3787c206f7f92c4a3ed35553a92836a"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-1e2ff1-cohort-refresh/source-object-review.json",
+      "sha256": "725ff9e6a3e60649763b436f5720b00cc66e38978c80aa1553b22d151f4eb64d"
+    }
+  ],
+  "scope": "Reuse one existing immutable fingerprint and proof only. No new suppression, scanner/rule/history-scope change or independent implementation credit.",
+  "successor_protected_scan": "PENDING"
+}

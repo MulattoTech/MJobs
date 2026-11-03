@@ -102,8 +102,9 @@ def _pending_operations(connection):
 
 def dispatch_pending(store, redis_url, *, registry_module=None):
     recover_expired(store)
-    redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+    redis = None
     try:
+        redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
         redis.ping()
         # One dispatcher owns the outbox at a time, including the Redis enqueue.
         with store.engine.begin() as connection:
@@ -135,4 +136,10 @@ def dispatch_pending(store, redis_url, *, registry_module=None):
     except RedisError:
         return {"status": "QUEUE_UNAVAILABLE", "count": 0}
     finally:
-        redis.close()
+        if redis is not None:
+            try:
+                redis.close()
+            except RedisError:
+                # Cleanup cannot revoke an acknowledged queue delivery. The
+                # durable operation and RQ job identity fence any reconnect.
+                pass
