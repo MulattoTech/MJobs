@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 import socket
+import sqlite3
 import ssl
 import threading
 import time
@@ -17,6 +18,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from sqlalchemy import select
+from sqlalchemy import exc as sa_exc
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -25,7 +27,166 @@ from services.company_discovery.monitoring import source_version, schedule_compa
 from services.company_discovery.monitoring_policy import MonitoringPolicy
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 from tests.integration.test_company_monitoring_recovery import MonitoringFixture
+from workers import operations
 from workers.tasks import execute_operation
+
+
+_CONTROL_DIAGNOSTIC_CLASSES = (
+    sa_exc.DBAPIError, sa_exc.DatabaseError, sa_exc.OperationalError,
+    sa_exc.InterfaceError, sa_exc.IntegrityError, sa_exc.InternalError,
+    sa_exc.ProgrammingError, sa_exc.NotSupportedError, sa_exc.DataError,
+    sa_exc.TimeoutError, sqlite3.Error, sqlite3.DatabaseError,
+    sqlite3.OperationalError, sqlite3.InterfaceError, sqlite3.IntegrityError,
+    sqlite3.InternalError, sqlite3.ProgrammingError, sqlite3.NotSupportedError,
+    sqlite3.DataError,
+)
+
+
+def _control_exception_class(error):
+    if error is None:
+        return None
+    kind = type(error)
+    if kind in _CONTROL_DIAGNOSTIC_CLASSES:
+        return kind.__module__ + "." + kind.__name__
+    return "OTHER"
+
+
+class _ControlReadDiagnostics:
+    """Observe the real reader without changing its result or refusal."""
+
+    def __init__(self, reader):
+        self._reader = reader
+        self._reader_code = reader.__code__
+        self._lock = threading.Lock()
+        self._records = []
+        self._overflow = 0
+
+    def _reader_line(self, error):
+        line = None
+        tb = error.__traceback__ if error is not None else None
+        for _ in range(64):
+            if tb is None:
+                break
+            if tb.tb_frame.f_code is self._reader_code:
+                line = tb.tb_lineno
+            tb = tb.tb_next
+        return line
+
+    def _metadata(self, failure, elapsed_ms):
+        # "from None" suppresses display, but keeps the wrapped exception.
+        context = failure.__context__
+        original = context.orig if isinstance(context, sa_exc.DBAPIError) else None
+        code = getattr(original, "sqlite_errorcode", None) if isinstance(original, sqlite3.Error) else None
+        return {
+            "exception_class": "workers.operations.OperationControlUnavailable",
+            "context_class": _control_exception_class(context),
+            "dbapi_class": _control_exception_class(original),
+            "sqlite_code": code if type(code) is int and 0 <= code <= 0xFFFF else None,
+            "reader_raise_line": self._reader_line(failure),
+            "reader_context_line": self._reader_line(context),
+            # Includes checkout and cleanup; this is not a SQL-only deadline.
+            "reader_elapsed_ms": elapsed_ms,
+        }
+
+    def __call__(self, *args, **kwargs):
+        started = time.monotonic()
+        try:
+            return self._reader(*args, **kwargs)
+        except operations.OperationControlUnavailable as failure:
+            try:
+                item = self._metadata(failure, round((time.monotonic() - started) * 1000, 3))
+            except Exception:
+                item = {"metadata": "UNAVAILABLE"}
+            with self._lock:
+                if len(self._records) < 8:
+                    self._records.append(item)
+                else:
+                    self._overflow += 1
+            raise
+
+    def snapshot(self):
+        with self._lock:
+            return {"records": [dict(item) for item in self._records], "overflow": self._overflow}
+
+
+class ControlReadDiagnosticsTests(unittest.TestCase):
+    def test_success_delegates_once_and_preserves_result(self):
+        calls, argument, returned = [], object(), object()
+
+        def reader(*args, **kwargs):
+            calls.append((args, kwargs))
+            return returned
+
+        diagnostics = _ControlReadDiagnostics(reader)
+        self.assertIs(diagnostics(argument, operation_id="synthetic"), returned)
+        self.assertEqual(calls, [((argument,), {"operation_id": "synthetic"})])
+        self.assertEqual(diagnostics.snapshot(), {"records": [], "overflow": 0})
+
+    def test_dbapi_refusal_identity_privacy_bound_and_detached_snapshot(self):
+        private = "SYNTHETIC_PRIVATE_SQL_PARAMETER_AND_ERROR"
+        original = sqlite3.OperationalError(private)
+        original.sqlite_errorcode = sqlite3.SQLITE_BUSY
+        wrapped = sa_exc.OperationalError("SELECT " + private, {"private": private}, original)
+        refusal = operations.OperationControlUnavailable()
+
+        def reader():
+            try:
+                raise wrapped
+            except sa_exc.DBAPIError:
+                raise refusal from None
+
+        diagnostics = _ControlReadDiagnostics(reader)
+        for _ in range(10):
+            with self.assertRaises(operations.OperationControlUnavailable) as raised:
+                diagnostics()
+            self.assertIs(raised.exception, refusal)
+        snapshot = diagnostics.snapshot()
+        self.assertEqual(len(snapshot["records"]), 8)
+        self.assertEqual(snapshot["overflow"], 2)
+        item = snapshot["records"][0]
+        self.assertEqual(item["context_class"], "sqlalchemy.exc.OperationalError")
+        self.assertEqual(item["dbapi_class"], "sqlite3.OperationalError")
+        self.assertEqual(item["sqlite_code"], sqlite3.SQLITE_BUSY)
+        self.assertIsInstance(item["reader_raise_line"], int)
+        self.assertIsInstance(item["reader_context_line"], int)
+        self.assertGreaterEqual(item["reader_elapsed_ms"], 0)
+        self.assertNotIn(private, json.dumps(snapshot))
+        snapshot["records"][0]["sqlite_code"] = -1
+        snapshot["records"].clear()
+        self.assertEqual(diagnostics.snapshot()["records"][0]["sqlite_code"], sqlite3.SQLITE_BUSY)
+
+    def test_pool_refusal_is_distinguished_without_exposing_its_message(self):
+        private = "SYNTHETIC_PRIVATE_POOL_ERROR"
+        refusal = operations.OperationControlUnavailable()
+
+        def reader():
+            try:
+                raise sa_exc.TimeoutError(private)
+            except sa_exc.TimeoutError:
+                raise refusal from None
+
+        diagnostics = _ControlReadDiagnostics(reader)
+        with self.assertRaises(operations.OperationControlUnavailable) as raised:
+            diagnostics()
+        self.assertIs(raised.exception, refusal)
+        item = diagnostics.snapshot()["records"][0]
+        self.assertEqual(item["context_class"], "sqlalchemy.exc.TimeoutError")
+        self.assertIsNone(item["sqlite_code"])
+        self.assertIsNone(item["dbapi_class"])
+        self.assertNotIn(private, json.dumps(item))
+
+    def test_metadata_failure_cannot_replace_original_refusal(self):
+        refusal = operations.OperationControlUnavailable()
+
+        def reader():
+            raise refusal
+
+        diagnostics = _ControlReadDiagnostics(reader)
+        with patch.object(diagnostics, "_metadata", side_effect=RuntimeError("SYNTHETIC_PRIVATE_METADATA")):
+            with self.assertRaises(operations.OperationControlUnavailable) as raised:
+                diagnostics()
+        self.assertIs(raised.exception, refusal)
+        self.assertEqual(diagnostics.snapshot(), {"records": [{"metadata": "UNAVAILABLE"}], "overflow": 0})
 
 
 class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
@@ -134,9 +295,14 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
             response = api.post(f"/company-sources/{self.fixture.source['id']}/refresh", json={'profile_id':'fixture'})
             self.assertEqual(response.status_code, 202, response.text)
             operation_id = response.json()['operation_id']
-        with self.transport(), patch.dict(os.environ, self.fixture.env):
+        diagnostics = _ControlReadDiagnostics(operations._read_operation_control)
+        with self.transport(), patch.dict(os.environ, self.fixture.env), patch.object(
+                operations, '_read_operation_control', new=diagnostics):
             result = execute_operation(operation_id)
-            self.assertEqual(result['status'], 'COMPLETED', result)
+            message = result
+            if result['status'] != 'COMPLETED':
+                message = {'result': result, 'control_read_diagnostics': diagnostics.snapshot()}
+            self.assertEqual(result['status'], 'COMPLETED', message)
             count = len(self.starts)
             self.assertEqual(execute_operation(operation_id)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
             self.assertEqual(len(self.starts), count, 'receipt replay must not fetch')
