@@ -1,6 +1,6 @@
 {
   "repository": "MulattoTech/Fleet-Control-Hub",
-  "revision": "f456ab738df27531f77d15c8331a14e61a8d0e8d",
+  "revision": "bd92d4d87a19322806eee8b4e93fad2460d56faa",
   "package": "packages/mjobs-controller",
   "runtimeState": "external; preserve existing installed state directory"
 }
