@@ -1,0 +1,24 @@
+{
+  "source": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+  "tree": "04d8eb8a3947f30a5022992a4aa64e74c71a5dc1",
+  "scope": [
+    "tests.unit.test_progress_journal_concurrency",
+    "tests.unit.test_progress_journal_recovery",
+    "tests.unit.test_progress_journal",
+    "tests.unit.test_progress_dashboard",
+    "tests.unit.test_progress_card"
+  ],
+  "started_at": "2026-11-03T05:50:55.296042+00:00",
+  "environment": "Read-only/no-network disposable Linux; source mount read-only; baseline imageb929faaf",
+  "exit_code": 0,
+  "elapsed_seconds": 10.281,
+  "ended_at": "2026-11-03T05:51:05.573531+00:00",
+  "final_source": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+  "tracked_diff": "",
+  "result": "PASS",
+  "tests_passed": 37,
+  "skipped": 0,
+  "failures": 0,
+  "errors": 0,
+  "unittest_seconds": 8.942
+}
