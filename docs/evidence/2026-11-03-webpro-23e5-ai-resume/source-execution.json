@@ -1,0 +1,154 @@
+{
+  "source_commit": "9a5fcafa44ea3213b845db23eaa9838cedd1ac1f",
+  "started_at_utc": "2026-11-03T04:01:28.785768+00:00",
+  "commands": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_ai_resume_fact_trace.py",
+        "tests/integration/test_ai_resume_fact_trace_postgres.py",
+        "tests/browser/test_ai_resume_fact_trace.py",
+        "tests/browser/test_document_fact_trace.py",
+        "tests/unit/test_resume_rewrite_review.py",
+        "tests/integration/test_resume_rewrite_review_api.py",
+        "tests/integration/test_document_provenance.py",
+        "tests/integration/test_prompt_provenance.py",
+        "--tb=short",
+        "--junitxml=outputs/webpro-23e5/source-tests.xml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 48.328
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "services/documents/ai_resume.py",
+        "cli/ai_resume.py",
+        "tests/integration/test_ai_resume_fact_trace.py",
+        "tests/integration/test_ai_resume_fact_trace_postgres.py",
+        "tests/browser/test_ai_resume_fact_trace.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.094
+    },
+    {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "test",
+        "--",
+        "--run",
+        "src/document-history.test.tsx"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.828
+    },
+    {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.625
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.078
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.078
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.079
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.046
+    }
+  ],
+  "ended_at_utc": "2026-11-03T04:02:19.936769+00:00",
+  "final_commit": "9a5fcafa44ea3213b845db23eaa9838cedd1ac1f",
+  "tracked_diff": "",
+  "result": "PASS",
+  "test_summary": {
+    "pytest_passed": 48,
+    "subtests_passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "frontend_tests_passed": 14,
+    "postgres_tests_included": 4,
+    "chromium_tests_included": 2
+  },
+  "scope": "Explicit AI-assisted resume wording with human review and immutable fact references. Synthetic providers, one real loopback HTTP provider, isolated SQLite/PostgreSQL and Chromium.",
+  "failure_history": [
+    {
+      "result": "FAIL",
+      "stage": "initial test fixture",
+      "detail": "Incorrect table name in test assertions caused 4 failures and 2 passes; replaced with canonical model table name before full rerun."
+    },
+    {
+      "result": "FAIL",
+      "stage": "first PostgreSQL attempt",
+      "detail": "3 fixture setup failures: psycopg absent from isolated venv; pinned psycopg/binary 3.3.6 installed in that venv and all 4 cases subsequently passed."
+    },
+    {
+      "result": "FAIL",
+      "stage": "independent review probe",
+      "detail": "Repeated acceptance returned PREPARED while durable application remained DRY_RUN_COMPLETE; fixed actual state/version readback and independently retested."
+    },
+    {
+      "result": "FAIL",
+      "stage": "focused static lint",
+      "detail": "Initial import, unused-import and context-manager style findings corrected; fixed privacy-boundary exception catches documented. Final Ruff check passed."
+    }
+  ],
+  "limitations": [
+    "CLI drafting; web history and download support, no web drafting controls.",
+    "Runtime provider credentials only; saved-profile credential ambiguity is explicitly refused.",
+    "AI wording remains subject to explicit human factual review; token checks do not establish semantic equivalence.",
+    "Cover letters remain deterministic. No paid inference or real employer submission.",
+    "Local Brave connector unavailable; production authenticated browser verification NOT_RUN.",
+    "Shared main/required CI, actual merge-candidate testing, guarded deployment and acceptance accounting are separate pending stages."
+  ]
+}
