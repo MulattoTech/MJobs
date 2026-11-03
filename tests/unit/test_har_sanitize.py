@@ -213,6 +213,43 @@ class HarSanitizeTests(unittest.TestCase):
             clean, _ = sanitize_bytes(json.dumps(fixture()).encode())
         self.assertTrue(clean)
 
+    def test_malformed_cli_arguments_use_fixed_diagnostics_before_any_input_access(self):
+        marker = "synthetic-private-argv-marker"
+        cases = [
+            [marker + ".har", "--output", "out.json", "--manifest", "manifest.json", marker],
+            ["--unrecognized=" + marker],
+            [marker + ".har", "--output"],
+            [marker + ".har"],
+            ["private", marker + ".har", "--output", "out.json", "--manifest", "manifest.json"],
+        ]
+        for argv in cases:
+            with self.subTest(case=cases.index(argv)):
+                stdout, stderr = io.StringIO(), io.StringIO()
+                with patch("pathlib.Path.open", side_effect=AssertionError("input access forbidden")), \
+                        patch("tools.verification.har_sanitize.write_derivative") as publish, \
+                        contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    with self.assertRaises(SystemExit) as error:
+                        main(argv)
+                self.assertEqual(error.exception.code, 2)
+                self.assertEqual(stdout.getvalue(), "")
+                self.assertEqual(stderr.getvalue(), "HAR_SANITIZATION_FAILED\n")
+                self.assertNotIn(marker, stdout.getvalue() + stderr.getvalue())
+                publish.assert_not_called()
+
+    def test_cli_help_remains_available_without_input_access_or_private_program_name(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with patch("sys.argv", ["synthetic-private-program-name.py"]), \
+                patch("pathlib.Path.open", side_effect=AssertionError("input access forbidden")), \
+                patch("tools.verification.har_sanitize.write_derivative") as publish, \
+                contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as error:
+                main(["--help"])
+        self.assertEqual(error.exception.code, 0)
+        self.assertIn("usage: python -m tools.verification.har_sanitize", stdout.getvalue())
+        self.assertNotIn("synthetic-private-program-name", stdout.getvalue() + stderr.getvalue())
+        self.assertEqual(stderr.getvalue(), "")
+        publish.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

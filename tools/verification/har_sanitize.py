@@ -16,6 +16,7 @@ import re
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
+from typing import NoReturn
 from urllib.parse import parse_qsl, urlsplit
 
 
@@ -38,6 +39,12 @@ ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+
 
 class HarError(ValueError):
     """Stable error codes only: never include input values, filenames or bodies."""
+
+
+class _SafeArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        """Stop before argparse prints untrusted argument or filename text."""
+        self.exit(2, "HAR_SANITIZATION_FAILED\n")
 
 
 def _object(value: object) -> dict:
@@ -323,7 +330,7 @@ def write_derivative(source: Path, output: Path, manifest_path: Path) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = _SafeArgumentParser(prog="python -m tools.verification.har_sanitize", description=__doc__)
     parser.add_argument("source", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
