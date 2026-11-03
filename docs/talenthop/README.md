@@ -70,3 +70,9 @@ The existing Fleet Control Hub reads the catalog at an exact current-main SHA. I
 ## Shared integration prerequisite
 
 [Receiving clock-fixture evidence](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/shared-ci-clock-reuse.json) retains the receiving branch's actual date-boundary failure and 44 passing focused cases after exact authorized reuse of c6acb100. The four source-owner files are unchanged. The receipt also corrects the earlier scanner unittest collection count. Production search filters and all acceptance outcomes are unchanged; fresh protected successor gates remain required.
+
+## Manual Project reconciliation and current-main refresh
+
+[Project UI evidence](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/project-ui-sync.json) records six existing items associated with canonical Project1 through the already signed-in browser and verified after reload:903/904/905/921 In Progress,918/919 Todo. Only the existing Status field was changed, and the temporary view filter was discarded. The CLI/API token still lacks Project scope; the catalog's API synchronization blocker remains, while manual UI access and these scoped updates are separately verified. No custom fields, assignees, original outcomes or replacement project were introduced.
+
+[Current-main preservation](../evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/current-main-refresh.json) records an ordinary merge of independently delivered57e524ab, retaining all incoming canonical state and both handoff additions. The crosswalk's code-inspection baseline remains63cb and all16 parity verifications remain NOT_RUN. Fresh combined-candidate and protected checks are bound by PR921's final receipt; older green results are not reused as current gates.
