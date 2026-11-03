@@ -113,3 +113,24 @@ describe('document provenance',()=>{
     expect(mixed).toContain('Open one application’s document history');expect(mixed).not.toContain('Earlier cover-letter version');
   });
 });
+
+describe('AI-assisted resume attribution',()=>{
+  it('separates reviewed AI wording from the deterministic renderer and original fact source',()=>{
+    const resume:GeneratedDocument={...historical,profile_version:'original-snapshot',preview_error:null,missing_fact_ids:[],
+      generation_model:'deterministic-reviewed-renderer',
+      generation_context:{mode:'APPROVED_SKILL_ORDER',ai_proposal:{provider:'synthetic-provider',model:'fixture-model',draft_id:'draft',source_profile_version:'original-snapshot',source_fact_ids:['python'],review_policy:'USER_CONFIRMED_FACTUAL_PARAPHRASE'},
+        fact_rephrases:[{fact_id:'python',text:'Reviewed proposed wording',reviewed:true,review_policy:'USER_CONFIRMED_FACTUAL_PARAPHRASE'}]},
+      facts_used:[{fact_id:'python',kind:'responsibility',text:'Original source wording',source:'Original approved record',confidence:100,verified:true,user_approved:true}]};
+    const html=renderToStaticMarkup(<DocumentHistory documents={[resume]}/>);
+    expect(html).toContain('AI-assisted resume wording');
+    expect(html).toContain('synthetic-provider');expect(html).toContain('fixture-model');
+    expect(html).toContain('deterministic-reviewed-renderer');
+    expect(html).toContain('Original source wording');expect(html).toContain('Original approved record');
+    expect(html).toContain('Reviewed proposed wording');
+    expect(html).toContain('automatic checks cannot verify every claim');
+    const corrupt=renderToStaticMarkup(<DocumentHistory documents={[{...resume,preview_error:'Resume validation failed.'}]}/>);
+    expect(corrupt).not.toContain('Provider: synthetic-provider');
+    const letter=renderToStaticMarkup(<DocumentHistory documents={[{...resume,kind:'cover-letter'}]}/>);
+    expect(letter).not.toContain('AI-assisted resume wording');
+  });
+});

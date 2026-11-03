@@ -41,10 +41,10 @@ PREPARATION_CONFIG_KEYS = (
     "expected_role_lens_version", "cover_letter_story_ids",
     "cover_letter_story_job_fingerprint", "resume_story_ids",
     "resume_story_job_fingerprint", "expected_job_fingerprint",
-    "ai_evaluation_run_id", "preserve_fact_ids", "resolved_route_id",
+    "ai_evaluation_run_id", "preserve_fact_ids", "resolved_route_id", "ai_resume_review",
 )
 REQUIRED_PREPARATION_CONFIG_KEYS = frozenset(
-    key for key in PREPARATION_CONFIG_KEYS if key != "resolved_route_id"
+    key for key in PREPARATION_CONFIG_KEYS if key not in {"resolved_route_id", "ai_resume_review"}
 )
 
 
@@ -132,7 +132,7 @@ def preparation_config(*, route_mode, route_id, tailor_resume, tailor_fact_ids,
                        cover_letter_story_ids, cover_letter_story_job_fingerprint,
                        resume_story_ids, resume_story_job_fingerprint,
                        expected_job_fingerprint, ai_evaluation_run_id,
-                       preserve_fact_ids=None, resolved_route_id=None):
+                       preserve_fact_ids=None, resolved_route_id=None, ai_resume_review=None):
     values = locals()
     return {key: values[key] for key in PREPARATION_CONFIG_KEYS}
 
@@ -453,7 +453,7 @@ def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
     }
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None, preserve_fact_ids=None, resolved_route_id=None, reviewed_cover_letter_document_id=None, reviewed_cover_letter_sha256=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None, preserve_fact_ids=None, resolved_route_id=None, reviewed_cover_letter_document_id=None, reviewed_cover_letter_sha256=None, ai_resume_review=None):
     if ((reviewed_cover_letter_document_id is None)
             != (reviewed_cover_letter_sha256 is None)):
         raise ValueError('reviewed cover-letter ID and hash must be selected together')
@@ -494,6 +494,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         ai_evaluation_run_id=ai_evaluation_run_id,
         preserve_fact_ids=preserve_fact_ids,
         resolved_route_id=None,
+        ai_resume_review=ai_resume_review,
     )
     check = check or (lambda: None)
     with uncommitted_files() as staged, store.engine.begin() as connection:
@@ -534,6 +535,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         from services.discovery.lifecycle import CLOSED_STATES
         if job["attributes"].get("status") in CLOSED_STATES:
             raise PreparationError("JOB_CLOSED", "This job is closed; refresh its status before preparing documents")
+        ai_proposal = None
+        if ai_resume_review is not None:
+            from services.documents.ai_resume import resolve_trace
+            ai_proposal = resolve_trace(connection, profile, job, output_dir,
+                ai_resume_review, selection_ids, tailor_fact_rewrites)
         selected_resume_stories = []
         if ai_evaluation_run_id is not None:
             try:
@@ -717,6 +723,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 (resume_page_target is not None and prior_page_fit is not None and
                  prior_page_fit.get('target_page_count') == resume_page_target))
             prior_resume_context = (prior_resume['generation_context'] or {}) if prior_resume else {}
+            same_ai_proposal = prior_resume_context.get('ai_proposal') == ai_proposal
             same_resume_stories = bool(prior_resume and
                 prior_resume_context.get('story_refs', []) == resume_story_refs and
                 prior_resume_context.get('story_job_id') == (job_id if resume_story_refs else None) and
@@ -728,7 +735,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
                 and {key:value for key,value in prior_letter_context.items()
                      if key not in {'claim_validation', 'prompt_provenance'}} == cover_letter_context)
-            if reviewed_cover_letter is None and prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
+            if reviewed_cover_letter is None and prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_ai_proposal and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
@@ -807,6 +814,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if include_resume_contact:
             context=context or {'mode':'APPROVED_CONTACT_HEADER'}
             context['contact_header']=contact_header(profile,resume_template)
+        if ai_proposal is not None:
+            if resume_ids != ai_proposal['source_fact_ids']:
+                raise PreparationError('AI_RESUME_REVIEW_CHANGED', 'AI_RESUME_REVIEW_CHANGED')
+            context = context or {'mode': 'APPROVED_FACTS'}
+            context['ai_proposal'] = ai_proposal
         resume_provenance = capture_document('resume', resume_template, resume_model)
         letter_provenance = capture_document('cover_letter', COVER_LETTER_TEMPLATE,
                                              'deterministic-job-evidence-v1')
