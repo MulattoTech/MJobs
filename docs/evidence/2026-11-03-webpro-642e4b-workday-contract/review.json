@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T03:47:27.050401+00:00",
+  "source_revision": "1b8da8cf27c989a8a23e3733f6a9098fca5e00c3",
+  "review_type": "independent internal ChatGPT code review",
+  "protected_github_approval": false,
+  "result": "No blocking finding",
+  "reviewed_blobs": {
+    "services/applications/adapters/workday.py": "7bf5e59eb40cd70d1a8c650f9fc2297a36454568",
+    "tests/unit/test_fleet_t11_workday_dom_unavailable.py": "788008139b3532e6abca4ac0aa63472927669af0",
+    "tests/unit/test_workday_application_adapter.py": "e59ec89a7d60699be9a65cf82a95ef5df61711a1",
+    "services/applications/AREA.md": "be99a3810bbdc2f6a48ff99955ef572de32a8508"
+  },
+  "findings": [
+    "No runtime caller or capability-flag consumer depends on the incorrect fixture-upload capability.",
+    "Registry-dispatched test covers unsupported operation before input access.",
+    "Cancellation and deadline tests preserve original exception objects.",
+    "Controlled rehearsal remains independent and public operations remain off."
+  ],
+  "acceptance_boundary": "Honest capability and failure contract only; no whole-parent acceptance."
+}

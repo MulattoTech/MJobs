@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T04:04:40.231398+00:00",
+  "timestamp": "2026-11-03T04:18:08.154659+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2178,9 +2178,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json",
-        "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json"
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/protected-merge.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b, source d096d03deba8aa749f478f9dd6c91029379ec50f: Verified PARTIAL web-request slice: strict Referer-origin fallback, duplicate security-header rejection, public-host mutation admission, durable saved-data preservation and controlled Chromium proxy-condition coverage. Exact source: 151 tests / 33 subtests PASS, no skips; independent internal review found no blocker. Headerless local-native compatibility remains an explicit exception. Complete authentication/authorization coverage, including the external-evaluation Access policy, remains unverified. No whole-parent PASS or production rollout is claimed by this source record; containing PR final receipt records protected delivery.",
+      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b, source d096d03deba8aa749f478f9dd6c91029379ec50f: Verified PARTIAL web-request slice: strict Referer-origin fallback, duplicate security-header rejection, public-host mutation admission, durable saved-data preservation and controlled Chromium proxy-condition coverage. Exact source: 151 tests / 33 subtests PASS, no skips; independent internal review found no blocker. Headerless local-native compatibility remains an explicit exception. Complete authentication/authorization coverage, including the external-evaluation Access policy, remains unverified. No whole-parent PASS or production rollout is claimed by this source record; containing PR final receipt records protected delivery.\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Protected PR #893 merged at ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b, tree 68712813bd808cb1b16572b26b2f4ab94ef52348 identical to tested candidate cbc172fadfb66e5cf661ca6eff667f57f1db379f. Candidate 151 tests/33 subtests PASS, no skips; all five required hosted gates and CodeQL PASS. Parent remains PARTIAL. New-main deployment gates and guarded rollout were pending at this integration checkpoint; see protected-merge.json and containing PR final release receipt.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2838,9 +2839,11 @@
         "docs/evidence/2026-11-01-mock-environments-backup-diagnostics.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/review.json"
       ],
-      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Not implemented or verified in current milestones\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Executed controlled mock-ATS adapter/browser coverage verifies multipage navigation, frozen contact and approved-answer DOM fills, document uploads, validation, idempotent confirmation/reopen, and revoked-answer rejection before browser or submission. Extended one-page journeys verify the fixture contract directly, not every registered adapter. The seven-dimension contract matrix across all supported application adapters, including ATS detection, remains incomplete; external submissions remain OFF. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Source 1b8da8cf27c989a8a23e3733f6a9098fca5e00c3 corrects Workday's advertised fixture-upload capability and rejects the unsupported helper before browser/analysis/document access, preserving cancellation/deadline exception identity. Exact-source55 tests/23 subtests PASS, 0 FAIL / 0 SKIP; independent internal code review found no blocker. Separate controlled Workday rehearsal remains unchanged. Parent stays PARTIAL: all seven contract dimensions across every registered adapter are not accepted, and public ATS mutation/submission stays OFF. Protected delivery of the containing PR remains a separate final receipt.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3679,9 +3682,14 @@
     },
     {
       "requirement_id": "MJ-REQ-295",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/criteria.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-implementation-report/validation.json",
+        "docs/IMPLEMENTATION_REPORT.md"
+      ],
+      "note": "Not implemented or verified in current milestones\n\n2026-11-03 UTC, webpro-20261103T031738Z-642e4b: Completed the literal14-section implementation-report deliverable at artifact commit 8ee14e8256596b39ffa3d0b25972856205680b0c, technical inventory 1350f398386d0be8c9555aa8ec565daf186b2b84. Independent content and final artifact review PASS: all 5 built-in collectors, 11 application adapters, 22 detector signatures, 2,874 exact manifest files, 59 local links, source/tree/delta identities and retained FAIL/NOT_RUN boundaries. Report blob 58a171c58e5008769e232b42530f78a69050bfd1. The report explicitly keeps the product PARTIAL and does not accept 290/294/296-300. This is factual report acceptance, not live-provider, public-submission or production-readiness acceptance; protected publication is through the containing PR.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"

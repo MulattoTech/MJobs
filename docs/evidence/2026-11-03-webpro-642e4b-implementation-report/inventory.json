@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-295",
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "utc": "2026-11-03T04:03:03.922637+00:00",
+  "source_revision": "1350f398386d0be8c9555aa8ec565daf186b2b84",
+  "source_tree": "4c42f9ec80abc2987d91ed7308c5ef90da4dc312",
+  "comparison_baseline": "63b843dfe2706e6a5ac1d567af7e5acb01e134a7",
+  "tracked_file_count": 2874,
+  "tracked_file_bytes": 27079873,
+  "manifest": "file-manifest.tsv",
+  "manifest_sha256": "741d66fcfb15d95669ecce5ef8472fefc47bd54b65c584c8781bc15d05bd699d",
+  "scope": "All tracked source-checkpoint files; later report/evidence/accounting additions are in the containing PR diff.",
+  "sprint_delta_counts": {
+    "added": 9,
+    "modified": 15,
+    "removed": 0
+  },
+  "sprint_delta": [
+    {
+      "status": "M",
+      "path": "apps/api/main.py"
+    },
+    {
+      "status": "M",
+      "path": "docs/PROGRESS_CARD.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/PROGRESS_CARD.svg"
+    },
+    {
+      "status": "M",
+      "path": "docs/PROGRESS_DASHBOARD.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-tests.xml"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/review.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-execution.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-workday-contract/source-tests.xml"
+    },
+    {
+      "status": "A",
+      "path": "docs/security/web_request_boundary.md"
+    },
+    {
+      "status": "M",
+      "path": "planning/CAPABILITY_MATRIX.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/IMPLEMENTATION_STATE.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/PR_QUEUE.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/REQUIREMENT_INDEX.json"
+    },
+    {
+      "status": "M",
+      "path": "planning/SESSION_HANDOFF.md"
+    },
+    {
+      "status": "M",
+      "path": "services/applications/AREA.md"
+    },
+    {
+      "status": "M",
+      "path": "services/applications/adapters/workday.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/browser/test_referrer_security.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/integration/test_local_origin_security.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/test_fleet_t11_workday_dom_unavailable.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/test_public_host_deployment.py"
+    },
+    {
+      "status": "A",
+      "path": "tests/unit/test_request_security_boundary.py"
+    },
+    {
+      "status": "M",
+      "path": "tests/unit/test_workday_application_adapter.py"
+    }
+  ]
+}
