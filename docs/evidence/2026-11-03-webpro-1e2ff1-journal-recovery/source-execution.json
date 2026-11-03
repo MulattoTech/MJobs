@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-03T04:17:47.428232+00:00",
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "requirement_id": "MJ-REQ-008",
+  "issue": 9,
+  "result": "PARTIAL",
+  "acceptance_change": "NONE",
+  "baseline_sha": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+  "source_sha": "e0c19fa94ab31f81f1b4107d3183424ea300769e",
+  "source_tree": "7aeac1d0e1b07a9ed26534df5e8c0e455f4f9fca",
+  "branch": "work/webpro-20261103T034313Z-1e2ff1-008",
+  "claim": {
+    "ref": "refs/heads/webpro-claims/MJ-REQ-008",
+    "owner": "18af7a5b4dc5ff76afda7699ddae08d55a2908d1"
+  },
+  "problem": "A process exit after canonical journal replacement leaves a stale derived output. Explicit sync previously validated that stale derivative and could not repair it. Strict validation compared only phase and checkpoint, missing other stale fields.",
+  "change": "Explicit sync separately validates canonical history then atomically rebuilds only its requested output. Ordinary validate/resume/record remain strict. Output consistency checks cover all authoritative fields and milestone identity metadata.",
+  "baseline_reproduction": {
+    "source_sha": "ea5fbf9f0c3c27ecb0d86b90168f276df0349c6b",
+    "test_methods": 2,
+    "result": "EXPECTED_FAIL",
+    "failure_assertions": 13,
+    "elapsed_seconds": 0.658,
+    "details": [
+      "Owned child exited73 immediately after real canonical os.replace; fresh sync failed on stale output.",
+      "Twelve stale-field subtests were not detected; phase and checkpoint mismatches were already detected."
+    ]
+  },
+  "source_execution": {
+    "windows": {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_progress_journal.py tests/unit/test_progress_journal_recovery.py tests/unit/test_progress_dashboard.py tests/unit/test_progress_card.py --junitxml=<private>/native-source.xml",
+      "passed": 28,
+      "subtests_passed": 17,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 3.17,
+      "junit_testcase_nodes": 28,
+      "junit_note": "Use the executed pytest parent/subtest counts above; serialized testcase nodes are not additional tests."
+    },
+    "linux": {
+      "command": "python -m unittest -v tests.unit.test_progress_journal tests.unit.test_progress_journal_recovery tests.unit.test_progress_dashboard tests.unit.test_progress_card",
+      "passed": 28,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 2.99,
+      "runtime": "Owned disposable container, current source read-only, network none, CPU1/memory512MiB/tmpfs128MiB",
+      "dependency_image_id": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "dependency_image_tag": "mjobs-micro:sha-63b843dfe2706e6a5ac1d567af7e5acb01e134a7"
+    },
+    "consistency": [
+      "Catalogue PASS",
+      "Progress journal PASS",
+      "Dashboard CURRENT",
+      "Diff PASS",
+      "Commit provenance PASS"
+    ],
+    "local_ruff": "NOT_RUN: Ruff is not installed in the owned environment; no shared environment was modified."
+  },
+  "verified_behaviors": [
+    "Real child-process exit between canonical/output replacements, detected by strict read-only CLI validation and resume.",
+    "Fresh CLI sync restores exact derived output without changing canonical bytes; fresh resume and next record preserve all three milestone IDs without duplication.",
+    "Corrupt derived JSON is repairable from valid canonical history.",
+    "Malformed canonical JSON, missing evidence and canonical phase mismatch are refused without changing either file.",
+    "Failed output replacement preserves both files, removes owned temporary file and permits explicit retry.",
+    "Custom output selection leaves the default stale output and canonical data unchanged.",
+    "Every authoritative field, milestone ID, timestamp and schema version is checked for stale output."
+  ],
+  "review": {
+    "self_review": "Canonical authority, explicit mutation, invalid-source refusal, read-only validation, preserved history and owned-process cleanup reviewed.",
+    "independent_review": "PENDING; no protected or human approval claimed."
+  },
+  "limits": [
+    "MJ-REQ-008 remains PARTIAL. Physical host restart and power-loss durability were not tested.",
+    "Single-writer ownership is still required; this change is not multi-writer synchronization.",
+    "Production data, real applications, paid agents/model calls and shared services were not used.",
+    "Protected latest-head checks, actual candidate verification and merge/main delivery remain pending. Canonical evidence is reconciled only during exclusive integration."
+  ],
+  "delivery_receipt": "See the containing PR final receipt for future head, actual merge, required/main gates and any deployment or claim release."
+}

@@ -806,7 +806,7 @@
         "docs/evidence/2026-10-03-company-discovery-requests.json",
         "docs/evidence/2026-10-09-official-domain-evidence-order.json"
       ],
-      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company\u2019s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete.",
+      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company’s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete.",
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature"
@@ -2266,7 +2266,7 @@
       "evidence": [
         "docs/evidence/2026-10-07-compose-log-rotation.json"
       ],
-      "note": "All nine Compose services render finite json-file rotation at 10 MiB \u00d7 5 files. An isolated no-network Docker Engine test emitted 50 large lines under a 1 MiB \u00d7 2 cap and retained 11; container removed and existing personal MJobs services untouched. Existing live-feedback tests verify 30-day managed-session cleanup and no raw trace file; prior source inventory found no HTML snapshot writers. Focused Compose/live-feedback/document-artifact suite 20 PASS; Compose config and local validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue #179 CLOSED after readback. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "note": "All nine Compose services render finite json-file rotation at 10 MiB × 5 files. An isolated no-network Docker Engine test emitted 50 large lines under a 1 MiB × 2 cap and retained 11; container removed and existing personal MJobs services untouched. Existing live-feedback tests verify 30-day managed-session cleanup and no raw trace file; prior source inventory found no HTML snapshot writers. Focused Compose/live-feedback/document-artifact suite 20 PASS; Compose config and local validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue #179 CLOSED after readback. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2886,7 +2886,7 @@
         "docs/evidence/2026-11-01-pro-p1-delivery.json",
         "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources\u2014Remotive, RemoteOK and Greenhouse\u2014have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources—Remotive, RemoteOK and Greenhouse—have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3077,7 +3077,7 @@
         "docs/evidence/2026-10-09-source-failure-recovery.json",
         "docs/evidence/2026-10-09-source-failure-rediscovery.json"
       ],
-      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY \u2192 DEGRADED \u2192 FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN.",
+      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY → DEGRADED → FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN.",
       "priority": "P2",
       "area": "performance_learning_history",
       "category": "major-feature"
