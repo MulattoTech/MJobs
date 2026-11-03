@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "source_commit": "e229e5f66c8372a40bc512c9f2a2c942d5279461",
+  "reviewer_task": "/root/review_doc_trace_design",
+  "review_type": "Independent internal static review; not a GitHub approval",
+  "result": "SUPERSEDED: bare preseeded mismatch required a narrower authorization rule",
+  "remaining_must_fix": [],
+  "source_file": "services/discovery/sources/collect.py",
+  "source_sha256": "038fbcebb984f4c0b81c86932279f5cd6eba0dc86b97450631cc5b902e1674b0",
+  "resolved_findings": [
+    "Curated display names cannot be upstream identity authority.",
+    "A posting without snapshots must block bootstrap even when other valid history exists.",
+    "Both immutable origin and current source URL must identify unexplained legacy postings.",
+    "Validate exact snapshot identity as well as its raw checksum."
+  ],
+  "reviewed_contracts": [
+    "Provider-wide deterministic receipt under existing company ingestion lock.",
+    "Full Unicode-preserving label digest separate from curated company fields.",
+    "Receipt insertion rolls back with downstream collection failures.",
+    "Legacy candidate, snapshot, posting, source and provider bindings are checked.",
+    "64 distinct historical snapshots plus an overflow sentinel; no arbitrary legacy winner.",
+    "Fixed conflict/review error codes; no raw label in receipt or failure diagnostics.",
+    "Guard limited to WWR, RemoteOK and Remotive; no ATS authorization change."
+  ],
+  "limitations": [
+    "Legacy identities with more than 64 distinct snapshots require review even if legitimate.",
+    "The cap bounds recovered payloads, not all database query work; ordinary receipt-backed polls use primary-key lookup.",
+    "Append-only integrity is an application convention, not new database-level tamper resistance.",
+    "No broader MJ-REQ-017 acceptance or production rollout is established by this review."
+  ],
+  "independent_test_author": {
+    "task": "/root/next_objective_scout",
+    "file": "tests/integration/test_aggregator_company_identity_history.py",
+    "sha256": "e91586b0d5183744b7a84607d0a009fac9905784f55b800639a62838c6238dbd",
+    "unique_cases": 32,
+    "initial_run": "27 PASS, 29.27 seconds",
+    "final_new_or_changed_selectors": "6 PASS, 5.08 seconds; one selector overlaps the initial run",
+    "ruff": "PASS; two initial fixture-import lint findings corrected"
+  },
+  "initial_static_review_result": "PASS",
+  "reassessment": {
+    "finding": "A bare company row with an arbitrary differing name and no original source observation does not establish an authorized alias.",
+    "resolution": "Source 323f3e1ce9f59046118815dec9c61a49c8bf1275 requires equivalent names for a bare preexisting company, otherwise REVIEW_REQUIRED.",
+    "reviewer_correction": "The initial review relied too heavily on a direct-database fixture; supported writer inspection did not establish a rename or alias workflow.",
+    "external_peer_reference": "https://github.com/MulattoTech/MJobs/pull/899"
+  }
+}

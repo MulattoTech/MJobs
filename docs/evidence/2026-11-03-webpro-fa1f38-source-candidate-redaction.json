@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-03T07:50:42.645Z",
+  "run_id": "webpro-20261103T073840Z-fa1f38",
+  "objective": "SOURCE-CANDIDATE-ENCODED-PATH-LEAK",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/517",
+  "base_main_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "claim_ref": "refs/heads/webpro-claims/SOURCE-CANDIDATE-ENCODED-PATH-LEAK",
+  "claim_owner_sha": "faa1dd18f355dfe38a51770496b585da6983dc92",
+  "scope": "Offline URL path sanitization in passive profile-scoped source candidates and synthetic replay regression; no third-party API, crawl, application submission, or fleet invocation.",
+  "red_reproductions": [
+    "Before source changes: encoded /%74oken/private-secret persisted instead of a redacted value; focused test 1 failed and 5 deselected.",
+    "Before original-segment snapshot correction: token/%73ession/chain-secret leaked its final value; focused test 1 failed and 5 deselected.",
+    "Before encoded query-marker handling: apply%3Ftoken%3Dquerylike-secret persisted its value; focused test 1 failed and 5 deselected."
+  ],
+  "implementation": [
+    "Classify up to eight levels of percent encoding while preserving original safe job route encoding.",
+    "Redact values after sensitive URL path labels, including nested labels, key-value forms and semicolon path parameters.",
+    "Fail closed on encoded separators, control characters or unresolved nested escapes, including adjacent potential values.",
+    "Retain host-based site identity, profile isolation, idempotent capture replay and benign encoded job paths."
+  ],
+  "checks": [
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_source_candidate_catalogue_replay.py tests/unit/test_supported_source_capture.py tests/integration/test_source_candidates.py tests/integration/test_external_application_capture.py --tb=short",
+      "result": "PASS",
+      "count": 27,
+      "duration_seconds": 25.52,
+      "errors": 0,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "at": "pre-final source amendment; rerun before commit"
+    },
+    {
+      "command": "Full repository and PostgreSQL/Redis/live-provider/browser/deployment checks",
+      "result": "NOT_RUN"
+    }
+  ],
+  "changes": [
+    "services/source_candidates/catalogue.py",
+    "tests/unit/test_source_candidate_catalogue_replay.py"
+  ],
+  "non_goals": [
+    "No retroactive rewrite of stored historical source-candidate observations",
+    "No claim of arbitrary opaque path token detection",
+    "No P0/P1 or TalentHop acceptance promotion",
+    "No production deployment from feature branch"
+  ],
+  "publication": {
+    "pr": null,
+    "protected_ci": "NOT_RUN",
+    "merged": false,
+    "deployed": false,
+    "accepted": false
+  }
+}

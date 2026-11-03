@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073959Z-776838",
+  "work_key": "MJ-REQ-204",
+  "talenthop_overlap": "MJ-TH-007",
+  "claimed_ref": "refs/heads/webpro-claims/MJ-REQ-204",
+  "claimed_owner_commit": "b2f092d2df7655421683a70c3088072f94914346",
+  "based_on_main": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "scope": "Profile-scoped browser-local persistence for opt-in activity notification dismissals; new operation outcome remains visible; malformed or excessive client data is bounded.",
+  "reproduction": {
+    "status": "FAIL_EXPECTED",
+    "command": "npm --prefix apps/web test -- src/operation-notifications.test.tsx",
+    "observed": "4 tests, 1 failed: a previously dismissed terminal outcome reappeared after remount before implementation."
+  },
+  "verification": [
+    {
+      "command": "npm --prefix apps/web test -- src/operation-notifications.test.tsx",
+      "result": "PASS",
+      "tests": 5
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "PASS",
+      "files": 154,
+      "tests": 1105
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "details": "TypeScript typecheck and Vite production build; existing >500 kB chunk warning."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q -p no:cacheprovider tests/browser/test_operation_notifications.py --tb=short",
+      "result": "PASS",
+      "tests": 2,
+      "seconds": 25.68
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "protections": [
+    "No external notification sends or provider calls were added.",
+    "Only profile-owned operation IDs, outcomes and timestamps are stored in same-origin browser storage; no operation details or user content.",
+    "At most 100 short dismissal keys persist; corrupt, oversize or blocked storage fails safely to session-local behavior.",
+    "No fleet/AI/employer application actions."
+  ],
+  "acceptance": {
+    "mj_req_204": "PARTIAL",
+    "mj_th_007": "PARTIAL",
+    "production": "NOT_DEPLOYED",
+    "hosted_ci": "NOT_RUN",
+    "integration": "NOT_MERGED"
+  },
+  "limitations": [
+    "Local browser storage is per-device, not cross-device synchronized.",
+    "Node.js v27 alpha emitted an npm support warning; hosted CI on supported Node remains required.",
+    "No TalentHop authenticated journey or HAR was performed; separate reconnaissance claim is owned elsewhere."
+  ],
+  "evidence_date_utc": "2026-11-03T07:49:22.456Z"
+}

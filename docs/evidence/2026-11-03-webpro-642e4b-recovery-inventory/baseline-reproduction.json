@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement": "MJ-REQ-292",
+  "utc": "2026-11-03T04:47:45.961866+00:00",
+  "source_revision": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "source_blob": "b3ea5ba90a890c3f7397ab6ede6feed217a58bf5",
+  "result": "DEFECT_REPRODUCED",
+  "actual_job_count": 201,
+  "default_api_count": 200,
+  "verified_inventory_count": 200,
+  "modified_omitted_job_count": 1,
+  "incorrect_comparison_result": "PASS",
+  "digest_unchanged": true,
+  "scope": "Real in-process FastAPI TestClient and disposable synthetic SQLite FIXTURE store; no Docker, restart, external network or production state."
+}

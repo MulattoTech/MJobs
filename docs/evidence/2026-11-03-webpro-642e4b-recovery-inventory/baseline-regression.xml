@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="4.985" timestamp="2026-11-03T04:47:46.617253+00:00"><testcase classname="tests.integration.test_recovery_inventory_completeness.PublicJobInventoryCompletenessTests" name="test_api_inventory_refuses_truncated_catalog_before_detail_reads" time="2.977"><failure message="AssertionError: ValueError not raised">tests\integration\test_recovery_inventory_completeness.py:78: in test_api_inventory_refuses_truncated_catalog_before_detail_reads
+    with self.assertRaisesRegex(ValueError, "^" + BUDGET_ERROR + "$"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: ValueError not raised</failure></testcase></testsuite></testsuites>

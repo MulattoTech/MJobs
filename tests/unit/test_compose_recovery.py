@@ -1,3 +1,5 @@
+import hashlib
+import json
 import subprocess
 import sys
 import time
@@ -85,6 +87,32 @@ class ComposeRecoveryOutputBoundsTests(unittest.TestCase):
                           "import sys; print('private-output'); sys.exit(7)"],
                          timeout=2, action="Inspect fixture")
         self.assertNotIn("private-output", str(raised.exception))
+
+
+class PublicJobInventoryCompletenessTests(unittest.TestCase):
+    def test_current_inventory_rejects_over_budget_rows_with_a_valid_checksum(self):
+        from cli.compose_recovery import validate_public_job_inventory
+
+        def inventory(count):
+            rows = [
+                {"job_id": f"fixture-job-{number}", "canonical_sha256": "a" * 64,
+                 "source_copy_count": 1, "source_copies_sha256": "b" * 64}
+                for number in range(count)
+            ]
+            digest = hashlib.sha256(json.dumps(
+                rows, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+            ).encode("utf-8")).hexdigest()
+            return {"schema_version": 3, "profile_id": "fixture-profile",
+                    "job_count": count, "source_copy_count": count,
+                    "jobs": rows, "sha256": digest}
+
+        complete = inventory(200)
+        self.assertIs(validate_public_job_inventory(complete), complete)
+        oversized = inventory(201)
+        before = json.dumps(oversized, sort_keys=True)
+        with self.assertRaisesRegex(ValueError, "Invalid public job/source-copy inventory"):
+            validate_public_job_inventory(oversized)
+        self.assertEqual(json.dumps(oversized, sort_keys=True), before)
 
 
 if __name__ == "__main__":

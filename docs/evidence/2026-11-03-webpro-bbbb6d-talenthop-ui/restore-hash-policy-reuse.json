@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "reviewed_at": "2026-11-03T09:37:22.259978+00:00",
+  "frozen_input": "eca1f3084ae3085d247304a222c91830a48f24e6",
+  "source_tree": "9ae1146f30781817b156991862a102623f86ecfa",
+  "base": "57e524abf4860a57cf6bdd68f4e78759c7d42e89",
+  "result": "PASS",
+  "delta_files": [
+    {
+      "path": ".gitleaksignore",
+      "git_blob": "a8c9d49ed77ab8ea97fd4ed1625d43ad1fbe9ce1"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-1e2ff1-restore-hash-scan/source-hash-review.json",
+      "git_blob": "09c12cda3b79084251996aa4643c7f659a1861d2"
+    }
+  ],
+  "referenced_source": {
+    "commit": "f54453dd9c8fd2dff715a640b0cbec5130758bd9",
+    "path": "tests/unit/test_backup_credential_restore.py",
+    "bytes": 8345,
+    "git_blob": "386e9875b321179b97707ee89b94963c0f7e8e8c",
+    "sha256": "5ec32159d7117241a4c12b391bd62d5198681f95b9af0fe1a2a346feb4b874ef"
+  },
+  "independently_verified_findings": [
+    {
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/fifo-guard-execution.json",
+      "line": 263,
+      "fingerprint": "f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/fifo-guard-execution.json:generic-api-key:263",
+      "blob": "5b2da125aeb6559a353c9b08c2dd09aa9ebffbfc",
+      "same_digest_locations": [
+        "/receipt/inputs/tests/unit/test_backup_credential_restore.py/sha256",
+        "/receipt/artifact_sha256/inputs\\tests__unit__test_backup_credential_restore.py"
+      ]
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/baseline-execution.json",
+      "line": 265,
+      "fingerprint": "f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/baseline-execution.json:generic-api-key:265",
+      "blob": "2ef3414cc4721a46dec466821a4beabfe6230895",
+      "same_digest_locations": [
+        "/receipt/inputs/tests/unit/test_backup_credential_restore.py/sha256",
+        "/receipt/artifact_sha256/inputs\\tests__unit__test_backup_credential_restore.py"
+      ]
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/provisional-execution.json",
+      "line": 942,
+      "fingerprint": "f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/provisional-execution.json:generic-api-key:942",
+      "blob": "eb43f9cfee649d14c44441c9fde2c57eab1df80f",
+      "same_digest_locations": [
+        "/receipt/inputs/tests/unit/test_backup_credential_restore.py/sha256",
+        "/receipt/linux/execution/source_bindings/tests.unit.test_backup_credential_restore/sha256",
+        "/receipt/native/execution/source_bindings/tests.unit.test_backup_credential_restore/sha256",
+        "/receipt/artifact_sha256/inputs\\tests__unit__test_backup_credential_restore.py"
+      ]
+    }
+  ],
+  "source_authorization": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6600104649",
+  "receiving_failed_scan": {
+    "head": "be00a4ca7f8d25099c3eddb9c138f0597ada5de4",
+    "run": 41611282545,
+    "job": 125833507554,
+    "artifact": 13218454983,
+    "zip_bytes": 1259,
+    "zip_sha256": "a61d0cc14e134e8a441386843cfe889c425739d3fa3f4a1d9233b8841c7cfe17",
+    "findings": 3,
+    "result": "FAIL"
+  },
+  "classification": "PUBLIC_SOURCE_FILE_CHECKSUM_FALSE_POSITIVE",
+  "preservation": {
+    "all_prior_ignore_bytes_exact": true,
+    "scanner_rules_version_workflow_all_history_scope_unchanged": true,
+    "historical_source_evidence_unchanged": true,
+    "application_tests_planning_unchanged": true
+  },
+  "boundary": "Independent exact byte/fingerprint review and six receiving policy tests PASS. Fresh actual candidate and full protected hosted gates remain separately required; retained failed scan is not reclassified as PASS.",
+  "independent_review": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6600176118",
+  "previous_audit_head": "be00a4ca7f8d25099c3eddb9c138f0597ada5de4",
+  "receiving_source": "4109db7a819a260365e668fac136e2c67544ce58",
+  "receiving_policy_execution": {
+    "started_at": "2026-11-03T09:38:29.545Z",
+    "finished_at": "2026-11-03T09:38:30.267Z",
+    "argv": [
+      "python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_p0_evidence_secret_fingerprints.py",
+      "tests/unit/test_secret_scan_sustain_176.py"
+    ],
+    "exit_code": 0,
+    "tests_passed": 6,
+    "failures": 0,
+    "skips": 0,
+    "log_sha256": "aa779ab29c79464be52ac99280231538603b6da668a0df6198c317b8cd352bc7"
+  },
+  "actual_candidate_and_hosted_gates": "PENDING_SEPARATE_RECEIPT"
+}

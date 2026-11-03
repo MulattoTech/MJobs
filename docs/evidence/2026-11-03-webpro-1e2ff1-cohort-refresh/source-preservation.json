@@ -1,0 +1,225 @@
+{
+  "run_id": "webpro-20261103T034313Z-1e2ff1",
+  "timestamp": "2026-11-03T07:06:54.309650+00:00",
+  "base": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "prior_cohort": "276e936ef2f1403028953c2b45dfa2a85a7d4e9a",
+  "inputs": {
+    "899": "c5470f4bd4ca7708b517129773247b5d1e18fd36",
+    "902": "331df2ce467df7b6bc41b0648eb6c27545f745a8",
+    "908": "5367e7019e40d82af036bf7eff14597a2a79da8f",
+    "910": "77c137a25ecf0f07eabab775c949120d7e727464"
+  },
+  "integration_owner": "eef6d6a31925a4973f1648a871f85074cafe4800",
+  "source": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
+  "tree": "8164ef55d911fa121a9c7d17f70f43a9b57cd289",
+  "merge_steps": [
+    {
+      "label": "protected-main-907",
+      "before": "276e936ef2f1403028953c2b45dfa2a85a7d4e9a",
+      "incoming": "63cb1042e08375f7bda1f9dad378209cca856167",
+      "merge_base": "60021098ba0d97d0783a197311040d6a0cbae74e",
+      "commit": "f3eede25373cb47fa43ccbe7eea65d0033df561f",
+      "tree": "bd945751f4977df2f3de133f1909c5b30224630f",
+      "resolved_canonical_conflicts": []
+    },
+    {
+      "label": "recovery-902",
+      "before": "f3eede25373cb47fa43ccbe7eea65d0033df561f",
+      "incoming": "331df2ce467df7b6bc41b0648eb6c27545f745a8",
+      "merge_base": "63cb1042e08375f7bda1f9dad378209cca856167",
+      "commit": "227d33e214b5993acd29571b18a5654c908b222c",
+      "tree": "4babe9cebb43656f30a86bc2b4393a985cb16663",
+      "resolved_canonical_conflicts": [
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ]
+    },
+    {
+      "label": "cold-ssl-910",
+      "before": "227d33e214b5993acd29571b18a5654c908b222c",
+      "incoming": "77c137a25ecf0f07eabab775c949120d7e727464",
+      "merge_base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "commit": "ba08749f1c3910be3c2c872e7a8180701b72bddb",
+      "tree": "8164ef55d911fa121a9c7d17f70f43a9b57cd289",
+      "resolved_canonical_conflicts": []
+    }
+  ],
+  "source_evidence_blobs_preserved": 81,
+  "source_evidence_blobs": {
+    "docs/AGGREGATOR_COMPANY_IDENTITY.md": "4924c4cc685acf69f3190d55f82c84215314bbd4",
+    "docs/PROGRESS_RECOVERY.md": "c836c927966746da29e14f4e6440b7e06195109d",
+    "docs/evidence/2026-11-03-webpro-1ba724-cohort/source-execution.json": "2e29980e71c4146d0ac382b30db5789a6f989293",
+    "docs/evidence/2026-11-03-webpro-1ba724-talenthop/argv-privacy-followup.json": "cb73f0327e54128696f80704fc74e75c5a796157",
+    "docs/evidence/2026-11-03-webpro-1ba724-talenthop/source-validation.json": "6dd7aa878074f37f0979f405cad5f376b01e77d8",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/baseline-regressions.json": "0a82627a52f95d6eaafcd701961cfee32521ddd3",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/candidate-execution.json": "855085657c48f914f90bd53cc25f155884dcca1d",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/candidate-native-tests.xml": "f497401895ea3a23f18c5e723d8ac5c0869917fa",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/cohort-protected-merge.json": "a62d31d5f5e8d8fbcca9214fe7e1a26bf63d1fe5",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/linux-execution.json": "eebcf0baa3f72c21f8548d51d62b38ad0e6c8637",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/lost-update-reproduction.json": "5f5040b1acab25e9637f86682ad4141ded9cf3c5",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/native-execution.json": "ea3d5a5d0a240e185af4486aba1ba1affe61cd76",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/owned-resource-cleanup.json": "e3fc4ac1b9c4f19fb2e9bf8a4dac1997fffa116b",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json": "8077a7fe55fe934e7e9ffcbe2804b2255db6baf3",
+    "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-native-tests.xml": "ad2572be3894f4ef7a4d370e920ee3dac4bca5c1",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json": "cd0af143ca77f88e1616341086cf91a438ba6466",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/candidate-execution.json": "fa910bd2a5a7dded78eb660508c45699ad7e8d17",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/candidate-tests.xml": "6bcffe3ab0fd7c0b06afc879c96752b6260d89c9",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json": "021f7e96423d91eee086bc2321691316658581ee",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-backup-7e-verification.json": "d702e029fff2bcf30cee8cfb181a1d75d94c6267",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-bounded-logs-7e.json": "d3f945df3d86659ca98b6359766f54d6357ed521",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-followup.json": "c7a6507e8d99105e113b32ef9a46edfea18daabe",
+    "docs/evidence/2026-11-03-webpro-23e5-ai-resume/production-rollout-7e-readonly.json": "632d7030a2d10e9104b0acb3ce76d6a27ec431e5",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/acceptance-candidate.json": "07d3d0a6c346b64d91f8f0ee5c18554e561cf83f",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/baseline-tests.xml": "e837d87905ffbed223935a2ee5d236fe0674196f",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/ci-clock-repair.json": "f9e3ff0348a57d6551881ae7a1b863f0201d7ceb",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/clock-fix-tests.xml": "0a57e05dc59f8451e9b32114ad0519dcd8ebc0f9",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/compatibility-correction.json": "33479697e7dcc387c676e7498c8dfe12c52b09bb",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/compatibility-review.json": "10185987812493d6f9934178d9d715017a74a8f4",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/compatibility-source-execution.json": "5094b18b842a8dd4d0b400ef09c32c4f71e42ae9",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/compatibility-source-tests.xml": "efc8e3321da922c770ac5fa7ff0260a571f3b7f9",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/final-review.json": "2ed048c46938a326ee8919a169431a67856104a5",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/final-source-execution.json": "6be0ee365000e6b7ab6a346fa115fd6f132ea24d",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/final-source-tests.xml": "e2a1404c5588640a451b44331db251dc4c6044ab",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/intermediate-candidate-execution.json": "dd615cbae2d0fae129b245cf69fadea951366ee2",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/intermediate-candidate-tests.xml": "caedbd81afe171bada04f4c33967fbcc6f2c50be",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-checkpoint.json": "e908d5f17f7664f9aa2a4985c22b1c0148d48827",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json": "85d8070332fe289589e29f4eb33b8acd9e94906b",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-review.json": "135a8b89ee9e0b33dd3a7eda062f29a266c0ccbd",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-tests.xml": "b18bb90af9ee0b11e6888ddd2f20c440de9df029",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/review.json": "e266009f81ce3454991bf496f0974ded005f06bc",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/source-execution.json": "8fb537cd838c6ba535b604da657b680de761c829",
+    "docs/evidence/2026-11-03-webpro-23e5-company-identity/source-tests.xml": "e6162b88fe95c1b4fe27dd4975e117283b88155c",
+    "docs/talenthop/HAR_PRIVACY.md": "a10e382526639973bf15c0b72f1dc8385ea8ea9b",
+    "docs/talenthop/README.md": "376eb3e1843bdc58a2e355488c97eefe0a8a3759",
+    "docs/talenthop/catalog.json": "0cb139100a7353cccb5ea94c1ebd5972f0e784ee",
+    "services/discovery/sources/collect.py": "d377cc09c5a6f70aa04d21289d2ad7c38e596c40",
+    "tests/integration/test_aggregator_company_identity.py": "95e763747bdfc63fc4be887169143a3560c56d4c",
+    "tests/integration/test_aggregator_company_identity_history.py": "b3b7425713ee7c8da4cd19a5872dd92223fe0f55",
+    "tests/integration/test_aggregator_company_identity_postgres.py": "166052c8224e94317c779d0c098c2cc56f0ea197",
+    "tests/integration/test_source_enrollment_api.py": "bc8eb5c0dffc32d6c1bdbc34f21bf5f547c59a3c",
+    "tests/unit/test_har_sanitize.py": "2b8ba5fccd2319b1d98933bfc453c8ecc0eb70dc",
+    "tests/unit/test_progress_journal_concurrency.py": "9e18574ebafdbabdc9e9bbd814ac313f3bcd17c8",
+    "tests/unit/test_talenthop_catalog.py": "a05b0a1749b3dfe6518313d7167375b049dd59a7",
+    "tools/verification/har_sanitize.py": "88c26766e9d6992ed2264b9ad7af2a4872e44005",
+    "tools/verification/progress.py": "a2e730729d06b0c52d49342650e07a8d7e306343",
+    "tools/verification/talenthop_catalog.py": "14026237876ac08e05f2dffdbd8efd1e80aabff1",
+    "cli/compose_recovery.py": "6947793ece57339222324a80aa7f53b0d426e2c7",
+    "docs/RECOVERY_JOB_INVENTORY.md": "28de9ae15c41108396e862721c4cf26519fcf2d1",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/baseline-regression.xml": "a0c6551b039c18f38233bf8565c48dcef73eb148",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/baseline-reproduction.json": "7d0981bf6e6ba555d266f1a7871b9edcb097d3a8",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/legacy-completeness-baseline.json": "ca6a9ceff0128acb05d1eed55d5e7a22ce19fece",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/legacy-completeness-baseline.xml": "4fcae459f2aaf1cc7cc1c070c0085a077541f4f9",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/review.json": "a76130b4e16f7abf7e5cc7c5b429bc50cc08e553",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-execution.json": "3260b83461f1c54dc1ce7e344c9aa8b6d521891b",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/source-tests.xml": "8a3176fde21259455d1f97f198666a7c162bea37",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-initial-provenance-failure.json": "ff0fc2ac7f1d4b158f6ea4a6ea39602f0e81629d",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-initial-provenance-failure.xml": "d7e0d4498129887e95662909d008a66b2b7ca69c",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-review.json": "69cef7729ef3acd93c991761b59acbdd74dde44e",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json": "a8ea636094a96348f5ac8a90ec92efd98c5e6e8c",
+    "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.xml": "3c046d95c549ec8ebd73c918c34171339294a033",
+    "tests/integration/test_compose_recovery_target.py": "941536efd1b9c7b9fb88bccc5e4d597b19d5ad09",
+    "tests/integration/test_recovery_inventory_completeness.py": "9138cd90495928fb179d369d51a667b2477057cd",
+    "tests/unit/test_backup_acceptance.py": "28a44364644b41f6f1875875f8707a8ff6424d69",
+    "tests/unit/test_compose_recovery.py": "503ff23caec91cb84e4a867513d87ec492c961c9",
+    "docs/evidence/2026-11-03-webpro-23e5-cold-ssl/failure-reproduction.json": "039312b84b385042e14bcf31b17d6fa654b9e8cf",
+    "docs/evidence/2026-11-03-webpro-23e5-cold-ssl/negative-control.txt": "0d0f4f7ff540d3816818b5b13e934072e823f204",
+    "docs/evidence/2026-11-03-webpro-23e5-cold-ssl/review.json": "896019e80db652661e3650096bf2e29692acc320",
+    "docs/evidence/2026-11-03-webpro-23e5-cold-ssl/source-execution.json": "f8c1ed44e1242b2a042dde18e1d16cbc2cc2264d",
+    "docs/evidence/2026-11-03-webpro-23e5-cold-ssl/source-tests.xml": "766e7a4c3a5a004614c83f6126ce3155e6be04c1",
+    "tests/integration/test_source_adapter_connect_cancellation.py": "3e9e49213bafb8a66f7179034d1d79379851237b"
+  },
+  "prior_journal_payloads_preserved": 32,
+  "original366_counts": {
+    "PARTIAL": 82,
+    "PASS": 183,
+    "NOT_RUN": 101
+  },
+  "checks": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "PASS: no source-code changes in this commit"
+    }
+  ],
+  "new_acceptance_in_refresh": 0,
+  "scope": "Canonical/source preservation only; final actual combined candidate and protected gates remain pending",
+  "review_references": {
+    "prior_combined_review": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597273980",
+    "cold_ssl_independent_execution": "https://github.com/MulattoTech/MJobs/pull/910#issuecomment-6597469124",
+    "recovery_independent_execution": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6597020746",
+    "recovery_review_resolution": "https://github.com/MulattoTech/MJobs/pull/902#discussion_r4451584004",
+    "handoff": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597427218",
+    "recovery_inclusion": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597544543",
+    "cold_ssl_inclusion": "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6597436120"
+  },
+  "recovery_binding": {
+    "tested_source": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+    "published_head": "331df2ce467df7b6bc41b0648eb6c27545f745a8",
+    "unchanged_blobs": {
+      "cli/compose_recovery.py": "6947793ece57339222324a80aa7f53b0d426e2c7",
+      "docs/RECOVERY_JOB_INVENTORY.md": "28de9ae15c41108396e862721c4cf26519fcf2d1",
+      "tests/integration/test_recovery_inventory_completeness.py": "9138cd90495928fb179d369d51a667b2477057cd",
+      "tests/unit/test_compose_recovery.py": "503ff23caec91cb84e4a867513d87ec492c961c9",
+      "tests/unit/test_backup_acceptance.py": "28a44364644b41f6f1875875f8707a8ff6424d69"
+    },
+    "independent_execution": "8 parent tests plus2 subtests passed; original201-to200 historical false-PASS refused; fresh200 passes; legacyv1/v2 refused and missing inventory NOT_RUN"
+  },
+  "historical_failures": [
+    "899 integration41588054400/job125758487862:1 failed,821 passed,1 skipped,436 passing subtests; missing cold_ssl_started_at. Exact hosted scheduling cause was not captured.",
+    "Same missing-phase fixture path independently reproduced on unchanged source;910 supplies separate controlled cold accounting and real pre-SSL timeout cases.",
+    "902 initial schema2 correction missed historical truncated baselines. Independent201-to200 deletion reproduction and the missed review remain in history; source7295 v3 prevents that reproduced false-PASS.",
+    "Earlier provenance refusals, candidate guards and XML newline/digest corrections remain in source-owned evidence; no failed run is relabelled PASS."
+  ],
+  "upcoming_verification": {
+    "actual_combined_candidate": "PENDING_PUBLICATION",
+    "peer_recovery_scope": "51 parent tests plus43 subtests planned by642e4b",
+    "peer_identity_document_clock_cancellation_scope": "Planned by23e5",
+    "journal_scope": "Windows and Linux planned by1e2ff1",
+    "protected_gates": "PENDING_EXACT_FINAL_HEAD",
+    "guarded_deployment": "NOT_PERFORMED_FOR_THIS_COHORT"
+  }
+}

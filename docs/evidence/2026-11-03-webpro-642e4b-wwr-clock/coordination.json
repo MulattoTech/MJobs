@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "objective": "WWR-RSS-DATE-FIXTURE-CLOCK",
+  "recorded_utc": "2026-11-03T09:00:27.229109+00:00",
+  "coordination": "The differently named clock claims overlapped before the collision notice was read. The peer explicitly handed off and released its alias claim. This consolidation preserves both histories without claiming a second implementation or acceptance credit.",
+  "decision_references": [
+    "https://github.com/MulattoTech/MJobs/issues/31#issuecomment-6599408083",
+    "https://github.com/MulattoTech/MJobs/pull/909#issuecomment-6599410780",
+    "https://github.com/MulattoTech/MJobs/pull/920#issuecomment-6599411048"
+  ],
+  "chosen_source": {
+    "frozen_input": "c6acb100335df7b85dc26c15ac2ebc40f927a322",
+    "implementation_commit": "19ea133ebbc1228a942fb06b2621f932a62db307",
+    "test_path": "tests/integration/test_relative_posted_source_intake.py",
+    "test_blob": "b92d722a43ce7f4e49ad2f4f0a8a1fe5c05732e9"
+  },
+  "ownership_at_consolidation": {
+    "run": "webpro-20261103T031738Z-642e4b",
+    "claim_key": "WWR-RSS-DATE-FIXTURE-CLOCK",
+    "claim_sha": "e66e520afa2b6b3d333fb15a449115041c681528",
+    "released_peer_key": "WWR-RSS-QUERY-CLOCK",
+    "released_peer_owner": "4ba651b4d267bd0ddff449a8f32e126c7a8d7d8c",
+    "peer_matching_refs": [],
+    "protected_main": "63cb1042e08375f7bda1f9dad378209cca856167"
+  },
+  "preserved_own_execution": {
+    "history_commit": "cc128cd6be55994ae5b63d9a468d7c4177bcd519",
+    "test_blob": "b1955b49794b34b637d38336fdc890f583f96cc6",
+    "source_state": "Protected main63 plus the recorded worktree test blob; execution preceded cc128 and remains attributed that way.",
+    "baseline": {
+      "result": "EXPECTED_BASELINE_FAILURE",
+      "parent_tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "pytest_seconds": 1.76
+    },
+    "focused": {
+      "parent_tests_passed": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "pytest_seconds": 1.59
+    },
+    "module": {
+      "parent_tests_passed": 9,
+      "passing_subtests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "pytest_seconds": 16.8
+    },
+    "evidence_manifest": "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/manifest.json",
+    "evidence_manifest_sha256": "64b6a41944151f05087db05600de4e4eda9fbd5d4dfc5eff09cf25cdffa4fddc"
+  },
+  "preserved_peer_execution": {
+    "implementation_commit": "19ea133ebbc1228a942fb06b2621f932a62db307",
+    "test_blob": "b92d722a43ce7f4e49ad2f4f0a8a1fe5c05732e9",
+    "receipt": "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/verification.json",
+    "module": {
+      "source": "19ea133ebbc1228a942fb06b2621f932a62db307",
+      "started_at": "2026-11-03T08:37:33.120905+00:00",
+      "ended_at": "2026-11-03T08:37:54.337428+00:00",
+      "command": "python -B -m pytest -q tests/integration/test_relative_posted_source_intake.py",
+      "exit_code": 0,
+      "parent_tests_passed": 9,
+      "passing_subtests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "pytest_seconds": 19.04,
+      "junit_count_includes_subtests": 17,
+      "worktree_clean": true
+    },
+    "controlled_boundary_instants": [
+      "2026-11-03T07:59:59+00:00",
+      "2026-11-03T08:00:01+00:00",
+      "2030-01-01T12:00:00+00:00"
+    ],
+    "before_results": [
+      "PASS",
+      "FAIL_2_NE_3",
+      "FAIL_0_NE_3"
+    ],
+    "after_results": [
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "boundary_scope": "Repeated diagnostic observations of one synthetic test, not additional unique acceptance coverage."
+  },
+  "comparison": {
+    "complete_python_ast_equal": true,
+    "only_difference": "Two explanatory peer comments; no executable change between b195 and b92.",
+    "assertions_and_literal_RSS_preserved": true
+  },
+  "preservation": {
+    "own_evidence_blobs": {
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/README.md": "59ee7c52f68932e48bb1281a90b62022fd1bb9db",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-execution.json": "84f72f13f46ef2b3f248f5a61cc8cd4e7518b6a2",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-execution.log": "ec5c3a36b9375c7754dab437589c1b627a0bd740",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-execution.xml": "eddfcbdd944138d0d6de0d9698854bef82ef0c0b",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/baseline-test-source.py": "790e999660e8f5e3d788ffd99a24b06cd05ead42",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-focused.json": "025451a88978696de8e399cfb0e01db3fa5077a2",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-focused.log": "3f6d9224b43fcf926f43ebffdf9e3da1306ac90d",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-focused.xml": "9e0af2ae7a7ddf17b8dcf0c49813ae9758c26ff2",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-module.json": "6bc8453b3b9edd044f52a2708517487ea751e3eb",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-module.log": "cb19c2eab78bf3ab24f1cb35091367705521ac99",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/corrected-module.xml": "32043b3dcc9d1bdc7c065313d6f209b688bfd3c6",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/focused-driver.py": "b3bbdeb8eebacd710524745b72f4a369756658b8",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/manifest.json": "f858a7aba638b8587052e52d9186eed65e8a6fe4",
+      "docs/evidence/2026-11-03-webpro-642e4b-wwr-clock/scope.json": "3775faa56351df2bb16d905e1e65fed696ca8a3b"
+    },
+    "peer_evidence_blobs": {
+      "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/README.md": "44089ca5dd4253c2a767df336d6e82b3461bc7c1",
+      "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/boundary-probe.py.txt": "142a01ff93c2352ad309eb9e8b32292b516e4cd2",
+      "docs/evidence/2026-11-03-webpro-1e2ff1-wwr-clock/verification.json": "05c74f6d52289abf7db30b3ceeb54af3c8662a2f"
+    },
+    "old_manifest_is_preserved_creation_snapshot": true
+  },
+  "handoff": "The agreed executable test source is the peer b92 blob. Receiving owners may use the frozen peer delta under the recorded authorization. This branch additionally retains both diagnostic histories. Earlier ownership statements remain historical; the fresh sole editing claim at this consolidation is e66.",
+  "new_test_execution": false,
+  "historical_results_relabelled": false,
+  "acceptance_changes": false,
+  "product_source_changes": false,
+  "canonical_changes": false,
+  "limits": [
+    "No tests were rerun solely for comments or metadata.",
+    "Actual receiving-candidate execution and protected hosted gates remain separate delivery requirements.",
+    "No merge to protected main, production deployment, requirement promotion or issue closure is claimed.",
+    "No historical failure, receipt or meaningful commit was deleted or rewritten."
+  ]
+}
