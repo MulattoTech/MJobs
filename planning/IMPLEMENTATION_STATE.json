@@ -1607,12 +1607,72 @@
         "git_commit": "821171122a44332853339a798d717c5c11dd9ad5",
         "evidence_path": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-642E4B-WEB-SECURITY-PARTIAL",
+      "timestamp": "2026-11-03T03:33:06.273418+00:00",
+      "current_phase": "Publish scoped MJ-REQ-172 request-boundary repair through protected integration",
+      "completed_steps": [
+        "Parse Referer origin when Origin is absent; compare scheme, host and effective port.",
+        "Reject duplicate Host, Origin, Referer and Sec-Fetch-Site before dispatch.",
+        "Require affirmative same-origin context for configured-public-host mutations.",
+        "Preserve rejected-request privacy headers, saved data and local native-client compatibility.",
+        "Correct the public-host test's unknown-route assertion for built and unbuilt frontend states."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/review.json",
+        "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-tests.xml",
+        "tests/unit/test_request_security_boundary.py",
+        "tests/browser/test_referrer_security.py",
+        "docs/security/web_request_boundary.md"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "tests/integration/test_local_origin_security.py",
+        "tests/unit/test_public_host_deployment.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Exact source d096d03deba8aa749f478f9dd6c91029379ec50f:151PASS/33subtests/0FAIL/0SKIP.",
+        "Isolated frontend dependency install, typecheck and production build PASS.",
+        "Independent internal review and5 isolated ASGI probes completed; no blocker."
+      ],
+      "tests_remaining": [
+        "Exact PR/merge-candidate protected gates and main deployment gates.",
+        "Guarded deployment and exact running image/revision/readiness verification.",
+        "Remaining original MJ-REQ-172 authentication/authorization and headerless-local boundary."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only Cloudflare app/tunnel metadata and anonymous/invalid-session denial.",
+        "Authenticated Brave preview and exact baseline local deployment/readiness."
+      ],
+      "known_errors": [
+        "Chromium re-added Sec-Fetch-Site after route-header omission.",
+        "Existing unknown-route assertion expected404; mounted SPA correctly returned405."
+      ],
+      "known_limitations": [
+        "Original web-security requirement is not fully accepted.",
+        "Headerless local clients remain trusted; universal legacy-browser CSRF protection is not proven.",
+        "Authentication and authorization depend on Cloudflare; the external-evaluation allow policy is not fully verified.",
+        "No native multiuser authentication is added.",
+        "Controlled Chromium metadata stripping is a test proxy condition, not native browser behavior.",
+        "Live employer submissions and paid model calls were not performed.",
+        "Hosted required gates, candidate merge verification and deployment are pending at this source checkpoint."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
+      }
     }
   ],
-  "current_phase": "Publish verified72-scenario P0 test matrix and deletion data-preservation regression",
+  "current_phase": "Publish scoped MJ-REQ-172 request-boundary repair through protected integration",
   "last_safe_checkpoint": {
-    "git_commit": "821171122a44332853339a798d717c5c11dd9ad5",
-    "evidence_path": "docs/evidence/2026-11-02-pro-test-matrix/pr891-protected-merge.json"
+    "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
