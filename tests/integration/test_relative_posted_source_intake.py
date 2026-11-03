@@ -313,13 +313,8 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         # Keep the existing RSS fixture literal and its bounded windows stable
         # when this test is rerun after the fixture's publication month.
         query_at = datetime(2026, 10, 18, 20, tzinfo=timezone.utc)
-        class RssQueryClock(datetime):
-            @classmethod
-            def now(cls, tz=None):
-                return query_at.astimezone(tz) if tz else query_at.replace(tzinfo=None)
-        with patch('services.discovery.search_semantics.datetime', RssQueryClock):
-            rows = self._filtered('LAST_30_DAYS')
-            recent = self._filtered('LAST_24_HOURS')
+        rows = self._filtered('LAST_30_DAYS', query_at=query_at)
+        recent = self._filtered('LAST_24_HOURS', query_at=query_at)
         self.assertEqual(len(rows), 3)
         first = next(row for row in rows if row['requisition'] == 'acme-cloud-senior-python-engineer')
         self.assertEqual(first['attributes']['reported_posted_at'], '2026-10-06T12:00:00+00:00')
