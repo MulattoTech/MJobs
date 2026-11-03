@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "scope": "Independent internal static review; not a GitHub approval or reviewer execution",
+  "source": "b7bb430d3e8c5e42600c45eb8e6272734872448c",
+  "source_tree": "6e3de9ac1c083cc47b21dd792ec545bd078200cd",
+  "file": "tests/integration/test_source_adapter_connect_cancellation.py",
+  "git_blob": "3e9e49213bafb8a66f7179034d1d79379851237b",
+  "lf_sha256": "142dc29ac3bbacbb23d26787e360a9f210ed4b7f84645cd230820c79b759c64c",
+  "base_git_blob": "dcabd02cdcd5c7113f48cb7fc41cdae4216b8dde",
+  "findings": [],
+  "assertions": [
+    "Only worker_tasks.time binding is replaced for the cold case; shared time module is unchanged.",
+    "One production deadline is created; clock charges occur inside the real SSL factory wrapper.",
+    "Factory entry/completion, verifying context, zero TCP/HTTP and reopened durable timeout remain required.",
+    "All16 original test-method ASTs and all non-cold timing thresholds are preserved.",
+    "The exact forced delay is now a permanent genuine-cold regression; real-clock pre-SSL expiry is separate."
+  ],
+  "limits": [
+    "Controlled cold-SSL deadline accounting is not real cold trust-store latency measurement.",
+    "The negative control validates fixture cost injection; it is not by itself production timeout enforcement proof.",
+    "MJ-REQ-004 remains PARTIAL and no acceptance count changes."
+  ],
+  "observed_at": "2026-11-03T06:51:39.552204+00:00"
+}

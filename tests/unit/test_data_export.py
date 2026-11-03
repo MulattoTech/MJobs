@@ -111,8 +111,10 @@ class DataExportTests(unittest.TestCase):
         generated.parent.mkdir(parents=True)
         generated.write_bytes(b"generated resume bytes")
         uploads = self.output_dir / "uploads"
-        uploads.mkdir()
+        # Match the private originals created by the upload service.
+        uploads.mkdir(mode=0o700)
         (uploads / "upload-a.pdf").write_bytes(b"uploaded pdf bytes")
+        (uploads / "upload-a.pdf").chmod(0o600)
 
     def tearDown(self):
         self.store.engine.dispose()

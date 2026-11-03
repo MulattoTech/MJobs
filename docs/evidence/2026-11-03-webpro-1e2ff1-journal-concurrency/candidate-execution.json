@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-11-03T06:06:15.840730+00:00",
+  "candidate": {
+    "pr": 908,
+    "base": "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+    "head": "4272c0c10c2d9008e23454f2fd1055a2ae1e011a",
+    "candidate": "8c9cd9740e09da465214999b10e21edd56fb5cd8",
+    "tree": "05bb6b25ac37b0d563a2eb274b3b89fe61b278f3",
+    "parents": [
+      "9a21b98b29809a41771d963cd2d5679cf8c31f9a",
+      "4272c0c10c2d9008e23454f2fd1055a2ae1e011a"
+    ],
+    "timestamp": "2026-11-03T06:01:47.814160+00:00"
+  },
+  "native": {
+    "source": "8c9cd9740e09da465214999b10e21edd56fb5cd8",
+    "tree": "05bb6b25ac37b0d563a2eb274b3b89fe61b278f3",
+    "scope": [
+      "tests/unit/test_progress_journal_concurrency.py",
+      "tests/unit/test_progress_journal_recovery.py",
+      "tests/unit/test_progress_journal.py",
+      "tests/unit/test_progress_dashboard.py",
+      "tests/unit/test_progress_card.py"
+    ],
+    "started_at": "2026-11-03T06:01:48.400261+00:00",
+    "environment": "Windows isolated venv; owned temporary journal roots and child processes",
+    "exit_code": 0,
+    "elapsed_seconds": 12.656,
+    "ended_at": "2026-11-03T06:02:01.062056+00:00",
+    "final_source": "8c9cd9740e09da465214999b10e21edd56fb5cd8",
+    "tracked_diff": "",
+    "passed": 36,
+    "passing_subtests": 25,
+    "skipped": 1,
+    "failed": 0,
+    "errors": 0,
+    "pytest_seconds": 11.55
+  },
+  "linux": {
+    "source": "8c9cd9740e09da465214999b10e21edd56fb5cd8",
+    "tree": "05bb6b25ac37b0d563a2eb274b3b89fe61b278f3",
+    "scope": [
+      "tests.unit.test_progress_journal_concurrency",
+      "tests.unit.test_progress_journal_recovery",
+      "tests.unit.test_progress_journal",
+      "tests.unit.test_progress_dashboard",
+      "tests.unit.test_progress_card"
+    ],
+    "started_at": "2026-11-03T06:01:48.401265+00:00",
+    "environment": "Read-only/no-network disposable Linux; source mount read-only; baseline imageb929faaf",
+    "exit_code": 0,
+    "elapsed_seconds": 10.453,
+    "ended_at": "2026-11-03T06:01:58.858321+00:00",
+    "final_source": "8c9cd9740e09da465214999b10e21edd56fb5cd8",
+    "tracked_diff": "",
+    "passed": 37,
+    "skipped": 0,
+    "failed": 0,
+    "errors": 0,
+    "unittest_seconds": 9.086
+  },
+  "consistency_checks": "Catalogue, progress journal, progress dashboard, diff and unchanged clean checkout PASS",
+  "scope": "This candidate precedes the additive canonical successor; fresh final-head proposed merge and protected gates remain required.",
+  "independent_review": "PENDING"
+}

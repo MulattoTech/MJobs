@@ -1,0 +1,655 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-171",
+  "issue": 172,
+  "requirement_result": "PARTIAL",
+  "packet_source_sha": "f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954",
+  "packet_source_tree": "bcf7290b3719a80dff6fac2864fedefe5ed76b91",
+  "created_utc": "2026-11-03T07:44:18.802337+00:00",
+  "raw_inputs": [
+    {
+      "group": "baseline",
+      "path": "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-execution.json",
+      "sha256": "f7c80145f08de46a694dc3362d61a13f482c8df588b69b819e608207474a77cd",
+      "lf_normalized_sha256": "f7c80145f08de46a694dc3362d61a13f482c8df588b69b819e608207474a77cd",
+      "bytes": 2699
+    },
+    {
+      "group": "baseline",
+      "path": "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-inputs.json",
+      "sha256": "c21ed79ab551ee82fe3afb00d40d7b531c66a569d907254417e3971a5bbe9b2e",
+      "lf_normalized_sha256": "c21ed79ab551ee82fe3afb00d40d7b531c66a569d907254417e3971a5bbe9b2e",
+      "bytes": 2282
+    },
+    {
+      "group": "baseline",
+      "path": "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-regression.log",
+      "sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+      "lf_normalized_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+      "bytes": 5656
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/execution-summary.json",
+      "sha256": "1faac9a14d5ade9a1b8a0b9c72a9db0b81174c39e17e794e095aa6672cbf14a8",
+      "lf_normalized_sha256": "1faac9a14d5ade9a1b8a0b9c72a9db0b81174c39e17e794e095aa6672cbf14a8",
+      "bytes": 769
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/inputs.json",
+      "sha256": "f54aabb8d975192afdfc68d8ee8d01ddb0abd3688c84b84802730ac3f1c11c4e",
+      "lf_normalized_sha256": "f54aabb8d975192afdfc68d8ee8d01ddb0abd3688c84b84802730ac3f1c11c4e",
+      "bytes": 849
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-command.json",
+      "sha256": "e131d5f46706e812dd576fd7ab8cb83f5981186b70fa7004da575840406c7850",
+      "lf_normalized_sha256": "e131d5f46706e812dd576fd7ab8cb83f5981186b70fa7004da575840406c7850",
+      "bytes": 911
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-console-readback.json",
+      "sha256": "aa1ef5e68338a081612519136744f191c2a1f532071202a55f5a924f320533ea",
+      "lf_normalized_sha256": "aa1ef5e68338a081612519136744f191c2a1f532071202a55f5a924f320533ea",
+      "bytes": 1634
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-console.log",
+      "sha256": "c2ad35f99e3da648cd0d436e6bbcb42795201c529a1ef6cf902ace45c0167c59",
+      "lf_normalized_sha256": "c2ad35f99e3da648cd0d436e6bbcb42795201c529a1ef6cf902ace45c0167c59",
+      "bytes": 5851
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows/execution.json",
+      "sha256": "f587894af16fe571e321da4a949f28c1cd77523c25bf5af7dd9fabb76cad6eb9",
+      "lf_normalized_sha256": "f587894af16fe571e321da4a949f28c1cd77523c25bf5af7dd9fabb76cad6eb9",
+      "bytes": 8082
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows/tests.xml",
+      "sha256": "b0b901e00053c1bc2d11b24f5b2b5e5423625477c83ea9372b49f2402b506386",
+      "lf_normalized_sha256": "dd01764dffbc73e0882ccdc83b6ba5cf7aecfea7e9e5bd569a499f28770ba1ee",
+      "bytes": 5328
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows-command.json",
+      "sha256": "c10184f89a32add70d424c549f69bb8b3af03de90e29b888c80eb22761aac50d",
+      "lf_normalized_sha256": "c10184f89a32add70d424c549f69bb8b3af03de90e29b888c80eb22761aac50d",
+      "bytes": 417
+    },
+    {
+      "group": "provisional",
+      "path": "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows-console.log",
+      "sha256": "1cbd6ee7be13be661b6b66def3e28facea751f352d448b00808bc838872e5cf0",
+      "lf_normalized_sha256": "1cbd6ee7be13be661b6b66def3e28facea751f352d448b00808bc838872e5cf0",
+      "bytes": 6500
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/catalogue.log",
+      "sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916",
+      "lf_normalized_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916",
+      "bytes": 27
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/dashboard.log",
+      "sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53",
+      "lf_normalized_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53",
+      "bytes": 28
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lf_normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/execution-summary.json",
+      "sha256": "32daab13a1a84b82b691ba58cf7a23003c9eee9a8743e861cc593f2e9aa1deb1",
+      "lf_normalized_sha256": "32daab13a1a84b82b691ba58cf7a23003c9eee9a8743e861cc593f2e9aa1deb1",
+      "bytes": 5212
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/focused-test-driver.py",
+      "sha256": "041775a8f4ae095636011efe6429d009b81596690d37363a07ecdac1ab5613ba",
+      "lf_normalized_sha256": "041775a8f4ae095636011efe6429d009b81596690d37363a07ecdac1ab5613ba",
+      "bytes": 4831
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/gates.json",
+      "sha256": "2311f3a3e8a205c8ba7fcaf699dc11839531833e53cb6715277a1ca63346ecc1",
+      "lf_normalized_sha256": "2311f3a3e8a205c8ba7fcaf699dc11839531833e53cb6715277a1ca63346ecc1",
+      "bytes": 1635
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/inputs.json",
+      "sha256": "0d50137c747b6d08a27721e96fe48ef9ff93037e51751255269b9c4dad7ff084",
+      "lf_normalized_sha256": "0d50137c747b6d08a27721e96fe48ef9ff93037e51751255269b9c4dad7ff084",
+      "bytes": 1609
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux/execution.json",
+      "sha256": "25bcf1eff7f96d58b6c17fa9eca958d8e5fa37906182b8a8489d1a387e254e3e",
+      "lf_normalized_sha256": "25bcf1eff7f96d58b6c17fa9eca958d8e5fa37906182b8a8489d1a387e254e3e",
+      "bytes": 7215
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux/tests.xml",
+      "sha256": "4edb7368fae2b3bbcbd7a297b6db5e183e274810e2d9bfa133a52efb75c8c1e5",
+      "lf_normalized_sha256": "4edb7368fae2b3bbcbd7a297b6db5e183e274810e2d9bfa133a52efb75c8c1e5",
+      "bytes": 4707
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux-command.json",
+      "sha256": "9806c59bfd9ed3fbaac581660b6835e0384e279f7e01cad61ed9e435cbcf7c6d",
+      "lf_normalized_sha256": "9806c59bfd9ed3fbaac581660b6835e0384e279f7e01cad61ed9e435cbcf7c6d",
+      "bytes": 1090
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux-console.log",
+      "sha256": "1df69e88f0582b1cf2f77312641b3744746e963d893921f343e918e7dd013f81",
+      "lf_normalized_sha256": "1df69e88f0582b1cf2f77312641b3744746e963d893921f343e918e7dd013f81",
+      "bytes": 5851
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux-owned-resource-cleanup.json",
+      "sha256": "f674a13b46bb44429dcbca1e3426dd7e6689ec987ebe66f0921d753c08241a31",
+      "lf_normalized_sha256": "f674a13b46bb44429dcbca1e3426dd7e6689ec987ebe66f0921d753c08241a31",
+      "bytes": 163
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/progress.log",
+      "sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470",
+      "lf_normalized_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470",
+      "bytes": 34
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows/execution.json",
+      "sha256": "373c8df928e204f08c0685ddf730e2b0fbf0a59e70acc9ffb41bcd73d922c3de",
+      "lf_normalized_sha256": "373c8df928e204f08c0685ddf730e2b0fbf0a59e70acc9ffb41bcd73d922c3de",
+      "bytes": 8064
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows/tests.xml",
+      "sha256": "8e8ae4f66face9e3362a6ff8c1830514e0dd9bea3e2eb1c03cd7fbf7b081f57b",
+      "lf_normalized_sha256": "941a4d387c43e86e6b638ce00e223dbf1f446816e392a68f79bc6adc7c0c81c0",
+      "bytes": 5315
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows-command.json",
+      "sha256": "6fad4ddf5c0d8730aadb1a99f2b318fa3d667a31122e6d4a7d327aa3edfc8107",
+      "lf_normalized_sha256": "6fad4ddf5c0d8730aadb1a99f2b318fa3d667a31122e6d4a7d327aa3edfc8107",
+      "bytes": 412
+    },
+    {
+      "group": "initial_source",
+      "path": "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows-console.log",
+      "sha256": "ed65ac2be333a3ca540f5f4339ac78f69dcffc77ec213933677d4ef00bd4f251",
+      "lf_normalized_sha256": "ed65ac2be333a3ca540f5f4339ac78f69dcffc77ec213933677d4ef00bd4f251",
+      "bytes": 6500
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/baseline-test-data-export.py",
+      "sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496",
+      "lf_normalized_sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496",
+      "bytes": 14817
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/execution-summary.json",
+      "sha256": "7f54b91f4d849787455ff54034acdfa892d945b67cf804349063ac26a1ec9cc6",
+      "lf_normalized_sha256": "7f54b91f4d849787455ff54034acdfa892d945b67cf804349063ac26a1ec9cc6",
+      "bytes": 3131
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/focused-test-driver.py",
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "lf_normalized_sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/inputs.json",
+      "sha256": "12c58b50805093831035b204e9982d64e28aa65339fee2c0cfb49ce25b89eedf",
+      "lf_normalized_sha256": "12c58b50805093831035b204e9982d64e28aa65339fee2c0cfb49ce25b89eedf",
+      "bytes": 2742
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux/execution.json",
+      "sha256": "703cf19fe519d393488e90dbbec32cd4176707d5aaafdba92777763cf77d732d",
+      "lf_normalized_sha256": "703cf19fe519d393488e90dbbec32cd4176707d5aaafdba92777763cf77d732d",
+      "bytes": 2171
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux/tests.xml",
+      "sha256": "68a080875e75ec663a5ccee1c967637d6c6e811988fbd7f35891878f148afad2",
+      "lf_normalized_sha256": "68a080875e75ec663a5ccee1c967637d6c6e811988fbd7f35891878f148afad2",
+      "bytes": 1198
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux-console.log",
+      "sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+      "lf_normalized_sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+      "bytes": 2212
+    },
+    {
+      "group": "export_baseline",
+      "path": "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/owned-resource-cleanup.json",
+      "sha256": "4906ab26051d9b1fbcaa255a70cc2b6ec9b93c7b8729bab949462417d360aeca",
+      "lf_normalized_sha256": "4906ab26051d9b1fbcaa255a70cc2b6ec9b93c7b8729bab949462417d360aeca",
+      "bytes": 120
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/catalogue.log",
+      "sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916",
+      "lf_normalized_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916",
+      "bytes": 27
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/dashboard.log",
+      "sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53",
+      "lf_normalized_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53",
+      "bytes": 28
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "lf_normalized_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/execution-summary.json",
+      "sha256": "834af951c2eb6c0907445859e464614271eedfdc66494d63f2123a3b869aa1a3",
+      "lf_normalized_sha256": "834af951c2eb6c0907445859e464614271eedfdc66494d63f2123a3b869aa1a3",
+      "bytes": 7984
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/focused-test-driver.py",
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "lf_normalized_sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/gates.json",
+      "sha256": "16da48f24b499af8795391cf729b5fa4f9de6b4610dfd28a95f9d0bc86ae61f8",
+      "lf_normalized_sha256": "16da48f24b499af8795391cf729b5fa4f9de6b4610dfd28a95f9d0bc86ae61f8",
+      "bytes": 1728
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/inputs.json",
+      "sha256": "7792d1372975b5575f0e51cd56669d4babc70730017db0296cc6a0fe0f9bb23c",
+      "lf_normalized_sha256": "7792d1372975b5575f0e51cd56669d4babc70730017db0296cc6a0fe0f9bb23c",
+      "bytes": 4064
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux/execution.json",
+      "sha256": "eb1316687a1ef8603ac245842967d4be72557004de5e15f201cb8a80dee7fa94",
+      "lf_normalized_sha256": "eb1316687a1ef8603ac245842967d4be72557004de5e15f201cb8a80dee7fa94",
+      "bytes": 10283
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux/tests.xml",
+      "sha256": "31972db797d3eb99d5c57140d1ce4d9965bc8ea1dc1a9f4b022e461fb742cc1c",
+      "lf_normalized_sha256": "31972db797d3eb99d5c57140d1ce4d9965bc8ea1dc1a9f4b022e461fb742cc1c",
+      "bytes": 5697
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux-command.json",
+      "sha256": "332bafbf838b73424f3cc94299fed9d3224f323764fdbf10bf28b8b24093a149",
+      "lf_normalized_sha256": "332bafbf838b73424f3cc94299fed9d3224f323764fdbf10bf28b8b24093a149",
+      "bytes": 1799
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux-console.log",
+      "sha256": "8adc2d3e80cfe2481f27f6e43164ae9f1ba325dce66daab9c3524e2defeeed07",
+      "lf_normalized_sha256": "8adc2d3e80cfe2481f27f6e43164ae9f1ba325dce66daab9c3524e2defeeed07",
+      "bytes": 15486
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux-owned-resource-cleanup.json",
+      "sha256": "e1122e13eb86520535e32c02d408b1def4d674c12d0e93dd4dd64ecdca2f92a1",
+      "lf_normalized_sha256": "e1122e13eb86520535e32c02d408b1def4d674c12d0e93dd4dd64ecdca2f92a1",
+      "bytes": 120
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/progress.log",
+      "sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470",
+      "lf_normalized_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470",
+      "bytes": 34
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/provenance.log",
+      "sha256": "023bd46eb06bddfc23457a35d0464020ee26dae902a501644918fb244a0f8dcd",
+      "lf_normalized_sha256": "023bd46eb06bddfc23457a35d0464020ee26dae902a501644918fb244a0f8dcd",
+      "bytes": 45
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows/execution.json",
+      "sha256": "b45715fc142b7cab1d1f60c090e7511894b5cbd7665ca10ee5fee2f7e26e864e",
+      "lf_normalized_sha256": "b45715fc142b7cab1d1f60c090e7511894b5cbd7665ca10ee5fee2f7e26e864e",
+      "bytes": 11392
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows/tests.xml",
+      "sha256": "35661b4a9446f3659d241209fcfb61eb98606a62180ef3c7039c126c694e6b73",
+      "lf_normalized_sha256": "1c003b698c864c0346f0ae0856ab7b3db431b044d26879e871a033271c2400e9",
+      "bytes": 6289
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows-command.json",
+      "sha256": "466607692a62afe9a04f12cd2a5069a9c9ade1b9792930b6f7461467d7ab615d",
+      "lf_normalized_sha256": "466607692a62afe9a04f12cd2a5069a9c9ade1b9792930b6f7461467d7ab615d",
+      "bytes": 1129
+    },
+    {
+      "group": "final_source",
+      "path": "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows-console.log",
+      "sha256": "20afdedff422014d8e7e68ea3d8e2730280edaf707793df25bd1dcd5d021e779",
+      "lf_normalized_sha256": "20afdedff422014d8e7e68ea3d8e2730280edaf707793df25bd1dcd5d021e779",
+      "bytes": 16410
+    },
+    {
+      "group": "packet",
+      "path": "outputs/verification/webpro-642e4b-171-evidence-packet-20261103T074214Z/owned-containers-final-readback.json",
+      "sha256": "61a93b9f575cad9af4e251ad23a3b545d95b8029707912684fdb16a6abd17769",
+      "lf_normalized_sha256": "61a93b9f575cad9af4e251ad23a3b545d95b8029707912684fdb16a6abd17769",
+      "bytes": 1546
+    },
+    {
+      "group": "retained_commands_and_drivers",
+      "path": "outputs/171-source-commit.json",
+      "sha256": "0c37491a9cd0f92235e8788907631a0bb8f27735dc22dec59f67f2d51fe15d8f",
+      "lf_normalized_sha256": "0c37491a9cd0f92235e8788907631a0bb8f27735dc22dec59f67f2d51fe15d8f",
+      "bytes": 686
+    },
+    {
+      "group": "retained_commands_and_drivers",
+      "path": "outputs/171-source-commit-message.txt",
+      "sha256": "ce87d519d11e2cf9610377a4101ea1f1035d9d3ae2d7ff839eab4f30748dba7c",
+      "lf_normalized_sha256": "ce87d519d11e2cf9610377a4101ea1f1035d9d3ae2d7ff839eab4f30748dba7c",
+      "bytes": 904
+    },
+    {
+      "group": "retained_commands_and_drivers",
+      "path": "outputs/171-export-fixture-commit-message.txt",
+      "sha256": "fffb4c6baf551e097dbb974fd1678f10f1ec531c583530f3f2896efc3ac93ab4",
+      "lf_normalized_sha256": "fffb4c6baf551e097dbb974fd1678f10f1ec531c583530f3f2896efc3ac93ab4",
+      "bytes": 599
+    },
+    {
+      "group": "retained_commands_and_drivers",
+      "path": "outputs/171-final-source-location.json",
+      "sha256": "54d40d5b1ec353efa84a4218cb46d989711f6fdf01f0e4930b0a26efbebccde9",
+      "lf_normalized_sha256": "54d40d5b1ec353efa84a4218cb46d989711f6fdf01f0e4930b0a26efbebccde9",
+      "bytes": 275
+    },
+    {
+      "group": "retained_commands_and_drivers",
+      "path": "outputs/run_upload_privacy_checks.py",
+      "sha256": "041775a8f4ae095636011efe6429d009b81596690d37363a07ecdac1ab5613ba",
+      "lf_normalized_sha256": "041775a8f4ae095636011efe6429d009b81596690d37363a07ecdac1ab5613ba",
+      "bytes": 4831
+    },
+    {
+      "group": "retained_commands_and_drivers",
+      "path": "outputs/run_upload_privacy_checks_v2.py",
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "lf_normalized_sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "bytes": 4973
+    }
+  ],
+  "published_files": {
+    "baseline-execution.json": {
+      "kind": "json",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-execution.json",
+        "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-inputs.json",
+        "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-regression.log",
+        "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py"
+      ],
+      "sha256": "0625183058d6e9fb218bf8bcf504a68097ec67ff03b25b1ca455ca857d38f8e9",
+      "git_lf_sha256": "0625183058d6e9fb218bf8bcf504a68097ec67ff03b25b1ca455ca857d38f8e9",
+      "git_blob": "be20dec3d6e00e358173e00d9fa8912ce799dfd1",
+      "bytes": 5202
+    },
+    "baseline-failures.log": {
+      "kind": "console",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-regression.log"
+      ],
+      "sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+      "git_lf_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+      "git_blob": "d1e8c5e37d8185a0f860987f307cdcc7bf4b7bbc",
+      "bytes": 5656
+    },
+    "provisional-receipt-failure.json": {
+      "kind": "json",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/execution-summary.json",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/inputs.json",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-console.log",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-console-readback.json",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows/execution.json",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows/tests.xml",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-command.json",
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/windows-command.json"
+      ],
+      "sha256": "ee13bdd76c01d9e19e724fb806f5fb15194c70085bbd205f27d5c61b271ff220",
+      "git_lf_sha256": "ee13bdd76c01d9e19e724fb806f5fb15194c70085bbd205f27d5c61b271ff220",
+      "git_blob": "fbe160c0edcae0aab620ab3d581ea5c591c2f74f",
+      "bytes": 13371
+    },
+    "provisional-linux-console.log": {
+      "kind": "console",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-provisional-20261103T071802Z/linux-console.log"
+      ],
+      "sha256": "c2ad35f99e3da648cd0d436e6bbcb42795201c529a1ef6cf902ace45c0167c59",
+      "git_lf_sha256": "c2ad35f99e3da648cd0d436e6bbcb42795201c529a1ef6cf902ace45c0167c59",
+      "git_blob": "8ed5640f331134b1b2215d63f90016290aa732d9",
+      "bytes": 5851
+    },
+    "export-fixture-baseline.json": {
+      "kind": "json",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/execution-summary.json",
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/inputs.json",
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux/execution.json",
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux/tests.xml",
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux-console.log",
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/baseline-test-data-export.py",
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/owned-resource-cleanup.json"
+      ],
+      "sha256": "3fd2189604c36f02f58a471ba679bac6720ff3eb265868fd63698af8ef0767c8",
+      "git_lf_sha256": "3fd2189604c36f02f58a471ba679bac6720ff3eb265868fd63698af8ef0767c8",
+      "git_blob": "adac01584b08e44cd2aa9408a6a0fc1948bfa1d8",
+      "bytes": 8397
+    },
+    "export-fixture-baseline.xml": {
+      "kind": "xml",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux/tests.xml"
+      ],
+      "sha256": "e40de77a786e096884adc9c3c69ce432125360a53e0ff02fc60458284cd2ada0",
+      "git_lf_sha256": "e40de77a786e096884adc9c3c69ce432125360a53e0ff02fc60458284cd2ada0",
+      "git_blob": "28bb217e35dc600b8c7354b15e9b601eebab2644",
+      "bytes": 1199
+    },
+    "export-fixture-baseline.log": {
+      "kind": "console",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-export-fixture-baseline-20261103T072835Z/linux-console.log"
+      ],
+      "sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+      "git_lf_sha256": "0d57725cbb328e16b2e1369436adbba38b209ba30ed400e8494c7b2165a49fc8",
+      "git_blob": "bd95c6cb1c179e38462dc17dfaf422226f8bb062",
+      "bytes": 2212
+    },
+    "focused-test-driver-v1.py": {
+      "kind": "exact_driver_source",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/focused-test-driver.py"
+      ],
+      "sha256": "041775a8f4ae095636011efe6429d009b81596690d37363a07ecdac1ab5613ba",
+      "git_lf_sha256": "041775a8f4ae095636011efe6429d009b81596690d37363a07ecdac1ab5613ba",
+      "git_blob": "c4080a4fec9cb7ec93479a1f693ff0a0cd93d98c",
+      "bytes": 4831
+    },
+    "focused-test-driver-v2.py": {
+      "kind": "exact_driver_source",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/focused-test-driver.py"
+      ],
+      "sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "git_lf_sha256": "88eb3e4f8bc31d76f362d786a4f75a03f6c5419ceb341728db915c14d01ea41e",
+      "git_blob": "60a1c14264c4454c40462c74156cf151e5e96887",
+      "bytes": 4973
+    },
+    "review.json": {
+      "kind": "json",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/execution-summary.json",
+        "outputs/verification/webpro-642e4b-171-evidence-packet-20261103T074214Z/owned-containers-final-readback.json"
+      ],
+      "sha256": "f35a28a86e84956749bb6a12c673bfd9a7d554fe10cb21b619183475b032cc06",
+      "git_lf_sha256": "f35a28a86e84956749bb6a12c673bfd9a7d554fe10cb21b619183475b032cc06",
+      "git_blob": "866d359f61ac0b09853f63273b3b73eb22f362e8",
+      "bytes": 6489
+    },
+    "initial-source-execution.json": {
+      "kind": "json",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/execution-summary.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/inputs.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux/execution.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows/execution.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux-command.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows-command.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/gates.json",
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux-owned-resource-cleanup.json"
+      ],
+      "sha256": "3d19557410f350ec00fcba262a8787808e3b83da5cfb2ceb7b1d924a0402a19c",
+      "git_lf_sha256": "3d19557410f350ec00fcba262a8787808e3b83da5cfb2ceb7b1d924a0402a19c",
+      "git_blob": "238497a1f3bbea15204c4242b900a72a9c67c261",
+      "bytes": 28755
+    },
+    "initial-source-linux.xml": {
+      "kind": "xml",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/linux/tests.xml"
+      ],
+      "sha256": "ff93b3946984a08b21df70e8e254da7dcdb303093b84905b6c0f9069ecae56bf",
+      "git_lf_sha256": "ff93b3946984a08b21df70e8e254da7dcdb303093b84905b6c0f9069ecae56bf",
+      "git_blob": "878d3db75253c38573f7e357804b8722be969352",
+      "bytes": 4708
+    },
+    "initial-source-native.xml": {
+      "kind": "xml",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-source-20261103T072258Z/windows/tests.xml"
+      ],
+      "sha256": "91423821abe1f5d3bb9cc8dc3833f11d27593ae4ab66dd467344fb1f6ddfc703",
+      "git_lf_sha256": "91423821abe1f5d3bb9cc8dc3833f11d27593ae4ab66dd467344fb1f6ddfc703",
+      "git_blob": "46b9d20aec461fd9e49eadedde0fd62a80e4ad19",
+      "bytes": 5270
+    },
+    "source-execution.json": {
+      "kind": "json",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/execution-summary.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/inputs.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux/execution.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows/execution.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux-command.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows-command.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/gates.json",
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux-owned-resource-cleanup.json"
+      ],
+      "sha256": "5e8913bfd9e397c3881b459e7eaca1f8c4b5045448e43fbab41e6095356fd564",
+      "git_lf_sha256": "5e8913bfd9e397c3881b459e7eaca1f8c4b5045448e43fbab41e6095356fd564",
+      "git_blob": "e95cdca4bdc45e6eeb5c53890107fbb8ad6dc64b",
+      "bytes": 39389
+    },
+    "source-linux.xml": {
+      "kind": "xml",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/linux/tests.xml"
+      ],
+      "sha256": "e0bb8fe1dd003f3bb0619438fbf77c5fcfbd4584fb0b4fc3f69c1f82d3fced69",
+      "git_lf_sha256": "e0bb8fe1dd003f3bb0619438fbf77c5fcfbd4584fb0b4fc3f69c1f82d3fced69",
+      "git_blob": "932ce0d2290d641f44a41f37f32fc08742860811",
+      "bytes": 5698
+    },
+    "source-native.xml": {
+      "kind": "xml",
+      "raw_inputs": [
+        "outputs/verification/webpro-642e4b-171-final-source-20261103T073310Z/windows/tests.xml"
+      ],
+      "sha256": "f7655efbeca416dc2efdf354436b8af49720f2c19b883ebbb150c840ed4ff0af",
+      "git_lf_sha256": "f7655efbeca416dc2efdf354436b8af49720f2c19b883ebbb150c840ed4ff0af",
+      "git_blob": "d8e61e58a92deb9caeb75ef52c3a7eae0f9be833",
+      "bytes": 6239
+    }
+  },
+  "preserved_existing_baseline_source": {
+    "path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py",
+    "sha256": "665ec7314f71b2430422fa0afcab09614c3e74b400a7559086b6d927b0b53553",
+    "git_blob": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+    "modified": false
+  },
+  "sanitization": {
+    "json_and_console": "Preserve values and diagnostics; normalize CRLF to LF and replace private owned-worktree and native-interpreter prefixes with explicit placeholders. Container /app paths remain actual source-origin evidence.",
+    "xml": "Remove hostname attributes if present, normalize qualified timestamps to UTC, apply private-path substitutions, and serialize UTF-8 with explicit LF and a final newline. Testcase identities, counts, durations, skip reasons and failure diagnostics remain unchanged apart from approved private-path prefixes.",
+    "raw_vs_published": "Raw hashes cover retained original bytes. Each published file records a distinct SHA256, Git-LF SHA256 and actual Git blob; normalized derivatives are not labeled original raw receipts.",
+    "missing_artifacts": "No initial baseline XML was created. Provisional Linux JSON/XML are absent following capture failure. None were reconstructed.",
+    "source_copies": "The original baseline source remains unchanged; driver copies are byte-identical to executed retained inputs.",
+    "normalization_note": "The initial raw writable_receipts_only shorthand is clarified as writable host receipt binds; writable ephemeral /tmp is expressly disclosed."
+  },
+  "self_hash": "The manifest self-hash is external to avoid self-reference and is reported in the packet creation seal.",
+  "no_canonical_edits": true,
+  "evidence_commit": "NOT_CREATED: awaiting independent receipt readback and root coordination."
+}

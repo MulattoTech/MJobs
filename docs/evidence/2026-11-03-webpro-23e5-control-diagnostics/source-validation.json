@@ -1,0 +1,133 @@
+{
+  "base": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "commands": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_company_monitoring_policy_transport.py",
+        "tests/unit/test_p0_evidence_secret_fingerprints.py",
+        "tests/unit/test_secret_scan_sustain_176.py",
+        "--tb=short",
+        "--junitxml=<owned-output>/tests.xml"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 240,
+      "wall_seconds": 61.438
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "F",
+        "tests/integration/test_company_monitoring_policy_transport.py"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 45,
+      "wall_seconds": 0.172
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 60,
+      "wall_seconds": 0.093
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 60,
+      "wall_seconds": 0.079
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 60,
+      "wall_seconds": 0.093
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 60,
+      "wall_seconds": 0.219
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "63cb1042e08375f7bda1f9dad378209cca856167",
+        "62489046e80ea5a3a230fefd7f38b464dee6ecad"
+      ],
+      "exit_code": 0,
+      "status": "PASS",
+      "timeout_seconds": 45,
+      "wall_seconds": 0.031
+    }
+  ],
+  "completed_at_utc": "2026-11-03T08:21:29.338052+00:00",
+  "hosted_failure_disposition": "UNRESOLVED; no original-trigger repair is claimed",
+  "junit_publication_transform": "Remove hostname attribute; serialize UTF-8 and normalize LF. Original retained privately.",
+  "known_cross_owner_method_preserved": "test_incompatible_rates_rejected_before_network_or_persistence",
+  "original_methods_preserved": [
+    "_fresh_empty_feed_progress",
+    "close_server",
+    "setUp",
+    "test_actual_tls_header_and_body_stalls_observe_two_second_request_budget",
+    "test_both_client_paths_enforce_explicit_tls12_floor",
+    "test_cancel_during_real_tls_handshake_owns_detached_tls_socket",
+    "test_fresh_floor_fifteen_rpm_empty_feed_saves_receipt",
+    "test_incompatible_rates_rejected_before_network_or_persistence",
+    "test_real_tls_floor_fifteen_rpm_five_samples_save_receipt",
+    "test_real_tls_worker_policy_parallel_sampling_receipt_and_fresh_readback",
+    "transport"
+  ],
+  "overall": "PASS",
+  "platform": "Windows",
+  "published_junit_lf_sha256": "d613ffec129b97783561ddadc496577baff9877a7574130ade6c78e201edc6bb",
+  "python_version": "3.12.10",
+  "raw_junit_sha256": "6759e7ef2678cbb5a43f0f9e4f9a78382879dd45ac6f07b46679adb30920b4ef",
+  "run_id": "webpro-20261103T034424Z-23e5",
+  "source_commit": "62489046e80ea5a3a230fefd7f38b464dee6ecad",
+  "source_tree": "1f68f93aa33af76e4bf37cce7f9d08e66b083776",
+  "started_at_utc": "2026-11-03T08:20:27.059460+00:00",
+  "test_blob": "1f8885810ed4ce94de6c6740d08cebd6a1f02ad3",
+  "test_lf_sha256": "fe7f1ed5fe3b029bebd78cb504d6554376f2adef64e41b2f8dedfbc58b84b058",
+  "test_summary": {
+    "errors": 0,
+    "failures": 0,
+    "parent_cases": 17,
+    "reported_tests": 24,
+    "skipped": 0
+  }
+}

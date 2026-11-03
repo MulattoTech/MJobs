@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T031738Z-642e4b",
+  "requirement_id": "MJ-REQ-292",
+  "requirement_result": "PARTIAL",
+  "result": "PASS",
+  "result_scope": "No remaining material blocker in the reviewed source; this is static review, not runtime or whole-requirement acceptance.",
+  "source_revision": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+  "tree": "ca84746f9b387719e53659765f7698af864c7632",
+  "source_blobs": {
+    "cli/compose_recovery.py": "6947793ece57339222324a80aa7f53b0d426e2c7",
+    "docs/RECOVERY_JOB_INVENTORY.md": "28de9ae15c41108396e862721c4cf26519fcf2d1",
+    "tests/integration/test_recovery_inventory_completeness.py": "9138cd90495928fb179d369d51a667b2477057cd",
+    "tests/unit/test_backup_acceptance.py": "28a44364644b41f6f1875875f8707a8ff6424d69",
+    "tests/unit/test_compose_recovery.py": "503ff23caec91cb84e4a867513d87ec492c961c9"
+  },
+  "review_kind": "INTERNAL_STATIC_REVIEW_WITH_AUTHORSHIP_DISCLOSURE",
+  "reviewer": "Internal ChatGPT agent security_review",
+  "publisher": "Internal ChatGPT agent adapter_contract_inventory",
+  "formal_github_approval": false,
+  "human_approval": false,
+  "review_record": "Retained reviewer confirmation supplied for these exact five blobs; no new scan or test requested for evidence publication.",
+  "review_independence": {
+    "independent_of_authorship": [
+      "cli/compose_recovery.py",
+      "docs/RECOVERY_JOB_INVENTORY.md",
+      "tests/unit/test_backup_acceptance.py",
+      "tests/unit/test_compose_recovery.py"
+    ],
+    "author_readback": [
+      "tests/integration/test_recovery_inventory_completeness.py"
+    ],
+    "explanation": "The reviewer authored the integration regression. Production, documentation and the other two unit-test files were reviewed independently of their authorship."
+  },
+  "findings": [],
+  "reviewed_boundaries": [
+    "Version 3 identifies new captures made under the 201-row sentinel contract.",
+    "Explicit integer versions 1 and 2 raise the agreed fixed recapture ValueError before shape validation.",
+    "Version-3 job_count admits only 1 through 200; a valid checksum does not excuse an oversized imported inventory.",
+    "Missing inventory remains NOT_RUN; supplied older evidence is never silently upgraded or dropped.",
+    "Fresh complete 200-job support and immutable rejected inputs are covered by the committed regressions.",
+    "Recovery validates before Compose resolution/preflight/HTTP; backup validates before resolution/preflight/config/target/volume/HTTP/lifecycle/archive operations."
+  ],
+  "fixed_legacy_error": "Legacy public job inventory requires a fresh complete baseline",
+  "comment_dispositions": [
+    {
+      "comment_id": 6595869437,
+      "url": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6595869437",
+      "finding": "Initial static finding: saturated legacy v2 can be a truncated 200-of-201 capture.",
+      "technical_disposition": "Addressed by the committed strict version boundary, real-API deletion regression and early-refusal tests.",
+      "compatibility_choice": "All supplied v1/v2 inventories are refused; optional compatibility for smaller v2 captures was not adopted."
+    },
+    {
+      "comment_id": 6596143484,
+      "url": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596143484",
+      "finding": "Executed sequential API/SQLite reproduction of false PASS after deletion of the omitted job.",
+      "technical_disposition": "Addressed by the committed strict version boundary, real-API deletion regression and early-refusal tests.",
+      "compatibility_choice": "All supplied v1/v2 inventories are refused; optional compatibility for smaller v2 captures was not adopted."
+    },
+    {
+      "comment_id": 6596305037,
+      "url": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596305037",
+      "finding": "Follow-up requesting explicit disposition rather than relying on passing unrelated cases.",
+      "technical_disposition": "Addressed by the committed strict version boundary, real-API deletion regression and early-refusal tests.",
+      "compatibility_choice": "All supplied v1/v2 inventories are refused; optional compatibility for smaller v2 captures was not adopted."
+    },
+    {
+      "comment_id": 6596393521,
+      "url": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596393521",
+      "finding": "Independent reaffirmation that unchanged caller/API semantics do not resolve the legacy ambiguity.",
+      "technical_disposition": "Addressed by the committed strict version boundary, real-API deletion regression and early-refusal tests.",
+      "compatibility_choice": "All supplied v1/v2 inventories are refused; optional compatibility for smaller v2 captures was not adopted."
+    },
+    {
+      "comment_id": 6596394805,
+      "url": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596394805",
+      "finding": "Additional independent concurrence with the historical-baseline blocker.",
+      "technical_disposition": "Addressed by the committed strict version boundary, real-API deletion regression and early-refusal tests.",
+      "compatibility_choice": "All supplied v1/v2 inventories are refused; optional compatibility for smaller v2 captures was not adopted."
+    }
+  ],
+  "inline_review": {
+    "comment_id": 4451319322,
+    "thread_id": "PRRT_kwDOUz2C686y_oJF",
+    "url": "https://github.com/MulattoTech/MJobs/pull/902#discussion_r4451319322",
+    "technical_disposition": "Addressed in the reviewed committed source.",
+    "external_status_at_last_read": "UNRESOLVED",
+    "external_posting_or_resolution_performed": false
+  },
+  "history": {
+    "prior_source_revision": "3414e7400e57b3f2f2d2d85298e40a2aabf21253",
+    "prior_refreshed_head": "2b07e787d2f1cbf793b6caaea3339948df04e050",
+    "prior_production_blob": "01219c71e0d61be1020d5b7c09c7e9c0104bace1",
+    "preservation": "All existing receipts remain unchanged.",
+    "scope_correction": "The earlier passing cases established fresh-capture overflow behavior but did not prove historical-v2 baseline completeness. Prior no-further-correction statements were wrong.",
+    "acknowledgment": "https://github.com/MulattoTech/MJobs/pull/902#issuecomment-6596557297"
+  },
+  "metadata_only_correction": {
+    "initial_unpublished_commit": "6966b738e2e0d9455e0918478072703f4e2b0bea",
+    "corrected_commit": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+    "same_tree": "ca84746f9b387719e53659765f7698af864c7632",
+    "source_and_test_blobs_unchanged": true,
+    "change": "Only the UTC-Date commit-message line was corrected from date-only 2026-11-03 to 2026-11-03T06:05:28Z.",
+    "old_commit_object_available_for_readback": true,
+    "verification": "Git confirms identical trees and parents and no other commit-message line change; both execution receipts bind the same five file blobs.",
+    "publication_boundary": "The initial commit was local-only and unpublished; its aggregate provenance failure is retained rather than relabelled PASS."
+  },
+  "execution_separation": {
+    "corrected_source_execution": "v3-source-execution.json",
+    "historical_failure": "legacy-completeness-baseline.json",
+    "initial_provenance_failure": "v3-initial-provenance-failure.json",
+    "reviewer_corrected_test_execution": "NOT_RUN by reviewer; the root-owned executor supplies the separate 51-parent-test/43-subtest receipt.",
+    "baseline_execution": "One expected failure was executed earlier by the regression author and is retained separately, including its source-retention limitation."
+  },
+  "ownership_readback": {
+    "objective_ref": "refs/heads/webpro-claims/MJ-REQ-292",
+    "owner": "20d0892e81d4724d9f1fc5620f7aa6b69be4ad57",
+    "head": "7295de87ad87ba06ca1f2c4ef4d114801489c6f5",
+    "tree": "ca84746f9b387719e53659765f7698af864c7632",
+    "checked_at_utc": "2026-11-03T06:19:54.217000+00:00"
+  },
+  "limitations": [
+    "MJ-REQ-292 remains PARTIAL; this is a bounded inventory-verification correction, not the complete original end-to-end journey.",
+    "The certified scope is 1 through 200 jobs in the existing visible public profile-context view; hidden, not-interested and blacklisted jobs are excluded.",
+    "Inventories larger than 200 remain unverified; no concurrent snapshot guarantee is introduced across listing and detail reads.",
+    "No real Docker restart, production restore, live provider request, paid inference or employer submission was performed for these local checks.",
+    "Protected candidate checks, publication, merge and deployment are separate stages and are not inferred from local test or static-review results."
+  ]
+}

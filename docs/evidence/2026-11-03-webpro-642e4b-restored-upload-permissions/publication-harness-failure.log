@@ -1,0 +1,13 @@
+[Reading 10 new lines (total: 10 lines)]
+
+CREATED_IGNORED_EVIDENCE_BUILDER prepare_restored_upload_evidence.py
+Traceback (most recent call last):
+  File "<owned-worktree>\outputs\prepare_restored_upload_evidence.py", line 176, in <module>
+    publish_xml("provisional-native-existing.xml", PROVISIONAL / "native-existing/tests.xml")
+  File "<owned-worktree>\outputs\prepare_restored_upload_evidence.py", line 117, in publish_xml
+    after = ET.fromstring(text)
+            ^^^^^^^^^^^^^^^^^^^
+  File "<native-python-home>\Lib\xml\etree\ElementTree.py", line 1335, in XML
+    parser.feed(text)
+xml.etree.ElementTree.ParseError: mismatched tag: line 1, column 2356
+? Process completed with exit code 1 (runtime: 1.29s)

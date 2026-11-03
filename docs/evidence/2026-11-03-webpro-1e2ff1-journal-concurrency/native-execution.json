@@ -1,0 +1,32 @@
+{
+  "source": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+  "tree": "04d8eb8a3947f30a5022992a4aa64e74c71a5dc1",
+  "scope": [
+    "tests/unit/test_progress_journal_concurrency.py",
+    "tests/unit/test_progress_journal_recovery.py",
+    "tests/unit/test_progress_journal.py",
+    "tests/unit/test_progress_dashboard.py",
+    "tests/unit/test_progress_card.py"
+  ],
+  "started_at": "2026-11-03T05:50:55.295540+00:00",
+  "environment": "Windows isolated venv; owned temporary journal roots and child processes",
+  "exit_code": 0,
+  "elapsed_seconds": 13.297,
+  "ended_at": "2026-11-03T05:51:08.599480+00:00",
+  "final_source": "6c9dc90688a0bd53419d18a4120b95a5e989f705",
+  "tracked_diff": "",
+  "result": "PASS",
+  "parent_tests_passed": 36,
+  "passing_subtests": 25,
+  "skipped": 1,
+  "failures": 0,
+  "errors": 0,
+  "pytest_seconds": 12.44,
+  "skip_details": [
+    {
+      "test": "tests.unit.test_progress_journal_concurrency.ProgressJournalConcurrencyTests.test_symlink_coordination_file_is_refused_without_touching_target",
+      "reason": "POSIX symlink creation without Windows elevation"
+    }
+  ],
+  "junit": "docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-native-tests.xml"
+}

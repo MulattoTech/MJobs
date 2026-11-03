@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "run_id": "webpro-20261103T073112Z-bbbb6d",
+  "tested_at": "2026-11-03T08:27:25.659842+00:00",
+  "baseline_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "commands": [
+    {
+      "command": [
+        "python.exe",
+        "-m",
+        "unittest",
+        "tests.unit.test_talenthop_catalog",
+        "tests.unit.test_har_sanitize",
+        "-v"
+      ],
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "python.exe",
+        "-m",
+        "tools.verification.talenthop_catalog"
+      ],
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "63cb1042e08375f7bda1f9dad378209cca856167",
+        "--",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/REFERENCE_GAP_MATRIX.json"
+      ],
+      "exit_code": 0,
+      "status": "PASS"
+    }
+  ],
+  "focused_tests": 29,
+  "negative_controls_after_fix": {
+    "marketing_promoted_to_observed": [
+      "FEATURE_OBSERVATION_EVIDENCE_MISSING",
+      "JOURNEY_EVIDENCE_MISSING"
+    ],
+    "route_total_disagrees_with_rows": [
+      "ROUTE_EXERCISED_COUNT_MISMATCH"
+    ],
+    "journey_total_disagrees_with_rows": [
+      "JOURNEY_EXERCISED_COUNT_MISMATCH"
+    ],
+    "missing_ui_artifact": [
+      "FEATURE_OBSERVATION_EVIDENCE_MISSING",
+      "JOURNEY_EVIDENCE_MISSING",
+      "ROUTE_OBSERVATION_EVIDENCE_MISSING",
+      "UI_EVIDENCE_ARTIFACT_INVALID"
+    ]
+  },
+  "all_negative_controls_rejected": true,
+  "manual_observations_privacy_scan": {
+    "status": "PASS",
+    "finding_count": 0,
+    "scope": "Known account/resume identifiers and credential-like strings; not a universal privacy proof."
+  },
+  "source_hashes": [
+    {
+      "path": "tools/verification/talenthop_catalog.py",
+      "sha256": "165f2629ba4a7fd97cf830bf45f95f9c56e4468afec4713c3c1b38830999a0bc"
+    },
+    {
+      "path": "tests/unit/test_talenthop_catalog.py",
+      "sha256": "d64461a8b80cb2ea1b12075544ce3d9d8049e40a72139629437985e6ef92f6a1"
+    },
+    {
+      "path": "docs/talenthop/catalog.json",
+      "sha256": "9f0496d2588aa5f6137b0940b62d4375a844702079df00b767b1083adb82357c"
+    },
+    {
+      "path": "docs/talenthop/README.md",
+      "sha256": "3ee25e48cad07100bb2627d549578e9a99043efe7ebc48dfa26c32302bce51bd"
+    },
+    {
+      "path": "docs/talenthop/UI_AUDIT_2026-11-03.md",
+      "sha256": "df25663c3f55a416b4bda25c33672e877e06e5e9160576504ff562f934a085a7"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/observations.json",
+      "sha256": "ac03e7fc3bae7eaaca1e06ffee8d99e344a5ae8bed87e363fed670f3d7502736"
+    },
+    {
+      "path": "docs/evidence/2026-11-03-webpro-bbbb6d-talenthop-ui/capture-capability.json",
+      "sha256": "96e700131d583bc415d8207d1625abf13d432cc591c43e39d53ce7c368921b1e"
+    }
+  ],
+  "review": "AUTHOR_REVIEW_ONLY_PENDING_INDEPENDENT_REVIEW",
+  "har_capture": "BLOCKED",
+  "parity_acceptances_added": 0
+}

@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-171",
+  "issue": 172,
+  "requirement_result": "PARTIAL",
+  "result": "EXPECTED_BASELINE_FAILURE",
+  "tested_production_source": "63cb1042e08375f7bda1f9dad378209cca856167",
+  "tested_production_blob": "886e9240552a1146459d38957d4bf00af129840d",
+  "tests": 4,
+  "failures": 4,
+  "errors": 0,
+  "skipped": 0,
+  "baseline_test_source": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py",
+  "baseline_test_source_sha256": "665ec7314f71b2430422fa0afcab09614c3e74b400a7559086b6d927b0b53553",
+  "baseline_test_source_git_blob": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+  "test_source_retained_exactly": true,
+  "raw_execution": {
+    "schema_version": 1,
+    "requirement": "MJ-REQ-171",
+    "requirement_status": "PARTIAL",
+    "base_source_sha": "63cb1042e08375f7bda1f9dad378209cca856167",
+    "claim_owner": "040e15c143911cc512be6447678abc761d73b432",
+    "input_files": {
+      "services/documents/uploads.py": {
+        "sha256": "66017f70ece3939669453559d1e9c025c9dfeecf5128565db7b35a3fd97c3e5d",
+        "git_blob": "886e9240552a1146459d38957d4bf00af129840d",
+        "bytes": 12448
+      },
+      "tests/integration/test_resume_upload_privacy.py": {
+        "sha256": "665ec7314f71b2430422fa0afcab09614c3e74b400a7559086b6d927b0b53553",
+        "git_blob": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+        "bytes": 4726
+      },
+      "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py": {
+        "sha256": "665ec7314f71b2430422fa0afcab09614c3e74b400a7559086b6d927b0b53553",
+        "git_blob": "b19afc52dfbbd46bfbbd5404618f6a8470177f5c",
+        "bytes": 4726
+      }
+    },
+    "baseline_test_source_snapshot": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-test-source.py",
+    "command": [
+      "python",
+      "-m",
+      "unittest",
+      "-v",
+      "tests.integration.test_resume_upload_privacy"
+    ],
+    "docker_create_argv": [
+      "docker",
+      "create",
+      "--name",
+      "mjobs-webpro-642e4b-171-baseline-20261103t070709z",
+      "--label",
+      "mjobs.owner=webpro-20261103T031738Z-642e4b",
+      "--label",
+      "mjobs.requirement=MJ-REQ-171",
+      "--label",
+      "mjobs.role=privacy-baseline",
+      "--network",
+      "none",
+      "--user",
+      "10001:10001",
+      "--cap-drop",
+      "ALL",
+      "--security-opt",
+      "no-new-privileges",
+      "--read-only",
+      "--tmpfs",
+      "/tmp:rw,nosuid,nodev,mode=1777,size=256m",
+      "--mount",
+      "type=bind,source=<owned-source>,target=/app,readonly",
+      "--workdir",
+      "/app",
+      "--env",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "--env",
+      "PYTHONNOUSERSITE=1",
+      "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+      "python",
+      "-m",
+      "unittest",
+      "-v",
+      "tests.integration.test_resume_upload_privacy"
+    ],
+    "expected_result": {
+      "tests": 4,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    "execution_started_utc": "2026-11-03T07:07:10.072708+00:00",
+    "container_id": "69a64137443004ca54b1d357eafee383189eda0e3547473161e9d5f748240c16",
+    "execution_ended_utc": "2026-11-03T07:07:16.020554+00:00",
+    "container_started_utc": "2026-11-03T07:07:10.405781625Z",
+    "container_finished_utc": "2026-11-03T07:07:15.846164844Z",
+    "exit_code": 1,
+    "result": "EXPECTED_BASELINE_FAILURE",
+    "raw_log_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5"
+  },
+  "console": {
+    "raw_path": "outputs/verification/webpro-642e4b-171-baseline-20261103T070709Z/baseline-regression.log",
+    "raw_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+    "raw_bytes": 5656,
+    "raw_lf_normalized_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+    "published_path": "docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/baseline-failures.log",
+    "published_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+    "published_lf_normalized_sha256": "bec34ceb308430003b27a4bcf0c21575cd89ca6d2a103b291c03be733d7bdde5",
+    "published_bytes": 5656,
+    "published_git_blob": "d1e8c5e37d8185a0f860987f307cdcc7bf4b7bbc"
+  },
+  "xml_status": "NOT_CREATED: baseline used standard unittest console; no baseline XML was reconstructed.",
+  "source_binding": "The dependency image was overlaid with the whole owned worktree at read-only /app; command cwd /app and recorded input hashes bind the baseline source. This baseline did not print module.__file__. Later runs record and verify actual module origins.",
+  "runtime": {
+    "image": "sha256:b929faaf6cb5da407126085a812118c27aaa8ea7fad1596e830e9b4f6f63ebab",
+    "user": "10001:10001",
+    "network": "none",
+    "source_bind_read_only": true,
+    "root_filesystem_read_only": true,
+    "writable_ephemeral_tmpfs": [
+      "/tmp"
+    ],
+    "writable_host_bind_mounts": []
+  },
+  "observed_behavior": "Independent directory0755/file0600 and directory0700/file0644 cases returned GET200 or repeatPOST201. Bytes, modes, metadata/revisions and facts were unchanged before each refusal assertion failed."
+}
