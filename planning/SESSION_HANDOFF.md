@@ -152,3 +152,43 @@ prior 63b843dfe2706e6a5ac1d567af7e5acb01e134a7 baseline until a separate guarded
 release verifies a new exact SHA. Other workers own 004/171/269; preserve their
 work, evidence and refs and re-discover their current status before selecting
 new work.
+
+## Web Pro checkpoint: protected cohort delivery and journal concurrency
+
+UTC: 2026-11-03T06:06:15.840730+00:00. Run: webpro-20261103T034313Z-1e2ff1.
+
+Protected PR906 merged as9a21b98b29809a41771d963cd2d5679cf8c31f9a,
+tree05f41f9482f2b11ceffd63cf93fa100ef3bdb1af, equal to executed candidate62508d7c.
+Source PRs894/895/897/898/900/901 are merged. All15 final PR checks passed.
+Actual main counts were refreshed: original366=182PASS/83PARTIAL/101NOT_RUN;
+P0=14/4/8 of26 and P1=107/9/0 of116. Only the295 reporting deliverable
+adds full acceptance in that cohort, attributable to run642e4b; these are not
+new acceptances claimed by the journal follow-up. Separate59 references unchanged.
+The exact-main CI, PostgreSQL/Redis, secret scan and deployment-candidate gates
+subsequently passed. Run89c21f owns deploymentb6c64e75; rollout verification
+remains pending at this checkpoint. Read the final906 discussion for later receipts.
+
+PR908 binds source6c9dc906 and evidence4272c0c1 to the reproduced successful-writer
+lost-update defect. Record and sync now share a persistent local OS lock across
+read, validation and both publications, with a three-second contention budget.
+Native Windows36PASS+25subtests/1POSIXskip and Linux37PASS/no skips were executed
+on committed source and initial proposed merge8c9cd974. The POSIX case passes on
+Linux, and real process death releases the lock for fresh-process repair.
+Independent review and final-head candidate/protected checks remain pending.
+MJ-REQ-008 staysPARTIAL; all physical-host/power-loss, older/manual writer,
+network filesystem and already-lost-history limits remain explicit.
+
+Evidence: ../docs/evidence/2026-11-03-webpro-1e2ff1-journal-concurrency/source-execution.json;
+candidate-execution.json; cohort-protected-merge.json; owned-resource-cleanup.json.
+Owned disposable PostgreSQL containerbe29dbb9 and networkfd5541b4 were removed
+after exact ID/name/label, sole endpoint and zero-other-client verification.
+Owned worktrees, source branches and raw execution receipts are retained.
+
+008 objective ref18af7a5b remains owned. This preparation uses integrationccad8a38
+only for additive canonical reconciliation and will release it after publication,
+before waiting on review/CI. Requery refs before resuming; this file grants no
+ownership. No main advance or competing deployment is performed in this window.
+Worktree:C:\Tools\Dev\MJobs-webpro-20261103T034313Z-1e2ff1-008-concurrency.
+Safe next step: independently review908, execute its final current-base candidate,
+require all protected gates, and serialize merge after the ongoing906 rollout.
+Preserve899/902/907 work and907's distinct .gitignore additions on reconciliation.
