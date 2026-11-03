@@ -1,0 +1,452 @@
+{
+  "schema_version": 1,
+  "initiative_id": "MJ-TH",
+  "title": "TalentHop Functional Parity and MJobs Experience Expansion",
+  "repository": "MulattoTech/MJobs",
+  "source_revision": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+  "as_of": "2026-11-03T05:13:16.370Z",
+  "epic_issue": 904,
+  "project": {
+    "owner": "MulattoTech",
+    "number": 1,
+    "sync_status": "BLOCKED_AUTH_SCOPE"
+  },
+  "legacy_acceptance": {
+    "original": "planning/CAPABILITY_MATRIX.json",
+    "reference": "planning/REFERENCE_GAP_MATRIX.json",
+    "unchanged": true
+  },
+  "audit": {
+    "status": "PARTIAL",
+    "origin": "https://www.talenthop.com/",
+    "access": "PUBLIC_RETRIEVAL_ONLY",
+    "coverage": {
+      "routes_identified": 3,
+      "routes_exercised": 0,
+      "journeys_identified": 12,
+      "journeys_exercised": 0,
+      "public_sources_retrieved": 1
+    },
+    "har": {
+      "status": "BLOCKED",
+      "raw_captured": false,
+      "derivative_captured": false,
+      "reason": "NO_AUTHORIZED_CAPTURE_SURFACE"
+    },
+    "blockers": [
+      "PRIVATE_SITE_AUTHORIZATION_REQUIRED",
+      "FULL_HAR_TOOL_UNAVAILABLE",
+      "PROJECT_AUTH_SCOPE_MISSING",
+      "INTERACTIVE_COVERAGE_NOT_RUN"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "TH-PUBLIC-001",
+      "url": "https://www.talenthop.com/",
+      "kind": "PUBLIC_MARKETING",
+      "retrieved_at": "2026-11-03T05:04:00Z",
+      "note": "Indexed public homepage retrieval; no interactive feature verification."
+    },
+    {
+      "id": "TH-ACCESS-001",
+      "url": "https://www.talenthop.com/candidates-dashboard/dashboard",
+      "kind": "ACCESS_BLOCKED",
+      "retrieved_at": "2026-11-03T05:04:00Z",
+      "note": "Route identified from browser tab metadata only. Automatic approval review denied page observation; no candidate content was read."
+    },
+    {
+      "id": "TH-UNKNOWN-001",
+      "url": "https://www.talenthop.com/",
+      "kind": "UNEXERCISED",
+      "retrieved_at": "2026-11-03T05:04:00Z",
+      "note": "No authorized interactive coverage; unknown is not an assertion of absence."
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "/",
+      "state": "PUBLICLY CLAIMED",
+      "evidence": "TH-PUBLIC-001",
+      "exercised": false
+    },
+    {
+      "pattern": "/candidates-dashboard/dashboard",
+      "state": "INACCESSIBLE / AUTHORIZATION REQUIRED",
+      "evidence": "TH-ACCESS-001",
+      "exercised": false
+    },
+    {
+      "pattern": "/apply-with-ai/:job-id",
+      "state": "NOT FOUND / UNKNOWN",
+      "evidence": "https://github.com/MulattoTech/MJobs/issues/517",
+      "exercised": false
+    }
+  ],
+  "workstreams": [
+    {
+      "key": "MJ-TH-RECON",
+      "issue": 903
+    },
+    {
+      "key": "MJ-TH-ROADMAP",
+      "issue": 904
+    },
+    {
+      "key": "MJ-TH-FLEET",
+      "issue": 905
+    }
+  ],
+  "features": [
+    {
+      "id": "MJ-TH-001",
+      "title": "Remote job discovery",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "ALREADY EXISTS",
+      "priority": "P1",
+      "issues": [
+        26
+      ],
+      "requirements": [
+        "MJ-REQ-025"
+      ],
+      "source_paths": [
+        "services/discovery/search_semantics.py"
+      ],
+      "dependencies": [],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-002",
+      "title": "Listing trust and provenance",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        517
+      ],
+      "requirements": [],
+      "source_paths": [
+        "services/source_candidates/catalogue.py",
+        "services/dedupe/route_trust.py"
+      ],
+      "dependencies": [
+        "MJ-TH-001"
+      ],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-003",
+      "title": "Job search preferences",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        192
+      ],
+      "requirements": [
+        "MJ-REQ-191"
+      ],
+      "source_paths": [
+        "services/matching/preference_scoring.py",
+        "apps/web/src/company-preferences.tsx"
+      ],
+      "dependencies": [],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-004",
+      "title": "Reviewed resume enhancement",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        96,
+        91,
+        92,
+        97
+      ],
+      "requirements": [
+        "MJ-REQ-095",
+        "MJ-REQ-090",
+        "MJ-REQ-091",
+        "MJ-REQ-096",
+        "MJ-REQ-269"
+      ],
+      "source_paths": [
+        "services/documents/ai_resume.py",
+        "apps/web/src/resume-rewrite-review.tsx"
+      ],
+      "dependencies": [],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-005",
+      "title": "ATS alignment and resume output",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "ALREADY EXISTS",
+      "priority": "P1",
+      "issues": [
+        98,
+        99,
+        100
+      ],
+      "requirements": [
+        "MJ-REQ-097",
+        "MJ-REQ-098",
+        "MJ-REQ-099"
+      ],
+      "source_paths": [
+        "services/documents/resume_templates.py",
+        "services/documents/resume_workspace_export.py"
+      ],
+      "dependencies": [
+        "MJ-TH-004"
+      ],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-006",
+      "title": "Explainable resume to job matching",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        113,
+        115
+      ],
+      "requirements": [
+        "MJ-REQ-112",
+        "MJ-REQ-114"
+      ],
+      "source_paths": [
+        "services/matching/explainable_breakdown.py",
+        "apps/web/src/matching-explanation-workflow.tsx"
+      ],
+      "dependencies": [
+        "MJ-TH-001",
+        "MJ-TH-004"
+      ],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-007",
+      "title": "New role alerts",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "PARTIAL",
+      "priority": "P1",
+      "issues": [
+        205,
+        192
+      ],
+      "requirements": [
+        "MJ-REQ-204",
+        "MJ-REQ-191"
+      ],
+      "source_paths": [
+        "apps/web/src/operation-notifications.tsx",
+        "apps/web/src/saved-search-schedule.tsx"
+      ],
+      "dependencies": [
+        "MJ-TH-001",
+        "MJ-TH-003"
+      ],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-008",
+      "title": "Employer application handoff",
+      "discovery_state": "PUBLICLY CLAIMED",
+      "implementation_state": "ALREADY EXISTS",
+      "priority": "P1",
+      "issues": [
+        268
+      ],
+      "requirements": [
+        "MJ-REQ-267"
+      ],
+      "source_paths": [
+        "services/dedupe/route_trust.py"
+      ],
+      "dependencies": [
+        "MJ-TH-001"
+      ],
+      "evidence": [
+        "TH-PUBLIC-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-009",
+      "title": "Account subscription and support flows",
+      "discovery_state": "INACCESSIBLE / AUTHORIZATION REQUIRED",
+      "implementation_state": "BLOCKED",
+      "priority": "P2",
+      "issues": [
+        903
+      ],
+      "requirements": [],
+      "source_paths": [],
+      "dependencies": [],
+      "evidence": [
+        "TH-ACCESS-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-010",
+      "title": "Candidate application dashboard",
+      "discovery_state": "INACCESSIBLE / AUTHORIZATION REQUIRED",
+      "implementation_state": "BLOCKED",
+      "priority": "P1",
+      "issues": [
+        903
+      ],
+      "requirements": [],
+      "source_paths": [],
+      "dependencies": [
+        "MJ-TH-008"
+      ],
+      "evidence": [
+        "TH-ACCESS-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-011",
+      "title": "Account data portability and deletion",
+      "discovery_state": "NOT FOUND / UNKNOWN",
+      "implementation_state": "BLOCKED",
+      "priority": "P2",
+      "issues": [
+        170,
+        903
+      ],
+      "requirements": [
+        "MJ-REQ-169"
+      ],
+      "source_paths": [],
+      "dependencies": [],
+      "evidence": [
+        "TH-UNKNOWN-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    },
+    {
+      "id": "MJ-TH-012",
+      "title": "Saved searches and feedback persistence",
+      "discovery_state": "NOT FOUND / UNKNOWN",
+      "implementation_state": "PARTIAL",
+      "priority": "P2",
+      "issues": [
+        192
+      ],
+      "requirements": [
+        "MJ-REQ-191"
+      ],
+      "source_paths": [
+        "apps/web/src/saved-search-schedule.tsx"
+      ],
+      "dependencies": [
+        "MJ-TH-003"
+      ],
+      "evidence": [
+        "TH-UNKNOWN-001"
+      ],
+      "verification": {
+        "status": "NOT_RUN",
+        "pr": null,
+        "merge_sha": null,
+        "deployed_sha": null,
+        "acceptance_evidence": []
+      }
+    }
+  ]
+}
