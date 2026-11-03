@@ -74,3 +74,32 @@ removes workstation hostname metadata. Existing unrelated worktrees remain intac
 Next independent candidate: 224 adapter contract gaps; scope and claim must be
 rediscovered before writes. Original 171/224/269 and overarching P0 outcomes remain
 incomplete.
+
+## Latest sprint checkpoint: webpro-20261103T034424Z-23e5
+
+PR #896 is protected-merged at `7e86511f409fb9d1e2dc79904b170cc74b88cd3d`;
+its tree equals the tested candidate `c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20`.
+All five required gates and CodeQL passed. Source/candidate tests: 48 PASS plus
+46 passing subtests, UI 14/build PASS, no skips; independent internal review PASS.
+This checkpoint records **269 PASS for the literal AI document fact-trace contract**.
+Drafting is CLI-only, selected saved-profile keys are unsupported, and paid/live
+inference is NOT_RUN. Deployment and issue #270 closure remain separate gates.
+
+PR #899 adds the collector company-identity conflict repair: source `9a8d138f`
+passed 141 tests plus 25 subtests; two opt-in live feed probes remain SKIP/NOT_RUN.
+Parent 017 remains PARTIAL. A full-CI pagination fixture failure was independently
+reproduced and corrected at `4eb58a1d` without changing the production gate or its
+assertion; the module passed 30 tests plus 37 subtests. Final hosted rerun pending.
+Read [269 acceptance](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json),
+[896 merge proof](../docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json),
+and [source/CI evidence](../docs/evidence/2026-11-03-webpro-23e5-company-identity/).
+
+Source worktrees: `C:\Tools\Dev\MJobs-webpro-20261103T034424Z-23e5-269` and
+`C:\Tools\Dev\MJobs-webpro-20261103T034424Z-23e5-company-identity`.
+Objective claims: MJ-REQ-269 (`a0948cd5`), AGGREGATOR-COMPANY-IDENTITY-COLLISION
+(`f11768a3`), and CI-DEPLOYMENT-PAGINATION-CLOCK (`fc7a4b6d`). Requery exact live
+refs before resuming. Integration preparation owner is `58e50228`; release after
+publication, reacquire before protected merge. No deployment lock is held by this run.
+The containing PR's final receipt must record its future actual merge/main gates,
+guarded deployed SHA/image/backup/rollback, issue state and exact claim releases.
+No production restore, employer submission, paid provider call or fleet mutation.

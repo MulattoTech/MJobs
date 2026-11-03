@@ -1667,12 +1667,72 @@
         "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
         "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
       }
+    },
+    {
+      "milestone_id": "WEBPRO-23E5-VERIFIED-269-017",
+      "timestamp": "2026-11-03T04:40:51.175294+00:00",
+      "current_phase": "Integrate verified 269 fact trace and scoped 017 identity repair; guarded deployment pending",
+      "completed_steps": [
+        "Protected merge of PR #896 at 7e86511f409fb9d1e2dc79904b170cc74b88cd3d with tested candidate tree identical.",
+        "Verified supported AI-assisted resume wording and immutable reviewed fact references.",
+        "Committed collector identity collision repair and retained six baseline regression failures.",
+        "Independent internal reviews completed for both source changes; no remaining must-fix.",
+        "Canonical 269 advances PARTIAL to PASS for literal functional criteria; 017 stays PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json",
+        "docs/AGGREGATOR_COMPANY_IDENTITY.md",
+        "tests/integration/test_aggregator_company_identity.py",
+        "tests/integration/test_aggregator_company_identity_postgres.py",
+        "docs/evidence/2026-11-03-webpro-23e5-company-identity/ci-clock-repair.json"
+      ],
+      "files_modified": [
+        "services/discovery/sources/collect.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "tests/unit/test_deployment_checks.py"
+      ],
+      "tests_completed": [
+        "Source 269 9a5fcafa and candidate c2718534:48 tests plus 46 subtests PASS,0 failures/skips; UI 14/build PASS. Overlapping runs are not summed.",
+        "PR #896 exact-head five required protected checks and CodeQL PASS.",
+        "Source017 repair 9a8d138f:141 tests plus 25 subtests PASS,2 opt-in live checks SKIP,0 failures; includes 31 new SQLite cases and 2 PostgreSQL races.",
+        "Independent three-provider diagnostic privacy and corrected-batch recovery probes PASS.",
+        "Clock fixture correction 4eb58a1d:30 tests plus37 subtests PASS; independent controlled interference probe and final diff/AST review PASS. Production gate and pagination assertion unchanged."
+      ],
+      "tests_remaining": [
+        "Containing PR #899 exact candidate verification and protected hosted gates.",
+        "Verified-current-main guarded deployment, source/image/readiness/backup/rollback readback.",
+        "Authenticated Brave production check unavailable in this session; record NOT_RUN.",
+        "Full MJ-REQ-017 provider breadth remains incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Read-only Cloudflare routing/tunnel/Access metadata; unauthenticated public endpoint redirects to Access sign-in.",
+        "Read-only existing production readiness and deployment endpoint; these baseline observations do not prove this change deployed."
+      ],
+      "known_errors": [
+        "Six before-fix WWR name-collision regressions failed as expected; fixed and retained.",
+        "AI resume idempotent acceptance initially reported PREPARED after later state; corrected after independent review and regression.",
+        "New-test lint findings corrected before committed source verification.",
+        "PR899 initial hosted unit run41577559950:one pagination fixture failure,3565 tests and3776 subtests passed,53 skipped. Shared process-wide clock interference reproduced exactly and fixed; actual hosted background caller was not identified. Full final-head rerun remains required."
+      ],
+      "known_limitations": [
+        "CLI drafting only; selected saved-profile keys unsupported; no paid/live inference or employer submission.",
+        "Equal normalized employer labels do not prove real-world company identity; rebrands may require review.",
+        "Production rollout pending at this source checkpoint; read the containing PR final delivery receipt."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+        "evidence_path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json"
+      }
     }
   ],
-  "current_phase": "Publish scoped MJ-REQ-172 request-boundary repair through protected integration",
+  "current_phase": "Integrate verified 269 fact trace and scoped 017 identity repair; guarded deployment pending",
   "last_safe_checkpoint": {
-    "git_commit": "d096d03deba8aa749f478f9dd6c91029379ec50f",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-web-security/source-execution.json"
+    "git_commit": "7e86511f409fb9d1e2dc79904b170cc74b88cd3d",
+    "evidence_path": "docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-03T03:33:06.273418+00:00",
+  "timestamp": "2026-11-03T04:40:51.175294+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -291,9 +291,10 @@
         "docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json",
         "docs/evidence/2026-10-06-remote-ok-job-source-adapter.json",
         "docs/evidence/2026-10-11-six-team-integration.json",
-        "docs/evidence/2026-11-02-pro-ops-delivery.json"
+        "docs/evidence/2026-11-02-pro-ops-delivery.json",
+        "docs/evidence/2026-11-03-webpro-23e5-company-identity/acceptance-candidate.json"
       ],
-      "note": "Supported Greenhouse/Remotive/RemoteOK/WWR sources can now be enrolled through API/UI with canonical global tenants. Aggregator provenance no longer asserts ATS tenancy; company identity remains low-confidence. Controlled enrollment/reload/toggle/collection and bounded live Greenhouse read-only preparation verified. Remaining global targets pending.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: WWR detail lookup now refuses conflicting duplicate native identities consistently and collection rollback is covered. A fresh bounded official-feed observation found 100 entries, 98 identities and two conflicting groups with identical GUID/link strings. The later row-count observer harness error is preserved separately. No live WWR PASS is claimed; MJ-REQ-017.S02 existing synthetic acceptance remains unchanged.",
+      "note": "Supported Greenhouse/Remotive/RemoteOK/WWR sources can now be enrolled through API/UI with canonical global tenants. Aggregator provenance no longer asserts ATS tenancy; company identity remains low-confidence. Controlled enrollment/reload/toggle/collection and bounded live Greenhouse read-only preparation verified. Remaining global targets pending.\n\n2026-11-02 verified partial progress at source 2e0f3df8f6952088b39fc494f9cd38838b020af4: WWR detail lookup now refuses conflicting duplicate native identities consistently and collection rollback is covered. A fresh bounded official-feed observation found 100 entries, 98 identities and two conflicting groups with identical GUID/link strings. The later row-count observer harness error is preserved separately. No live WWR PASS is claimed; MJ-REQ-017.S02 existing synthetic acceptance remains unchanged.\n\n2026-11-03T04:40:51.175294+00:00 Scoped source-integrity contribution in PR #899, source 9a8d138f1455190dabedb7c1e6253b54074c12d6: collector refuses conflicting company labels that collapse to one aggregator identity, within incoming batches and under the existing persisted-company lock. 141 tests plus 25 subtests passed,2 opt-in live checks skipped/NOT_RUN; independent three-provider privacy/recovery review passed. Six before-fix WWR failures are retained. No adapter IDs, historical company records or first-party ATS name-update behavior changed. This does not establish equal-label employer identity or complete provider breadth; parent 017 remains PARTIAL and existing 017.S02 acceptance gains no new credit. See docs/evidence/2026-11-03-webpro-23e5-company-identity/acceptance-candidate.json. Containing PR still requires its own protected candidate and deployment gates.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -806,7 +807,7 @@
         "docs/evidence/2026-10-03-company-discovery-requests.json",
         "docs/evidence/2026-10-09-official-domain-evidence-order.json"
       ],
-      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company\u2019s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete.",
+      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company’s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete.",
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature"
@@ -2266,7 +2267,7 @@
       "evidence": [
         "docs/evidence/2026-10-07-compose-log-rotation.json"
       ],
-      "note": "All nine Compose services render finite json-file rotation at 10 MiB \u00d7 5 files. An isolated no-network Docker Engine test emitted 50 large lines under a 1 MiB \u00d7 2 cap and retained 11; container removed and existing personal MJobs services untouched. Existing live-feedback tests verify 30-day managed-session cleanup and no raw trace file; prior source inventory found no HTML snapshot writers. Focused Compose/live-feedback/document-artifact suite 20 PASS; Compose config and local validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue #179 CLOSED after readback. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+      "note": "All nine Compose services render finite json-file rotation at 10 MiB × 5 files. An isolated no-network Docker Engine test emitted 50 large lines under a 1 MiB × 2 cap and retained 11; container removed and existing personal MJobs services untouched. Existing live-feedback tests verify 30-day managed-session cleanup and no raw trace file; prior source inventory found no HTML snapshot writers. Focused Compose/live-feedback/document-artifact suite 20 PASS; Compose config and local validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue #179 CLOSED after readback. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2886,7 +2887,7 @@
         "docs/evidence/2026-11-01-pro-p1-delivery.json",
         "docs/evidence/2026-11-01-pro-p1/criteria.json"
       ],
-      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources\u2014Remotive, RemoteOK and Greenhouse\u2014have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
+      "note": "Scoped local user-testing behavior verified; broader source/UI/document/product clauses remain open 2026-11-01 verified checkpoint: Three real sources—Remotive, RemoteOK and Greenhouse—have bounded live-capture evidence followed by production collection, normalization, dedupe, company extraction and source-health checks against the exact captured responses, with two collections and two database reopens. No application was submitted. WWR remains a failed source observation: 99 captured entries contained 98 identities and one conflict, and production collection failed in PERSIST_1 with SOURCE_DUPLICATE_JOB_ID. Both WWR failures remain preserved; captured counts are not persisted inventory. Acceptance of the several-source test requirement does not claim WWR is repaired or that every public source works.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
@@ -3077,7 +3078,7 @@
         "docs/evidence/2026-10-09-source-failure-recovery.json",
         "docs/evidence/2026-10-09-source-failure-rediscovery.json"
       ],
-      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY \u2192 DEGRADED \u2192 FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN.",
+      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY → DEGRADED → FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN.",
       "priority": "P2",
       "area": "performance_learning_history",
       "category": "major-feature"
@@ -3356,14 +3357,20 @@
     },
     {
       "requirement_id": "MJ-REQ-269",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-09-document-fact-trace.json",
         "docs/evidence/2026-11-01-pro-reliability/criteria.json",
         "docs/evidence/2026-11-01-pro-reliability/pr-879-protected-merge.json",
-        "docs/evidence/2026-11-01-pro-reliability-delivery.json"
+        "docs/evidence/2026-11-01-pro-reliability-delivery.json",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/source-execution.json",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/review.json",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/candidate-execution.json",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/candidate-tests.xml",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/pr896-protected-merge.json",
+        "docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json"
       ],
-      "note": "Connected generated-document history resolves saved fact IDs against the immutable generation profile snapshot and the UI shows fact text, source, and approval state. Focused browser acceptance confirms current edits and unapproved facts do not leak into historical trace. Live AI-provider generation was not exercised; see evidence limitations.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Immutable fact tracing is verified for the existing deterministic document workflow and displayed history. The inspected AI consumer performs job scoring; document preparation uses deterministic templates, while rewrite review handles supplied proposals. A supported AI-generated document consumer with fact references is not demonstrated. Controlled provider fixtures could establish that path when implemented; paid/live inference is not asserted as a necessary acceptance prerequisite. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.",
+      "note": "Connected generated-document history resolves saved fact IDs against the immutable generation profile snapshot and the UI shows fact text, source, and approval state. Focused browser acceptance confirms current edits and unapproved facts do not leak into historical trace. Live AI-provider generation was not exercised; see evidence limitations.\n\n2026-11-01 Pro reliability acceptance at source 9993b184f90c6e46210dc441d28bdd61bd20b321, protected PR #879: Immutable fact tracing is verified for the existing deterministic document workflow and displayed history. The inspected AI consumer performs job scoring; document preparation uses deterministic templates, while rewrite review handles supplied proposals. A supported AI-generated document consumer with fact references is not demonstrated. Controlled provider fixtures could establish that path when implemented; paid/live inference is not asserted as a necessary acceptance prerequisite. Criterion and merge proof: docs/evidence/2026-11-01-pro-reliability/criteria.json; delivery: docs/evidence/2026-11-01-pro-reliability-delivery.json. Deployment is recorded separately.\n\n2026-11-03T04:40:51.175294+00:00 Web Pro verified acceptance: protected PR #896 merged at 7e86511f409fb9d1e2dc79904b170cc74b88cd3d; reviewed source 9a5fcafa44ea3213b845db23eaa9838cedd1ac1f and exact candidate c2718534ac9dc76bb2dffdd5dbaf8db5be34bd20. Supported AI-assisted resume CLI uses explicit consent, sealed proposals and exact human review; DOCX/PDF/TXT and reopened history preserve immutable approved facts and AI attribution, including after private draft archival. Exact candidate 48 tests plus 46 subtests and UI 14/build passed; independent review and all five protected gates passed. Controlled provider fixtures establish the literal criterion; paid/live inference is not claimed. Draft controls remain CLI-only, saved-profile keys unsupported and cover letters deterministic. Deployment remains a separate pending gate at this checkpoint; keep issue #270 open until rollout verification. See docs/evidence/2026-11-03-webpro-23e5-ai-resume/acceptance.json.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
