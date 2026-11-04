@@ -269,6 +269,49 @@ class WeWorkRemotelyTests(unittest.TestCase):
         self.assertEqual(adapter.fetch('synthetic-identity')['description'], base['description'])
         self.assertEqual(adapter.health(), 'HEALTHY')
 
+    def test_search_rejects_conflicts_even_when_filters_or_limits_hide_them(self):
+        """An ambiguous full feed must not appear healthy because a caller selects a subset."""
+        base = {'title': 'Synthetic Acme: Engineer', 'description': 'Original work.',
+                'guid': 'https://weworkremotely.com/remote-jobs/duplicate-identity',
+                'link': 'https://weworkremotely.com/remote-jobs/duplicate-identity',
+                'category': 'Programming'}
+        conflicting = {**base, 'description': 'Different work.'}
+        fresh = {'title': 'Fresh Only: Designer', 'description': 'Unrelated role.',
+                 'guid': 'https://weworkremotely.com/remote-jobs/fresh-identity',
+                 'link': 'https://weworkremotely.com/remote-jobs/fresh-identity',
+                 'category': 'Design'}
+
+        for reverse in (False, True):
+            for kwargs in ({}, {'limit': 1}, {'category': 'Design'},
+                           {'search_term': 'Fresh Only'}):
+                with self.subTest(reverse=reverse, filter=kwargs):
+                    pair = [conflicting, base] if reverse else [base, conflicting]
+                    payload = self.duplicate_fixture([fresh, *pair])
+                    adapter = WeWorkRemotely(transport=httpx.MockTransport(
+                        lambda _: httpx.Response(200, content=payload)))
+                    with self.assertRaises(SourceError) as raised:
+                        adapter.search(**kwargs)
+                    self.assertEqual(raised.exception.code, 'SOURCE_DUPLICATE_JOB_ID')
+                    self.assertEqual(adapter.health(), 'SOURCE_DUPLICATE_JOB_ID')
+
+    def test_search_coalesces_only_exact_repeats_and_preserves_first_seen_order(self):
+        first = {'title': 'Synthetic Acme: Engineer', 'description': 'Same role.',
+                 'guid': 'https://weworkremotely.com/remote-jobs/first-identity',
+                 'link': 'https://weworkremotely.com/remote-jobs/first-identity'}
+        second = {'title': 'Synthetic Other: Designer', 'description': 'Other role.',
+                  'guid': 'https://weworkremotely.com/remote-jobs/second-identity',
+                  'link': 'https://weworkremotely.com/remote-jobs/second-identity'}
+        payload = self.duplicate_fixture([first, second, deepcopy(first), deepcopy(second)])
+        adapter = WeWorkRemotely(transport=httpx.MockTransport(
+            lambda _: httpx.Response(200, content=payload)))
+        batch = adapter.search()
+        self.assertEqual([_posting_id_from_guid(item.raw['guid']) for item in batch.items],
+                         ['first-identity', 'second-identity'])
+        self.assertEqual(adapter.health(), 'HEALTHY')
+        limited = adapter.search(limit=1)
+        self.assertEqual(len(limited.items), 1)
+        self.assertEqual(limited.items[0].raw['description'], 'Same role.')
+
     def test_collection_conflict_rolls_back_new_rows_and_preserves_prior_posting(self):
         base = {'title': 'Synthetic Acme: Engineer', 'description': 'Python systems.',
                 'guid': 'https://weworkremotely.com/remote-jobs/synthetic-identity',
