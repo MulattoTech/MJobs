@@ -40,6 +40,8 @@ jobs:
           python -m coverage run --branch --source=services/ai -m pytest -q tests/unit/test_ai_prompt_versioning.py tests/unit/test_ai_providers.py tests/unit/test_ai_structured_output.py tests/unit/test_ai_task_configuration.py tests/unit/test_ci_coverage_gate.py
           python -m coverage json -o outputs/ci/backend-coverage.json
           python -m tools.ci.coverage_gate --kind backend --report outputs/ci/backend-coverage.json --output outputs/ci/backend-coverage-gate.json
+      - name: Enforce provider-task prompt/schema fixture matrix (offline)
+        run: python -m tools.ci.provider_task_matrix --output outputs/ci/provider-task-matrix.json
       - name: Validate acceptance catalogues and contribution skills
         run: |
           python -m tools.verification.agent_skills
@@ -58,6 +60,7 @@ jobs:
             outputs/ci/unit.xml
             outputs/ci/backend-coverage.json
             outputs/ci/backend-coverage-gate.json
+            outputs/ci/provider-task-matrix.json
           retention-days: 7
           if-no-files-found: ignore
   web:

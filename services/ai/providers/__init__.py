@@ -70,9 +70,16 @@ class DisabledAIProvider:
         raise AIProviderDisabled()
 
 
-def create_provider(name: str) -> AIProvider:
-    """Return only explicitly supported providers; reject unknown values safely."""
+SUPPORTED_PROVIDER_NAMES = (
+    "disabled", "ollama", "openai", "openai-compatible", "local", "azure-openai", "azure",
+)
 
+
+def create_provider(name: str) -> AIProvider:
+    """Return only explicitly declared providers; reject unknown values safely."""
+
+    if name not in SUPPORTED_PROVIDER_NAMES:
+        raise ValueError("AI_PROVIDER_UNSUPPORTED")
     if name == "disabled":
         return DisabledAIProvider()
     if name == "ollama":
@@ -106,5 +113,6 @@ __all__ = [
     "OpenAICompatibleProvider",
     "OpenAIProvider",
     "ProviderCapabilities",
+    "SUPPORTED_PROVIDER_NAMES",
     "create_provider",
 ]
