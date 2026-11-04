@@ -15,7 +15,15 @@ from typing import Any
 
 from services.ai.consumer import AIJobEvaluation, AIJobInput, _prompt
 from services.ai.prompt_versioning import PromptRegistry
-from services.ai.providers import SUPPORTED_PROVIDER_NAMES, ProviderCapabilities
+from services.ai.providers import (
+    SUPPORTED_PROVIDER_NAMES,
+    AzureOpenAIProvider,
+    LocalEndpointProvider,
+    OllamaProvider,
+    OpenAICompatibleProvider,
+    OpenAIProvider,
+    ProviderCapabilities,
+)
 from services.ai.structured_output import (
     CANONICAL_SCHEMAS,
     StrictAIResult,
@@ -42,6 +50,14 @@ _REGISTRY_TARGETS = {
     "free_form_answers": "screening_answers",
 }
 _CALLER_FIXTURE_TASKS = frozenset({"requirement_extraction", "company_summarization"})
+_PROVIDER_CLASSES = {
+    "ollama": OllamaProvider,
+    "openai": OpenAIProvider,
+    "openai-compatible": OpenAICompatibleProvider,
+    "local": LocalEndpointProvider,
+    "azure-openai": AzureOpenAIProvider,
+    "azure": AzureOpenAIProvider,
+}
 _FORBIDDEN_FIXTURE_TEXT = ("sk-", "ghp_", "bearer ", "password=", "api_key=")
 
 
@@ -193,6 +209,14 @@ def validate_matrix(payload: dict[str, Any]) -> dict[str, Any]:
     expected_providers = set(SUPPORTED_PROVIDER_NAMES) - {"disabled"}
     if set(providers) != expected_providers:
         raise MatrixError("MATRIX_PROVIDER_COVERAGE_INCOMPLETE")
+    if set(_PROVIDER_CLASSES) != expected_providers:
+        raise MatrixError("MATRIX_PROVIDER_REGISTRY_INCOMPLETE")
+    for provider_name in providers:
+        capabilities = getattr(_PROVIDER_CLASSES[provider_name], "capabilities", None)
+        if (not isinstance(capabilities, ProviderCapabilities)
+                or capabilities.text_generation is not True
+                or capabilities.structured_output is not True):
+            raise MatrixError("MATRIX_PROVIDER_CAPABILITY_INCOMPLETE")
     entries = payload["tasks"]
     if (not isinstance(entries, list) or not entries
             or any(not isinstance(entry, dict) or not isinstance(entry.get("task"), str)

@@ -124,6 +124,18 @@ class ProviderTaskMatrixTests(unittest.TestCase):
         value["combinations"][0]["unreviewed"] = "extra"
         self.assert_invalid(value, "MATRIX_PAIRS_INVALID")
 
+    def test_real_provider_capability_drift_fails_closed(self):
+        from services.ai.providers import OllamaProvider, ProviderCapabilities
+
+        for capabilities in (
+            ProviderCapabilities(text_generation=True, structured_output=False),
+            ProviderCapabilities(text_generation=False, structured_output=True),
+        ):
+            with self.subTest(capabilities=capabilities), \
+                    patch.object(OllamaProvider, "capabilities", capabilities):
+                self.assert_invalid(deepcopy(self.original),
+                                    "MATRIX_PROVIDER_CAPABILITY_INCOMPLETE")
+
     def test_declared_provider_factory_routes_without_network(self):
         from services.ai.providers import (
             AzureOpenAIProvider,

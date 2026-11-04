@@ -13,6 +13,7 @@ Status: **PARTIAL pending exact-head CI, protected merge and real producer integ
 - Four prompts are rendered from the actual PromptRegistry. Job scoring uses the actual consumer _prompt with synthetic AIJobInput.
 - Requirement extraction and company summarization use explicitly **caller-supplied test fixture prompts**, not invented shipped default prompts. The receipt exposes these two exceptions.
 - Four tasks use strict JSON models (real AIJobEvaluation for scoring and a new canonical JobParsingResult); three use explicit text output.
+- Each real provider class is checked for declared text-generation and structured-output capabilities; losing either fails closed. The separate fake tests routing and response contracts, not actual provider transport.
 - Each pairing routes a typed provider/model choice through the real AITaskRouter to an in-process recording fake, asserting task/model/prompt/timeout/schema. No live model is called.
 
 ## Safety, failure and privacy
@@ -24,7 +25,7 @@ Status: **PARTIAL pending exact-head CI, protected merge and real producer integ
 
 ## Reproducible tests
 
-- Targeted pytest on final source: 27 tests and 34 subtests — PASS.
+- Targeted pytest on final source: 28 tests and 36 subtests — PASS, including two negative provider capability drift cases.
 - Offline provider-task matrix: six providers, seven tasks, 42 pairings, 24 structured, 18 text, zero model calls — PASS.
 - Repository policy: zero errors — PASS.
 - Acceptance catalogue validation — PASS.
