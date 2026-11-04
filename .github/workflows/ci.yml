@@ -35,6 +35,11 @@ jobs:
           python -m mypy --config-file pyproject.toml
       - name: Execute unit regressions
         run: python -m pytest -q tests/unit --junitxml=outputs/ci/unit.xml
+      - name: Enforce scoped Python coverage (synthetic AI fixtures only)
+        run: |
+          python -m coverage run --branch --source=services/ai -m pytest -q tests/unit/test_ai_prompt_versioning.py tests/unit/test_ai_providers.py tests/unit/test_ai_structured_output.py tests/unit/test_ai_task_configuration.py tests/unit/test_ci_coverage_gate.py
+          python -m coverage json -o outputs/ci/backend-coverage.json
+          python -m tools.ci.coverage_gate --kind backend --report outputs/ci/backend-coverage.json --output outputs/ci/backend-coverage-gate.json
       - name: Validate acceptance catalogues and contribution skills
         run: |
           python -m tools.verification.agent_skills
@@ -49,7 +54,10 @@ jobs:
         if: always()
         with:
           name: unit-results
-          path: outputs/ci/unit.xml
+          path: |
+            outputs/ci/unit.xml
+            outputs/ci/backend-coverage.json
+            outputs/ci/backend-coverage-gate.json
           retention-days: 7
           if-no-files-found: ignore
   web:
@@ -76,7 +84,19 @@ jobs:
         run: npm run typecheck --prefix apps/web
       - name: Test trusted automated-review policy and rejection cases
         run: node --test tests/ci/verified_review.test.cjs
-      - run: npm test --prefix apps/web
+      - name: Test frontend with scoped V8 coverage
+        run: npm test --prefix apps/web
+      - name: Enforce frontend coverage floor
+        run: python -m tools.ci.coverage_gate --kind frontend --report apps/web/coverage/coverage-summary.json --output outputs/ci/frontend-coverage-gate.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: frontend-coverage
+          path: |
+            apps/web/coverage/coverage-summary.json
+            outputs/ci/frontend-coverage-gate.json
+          retention-days: 7
+          if-no-files-found: ignore
       - run: npm run build --prefix apps/web
   repository:
     name: Repository / policy and docs
