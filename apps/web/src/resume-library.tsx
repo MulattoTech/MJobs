@@ -24,6 +24,7 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
   const [label,setLabel] = useState('');
   const [series,setSeries] = useState('');
   const [extraction,setExtraction] = useState<Extraction|null>(null);
+  const [extractionSource,setExtractionSource] = useState<{profileId:string;id:string;sha256:string}|null>(null);
   const [extractingResume,setExtractingResume] = useState('');
   const [extractionProgress,setExtractionProgress] = useState<DurableExtraction|null>(null);
   const [cancelNotice,setCancelNotice] = useState('');
@@ -34,10 +35,15 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
   const generation = useRef(0);
   const resumeScopeKey=JSON.stringify(resumes.map(resume=>({id:resume.id,version:resume.version,sha256:resume.sha256}))
     .sort((a,b)=>a.id.localeCompare(b.id)));
+  // Never show or apply a prior profile's extraction, or a result bound to a replaced file.
+  const reviewSource=extractionSource?.profileId===profileId
+    ? resumes.find(resume=>resume.profile_id===profileId && resume.id===extractionSource.id
+        && resume.sha256===extractionSource.sha256)
+    : undefined;
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   useEffect(()=>{
     const current=++generation.current;
-    setExtraction(null);setExtractionProgress(null);setExtractingResume('');
+    setExtraction(null);setExtractionSource(null);setExtractionProgress(null);setExtractingResume('');
     setSelectedFacts(new Set());setSelectedContact(new Set());setCancelNotice('');
     let active=true;
     async function restoreLatest() {
@@ -61,6 +67,7 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
           &&window.localStorage.getItem(extractionIntentKey(profileId,latest.resume.id))===latest.status.request_id)
         window.localStorage.removeItem(extractionIntentKey(profileId,latest.resume.id));
       if(latest.status.state==='COMPLETED'&&latest.status.result){
+        setExtractionSource({profileId,id:latest.resume.id,sha256:latest.resume.sha256});
         setExtraction(latest.status.result);setExtractionProgress(latest.status);
       } else if(latest.status.state==='QUEUED'||latest.status.state==='RUNNING') {
         setExtractingResume(latest.resume.id);void pollExtraction(latest.resume,latest.status.operation_id,current)
@@ -79,12 +86,12 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
     await uploadResume(profileId,file,{label:series?'':label,seriesId:series});
     const result = await api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes');
     if (!mounted.current) return;
-    onStored(result.resumes);setFile(null);setLabel('');setExtraction(null);setExtractionProgress(null);
+    onStored(result.resumes);setFile(null);setLabel('');setExtraction(null);setExtractionSource(null);setExtractionProgress(null);
     if(input.current)input.current.value='';
   }
   async function extract(resume:Resume) {
     const current=++generation.current;
-    setExtractingResume(resume.id);setExtraction(null);setExtractionProgress(null);
+    setExtractingResume(resume.id);setExtraction(null);setExtractionSource(null);setExtractionProgress(null);
     setSelectedFacts(new Set());setSelectedContact(new Set());setCancelNotice('');
     try {
       const key=extractionIntentKey(profileId,resume.id);
@@ -107,7 +114,10 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
         if(!mounted.current||generation.current!==current)return;
         setExtractionProgress(status);
         if(status.state==='COMPLETED'){
-          if(status.result){setExtraction(status.result);setSelectedFacts(new Set());setSelectedContact(new Set());}
+          if(status.result){
+            setExtractionSource({profileId,id:resume.id,sha256:resume.sha256});
+            setExtraction(status.result);setSelectedFacts(new Set());setSelectedContact(new Set());
+          }
           if(window.localStorage.getItem(extractionIntentKey(profileId,resume.id))===status.request_id)
             window.localStorage.removeItem(extractionIntentKey(profileId,resume.id));
           return;
@@ -157,8 +167,10 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
       </section>)}
     </>}
     {cancelNotice&&<p role="status">{cancelNotice}</p>}
-    {extraction&&<div className="extraction-review" role="region" aria-label="Resume extraction review">
+    {extraction&&!reviewSource&&<p role="alert">The source resume version has changed or is unavailable. Reload saved resumes before reviewing suggestions.</p>}
+    {extraction&&reviewSource&&<div className="extraction-review" role="region" aria-label="Resume extraction review">
       <h3>Extraction review: {extraction.status.replaceAll('_',' ')}</h3>
+      <p data-extraction-source={reviewSource.id}>Review source: {reviewSource.label} · version {reviewSource.version} · {reviewSource.filename}</p>
       <p>Pending suggestions from the saved resume. Select contact fields to replace and career facts to add. Nothing changes in your profile until you choose Add selected to profile editor; imported facts still require verification and approval.</p>
       {extraction.warnings.map((warning,i)=><p className="alert" key={i}>{warning}</p>)}
       {Object.entries(extraction.contact).filter(([,v])=>Array.isArray(v)?v.length>0:typeof v==='string'&&v.trim()).map(([key,value])=><label className="fact-suggestion" key={key}>
@@ -173,8 +185,8 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
           </small>)}
         </span>
       </label>)}
-      {extraction.status==='READY_FOR_REVIEW'&&<button type="button" className="primary" disabled={busy} onClick={()=>{onApply(extraction,selectedFacts,selectedContact);setExtraction(null);}}>Add selected to profile editor</button>}
-      <button type="button" className="quiet" onClick={()=>setExtraction(null)}>Dismiss</button>
+      {extraction.status==='READY_FOR_REVIEW'&&<button type="button" className="primary" disabled={busy} onClick={()=>{onApply(extraction,selectedFacts,selectedContact);setExtraction(null);setExtractionSource(null);}}>Add selected to profile editor</button>}
+      <button type="button" className="quiet" onClick={()=>{setExtraction(null);setExtractionSource(null);}}>Dismiss</button>
     </div>}
   </section>;
 }
