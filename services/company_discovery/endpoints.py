@@ -108,12 +108,26 @@ def parse_public_job_feed(body, strategy):
     normalized = []
     for item in items:
         row = {}
+        atom_alternates = set()
         for child in item:
             key = child.tag.rsplit("}", 1)[-1].casefold()
-            if key == "link":
+            if key == "link" and root_name == "feed":
+                # Atom entries can also advertise self/enclosure links. Their
+                # order must never decide the job destination.
+                if child.attrib.get("rel", "alternate").strip().casefold() == "alternate":
+                    target = (child.attrib.get("href") or child.text or "").strip()
+                    if target:
+                        atom_alternates.add(target)
+            elif key == "link":
                 row[key] = child.attrib.get("href") or child.text or ""
             else:
                 row[key] = child.text or ""
+        if root_name == "feed":
+            # Distinct alternate destinations are ambiguous; do not invent a
+            # winner or publish a self/enclosure URL as an application route.
+            if len(atom_alternates) != 1:
+                raise ValueError("COMPANY_JOB_FEED_INVALID")
+            row["link"] = next(iter(atom_alternates))
         if not str(row.get("title") or "").strip() or not str(row.get("link") or "").strip():
             raise ValueError("COMPANY_JOB_FEED_INVALID")
         normalized.append(row)

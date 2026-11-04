@@ -67,6 +67,53 @@ class CompanyJobEndpointTests(unittest.TestCase):
         self.assertEqual(parse_public_job_feed(atom, "RSS")[0]["link"], "https://employer.example/job/2")
         self.assertEqual(parse_public_job_feed(json_feed, "PUBLIC_JSON")[0]["title"], "Analyst")
 
+    def test_atom_ignores_self_and_enclosure_links_before_selecting_job_alternate(self):
+        links = (
+            '<link rel="self" href="https://employer.example/feed/123"/>',
+            '<link rel="alternate" type="text/html" href="https://employer.example/jobs/123"/>',
+            '<link rel="enclosure" href="https://employer.example/files/123.pdf"/>',
+        )
+        for ordered in (links, tuple(reversed(links))):
+            with self.subTest(ordered=ordered):
+                atom = (
+                    '<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>Engineer</title>'
+                    + "".join(ordered)
+                    + '</entry></feed>'
+                )
+                items = parse_public_job_feed(atom, "RSS")
+                self.assertEqual(items[0]["link"], "https://employer.example/jobs/123")
+
+    def test_atom_accepts_repeated_identical_alternates(self):
+        atom = (
+            '<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>Engineer</title>'
+            '<link rel="alternate" href="https://employer.example/jobs/123"/>'
+            '<link href="https://employer.example/jobs/123"/>'
+            '<link rel="self" href="https://employer.example/feed/123"/>'
+            '</entry></feed>'
+        )
+        self.assertEqual(parse_public_job_feed(atom, "RSS")[0]["link"],
+                         "https://employer.example/jobs/123")
+
+    def test_atom_rejects_multiple_distinct_job_alternates(self):
+        atom = (
+            '<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>Engineer</title>'
+            '<link rel="alternate" href="https://employer.example/jobs/123"/>'
+            '<link rel="alternate" href="https://other.example/jobs/999"/>'
+            '</entry></feed>'
+        )
+        with self.assertRaisesRegex(ValueError, "^COMPANY_JOB_FEED_INVALID$"):
+            parse_public_job_feed(atom, "RSS")
+
+    def test_atom_rejects_non_job_links_without_an_alternate(self):
+        atom = (
+            '<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>Engineer</title>'
+            '<link rel="self" href="https://employer.example/feed/123"/>'
+            '<link rel="enclosure" href="https://employer.example/files/123.pdf"/>'
+            '</entry></feed>'
+        )
+        with self.assertRaisesRegex(ValueError, "^COMPANY_JOB_FEED_INVALID$"):
+            parse_public_job_feed(atom, "RSS")
+
     def test_rejects_entity_expansion_and_non_job_items(self):
         with self.assertRaisesRegex(ValueError, "COMPANY_JOB_FEED_INVALID"):
             parse_public_job_feed('<!DOCTYPE rss [<!ENTITY x "large">]><rss/>', "RSS")
