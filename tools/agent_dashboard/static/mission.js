@@ -15,6 +15,7 @@
   let slots = [];
   const cards = new Map();
   let inflight = false;
+  let progressInflight = false;
   // Every launcher has independent preview/approval state. No agent starts merely
   // because options or prompts are previewed.
   const previewStates = new Map();
@@ -655,8 +656,11 @@
   }
 
   async function refreshProgress() {
-    try { renderProgress(await fetchJson("/api/progress")); }
+    if (progressInflight) return;
+    progressInflight = true;
+    try { renderProgress(await fetchJson("/api/progress", {signal: AbortSignal.timeout(8000)})); }
     catch (error) { $("#releaseContent").textContent = "Release tracker unavailable: " + error.message; }
+    finally { progressInflight = false; }
   }
   function renderExternalSprint(result) {
     const holder = $("#externalSprintContent");
@@ -726,5 +730,8 @@
   }
   $("#missionRefresh").onclick = refreshEverything;
   refreshEverything();
+  // Acceptance is inexpensive and independently guarded; launcher/process scans
+  // retain their slower cadence and do not pile up behind a slow progress read.
+  setInterval(() => { if (!document.hidden) refreshProgress(); }, 5000);
   setInterval(() => { if (!document.hidden) refreshEverything(); }, 11000);
 })();
