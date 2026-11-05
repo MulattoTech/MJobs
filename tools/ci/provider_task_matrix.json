@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "fixture_kind": "synthetic_offline_only",
+  "providers": [
+    "ollama",
+    "openai",
+    "openai-compatible",
+    "local",
+    "azure-openai",
+    "azure"
+  ],
+  "tasks": [
+    {
+      "task": "job_parsing",
+      "prompt_origin": "registry",
+      "prompt_target": "job_parsing",
+      "prompt_data": {
+        "raw_content": "Fictional Example Co seeks a remote Systems Engineer with Linux and Python."
+      },
+      "schema": "job_parsing",
+      "result": {
+        "title": "Systems Engineer",
+        "company": "Example Co",
+        "location": "Remote",
+        "salary_min": null,
+        "salary_max": null,
+        "salary_currency": null,
+        "requirements": [
+          "Linux",
+          "Python"
+        ]
+      }
+    },
+    {
+      "task": "job_scoring",
+      "prompt_origin": "consumer",
+      "prompt_data": {
+        "job_id": "fixture-job",
+        "deterministic_score": 83,
+        "title": "Systems Engineer",
+        "company": "Example Co",
+        "description": "Remote engineer role needing Linux and Python.",
+        "reviewed": false
+      },
+      "schema": "ai_job_evaluation",
+      "result": {
+        "category": "REVIEW",
+        "rationale": "Synthetic role requires Linux and Python.",
+        "job_evidence": []
+      }
+    },
+    {
+      "task": "requirement_extraction",
+      "prompt_origin": "caller_fixture",
+      "prompt_data": {
+        "prompt": "Classify the stated requirement in this fictional job ad: Linux administration is required. Return structured fields without inferring personal qualifications."
+      },
+      "schema": "requirement_classification",
+      "result": {
+        "requirement": "Linux administration",
+        "classification": "REQUIRED",
+        "confidence": 0.9
+      }
+    },
+    {
+      "task": "resume_tailoring",
+      "prompt_origin": "registry",
+      "prompt_target": "resume",
+      "prompt_data": {
+        "job_title": "Systems Engineer",
+        "company_name": "Example Co",
+        "career_facts": "Verified synthetic fact: administered Linux servers."
+      },
+      "schema": "text",
+      "result": "Administered Linux servers (verified synthetic career fact)."
+    },
+    {
+      "task": "cover_letters",
+      "prompt_origin": "registry",
+      "prompt_target": "cover_letter",
+      "prompt_data": {
+        "job_title": "Systems Engineer",
+        "company_name": "Example Co",
+        "candidate_profile": "Verified synthetic Linux administration experience.",
+        "qualifications": "Linux systems support."
+      },
+      "schema": "text",
+      "result": "Dear Hiring Team, my verified Linux administration experience aligns with this fictional role."
+    },
+    {
+      "task": "free_form_answers",
+      "prompt_origin": "registry",
+      "prompt_target": "screening_answers",
+      "prompt_data": {
+        "question_text": "Have you administered Linux systems?",
+        "job_title": "Systems Engineer",
+        "company_name": "Example Co",
+        "approved_answers": "Approved synthetic answer: yes, managed Linux servers."
+      },
+      "schema": "text",
+      "result": "Yes, I have administered Linux systems, as recorded in my approved synthetic answer."
+    },
+    {
+      "task": "company_summarization",
+      "prompt_origin": "caller_fixture",
+      "prompt_data": {
+        "prompt": "Summarize only these fictional, explicitly provided company facts: Example Co is a technology employer with a public careers page."
+      },
+      "schema": "company_summary",
+      "result": {
+        "company_name": "Example Co",
+        "industry": "Technology",
+        "summary": "Fictional technology employer used for offline testing.",
+        "key_signals": [
+          "Public careers page"
+        ]
+      }
+    }
+  ],
+  "combinations": [
+    {
+      "provider": "ollama",
+      "task": "job_parsing"
+    },
+    {
+      "provider": "ollama",
+      "task": "job_scoring"
+    },
+    {
+      "provider": "ollama",
+      "task": "requirement_extraction"
+    },
+    {
+      "provider": "ollama",
+      "task": "resume_tailoring"
+    },
+    {
+      "provider": "ollama",
+      "task": "cover_letters"
+    },
+    {
+      "provider": "ollama",
+      "task": "free_form_answers"
+    },
+    {
+      "provider": "ollama",
+      "task": "company_summarization"
+    },
+    {
+      "provider": "openai",
+      "task": "job_parsing"
+    },
+    {
+      "provider": "openai",
+      "task": "job_scoring"
+    },
+    {
+      "provider": "openai",
+      "task": "requirement_extraction"
+    },
+    {
+      "provider": "openai",
+      "task": "resume_tailoring"
+    },
+    {
+      "provider": "openai",
+      "task": "cover_letters"
+    },
+    {
+      "provider": "openai",
+      "task": "free_form_answers"
+    },
+    {
+      "provider": "openai",
+      "task": "company_summarization"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "job_parsing"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "job_scoring"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "requirement_extraction"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "resume_tailoring"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "cover_letters"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "free_form_answers"
+    },
+    {
+      "provider": "openai-compatible",
+      "task": "company_summarization"
+    },
+    {
+      "provider": "local",
+      "task": "job_parsing"
+    },
+    {
+      "provider": "local",
+      "task": "job_scoring"
+    },
+    {
+      "provider": "local",
+      "task": "requirement_extraction"
+    },
+    {
+      "provider": "local",
+      "task": "resume_tailoring"
+    },
+    {
+      "provider": "local",
+      "task": "cover_letters"
+    },
+    {
+      "provider": "local",
+      "task": "free_form_answers"
+    },
+    {
+      "provider": "local",
+      "task": "company_summarization"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "job_parsing"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "job_scoring"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "requirement_extraction"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "resume_tailoring"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "cover_letters"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "free_form_answers"
+    },
+    {
+      "provider": "azure-openai",
+      "task": "company_summarization"
+    },
+    {
+      "provider": "azure",
+      "task": "job_parsing"
+    },
+    {
+      "provider": "azure",
+      "task": "job_scoring"
+    },
+    {
+      "provider": "azure",
+      "task": "requirement_extraction"
+    },
+    {
+      "provider": "azure",
+      "task": "resume_tailoring"
+    },
+    {
+      "provider": "azure",
+      "task": "cover_letters"
+    },
+    {
+      "provider": "azure",
+      "task": "free_form_answers"
+    },
+    {
+      "provider": "azure",
+      "task": "company_summarization"
+    }
+  ]
+}
