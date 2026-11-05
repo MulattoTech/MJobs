@@ -85,3 +85,43 @@ Rollback is a protected revert of the source commit. No migration or stored-data
 rewrite is needed. Rolling back restores the reproduced control-classification
 defect, so preserve the regression evidence and assess the failed operation
 rather than weakening its checks.
+
+## Independent review: combined cleanup/control failure
+
+Independent review at `ba813b6dd6de98bc92663fa9f6e2ba679fdcf613` reproduced
+a second defect: an OCR PNG cleanup `PermissionError` can replace the local
+cancellation exception and enter the ordinary temporary-storage fallback.
+The earlier restoration handler only ran when the local cancellation exception
+survived. Review: https://github.com/MulattoTech/MJobs/pull/942#issuecomment-6646128045
+
+Before fixing this follow-up, expanded unit and durable integration regressions
+produced **16 FAIL, 21 PASS**, zero skips, 8.429 s. Twelve unit failures covered
+PDF/DOCX/OCR cleanup combined with cancellation, timeout, unavailable control or
+a one-shot boolean stop. Four durable cases again persisted an incorrect
+`COMPLETED` result. Receipt: `outputs/web-2735b1ba-004/combined-fault-before.xml`.
+
+Corrected source: `619d642b6a798cdde95d8f1c482cf65c3cd9863f`.
+The guard now latches both boolean cancellation and callback failure. A public
+boundary `finally` restores the observed stop after the owned cleanup path,
+even when cleanup error handling returns normally or raises another exception.
+The original callback exception identity is retained. No further control read
+is required to rediscover a stop that has already been observed.
+
+Re-executed the same four focused modules, with
+`--junitxml=outputs/web-2735b1ba-004/combined-fault-fixed.xml`:
+**82 PASS, 7 subtests PASS**, zero failures/skips, 11.99 s.
+All eight durable cases verify terminal classification, no result persistence,
+unchanged source/profile, immutable failed-intent replay and explicit recovery.
+Unit cases still use actual owned sleeping children; OCR cleanup injects failure
+in the owned PNG unlink path, and native parser cleanup injects failure after
+the actual child cleanup completes. These simulate a cleanup fault; they do not
+claim to reproduce every filesystem failure or prove physical deletion under
+an OS permission refusal. Source provenance and diff checks pass.
+
+The initial secret scan failed on two independently verified test-file Git blob
+identifiers from PR937's history (run 41940158084); no source finding from this
+PR was reported. The initial Compose run 41940158114 also failed at
+`cli/ui_e2e.py:673`, waiting five seconds for the Application details heading
+after Prepare documents. These remain genuine failed gates; no blind rerun,
+timeout loosening or acceptance promotion was performed. Corrected-head review
+and fresh protected CI are still required.
