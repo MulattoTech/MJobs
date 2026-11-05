@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "REMOTIVE-JOB-ID-VALIDATION",
+  "objective": "MJ-REQ-017.S08 / issue 309: reject malformed numeric IDs per posting while preserving valid durable jobs",
+  "owner": "web-20261105T012939Z-3b304a06cfc3",
+  "branch": "web/web-20261105T012939Z-3b304a06cfc3/MJ-REQ-017.S08",
+  "head_sha": "ab494ec700b254666a1bfa2773fd5bad9b5d5369",
+  "routing_state": "RESUME",
+  "next_action": "Publish scoped source and evidence; obtain protected CI and independent review; integrate only with exclusive integration ownership",
+  "created_at": "2026-11-05T01:38:27.482227+00:00",
+  "requirements": ["MJ-REQ-017.S08", "MJ-REQ-017"],
+  "tests": [
+    {
+      "command": "68 Remotive normalization, collection, API, boundary and cancellation tests; catalogue/progress/dashboard/diff/provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "Protected CI, independent review, production deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
