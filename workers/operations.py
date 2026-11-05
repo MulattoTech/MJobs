@@ -636,7 +636,10 @@ def request_cancel(store, operation_id):
                 local_cancellation = _stage_operation_cancellation(operation_id)
             store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
             result = {**row, **values}
-    except Exception:
+    except BaseException:
+        # Process-control exits must also release the local wait. Treat the
+        # outcome as uncommitted here; durable state remains authoritative
+        # and the original exception still propagates.
         if local_cancellation is not None:
             local_cancellation.resolve(False)
         raise

@@ -43,7 +43,8 @@ class OperationCancellationCommitTests(unittest.TestCase):
             ))
         return identifier
 
-    def exercise_pending_commit(self, kind, watcher_name, *, rollback=False, prior_rollback=False):
+    def exercise_pending_commit(self, kind, watcher_name, *, rollback=False,
+                                prior_rollback=False, rollback_error=RuntimeError):
         identifier = self.seed(kind)
         local = operations.register_operation_cancellation(identifier)
         poll_entered = threading.Event()
@@ -56,6 +57,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
         original_stage = local.stage
         original_wait = local.wait_for_commit
         original_audit = self.store._audit
+        rollback_failure = rollback_error("SYNTHETIC_AUDIT_FAILURE")
         if prior_rollback:
             with patch.object(self.store, "_audit", side_effect=RuntimeError("SYNTHETIC_AUDIT_FAILURE")):
                 with self.assertRaisesRegex(RuntimeError, "^SYNTHETIC_AUDIT_FAILURE$"):
@@ -101,7 +103,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 if not poll_entered.wait(2):
                     raise AssertionError(f"Owned watcher never entered its control check; errors={watcher_errors}")
                 if rollback:
-                    raise RuntimeError("SYNTHETIC_AUDIT_FAILURE")
+                    raise rollback_failure
             return original_audit(connection, entity_id, action, payload)
 
         event.listen(self.store.engine, "after_cursor_execute", observe_read)
@@ -111,10 +113,17 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     patch.object(local, "stage", side_effect=observe_stage), \
                     patch.object(self.store, "_audit", side_effect=gated_audit):
                 if rollback:
-                    with self.assertRaisesRegex(RuntimeError, "^SYNTHETIC_AUDIT_FAILURE$"):
+                    with self.assertRaisesRegex(
+                            rollback_error, "^SYNTHETIC_AUDIT_FAILURE$") as raised:
                         operations.request_cancel(self.store, identifier)
+                    self.assertIs(raised.exception, rollback_failure)
                 else:
                     operations.request_cancel(self.store, identifier)
+                self.assertTrue(
+                    active_attempts[-1].resolved.is_set(),
+                    "Local cancellation outcome was not resolved after transaction exit",
+                )
+                self.assertEqual(active_attempts[-1].committed, not rollback)
                 elapsed = time.monotonic() - started
                 writer_finished.set()
                 watcher.join(2)
@@ -157,6 +166,16 @@ class OperationCancellationCommitTests(unittest.TestCase):
         for watcher in SOURCE_WATCHERS:
             with self.subTest(watcher=watcher):
                 self.exercise_pending_commit("DISCOVER", watcher, rollback=True)
+
+    def test_watchers_observe_process_control_rollback(self):
+        for failure in (KeyboardInterrupt, SystemExit):
+            for kind, watcher in (
+                    ("DISCOVER", "mjobs-remoteok-cancellation"),
+                    ("AI_EVALUATE_QUEUED", "mjobs-request-deadline")):
+                with self.subTest(failure=failure.__name__, kind=kind):
+                    self.exercise_pending_commit(
+                        kind, watcher, rollback=True, rollback_error=failure,
+                    )
 
     def test_existing_ai_watcher_preserves_commit_and_rollback_behavior(self):
         for rollback in (False, True):
