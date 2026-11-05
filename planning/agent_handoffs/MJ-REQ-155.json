@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-155",
+  "objective": "Rollback fixture-discovery job batches on observed cancellation or deadline",
+  "owner": "web-20261105T000420Z-b0020f09517e4be38ff4e7527be94d4a",
+  "branch": "web/web-20261105T000420Z-b0020f09517e4be38ff4e7527be94d4a/MJ-REQ-155",
+  "head_sha": "ad683151ae86d955f2c5cf87610191f0ea4c55b0",
+  "routing_state": "RESUME",
+  "next_action": "Publish scoped PR and verify required checks; serialize protected integration; parent remains PARTIAL",
+  "created_at": "2026-11-05T00:15:33.886117+00:00",
+  "requirements": [
+    "MJ-REQ-155"
+  ],
+  "tests": [
+    {
+      "command": "Focused tests 12 PASS; healthy discovery/workflow tests 10 PASS plus 8 subtests; catalogue/progress/dashboard/diff/provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent review; hosted exact-candidate CI; PostgreSQL cancellation concurrency; browser; production deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
