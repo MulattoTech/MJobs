@@ -61,9 +61,10 @@ are insufficient when completed work, remaining work or limitations differ.
 ## Cooperating readers and writers
 
 Record, explicit sync, validation and resume share a local operating-system
-lock for the whole read, validation and publication sequence. A competing command waits for at
-most three seconds to acquire it, then raises a fixed busy error before reading
-or changing the canonical journal. Once the active publisher finishes, retry the refused
+lock for the whole read, validation and publication sequence. A competing
+command waits for at most three seconds to acquire it, then raises a fixed
+busy error before returning a checkpoint or changing the journal.
+Once the active publisher finishes, retry the refused
 command after inspecting the latest checkpoint. A command interrupted after
 canonical publication still needs the explicit sync procedure above.
 
