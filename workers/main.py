@@ -40,10 +40,14 @@ def main():
     operation_mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     try:
-        store.bind_workspace_mode(operation_mode)
-    except Exception:
+        _run_with_store(store, operation_mode, log_level)
+    finally:
         store.engine.dispose()
-        raise
+
+
+def _run_with_store(store, operation_mode, log_level):
+    """Run startup and dispatch while the caller owns Store cleanup."""
+    store.bind_workspace_mode(operation_mode)
     redis_url = os.environ["MJOBS_REDIS_URL"]
     queue = os.environ.get("MJOBS_WORKER_QUEUE", "mjobs-application")
     if queue not in QUEUES.values():
@@ -93,8 +97,6 @@ def main():
             except RedisError:
                 # A disconnected cleanup must not replace the worker's outcome.
                 logging.warning("Worker Redis connection cleanup failed")
-            finally:
-                store.engine.dispose()
 
 
 if __name__ == "__main__":
