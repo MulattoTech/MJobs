@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261105T000026Z-d18a5de9925b",
+  "requirement": "MJ-REQ-008",
+  "issue": 9,
+  "baseline_main": "42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
+  "tested_source_commit": "ee6a126ba1cf4cc7aafea5753852808d4891e5d7",
+  "claim_ref": "refs/heads/webpro-claims/MJ-REQ-008",
+  "claim_owner": "63e8729a490a51d118d790b8f26a473ecf1efc7e",
+  "scope": "POSIX immediate-parent directory synchronization after atomic journal replacement, with canonical directory repair before explicit derived sync.",
+  "acceptance": "PARTIAL; no canonical result or denominator changed",
+  "source_hashes": {
+    "tools/verification/progress.py": "e72d969ab466a47f30b0531e1d89166f181c8cc28880028bd04b9a9124f71e76",
+    "tests/unit/test_progress_journal_durability.py": "d69a3650c0184bd7ce648b7d7d084cecb03742ca4402682931293ab3cfcca153",
+    "docs/PROGRESS_RECOVERY.md": "c15e722f2c1bddd0f9a2b25de32d0b83b65ae808839b54479683f1c4d6206f67"
+  },
+  "reproduction": {
+    "command": "python -m unittest tests.unit.test_progress_journal_durability -v",
+    "platform": "Linux, Python 3.12.14",
+    "baseline_result": "6 FAIL, 1 PASS, 1 platform SKIP (8 tests); original source with new regression file",
+    "log": "baseline-linux.log",
+    "corrected_result": "7 PASS, 1 platform SKIP (8 tests)",
+    "corrected_log": "focused-linux.log"
+  },
+  "regression": {
+    "linux": {
+      "command": "python -m unittest tests.unit.test_progress_journal tests.unit.test_progress_journal_recovery tests.unit.test_progress_journal_concurrency tests.unit.test_progress_journal_durability -v",
+      "result": "36 PASS, 1 platform SKIP (37 tests); 3.992s",
+      "log": "regression-linux.log",
+      "environment": "Isolated Linux scratch mirror of exact progress.py and three existing test modules plus new tests; standard-library unittest, no installed pytest. Not a full repository build."
+    },
+    "windows": {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_progress_journal.py tests/unit/test_progress_journal_recovery.py tests/unit/test_progress_journal_concurrency.py tests/unit/test_progress_journal_durability.py",
+      "result": "30 PASS, 7 platform SKIP, 25 subtests PASS; 4.93s",
+      "checks": [
+        {
+          "name": "journal-windows",
+          "exit_code": 0,
+          "duration_seconds": 5.25,
+          "tail": "...........................s..s.sssss           [100%]\n30 passed, 7 skipped, 25 subtests passed in 4.93s\n"
+        },
+        {
+          "name": "catalogue",
+          "exit_code": 0,
+          "duration_seconds": 0.063,
+          "tail": "Catalogue validation: PASS\n"
+        },
+        {
+          "name": "progress-validate",
+          "exit_code": 0,
+          "duration_seconds": 0.078,
+          "tail": "Progress journal validation: PASS\n"
+        },
+        {
+          "name": "dashboard",
+          "exit_code": 0,
+          "duration_seconds": 0.062,
+          "tail": "Progress dashboard: CURRENT\n"
+        },
+        {
+          "name": "diff-check",
+          "exit_code": 0,
+          "duration_seconds": 0.047,
+          "tail": ""
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "final": "PASS: provenance complete for 2 source files",
+    "initial_correction": "The first unpublished source commit failed the UTC-Date trailer check because it used a date without a UTC time. Only that owned, unpublished commit was amended; the final full timestamp passed."
+  },
+  "reference": "https://www.man7.org/linux/man-pages/man2/fsync.2.html",
+  "limitations": [
+    "No physical host restart or power-loss test.",
+    "No Windows directory durability guarantee; native file-flush/replacement compatibility verified.",
+    "Only immediate parent directories are synchronized; newly created ancestor-directory durability remains unverified.",
+    "Arbitrary filesystem I/O and flush duration remain synchronous and unbounded.",
+    "No live product journal, production data, Fleet cutoff, Codex/Orchestrator process, or external application changed.",
+    "No independent review or protected merge-candidate CI completed at this source checkpoint.",
+    "No merge, deployment or whole-requirement acceptance claimed."
+  ],
+  "log_sanitization": "Linux scratch workspace prefix normalized to <isolated-linux-worktree>; test names, failures, timing and outcomes preserved. Fixtures are synthetic."
+}

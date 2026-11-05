@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261105T012843Z-8db314b41f56",
+  "objective": "Integrate reviewed durable-stop propagation for resume extraction and ATS form probes",
+  "requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-224"
+  ],
+  "issues": [
+    5,
+    225
+  ],
+  "integration_pr": 942,
+  "incorporated_pr": 940,
+  "baseline_main": "2e1c0072c2ea7241b832dc8842ce1cdc0d781cc1",
+  "input_heads": {
+    "extraction": "4f6f281a28a27f2d1058ebd1a511b4fcf50555b6",
+    "adapters": "c7d687ae9b917b3f2d3de6411a96f9d545981603"
+  },
+  "tested_commit": "48e35bf602b5e159c60a83b4947c4ae8335e71a7",
+  "tested_tree": "2e24c5143a08397b5647400ac1372a5a5afa29e9",
+  "preservation": "Normal two-parent merge; both input histories and all nine changed production/test blobs remain unchanged. Source diff comparisons exited0.",
+  "validation": {
+    "command": "python -m pytest -q -p no:cacheprovider --basetemp <owned-temp> --junitxml <owned-receipt> <19 modules below> --tb=short",
+    "modules": [
+      "tests/unit/test_adapter_operation_control.py",
+      "tests/unit/test_application_adapter_contract.py",
+      "tests/unit/test_application_form_analysis.py",
+      "tests/unit/test_ashby_application_adapter.py",
+      "tests/unit/test_bamboohr_application_adapter.py",
+      "tests/unit/test_breezy_application_adapter.py",
+      "tests/unit/test_generic_html_application_adapter.py",
+      "tests/unit/test_greenhouse_application_adapter.py",
+      "tests/unit/test_lever_application_adapter.py",
+      "tests/unit/test_recruitee_application_adapter.py",
+      "tests/unit/test_smartrecruiters_application_adapter.py",
+      "tests/unit/test_teamtailor_application_adapter.py",
+      "tests/unit/test_workable_application_adapter.py",
+      "tests/unit/test_workday_application_adapter.py",
+      "tests/unit/test_resume_extraction_control_failures.py",
+      "tests/unit/test_resume_extraction.py",
+      "tests/unit/test_resume_ocr.py",
+      "tests/integration/test_resume_extraction_control_failures.py",
+      "tests/integration/test_source_adapter_connect_cancellation.py::SourceAdapterConnectCancellationTests::test_finite_worker_deadline_during_real_tcp_connect"
+    ],
+    "result": "PASS",
+    "tests_passed": 338,
+    "subtests_passed": 300,
+    "failed": 0,
+    "skipped": 0,
+    "pytest_seconds": 27.17,
+    "exit_code": 0,
+    "catalogue": "PASS",
+    "progress_journal": "PASS",
+    "dashboard": "CURRENT",
+    "provenance": "PASS",
+    "diff": "PASS",
+    "environment": "Native Windows; private interpreter using unchanged installed project pins; synthetic fixtures; isolated temp, databases and output; no real provider or model call"
+  },
+  "prior_results": [
+    {
+      "head": "ecab31b9ed1be1c6a139b4666269e9090e85baba",
+      "tests_passed": 83,
+      "subtests_passed": 10,
+      "pytest_seconds": 27.46
+    },
+    {
+      "head": "4f6f281a28a27f2d1058ebd1a511b4fcf50555b6",
+      "tests_passed": 83,
+      "subtests_passed": 10,
+      "pytest_seconds": 23.73
+    },
+    {
+      "candidate": "79aec8e383e07925202d29bf5e69967af9144d00",
+      "tests_passed": 38,
+      "subtests_passed": 3,
+      "pytest_seconds": 57.48
+    }
+  ],
+  "accounting": "Overlapping executions are separate receipts; do not sum these as distinct test coverage.",
+  "retained_failure": {
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/41943066559/job/126968742949",
+    "head": "ecab31b9ed1be1c6a139b4666269e9090e85baba",
+    "result": "FAIL",
+    "summary": "Greenhouse finite-worker TCP connect test did not reach one owned connect within its1s engagement assertion. Collector entry0.7ms after deadline start; no transport/SSL/outcome/error recorded at assertion.",
+    "tests_passed": 850,
+    "subtests_passed": 451,
+    "failed": 1,
+    "skipped": 2,
+    "cause": "UNKNOWN; not reproduced by this run's focused native-Windows executions. No deadline/assertion weakened and no blind CI rerun requested."
+  },
+  "independent_review": [
+    "https://github.com/MulattoTech/MJobs/pull/942#issuecomment-6646251330",
+    "https://github.com/MulattoTech/MJobs/pull/942#issuecomment-6647181083",
+    "https://github.com/MulattoTech/MJobs/pull/940#issuecomment-6646020493"
+  ],
+  "ownership": {
+    "extraction_claim": "refs/heads/webpro-claims/MJ-REQ-004",
+    "extraction_owner": "70e4c512c6e86ea99855d43b964a7bde28a9742f",
+    "adapter_claim": "refs/heads/webpro-claims/PR-940-INTEGRATION",
+    "adapter_owner": "9d0c0736ccfc071c71f3faf7180dd53ab23491c2",
+    "integration_owner": "b7392de9e0ee1e4017df241b30086acd9026c72c",
+    "acquisition": "HTTP201 and exact readback; revalidated before edits/publication",
+    "release": "Final exact-owner release receipts are recorded on PR942; this file is historical evidence, not a lease."
+  },
+  "release_snapshot": {
+    "observed_at": "2026-11-05T01:42:20.7234996Z",
+    "running_commit": "cf882ef513b23429a3433ef690471bf7dff1fe21",
+    "readiness": "ready; PostgreSQL, schema, queue, scheduler and5 worker queues healthy;9 application containers healthy",
+    "public_boundary": "Unauthenticated /ready returns302 to Cloudflare Access",
+    "updater": "Installed guarded updater is byte-identical to current repository source; read-only prerequisite check",
+    "authenticated_browser": "BLOCKED: originating browser context unavailable; browser slot released with HTTP204 and absence readback",
+    "deployment_attempted": false
+  },
+  "limitations": [
+    "Fresh all-five protected gates and actual combined candidate verification remain mandatory.",
+    "Independent reviews are AI technical reviews, not human approvals.",
+    "No real ATS application, provider call, OCR-accuracy study, migration or production data mutation.",
+    "No new full requirement acceptance; MJ-REQ-004 and MJ-REQ-224 remain PARTIAL; original and reference denominators unchanged.",
+    "Canonical shared SESSION_HANDOFF is currently touched by separately owned PR935; this scoped evidence and PR receipts avoid concurrent shared-file edits."
+  ],
+  "next_action": "Publish existing PR942 combined candidate, verify actual merge revision and all required gates, use fresh integration ownership for protected merge, then separately verify guarded current-main deployment."
+}
