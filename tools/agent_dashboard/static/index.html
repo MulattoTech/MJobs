@@ -8,14 +8,17 @@
   <link rel="stylesheet" href="/static/progress_history.css?v=1">
   <link rel="stylesheet" href="/static/delivery_ledger.css?v=1">
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/fleet-theme.css?v=1">
 </head>
 <body>
+<a class="fleet-skip" href="#releaseTracker">Skip to release acceptance</a>
 <header>
   <div>
     <h1>MJobs Mission Control</h1>
     <p>Verified local agent processes · worktree isolated · loopback only</p>
   </div>
   <div class="header-actions">
+    <a class="fleet-home" id="fleetOverview" href="https://fleet.m-techlabs.com/" aria-label="Return to Fleet Overview with all projects">← Fleet Overview · All projects</a>
     <span id="gpuState" class="pill">GPU …</span>
     <span id="mainState" class="pill">loading…</span>
     <a href="/fleet/">Fleet Control &amp; provider usage</a>
@@ -350,7 +353,7 @@
 <script src="/static/fleet-runtime.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/progress_history_ui.js?v=1"></script>
-<script src="/static/mission.js?v=7"></script>
+<script src="/static/mission.js?v=8"></script>
 <script src="/static/history.js?v=1"></script>
 <script src="/static/delivery_ledger.js?v=1"></script>
 </body>

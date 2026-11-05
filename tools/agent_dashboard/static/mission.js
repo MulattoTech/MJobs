@@ -2,6 +2,11 @@
 (() => {
   "use strict";
   const $ = (s, root = document) => root.querySelector(s);
+  // Direct native dashboard vs authenticated public route: a single visible
+  // return link always points to the corresponding overall Fleet Overview.
+  if (["localhost","127.0.0.1"].includes(location.hostname)) {
+    $("#fleetOverview").href = "http://127.0.0.1:4320/";
+  }
   const safe = v => String(v ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
   }[c]));
