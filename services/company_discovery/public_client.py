@@ -13,6 +13,7 @@ import ssl
 import threading
 import time
 import urllib.robotparser
+from contextlib import suppress
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
@@ -370,16 +371,23 @@ class PublicCompanyClient:
                 if deadline_timer is not None:
                     deadline_timer.cancel()
                     deadline_timer.join()
-                if self._policy is not None and response is not None:
-                    response.close()
-                for item in (tls, sock):
-                    if item is not None:
-                        with self._resources_lock:
-                            self._sockets.discard(item)
-                        try:
-                            item.close()
-                        except OSError:
-                            pass
+                try:
+                    if self._policy is not None and response is not None:
+                        # Preserve the request outcome if the response-file
+                        # close fails; owned sockets are still closed below.
+                        with suppress(OSError):
+                            response.close()
+                finally:
+                    # Even an unexpected response cleanup error must reach every
+                    # socket owned by this request.
+                    for item in (tls, sock):
+                        if item is not None:
+                            with self._resources_lock:
+                                self._sockets.discard(item)
+                            try:
+                                item.close()
+                            except OSError:
+                                pass
         raise last_error or PublicFetchError("NETWORK_FAILED")
 
     def _load_robots(self, deadline):

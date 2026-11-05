@@ -12,6 +12,9 @@ from urllib.parse import urlsplit
 
 from services.applications.adapters.lever import _known_contact_field
 from services.applications.form_analysis import analyze_form_page
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 _WORKABLE_HOST = "apply.workable.com"
@@ -143,6 +146,9 @@ class WorkableApplicationAdapter:
             check()
         try:
             challenge_count = page.locator(_CHALLENGE_SELECTOR).count()
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()
@@ -157,6 +163,9 @@ class WorkableApplicationAdapter:
             control_states = page.locator(
                 "form input, form select, form textarea"
             ).evaluate_all(_CONTROL_INTERACTIVITY_SCRIPT)
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()
