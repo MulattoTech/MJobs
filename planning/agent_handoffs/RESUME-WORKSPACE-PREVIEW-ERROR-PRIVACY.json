@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY",
+  "objective": "Bound saved resume preview error codes and preserve private diagnostics",
+  "owner": "web-20261105T024508Z-59bece5f637e",
+  "branch": "web/web-20261105T024508Z-59bece5f637e/resume-preview-errors",
+  "head_sha": "45572d88dbb90e23d7fd2fa7c1c1737bb4dce837",
+  "routing_state": "RESUME",
+  "next_action": "Publish scoped PR; obtain independent review and fresh protected current-main checks; integrate under exclusive lock",
+  "created_at": "2026-11-05T03:12:51.038062+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Exact source45572d88: 22 tests +70 subtests, zero failures/errors/skips with repository-pinned affected packages",
+      "result": "PASS"
+    },
+    {
+      "command": "New-test Ruff clean; production Ruff matches three unchanged baseline findings; catalogue, progress, dashboard, provenance and whitespace PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Protected hosted candidate CI, independent review, PostgreSQL-specific behavior, authenticated browser, production; MJ-REQ-172 remains PARTIAL",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
