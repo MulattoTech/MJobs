@@ -46,6 +46,12 @@ Record a reviewable checkpoint after meaningful milestones, never on every tool 
 
 The output is planning/agent_handoffs/<task-id>.json in the assigned worktree. It is not automatically committed or approved; sanitize before publishing. Each task owner has a distinct file. Only the integration owner changes shared acceptance matrices and official Project state.
 
+Use the exact canonical requirement ID, including child IDs such as `MJ-REQ-017.S07`
+or `MJ-REQ-063.D01`. Their single dot is preserved in the checkpoint filename, so
+parent and sibling checkpoints stay separate. Other owned task names must start
+with a letter and use at most 71 letters, digits, underscores or hyphens. Arbitrary
+dotted names, path separators and traversal components remain invalid.
+
 Checkpoint fields include objective, task, owner, branch, full HEAD, next action, executed test results vs NOT_RUN, blockers and timestamp. If missing, inspect the affected task and proceed with safe authorized work. If branch/HEAD differs, reconcile live ownership and changed files first; never overwrite another agent's work.
 
 The bootstrap utility is intentionally limited: read-only Git and requirement context by default; optional read-only GitHub PR listing; explicitly requested atomic checkpoint writing. It does not execute checkpoint text, spawn agents, authorize commands, approve reviews, merge PRs, or submit applications.
