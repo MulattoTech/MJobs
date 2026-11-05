@@ -20,7 +20,7 @@ pending close is attempted despite an earlier expected close failure. Explicit
 `_Stream.close()` still reports its error, and unexpected non-`OSError` cleanup
 errors remain visible. The original reviewed `_Stream` source segment, including
 its TLS exception-preservation fix, was programmatically checked byte-for-byte
-unchanged. Deadlines, clocks, address limits, DNS ownership and TLS policy were
+unchanged. Deadlines, clocks, address limits, DNS ownership and production TLS policy were
 not modified.
 
 ## Failure-first and final verification
@@ -66,21 +66,37 @@ the request. Adjacent existing modules exercise actual deadlines, supported
 source adapters, DNS-child cleanup, TLS certificate/hostname validation and
 worker control behavior.
 
-## Retained CodeQL question
+## TLS security trace and explicit fixture minimum
 
 The original-head [CodeQL check](https://github.com/MulattoTech/MJobs/runs/127029908253)
-reports insecure TLSv1/TLSv1.1 originating from `ssl.create_default_context` at
-the unchanged wrap-socket boundary. This continuation does **not** dismiss or
-suppress that finding.
+reported insecure TLSv1/TLSv1.1 originating from `ssl.create_default_context` at
+the unchanged wrap-socket boundary. The initial merge-ref analysis query returned
+no trace, so the question was retained as NEEDS_REVIEW.
 
-A direct, network-free probe of this source's default `SourceTransport` on
-Python 3.12.10 / OpenSSL 3.0.16 observed minimum `TLSv1_2`,
-`check_hostname=True`, and `verify_mode=CERT_REQUIRED`. This is concrete native
-counterevidence, not proof about every caller/context or the hosted analysis.
-The full relevant source-to-sink trace was not available in the PR-merge analysis
-query. **Disposition remains NEEDS_REVIEW.** Fresh CodeQL and all protected checks
-are required on the published current-main candidate. No security gate or rule
-was altered.
+A subsequent query of **`refs/pull/960/head`**, Python analysis **2100406415**,
+retrieved the actual SARIF result for **py/insecure-protocol**, alert131. Its
+related source is `tests/integration/test_source_http_tls_cleanup.py:15`,
+the test-owned default SSL context; its sink is the production
+`_Stream.start_tls` wrap call. The result was inspected directly rather than
+inferring the source from the annotation alone.
+
+A network-free probe of the default `SourceTransport` on Python3.12.10 /
+OpenSSL3.0.16 observed minimum `TLSv1_2`, `check_hostname=True`, and
+`verify_mode=CERT_REQUIRED`. The test context already used the corresponding
+secure default. Commit **`db2d800253fef1c1e069150fe068cb9a944f9c31`** now states
+`context.minimum_version = ssl.TLSVersion.TLSv1_2` explicitly in that owned
+loopback fixture, leaving its existing hostname/certificate assertions and
+cleanup expectations intact. This makes the fixture protocol floor explicit
+to both runtime and static analysis. Production TLS configuration is unchanged.
+
+After this test-only clarification, the two original TLS modules passed
+**8 tests +8 subtests, zero failures/skips;0.83s pytest /1.234s command** at
+2026-11-05T04:14:58.788526Z. Fixture Ruff and strict provenance passed. The changed
+test blob is `3d051a0334ed560f3a37bcf0ac7b64c3ee64c0b7`.
+
+**Fresh hosted CodeQL remains pending.** No alert dismissal, scanner exception,
+rule suppression, weakened assertion or claim that every custom SSL context is
+safe was introduced. The original failed check and source trace remain evidence.
 
 ## Ownership, attribution and limits
 
