@@ -64,3 +64,24 @@ No schema/configuration migration, real employer request, application submission
 personal data, model invocation, quota change or canonical acceptance promotion.
 Rollback is a protected revert of the scoped PR; no data-destructive rollback is
 required. Existing incorrectly collected rows are not retroactively rewritten.
+
+## Required history-scan follow-up
+
+The final product commit passed the focused suite again: 21 tests and 25 subtests,
+exit 0 (111.37 seconds). Its hosted history-wide secret scan failed in
+[run 41939659092](https://github.com/MulattoTech/MJobs/actions/runs/41939659092);
+redacted artifact 13375696574 contains exactly two findings in PR #937's evidence
+note at lines 45/46, not in this PR's product files. This failed run is retained.
+
+I independently retrieved each cited test file at the reported historical commit
+through GitHub. Both reported values equal its exact Git blob object ID. The
+paths are `tests/integration/test_browser_job_extraction_api.py` and
+`tests/integration/test_cheap_prefilter_api_scope_security.py`. These are public
+repository object identities. The separate owner already published the exact
+fingerprint pair, and other reviewing sessions confirmed the same disposition.
+
+Under a fresh short `SECRET-SCAN-FINGERPRINTS` claim (HTTP 201 and matching
+read-back), this branch reuses that identical two-entry `.gitleaksignore` delta.
+No wildcard, rule/path exemption, scan-scope change or required-check change is
+introduced. The Atom parser and regression-test blobs are unchanged. The original
+scan failure is not relabeled; a fresh required scan must pass on the new head.
