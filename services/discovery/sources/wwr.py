@@ -41,6 +41,15 @@ CANCELLATION_POLL_INTERVAL = 0.05
 
 
 
+class _FeedTreeBuilder(ElementTree.TreeBuilder):
+    """Reject DTDs through parser events, including non-UTF-8 XML input."""
+
+    def doctype(self, name, pubid, system):
+        # Public job feeds do not need document types or custom entities.
+        # The parser callback avoids encoding-sensitive byte-string scans.
+        raise ElementTree.ParseError("Document types are not supported")
+
+
 def plain_text(value):
     value = str(value or "")[:500_000]
     for _ in range(2):
@@ -269,8 +278,10 @@ class WeWorkRemotely:
                         if cancellation_errors:
                             raise cancellation_errors[0]
                         try:
-                            root = ElementTree.fromstring(content)
-                        except ElementTree.ParseError as exc:
+                            root = ElementTree.fromstring(
+                                content, parser=ElementTree.XMLParser(target=_FeedTreeBuilder()),
+                            )
+                        except (ElementTree.ParseError, LookupError, ValueError) as exc:
                             with self._status_lock:
                                 self.status = "SOURCE_PAYLOAD_INVALID"
                                 self._request_failed = True
