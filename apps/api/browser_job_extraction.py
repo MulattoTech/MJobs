@@ -178,15 +178,18 @@ def create_browser_job_extraction_router(
         capture = value.capture.model_dump(exclude_none=True)
         try:
             extracted = run_extraction(capture)
-        except (TypeError, ValueError) as error:
+        except (TypeError, ValueError):
+            # Captured text and provider diagnostics are not safe response text.
             raise HTTPException(
-                422, {"code": "BROWSER_JOB_EXTRACTION_CAPTURE_INVALID", "detail": str(error)},
+                422, {"code": "BROWSER_JOB_EXTRACTION_CAPTURE_INVALID",
+                      "detail": "Captured job data could not be processed"},
             ) from None
         try:
             result = _validated_result(extracted, capture.get("raw_capture_ref"))
-        except (TypeError, ValueError) as error:
+        except (TypeError, ValueError):
             raise HTTPException(
-                502, {"code": "BROWSER_JOB_EXTRACTION_RESULT_INVALID", "detail": str(error)},
+                502, {"code": "BROWSER_JOB_EXTRACTION_RESULT_INVALID",
+                      "detail": "Extracted job fields could not be validated"},
             ) from None
         return {"profile_id": profile_id, "job_id": job_id, **result}
 

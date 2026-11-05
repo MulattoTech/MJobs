@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -146,6 +147,32 @@ class CheapPrefilterApiScopeSecurityTests(unittest.TestCase):
                 self.assertEqual(response.json()["detail"]["code"], expected_code)
                 self.assertNotIn("private-description-token", response.text)
                 self.assertEqual(self._snapshot(), before)
+
+    def test_private_prefilter_errors_are_bounded_without_writes_and_can_recover(self):
+        before = self._snapshot()
+        private_text = "synthetic-applicant@example.test " + "private-search-marker " * 100
+        with patch(
+            "services.discovery.cheap_prefilter_pipeline.prefilter_search_profile_postings",
+            side_effect=ValueError(private_text),
+        ) as prefilter:
+            response = self.client.post(
+                self._url("fixture", self.search_profile_id), json=self._request(),
+            )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json(), {"detail": {
+            "code": "CHEAP_PREFILTER_REQUEST_INVALID",
+            "detail": "Saved search preview could not be processed",
+        }})
+        prefilter.assert_called_once()
+        self.assertNotIn("private-search-marker", response.text)
+        self.assertLess(len(response.content), 200)
+        self.assertEqual(self._snapshot(), before)
+
+        recovered = self.client.post(
+            self._url("fixture", self.search_profile_id), json=self._request(),
+        )
+        self.assertEqual(recovered.status_code, 200, recovered.text)
+        self.assertEqual(self._snapshot(), before)
 
 
 if __name__ == "__main__":
