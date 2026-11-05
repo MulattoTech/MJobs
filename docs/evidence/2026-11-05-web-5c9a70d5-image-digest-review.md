@@ -72,6 +72,13 @@ image text; it did not introduce a credential. Its detected commit was
 `6e37a40631703517632a9e3b6298257252ca54d1`. The disposable repository was removed.
 This proves the new exception does not suppress the same text in another commit.
 
+A supplemental scan of all locally fetched refs at source
+`9380be70f8f85b5ea82491a54a0630af692234e9` reached its 120-second subprocess
+limit and was terminated. **Full local-history result: TIMEOUT / NOT VERIFIED.**
+No result from that attempt is counted as PASS, and it is not retried with a
+larger bound. The focused immutable-history executions above completed. A fresh
+hosted all-ref security check is still required on the published candidate.
+
 Reproduction of the two historical scans, from a repository containing the
 immutable finding commit, uses the checksum-verified binary and either the base
 or proposed `.gitleaksignore`:
