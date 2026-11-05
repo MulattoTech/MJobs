@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-960-INTEGRATION",
+  "objective": "Preserve source TCP cancellation, deadline and healthy-connection outcomes through expected discarded-socket close errors; MJ-REQ-004 remains PARTIAL",
+  "owner": "web-20261105T024405Z-5fb5f0e00ed3",
+  "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr960-continuation",
+  "head_sha": "3b411bcf1be8f2a63c513c214abdecc53a707749",
+  "routing_state": "VERIFY",
+  "next_action": "Refresh current main under exact integration ownership, publish existing PR960 without rewriting history, obtain independent TCP-extension review and fresh protected checks; retain CodeQL NEEDS_REVIEW",
+  "created_at": "2026-11-05T04:12:32.508203+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source 3b411bcf1be8f2a63c513c214abdecc53a707749: 55 tests +37 subtests PASS across six native modules, zero failures/skips; 113.92 s pytest",
+      "result": "PASS"
+    },
+    {
+      "command": "Failure-first reproduction retained; new-test Ruff, unchanged production lint baseline, catalogue, journal, dashboard, whitespace and strict provenance verified",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent review of new TCP extension, fresh current-main hosted gates, protected merge and guarded deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Original-head CodeQL insecure-TLS annotation NEEDS_REVIEW; default native context minimum TLSv1_2 with certificate and hostname verification observed, full hosted source-to-sink trace not obtained"
+  ]
+}
