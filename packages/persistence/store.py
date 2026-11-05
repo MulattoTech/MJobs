@@ -1193,10 +1193,15 @@ class Store:
                 comparable = currency_is_usd & period_is_year & endpoints_valid & (low_valid | high_valid) & valid_band
                 disclosed = case((high_valid, high_amount), (low_valid, low_amount), else_=None)
                 sortable_salary = case((comparable, disclosed), else_=None)
+                # Identifier ties must stay deterministic across database locales,
+                # including the unknown-salary tail used by bounded queries.
+                id_tie_breaker = m.jobs.c.id
+                if self.engine.dialect.name == "postgresql":
+                    id_tie_breaker = id_tie_breaker.collate("C")
                 statement = statement.order_by(
                     case((comparable, 0), else_=1),
                     sortable_salary.desc().nulls_last() if sort == "salary_high" else sortable_salary.asc().nulls_last(),
-                    m.jobs.c.id,
+                    id_tie_breaker,
                 )
             if application_capability is not None or search_criteria is not None or row_filter is not None:
                 # The filter can stop before exhausting the SQL iterator. Close
