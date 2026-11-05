@@ -125,3 +125,32 @@ PR was reported. The initial Compose run 41940158114 also failed at
 after Prepare documents. These remain genuine failed gates; no blind rerun,
 timeout loosening or acceptance promotion was performed. Corrected-head review
 and fresh protected CI are still required.
+
+## Corrected review, main refresh and exact scanner policy reuse
+
+Independent follow-up review at published head `0be01b8d...` reproduced the
+original cleanup probe successfully and executed **82 tests + 7 subtests PASS**
+(13.11 s, zero failures/skips). The reviewer found no remaining blocking issue
+in the extraction-control scope:
+https://github.com/MulattoTech/MJobs/pull/942#issuecomment-6646251330
+
+Protected main `fc535d0eb684a03e9886fb36c480db9cacca8f5c` was merged
+non-destructively into this isolated feature branch at `70da46fc...`.
+There were no conflicts and all tested extraction source/test files stayed
+byte-identical. The area contract now explicitly states that OS permission
+refusal can prevent temporary-file deletion; an observed stop is still retained.
+
+After the previous shared-file owner released its claim, this run acquired
+`SECRET-SCAN-FINGERPRINTS` at owner `9f9d565dd91de8e3aa14e4672b90e30fe27d2a15`
+(HTTP 201 plus exact readback, 2026-11-05 00:38:52 UTC). It reused only PR937's
+existing two exact commit/path/rule/line fingerprints. The resulting policy blob
+exactly equals `cccac02db1fc375f6e9aff711f5525b15bd5a650`.
+The independently recomputed flagged values identify the named integration-test
+Git objects; the inherited comment's word "routers" is imprecise, as already
+corrected in the upstream review discussion. No credential or broad rule/path
+exception was introduced.
+
+`python -m pytest -q -p no:cacheprovider tests/unit/test_p0_evidence_secret_fingerprints.py tests/unit/test_secret_scan_sustain_176.py --tb=short`
+returned **6 PASS**, 0.29 s. The historical failed scan is retained above.
+The short shared-file claim is released after this follow-up publishes;
+fresh protected CI on the resulting head remains authoritative.

@@ -4,24 +4,24 @@
   "objective": "Preserve observed extraction stops through parser/OCR cleanup and fallbacks",
   "owner": "web-20261105T000428Z-2735b1ba4d46",
   "branch": "web/web-20261105T000428Z-2735b1ba4d46/MJ-REQ-004",
-  "head_sha": "619d642b6a798cdde95d8f1c482cf65c3cd9863f",
+  "head_sha": "70da46fc05a31c7a6b72d7ef3d88cba8e320bbe1",
   "routing_state": "VERIFY",
-  "next_action": "Request corrected-head review; reuse exact existing scanner fingerprints only under shared-file claim; refresh main and verify fresh protected CI before protected integration",
-  "created_at": "2026-11-05T00:33:52.148632+00:00",
+  "next_action": "Verify fresh exact-head protected CI, investigate any repeated Compose failure, then integrate and deploy only under fresh exclusive locks",
+  "created_at": "2026-11-05T00:40:15.584944+00:00",
   "requirements": [
     "MJ-REQ-004"
   ],
   "tests": [
     {
-      "command": "82 focused tests and 7 subtests PASS; combined-fault baseline 16 FAIL and 21 PASS retained; provenance and diff checks PASS",
+      "command": "Source 619d642b: author 82 tests and 7 subtests PASS; independent same-source 82 tests and 7 subtests PASS and original cleanup probe PASS; exact scanner-policy reuse 6 PASS; main refresh preserves tested source",
       "result": "PASS"
     },
     {
-      "command": "Corrected-head independent review, current merge-candidate CI, protected merge, deployment and signed-in browser checks",
+      "command": "Latest candidate protected CI, protected merge, deployment and signed-in browser checks",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Initial secret-scan and Compose failures preserved in PR942; MJ-REQ-004 remains PARTIAL"
+    "Initial secret-scan and Compose failures retained; corrected candidate must earn fresh gates; MJ-REQ-004 remains PARTIAL"
   ]
 }
