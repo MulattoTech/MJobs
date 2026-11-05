@@ -27,7 +27,27 @@ MAX_PARSER_OUTPUT_BYTES = 2 * 1024 * 1024
 
 
 class ResumeExtractionCancelled(Exception):
-    """The client disconnected while a bounded native parser child was running."""
+    """The extraction was stopped while a bounded parser or OCR child was running."""
+
+
+class _CancellationFence:
+    """Carry failed control checks through parser/OCR's local stop protocol."""
+
+    def __init__(self, event):
+        self.event = event
+        self.failure = None
+
+    def is_set(self):
+        if self.failure is not None:
+            return True
+        try:
+            return self.event.is_set()
+        except Exception as failure:
+            # Optional parser/OCR fallbacks may handle OSError or Exception.
+            # Stop through their explicit cancellation path, then restore the
+            # original failure at the public extraction boundary.
+            self.failure = failure
+            return True
 
 
 def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIMEOUT,
@@ -459,18 +479,23 @@ def extract_resume_text(data: bytes, format: str, cancellation_event=None) -> di
     if not isinstance(data, (bytes, bytearray)) or len(data) > MAX_INPUT_BYTES:
         raise ValueError("Resume exceeds the supported size limit")
     kind = str(format).lower().lstrip(".")
+    control = _CancellationFence(cancellation_event) if cancellation_event is not None else None
     needs_ocr = used_ocr = False
     try:
         if kind == "txt":
             text = bytes(data).decode("utf-8")
             warnings: list[str] = []
         elif kind == "pdf":
-            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data), cancellation_event)
+            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data), control)
         elif kind == "docx":
-            pages, warnings, _ = _run_native_parser(bytes(data), 'docx', cancelled=cancellation_event)
+            pages, warnings, _ = _run_native_parser(bytes(data), 'docx', cancelled=control)
             text = pages[0] if pages else ''
         else:
             return {"status": "UNREADABLE", "warnings": ["Unsupported resume format"], "text": "", "used_ocr": False}
+    except ResumeExtractionCancelled:
+        if control is not None and control.failure is not None:
+            raise control.failure from None
+        raise
     except UnicodeDecodeError:
         return {"status": "UNREADABLE", "warnings": ["Resume text encoding could not be read"], "text": "", "used_ocr": False}
     except ValueError:

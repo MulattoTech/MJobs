@@ -21,7 +21,12 @@ and a small environment allowlist
 that excludes application credentials. Linux parser children also receive address
 space, CPU, file-size and core-dump limits; Windows relies on the parent wall deadline
 and streaming output cap. Request disconnect cancels and reaps both native parser and
-currently running OCR tool children. The profile UI also has an explicit, profile- and
+currently running OCR tool children. A failure raised by a cancellation/deadline
+check uses this same stop-and-cleanup path and is re-raised unchanged at the
+public extraction boundary. Optional parser/OCR error handling cannot convert a
+failed control check into reviewable native text, even if a later check would
+succeed. Ordinary tool failures still preserve native text for review.
+The profile UI also has an explicit, profile- and
 resume-scoped cancellation action for browsers that keep an HTTP connection reusable
 after a fetch abort. OCR retains its own 45-second total deadline and 10-second
 per-tool deadline for non-cancelled requests.
