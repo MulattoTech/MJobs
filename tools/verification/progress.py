@@ -164,8 +164,20 @@ def _journal_lock(state_path: Path):
         # hold a descriptor for this inode. A new inode would split ownership.
 
 
+def _sync_directory(directory: Path) -> None:
+    """Flush POSIX directory entries; file fsync alone does not persist a rename."""
+    if os.name != "posix":
+        return
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(directory, flags)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def write_atomic_json(target_path: Path, data: dict) -> None:
-    """Atomically write JSON with directory creation, fsync, and safe replacement."""
+    """Flush JSON, replace it atomically, then flush its POSIX directory entry."""
     target_path = target_path.resolve()
     target_path.parent.mkdir(parents=True, exist_ok=True)
     handle = tempfile.NamedTemporaryFile(
@@ -180,6 +192,9 @@ def write_atomic_json(target_path: Path, data: dict) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp_path, target_path)
+        # A failure here means replacement may already be visible. Propagate it
+        # instead of acknowledging durability; explicit sync repairs this case.
+        _sync_directory(target_path.parent)
     finally:
         temp_path.unlink(missing_ok=True)
 
@@ -298,6 +313,10 @@ def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None
             raise ValueError("Cannot sync from invalid journal: " + "; ".join(errors))
         latest = entries[-1]
         machine_state = extract_machine_readable_state(latest, state)
+        # A writer may have exited or failed after replacing canonical state but
+        # before flushing its directory. Repair that barrier before the copy.
+        # The canonical file contents were flushed before their replacement.
+        _sync_directory(state_file.parent)
         write_atomic_json(target, machine_state)
     return target
 
