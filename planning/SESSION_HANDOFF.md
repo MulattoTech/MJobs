@@ -1,4 +1,4 @@
-# MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
+# MJobs checkpoint â€” boundaries, scheduling and verified test matrix, 2026-11-02
 
 ## Current authorized-audit integration checkpoint - 2026-11-03T09:27:45.402Z
 
@@ -25,7 +25,7 @@ Reviewable delivery is [PR921](https://github.com/MulattoTech/MJobs/pull/921); i
 - Fleet PR12 was independently deployed at 0258903984e7e3f54124be93a1f6b2988300e65b. This audit made no Hub source edit or deployment. Live catalog refresh is pending MJobs merge; related merges remain distinct from per-feature delivery/acceptance.
 
 
-## TalentHop evidence and Fleet checkpoint — 2026-11-03T05:39:10.516Z
+## TalentHop evidence and Fleet checkpoint â€” 2026-11-03T05:39:10.516Z
 
 Run: webpro-20261103T050255Z-1ba724. Refreshed base main:
 9a21b98b29809a41771d963cd2d5679cf8c31f9a. Scoped publication:
@@ -77,7 +77,7 @@ Next steps: protected PR907 integration, separately locked Hub rollout and live
 readback, direct session/capture authorization, Project-capable access, then claimed
 capability slices. This checkpoint grants zero new original or parity acceptance.
 
-## Latest coordinated sprint checkpoint — 2026-11-03
+## Latest coordinated sprint checkpoint â€” 2026-11-03
 
 Run: webpro-20261103T034313Z-1e2ff1. Base main: 7e86511f409fb9d1e2dc79904b170cc74b88cd3d.
 Integration preparation owner: 07cb9a0af294c16424a24a01719b0cdf6db2d8b6; requery before resuming.
@@ -110,7 +110,7 @@ Owned worktree ends -1e2ff1-cohort; raw receipts/resources are in the run's
 private -1e2ff1-evidence/cohort directory. PostgreSQL is owned loopback/tmpfs.
 Do not run synthetic cases against production.
 
-## Earlier checkpoints — historical observations
+## Earlier checkpoints â€” historical observations
 
 
 ## Exact source and publication state
@@ -123,7 +123,7 @@ Current branch **`work/pro-test-matrix-20261102`** adds a joined last-search del
 
 ## Acceptance and accounting
 
-Sprint baseline main: **`0112ac4d5f62214925f43c2e5b68e01ad69e4322`**. P0 **12 PASS /4 PARTIAL /10 NOT_RUN /26**; P1 **106 PASS /7 PARTIAL /3 NOT_RUN /116**. Newly verified: **015 Domain Model — Core Concepts**, **174 Security — Database**, **291 Test Matrix**. An audit corrected an overstated historical **264 PASS to PARTIAL**, retaining all older evidence.
+Sprint baseline main: **`0112ac4d5f62214925f43c2e5b68e01ad69e4322`**. P0 **12 PASS /4 PARTIAL /10 NOT_RUN /26**; P1 **106 PASS /7 PARTIAL /3 NOT_RUN /116**. Newly verified: **015 Domain Model â€” Core Concepts**, **174 Security â€” Database**, **291 Test Matrix**. An audit corrected an overstated historical **264 PASS to PARTIAL**, retaining all older evidence.
 
 This publication records P0 **13 PASS /4 PARTIAL /9 NOT_RUN /26**, P1 **107 PASS /7 PARTIAL /2 NOT_RUN /116**, original **181 PASS /81 PARTIAL /104 NOT_RUN /366**. Separate reference authority remains **19 PASS /4 PARTIAL /36 NOT_RUN /59**. This is one new P0 and two new P1 minus one older P1 correction. Criteria and denominators are unchanged.
 
@@ -259,7 +259,7 @@ The containing PR's final receipt must record its future actual merge/main gates
 guarded deployed SHA/image/backup/rollback, issue state and exact claim releases.
 No production restore, employer submission, paid provider call or fleet mutation.
 
-## 2026-11-03T05:47:47.657834+00:00 — run23e5 reconciliation follow-up
+## 2026-11-03T05:47:47.657834+00:00 â€” run23e5 reconciliation follow-up
 
 Protected cohort 906 is now main 9a21b98b29809a41771d963cd2d5679cf8c31f9a. The preceding dated exclusions and pending observations are retained as history. This owned preparation merges its complete clock regression and reviewed historical scanner fingerprint into 899, preserves all source-owner acceptance/evidence, and reconciles only 017/269. The redundant clock claim was released; no duplicate delivery credit is claimed.
 
@@ -267,7 +267,7 @@ Protected cohort 906 is now main 9a21b98b29809a41771d963cd2d5679cf8c31f9a. The p
 
 Fresh combined-candidate execution and all five protected gates are still required before 899 merge. The integration owner is 95def0475e3527981e501607656d511b0409438c for this preparation only; it will be released during hosted verification. Source claims 269/a0948cd5 and identity/f11768a3 remain owned, revalidate exact refs before any continuation. The agreed 906 rollout remains with run 89c21f. No production write, provider call, restore or fleet launch was performed.
 
-## 2026-11-03T05:59:31.437084+00:00 — run23e5 exact reconciled candidate verified
+## 2026-11-03T05:59:31.437084+00:00 â€” run23e5 exact reconciled candidate verified
 
 Candidate `11d5e7f48fde0c919faae02534c36edc4d1ff950` / tree `18239bc010e6035b6686788a3e53c6776ca22a27` passed 151 parent cases plus 83 subtests (234 reported), zero failures/errors/skips. All eight recorded commands passed, including owned npm ci/build. [Execution receipt](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-execution.json) and [checkpoint](../docs/evidence/2026-11-03-webpro-23e5-company-identity/reconciled-candidate-checkpoint.json) preserve the earlier preflight refusal and warnings.
 
@@ -318,7 +318,7 @@ require all protected gates, and serialize merge after the ongoing906 rollout.
 Preserve899/902/907 work and907's distinct .gitignore additions on reconciliation.
 
 
-## 2026-11-03T06:27:32.479532+00:00 — bounded integration candidate, run1ba724
+## 2026-11-03T06:27:32.479532+00:00 â€” bounded integration candidate, run1ba724
 
 Frozen inputs: PR899 c5470f4bd4ca7708b517129773247b5d1e18fd36; PR907 60021098ba0d97d0783a197311040d6a0cbae74e; PR908 5367e7019e40d82af036bf7eff14597a2a79da8f. Their owners authorized this bounded cohort in the PR906 conversation.902 remains excluded while corrected. New worktree ends -1ba724-cohort; branch work/webpro-20261103T050255Z-1ba724-cohort.
 
@@ -367,7 +367,7 @@ The original899 shard41588054400/125758487862 failure and same-path reproduction
 
 
 
-## 2026-11-03T07:54:26.390944+00:00 — Web Pro 642e4b: uploaded-original private storage admission
+## 2026-11-03T07:54:26.390944+00:00 â€” Web Pro 642e4b: uploaded-original private storage admission
 
 - Run/claim: webpro-20261103T031738Z-642e4b; MJ-REQ-171 owner040e15c143911cc512be6447678abc761d73b432 remains active.
 - Source f4f31aebc92acdeb9a3cd7da7811f4cd4a7b2954 (treebcf7290b3719a80dff6fac2864fedefe5ed76b91); reviewed evidence commit b3aa5548b9eaa8d4b1a3fefafb5694da5c71c57d; branch work/webpro-20261103T031738Z-642e4b-171. Evidence: docs/evidence/2026-11-03-webpro-642e4b-resume-upload-privacy/source-execution.json.
@@ -420,3 +420,20 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Exact current-main candidate: 50 passed, 55 subtests passed in 74.63s (0:01:14). Source-only corrected batch also passed 50 tests / 55 subtests; original six failing HTTP requests are now 200 and all seven probes pass with metadata unchanged. All earlier failures are retained in docs/evidence/2026-11-05-web-58c1462f-salary-numeric-range.md and adjacent JSON.
 - Complete candidate-specific preflight and normal existing-PR push are required. Fresh hosted checks and independent follow-up review are pending; merge, deployment and full MJ-TH-013 acceptance remain separate. No canonical acceptance changes.
 - Owned fixture and heavy slot released after testing; release integration lock after publication. Objective claim remains active for bounded follow-up. Fresh ownership, main/head and all gates must be revalidated before any next integration.
+
+
+## Web sprint 58c1462f - ATS protected integration continuation
+
+- UTC: 2026-11-05T01:30:29.707740+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1. PR946 is merged at protected main 2e1c0072c2ea7241b832dc8842ce1cdc0d781cc1, with verified tested tree f1335ae4c3e60e21c90de750caa03b5e84d3b837 and all five protected gates passed.
+- PR935 now incorporates this protected base. ATS source/test blobs remain unchanged from independently reviewed head 88f8e502. Combined candidate: 77 tests / 113 subtests PASS in 8.75s; catalogue, progress and dashboard pass. The old failed CI remains linked in the owned continuation note.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-ats-integration.md . Fresh published-head CI is required before PR935 merge. No acceptance matrix status is promoted.
+- Earlier current-main release cf882ef5 was deployed by the existing scheduled updater and independently verified for source/image/readiness and fresh backup integrity; PR946 release and authenticated UI remain separate gates.
+- PR935-INTEGRATION ownership remains active only for this continuation. Source claim MJ-REQ-179 can be released after its merge receipt is recorded. The short integration lock is released after publication. No heavy/browser slot is used. Successors must freshly read main, exact heads and ownership; this checkpoint grants no lease.
+
+
+## Web sprint 58c1462f - ATS refresh after PR937
+
+- UTC: 2026-11-05T02:16:05.291400+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR935 updated from 41e4d43d2c3ab02b735f18281f62af5843b355c5 against protected main 0d3fbc5749fba8c682033a343a7ec9695e4dd743.
+- Previous candidate passed all five protected gates before another worker merged PR937. New candidate requires fresh checks; source/test blobs remain unchanged. 77 passed, 113 subtests passed in 8.89s. Catalogue/progress/dashboard checks pass. Existing SESSION_HANDOFF appends are preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-ats-integration.md . The capture fix PR946 is merged and independently verified deployed at 2e1c0072; authenticated Brave remains unavailable. No acceptance matrix credit is added.
+- PR-935-INTEGRATION claim remains owned for the continuation. Release this transaction's integration lock immediately after publication; successors must freshly validate current main, exact published head, ownership and all protected checks.
