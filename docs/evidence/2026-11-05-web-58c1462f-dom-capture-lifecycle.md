@@ -75,7 +75,7 @@ only; no real applications or external model APIs.
 | Entire affected browser budget module after correction | PASS: 5 tests, 2 subtests, 5.71s |
 | Catalogue, progress validate and dashboard --check | PASS |
 | git diff --check and source commit provenance --strict | PASS |
-| New protected CI, merge and production deployment | NOT RUN at evidence commit |
+| New protected CI, merge and production deployment | NOT RUN at initial evidence checkpoint |
 
 Focused command:
 
@@ -128,9 +128,62 @@ were `34a888bdeea76b489588af562063ae8f3a70f488` and
 `90a250b7cc4de26662465b39d9ec3586bf9d69eb`, respectively. No runtime service was
 stopped and no production data was used.
 
-This change received author self-review. No independent review of this authored
-patch is claimed. Protected checks must pass on the actual PR candidate before
+At the initial source/evidence checkpoint, this change had author self-review
+only. Later independent review is recorded in the follow-up below. Protected checks must pass on the actual PR candidate before
 serial integration. Production remains a separate guarded release step.
 Rollback is a code revert through the same protected process; no data migration
 or restore is required. Existing broader diagnostic transport-envelope and
 synchronous filesystem limitations remain as documented in the source.
+
+
+## Follow-up: current-main candidate and shared scanner dependency
+
+The normal merge refresh `36b810ce011630c4a69772256c74a98229a00b3e`,
+tree `59e342d794840ed1338aa0a15c92f69c4f0f7f38`, includes protected main
+`fc535d0eb684a03e9886fb36c480db9cacca8f5c`. Its focused unit/budget command
+again passed 35 tests and 31 subtests (1.28s). Integration owner
+`89df8da09a6eeb880a6f03046e9e095715107da2` was acquired by HTTP 201/readback
+and released after normal publication. A prior 422 lock-acquisition conflict
+made no merge or push.
+
+[Independent source review](https://github.com/MulattoTech/MJobs/pull/946#issuecomment-6646197083)
+found no scoped blocker at `25589043fc174b9f90ba4c8225dc1626d4645ca9`;
+it did not independently execute tests or constitute human approval.
+A [separate hosted old-code observation](https://github.com/MulattoTech/MJobs/pull/946#issuecomment-6646425330)
+also retained the unawaited capture warning in PR939's successful unit run.
+Neither observation is represented as protected CI on this final candidate.
+
+The refreshed candidate's
+[secret scan FAILED](https://github.com/MulattoTech/MJobs/actions/runs/41942702683/job/126967210786).
+The downloaded redacted report contains exactly two findings from another
+branch's immutable evidence history: commit
+`c5339366e7372f9a5fca24c4c0410edacf8a6b2d`,
+`docs/evidence/2026-11-05-web-30d19610-preview-error-privacy.md`, lines 45/46.
+Protected main's [scan failed on the same pair](https://github.com/MulattoTech/MJobs/actions/runs/41941565134/job/126963403363),
+blocking its deployment candidate. No finding refers to this diagnostic patch.
+
+Both values were independently resolved as public Git source blob IDs:
+
+| Source at c5339366 | Exact Git blob |
+| --- | --- |
+| tests/integration/test_browser_job_extraction_api.py | 1d8d8ae7964194af9cf91cf92b6eda1ef54bda5b |
+| tests/integration/test_cheap_prefilter_api_scope_security.py | b4f13a866a81c63255a4ccecf5f7a3a11ae12e65 |
+
+[Verification and coordination](https://github.com/MulattoTech/MJobs/pull/937#issuecomment-6646319529)
+preceded edits. After PR933 released the shared-file claim, this run atomically
+acquired `SECRET-SCAN-FINGERPRINTS` at
+`fc3228a5663148046091335c677217e2912817a9`. Commit
+`e9234126e1c0802d340abe99fefec5a8e082cee0` adds only the same five-line
+append already reviewed in PR937. The complete resulting file matches Git blob
+`cccac02db1fc375f6e9aff711f5525b15bd5a650` byte for byte. This narrows the
+exceptions to those two exact immutable findings; it changes no scanner
+detector, workflow, rule or path-wide policy.
+
+```text
+python -m pytest -q -p no:cacheprovider tests/unit/test_p0_evidence_secret_fingerprints.py tests/unit/test_secret_scan_sustain_176.py --tb=short
+```
+
+Result: 6 passed (0.26s); exact-blob and diff/provenance checks passed. The
+diagnostic source and existing focused/browser proof are unchanged. Both failed
+scan runs remain failed historical evidence. Fresh protected checks, serialized
+merge and guarded deployment of the final published candidate remain separate.
