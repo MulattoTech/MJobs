@@ -17,6 +17,11 @@ the required outcomes. Exact successor hosted checks, normal protected merge,
 Windows installation and signed-in browser validation remain separate gates.
 This checkpoint does not claim deployment, new requirement PASS or fleet launch.
 The containing PR records the exact source revision and subsequent gate results.
+Shared Fleet PR23 merged at e9982c1d084568643a4ad3e80b250bd52ef660b4
+after hosted controller checks; the application source pointer now names that
+revision. The Windows verification of source d9e064c2 passed 34 tests plus 31
+subtests, including the earlier failing fixture concurrency case. No production
+database, real application, or Fleet dispatch was used by those fixture tests.
 
 ## Current authorized-audit integration checkpoint - 2026-11-03T09:27:45.402Z
 
