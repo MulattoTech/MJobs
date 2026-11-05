@@ -27,7 +27,29 @@ MAX_PARSER_OUTPUT_BYTES = 2 * 1024 * 1024
 
 
 class ResumeExtractionCancelled(Exception):
-    """The client disconnected while a bounded native parser child was running."""
+    """The extraction was stopped while a bounded parser or OCR child was running."""
+
+
+class _CancellationFence:
+    """Carry failed control checks through parser/OCR's local stop protocol."""
+
+    def __init__(self, event):
+        self.event = event
+        self.failure = None
+        self.stopped = False
+
+    def is_set(self):
+        if self.stopped:
+            return True
+        try:
+            self.stopped = bool(self.event.is_set())
+        except Exception as failure:
+            # Optional parser/OCR fallbacks may handle OSError or Exception.
+            # Stop through their explicit cancellation path, then restore the
+            # original failure at the public extraction boundary.
+            self.failure = failure
+            self.stopped = True
+        return self.stopped
 
 
 def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIMEOUT,
@@ -459,15 +481,16 @@ def extract_resume_text(data: bytes, format: str, cancellation_event=None) -> di
     if not isinstance(data, (bytes, bytearray)) or len(data) > MAX_INPUT_BYTES:
         raise ValueError("Resume exceeds the supported size limit")
     kind = str(format).lower().lstrip(".")
+    control = _CancellationFence(cancellation_event) if cancellation_event is not None else None
     needs_ocr = used_ocr = False
     try:
         if kind == "txt":
             text = bytes(data).decode("utf-8")
             warnings: list[str] = []
         elif kind == "pdf":
-            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data), cancellation_event)
+            text, warnings, needs_ocr, used_ocr = _native_pdf(bytes(data), control)
         elif kind == "docx":
-            pages, warnings, _ = _run_native_parser(bytes(data), 'docx', cancelled=cancellation_event)
+            pages, warnings, _ = _run_native_parser(bytes(data), 'docx', cancelled=control)
             text = pages[0] if pages else ''
         else:
             return {"status": "UNREADABLE", "warnings": ["Unsupported resume format"], "text": "", "used_ocr": False}
@@ -475,6 +498,13 @@ def extract_resume_text(data: bytes, format: str, cancellation_event=None) -> di
         return {"status": "UNREADABLE", "warnings": ["Resume text encoding could not be read"], "text": "", "used_ocr": False}
     except ValueError:
         raise
+    finally:
+        # Cleanup errors can replace the local cancellation exception and enter
+        # a parser/OCR fallback. An observed stop still forbids a result.
+        if control is not None and control.stopped:
+            if control.failure is not None:
+                raise control.failure from None
+            raise ResumeExtractionCancelled() from None
     if len(text) > MAX_TEXT_CHARS:
         raise ValueError("Resume text exceeds the supported size limit")
     status = "READY_FOR_REVIEW" if text.strip() else ("NEEDS_OCR" if needs_ocr else "UNREADABLE")
