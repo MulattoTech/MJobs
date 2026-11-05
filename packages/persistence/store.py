@@ -6,6 +6,7 @@ from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 import hashlib
 import json
+import sys
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -38,6 +39,20 @@ def now():
 
 def identity(*parts):
     return hashlib.sha256(json.dumps(parts, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+
+
+def _finite_salary_amount(attributes, key, is_number, dialect):
+    """Guard JSON type and backend float conversion before evaluating the cast."""
+    amount = attributes[key].as_float()
+    if dialect == "postgresql":
+        # A JSON number can exceed DOUBLE PRECISION's range. PostgreSQL 17's
+        # soft input validation must run inside the CASE condition, before CAST.
+        convertible = func.pg_input_is_valid(attributes[key].as_string(), "double precision")
+    else:
+        # SQLite exposes an overflowing JSON number as infinity instead of an
+        # error. Keep such values outside disclosed, comparable salary bands.
+        convertible = amount.between(-sys.float_info.max, sys.float_info.max)
+    return case((is_number & convertible, amount), else_=None)
 
 
 def upsert(connection, table, data, replace=False):
@@ -985,8 +1000,8 @@ class Store:
                     high_is_number = high_type.in_(("integer", "real"))
                 # SQL may reorder boolean predicates. Guard the cast itself so
                 # malformed JSON cannot raise before the type predicate is tested.
-                low = case((low_is_number, attributes["salary_min"].as_float()), else_=None)
-                high = case((high_is_number, attributes["salary_max"].as_float()), else_=None)
+                low = _finite_salary_amount(attributes, "salary_min", low_is_number, self.engine.dialect.name)
+                high = _finite_salary_amount(attributes, "salary_max", high_is_number, self.engine.dialect.name)
                 low_present = low_type.is_not(None) & (low_type != "null")
                 high_present = high_type.is_not(None) & (high_type != "null")
                 low_valid = case((low_is_number & (low >= 0), True), else_=False)
@@ -1162,8 +1177,8 @@ class Store:
                     high_is_number = high_type.in_(("integer", "real"))
                 # Keep casts inside type-checked CASE arms here as in filtering;
                 # boolean comparison order is not a safe JSON conversion guard.
-                low_amount = case((low_is_number, attributes["salary_min"].as_float()), else_=None)
-                high_amount = case((high_is_number, attributes["salary_max"].as_float()), else_=None)
+                low_amount = _finite_salary_amount(attributes, "salary_min", low_is_number, self.engine.dialect.name)
+                high_amount = _finite_salary_amount(attributes, "salary_max", high_is_number, self.engine.dialect.name)
                 # Missing and explicit JSON null are valid one-sided endpoints.
                 # Any supplied non-number or negative endpoint invalidates the
                 # entire record, even if the opposite endpoint looks comparable.

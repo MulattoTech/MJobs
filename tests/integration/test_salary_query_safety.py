@@ -1,5 +1,6 @@
 """Salary queries reject malformed JSON on SQLite and disposable PostgreSQL."""
 import os
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -46,7 +47,11 @@ class _SalaryQueryContract:
             self.add_job(period + "-foreign", {
                 **base, "salary_min": low, "salary_max": high, "salary_currency": "CAD",
             })
-            for index, malformed in enumerate(("not-a-number", "90000", True, [90000], {"amount": 90000})):
+            malformed_values = (
+                "not-a-number", "90000", True, [90000], {"amount": 90000},
+                10 ** 400, -(10 ** 400),
+            )
+            for index, malformed in enumerate(malformed_values):
                 for endpoint in ("salary_min", "salary_max"):
                     self.add_job(f"{period}-malformed-{endpoint}-{index}", {
                         **base, "salary_min": low, "salary_max": high, endpoint: malformed,
@@ -118,6 +123,21 @@ class _SalaryQueryContract:
                 self.assertEqual(set(ordered[:4]), comparable)
                 self.assertEqual(set(ordered), set(self.expected))
                 self.assertEqual(ordered[4:], sorted(set(self.expected) - comparable))
+        self.assert_source_unchanged()
+
+    def test_finite_float_boundary_remains_known_and_sortable(self):
+        for period in ("YEAR", "HOUR"):
+            with self.subTest(period=period):
+                name = period + "-finite-boundary"
+                self.add_job(name, {
+                    "salary_currency": "USD", "salary_period": period,
+                    "salary_min": 0, "salary_max": sys.float_info.max,
+                })
+                self.assertIn("salary-safety-" + name, self.ids_for(
+                    salary_period=period, salary_known_only="true",
+                ))
+        self.assertEqual(self.ids_for(sort="salary_high")[0],
+                         "salary-safety-YEAR-finite-boundary")
         self.assert_source_unchanged()
 
     def test_unfiltered_read_preserves_all_source_metadata(self):
