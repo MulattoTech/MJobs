@@ -1,0 +1,13 @@
+test_failed_canonical_directory_flush_recovers_without_duplicate_milestone (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_failed_canonical_directory_flush_recovers_without_duplicate_milestone) ... ok
+test_sync_cannot_report_success_while_canonical_directory_flush_fails (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_sync_cannot_report_success_while_canonical_directory_flush_fails) ... ok
+test_sync_reflushes_canonical_directory_before_repairing_derived_copy (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_sync_reflushes_canonical_directory_before_repairing_derived_copy) ... ok
+test_failed_content_flush_preserves_previous_checkpoint (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_failed_content_flush_preserves_previous_checkpoint) ... ok
+test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor) ... ok
+test_non_posix_retains_file_flush_and_atomic_replacement (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_non_posix_retains_file_flush_and_atomic_replacement) ... skipped 'Native non-POSIX compatibility control'
+test_success_flushes_contents_then_replacement_directory (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_success_flushes_contents_then_replacement_directory) ... ok
+test_unavailable_directory_flush_is_not_silently_downgraded (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_unavailable_directory_flush_is_not_silently_downgraded) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.416s
+
+OK (skipped=1)
