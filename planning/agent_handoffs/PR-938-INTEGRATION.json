@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-938-INTEGRATION",
+  "objective": "Integrate reviewed browser-session privacy against current protected main",
+  "owner": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+  "branch": "web/web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f/pr938",
+  "head_sha": "7af007f9521302dff18d247fba99cb7136d09d31",
+  "routing_state": "RESUME",
+  "next_action": "Require fresh exact-candidate gates, short integration ownership, and protected merge; deploy separately",
+  "created_at": "2026-11-05T02:57:02.876306+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "80 passed, 8 skipped, 143 subtests passed in 9.05s",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh hosted gates, production, authenticated browser, Windows ACL isolation",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}

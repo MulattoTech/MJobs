@@ -411,3 +411,11 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - PR [#935](https://github.com/MulattoTech/MJobs/pull/935) has independent ATS review and 36 tests / 82 subtests, but its failed old DOM CI must be superseded after #946 reaches protected main. Salary repair review was handed to the sole #934 owner; immutable review commit `4bfea366e6d39705df5da55cd0aaad68489a8e12` is available.
 - No acceptance promotion or deployment in this checkpoint. Read GitHub main, exact PR heads and live ownership before resuming. Current objective claims: MJ-REQ-179 and PR-935-INTEGRATION; shared scanner claim and all heavy/browser slots were released. Integration locks are held only for bounded transactions.
 - Next: all protected gates on the fresh candidate, serialized merge, then guarded current-main deployment and live verification. Selected Brave access was unavailable; authenticated UI verification remains NOT RUN.
+
+
+## 2026-11-05T02:57:02.744318+00:00 - PR938 integration web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f
+
+- Preserved reviewed browser-profile/manual-auth source at d35c5496898d72b5b3741b54110c7fab828494cb; tested current-main merge 7af007f9521302dff18d247fba99cb7136d09d31.
+- Focused Windows candidate: 80 passed, 8 skipped, 143 subtests passed in 9.05s. Catalogue, progress, dashboard, source preservation and provenance PASS.
+- Evidence: docs/evidence/2026-11-05-web-f4dd2b32-pr938-integration.json. MJ-REQ-171 stays PARTIAL; production NOT DEPLOYED by this run.
+- Next: fresh exact-candidate hosted gates and protected integration; current ownership must be rediscovered from refs/heads/webpro-claims/PR-938-INTEGRATION.

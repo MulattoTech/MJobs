@@ -1,0 +1,43 @@
+{
+  "run": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+  "requirement": "MJ-REQ-171",
+  "objective": "PR-938-INTEGRATION",
+  "utc": "2026-11-05T02:57:02.744318+00:00",
+  "prior_reviewed_head": "d35c5496898d72b5b3741b54110c7fab828494cb",
+  "base_main": "d6650e4bc9bfd784bd6e3a346c793c372f02518a",
+  "tested_revision": "7af007f9521302dff18d247fba99cb7136d09d31",
+  "claim_ref": "refs/heads/webpro-claims/PR-938-INTEGRATION",
+  "claim_owner": "4cdf252bd914a1c82516c7267ec512a5fa0c10de",
+  "source_and_test_files": [
+    "services/applications/browser_profiles.py",
+    "services/applications/manual_auth.py",
+    "tests/unit/test_browser_profile_configuration.py",
+    "tests/unit/test_browser_profile_privacy.py",
+    "tests/unit/test_manual_auth_deadline.py",
+    "tests/unit/test_manual_auth_host.py",
+    "tests/unit/test_manual_auth_path_security.py"
+  ],
+  "reviewed_source_preserved": true,
+  "candidate_command": "python -B -m pytest -q -p no:cacheprovider --basetemp <isolated-temp> --junitxml <isolated-receipt> tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py tests/unit/test_browser_debug_capture.py --tb=short",
+  "candidate_result": "80 passed, 8 skipped, 143 subtests passed in 9.05s",
+  "validation": {
+    "catalogue": "Catalogue validation: PASS",
+    "progress": "Progress journal validation: PASS",
+    "dashboard": "Progress dashboard: CURRENT",
+    "diff": "PASS (exit 0)",
+    "reviewed_source_preservation": "PASS (exit 0)"
+  },
+  "original_windows": "61 passed, 8 skipped, 112 subtests passed; 11.91s; same reviewed source",
+  "original_linux": "Python 3.12.14; unittest privacy module: 11 PASS, zero skips/errors/failures; 0.022s; original head",
+  "independent_review": "https://github.com/MulattoTech/MJobs/pull/938#pullrequestreview-5777993701",
+  "open_peer_prs_compared": 20,
+  "source_overlap": [],
+  "status": "TESTED; fresh hosted gates and protected merge remain pending",
+  "acceptance": "MJ-REQ-171 PARTIAL unchanged; no acceptance or denominator promotion",
+  "limits": [
+    "No Windows ACL, extended ACL, hostile ancestor replacement or physical-restart claim.",
+    "Existing permissive POSIX session directories fail closed without automatic remediation.",
+    "Production, authenticated browser and full-stack tests were not run by this integration.",
+    "Prior source, scanner failures and historical evidence are preserved."
+  ]
+}
