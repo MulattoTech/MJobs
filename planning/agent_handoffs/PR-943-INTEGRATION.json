@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-943-INTEGRATION",
+  "objective": "Complete worker Store startup cleanup in existing PR943, preserve source evidence, and pass protected current-main integration.",
+  "owner": "web-20261105T024512Z-1f7d3a290493",
+  "branch": "web/web-20261105T024512Z-1f7d3a290493/pr943",
+  "head_sha": "e4601ea0eee9d1254e5649889daee404afb56d37",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Publish reviewed source/evidence via existing-PR preflight; get independent follow-up review and current-main protected checks under a fresh integration lock.",
+  "created_at": "2026-11-05T03:04:22.114299+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Exact source e4601ea0: 42 tests / 32 subtests PASS, no failures/skips; strict provenance/catalogue/journal/dashboard/whitespace PASS.",
+      "result": "PASS"
+    },
+    {
+      "command": "New test Ruff PASS; full worker Ruff retains exactly four baseline diagnostics, not a full-file lint pass.",
+      "result": "PASS"
+    },
+    {
+      "command": "Linux/live Redis/PostgreSQL/browser/physical restart/production; new-source independent review and protected candidate CI pending.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Integration lock occupied on bounded admissions; no lock held or bypassed. MJ-REQ-160 remains PARTIAL."
+  ]
+}
