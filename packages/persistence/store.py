@@ -983,8 +983,10 @@ class Store:
                     high_type = func.json_type(attributes, "$.salary_max")
                     low_is_number = low_type.in_(("integer", "real"))
                     high_is_number = high_type.in_(("integer", "real"))
-                low = attributes["salary_min"].as_float()
-                high = attributes["salary_max"].as_float()
+                # Guard the cast itself: SQL predicate evaluation order is
+                # not a type-safety boundary for untrusted JSON values.
+                low = case((low_is_number, attributes["salary_min"].as_float()), else_=None)
+                high = case((high_is_number, attributes["salary_max"].as_float()), else_=None)
                 low_present = low_type.is_not(None) & (low_type != "null")
                 high_present = high_type.is_not(None) & (high_type != "null")
                 low_valid = case((low_is_number & (low >= 0), True), else_=False)

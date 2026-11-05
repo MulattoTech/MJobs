@@ -1,5 +1,6 @@
 """Connected API acceptance for the persisted Newest job sort."""
 from pathlib import Path
+import os
 import tempfile
 import unittest
 
@@ -176,6 +177,36 @@ class JobSortingApiTests(unittest.TestCase):
             self.assertEqual([item["id"] for item in after_estimate.json()["jobs"]],
                              [by_name["missing"]])
 
+    def test_salary_filters_reject_nonnumeric_json_endpoints_without_server_errors(self):
+        self._salary_rows()
+        invalid_id = "salary-job-invalid"
+        invalid_values = ("not-a-number", "95", "", True, [], {"amount": 95})
+        with TestClient(self.app, raise_server_exceptions=False) as client:
+            for period in ("HOUR", "YEAR"):
+                for field in ("salary_min", "salary_max"):
+                    for value in invalid_values:
+                        with self.subTest(period=period, field=field, value=value):
+                            attributes = {
+                                "salary_min": 80, "salary_max": 100,
+                                "salary_currency": "USD", "salary_period": period,
+                            }
+                            attributes[field] = value
+                            with self.store.engine.begin() as connection:
+                                connection.execute(update(m.jobs).where(m.jobs.c.id == invalid_id)
+                                                   .values(attributes=attributes))
+                            for policy in ({"salary_known_only": "true"},
+                                           {"salary_min": 85, "salary_max": 1000000,
+                                            "salary_unknown_allowed": "true"}):
+                                response = client.get("/jobs", params={
+                                    "title": "Salary", "sort": "title",
+                                    "salary_period": period, **policy,
+                                })
+                                self.assertEqual(response.status_code, 200, response.text)
+                                found = {item["id"] for item in response.json()["jobs"]}
+                                self.assertNotIn(invalid_id, found)
+                                self.assertIn("salary-job-hourly" if period == "HOUR"
+                                              else "salary-job-range", found)
+
     def test_saved_salary_unit_and_unknown_policy_reopen_with_validated_types(self):
         payload = {
             "id": "hourly-saved", "profile_id": "fixture", "name": "Hourly roles",
@@ -309,6 +340,32 @@ class JobSortingApiTests(unittest.TestCase):
             tied = client.get("/jobs", params={"sort": "company"})
         self.assertEqual(tied.status_code, 200, tied.text)
         self.assertEqual([row["id"] for row in tied.json()["jobs"]], self.job_ids)
+
+
+@unittest.skipUnless(os.environ.get("MJOBS_TEST_POSTGRES_URL"),
+                     "Requires isolated disposable PostgreSQL")
+class JobSalaryPostgresTests(unittest.TestCase):
+    """Exercise the real salary JSON predicates in a guarded, owned schema."""
+    from tests.integration.test_lever_form_review_flow import LeverFormReviewPostgresFlowTests as _Fixture
+    _new_store = _Fixture._new_store
+    _drop_schema = _Fixture._drop_schema
+    _salary_rows = JobSortingApiTests._salary_rows
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(prefix="mjobs-salary-postgres-")
+        self.addCleanup(self.directory.cleanup)
+        self.root = Path(self.directory.name)
+        self.store = self._new_store()
+        self.assertEqual(self.store.engine.dialect.name, "postgresql")
+        self.store.bind_workspace_mode("FIXTURE")
+        self.store.save_profile(dict(PROFILE))
+        self.app = create_app(self.store, "http://127.0.0.1:1", self.root,
+                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+
+    test_salary_unit_availability_and_bounds_are_explicit_before_limit = (
+        JobSortingApiTests.test_salary_unit_availability_and_bounds_are_explicit_before_limit)
+    test_salary_filters_reject_nonnumeric_json_endpoints_without_server_errors = (
+        JobSortingApiTests.test_salary_filters_reject_nonnumeric_json_endpoints_without_server_errors)
 
 
 if __name__ == "__main__":
