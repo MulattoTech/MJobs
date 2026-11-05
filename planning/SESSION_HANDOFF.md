@@ -427,3 +427,11 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Focused Windows candidate: 80 passed, 8 skipped, 143 subtests passed in 9.21s. Catalogue, progress, dashboard, source preservation and provenance PASS.
 - Evidence: docs/evidence/2026-11-05-web-f4dd2b32-pr938-integration.json. MJ-REQ-171 stays PARTIAL; production NOT DEPLOYED by this run.
 - Next: fresh exact-candidate hosted gates and protected integration; current ownership must be rediscovered from refs/heads/webpro-claims/PR-938-INTEGRATION.
+
+
+## 2026-11-05T03:38:54.188931+00:00 - PR938 integration web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f
+
+- Preserved reviewed browser-profile/manual-auth source at 32ced02b56900b9f161c7397c4650a5f6025865b; tested current-main merge 52763d4c464fb0ba8b6f8a284aa96688aafcd87b.
+- Focused Windows candidate: 167 passed, 8 skipped, 171 subtests passed in 53.46s. Catalogue, progress, dashboard, source preservation and provenance PASS.
+- Includes frozen PR959 b6e3d982e7a8d404c5d70c1d91931278c5dfd146 unchanged; both components independently reviewed. Evidence: docs/evidence/2026-11-05-web-f4dd2b32-pr938-integration.json. MJ-REQ-171/018/004 stay PARTIAL; production NOT DEPLOYED by this run.
+- Next: fresh exact-candidate hosted gates and protected integration; current ownership must be rediscovered from refs/heads/webpro-claims/PR-938-INTEGRATION.
