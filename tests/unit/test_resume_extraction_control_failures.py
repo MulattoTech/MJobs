@@ -1,5 +1,6 @@
 """Control failures are fatal across optional native/OCR fallback boundaries."""
 from contextlib import ExitStack
+from pathlib import Path
 import subprocess
 import sys
 from unittest.mock import patch
@@ -22,19 +23,43 @@ class OneShotControl:
     def is_set(self):
         if self.active() and not self.failures:
             self.failures += 1
-            raise self.failure
+            if self.failure is not None:
+                raise self.failure
+            return True
         return False
 
 
+@pytest.mark.parametrize("cleanup_failure", [False, True], ids=["normal-cleanup", "cleanup-error"])
 @pytest.mark.parametrize("stage", ["pdf", "docx", "ocr"])
 @pytest.mark.parametrize("error_type", [
     OperationCancelled, OperationTimedOut, OperationControlUnavailable,
+    pytest.param(None, id="boolean-cancellation"),
 ])
-def test_control_failure_preserves_identity_and_reaps_owned_child(stage, error_type):
+def test_control_failure_preserves_identity_and_reaps_owned_child(
+        stage, error_type, cleanup_failure):
     children = []
-    failure = error_type()
+    failure = error_type() if error_type is not None else None
     control = OneShotControl(lambda: bool(children), failure)
     real_popen = subprocess.Popen
+    real_parser = extraction._run_parser_process
+    real_unlink = Path.unlink
+    cleanup_errors = []
+
+    def fail_parser_cleanup(*args, **kwargs):
+        try:
+            return real_parser(*args, **kwargs)
+        finally:
+            if control.failures:
+                cleanup_errors.append(True)
+                raise PermissionError("SYNTHETIC_PRIVATE_CLEANUP_DETAIL")
+
+    def fail_png_cleanup(path, *args, **kwargs):
+        if (control.failures and path.name.startswith("page-")
+                and path.suffix == ".png"
+                and path.parent.name.startswith("mjobs-resume-ocr-")):
+            cleanup_errors.append(True)
+            raise PermissionError("SYNTHETIC_PRIVATE_CLEANUP_DETAIL")
+        return real_unlink(path, *args, **kwargs)
 
     def launch(_command, **kwargs):
         child = real_popen(
@@ -52,12 +77,21 @@ def test_control_failure_preserves_identity_and_reaps_owned_child(stage, error_t
                 stack.enter_context(patch.object(ocr, "RESOURCE_LIMITS_AVAILABLE", True))
                 stack.enter_context(patch.object(
                     ocr.shutil, "which", side_effect=lambda name: "/synthetic/" + name))
-            with pytest.raises(error_type) as raised:
+            if cleanup_failure:
+                if stage == "ocr":
+                    stack.enter_context(patch.object(Path, "unlink", fail_png_cleanup))
+                else:
+                    stack.enter_context(patch.object(
+                        extraction, "_run_parser_process", side_effect=fail_parser_cleanup))
+            expected_type = error_type or extraction.ResumeExtractionCancelled
+            with pytest.raises(expected_type) as raised:
                 extraction.extract_resume(
                     b"synthetic document", "pdf" if stage == "ocr" else stage,
                     "synthetic-control", cancellation_event=control)
-        assert raised.value is failure
+        if failure is not None:
+            assert raised.value is failure
         assert control.failures == 1
+        assert cleanup_errors == ([True] if cleanup_failure else [])
         assert len(children) == 1
         assert children[0].poll() is not None, "owned parser/OCR child survived"
         if stage == "ocr":

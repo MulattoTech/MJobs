@@ -25,7 +25,9 @@ currently running OCR tool children. A failure raised by a cancellation/deadline
 check uses this same stop-and-cleanup path and is re-raised unchanged at the
 public extraction boundary. Optional parser/OCR error handling cannot convert a
 failed control check into reviewable native text, even if a later check would
-succeed. Ordinary tool failures still preserve native text for review.
+succeed or a cleanup error replaces the local stop exception. An observed boolean
+cancellation is also latched for the whole extraction. Ordinary tool failures
+still preserve native text for review.
 The profile UI also has an explicit, profile- and
 resume-scoped cancellation action for browsers that keep an HTTP connection reusable
 after a fetch abort. OCR retains its own 45-second total deadline and 10-second

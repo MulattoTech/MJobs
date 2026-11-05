@@ -1,6 +1,7 @@
 """Stopped resume extraction must not publish suggestions after a recovered check."""
 from contextlib import ExitStack
 import logging
+from pathlib import Path
 import subprocess
 import sys
 from unittest.mock import patch
@@ -22,6 +23,7 @@ from workers.operations import (
 )
 
 
+@pytest.mark.parametrize("cleanup_failure", [False, True], ids=["normal-cleanup", "cleanup-error"])
 @pytest.mark.parametrize("stage,error_type,expected_state,expected_error", [
     ("ocr", OperationCancelled, "CANCELLED", "CANCEL_REQUESTED"),
     ("ocr", OperationTimedOut, "DEAD_LETTERED", "OPERATION_TIMEOUT"),
@@ -29,13 +31,17 @@ from workers.operations import (
     ("pdf", OperationTimedOut, "DEAD_LETTERED", "OPERATION_TIMEOUT"),
 ])
 def test_failed_control_is_durable_without_results_and_new_intent_can_recover(
-        tmp_path, monkeypatch, caplog, stage, error_type, expected_state, expected_error):
+        tmp_path, monkeypatch, caplog, stage, error_type, expected_state, expected_error,
+        cleanup_failure):
     database_url = f"sqlite:///{(tmp_path / 'control.db').as_posix()}"
     store = Store(database_url)
     children = []
     real_popen = subprocess.Popen
     real_check = tasks.check_cancelled
     injected = []
+    cleanup_errors = []
+    real_parser = extraction._run_parser_process
+    real_unlink = Path.unlink
     failure = (error_type() if error_type is OperationControlUnavailable
                else error_type("SYNTHETIC_PRIVATE_CONTROL_DETAIL"))
 
@@ -50,6 +56,21 @@ def test_failed_control_is_durable_without_results_and_new_intent_can_recover(
         if children and not injected:
             injected.append(True)
             raise failure
+
+    def fail_parser_cleanup(*args, **kwargs):
+        try:
+            return real_parser(*args, **kwargs)
+        finally:
+            if injected:
+                cleanup_errors.append(True)
+                raise PermissionError("SYNTHETIC_PRIVATE_CLEANUP_DETAIL")
+
+    def fail_png_cleanup(path, *args, **kwargs):
+        if (injected and path.name.startswith("page-") and path.suffix == ".png"
+                and path.parent.name.startswith("mjobs-resume-ocr-")):
+            cleanup_errors.append(True)
+            raise PermissionError("SYNTHETIC_PRIVATE_CLEANUP_DETAIL")
+        return real_unlink(path, *args, **kwargs)
 
     try:
         store.migrate()
@@ -75,9 +96,16 @@ def test_failed_control_is_durable_without_results_and_new_intent_can_recover(
                 stack.enter_context(patch.object(ocr, "RESOURCE_LIMITS_AVAILABLE", True))
                 stack.enter_context(patch.object(
                     ocr.shutil, "which", side_effect=lambda name: "/synthetic/" + name))
+            if cleanup_failure:
+                if stage == "ocr":
+                    stack.enter_context(patch.object(Path, "unlink", fail_png_cleanup))
+                else:
+                    stack.enter_context(patch.object(
+                        extraction, "_run_parser_process", side_effect=fail_parser_cleanup))
             with caplog.at_level(logging.INFO, logger="mjobs.operations"):
                 result = tasks.execute_operation(operation_id)
         assert injected == [True]
+        assert cleanup_errors == ([True] if cleanup_failure else [])
         assert len(children) == 1
         assert children[0].poll() is not None, "owned child was not reaped"
         reopened = Store(database_url)
@@ -115,6 +143,7 @@ def test_failed_control_is_durable_without_results_and_new_intent_can_recover(
         finally:
             reopened.engine.dispose()
         assert "SYNTHETIC_PRIVATE_CONTROL_DETAIL" not in caplog.text
+        assert "SYNTHETIC_PRIVATE_CLEANUP_DETAIL" not in caplog.text
     finally:
         for child in children:
             if child.poll() is None:
