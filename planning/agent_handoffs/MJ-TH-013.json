@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-TH-013",
+  "objective": "Resolve PostgreSQL malformed-salary failures and preserve the existing hourly/annual search feature",
+  "owner": "web-20261105T000307Z-193d12b2020d",
+  "branch": "web/web-20261105T000307Z-193d12b2020d/MJ-TH-013",
+  "head_sha": "980c53f123e96cd9f11448bea77d3146777e0693",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Verify final-head hosted gates and independent review; acquire integration lock and refresh main before protected merge, then use existing guarded deployment under deployment lock",
+  "created_at": "2026-11-05T00:18:59.454107+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "48 tests and 51 subtests PASS on source 980c53f123e96cd9f11448bea77d3146777e0693; 6 scanner-policy tests PASS; catalogue, progress, dashboard and strict provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Final-head hosted checks, current-head independent review, protected merge and production deployment remain pending",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Original full-history scanner failed on two independently verified Git blob IDs in another branch; identical reviewed exact-fingerprint policy is prepared; no broad bypass"
+  ]
+}

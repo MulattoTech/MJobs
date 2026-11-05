@@ -49,3 +49,11 @@ This run independently reproduced the earlier reviewer finding and authored the 
 No schema migration, dependency change, real employer submission, paid model call, autonomous worker launch, Fleet cutoff change or canonical acceptance change was performed. MJ-TH-013 remains PARTIAL pending delivery verification. Original P0/P1 counts and literal acceptance are unchanged.
 
 Rollback uses the protected PR/revert workflow; the repair does not modify stored data.
+
+## Shared scanner finding triage
+
+The first hosted scan at source `980c53f123e96cd9f11448bea77d3146777e0693` failed in run [41939803083](https://github.com/MulattoTech/MJobs/actions/runs/41939803083). Its redacted report contains exactly two findings in another branch's preview-error evidence, at lines 45 and 46 of the file introduced by commit `c5339366e7372f9a5fca24c4c0410edacf8a6b2d`. The scanner inspects all fetched history, so these findings are shared across current PRs.
+
+This run independently fetched both named test files at that exact commit and confirmed each reported value equals the corresponding Git blob object ID. The same verification is independently recorded in PR937. Under a fresh short `SECRET-SCAN-FINGERPRINTS` claim, this branch reuses the byte-identical two-fingerprint `.gitleaksignore` delta from reviewed commit `23448e69499abd1470fbbc30d2dbbff884b975bb`. No scanner rule, path-wide exception, extra fingerprint or history rewrite is introduced. The original failed run remains evidence.
+
+Policy regressions: `python -m pytest -q -p no:cacheprovider tests/unit/test_p0_evidence_secret_fingerprints.py tests/unit/test_secret_scan_sustain_176.py --tb=short` — **6 passed** in 0.28 seconds. Product source and salary tests are unchanged from the 48-test/51-subtest passing revision. Final-head hosted scan and remaining required checks are still required before integration.

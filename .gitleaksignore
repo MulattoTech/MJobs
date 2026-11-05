@@ -325,3 +325,8 @@ caaee5d6d6aeffd2e02905844e96223d732684c0:docs/evidence/2026-11-03-webpro-1e2ff1-
 f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/fifo-guard-execution.json:generic-api-key:263
 f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/baseline-execution.json:generic-api-key:265
 f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-restored-upload-permissions/provisional-execution.json:generic-api-key:942
+
+# PR937: verified immutable Git blob IDs for the two preview routers, not credentials.
+# Author triage and exact-source verification: PR937 issuecomment-6645844602.
+c5339366e7372f9a5fca24c4c0410edacf8a6b2d:docs/evidence/2026-11-05-web-30d19610-preview-error-privacy.md:generic-api-key:45
+c5339366e7372f9a5fca24c4c0410edacf8a6b2d:docs/evidence/2026-11-05-web-30d19610-preview-error-privacy.md:generic-api-key:46
