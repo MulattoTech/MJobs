@@ -94,8 +94,10 @@
                                                 "artifact":  13376590050,
                                                 "finding_count":  2,
                                                 "finding_commit":  "c5339366e7372f9a5fca24c4c0410edacf8a6b2d",
-                                                "finding_note":  "The exact two independently verified API source blob IDs in PR937 evidence; no finding in PR938-authored files",
-                                                "resolution":  "Await shared fingerprint ownership; no scanner bypass"
+                                                "finding_note":  "Two integration-test Git blob IDs at PR937 evidence lines 45 and 46; no finding in PR938-authored files",
+                                                "attribution_correction":  "The earlier API-implementation-path attribution was incorrect. Exact test paths and original evidence lines were independently checked via GitHub immutable file metadata and git rev-parse.",
+                                                "independent_verification":  "https://github.com/MulattoTech/MJobs/pull/937#issuecomment-6646100380",
+                                                "resolution":  "Reused the two reviewed exact history fingerprints from PR937 under owned shared scope; fresh hosted scan pending; no scanner bypass"
                                             }
                         }
 }
