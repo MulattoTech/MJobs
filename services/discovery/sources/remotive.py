@@ -290,9 +290,16 @@ class Remotive:
         raise SourceError("SOURCE_JOB_NOT_FOUND")
 
     def normalize(self, raw):
-        if not isinstance(raw, dict) or type(raw.get("id")) not in (int, str) or not str(raw.get("id")).strip():
+        if not isinstance(raw, dict) or type(raw.get("id")) not in (int, str):
             raise SourceError("SOURCE_INVALID_JOB")
-        native_id = int(raw["id"]) if isinstance(raw["id"], int) or (isinstance(raw["id"], str) and raw["id"].isdigit()) else raw["id"]
+        try:
+            if not str(raw["id"]).strip():
+                raise SourceError("SOURCE_INVALID_JOB")
+            native_id = int(raw["id"]) if isinstance(raw["id"], int) or raw["id"].isdigit() else raw["id"]
+        except ValueError:
+            # Digit-like Unicode and runtime integer limits can reject an ID.
+            # Classify the record so collection can retain valid sibling jobs.
+            raise SourceError("SOURCE_INVALID_JOB") from None
         if not isinstance(raw.get("title"), str) or not raw["title"].strip():
             raise SourceError("SOURCE_INVALID_JOB")
 
