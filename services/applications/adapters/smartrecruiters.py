@@ -11,6 +11,9 @@ from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.form_analysis import analyze_form_page
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 _HOST = "jobs.smartrecruiters.com"
@@ -117,6 +120,9 @@ class SmartRecruitersApplicationAdapter:
             return self._unknown("UNTRUSTED_FORM_ORIGIN")
         try:
             challenge_present = page.locator(_CHALLENGE_SELECTOR).count() > 0
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()

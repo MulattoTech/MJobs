@@ -132,8 +132,12 @@ def create_cheap_prefilter_router(store) -> APIRouter:
             result = prefilter_search_profile_postings(
                 postings, preview_profile, max_candidates=_MAX_CANDIDATES,
             )
-        except ValueError as error:
-            raise HTTPException(422, {"code": "CHEAP_PREFILTER_REQUEST_INVALID", "detail": str(error)}) from None
+        except ValueError:
+            # Service diagnostics may include stored search or posting content.
+            raise HTTPException(422, {
+                "code": "CHEAP_PREFILTER_REQUEST_INVALID",
+                "detail": "Saved search preview could not be processed",
+            }) from None
 
         return {
             "profile_id": profile_id,
