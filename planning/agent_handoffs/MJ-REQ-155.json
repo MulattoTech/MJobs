@@ -6,7 +6,7 @@
   "branch": "web/web-20261105T000420Z-b0020f09517e4be38ff4e7527be94d4a/MJ-REQ-155",
   "head_sha": "ad683151ae86d955f2c5cf87610191f0ea4c55b0",
   "routing_state": "RESUME",
-  "next_action": "Publish scoped PR and verify required checks; serialize protected integration; parent remains PARTIAL",
+  "next_action": "PR941 published; verify fresh required checks after two-fingerprint scanner correction, then exact-candidate protected integration under short lock; parent remains PARTIAL",
   "created_at": "2026-11-05T00:15:33.886117+00:00",
   "requirements": [
     "MJ-REQ-155"
@@ -17,9 +17,19 @@
       "result": "PASS"
     },
     {
-      "command": "Independent review; hosted exact-candidate CI; PostgreSQL cancellation concurrency; browser; production deployment",
+      "command": "Hosted exact-candidate CI; PostgreSQL cancellation concurrency; browser; production deployment",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Independent session reviewed unchanged pipeline/test source at a668590 and reran 12 focused tests; PR941 comment 6645975970",
+      "result": "PASS"
+    },
+    {
+      "command": "Scanner fingerprint and policy modules: 6 PASS, 0 SKIP; narrow existing historical fingerprint reuse only",
+      "result": "PASS"
     }
   ],
-  "blockers": []
+  "blockers": [
+    "Original hosted secret scan run 41940139374 failed on two verified historical Git blob identities; exact exceptions reused, fresh hosted checks required."
+  ]
 }

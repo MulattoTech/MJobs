@@ -67,3 +67,32 @@ deduplication, saved-search filtering, and preparation workflows pass separately
 - MJ-REQ-155 and MJ-REQ-004 remain PARTIAL. No acceptance matrix, denominator,
   GitHub Project or Fleet acceptance state is promoted.
 - Rollback is a protected revert of the scoped source commit; no data migration.
+
+## Publication follow-up: historical scanner findings
+
+At publication head a668590, hosted Security / secret scan failed in
+[run 41940139374](https://github.com/MulattoTech/MJobs/actions/runs/41940139374).
+Its redacted artifact contained exactly two findings in the older PR937 evidence
+at revision c533936, lines 45 and 46. Independent Git-object inspection confirmed
+both values are immutable integration-test blob identities, not credentials.
+
+Under the separately acquired SECRET-SCAN-FINGERPRINTS claim, this follow-up
+copies only the byte-identical two-entry .gitleaksignore delta already published
+by PR937 at revision 23448e6. Each entry remains bound to one historical commit,
+file, rule and line. No scanner rule, path wildcard or current-file exemption
+changes. The original scan failure remains part of this history.
+
+Executed scanner-policy regression command:
+
+    python -m pytest -q -p no:cacheprovider tests/unit/test_p0_evidence_secret_fingerprints.py tests/unit/test_secret_scan_sustain_176.py --tb=short
+
+Result: 6 PASS, 0 SKIP, 0.28 seconds. Hosted scanning on the new publication
+revision remains a separate required gate.
+
+Independent review is now available for the unchanged pipeline/test source at
+publication head a668590:
+[review and 12 passing focused tests](https://github.com/MulattoTech/MJobs/pull/941#issuecomment-6645975970).
+That reviewer is a separate session which did not author this fix; this is
+technical AI review, not human approval. Earlier NOT RUN wording above records
+the original publication checkpoint. Required integration and deployment are
+still unverified here; the parent acceptance remains PARTIAL.
