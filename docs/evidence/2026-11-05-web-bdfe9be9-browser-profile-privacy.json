@@ -99,5 +99,6 @@
                                                 "independent_verification":  "https://github.com/MulattoTech/MJobs/pull/937#issuecomment-6646100380",
                                                 "resolution":  "Reused the two reviewed exact history fingerprints from PR937 under owned shared scope; fresh hosted scan pending; no scanner bypass"
                                             }
-                        }
+                        },
+    "candidate_refresh":  {"base": "fc535d0eb684a03e9886fb36c480db9cacca8f5c", "source_parent": "49a7247e0e09a49c6b5b3b300d97bff3b49c3711", "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py tests/unit/test_secret_scan_sustain_176.py tests/unit/test_p0_evidence_secret_fingerprints.py --tb=short", "result": "PASS", "passed": 67, "subtests_passed": 112, "skipped": 8, "seconds": 8.26, "scope": "Focused Windows fixtures; required hosted candidate checks and deployment remain pending", "independent_review": "https://github.com/MulattoTech/MJobs/pull/938#pullrequestreview-5777993701", "scanner_test_attribution": "Earlier first invocation had 4 tests, not the premature 6 in its trailer. A separate 2-test fingerprint-policy run passed; the combined run above includes all six."}
 }
