@@ -25,6 +25,19 @@ _STALE_CODES = {
     "RESUME_WORKSPACE_STALE_CONTEXT",
     "RESUME_TEMPLATE_VERSION_STALE",
 }
+_PUBLIC_ERROR_CODES = frozenset(_STALE_CODES | {
+    "RESUME_TEMPLATE_SELECTION_INVALID",
+    "RESUME_TEMPLATE_VERSION_REQUIRED",
+    "RESUME_WORKSPACE_PREVIEW_INVALID",
+})
+
+
+def _public_error_code(error):
+    """Expose only documented codes, never arbitrary service diagnostics."""
+    code = getattr(error, "code", None)
+    if type(code) is str and code in _PUBLIC_ERROR_CODES:
+        return code
+    return "RESUME_WORKSPACE_PREVIEW_INVALID"
 
 
 def _default_preview_builder(store, profile_id, job_id, **snapshot):
@@ -76,12 +89,13 @@ def create_resume_workspace_preview_router(store, *, preview_builder: Callable |
         try:
             result = preview_builder(store, profile_id, job_id, **snapshot)
         except PreparationError as error:
-            status = 409 if error.code in _STALE_CODES else 422
-            raise HTTPException(status, {"code": error.code}) from None
+            code = _public_error_code(error)
+            status = 409 if code in _STALE_CODES else 422
+            raise HTTPException(status, {"code": code}) from None
         except LookupError:
             raise HTTPException(404, {"code": "RESUME_WORKSPACE_NOT_FOUND"}) from None
         except ValueError as error:
-            code = getattr(error, "code", "RESUME_WORKSPACE_PREVIEW_INVALID")
+            code = _public_error_code(error)
             status = 409 if code in _STALE_CODES else 422
             raise HTTPException(status, {"code": code}) from None
         except Exception:
