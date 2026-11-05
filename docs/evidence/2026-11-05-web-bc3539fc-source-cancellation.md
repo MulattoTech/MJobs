@@ -99,3 +99,41 @@ Rollout is an ordinary application-code update through the existing guarded
 updater after protected integration. There is no migration or configuration
 change. Roll back through a protected revert or the previously retained release
 image. No live database restoration was attempted.
+
+
+## Shared-history scanner correction and independent review
+
+The first hosted secret scan remains FAILED:
+[run 41940578033](https://github.com/MulattoTech/MJobs/actions/runs/41940578033),
+redacted artifact 13375697780. It contains exactly two findings at the immutable
+PR937 evidence note's lines 45/46. Independent inspection of that original note
+and GitHub's matching test-file objects verified both are public Git identities,
+not credentials. The detailed receipt is
+[PR944 comment 6646089754](https://github.com/MulattoTech/MJobs/pull/944#issuecomment-6646089754).
+
+Under the separately acquired, owner-verified `SECRET-SCAN-FINGERPRINTS` claim,
+this branch reuses PR937's byte-identical five-line append (one blank line, two
+comments, two exact commit/path/rule/line fingerprints). No rule, path or wildcard
+exclusion is added. The inherited comment says routers; the verified values are
+integration-test file identities. The correction preserves that reviewed byte
+sequence and records the wording distinction here.
+
+Executed existing scanner-policy checks:
+`python -m pytest -q -p no:cacheprovider tests/unit/test_secret_scan_sustain_176.py tests/unit/test_p0_evidence_secret_fingerprints.py --tb=short`
+Result: **6 PASS**, 0.27s, no failures or skips. This is local policy verification,
+not a replacement for a fresh protected full-history scan.
+
+Two independent sessions reviewed the published cancellation implementation:
+[review 5778013349](https://github.com/MulattoTech/MJobs/pull/944#pullrequestreview-5778013349)
+executed 13 tests plus 20 subtests;
+[review 5778016082](https://github.com/MulattoTech/MJobs/pull/944#pullrequestreview-5778016082)
+executed 10 tests plus 20 subtests. Both reported no scoped blocker. Those are
+separate-session AI technical reviews, not human approvals, and are not added to
+this run's authored test totals.
+
+At this checkpoint, the original head's fast CI, dependency review and synthetic
+connected acceptance passed; PostgreSQL/Redis integration was still running.
+A current-main candidate refresh, fresh protected gates, serialized merge and
+separate guarded deployment are outstanding. MJ-REQ-004 remains PARTIAL; no
+canonical denominator, Project or Fleet state changed. The short scanner claim
+will be released immediately after the ordinary same-branch publication.
