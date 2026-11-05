@@ -11,6 +11,9 @@ from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 _TENANT = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\Z", re.I)
@@ -59,6 +62,9 @@ class RecruiteeApplicationAdapter(GreenhouseApplicationAdapter):
         try:
             if page.locator(selector).count():
                 return {"status": "UNKNOWN", "reason": "CHALLENGE_PRESENT", "fields": []}
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Keep durable cancellation, deadline, and control failures distinct.
+            raise
         except Exception:
             if check is not None:
                 check()
