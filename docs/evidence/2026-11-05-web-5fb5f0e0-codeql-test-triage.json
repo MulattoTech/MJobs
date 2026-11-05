@@ -1,0 +1,174 @@
+{
+  "schema_version": "triage-finding/v0",
+  "repository": {
+    "path": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr960",
+    "revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+  },
+  "findings": [
+    {
+      "triage_item_id": "triage-001",
+      "input_id": "github-code-scanning:MulattoTech/MJobs:112",
+      "source_type": "sarif",
+      "title": "CodeQL #112: claimed path injection in document-failure test callback",
+      "normalized_input": {
+        "vulnerable_component": "tests/unit/test_document_failure_status.py:94",
+        "claimed_source": "API application_id at apps/api/cover_letter_preview.py:112",
+        "claimed_sink": "path.write_bytes in nested test callback write_partial_then_fail",
+        "claimed_control": "Claimed missing path constraint across atomic_generate callback dispatch",
+        "affected_version_or_path": "Reported main ecd987dcaecce05eed13391a765f27cf5b9def76; inspected local 3e9ed3b6ea4263ee0958574f79ac12829a5b14d5 with identical affected/call-path blobs",
+        "preconditions": [
+          "The API request would need to dispatch the nested regression-test callback as the production writer."
+        ],
+        "impact": "Claimed unexpected filesystem write through a request-influenced path",
+        "references": [
+          "https://github.com/MulattoTech/MJobs/security/code-scanning/112",
+          "https://github.com/MulattoTech/MJobs/issues/524",
+          "CodeQL Python SARIF analysis2100597990; ref refs/heads/main; reported commit ecd987dcaecce05eed13391a765f27cf5b9def76"
+        ]
+      },
+      "verdict": "not_actionable",
+      "confidence": "high",
+      "affected_locations": [
+        {
+          "label": "reported source",
+          "path": "apps/api/cover_letter_preview.py",
+          "lines": "108-141",
+          "detail": "The API calls materialize_reviewed_preview; it does not accept or select a writer callback from the request."
+        },
+        {
+          "label": "actual production writers",
+          "path": "services/documents/reviewed_cover_letter.py",
+          "lines": "101-120,224-267",
+          "detail": "Actual atomic_generate calls pass document.save or fixed local text/PDF/manifest lambdas."
+        },
+        {
+          "label": "callback dispatch",
+          "path": "services/documents/artifacts.py",
+          "lines": "46-69",
+          "detail": "Calls the writer argument supplied by that invocation on its temporary path."
+        },
+        {
+          "label": "reported sink",
+          "path": "tests/unit/test_document_failure_status.py",
+          "lines": "87-104",
+          "detail": "Nested test-only callback is created inside one unittest method; that invocation uses TemporaryDirectory and a fixed resume.pdf destination."
+        }
+      ],
+      "reachable_path": [
+        "The imported SARIF offers four paths from the cover-letter API through production atomic_generate calls to the test callback.",
+        "Concrete Python call sites pass other writer objects on those four production paths.",
+        "The test callback exists only inside its unittest method and is passed by that test to _generate_document_artifact with a fixture-owned destination.",
+        "No supported request-to-test-callback dispatch path is present in the inspected code."
+      ],
+      "boundary_assessment": {
+        "product_surface": "test/fixture",
+        "source_trust": "trusted_developer_config",
+        "boundary_crossed": false,
+        "policy_basis": "Root SECURITY.md identifies synthetic least-privilege CI and forbids treating successful scans as security certification. No scoped SECURITY.md exists for the inspected ancestors. The actual closure/call sites, rather than a test-directory label or packaging assumption, establish this specific boundary."
+      },
+      "exploitability_stack_rank": {
+        "rank_queue": null,
+        "rank": null,
+        "rationale": "Concrete callback identity defeats the reported API-to-test-sink path.",
+        "drivers": []
+      },
+      "evidence": [
+        "Read the alert instance and all four code-flow paths from main Python SARIF analysis2100597990.",
+        "Inspected the API entrypoint, all four cited production writer call sites, atomic_generate, _generate_document_artifact, and the complete test.",
+        "Target and call-path blobs were verified identical between reported main and the unchanged local checkout; the worktree remained clean.",
+        "Scoped callsite search in apps/services/workers/cli/tests found the nested callback only at its definition and local test invocation."
+      ],
+      "counterevidence": [
+        "Production calls do not pass write_partial_then_fail; the nested closure is not an exported request-selected callback.",
+        "The actual test invocation supplies a TemporaryDirectory-derived destination and fixed filename.",
+        "Bundling tests in an image does not itself make this local closure reachable through the API; no exclusion-by-filename assumption was used."
+      ],
+      "proof_gaps": [
+        "Static assessment only: no tests, PoCs or runtime validation were executed for this triage.",
+        "Other production path-injection alerts, including reviewed-cover-letter aliasing addressed by open PRs, are outside this verdict.",
+        "The skill's shared policy-resolver/reference resources were unavailable; applicable root/ancestor policy files were enumerated and read manually."
+      ],
+      "recommended_next_step": "Record the narrow static non-actionable rationale for alert112. Keep alert state unchanged unless an authorized maintainer separately reviews dismissal; continue triage of the production sinks independently.",
+      "fix_finding_handoff": null
+    },
+    {
+      "triage_item_id": "triage-002",
+      "input_id": "github-code-scanning:MulattoTech/MJobs:57",
+      "source_type": "sarif",
+      "title": "CodeQL #57: incomplete URL prefix assertion in mocked discovery test",
+      "normalized_input": {
+        "vulnerable_component": "tests/integration/test_public_company_discovery.py:193",
+        "claimed_source": "URL strings collected in the synthetic test's seen list",
+        "claimed_sink": "str.startswith check against a fixed synthetic employer origin",
+        "claimed_control": "The unparsed URL comparison does not require exact hostname equality",
+        "affected_version_or_path": "Reported main ecd987dcaecce05eed13391a765f27cf5b9def76; identical test blob a605c4f39a8a335b063c3c9919a1c294f7317d73 at inspected local 3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
+        "preconditions": [
+          "Treating the post-execution unittest assertion as a production URL authorization decision."
+        ],
+        "impact": "Potentially weak test assertion; scanner suggests URL-check bypass",
+        "references": [
+          "https://github.com/MulattoTech/MJobs/security/code-scanning/57",
+          "https://github.com/MulattoTech/MJobs/issues/524",
+          "CodeQL Python SARIF analysis2100597990; ref refs/heads/main; reported commit ecd987dcaecce05eed13391a765f27cf5b9def76"
+        ]
+      },
+      "verdict": "not_actionable",
+      "confidence": "high",
+      "affected_locations": [
+        {
+          "label": "fixture setup",
+          "path": "tests/integration/test_public_company_discovery.py",
+          "lines": "28-42",
+          "detail": "The test creates a temporary SQLite workspace and fixed synthetic company/profile inputs."
+        },
+        {
+          "label": "synthetic response path",
+          "path": "tests/integration/test_public_company_discovery.py",
+          "lines": "161-190",
+          "detail": "The method records a fixed verified domain and patches _request_once with a local response function backed by a static pages dictionary."
+        },
+        {
+          "label": "reported control",
+          "path": "tests/integration/test_public_company_discovery.py",
+          "lines": "191-193",
+          "detail": "The prefix expression is only a final unittest assertion; it does not authorize a request, redirect, or subsequent filesystem operation."
+        }
+      ],
+      "reachable_path": [
+        "A unittest method creates a fixed synthetic company/domain and static page responses.",
+        "Its local patched request function appends URLs to seen and returns an in-memory HTTP response.",
+        "After execute_operation returns, the method asserts completion and checks those observations with startswith.",
+        "No runtime behavior consumes the assertion result as an authorization or routing decision."
+      ],
+      "boundary_assessment": {
+        "product_surface": "test/fixture",
+        "source_trust": "trusted_developer_config",
+        "boundary_crossed": false,
+        "policy_basis": "Root SECURITY.md specifies synthetic CI and preserved privacy boundaries. No nearer scoped policy exists. The patched request implementation and post-execution assertion establish the actual surface; this is not a claim that every test file or production URL policy is safe."
+      },
+      "exploitability_stack_rank": {
+        "rank_queue": null,
+        "rank": null,
+        "rationale": "The flagged expression is an observation assertion, not a supported security-boundary control.",
+        "drivers": []
+      },
+      "evidence": [
+        "Read the main alert instance and matching SARIF result, which has no code-flow chain.",
+        "Inspected the complete method, fixture setup and the static response implementation.",
+        "The test blob is identical between reported main and local revision; the checkout remained clean."
+      ],
+      "counterevidence": [
+        "The lower network boundary is replaced by a local synthetic response function during this method.",
+        "The prefix check is evaluated after the operation and solely feeds assertTrue.",
+        "The scanner identifies a real weakness in exact-host test precision, but the supplied location does not enforce production egress."
+      ],
+      "proof_gaps": [
+        "Static review only; no tests, PoCs, live employer requests or runtime validation were executed.",
+        "Production URL admission and other SSRF alerts were not exhaustively reviewed.",
+        "The unavailable shared policy helper was replaced with explicit root/ancestor policy-file inspection."
+      ],
+      "recommended_next_step": "Record the narrow non-actionable security verdict. Consider exact parsed scheme/hostname comparison as ordinary test-strength maintenance; do not infer production SSRF safety or dismiss other alerts.",
+      "fix_finding_handoff": null
+    }
+  ]
+}

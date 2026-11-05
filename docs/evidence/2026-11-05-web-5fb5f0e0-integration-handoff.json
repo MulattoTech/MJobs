@@ -285,6 +285,22 @@
         "at": "2026-11-05T04:38:35.484617Z",
         "http": 204,
         "absent": true
+      },
+      {
+        "ref": "refs/heads/webpro-claims/CODEQL-TEST-57-112-REVIEW",
+        "owner": "65508d46da72cc8b89b5633781b2e27dacf9b972",
+        "acquired_at": "2026-11-05T05:07:04.710364+00:00",
+        "http": 201,
+        "readback": true,
+        "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "scope": [
+          112,
+          57
+        ],
+        "released_at": "2026-11-05T05:10:44.388801+00:00",
+        "release_http": 204,
+        "absence_http": 404,
+        "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
       }
     ],
     "global_locks": [],
@@ -581,5 +597,44 @@
       "absence_http": 404
     }
   ],
-  "as_of": "2026-11-05T05:03:48.667822+00:00"
+  "as_of": "2026-11-05T05:03:48.667822+00:00",
+  "codeql_static_triage": {
+    "reported_main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+    "local_revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
+    "affected_blobs_identical": true,
+    "selected": [
+      112,
+      57
+    ],
+    "verdicts": [
+      "not_actionable",
+      "not_actionable"
+    ],
+    "proof": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765",
+    "artifact": "docs/evidence/2026-11-05-web-5fb5f0e0-codeql-test-triage.json",
+    "runtime_validation": "NOT_RUN; static triage only",
+    "alert_states_changed": false,
+    "inventory_observation": {
+      "utc": "2026-11-05T05:04:42.149484Z",
+      "open": 49,
+      "untriaged_by_this_scope": 47
+    },
+    "claim": {
+      "ref": "refs/heads/webpro-claims/CODEQL-TEST-57-112-REVIEW",
+      "owner": "65508d46da72cc8b89b5633781b2e27dacf9b972",
+      "acquired_at": "2026-11-05T05:07:04.710364+00:00",
+      "http": 201,
+      "readback": true,
+      "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "scope": [
+        112,
+        57
+      ],
+      "released_at": "2026-11-05T05:10:44.388801+00:00",
+      "release_http": 204,
+      "absence_http": 404,
+      "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
+    }
+  },
+  "evidence_updated_at": "2026-11-05T05:11:44.747593+00:00"
 }
