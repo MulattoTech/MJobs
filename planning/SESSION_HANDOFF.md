@@ -411,3 +411,50 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - PR [#935](https://github.com/MulattoTech/MJobs/pull/935) has independent ATS review and 36 tests / 82 subtests, but its failed old DOM CI must be superseded after #946 reaches protected main. Salary repair review was handed to the sole #934 owner; immutable review commit `4bfea366e6d39705df5da55cd0aaad68489a8e12` is available.
 - No acceptance promotion or deployment in this checkpoint. Read GitHub main, exact PR heads and live ownership before resuming. Current objective claims: MJ-REQ-179 and PR-935-INTEGRATION; shared scanner claim and all heavy/browser slots were released. Integration locks are held only for bounded transactions.
 - Next: all protected gates on the fresh candidate, serialized merge, then guarded current-main deployment and live verification. Selected Brave access was unavailable; authenticated UI verification remains NOT RUN.
+
+
+## 2026-11-05 — preparation integration handoff, web-1a0742d4
+
+Run: `web-20261105T024510Z-1a0742d4c0c7`. This dated section preserves earlier handoffs; live GitHub state overrides it.
+
+### Published candidate and actual outcomes
+
+- [PR945](https://github.com/MulattoTech/MJobs/pull/945), head `868f4e11ec5139c33dfda87aea0313092d689134`, incorporates [PR950](https://github.com/MulattoTech/MJobs/pull/950) head `91fe01ac51c2033f87743f5db326972bcbb1ec2b` and protected-main revision `c6d499f391a8e092e06892d7fdea25cbfd177e53`. The original histories and all ten original source/test/evidence blobs were preserved.
+- The two original fixes block preparation for canonically closed jobs and reject aliased reviewed-cover-letter destinations/malformed application IDs before document mutation. This run independently reviewed and tested them; it did not author the original source behavior.
+- Exact combined source `fb8e68f45a23a69031adccbfbe43fa694a163a6f`: **55 tests and 47 subtests PASS**, zero failures/skips, 73.62 seconds. Published head adds only `docs/evidence/2026-11-05-web-1a0742d4-preparation-integration.md`. Catalogue/journal/dashboard/whitespace/provenance and the authenticated existing-PR update preflight passed.
+- [Complete qualification report](https://github.com/MulattoTech/MJobs/blob/868f4e11ec5139c33dfda87aea0313092d689134/docs/evidence/2026-11-05-web-1a0742d4-preparation-integration.md) retains the initial launcher import failure, the earlier hosted TLS timing failure and bounded Linux diagnosis. Old component runs overlap and must not be added together.
+- Independent original-source COMMENT reviews: [PR945](https://github.com/MulattoTech/MJobs/pull/945#pullrequestreview-5779328221) and [PR950](https://github.com/MulattoTech/MJobs/pull/950#pullrequestreview-5779218512). These are not human approvals or an independent review of this run's mechanical merge.
+- Additional independent review delivered for [PR957 HTTP cleanup](https://github.com/MulattoTech/MJobs/pull/957#pullrequestreview-5779410339), with no separate test execution claimed.
+- [PR959 sitemap review](https://github.com/MulattoTech/MJobs/pull/959#pullrequestreview-5779471434) independently executed **11 unit tests and 20 subtests PASS**, zero failures/skips, 0.24 seconds at `b6e3d982e7a8d404c5d70c1d91931278c5dfd146`. Fresh detached review checkout stayed clean; no author integration-test result was relabeled as this run's execution.
+
+### Exact hosted and production checkpoint
+
+At 2026-11-05T03:27:17Z, main was `c6d499f391a8e092e06892d7fdea25cbfd177e53`; PR945 remained OPEN / NOT MERGED. Required dependency, secret-scan and disposable-Compose checks passed. CI / required was queued; all three PostgreSQL/Redis shards were running and the aggregate had not reported.
+
+- [Fast CI](https://github.com/MulattoTech/MJobs/actions/runs/41960617045)
+- [PostgreSQL/Redis](https://github.com/MulattoTech/MJobs/actions/runs/41960617018)
+- [Disposable Compose](https://github.com/MulattoTech/MJobs/actions/runs/41960617068)
+- [Dependency review](https://github.com/MulattoTech/MJobs/actions/runs/41960617044)
+- [Secret scan](https://github.com/MulattoTech/MJobs/actions/runs/41960617024)
+
+At 03:18 UTC, candidate `823c1942854f5e5eb81a4826365d552679c68a89` had exact parents c6d499f3 and 868f4e11; its tree `dc9170ff12c9311033363c83e62989855f1c834b` matched the published/tested-source tree plus its evidence-only report. This observation must be refreshed after any main/head change.
+
+Production was still `d6650e4bc9bfd784bd6e3a346c793c372f02518a`, image tag `mjobs-micro:sha-d6650e4bc9bfd784bd6e3a346c793c372f02518a`, from the pre-existing updater's 03:01:38 UTC rollout. No deployment was initiated by this run. At 03:21 UTC the origin /ready returned HTTP200 and ready, with configuration/database/queue/worker/scheduler/schema true; public GET / returned HTTP302 to Cloudflare Access. The selected connected browser was unavailable, so authenticated user-journey verification is NOT RUN.
+
+Read-only rollout compatibility checks found an unaliased configured documents root with zero entries at 03:03 UTC and zero existing application rows at 03:19 UTC. Empty live data does not establish populated-dataset compatibility or a user journey. No live record or filesystem content was mutated. The guarded updater's verified-current-main, migration-digest, quiescent verified-backup, readiness/SHA and prior-image rollback gates remain mandatory.
+
+Canonical matrix refreshed at the 03:27 checkpoint (blob `715ebb1660a64611de380467cd1d85cc3750e331`): P0 **14 PASS /4 PARTIAL /8 NOT_RUN /26 total**; P1 **108 PASS /8 PARTIAL /0 NOT_RUN /116 total**. No acceptance changed in this run. MJ-REQ-155 and MJ-REQ-171 remain PARTIAL. Project access lacked read:project; no Project/Fleet reconciliation is claimed.
+
+### Ownership, isolation and continuation
+
+Objective refs held during qualification:
+- `refs/heads/webpro-claims/PR-945-INTEGRATION` at `c97370f2440f15a3b28c0d20ac53b8f3f05795bf`.
+- `refs/heads/webpro-claims/PR-950-INTEGRATION` at `fd7028c27e09f0799fade633803376598cb4a734`.
+
+The final PR conversation will record their exact owner-only release; never infer a lease from this file. Every global integration lock acquired by this run and its one Linux diagnostic heavy slot was released with HTTP204 and absent-ref readback. No deployment or browser slot was acquired. Other workers' refs and processes were untouched.
+
+Worktrees: `C:\Tools\Dev\MJobs-Web\web-20261105T024510Z-1a0742d4c0c7\pr945`, `pr950`, and read-only detached `review959`. Logs and JSON receipts are in this unique run root. This final handoff is published on a separate run-specific branch so it does not restart the already-running PR945 checks; the PR945 source head stays frozen.
+
+Next safe action is read-only inspection of the two pending workflow runs above. Before any write or merge, obtain fresh objective ownership, current main/head, actual candidate tree, all five strict contexts and unresolved-thread status. If main advanced, refresh and requalify without force-pushing or substituting old checks. Merge through the protected workflow under a short fresh integration lock; verify resulting main and PR950 ancestry/GitHub state. Then use the separately owned existing guarded deployment path only for verified current main. No deferred automatic merge or deployment was scheduled.
+
+The narrow alternative integration/review queue was refreshed at 03:23 UTC: PR929, PR930, PR932, PR933, PR943, PR944, PR948, PR949, PR954, PR955 and PR958 had active owners. Do not duplicate their work or steal quiet claims. Re-read current scopes before selecting an independent objective.
