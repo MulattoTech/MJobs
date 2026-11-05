@@ -1,75 +1,101 @@
 {
-  "run": "web-20261104T235930Z-bdfe9be94cd3",
-  "requirement": "MJ-REQ-171",
-  "base": "42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
-  "scope": "Synthetic, isolated browser profile directory admission; no actual session data",
-  "linux_test_command": "python -B -m unittest discover -v -s tests/unit -p test_browser_profile_privacy.py",
-  "baseline": {
-    "base": "42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
-    "source_git_blob": "eafb56bc728cb98ec9a0103121cadd455ffea6d7",
-    "source_sha256": "aed89b21b9ca7705f0c6e7db065ce0eabee95157e520544b85bd958c26b46b9b",
-    "test_sha256": "ac2aabd776764b76f41a4ba671c99cd7687eaf7a07e8a610153311b30d4325bf",
-    "tests": 11,
-    "failures": 15,
-    "errors": 4,
-    "skipped": 0,
-    "failed_cases": [
-      "test_fresh_default_and_named_directories_are_private_under_open_umask (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_fresh_default_and_named_directories_are_private_under_open_umask) (label='default')",
-      "test_fresh_default_and_named_directories_are_private_under_open_umask (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_fresh_default_and_named_directories_are_private_under_open_umask) (label='review')",
-      "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode='0o755', initialize=False)",
-      "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode='0o755', initialize=True)",
-      "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode='0o770', initialize=False)",
-      "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode='0o770', initialize=True)",
-      "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode='0o701', initialize=False)",
-      "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode='0o701', initialize=True)",
-      "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component='parent', initialize=False)",
-      "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component='parent', initialize=True)",
-      "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component='selected', initialize=False)",
-      "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component='selected', initialize=True)",
-      "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=False, initialize=False)",
-      "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=True, initialize=False)",
-      "test_replaced_directory_is_rejected_after_creation (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_replaced_directory_is_rejected_after_creation)"
-    ],
-    "error_cases": [
-      "test_creation_failure_is_sanitized (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_creation_failure_is_sanitized)",
-      "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=False, initialize=True)",
-      "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=True, initialize=True)",
-      "test_stat_failure_is_sanitized (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_stat_failure_is_sanitized)"
-    ]
-  },
-  "corrected": {
-    "tests": 11,
-    "failures": 0,
-    "errors": 0,
-    "skipped": 0,
-    "hashes": {
-      "services/applications/browser_profiles.py": "2ae018678359cd235c4ffe2aa4f4f991d77579eef2c4b781a85646a4146ebc0c",
-      "tests/unit/test_browser_profile_privacy.py": "ac2aabd776764b76f41a4ba671c99cd7687eaf7a07e8a610153311b30d4325bf"
-    },
-    "git_blobs": {
-      "services/applications/browser_profiles.py": "3738c7bd22c1982e9e479640d9c9deef41d33306",
-      "tests/unit/test_browser_profile_privacy.py": "e4d3a5ed83d709a11418a26de506687322a95509"
-    }
-  },
-  "windows_focused": {
-    "passed": 60,
-    "subtests_passed": 109,
-    "skipped": 8,
-    "failed": 0,
-    "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py --tb=short"
-  },
-  "checks": {
-    "catalogue": "PASS",
-    "progress_validate": "PASS",
-    "progress_dashboard": "CURRENT",
-    "diff_check": "PASS",
-    "hosted_ci": "PENDING",
-    "independent_review": "NOT_RUN",
-    "production": "NOT_DEPLOYED"
-  },
-  "limits": [
-    "POSIX mode admission is not Windows ACL isolation or a hostile-ancestor race guarantee.",
-    "Existing permissive POSIX profiles are refused without modification; deployment requires release-owner assessment.",
-    "Whole MJ-REQ-171 remains PARTIAL."
-  ]
+    "run":  "web-20261104T235930Z-bdfe9be94cd3",
+    "requirement":  "MJ-REQ-171",
+    "base":  "42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
+    "scope":  "Synthetic, isolated browser profile directory admission; no actual session data",
+    "linux_test_command":  "python -B -m unittest discover -v -s tests/unit -p test_browser_profile_privacy.py",
+    "baseline":  {
+                     "base":  "42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
+                     "source_git_blob":  "eafb56bc728cb98ec9a0103121cadd455ffea6d7",
+                     "source_sha256":  "aed89b21b9ca7705f0c6e7db065ce0eabee95157e520544b85bd958c26b46b9b",
+                     "test_sha256":  "ac2aabd776764b76f41a4ba671c99cd7687eaf7a07e8a610153311b30d4325bf",
+                     "tests":  11,
+                     "failures":  15,
+                     "errors":  4,
+                     "skipped":  0,
+                     "failed_cases":  [
+                                          "test_fresh_default_and_named_directories_are_private_under_open_umask (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_fresh_default_and_named_directories_are_private_under_open_umask) (label=\u0027default\u0027)",
+                                          "test_fresh_default_and_named_directories_are_private_under_open_umask (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_fresh_default_and_named_directories_are_private_under_open_umask) (label=\u0027review\u0027)",
+                                          "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode=\u00270o755\u0027, initialize=False)",
+                                          "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode=\u00270o755\u0027, initialize=True)",
+                                          "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode=\u00270o770\u0027, initialize=False)",
+                                          "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode=\u00270o770\u0027, initialize=True)",
+                                          "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode=\u00270o701\u0027, initialize=False)",
+                                          "test_permissive_legacy_session_is_refused_without_mutation_or_selection (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_permissive_legacy_session_is_refused_without_mutation_or_selection) (mode=\u00270o701\u0027, initialize=True)",
+                                          "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component=\u0027parent\u0027, initialize=False)",
+                                          "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component=\u0027parent\u0027, initialize=True)",
+                                          "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component=\u0027selected\u0027, initialize=False)",
+                                          "test_pinned_session_checks_parent_and_selected_directory_without_repair (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_pinned_session_checks_parent_and_selected_directory_without_repair) (public_component=\u0027selected\u0027, initialize=True)",
+                                          "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=False, initialize=False)",
+                                          "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=True, initialize=False)",
+                                          "test_replaced_directory_is_rejected_after_creation (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_replaced_directory_is_rejected_after_creation)"
+                                      ],
+                     "error_cases":  [
+                                         "test_creation_failure_is_sanitized (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_creation_failure_is_sanitized)",
+                                         "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=False, initialize=True)",
+                                         "test_profile_directory_must_not_be_a_regular_file (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_profile_directory_must_not_be_a_regular_file) (named=True, initialize=True)",
+                                         "test_stat_failure_is_sanitized (test_browser_profile_privacy.BrowserProfilePrivacyTests.test_stat_failure_is_sanitized)"
+                                     ]
+                 },
+    "corrected":  {
+                      "tests":  11,
+                      "failures":  0,
+                      "errors":  0,
+                      "skipped":  0,
+                      "hashes":  {
+                                     "services/applications/browser_profiles.py":  "2ae018678359cd235c4ffe2aa4f4f991d77579eef2c4b781a85646a4146ebc0c",
+                                     "tests/unit/test_browser_profile_privacy.py":  "ac2aabd776764b76f41a4ba671c99cd7687eaf7a07e8a610153311b30d4325bf"
+                                 },
+                      "git_blobs":  {
+                                        "services/applications/browser_profiles.py":  "3738c7bd22c1982e9e479640d9c9deef41d33306",
+                                        "tests/unit/test_browser_profile_privacy.py":  "e4d3a5ed83d709a11418a26de506687322a95509"
+                                    }
+                  },
+    "windows_focused":  {
+                            "passed":  60,
+                            "subtests_passed":  109,
+                            "skipped":  8,
+                            "failed":  0,
+                            "command":  "python -m pytest -q -p no:cacheprovider tests/unit/test_browser_profile_privacy.py tests/unit/test_browser_profile_configuration.py tests/unit/test_manual_auth_path_security.py tests/unit/test_manual_auth_host.py tests/unit/test_manual_auth_deadline.py tests/unit/test_backup_config_snapshot.py --tb=short"
+                        },
+    "checks":  {
+                   "catalogue":  "PASS",
+                   "progress_validate":  "PASS",
+                   "progress_dashboard":  "CURRENT",
+                   "diff_check":  "PASS",
+                   "hosted_ci":  "PENDING",
+                   "independent_review":  "NOT_RUN",
+                   "production":  "NOT_DEPLOYED"
+               },
+    "limits":  [
+                   "POSIX mode admission is not Windows ACL isolation or a hostile-ancestor race guarantee.",
+                   "Existing permissive POSIX profiles are refused without modification; deployment requires release-owner assessment.",
+                   "Whole MJ-REQ-171 remains PARTIAL."
+               ],
+    "codeql_followup":  {
+                            "original_codeql_analysis":  2099545180,
+                            "original_codeql_result":  "5 py/path-injection alerts; preserved",
+                            "source_trace":  "manual-auth API to existing strict hexadecimal-ID and containment guards to profile resolver",
+                            "change":  "Reconstruct the validated ID as a fixed-width hexadecimal path component; retain rejection and containment",
+                            "tests":  "61 native Windows tests PASS, 112 subtests PASS, 8 platform/environment SKIP",
+                            "linux_privacy_source":  "Unchanged module and test Git blobs; prior 11-test PASS still applies",
+                            "fresh_codeql":  "PENDING",
+                            "production_read_only":  {
+                                                         "running_image":  "mjobs-micro:sha-42ba63525c93e26bfe7168c4875a21fee4a5c6cd",
+                                                         "configured_document_root_exists":  true,
+                                                         "inspected_application_dirs":  0,
+                                                         "profile_roots":  0,
+                                                         "truncated":  false,
+                                                         "contents_read":  false,
+                                                         "mutations":  false
+                                                     },
+                            "shared_scan":  {
+                                                "run":  41939528240,
+                                                "artifact":  13376590050,
+                                                "finding_count":  2,
+                                                "finding_commit":  "c5339366e7372f9a5fca24c4c0410edacf8a6b2d",
+                                                "finding_note":  "The exact two independently verified API source blob IDs in PR937 evidence; no finding in PR938-authored files",
+                                                "resolution":  "Await shared fingerprint ownership; no scanner bypass"
+                                            }
+                        }
 }

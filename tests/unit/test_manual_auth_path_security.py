@@ -201,6 +201,19 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
                     selected, run_browser.call_args.kwargs["application_root"]),
                     application_root / "debug-captures")
 
+    def test_canonical_hex_ids_preserve_leading_zeroes_and_exact_session(self):
+        for application_id in ("0" * 64, "0f" * 32, "f" * 64):
+            with self.subTest(application_id=application_id):
+                profile = self.root / application_id / "browser-profile"
+                profile.mkdir(mode=0o700, parents=True)
+                with patch.object(
+                    manual_auth, "run_browser",
+                    return_value=manual_auth.MANUAL_AUTH_WINDOW_CLOSED,
+                ) as run_browser:
+                    result = self._open(application_id=application_id)
+                self.assertEqual(result, manual_auth.MANUAL_AUTH_WINDOW_CLOSED)
+                self.assertEqual(run_browser.call_args.args[0], profile)
+
     def test_persisted_path_shaped_application_id_fails_closed(self):
         self.profile.mkdir(mode=0o700)
         (self.root / "nested" / APPLICATION_ID / "browser-profile").mkdir(parents=True)
