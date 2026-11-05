@@ -19,6 +19,12 @@ _MAX_FEED_BYTES = 2_000_000
 _MAX_JOBS = 1000
 
 
+class _JobFeedTreeBuilder(ET.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        # Enforce the no-DTD contract after the parser detects its encoding.
+        raise ET.ParseError("Document type declarations are not supported")
+
+
 def _origin(url):
     try:
         parsed = urlsplit(str(url or ""))
@@ -93,7 +99,8 @@ def parse_public_job_feed(body, strategy):
     if "<!doctype" in body.casefold() or "<!entity" in body.casefold():
         raise ValueError("COMPANY_JOB_FEED_INVALID")
     try:
-        root = ET.fromstring(body)
+        parser = ET.XMLParser(target=_JobFeedTreeBuilder())
+        root = ET.fromstring(body, parser=parser)
     except (ET.ParseError, ValueError) as error:
         raise ValueError("COMPANY_JOB_FEED_INVALID") from error
     root_name = root.tag.rsplit("}", 1)[-1].casefold()
