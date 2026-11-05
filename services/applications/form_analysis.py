@@ -3,6 +3,10 @@ from __future__ import annotations
 
 import re
 
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
+
 
 MAX_CONTROLS = 100
 MAX_OPTIONS = 100
@@ -271,6 +275,9 @@ def analyze_form_page(page, *, check=None) -> dict:
         if check is not None:
             check()
         return analyze_controls(controls)
+    except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+        # Preserve durable stop/control failures instead of returning form metadata.
+        raise
     except Exception:
         if check is not None:
             check()
