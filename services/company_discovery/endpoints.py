@@ -115,6 +115,12 @@ def parse_public_job_feed(body, strategy):
                 # Atom entries can also advertise self/enclosure links. Their
                 # order must never decide the job destination.
                 if child.attrib.get("rel", "alternate").strip().casefold() == "alternate":
+                    # A declared PDF/feed/image alternate is not a job page.
+                    # Omitted media types remain supported; declarations are
+                    # advisory, so this does not verify the destination itself.
+                    media_type = child.attrib.get("type", "").split(";", 1)[0].strip().casefold()
+                    if media_type not in {"", "text/html", "application/xhtml+xml"}:
+                        continue
                     target = (child.attrib.get("href") or child.text or "").strip()
                     if target:
                         atom_alternates.add(target)
