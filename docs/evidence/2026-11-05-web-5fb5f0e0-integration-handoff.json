@@ -1,8 +1,8 @@
 {
   "run": "web-20261105T024405Z-5fb5f0e00ed3",
-  "status": "ACTIVE; PR961 merged/deployed, PR958 protected-merged with production release gates pending; PR943 refreshed/current-main candidate awaits full integration CI; PR949/960 blocked and released",
-  "previous_checkpoint": "d726b81518fb1ac8254f57df8f31521db553ba39",
-  "main": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+  "status": "ACTIVE; PR961 and PR958 merged/deployed; PR943 protected-merged and awaits its actual-main release gates; PR949/960 remain blocked/released; no task claims or resource locks held",
+  "previous_checkpoint": "3b79fe5198ec8b87ef46ace92b98eb075b553c7a",
+  "main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
   "merged": {
     "pr": 961,
     "head": "75e864ee7c9cb90d7907fd3cb1537cb0013aadeb",
@@ -389,7 +389,7 @@
         "866e6d3163e0c18afbe532824160561cea06763b"
       ],
       "exactTree": true,
-      "status": "PROTECTED MERGE VERIFIED / NOT YET VERIFIED DEPLOYED",
+      "status": "MERGED / DEPLOYED; authenticated UI NOT RUN; full MJ-REQ-172 remains PARTIAL",
       "checks": [
         {
           "id": 127071902837,
@@ -495,7 +495,9 @@
       "unresolved_review_threads": 0,
       "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr958-integration",
       "actual_merge": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-      "merged_at": "2026-11-05T05:56:19Z"
+      "merged_at": "2026-11-05T05:56:19Z",
+      "deployment_proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6651424424",
+      "deployed_at": "2026-11-05T06:21:23.271618+00:00"
     },
     {
       "pr": 943,
@@ -508,7 +510,7 @@
         "43cad34752c5b2f281ce94277bd0bf5af04506e8"
       ],
       "exactTree": true,
-      "status": "OPEN / NOT MERGED / NOT DEPLOYED; full integration CI pending",
+      "status": "PROTECTED MERGE VERIFIED / NOT YET DEPLOYED",
       "checks": [
         {
           "id": 127082211862,
@@ -527,44 +529,12 @@
           "html_url": "https://github.com/MulattoTech/MJobs/runs/127080870243"
         },
         {
-          "id": 127080678098,
-          "name": "Web / Vitest and production build",
+          "id": 127080677234,
+          "name": "Dependencies / introduced vulnerabilities",
           "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
           "status": "completed",
           "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811439/job/127080678098"
-        },
-        {
-          "id": 127080677841,
-          "name": "Python / unit and integrity",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "completed",
-          "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811439/job/127080677841"
-        },
-        {
-          "id": 127080677729,
-          "name": "Repository / policy and docs",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "completed",
-          "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811439/job/127080677729"
-        },
-        {
-          "id": 127080677702,
-          "name": "Integration / shard 1",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "in_progress",
-          "conclusion": null,
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127080677702"
-        },
-        {
-          "id": 127080677614,
-          "name": "Integration / shard 0",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "in_progress",
-          "conclusion": null,
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127080677614"
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811383/job/127080677234"
         },
         {
           "id": 127080677526,
@@ -575,20 +545,12 @@
           "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811494/job/127080677526"
         },
         {
-          "id": 127080677499,
-          "name": "Integration / shard 2",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "in_progress",
-          "conclusion": null,
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127080677499"
-        },
-        {
-          "id": 127080677234,
-          "name": "Dependencies / introduced vulnerabilities",
+          "id": 127087054545,
+          "name": "Integration / PostgreSQL and Redis",
           "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
           "status": "completed",
           "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811383/job/127080677234"
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127087054545"
         },
         {
           "id": 127080677102,
@@ -597,33 +559,9 @@
           "status": "completed",
           "conclusion": "success",
           "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811401/job/127080677102"
-        },
-        {
-          "id": 127080669357,
-          "name": "Analyze (actions)",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "completed",
-          "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977807360/job/127080669357"
-        },
-        {
-          "id": 127080669261,
-          "name": "Analyze (python)",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "completed",
-          "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977807360/job/127080669261"
-        },
-        {
-          "id": 127080668923,
-          "name": "Analyze (javascript-typescript)",
-          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
-          "status": "completed",
-          "conclusion": "success",
-          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977807360/job/127080668923"
         }
       ],
-      "checks_as_of": "2026-11-05T06:13:54.484397+00:00",
+      "checks_as_of": "2026-11-05T06:26:28.316920+00:00",
       "source_and_evidence_blobs": {
         "docs/evidence/2026-11-05-web-1f7d3a29-worker-startup.md": "7b1f5b1102eb0ac44544a445fa08b0e1f4b2a0cb",
         "docs/evidence/2026-11-05-web-e573e693-worker-lifecycle.md": "9d7086a5d16ae0dbedc1cd5c68dc6b8fb11beafd",
@@ -648,19 +586,13 @@
         "allowed": true,
         "current": 21,
         "projected": 21
-      }
+      },
+      "actual_merge": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "merged_at": "2026-11-05T06:26:53Z"
     }
   ],
   "ownership": {
-    "held": [
-      {
-        "ref": "refs/heads/webpro-claims/PR-943-INTEGRATION",
-        "owner": "0ec2d2ec89e2d6ff69cfadbb2f06ef0d6a8b1b15",
-        "acquired_at": "2026-11-05T05:59:05.801951+00:00",
-        "http": 201,
-        "readback": true
-      }
-    ],
+    "held": [],
     "released": [
       {
         "ref": "refs/heads/webpro-claims/PR-941-INTEGRATION",
@@ -742,6 +674,13 @@
         "released_at": "2026-11-05T05:57:19.319978+00:00",
         "release_http": 204,
         "absence_http": 404
+      },
+      {
+        "ref": "refs/heads/webpro-claims/PR-943-INTEGRATION",
+        "owner": "0ec2d2ec89e2d6ff69cfadbb2f06ef0d6a8b1b15",
+        "released_at": "2026-11-05T06:27:09.474576+00:00",
+        "release_http": 204,
+        "absence_http": 404
       }
     ],
     "global_locks": [],
@@ -774,6 +713,16 @@
         "owner": "7b19f9638f7c163f9318a8b56e50128475068708",
         "acquired_at": "2026-11-05T05:24:17.285621+00:00",
         "released_at": "2026-11-05T05:28:19.241128+00:00",
+        "release_http": 204,
+        "absence_http": 404
+      },
+      {
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "owner": "ac913f276f74fe55b7b054ea3b05ecc38a4765c4",
+        "acquired_at": "2026-11-05T06:20:20.368121+00:00",
+        "http": 201,
+        "readback": true,
+        "released_at": "2026-11-05T06:21:25.407004+00:00",
         "release_http": 204,
         "absence_http": 404
       }
@@ -823,8 +772,8 @@
     }
   ],
   "progress": {
-    "read_at": "2026-11-05T06:13:54.484397+00:00",
-    "source": "Canonical matrix and progress card on main bd0753bd1ebc24510ef9cc268835f77a90efa594; unchanged blobs independently rechecked",
+    "read_at": "2026-11-05T06:31:57.802522+00:00",
+    "source": "Canonical matrix and progress card at current main e56f9022185c209465f53cf89bbf7818c60efe8a; unchanged blobs independently checked; acceptance timestamp unchanged",
     "dashboard_check": "CURRENT",
     "original": {
       "pass": 183,
@@ -870,81 +819,70 @@
     "All original/additive acceptance counts unchanged; no Project/Fleet reconciliation; no other model/agent invoked.",
     "Current CI diagnostics are test-only, retain existing assertions/budgets, and are not source fixes for the unresolved hosted timing/race failures."
   ],
-  "next_action": "Await actual current-main release checks and PR943 full integration result. Existing guarded updater only, fresh deployment/resource admission, no live restore. If PR943 passes, fresh integration claim and expected-head protected merge with exact main/head/tree/review/policy verification. Preserve failed PR949/960 and PR930 production migration gates; no acceptance promotion.",
+  "next_action": "Inspect actual-main E56 release gates. If all four pass and E56 remains current, obtain fresh deployment/resource admission and use the existing guarded updater once; wait boundedly for settled Docker health, identify the unauthenticated probe with MJobs-Release-Verification/1.0, verify version/source/image/backup/Access boundary, and release exact owners. Preserve all initial verification observations and PR949/960 failures. No acceptance promotion without complete literal criteria and tracking reconciliation.",
   "production": {
-    "at": "2026-11-05T04:44:33.686808+00:00",
-    "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+    "at": "2026-11-05T06:28:21.334760+00:00",
+    "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
     "containers_healthy": 9,
     "readiness_http": 200,
     "deployment_http": 200,
     "attempted": true,
     "verified": true,
     "release": {
-      "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
-      "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
-      "deployed_at": "2026-11-05T04:40:44.583387+00:00"
+      "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "deployed_at": "2026-11-05T06:21:23.271618+00:00"
     },
-    "image_identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
-    "proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6649913015",
-    "edge": {
-      "utc": "2026-11-05T04:59:08.055849Z",
-      "paths": [
-        "/",
-        "/__deployment",
-        "/ready",
-        "/profiles"
-      ],
-      "status": 302,
-      "redirect": "configured Cloudflare Access login",
-      "body_read": false
+    "image_identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
+    "source": {
+      "path": "apps/api/resume_workspace_preview.py",
+      "sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+      "expected_sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+      "matches_merged_source": true
     },
-    "edge_proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6650117825",
+    "proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6651424424",
     "backup": {
-      "observed_at": "2026-11-05T05:02:13.870580Z",
-      "manifest_entries": 3,
+      "archive": "20261105T062113Z-ecd987dcaecc",
+      "manifest_sha256": "8910675fdeffb528e49da7b1ddc716892f5e178c94caae198a1f47e62fbf2617",
+      "schema_version": 2,
+      "alembic_revision": "20261025di01",
+      "operation_mode": "PERSONAL",
+      "file_count": 3,
       "all_hashes_match": true,
-      "document_file_count": 0,
-      "prior_image_retained": true,
       "restore_attempted": false
     },
-    "latest_observation": {
-      "at": "2026-11-05T06:13:54.484397+00:00",
-      "state": {
-        "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
-        "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
-        "deployed_at": "2026-11-05T04:40:44.583387+00:00"
+    "prior_image": {
+      "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+      "retained": true
+    },
+    "edge": [
+      {
+        "path": "/",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
       },
-      "version": {
-        "http": 200,
-        "data": {
-          "commit": "ecd987dcaecce05eed13391a765f27cf5b9def76",
-          "version": "0.1.0-dev",
-          "operation_mode": "PERSONAL"
-        }
+      {
+        "path": "/__deployment",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
       },
-      "readiness": {
-        "http": 200,
-        "data": {
-          "status": "ready",
-          "checks": {
-            "configuration": true,
-            "database": true,
-            "queue": true,
-            "worker": true,
-            "scheduler": true,
-            "workers": {
-              "mjobs-ai": true,
-              "mjobs-application": true,
-              "mjobs-company-discovery": true,
-              "mjobs-discovery": true,
-              "mjobs-document": true
-            },
-            "schema": true
-          },
-          "db_backend": "postgresql"
-        }
+      {
+        "path": "/ready",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
+      },
+      {
+        "path": "/profiles",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
       }
-    }
+    ],
+    "authenticated_browser": "NOT RUN; originating connected browser context unavailable"
   },
   "diagnostics": {
     "unchanged_linux": {
@@ -1378,7 +1316,7 @@
       "absence_http": 404
     }
   ],
-  "as_of": "2026-11-05T06:13:54.484397+00:00",
+  "as_of": "2026-11-05T06:31:57.802522+00:00",
   "codeql_static_triage": {
     "reported_main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
     "local_revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
@@ -1417,7 +1355,7 @@
       "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
     }
   },
-  "evidence_updated_at": "2026-11-05T06:13:54.484397+00:00",
+  "evidence_updated_at": "2026-11-05T06:31:57.802522+00:00",
   "current_candidate_failures": [
     {
       "pr": 949,
@@ -1480,7 +1418,7 @@
     "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr958-integration",
     "source_branch": "web/web-20261105T024508Z-59bece5f637e/resume-preview-errors",
     "overlaps": {},
-    "status": "MERGED; scope released; production release gates pending",
+    "status": "MERGED / DEPLOYED; authenticated UI NOT RUN",
     "blobs": {
       "apps/api/resume_workspace_preview.py": "14449527918efb10cda18399a261b5d066f6af5d",
       "docs/evidence/2026-11-05-web-59bece5f-preview-error-privacy.md": "276c071877a1937b11b1f79147070c93ea38cf96",
@@ -1683,7 +1621,8 @@
         "absence_http": 404
       }
     },
-    "scope_released": true
+    "scope_released": true,
+    "deployment_proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6651424424"
   },
   "pr930_evidence_reconciliation": {
     "head": "84d28a4d024a8f266fadd5e822736797a7231d5f",
@@ -1810,7 +1749,9 @@
       "absence_http": 404
     },
     "proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6650946807",
-    "deployed_by_this_run": false
+    "deployed_by_this_run": true,
+    "deployed_at": "2026-11-05T06:21:23.271618+00:00",
+    "deployment_proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6651424424"
   },
   "integration_943": {
     "run": "web-20261105T024405Z-5fb5f0e00ed3",
@@ -1825,7 +1766,7 @@
     "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr943-integration",
     "source_branch": "web/web-20261105T000133Z-e573e693-c10a-4b98-b2c7-698c3237ff2c/MJ-REQ-160",
     "overlaps": {},
-    "status": "OPEN / NOT MERGED / NOT DEPLOYED; full integration CI pending",
+    "status": "MERGED; scope released; actual-main deployment checks pending",
     "blobs": {
       "docs/evidence/2026-11-05-web-1f7d3a29-worker-startup.md": "7b1f5b1102eb0ac44544a445fa08b0e1f4b2a0cb",
       "docs/evidence/2026-11-05-web-e573e693-worker-lifecycle.md": "9d7086a5d16ae0dbedc1cd5c68dc6b8fb11beafd",
@@ -1914,7 +1855,128 @@
       "absence_http": 404
     },
     "independent_review_preserved": true,
-    "first_refresh_launch": "Transport timeout; process/session/receipt/directory/ref inspections proved no launch before the successful single execution"
+    "first_refresh_launch": "Transport timeout; process/session/receipt/directory/ref inspections proved no launch before the successful single execution",
+    "merge": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "merge_receipt": {
+      "run": "web-20261105T024405Z-5fb5f0e00ed3",
+      "base": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+      "candidate": "2ece655475045e510e3ec64d84bc60a3c14954ef",
+      "tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+      "lock_owner": "0ca866d9aede895adf8ba2bdec545399a63e1a63",
+      "acquired_at": "2026-11-05T06:26:19.277891+00:00",
+      "http": 201,
+      "readback": true,
+      "admission": {
+        "checks": [
+          {
+            "id": 127082211862,
+            "name": "CI / required",
+            "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811439/job/127082211862"
+          },
+          {
+            "id": 127080870243,
+            "name": "CodeQL",
+            "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/MulattoTech/MJobs/runs/127080870243"
+          },
+          {
+            "id": 127080677234,
+            "name": "Dependencies / introduced vulnerabilities",
+            "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811383/job/127080677234"
+          },
+          {
+            "id": 127080677526,
+            "name": "Disposable Compose / mock end-to-end",
+            "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811494/job/127080677526"
+          },
+          {
+            "id": 127087054545,
+            "name": "Integration / PostgreSQL and Redis",
+            "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127087054545"
+          },
+          {
+            "id": 127080677102,
+            "name": "Security / secret scan",
+            "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811401/job/127080677102"
+          }
+        ],
+        "ruleset": 24886459,
+        "required_approvals": 0,
+        "unresolved_threads": 0,
+        "review_decision": null,
+        "verified_at": "2026-11-05T06:26:28.316920+00:00"
+      },
+      "checkout_proof": {
+        "job": 127080677702,
+        "checked_out": "2ece655475045e510e3ec64d84bc60a3c14954ef",
+        "head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+        "conclusion": "success",
+        "result": "876 passed, 3 skipped, 13 warnings, 450 subtests passed in 796.99s",
+        "log_checkout_at": "2026-11-05T06:03:11.6809084Z",
+        "completed_at": "2026-11-05T06:17:31Z",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127080677702"
+      },
+      "status": "PROTECTED MERGE VERIFIED; deployment pending main release gates",
+      "overlap_preflight": {
+        "main": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "pr943_head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+        "open_count": 21,
+        "files": [
+          "docs/evidence/2026-11-05-web-1f7d3a29-worker-startup.md",
+          "docs/evidence/2026-11-05-web-e573e693-worker-lifecycle.md",
+          "planning/agent_handoffs/PR-943-INTEGRATION.json",
+          "tests/unit/test_worker_connection_lifecycle_160.py",
+          "tests/unit/test_worker_startup_resources_160.py",
+          "workers/main.py"
+        ],
+        "overlaps": {}
+      },
+      "merge_api_result": {
+        "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "merged": true
+      },
+      "merged_at": "2026-11-05T06:26:53Z",
+      "merge": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "actual_main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "actual_tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+      "actual_parents": [
+        "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "43cad34752c5b2f281ce94277bd0bf5af04506e8"
+      ],
+      "verified_at": "2026-11-05T06:27:06.105446+00:00",
+      "integration_release": {
+        "owner": "0ca866d9aede895adf8ba2bdec545399a63e1a63",
+        "released_at": "2026-11-05T06:27:07.851955+00:00",
+        "release_http": 204,
+        "absence_http": 404
+      },
+      "scope_release": {
+        "ref": "refs/heads/webpro-claims/PR-943-INTEGRATION",
+        "owner": "0ec2d2ec89e2d6ff69cfadbb2f06ef0d6a8b1b15",
+        "released_at": "2026-11-05T06:27:09.474576+00:00",
+        "release_http": 204,
+        "absence_http": 404
+      }
+    },
+    "scope_released": true
   },
   "recent_transactions_0616": {
     "pr958_merge_lock": {
@@ -1934,169 +1996,766 @@
     }
   },
   "main_release_checks": {
-    "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-    "as_of": "2026-11-05T06:13:54.484397+00:00",
+    "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "as_of": "2026-11-05T06:31:57.802522+00:00",
     "checks": [
       {
-        "id": 127083256908,
+        "id": 127090655124,
         "name": "review",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41978621897/job/127083256908"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980947171/job/127090655124"
       },
       {
-        "id": 127082257330,
-        "name": "review",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41978306327/job/127082257330"
-      },
-      {
-        "id": 127080807433,
-        "name": "review",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977851120/job/127080807433"
-      },
-      {
-        "id": 127080746523,
-        "name": "review",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977833247/job/127080746523"
-      },
-      {
-        "id": 127079990756,
-        "name": "review",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977601941/job/127079990756"
-      },
-      {
-        "id": 127079923462,
+        "id": 127090608798,
         "name": "CI / required",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130871/job/127079923462"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980475920/job/127090608798"
       },
       {
-        "id": 127078579780,
+        "id": 127089274112,
         "name": "review",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977160574/job/127078579780"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980509562/job/127089274112"
       },
       {
-        "id": 127078548406,
+        "id": 127089248347,
         "name": "Publish trusted main documentation",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130829/job/127078548406"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476002/job/127089248347"
       },
       {
-        "id": 127078500777,
-        "name": "Deployment / candidate",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "in_progress",
-        "conclusion": null,
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130840/job/127078500777"
-      },
-      {
-        "id": 127078487835,
-        "name": "Web / Vitest and production build",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130871/job/127078487835"
-      },
-      {
-        "id": 127078485964,
-        "name": "Analyze (javascript-typescript)",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130686/job/127078485964"
-      },
-      {
-        "id": 127078485856,
-        "name": "Analyze (actions)",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130686/job/127078485856"
-      },
-      {
-        "id": 127078485542,
+        "id": 127089170836,
         "name": "Analyze (python)",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130686/job/127078485542"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980474817/job/127089170836"
       },
       {
-        "id": 127078481631,
-        "name": "Repository / policy and docs",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "id": 127089170833,
+        "name": "Analyze (javascript-typescript)",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130871/job/127078481631"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980474817/job/127089170833"
       },
       {
-        "id": 127078481556,
-        "name": "Python / unit and integrity",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "id": 127089170585,
+        "name": "Analyze (actions)",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130871/job/127078481556"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980474817/job/127089170585"
       },
       {
-        "id": 127078481470,
-        "name": "Integration / shard 2",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "id": 127089169385,
+        "name": "Integration / shard 0",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "in_progress",
         "conclusion": null,
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130809/job/127078481470"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476058/job/127089169385"
       },
       {
-        "id": 127078481456,
+        "id": 127089169341,
+        "name": "Repository / policy and docs",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980475920/job/127089169341"
+      },
+      {
+        "id": 127089169252,
         "name": "Integration / shard 1",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-        "status": "completed",
-        "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130809/job/127078481456"
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476058/job/127089169252"
       },
       {
-        "id": 127078481420,
-        "name": "Security / secret scan",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "id": 127089169080,
+        "name": "Web / Vitest and production build",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130844/job/127078481420"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980475920/job/127089169080"
       },
       {
-        "id": 127078481348,
+        "id": 127089168940,
+        "name": "Deployment / candidate",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980475999/job/127089168940"
+      },
+      {
+        "id": 127089168865,
+        "name": "Integration / shard 2",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476058/job/127089168865"
+      },
+      {
+        "id": 127089168729,
+        "name": "Python / unit and integrity",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980475920/job/127089168729"
+      },
+      {
+        "id": 127089168521,
         "name": "Build allowlisted static documentation",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130829/job/127078481348"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476002/job/127089168521"
       },
       {
-        "id": 127078481169,
-        "name": "Integration / shard 0",
-        "head_sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "id": 127089168510,
+        "name": "Security / secret scan",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130809/job/127078481169"
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980475923/job/127089168510"
       }
     ]
+  },
+  "merged_943": {
+    "run": "web-20261105T024405Z-5fb5f0e00ed3",
+    "base": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+    "head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+    "candidate": "2ece655475045e510e3ec64d84bc60a3c14954ef",
+    "tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+    "lock_owner": "0ca866d9aede895adf8ba2bdec545399a63e1a63",
+    "acquired_at": "2026-11-05T06:26:19.277891+00:00",
+    "http": 201,
+    "readback": true,
+    "admission": {
+      "checks": [
+        {
+          "id": 127082211862,
+          "name": "CI / required",
+          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811439/job/127082211862"
+        },
+        {
+          "id": 127080870243,
+          "name": "CodeQL",
+          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/runs/127080870243"
+        },
+        {
+          "id": 127080677234,
+          "name": "Dependencies / introduced vulnerabilities",
+          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811383/job/127080677234"
+        },
+        {
+          "id": 127080677526,
+          "name": "Disposable Compose / mock end-to-end",
+          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811494/job/127080677526"
+        },
+        {
+          "id": 127087054545,
+          "name": "Integration / PostgreSQL and Redis",
+          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127087054545"
+        },
+        {
+          "id": 127080677102,
+          "name": "Security / secret scan",
+          "head_sha": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811401/job/127080677102"
+        }
+      ],
+      "ruleset": 24886459,
+      "required_approvals": 0,
+      "unresolved_threads": 0,
+      "review_decision": null,
+      "verified_at": "2026-11-05T06:26:28.316920+00:00"
+    },
+    "checkout_proof": {
+      "job": 127080677702,
+      "checked_out": "2ece655475045e510e3ec64d84bc60a3c14954ef",
+      "head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+      "conclusion": "success",
+      "result": "876 passed, 3 skipped, 13 warnings, 450 subtests passed in 796.99s",
+      "log_checkout_at": "2026-11-05T06:03:11.6809084Z",
+      "completed_at": "2026-11-05T06:17:31Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41977811332/job/127080677702"
+    },
+    "status": "PROTECTED MERGE VERIFIED; deployment pending main release gates",
+    "overlap_preflight": {
+      "main": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "pr943_head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+      "open_count": 21,
+      "files": [
+        "docs/evidence/2026-11-05-web-1f7d3a29-worker-startup.md",
+        "docs/evidence/2026-11-05-web-e573e693-worker-lifecycle.md",
+        "planning/agent_handoffs/PR-943-INTEGRATION.json",
+        "tests/unit/test_worker_connection_lifecycle_160.py",
+        "tests/unit/test_worker_startup_resources_160.py",
+        "workers/main.py"
+      ],
+      "overlaps": {}
+    },
+    "merge_api_result": {
+      "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "merged": true
+    },
+    "merged_at": "2026-11-05T06:26:53Z",
+    "merge": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "actual_main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "actual_tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+    "actual_parents": [
+      "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "43cad34752c5b2f281ce94277bd0bf5af04506e8"
+    ],
+    "verified_at": "2026-11-05T06:27:06.105446+00:00",
+    "integration_release": {
+      "owner": "0ca866d9aede895adf8ba2bdec545399a63e1a63",
+      "released_at": "2026-11-05T06:27:07.851955+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    "scope_release": {
+      "ref": "refs/heads/webpro-claims/PR-943-INTEGRATION",
+      "owner": "0ec2d2ec89e2d6ff69cfadbb2f06ef0d6a8b1b15",
+      "released_at": "2026-11-05T06:27:09.474576+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    "proof": "https://github.com/MulattoTech/MJobs/pull/943#issuecomment-6651403838",
+    "deployed_by_this_run": false
+  },
+  "production_history": [
+    {
+      "at": "2026-11-05T04:44:33.686808+00:00",
+      "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "containers_healthy": 9,
+      "readiness_http": 200,
+      "deployment_http": 200,
+      "attempted": true,
+      "verified": true,
+      "release": {
+        "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "deployed_at": "2026-11-05T04:40:44.583387+00:00"
+      },
+      "image_identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+      "proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6649913015",
+      "edge": {
+        "utc": "2026-11-05T04:59:08.055849Z",
+        "paths": [
+          "/",
+          "/__deployment",
+          "/ready",
+          "/profiles"
+        ],
+        "status": 302,
+        "redirect": "configured Cloudflare Access login",
+        "body_read": false
+      },
+      "edge_proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6650117825",
+      "backup": {
+        "observed_at": "2026-11-05T05:02:13.870580Z",
+        "manifest_entries": 3,
+        "all_hashes_match": true,
+        "document_file_count": 0,
+        "prior_image_retained": true,
+        "restore_attempted": false
+      },
+      "latest_observation": {
+        "at": "2026-11-05T06:13:54.484397+00:00",
+        "state": {
+          "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+          "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+          "deployed_at": "2026-11-05T04:40:44.583387+00:00"
+        },
+        "version": {
+          "http": 200,
+          "data": {
+            "commit": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+            "version": "0.1.0-dev",
+            "operation_mode": "PERSONAL"
+          }
+        },
+        "readiness": {
+          "http": 200,
+          "data": {
+            "status": "ready",
+            "checks": {
+              "configuration": true,
+              "database": true,
+              "queue": true,
+              "worker": true,
+              "scheduler": true,
+              "workers": {
+                "mjobs-ai": true,
+                "mjobs-application": true,
+                "mjobs-company-discovery": true,
+                "mjobs-discovery": true,
+                "mjobs-document": true
+              },
+              "schema": true
+            },
+            "db_backend": "postgresql"
+          }
+        }
+      }
+    }
+  ],
+  "release958": {
+    "deployment_receipt": {
+      "expected_main": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "checks": [
+        {
+          "name": "Deployment / candidate",
+          "id": 127078500777,
+          "head": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130840/job/127078500777"
+        },
+        {
+          "name": "CI / required",
+          "id": 127079923462,
+          "head": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130871/job/127079923462"
+        },
+        {
+          "name": "Integration / PostgreSQL and Redis",
+          "id": 127085794615,
+          "head": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130809/job/127085794615"
+        },
+        {
+          "name": "Security / secret scan",
+          "id": 127078481420,
+          "head": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41977130844/job/127078481420"
+        }
+      ],
+      "owners": [
+        {
+          "ref": "refs/heads/webpro-locks/deployment",
+          "owner": "1e018331a242be7b7866525370f1fc8ea0d0968b",
+          "acquired_at": "2026-11-05T06:20:18.607763+00:00",
+          "http": 201,
+          "readback": true,
+          "released_at": "2026-11-05T06:21:27.158877+00:00",
+          "release_http": 204,
+          "absence_http": 404
+        },
+        {
+          "ref": "refs/heads/webpro-slots/heavy-01",
+          "owner": "ac913f276f74fe55b7b054ea3b05ecc38a4765c4",
+          "acquired_at": "2026-11-05T06:20:20.368121+00:00",
+          "http": 201,
+          "readback": true,
+          "released_at": "2026-11-05T06:21:25.407004+00:00",
+          "release_http": 204,
+          "absence_http": 404
+        }
+      ],
+      "started_at": "2026-11-05T06:20:16.696351+00:00",
+      "updater_exit": 0,
+      "seconds": 62.531,
+      "before": {
+        "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "deployed_at": "2026-11-05T04:40:44.583387+00:00"
+      },
+      "after": {
+        "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "deployed_at": "2026-11-05T06:21:23.271618+00:00"
+      },
+      "new_backup_metadata": [
+        {
+          "archive": "20261105T062113Z-ecd987dcaecc",
+          "manifest_files": [
+            {
+              "name": "manifest.json",
+              "sha256": "8910675fdeffb528e49da7b1ddc716892f5e178c94caae198a1f47e62fbf2617",
+              "bytes": 593
+            }
+          ]
+        }
+      ],
+      "completed_at": "2026-11-05T06:21:23.535742+00:00",
+      "finished_at": "2026-11-05T06:21:27.159877+00:00"
+    },
+    "initial_wrapper_exit": 1,
+    "initial_wrapper_failure": "Immediate Docker health assertion during seven app-container startup windows; updater itself exited0 and API readiness passed",
+    "first_readonly_verification": {
+      "run": "web-20261105T024405Z-5fb5f0e00ed3",
+      "expected_main": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "ref": "refs/heads/webpro-locks/deployment",
+      "owner": "4f2b07a2fa8acbd8142d51de6e4f663599f49086",
+      "acquired_at": "2026-11-05T06:22:37.708628+00:00",
+      "http": 201,
+      "readback": true,
+      "deployment_repeated": false,
+      "initial_probe": "Updater exit0 and live version/readiness passed; seven application containers were still health-starting on first probe",
+      "containers": [
+        {
+          "name": "mjobs-micro-company-discovery-worker-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-scheduler-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-worker-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-ai-worker-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-api-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-source-worker-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-document-worker-1",
+          "status": "Up About a minute (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-postgres-1",
+          "status": "Up 8 hours (healthy)",
+          "image": "postgres:17"
+        },
+        {
+          "name": "mjobs-micro-redis-1",
+          "status": "Up 8 hours (healthy)",
+          "image": "redis:7"
+        }
+      ],
+      "healthy_containers": 9,
+      "state": {
+        "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "deployed_at": "2026-11-05T06:21:23.271618+00:00"
+      },
+      "live_version": {
+        "http": 200,
+        "data": {
+          "commit": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+          "version": "0.1.0-dev",
+          "operation_mode": "PERSONAL"
+        }
+      },
+      "readiness": {
+        "http": 200,
+        "data": {
+          "status": "ready",
+          "checks": {
+            "configuration": true,
+            "database": true,
+            "queue": true,
+            "worker": true,
+            "scheduler": true,
+            "workers": {
+              "mjobs-ai": true,
+              "mjobs-application": true,
+              "mjobs-company-discovery": true,
+              "mjobs-discovery": true,
+              "mjobs-document": true
+            },
+            "schema": true
+          },
+          "db_backend": "postgresql"
+        }
+      },
+      "image_identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
+      "production_source": {
+        "path": "apps/api/resume_workspace_preview.py",
+        "sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "expected_sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "matches_merged_source": true
+      },
+      "backup": {
+        "archive": "20261105T062113Z-ecd987dcaecc",
+        "manifest_sha256": "8910675fdeffb528e49da7b1ddc716892f5e178c94caae198a1f47e62fbf2617",
+        "schema_version": 2,
+        "alembic_revision": "20261025di01",
+        "operation_mode": "PERSONAL",
+        "file_count": 3,
+        "all_hashes_match": true,
+        "restore_attempted": false
+      },
+      "prior_image": {
+        "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+        "retained": true
+      },
+      "released_at": "2026-11-05T06:22:41.536909+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    "first_edge_verification_exit": 1,
+    "default_client_edge_error": {
+      "at": "2026-11-05T06:25:49.193267+00:00",
+      "requests": [
+        {
+          "request": "default_urllib",
+          "http": 403,
+          "access_login_redirect": false,
+          "content_type": "text/plain; charset=UTF-8",
+          "bounded_error_bytes": 17,
+          "cloudflare_error_code": 1010,
+          "body_mentions_access": false,
+          "raw_body_saved": false
+        },
+        {
+          "request": "html_accept",
+          "http": 403,
+          "access_login_redirect": false,
+          "content_type": "text/html; charset=UTF-8",
+          "bounded_error_bytes": 4096,
+          "cloudflare_error_code": null,
+          "body_mentions_access": true,
+          "raw_body_saved": false
+        }
+      ],
+      "no_authentication_or_policy_changes": true
+    },
+    "final_verification": {
+      "run": "web-20261105T024405Z-5fb5f0e00ed3",
+      "deployed_revision": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "current_main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "ref": "refs/heads/webpro-locks/deployment",
+      "owner": "da330910cfa75e03eafa7f88fea41532ba17ffa9",
+      "acquired_at": "2026-11-05T06:28:18.845668+00:00",
+      "http": 201,
+      "readback": true,
+      "deployment_repeated": false,
+      "initial_probe": "Updater exit0; initial wrapper exit1 on application health-starting. Settled local health/source/backup checks passed; default urllib edge verification returned403/error1010, documented client-signature block. This check uses the application-identifying User-Agent recommended in current Cloudflare documentation.",
+      "containers": [
+        {
+          "name": "mjobs-micro-company-discovery-worker-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-scheduler-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-worker-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-ai-worker-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-api-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-source-worker-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-document-worker-1",
+          "status": "Up 7 minutes (healthy)",
+          "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594"
+        },
+        {
+          "name": "mjobs-micro-postgres-1",
+          "status": "Up 8 hours (healthy)",
+          "image": "postgres:17"
+        },
+        {
+          "name": "mjobs-micro-redis-1",
+          "status": "Up 8 hours (healthy)",
+          "image": "redis:7"
+        }
+      ],
+      "healthy_containers": 9,
+      "state": {
+        "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "deployed_at": "2026-11-05T06:21:23.271618+00:00"
+      },
+      "live_version": {
+        "http": 200,
+        "data": {
+          "commit": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+          "version": "0.1.0-dev",
+          "operation_mode": "PERSONAL"
+        }
+      },
+      "readiness": {
+        "http": 200,
+        "data": {
+          "status": "ready",
+          "checks": {
+            "configuration": true,
+            "database": true,
+            "queue": true,
+            "worker": true,
+            "scheduler": true,
+            "workers": {
+              "mjobs-ai": true,
+              "mjobs-application": true,
+              "mjobs-company-discovery": true,
+              "mjobs-discovery": true,
+              "mjobs-document": true
+            },
+            "schema": true
+          },
+          "db_backend": "postgresql"
+        }
+      },
+      "image_identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
+      "production_source": {
+        "path": "apps/api/resume_workspace_preview.py",
+        "sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "expected_sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "matches_merged_source": true
+      },
+      "backup": {
+        "archive": "20261105T062113Z-ecd987dcaecc",
+        "manifest_sha256": "8910675fdeffb528e49da7b1ddc716892f5e178c94caae198a1f47e62fbf2617",
+        "schema_version": 2,
+        "alembic_revision": "20261025di01",
+        "operation_mode": "PERSONAL",
+        "file_count": 3,
+        "all_hashes_match": true,
+        "restore_attempted": false
+      },
+      "prior_image": {
+        "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+        "retained": true
+      },
+      "edge": [
+        {
+          "path": "/",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        },
+        {
+          "path": "/__deployment",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        },
+        {
+          "path": "/ready",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        },
+        {
+          "path": "/profiles",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        }
+      ],
+      "verified_at": "2026-11-05T06:28:21.334760+00:00",
+      "verification": "PASS; exact deployed source, settled health, protected backup and unauthenticated Access redirects; authenticated UI NOT RUN",
+      "released_at": "2026-11-05T06:28:23.034199+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    "cloudflare": {
+      "observed_at": "2026-11-05T06:25:03.771Z",
+      "app": {
+        "success": true,
+        "id": "42dd8b4c-89c6-4944-b2c9-4e47a158e982",
+        "domain": "mjobs.m-techlabs.com",
+        "type": "self_hosted",
+        "session_duration": "12h",
+        "http_only_cookie_attribute": true,
+        "options_preflight_bypass": false,
+        "updated_at": "2026-10-24T04:40:28Z"
+      },
+      "policies": {
+        "success": true,
+        "count": 2,
+        "items": [
+          {
+            "id": "7a24c69f-f626-433a-b7c7-7917359690f7",
+            "decision": "allow",
+            "precedence": 1,
+            "include_types": [
+              "email"
+            ],
+            "require_types": [],
+            "exclude_types": []
+          },
+          {
+            "id": "594ea2d2-a893-4334-a1c3-13c5be3cb604",
+            "decision": "allow",
+            "precedence": 20,
+            "include_types": [
+              "external_evaluation"
+            ],
+            "require_types": [],
+            "exclude_types": []
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "per_page": 200,
+          "count": 2,
+          "total_count": 2,
+          "total_pages": 1
+        }
+      },
+      "tunnel": {
+        "success": true,
+        "status": "healthy",
+        "connection_count": 4,
+        "deleted_at": null
+      }
+    },
+    "client_signature_docs": "https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/",
+    "no_updater_rerun": true,
+    "no_access_policy_change": true
   }
 }
