@@ -411,3 +411,11 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - PR [#935](https://github.com/MulattoTech/MJobs/pull/935) has independent ATS review and 36 tests / 82 subtests, but its failed old DOM CI must be superseded after #946 reaches protected main. Salary repair review was handed to the sole #934 owner; immutable review commit `4bfea366e6d39705df5da55cd0aaad68489a8e12` is available.
 - No acceptance promotion or deployment in this checkpoint. Read GitHub main, exact PR heads and live ownership before resuming. Current objective claims: MJ-REQ-179 and PR-935-INTEGRATION; shared scanner claim and all heavy/browser slots were released. Integration locks are held only for bounded transactions.
 - Next: all protected gates on the fresh candidate, serialized merge, then guarded current-main deployment and live verification. Selected Brave access was unavailable; authenticated UI verification remains NOT RUN.
+
+
+## Web sprint 58c1462f - combined optional-salary collectors
+
+- UTC: 2026-11-05T02:26:01.863442+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; primary PR951 includes reviewed PR947 history against protected main 0d3fbc5749fba8c682033a343a7ec9695e4dd743.
+- Six provider source/test blobs remain unchanged from independently reviewed heads. 61 passed, 1 skipped, 75 subtests passed in 28.89s. One existing live-provider skip remains explicit; catalogue/progress/dashboard pass. Prior failures and attribution preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-provider-salary-integration.md and adjacent JSON. Full candidate-specific preflight and normal existing-PR push required. Fresh hosted checks and protected integration remain pending; PR947 remains open until main ancestry proves delivery.
+- Source scopes PR-951-INTEGRATION and PR-947-INTEGRATION freshly owned; integration lock released after publication; no heavy/browser slot. No canonical acceptance or deployment claim.
