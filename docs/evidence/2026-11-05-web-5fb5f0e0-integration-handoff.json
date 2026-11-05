@@ -1,7 +1,7 @@
 {
   "run": "web-20261105T024405Z-5fb5f0e00ed3",
-  "status": "ACTIVE; PR961 and PR958 merged/deployed; PR943 protected-merged and awaits its actual-main release gates; PR949/960 remain blocked/released; no task claims or resource locks held",
-  "previous_checkpoint": "0e0adb042480a9082176f8327817b51458dbc28b",
+  "status": "RUN HANDED OFF: PR961/958/943 protected-merged and present in verified production E56; PR949/960 remain open and blocked; canonical acceptance unchanged; no owned claims or slots",
+  "previous_checkpoint": "53a45f3391c1f633f7eccd9394e9ab147fc7e871",
   "main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
   "merged": {
     "pr": 961,
@@ -510,7 +510,7 @@
         "43cad34752c5b2f281ce94277bd0bf5af04506e8"
       ],
       "exactTree": true,
-      "status": "PROTECTED MERGE VERIFIED / NOT YET DEPLOYED",
+      "status": "MERGED / DEPLOYED; authenticated UI NOT RUN; full MJ-REQ-160 remains PARTIAL",
       "checks": [
         {
           "id": 127082211862,
@@ -588,7 +588,9 @@
         "projected": 21
       },
       "actual_merge": "e56f9022185c209465f53cf89bbf7818c60efe8a",
-      "merged_at": "2026-11-05T06:26:53Z"
+      "merged_at": "2026-11-05T06:26:53Z",
+      "deployment_proof": "https://github.com/MulattoTech/MJobs/pull/943#issuecomment-6651841110",
+      "deployed_at": "2026-11-05T06:52:01.340852+00:00"
     }
   ],
   "ownership": {
@@ -792,8 +794,8 @@
     }
   ],
   "progress": {
-    "read_at": "2026-11-05T06:31:57.802522+00:00",
-    "source": "Canonical matrix and progress card at current main e56f9022185c209465f53cf89bbf7818c60efe8a; unchanged blobs independently checked; acceptance timestamp unchanged",
+    "read_at": "2026-11-05T06:59:33.817434+00:00",
+    "source": "Fresh canonical matrix and progress-card identities on verified main/production e56f9022185c209465f53cf89bbf7818c60efe8a",
     "dashboard_check": "CURRENT",
     "original": {
       "pass": 183,
@@ -839,31 +841,41 @@
     "All original/additive acceptance counts unchanged; no Project/Fleet reconciliation; no other model/agent invoked.",
     "Current CI diagnostics are test-only, retain existing assertions/budgets, and are not source fixes for the unresolved hosted timing/race failures."
   ],
-  "next_action": "Inspect actual-main E56 release gates. If all four pass and E56 remains current, obtain fresh deployment/resource admission and use the existing guarded updater once; wait boundedly for settled Docker health, identify the unauthenticated probe with MJobs-Release-Verification/1.0, verify version/source/image/backup/Access boundary, and release exact owners. Preserve all initial verification observations and PR949/960 failures. No acceptance promotion without complete literal criteria and tracking reconciliation.",
+  "next_action": "For a new active run, recheck ownership and current main before choosing an independent scope. Highest-value retained blockers are issue769's reproducible hosted TLS interruption deadline failures on PR949/960, plus independent review of this run's TCP cleanup continuation in PR960. Preserve the900ms assertions and existing failure evidence; do not blindly rerun for green or promote requirements. Current heads remain fbcbc1797be5c4411f7a961493e4f28dbdeeee38 and3e9ed3b6ea4263ee0958574f79ac12829a5b14d5, based on older ECD, and need a fresh current-main candidate after a justified correction. Authenticated Brave acceptance, Project read:project access and supported guarded PR930 production migration remain separate gaps. No chat worker continues after this handoff.",
   "production": {
-    "at": "2026-11-05T06:28:21.334760+00:00",
-    "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+    "at": "2026-11-05T06:55:45.107635+00:00",
+    "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
     "containers_healthy": 9,
     "readiness_http": 200,
     "deployment_http": 200,
-    "attempted": true,
+    "deployment_completed": true,
+    "manual_admission_attempted": true,
+    "updater_launch_by_this_run": false,
+    "deployment_actor": "Existing MJobs Micro - Verified Main Update scheduled task",
+    "verified_by_this_run": true,
     "verified": true,
     "release": {
-      "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
-      "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
-      "deployed_at": "2026-11-05T06:21:23.271618+00:00"
+      "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "image": "mjobs-micro:sha-e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "deployed_at": "2026-11-05T06:52:01.340852+00:00"
     },
-    "image_identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
+    "image_identifier": "sha256:28c7a502f088387f10d3e5014ad070e338ce881334ac1fb30d853a6d7f7d3ff4",
     "source": {
-      "path": "apps/api/resume_workspace_preview.py",
-      "sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
-      "expected_sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
-      "matches_merged_source": true
+      "workers/main.py": {
+        "expected": "6a97663602dded48ec653e549869fc08fb8c1b13ae766465515ae606350967d3",
+        "actual": "6a97663602dded48ec653e549869fc08fb8c1b13ae766465515ae606350967d3",
+        "match": true
+      },
+      "apps/api/resume_workspace_preview.py": {
+        "expected": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "actual": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "match": true
+      }
     },
-    "proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6651424424",
+    "proof": "https://github.com/MulattoTech/MJobs/pull/943#issuecomment-6651841110",
     "backup": {
-      "archive": "20261105T062113Z-ecd987dcaecc",
-      "manifest_sha256": "8910675fdeffb528e49da7b1ddc716892f5e178c94caae198a1f47e62fbf2617",
+      "archive": "20261105T065151Z-bd0753bd1ebc",
+      "manifest_sha256": "30857f792dfecafc4a245657af71d1418db51f214bfc7d22ce20ba20e59a40c5",
       "schema_version": 2,
       "alembic_revision": "20261025di01",
       "operation_mode": "PERSONAL",
@@ -872,8 +884,8 @@
       "restore_attempted": false
     },
     "prior_image": {
-      "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
-      "identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+      "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
       "retained": true
     },
     "edge": [
@@ -1336,7 +1348,7 @@
       "absence_http": 404
     }
   ],
-  "as_of": "2026-11-05T06:48:29.105727+00:00",
+  "as_of": "2026-11-05T07:04:00.123012+00:00",
   "codeql_static_triage": {
     "reported_main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
     "local_revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
@@ -1375,7 +1387,7 @@
       "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
     }
   },
-  "evidence_updated_at": "2026-11-05T06:48:29.105727+00:00",
+  "evidence_updated_at": "2026-11-05T07:04:00.123012+00:00",
   "current_candidate_failures": [
     {
       "pr": 949,
@@ -1786,7 +1798,7 @@
     "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr943-integration",
     "source_branch": "web/web-20261105T000133Z-e573e693-c10a-4b98-b2c7-698c3237ff2c/MJ-REQ-160",
     "overlaps": {},
-    "status": "MERGED; scope released; actual-main deployment checks pending",
+    "status": "MERGED / DEPLOYED BY EXISTING SCHEDULED UPDATER / VERIFIED BY THIS RUN; full MJ-REQ-160 remains PARTIAL",
     "blobs": {
       "docs/evidence/2026-11-05-web-1f7d3a29-worker-startup.md": "7b1f5b1102eb0ac44544a445fa08b0e1f4b2a0cb",
       "docs/evidence/2026-11-05-web-e573e693-worker-lifecycle.md": "9d7086a5d16ae0dbedc1cd5c68dc6b8fb11beafd",
@@ -1996,7 +2008,8 @@
         "absence_http": 404
       }
     },
-    "scope_released": true
+    "scope_released": true,
+    "deployment_proof": "https://github.com/MulattoTech/MJobs/pull/943#issuecomment-6651841110"
   },
   "recent_transactions_0616": {
     "pr958_merge_lock": {
@@ -2268,7 +2281,12 @@
       "absence_http": 404
     },
     "proof": "https://github.com/MulattoTech/MJobs/pull/943#issuecomment-6651403838",
-    "deployed_by_this_run": false
+    "deployed_by_this_run": false,
+    "deployed": true,
+    "deployment_actor": "Existing MJobs Micro - Verified Main Update scheduled task",
+    "verified_by_this_run": true,
+    "deployed_at": "2026-11-05T06:52:01.340852+00:00",
+    "deployment_proof": "https://github.com/MulattoTech/MJobs/pull/943#issuecomment-6651841110"
   },
   "production_history": [
     {
@@ -2345,6 +2363,70 @@
           }
         }
       }
+    },
+    {
+      "at": "2026-11-05T06:28:21.334760+00:00",
+      "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "containers_healthy": 9,
+      "readiness_http": 200,
+      "deployment_http": 200,
+      "attempted": true,
+      "verified": true,
+      "release": {
+        "sha": "bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+        "deployed_at": "2026-11-05T06:21:23.271618+00:00"
+      },
+      "image_identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
+      "source": {
+        "path": "apps/api/resume_workspace_preview.py",
+        "sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "expected_sha256": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "matches_merged_source": true
+      },
+      "proof": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6651424424",
+      "backup": {
+        "archive": "20261105T062113Z-ecd987dcaecc",
+        "manifest_sha256": "8910675fdeffb528e49da7b1ddc716892f5e178c94caae198a1f47e62fbf2617",
+        "schema_version": 2,
+        "alembic_revision": "20261025di01",
+        "operation_mode": "PERSONAL",
+        "file_count": 3,
+        "all_hashes_match": true,
+        "restore_attempted": false
+      },
+      "prior_image": {
+        "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+        "retained": true
+      },
+      "edge": [
+        {
+          "path": "/",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        },
+        {
+          "path": "/__deployment",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        },
+        {
+          "path": "/ready",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        },
+        {
+          "path": "/profiles",
+          "http": 302,
+          "configured_access_redirect": true,
+          "body_read": false
+        }
+      ],
+      "authenticated_browser": "NOT RUN; originating connected browser context unavailable"
     }
   ],
   "release958": {
@@ -2812,10 +2894,268 @@
     "source_changed": false,
     "alert_dismissed": false,
     "open_alert_count_at_intake": 49,
-    "other48not_assessed": true
+    "other48not_assessed": true,
+    "release_proof": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6651733789"
   },
   "pr_descriptions_reconciled": {
-    "943": "Protected merge and released ownership are current; production pending release gates; prior evidence preserved as historical",
+    "943": "Protected merge and scheduled deployment verified; all ownership released; original evidence preserved",
     "958": "Verified deployment and initial verification observations are current; prior evidence preserved as historical"
+  },
+  "release943": {
+    "run": "web-20261105T024405Z-5fb5f0e00ed3",
+    "expected_main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "ref": "refs/heads/webpro-locks/deployment",
+    "owner": "f376c36beb384c1a2cd1dd764e2d7bc5e35d9514",
+    "acquired_at": "2026-11-05T06:55:42.486005+00:00",
+    "http": 201,
+    "readback": true,
+    "deployment_actor": "Existing MJobs Micro - Verified Main Update scheduled task",
+    "manually_invoked_updater": false,
+    "duplicate_launch_prevented": true,
+    "manual_wrapper_exit": 1,
+    "scheduled_task": {
+      "last_run_utc": "2026-11-05T06:51:01.0000000Z",
+      "next_run_utc": "2026-11-05T07:01:00.0000000Z",
+      "last_result": 0,
+      "state": "Ready"
+    },
+    "healthy_containers": 9,
+    "state": {
+      "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "image": "mjobs-micro:sha-e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "deployed_at": "2026-11-05T06:52:01.340852+00:00"
+    },
+    "all_application_containers_use_expected_image": true,
+    "live_version": {
+      "http": 200,
+      "data": {
+        "commit": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "version": "0.1.0-dev",
+        "operation_mode": "PERSONAL"
+      }
+    },
+    "readiness": {
+      "http": 200,
+      "data": {
+        "status": "ready",
+        "checks": {
+          "configuration": true,
+          "database": true,
+          "queue": true,
+          "worker": true,
+          "scheduler": true,
+          "workers": {
+            "mjobs-ai": true,
+            "mjobs-application": true,
+            "mjobs-company-discovery": true,
+            "mjobs-discovery": true,
+            "mjobs-document": true
+          },
+          "schema": true
+        },
+        "db_backend": "postgresql"
+      }
+    },
+    "image_identifier": "sha256:28c7a502f088387f10d3e5014ad070e338ce881334ac1fb30d853a6d7f7d3ff4",
+    "production_source_sha256": {
+      "workers/main.py": {
+        "expected": "6a97663602dded48ec653e549869fc08fb8c1b13ae766465515ae606350967d3",
+        "actual": "6a97663602dded48ec653e549869fc08fb8c1b13ae766465515ae606350967d3",
+        "match": true
+      },
+      "apps/api/resume_workspace_preview.py": {
+        "expected": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "actual": "dcf2add78f79d065db588b4a4193b89975b0924a796bd79639cfd54706801fff",
+        "match": true
+      }
+    },
+    "backup": {
+      "archive": "20261105T065151Z-bd0753bd1ebc",
+      "manifest_sha256": "30857f792dfecafc4a245657af71d1418db51f214bfc7d22ce20ba20e59a40c5",
+      "schema_version": 2,
+      "alembic_revision": "20261025di01",
+      "operation_mode": "PERSONAL",
+      "file_count": 3,
+      "all_hashes_match": true,
+      "restore_attempted": false
+    },
+    "prior_image": {
+      "image": "mjobs-micro:sha-bd0753bd1ebc24510ef9cc268835f77a90efa594",
+      "identifier": "sha256:5b484d841dc989feb893286ccc0bfda275a2377a3c2099056d9683a42fcb8b32",
+      "retained": true
+    },
+    "updater_success_log_matches": true,
+    "edge": [
+      {
+        "path": "/",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
+      },
+      {
+        "path": "/__deployment",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
+      },
+      {
+        "path": "/ready",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
+      },
+      {
+        "path": "/profiles",
+        "http": 302,
+        "configured_access_redirect": true,
+        "body_read": false
+      }
+    ],
+    "verification": "PASS; completed scheduled release, exact main/source/image, nine healthy containers and five worker heartbeats, backup hashes and unauthenticated Access boundary",
+    "verified_at": "2026-11-05T06:55:45.107635+00:00",
+    "released_at": "2026-11-05T06:55:46.760226+00:00",
+    "release_http": 204,
+    "absence_http": 404,
+    "manual_admission_contention": {
+      "observed_at": "2026-11-05T06:51:30.643455+00:00",
+      "updater_task_state": "Running",
+      "updater_process_count": 1,
+      "local_lock_available": false,
+      "github_deployment_or_heavy_ref_acquired": false,
+      "updater_launched": false
+    },
+    "release_checks": [
+      {
+        "id": 127089168940,
+        "name": "Deployment / candidate",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 127090608798,
+        "name": "CI / required",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 127096854508,
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 127089168510,
+        "name": "Security / secret scan",
+        "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "final_audit": {
+    "run": "web-20261105T024405Z-5fb5f0e00ed3",
+    "at": "2026-11-05T06:59:33.817434+00:00",
+    "main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "held_by_this_run": [],
+    "foreign_active_ref_count": 0,
+    "worktrees": [
+      {
+        "name": "web-5fb5f0e0-pr949",
+        "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+        "clean": true
+      },
+      {
+        "name": "web-5fb5f0e0-pr960",
+        "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
+        "clean": true
+      },
+      {
+        "name": "web-5fb5f0e0-pr958-integration",
+        "head": "866e6d3163e0c18afbe532824160561cea06763b",
+        "clean": true
+      },
+      {
+        "name": "web-5fb5f0e0-pr943-integration",
+        "head": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+        "clean": true
+      },
+      {
+        "name": "web-5fb5f0e0-handoff",
+        "head": "53a45f3391c1f633f7eccd9394e9ab147fc7e871",
+        "clean": true
+      }
+    ],
+    "canonical_progress": {
+      "source_commit": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "acceptance_timestamp": "2026-11-03T05:59:31.437084+00:00",
+      "total": 366,
+      "counts": {
+        "all": {
+          "PARTIAL": 82,
+          "PASS": 183,
+          "NOT_RUN": 101
+        },
+        "P0": {
+          "PARTIAL": 4,
+          "PASS": 14,
+          "NOT_RUN": 8
+        },
+        "P1": {
+          "PASS": 108,
+          "PARTIAL": 8
+        }
+      },
+      "blobs": {
+        "planning/CAPABILITY_MATRIX.json": "715ebb1660a64611de380467cd1d85cc3750e331",
+        "docs/PROGRESS_CARD.json": "4dec88142e77a2a8a64d1bc76389da05ee095f6d"
+      },
+      "accepted_ids_this_run": []
+    },
+    "live": {
+      "version": {
+        "http": 200,
+        "data": {
+          "commit": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+          "version": "0.1.0-dev",
+          "operation_mode": "PERSONAL"
+        }
+      },
+      "readiness": {
+        "http": 200,
+        "data": {
+          "status": "ready",
+          "checks": {
+            "configuration": true,
+            "database": true,
+            "queue": true,
+            "worker": true,
+            "scheduler": true,
+            "workers": {
+              "mjobs-ai": true,
+              "mjobs-application": true,
+              "mjobs-company-discovery": true,
+              "mjobs-discovery": true,
+              "mjobs-document": true
+            },
+            "schema": true
+          },
+          "db_backend": "postgresql"
+        }
+      }
+    }
+  },
+  "efficiency_final": {
+    "heavy_slot_refs_used": [
+      "refs/heads/webpro-slots/heavy-01"
+    ],
+    "heavy_admissions_by_this_run": 6,
+    "additional_heavy_admission_for_scheduled_worker_release": false,
+    "browser_slot_used": false,
+    "rdc_call_count_telemetry": "NOT EXPOSED",
+    "rdc_usage_elapsed_telemetry": "NOT EXPOSED",
+    "additional_ai_model_or_agent_invoked": false
   }
 }
