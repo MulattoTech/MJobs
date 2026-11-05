@@ -330,3 +330,7 @@ f54453dd9c8fd2dff715a640b0cbec5130758bd9:docs/evidence/2026-11-03-webpro-642e4b-
 # Author triage and exact-source verification: PR937 issuecomment-6645844602.
 c5339366e7372f9a5fca24c4c0410edacf8a6b2d:docs/evidence/2026-11-05-web-30d19610-preview-error-privacy.md:generic-api-key:45
 c5339366e7372f9a5fca24c4c0410edacf8a6b2d:docs/evidence/2026-11-05-web-30d19610-preview-error-privacy.md:generic-api-key:46
+
+# Verified public Docker image ID; one immutable historical finding, not a credential.
+# Proof: docs/evidence/2026-11-05-web-5c9a70d5-image-digest-review.md
+0bfeeb458eb32b7de3695dd754a09bcd6304126e:planning/SESSION_HANDOFF.md:generic-api-key:440
