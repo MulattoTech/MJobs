@@ -1,7 +1,7 @@
 {
   "run": "web-20261105T024405Z-5fb5f0e00ed3",
-  "status": "ACTIVE; PR961 protected-merged and deployed; PR949/960 integration failed and claims released; PR958 integration claimed",
-  "previous_checkpoint": "79e84d5989cc0e9c172392581118448658655765",
+  "status": "ACTIVE; PR961 merged/deployed; PR949/960 blocked and released; reviewed PR958 current-main candidate awaits final integration shard",
+  "previous_checkpoint": "ede73f6907af6f36c9a3253d00e316e3703541af",
   "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
   "merged": {
     "pr": 961,
@@ -377,6 +377,187 @@
         "comment": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650440079",
         "handoff": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650534475"
       }
+    },
+    {
+      "pr": 958,
+      "head": "866e6d3163e0c18afbe532824160561cea06763b",
+      "base": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "merge": "4ee5376d1b9e8307e25532dadb1633f1e6064068",
+      "tree": "9077ee5a7dbfb7455dee847a1aa8d8409cdc99ec",
+      "parents": [
+        "ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "866e6d3163e0c18afbe532824160561cea06763b"
+      ],
+      "exactTree": true,
+      "status": "OPEN / NOT MERGED / NOT DEPLOYED; four required gates plus CodeQL PASS; integration shards0/1 PASS and shard2 running",
+      "checks": [
+        {
+          "id": 127071902837,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645334/job/127071902837",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070688823,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/runs/127070688823",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070565678,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645334/job/127070565678",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070565574,
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645334/job/127070565574",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070565320,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645334/job/127070565320",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070564573,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645122/job/127070564573",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070564540,
+          "name": "Integration / shard 2",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645122/job/127070564540",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070564394,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645122/job/127070564394",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070564275,
+          "name": "Security / secret scan",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645011/job/127070564275",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070564124,
+          "name": "Dependencies / introduced vulnerabilities",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974645019/job/127070564124",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070563653,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974644979/job/127070563653",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070550735,
+          "name": "Analyze (python)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974639553/job/127070550735",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070550625,
+          "name": "Analyze (actions)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974639553/job/127070550625",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        },
+        {
+          "id": 127070550216,
+          "name": "Analyze (javascript-typescript)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41974639553/job/127070550216",
+          "head": "866e6d3163e0c18afbe532824160561cea06763b"
+        }
+      ],
+      "checks_as_of": "2026-11-05T05:43:33Z",
+      "source_and_evidence_blobs": {
+        "apps/api/resume_workspace_preview.py": "14449527918efb10cda18399a261b5d066f6af5d",
+        "docs/evidence/2026-11-05-web-59bece5f-preview-error-privacy.md": "276c071877a1937b11b1f79147070c93ea38cf96",
+        "planning/agent_handoffs/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY.json": "96f237bc59d2e06c08220a45bd5d9c48e44d4ce1",
+        "tests/integration/test_resume_workspace_preview_error_privacy.py": "942c02eb7dba2ac3436826feb6094b40be318021"
+      },
+      "source_native": {
+        "methods": 22,
+        "subtests": 70,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "pytest_seconds": 15.37,
+        "head": "866e6d3163e0c18afbe532824160561cea06763b",
+        "exit": 0,
+        "seconds": 15.906,
+        "completed_at": "2026-11-05T05:33:21.313444+00:00",
+        "versions": {
+          "fastapi": "0.142.1",
+          "httpx": "0.28.1",
+          "pydantic": "2.13.5",
+          "pydantic_core": "2.46.5",
+          "SQLAlchemy": "2.1.1",
+          "starlette": "1.7.0",
+          "pytest": "9.1.1"
+        },
+        "command": [
+          "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp",
+          "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-data\\pr958-focused\\pytest-temp",
+          "--junitxml",
+          "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-data\\pr958-focused\\result.xml",
+          "tests/integration/test_resume_workspace_preview_error_privacy.py",
+          "tests/integration/test_resume_workspace_preview_api.py",
+          "tests/unit/test_resume_workspace_preview.py",
+          "tests/unit/test_resume_templates.py",
+          "--tb=short"
+        ],
+        "summary": [
+          "22 passed, 70 subtests passed in 15.37s"
+        ]
+      },
+      "review": "https://github.com/MulattoTech/MJobs/pull/958#pullrequestreview-5779465467",
+      "scope_claim": "refs/heads/webpro-claims/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY",
+      "scope_owner": "8738512886478221e4f91c3ec7edcf34bb959c81",
+      "unresolved_review_threads": 0,
+      "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr958-integration"
     }
   ],
   "ownership": {
@@ -447,6 +628,22 @@
         "release_http": 204,
         "absence_http": 404,
         "handoff": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650534475"
+      },
+      {
+        "run": "web-20261105T024405Z-5fb5f0e00ed3",
+        "ref": "refs/heads/webpro-claims/PR-930-EVIDENCE",
+        "owner": "db09a4bd748f5d2c0380f7c6c27cb341144bb221",
+        "head": "84d28a4d024a8f266fadd5e822736797a7231d5f",
+        "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+        "acquired_at": "2026-11-05T05:40:08.285054+00:00",
+        "http": 201,
+        "readback": true,
+        "original_body_sha256": "7ee1137a14f2443a9a838ff7748f6147f0766c1057fdb832a3ef4141cf642acc",
+        "new_body_sha256": "ed81b1ae82832314558d19054f3bbbfb32824783cef066f1dfb62fb2b78f7468",
+        "description_verified_at": "2026-11-05T05:41:10.888568+00:00",
+        "released_at": "2026-11-05T05:41:12.803050+00:00",
+        "release_http": 204,
+        "absence_http": 404
       }
     ],
     "global_locks": [],
@@ -575,7 +772,7 @@
     "All original/additive acceptance counts unchanged; no Project/Fleet reconciliation; no other model/agent invoked.",
     "Current CI diagnostics are test-only, retain existing assertions/budgets, and are not source fixes for the unresolved hosted timing/race failures."
   ],
-  "next_action": "Advance PR958 under short integration ownership with unchanged reviewed blobs and fresh actual-candidate gates. PR949/960 are handed off and require new atomic scope claims before any further writes; AI TLS timing investigation belongs with issue769. Preserve all failures and the 900ms assertion.",
+  "next_action": "Inspect the final PR958 integration shard/aggregate. If all five required exact-candidate gates pass, acquire a new integration lock and revalidate main/head/tree/parents/reviews/rules before expected-head protected merge. Existing guarded updater and main-commit deployment gates remain required for production. Keep PR949/960 failures and PR930 production migration gate intact.",
   "production": {
     "at": "2026-11-05T04:44:33.686808+00:00",
     "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
@@ -1045,7 +1242,7 @@
       "absence_http": 404
     }
   ],
-  "as_of": "2026-11-05T05:30:38.692527+00:00",
+  "as_of": "2026-11-05T05:44:27.037436+00:00",
   "codeql_static_triage": {
     "reported_main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
     "local_revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
@@ -1084,7 +1281,7 @@
       "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
     }
   },
-  "evidence_updated_at": "2026-11-05T05:30:38.692527+00:00",
+  "evidence_updated_at": "2026-11-05T05:44:27.037436+00:00",
   "current_candidate_failures": [
     {
       "pr": 949,
@@ -1141,13 +1338,13 @@
     "acquired_at": "2026-11-05T05:28:01.580307+00:00",
     "http": 201,
     "readback": true,
-    "head": "73d176f4b2091e33a91b1e7fabb95c5441e78af2",
+    "head": "866e6d3163e0c18afbe532824160561cea06763b",
     "base": "ecd987dcaecce05eed13391a765f27cf5b9def76",
     "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr958-integration",
     "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr958-integration",
     "source_branch": "web/web-20261105T024508Z-59bece5f637e/resume-preview-errors",
     "overlaps": {},
-    "status": "ISOLATED CHECKOUT; current-main refresh and fresh protected gates NOT RUN",
+    "status": "OPEN / NOT MERGED / NOT DEPLOYED; four required gates plus CodeQL PASS; integration shards0/1 PASS and shard2 running",
     "blobs": {
       "apps/api/resume_workspace_preview.py": "14449527918efb10cda18399a261b5d066f6af5d",
       "docs/evidence/2026-11-05-web-59bece5f-preview-error-privacy.md": "276c071877a1937b11b1f79147070c93ea38cf96",
@@ -1156,6 +1353,123 @@
     },
     "git_common_dir": "C:/Tools/Dev/MJobs-Web/web-5fb5f0e0-pr958-integration/.git",
     "independent_review": "https://github.com/MulattoTech/MJobs/pull/958#pullrequestreview-5779465467",
-    "claim_comment": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6650533989"
-  }
+    "claim_comment": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6650533989",
+    "candidate": "4ee5376d1b9e8307e25532dadb1633f1e6064068",
+    "tree": "9077ee5a7dbfb7455dee847a1aa8d8409cdc99ec",
+    "refresh_receipt": {
+      "base": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "previous_head": "73d176f4b2091e33a91b1e7fabb95c5441e78af2",
+      "lock_owner": "bce2a3bed202571aeb7d748bf2d39db654f559f7",
+      "acquired_at": "2026-11-05T05:32:12.218364+00:00",
+      "http": 201,
+      "readback": true,
+      "verification": [
+        {
+          "step": "catalogue",
+          "exit": 0
+        },
+        {
+          "step": "journal",
+          "exit": 0
+        },
+        {
+          "step": "dashboard",
+          "exit": 0
+        },
+        {
+          "step": "provenance",
+          "exit": 0
+        },
+        {
+          "step": "diff",
+          "exit": 0
+        }
+      ],
+      "head": "866e6d3163e0c18afbe532824160561cea06763b",
+      "tree": "9077ee5a7dbfb7455dee847a1aa8d8409cdc99ec",
+      "published_at": "2026-11-05T05:32:22.702478+00:00",
+      "paths": [
+        "apps/api/resume_workspace_preview.py",
+        "docs/evidence/2026-11-05-web-59bece5f-preview-error-privacy.md",
+        "planning/agent_handoffs/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY.json",
+        "tests/integration/test_resume_workspace_preview_error_privacy.py"
+      ],
+      "blobs": {
+        "apps/api/resume_workspace_preview.py": "14449527918efb10cda18399a261b5d066f6af5d",
+        "docs/evidence/2026-11-05-web-59bece5f-preview-error-privacy.md": "276c071877a1937b11b1f79147070c93ea38cf96",
+        "planning/agent_handoffs/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY.json": "96f237bc59d2e06c08220a45bd5d9c48e44d4ce1",
+        "tests/integration/test_resume_workspace_preview_error_privacy.py": "942c02eb7dba2ac3436826feb6094b40be318021"
+      },
+      "preflight": {
+        "allowed": true,
+        "current": 22,
+        "projected": 22
+      },
+      "released_at": "2026-11-05T05:32:24.596840+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    "focused": {
+      "head": "866e6d3163e0c18afbe532824160561cea06763b",
+      "exit": 0,
+      "seconds": 15.906,
+      "completed_at": "2026-11-05T05:33:21.313444+00:00",
+      "versions": {
+        "fastapi": "0.142.1",
+        "httpx": "0.28.1",
+        "pydantic": "2.13.5",
+        "pydantic_core": "2.46.5",
+        "SQLAlchemy": "2.1.1",
+        "starlette": "1.7.0",
+        "pytest": "9.1.1"
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp",
+        "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-data\\pr958-focused\\pytest-temp",
+        "--junitxml",
+        "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-data\\pr958-focused\\result.xml",
+        "tests/integration/test_resume_workspace_preview_error_privacy.py",
+        "tests/integration/test_resume_workspace_preview_api.py",
+        "tests/unit/test_resume_workspace_preview.py",
+        "tests/unit/test_resume_templates.py",
+        "--tb=short"
+      ],
+      "summary": [
+        "22 passed, 70 subtests passed in 15.37s"
+      ]
+    },
+    "independent_review_preserved": true
+  },
+  "pr930_evidence_reconciliation": {
+    "head": "84d28a4d024a8f266fadd5e822736797a7231d5f",
+    "scope": "PR description only; no source/test/branch changes, test rerun or acceptance promotion",
+    "independent_review": "https://github.com/MulattoTech/MJobs/pull/930#issuecomment-6647731770",
+    "completed_guarded_rehearsal": "https://github.com/MulattoTech/MJobs/pull/930#issuecomment-6648921319",
+    "rehearsal_owner_release": "https://github.com/MulattoTech/MJobs/pull/930#issuecomment-6648955164",
+    "receipt": {
+      "run": "web-20261105T024405Z-5fb5f0e00ed3",
+      "ref": "refs/heads/webpro-claims/PR-930-EVIDENCE",
+      "owner": "db09a4bd748f5d2c0380f7c6c27cb341144bb221",
+      "head": "84d28a4d024a8f266fadd5e822736797a7231d5f",
+      "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "acquired_at": "2026-11-05T05:40:08.285054+00:00",
+      "http": 201,
+      "readback": true,
+      "original_body_sha256": "7ee1137a14f2443a9a838ff7748f6147f0766c1057fdb832a3ef4141cf642acc",
+      "new_body_sha256": "ed81b1ae82832314558d19054f3bbbfb32824783cef066f1dfb62fb2b78f7468",
+      "description_verified_at": "2026-11-05T05:41:10.888568+00:00",
+      "released_at": "2026-11-05T05:41:12.803050+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    "remaining": "Current-main candidate/required gates, failed old-base secret scan, supported guarded production migration transaction and authenticated journey"
+  },
+  "related_ai_timing_issue": "https://github.com/MulattoTech/MJobs/issues/769#issuecomment-6650588922"
 }
