@@ -8,6 +8,7 @@ from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
+from services.discovery.lifecycle import CLOSED_STATES, status_claim
 
 MAX_VIEWS_PER_PROFILE = 100
 MAX_AGE_DAYS = 90
@@ -83,6 +84,21 @@ def record_job_view(store, profile_id: str, job_id: str) -> dict:
     return {"profile_id": profile_id, "job_id": job_id, "viewed_at": viewed_at}
 
 
+def _present_view(row) -> dict:
+    exists = row["title"] is not None
+    attributes = row["attributes"] or {}
+    closed = exists and status_claim(attributes.get("status"), default="UNKNOWN") in CLOSED_STATES
+    reason = "MISSING" if not exists else ("NO_LONGER_OPEN" if closed else None)
+    return {
+        "job_id": row["job_id"],
+        "title": row["title"] if exists else None,
+        "company": row["company"] if exists else None,
+        "viewed_at": row["viewed_at"],
+        "available": exists and not closed,
+        "unavailable_reason": reason,
+    }
+
+
 def list_recent_job_views(store, profile_id: str, limit: int = DEFAULT_PAGE_SIZE) -> dict:
     """Latest unique visits, including an honest unavailable row for removed jobs."""
     profile_id = _identifier(profile_id, "PROFILE")
@@ -94,7 +110,7 @@ def list_recent_job_views(store, profile_id: str, limit: int = DEFAULT_PAGE_SIZE
     with store.engine.connect() as connection:
         rows = connection.execute(
             select(m.profile_job_views.c.job_id, m.profile_job_views.c.viewed_at,
-                   m.jobs.c.title, m.companies.c.name.label("company"))
+                   m.jobs.c.title, m.jobs.c.attributes, m.companies.c.name.label("company"))
             .select_from(relation)
             .where(m.profile_job_views.c.profile_id == profile_id,
                    m.profile_job_views.c.viewed_at >= _cutoff(datetime.now(timezone.utc)))
@@ -103,13 +119,7 @@ def list_recent_job_views(store, profile_id: str, limit: int = DEFAULT_PAGE_SIZE
         ).mappings().all()
     return {
         "profile_id": profile_id,
-        "items": [{
-            "job_id": row["job_id"],
-            "title": row["title"] if row["title"] is not None else None,
-            "company": row["company"] if row["title"] is not None else None,
-            "viewed_at": row["viewed_at"],
-            "available": row["title"] is not None,
-        } for row in rows],
+        "items": [_present_view(row) for row in rows],
         "max_items": MAX_VIEWS_PER_PROFILE,
         "retention_days": MAX_AGE_DAYS,
     }

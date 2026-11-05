@@ -79,6 +79,52 @@ class RecentlyViewedTests(unittest.TestCase):
             self.assertEqual(connection.execute(select(func.count()).select_from(
                 m.applications)).scalar_one(), applications_before)
 
+    def test_closed_canonical_jobs_are_unavailable_without_mutating_visits(self):
+        self.assertEqual(self.visit().status_code, 201)
+        original = self.client.get(self.path()).json()["items"][0]
+        with self.store.engine.connect() as connection:
+            attributes = connection.execute(select(m.jobs.c.attributes).where(
+                m.jobs.c.id == self.job_id)).scalar_one()
+            visits_before = connection.execute(select(m.profile_job_views)).mappings().all()
+            applications_before = connection.execute(select(func.count()).select_from(
+                m.applications)).scalar_one()
+            audit_before = connection.execute(select(func.count()).select_from(m.audit)).scalar_one()
+
+        for status in ("CLOSED", "FILLED", "EXPIRED", "REMOVED", " closed "):
+            with self.subTest(status=status):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == self.job_id).values(
+                        attributes={**attributes, "status": status}))
+                response = self.client.get(self.path())
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(len(response.json()["items"]), 1)
+                item = response.json()["items"][0]
+                self.assertFalse(item["available"])
+                self.assertEqual(item["unavailable_reason"], "NO_LONGER_OPEN")
+                self.assertEqual(item["title"], original["title"])
+                self.assertEqual(item["company"], original["company"])
+                self.assertEqual(item["viewed_at"], original["viewed_at"])
+
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.profile_job_views)).mappings().all(),
+                             visits_before)
+            self.assertEqual(connection.execute(select(func.count()).select_from(
+                m.applications)).scalar_one(), applications_before)
+            self.assertEqual(connection.execute(select(func.count()).select_from(m.audit)).scalar_one(),
+                             audit_before)
+        self.assertEqual(self.client.get(
+            f"/profiles/fixture/jobs/{self.job_id}/tracking").json()["disposition"], "ACTIVE")
+
+        for status in ("ACTIVE", "POSSIBLY_ACTIVE", "UNKNOWN", "not a structured status", None):
+            with self.subTest(nonterminal_status=status):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == self.job_id).values(
+                        attributes={**attributes, "status": status}))
+                item = self.client.get(self.path()).json()["items"][0]
+                self.assertTrue(item["available"])
+                self.assertIsNone(item.get("unavailable_reason"))
+                self.assertEqual(item["viewed_at"], original["viewed_at"])
+
     def test_profile_isolation_clear_and_database_reopen(self):
         self.assertEqual(self.visit().status_code, 201)
         self.assertEqual(self.visit(profile="other").status_code, 201)
@@ -158,6 +204,7 @@ class RecentlyViewedTests(unittest.TestCase):
         self.assertEqual(len(stale), 1)
         self.assertEqual(stale[0]["job_id"], "removed-job")
         self.assertFalse(stale[0]["available"])
+        self.assertEqual(stale[0]["unavailable_reason"], "MISSING")
         self.assertIsNone(stale[0]["title"])
         self.assertIsNone(stale[0]["company"])
 

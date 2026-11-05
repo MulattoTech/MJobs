@@ -2,14 +2,15 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {describe, expect, it} from 'vitest';
 import {RecentlyViewedPanelView} from './recently-viewed-panel';
+import type {RecentlyViewedResponse} from './recently-viewed-client';
 
-const response = {
+const response: RecentlyViewedResponse = {
   profile_id: 'profile-1', max_items: 100, retention_days: 90,
   items: [
     {job_id: 'job-1', title: 'Network Engineer', company: 'Example Inc.',
-     viewed_at: '2026-11-04T06:10:00+00:00', available: true},
+     viewed_at: '2026-11-04T06:10:00+00:00', available: true, unavailable_reason: null},
     {job_id: 'removed', title: null, company: null,
-     viewed_at: '2026-11-03T06:10:00+00:00', available: false},
+     viewed_at: '2026-11-03T06:10:00+00:00', available: false, unavailable_reason: 'MISSING'},
   ],
 };
 
@@ -29,6 +30,20 @@ describe('recently viewed panel', () => {
     expect(html).toContain('Clear visit history');
     expect(html).toContain('last 90 days');
     expect((html.match(/<button/g) || []).length).toBe(3);
+  });
+
+  it('identifies closed postings without offering an open action or losing their labels', () => {
+    const closed: RecentlyViewedResponse = {...response, items: [{
+      ...response.items[0], available: false, unavailable_reason: 'NO_LONGER_OPEN',
+    }, response.items[1]]};
+    const html = renderToStaticMarkup(<RecentlyViewedPanelView
+      profileId="profile-1" state={{kind: 'ready', response: closed}}
+      clearing={false} clearError={false} {...callbacks}/>);
+    expect(html).toContain('Network Engineer');
+    expect(html).toContain('Example Inc.');
+    expect(html).toContain('No longer open');
+    expect(html).toContain('Job no longer in the local catalog');
+    expect((html.match(/<button/g) || []).length).toBe(2);
   });
 
   it('hides another profile response and provides loading and error states', () => {

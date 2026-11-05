@@ -3,7 +3,7 @@ import {createRecentlyViewedClient} from './recently-viewed-client';
 
 const row = {
   job_id: 'job-1', title: 'Network Engineer', company: 'Example Inc.',
-  viewed_at: '2026-11-04T06:10:00+00:00', available: true,
+  viewed_at: '2026-11-04T06:10:00+00:00', available: true, unavailable_reason: null,
 };
 const result = {profile_id: 'profile-1', items: [row], max_items: 100, retention_days: 90};
 
@@ -35,6 +35,29 @@ describe('recently viewed API client', () => {
     }));
     await expect(badDate.list('profile-1')).rejects.toThrow(/Invalid view history row/);
     await expect(wrongProfile.record('../other', 'job-1')).rejects.toThrow(/Invalid profile/);
+  });
+
+  it('retains closed-job labels and rejects contradictory availability metadata', async () => {
+    const closed = {...row, available: false, unavailable_reason: 'NO_LONGER_OPEN'};
+    const missing = {...row, job_id: 'missing', title: null, company: null,
+      available: false, unavailable_reason: 'MISSING'};
+    const payload = {...result, items: [closed, missing]};
+    const client = createRecentlyViewedClient(vi.fn().mockResolvedValue(payload));
+    expect(await client.list('profile-1')).toEqual(payload);
+
+    for (const invalid of [
+      {...closed, available: true},
+      {...closed, unavailable_reason: null},
+      {...closed, title: null},
+      {...missing, title: 'Invented posting'},
+      {...missing, unavailable_reason: 'UNRECOGNIZED'},
+      {...row, unavailable_reason: undefined},
+    ]) {
+      const malformed = createRecentlyViewedClient(vi.fn().mockResolvedValue({
+        ...result, items: [invalid],
+      }));
+      await expect(malformed.list('profile-1')).rejects.toThrow(/Invalid view history row/);
+    }
   });
 
   it('does not accept ambiguous write receipts after a timeout or failed request', async () => {

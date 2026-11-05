@@ -6,6 +6,7 @@ export type RecentJob = {
   company: string | null;
   viewed_at: string;
   available: boolean;
+  unavailable_reason: 'MISSING' | 'NO_LONGER_OPEN' | null;
 };
 
 export type RecentlyViewedResponse = {
@@ -44,8 +45,11 @@ function normalize(value: unknown, profileId: string): RecentlyViewedResponse {
         !Number.isFinite(Date.parse(item.viewed_at)) || typeof item.available !== 'boolean' ||
         !(item.title === null || (typeof item.title === 'string' && item.title.length <= 500)) ||
         !(item.company === null || (typeof item.company === 'string' && item.company.length <= 200)) ||
-        (item.available && (!item.title || !item.company)) ||
-        (!item.available && (item.title !== null || item.company !== null))) {
+        (item.available && (item.unavailable_reason !== null || !item.title || !item.company)) ||
+        (!item.available && item.unavailable_reason !== 'MISSING' &&
+          item.unavailable_reason !== 'NO_LONGER_OPEN') ||
+        (item.unavailable_reason === 'MISSING' && (item.title !== null || item.company !== null)) ||
+        (item.unavailable_reason === 'NO_LONGER_OPEN' && (!item.title || !item.company))) {
       throw new Error('Invalid view history row.');
     }
     seen.add(item.job_id);

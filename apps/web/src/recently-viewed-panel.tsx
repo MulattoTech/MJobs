@@ -52,7 +52,9 @@ export function RecentlyViewedPanelView({
                   ? <button type="button" onClick={() => onOpenJob(item.job_id)}>
                     {item.title} — {item.company}
                   </button>
-                  : <span>Job no longer in the local catalog</span>}
+                  : item.unavailable_reason === 'NO_LONGER_OPEN'
+                    ? <span>{item.title} &mdash; {item.company} &middot; No longer open</span>
+                    : <span>Job no longer in the local catalog</span>}
                 <small className="muted"> · Viewed {new Date(item.viewed_at).toLocaleString()}</small>
               </li>)}
             </ol>}
