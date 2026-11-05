@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -181,6 +182,51 @@ class BrowserJobExtractionApiTests(unittest.TestCase):
         self.assertEqual(missing_profile.status_code, 404)
         self.assertEqual(missing_job.status_code, 404)
         self.assertEqual(self.extractor_calls, [])
+        self.assertEqual(self._snapshot(), before)
+
+    def test_private_service_errors_are_bounded_without_writes_and_can_recover(self):
+        before = self._snapshot()
+        private_text = "synthetic-applicant@example.test " + "private-capture-marker " * 100
+        for error_type in (TypeError, ValueError):
+            with self.subTest(error_type=error_type.__name__):
+                extractor = Mock(side_effect=error_type(private_text))
+                app = FastAPI()
+                app.include_router(create_browser_job_extraction_router(
+                    self.store, extractor=extractor,
+                ))
+                with TestClient(app) as client:
+                    response = client.post(self._url(), json=self._capture())
+                self.assertEqual(response.status_code, 422)
+                self.assertEqual(response.json(), {"detail": {
+                    "code": "BROWSER_JOB_EXTRACTION_CAPTURE_INVALID",
+                    "detail": "Captured job data could not be processed",
+                }})
+                extractor.assert_called_once_with(self._capture()["capture"])
+                self.assertNotIn("private-capture-marker", response.text)
+                self.assertLess(len(response.content), 200)
+                self.assertEqual(self._snapshot(), before)
+        recovered = self.client.post(self._url(), json=self._capture())
+        self.assertEqual(recovered.status_code, 200, recovered.text)
+        self.assertEqual(self._snapshot(), before)
+
+    def test_private_result_errors_are_bounded_without_writes_and_can_recover(self):
+        before = self._snapshot()
+        private_text = "synthetic-applicant@example.test " + "private-result-marker " * 100
+        for error_type in (TypeError, ValueError):
+            with self.subTest(error_type=error_type.__name__):
+                with patch("apps.api.browser_job_extraction._validated_result",
+                           side_effect=error_type(private_text)):
+                    response = self.client.post(self._url(), json=self._capture())
+                self.assertEqual(response.status_code, 502)
+                self.assertEqual(response.json(), {"detail": {
+                    "code": "BROWSER_JOB_EXTRACTION_RESULT_INVALID",
+                    "detail": "Extracted job fields could not be validated",
+                }})
+                self.assertNotIn("private-result-marker", response.text)
+                self.assertLess(len(response.content), 200)
+                self.assertEqual(self._snapshot(), before)
+        recovered = self.client.post(self._url(), json=self._capture())
+        self.assertEqual(recovered.status_code, 200, recovered.text)
         self.assertEqual(self._snapshot(), before)
 
 
