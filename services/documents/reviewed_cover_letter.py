@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 from uuid import uuid4
@@ -182,6 +183,12 @@ def materialize_reviewed_preview(
     request_id: str,
 ) -> dict:
     """Persist one immutable future-version row without promoting the application."""
+    if (not isinstance(application_id, str)
+            or re.fullmatch(r"[0-9a-f]{64}", application_id) is None):
+        raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PATH_INVALID")
+    # Application IDs are identity() digests. Reconstruct the validated path
+    # component so request text never becomes a filesystem path directly.
+    application_path_id = f"{int(application_id, 16):064x}"
     if hashlib.sha256(preview["preview_text"].encode("utf-8")).hexdigest() != preview_sha256:
         raise ReviewedCoverLetterError("COVER_LETTER_REVIEW_PREVIEW_MISMATCH")
     application = store.application(application_id)
@@ -222,7 +229,7 @@ def materialize_reviewed_preview(
     context["claim_validation"] = claim_validation
 
     configured_root = Path(output_dir)
-    configured_application_root = configured_root / application_id
+    configured_application_root = configured_root / application_path_id
     relative = f"{profile['version']}/reviewed-{document_id}"
     configured_destination = configured_application_root / relative
     # Check the lexical path before resolve() hides aliases. Fresh approval must

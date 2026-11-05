@@ -212,6 +212,31 @@ class ReviewedCoverLetterPrepareBindingTests(unittest.TestCase):
         self.assertEqual(replay.json()["document_id"], approved.json()["document_id"])
         self.assertTrue(replay.json()["replayed"])
 
+    def test_approval_refuses_noncanonical_application_path_ids_before_lookup(self):
+        profile = self.store.profile("fixture")
+        preview = {"preview_text": "Synthetic preview"}
+        digest = hashlib.sha256(preview["preview_text"].encode("utf-8")).hexdigest()
+        invalid_ids = (
+            None, 1, True, "", "a" * 63, "a" * 65, "g" * 64, "AB" * 32,
+            "../" + self.application_id, self.application_id + "/suffix",
+            "C:\\documents\\" + self.application_id, self.application_id + "\n",
+        )
+        with (patch.object(self.store, "application") as lookup,
+              patch.object(reviewed_cover_letter, "Document") as generate):
+            for invalid_id in invalid_ids:
+                with self.subTest(application_id=invalid_id):
+                    with self.assertRaises(
+                            reviewed_cover_letter.ReviewedCoverLetterError) as caught:
+                        materialize_reviewed_preview(
+                            self.store, self.output, profile=profile, job=self.job,
+                            application_id=invalid_id, expected_base_document_version=1,
+                            preview=preview, preview_sha256=digest,
+                            request_id="reviewed-invalid-path-token",
+                        )
+                    self.assertEqual(caught.exception.code, "COVER_LETTER_REVIEW_PATH_INVALID")
+            lookup.assert_not_called()
+            generate.assert_not_called()
+
     def test_fresh_review_rejects_aliased_output_directory_before_writes(self):
         self._assert_fresh_review_rejects_directory_alias("output")
 
