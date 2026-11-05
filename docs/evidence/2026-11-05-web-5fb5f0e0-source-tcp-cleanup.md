@@ -116,3 +116,17 @@ The separate PR949 hosted source-connect and durable AI TLS timing failures are
 retained on that PR and issue #770; this patch does not claim to resolve them.
 No canonical acceptance, Project/Fleet status, production state or external
 application was changed. **IMPLEMENTED / FOCUSED TESTS PASS; NOT MERGED / NOT DEPLOYED.**
+
+## 2026-11-05 follow-up: protected integration failure diagnostics
+
+Current source parent `7cc4809a0168de733da72b60dbd2185dc3b1b7f2` / checked merge `d6224fbda5a733a9d499dd788eff5a47da4a14cf` passed fresh CodeQL check127047721909, CI/required, dependency review, secret scan and disposable Compose. The original CodeQL failure above is retained; the explicit fixture TLS1.2 floor resolved that fresh check without suppression.
+
+The required PostgreSQL/Redis aggregate check127053705493 failed. [Shard2, job127047563435](https://github.com/MulattoTech/MJobs/actions/runs/41967429324/job/127047563435) observed `['BLOCKED','DEAD_LETTERED']` instead of `['BLOCKED','COMPLETED']` in `RouteAttemptConcurrencyTests.test_two_real_workers_only_one_submits_then_explicit_retry_is_safe`. It reports1 failed,997 passed,10 skipped,561 subtests passed,1024.68s; shards0/1 passed. The log did not expose the dead-lettered worker's error category, so no browser, DB or source-transport cause is inferred.
+
+The test-only follow-up attaches each synthetic worker's existing sanitized `status` and `error_category` to that assertion. It preserves the expected status pair, one-attempt/one-submission checks, durable state and explicit retry controls. No production source, retry policy, timing threshold or required check changes. Final diagnostic test blob: `7b8b028db503f54dd5d8a0535de59a8de7a760e1`.
+
+Verification on Python3.12.16 in a resource-admitted, network-disabled Linux container with read-only candidate code and synthetic tmpfs data: **full route-concurrency module5 methods PASS;0 failures/errors/skips**,11.794s. A separate control changed only the returned synthetic worker summary after the real fixture work: it produced exactly one expected assertion failure, showed `SYNTHETIC_DIAGNOSTIC_FAILURE`, and kept an added synthetic private value out of the diagnostic. Normal module plus control:18.139s. Ruff retains the same4 prior code/message findings, without new suppressions.
+
+An earlier unchanged Linux diagnostic passed this race method and the separate durable TLS timing method (+6 TLS subtests) in9.907s. Neither isolated result reproduces or dismisses the full hosted-shard failure. The retained 55-test/37-subtest TCP/TLS product verification applies to byte-identical production and cleanup-test blobs. Fresh actual-candidate CI remains required. New TCP-extension independent review remains pending; MJ-REQ-004 remains PARTIAL.
+
+The final Linux validation completed2026-11-05T04:53:12.384361Z; heavy owner e714223b08e8d98f6abfe94d35bd5446b5da9baf was released04:53:14.048263Z with HTTP204/verified absence. No external employer submission, production fixture, full-suite rerun or browser-profile sharing was used.
