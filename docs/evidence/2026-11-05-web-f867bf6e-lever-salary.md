@@ -35,3 +35,24 @@ No live Lever request, browser session, provider account, external application, 
 At this initial source checkpoint, complete focused Lever regression execution on the committed source, repository validators, independent review and fresh protected CI remain pending. PostgreSQL-specific execution, live-provider behavior, browser journey and production are NOT_RUN locally. The new persistence fixture is SQLite; it does not certify an actual PostgreSQL migration or production dataset.
 
 No canonical requirement result, original denominator, Project/Fleet completion or issue closure changed. Both umbrella requirements remain PARTIAL. Protected merge needs current-candidate checks and short exclusive integration ownership. Deployment is separately guarded. Rollback is a protected revert of this source/test change; there is no schema migration or data rewrite.
+
+
+## Exact committed-source validation
+
+The complete focused Lever regression set was executed at source commit `0001a608adc31292b70ece91408c76013228fc67` (tree `2784e210f034fae5581c63e19f2dc271aba98da6`):
+
+```text
+python -B -m pytest -q -p no:cacheprovider --basetemp .tmp/f867-lever/committed tests/unit/test_lever_salary_safety.py tests/unit/test_lever_source.py tests/integration/test_lever_autodiscovery.py --tb=short
+```
+
+**PASS: 29 tests and 56 subtests, zero failures/skips, 32.05 seconds, exit0.** This includes the complete existing unit and integration Lever suites plus the new malformed-optional-salary regressions.
+
+Repository gates on that commit also passed:
+
+- `python -m tools.verification.commit_provenance --commit HEAD`: complete provenance for three source files.
+- `python -m tools.verification.catalogue`: PASS.
+- `python -m tools.verification.progress validate`: PASS.
+- `python -m tools.verification.progress_dashboard --check`: CURRENT.
+- `git diff --check`: PASS.
+
+The follow-up evidence-only commit preserves all three tested source/test blobs. Independent review, fresh protected CI, protected merge and guarded production validation remain pending at publication; this evidence does not promote either umbrella requirement.
