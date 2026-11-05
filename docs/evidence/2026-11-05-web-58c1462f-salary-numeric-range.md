@@ -56,3 +56,10 @@ The owned disposable database was removed after the successful batch and origina
 Refresh current protected main under a newly acquired integration lock, preserve source/test blobs, validate the combined candidate, and run the full candidate-specific pr_queue --live --metadata ... --candidate ... --update-pr 934 preflight before a normal push to the existing PR branch. Release global locks before waiting for hosted CI. No new duplicate PR or force push is needed.
 
 This follow-up has no schema migration, new dependency, production configuration change, external application submission or additional model use. The rollback route is a protected source revert. Previous failed results are preserved and no acceptance denominator or test assertion is reduced.
+
+## Protected-main integration checkpoint
+
+- UTC: 2026-11-05T02:20:01.888354+00:00; current protected base: 0d3fbc5749fba8c682033a343a7ec9695e4dd743; previous local evidence head: f0ef23fa75b9685d80b4c1fd37f119738a4b5e11; exact tested merge-index tree before documentation additions: 728b4f2bed87a6edc47c445ac8900dcae47569bc.
+- Numeric guard and locale-order source/test blobs remain byte-identical to tested source 2a443fbbea40ff68a14aa92cf46b6133ca2cd04b. Existing authored feature changes are preserved through the main merge.
+- Executed combined current-main proof: **50 passed, 55 subtests passed in 74.63s (0:01:14)** on a new isolated PostgreSQL 17 fixture and SQLite. Catalogue, progress/dashboard and staged diff passed. The new fixture and heavy slot were removed/released immediately after the batch.
+- Existing PR934 publication requires complete candidate-specific preflight, a normal ancestor-preserving push and exact remote readback. Fresh published-head CI and protected current-main integration remain required. No acceptance status is promoted.

@@ -1,26 +1,26 @@
 {
   "schema_version": 1,
   "task_id": "MJ-TH-013",
-  "objective": "Resolve valid numeric salary overflow and existing locale-dependent salary ID tie order while preserving prior feature authorship",
+  "objective": "Integrate finite salary conversion and deterministic ID ties while preserving the original salary feature",
   "owner": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
   "branch": "web/web-20261104T235920Z-58c1462f/MJ-TH-013-range",
-  "head_sha": "2a443fbbea40ff68a14aa92cf46b6133ca2cd04b",
+  "head_sha": "f0ef23fa75b9685d80b4c1fd37f119738a4b5e11",
   "routing_state": "VERIFY",
-  "next_action": "Refresh current main under fresh integration ownership, verify combined source, run complete existing-PR candidate preflight, publish and obtain fresh protected checks.",
-  "created_at": "2026-11-05T02:14:52.295443+00:00",
+  "next_action": "Obtain independent follow-up review and all exact published-head protected checks; verify current main under fresh integration ownership before merge. Deployment and acceptance are separate.",
+  "created_at": "2026-11-05T02:20:02.025215+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Source 2a443fb: PostgreSQL and SQLite 50 tests / 55 subtests passed in 75.29s; original seven HTTP requests all 200; metadata unchanged; catalogue/progress/dashboard pass",
+      "command": "50 passed, 55 subtests passed in 74.63s (0:01:14) on combined current main; earlier seven HTTP probes all 200, metadata unchanged; catalogue/progress/dashboard pass",
       "result": "PASS"
     },
     {
-      "command": "Current-main integration refresh; final published-head hosted CI; independent review of this follow-up; live authenticated browser behavior",
+      "command": "Fresh exact published-head CI; independent review of added source; live authenticated browser behavior",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Integration lock currently belongs to another bounded PR refresh; failed baseline and intermediate results retained"
+    "Hosted checks and review must complete after publication"
   ],
   "transfer_history": [
     {

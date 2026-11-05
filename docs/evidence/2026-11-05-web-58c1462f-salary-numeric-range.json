@@ -148,5 +148,14 @@
     ],
     "direct_store": "NO_ERROR",
     "source_metadata_unchanged": true
+  },
+  "protected_main_integration": {
+    "base": "0d3fbc5749fba8c682033a343a7ec9695e4dd743",
+    "index_tree": "728b4f2bed87a6edc47c445ac8900dcae47569bc",
+    "source_before_merge": "f0ef23fa75b9685d80b4c1fd37f119738a4b5e11",
+    "test_exit": 0,
+    "summary": [
+      "50 passed, 55 subtests passed in 74.63s (0:01:14)"
+    ]
   }
 }
