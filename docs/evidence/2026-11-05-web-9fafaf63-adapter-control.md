@@ -51,3 +51,11 @@ data, or Fleet settings change. No paid model or real ATS request was made.
 Protected current-candidate CI, independent review, serialized integration and
 production deployment remain separate gates. Roll back this isolated commit
 through the protected workflow if necessary; no data migration is required.
+
+## Shared-history scanner correction
+
+The original required scan (run 41939845186, redacted artifact 13376340947) failed on exactly two historical findings in PR937's evidence note, outside this change's authored source. Both values were independently verified against immutable source Git objects; review: https://github.com/MulattoTech/MJobs/pull/937#pullrequestreview-5777892865.
+
+Under the separately acquired SECRET-SCAN-FINGERPRINTS claim, this follow-up reuses the byte-identical four-line correction already reviewed in PR937: two explanatory comments and two exact commit/path/rule/line fingerprints. No scanner rule, workflow, directory or generic pattern is exempted. The original failure remains recorded. A fresh passing protected scan is still required; focused scanner-policy tests do not substitute for that scan.
+
+The adapter implementation and its executed results above are unchanged by this correction. Independent review/execution of the adapter source is recorded at https://github.com/MulattoTech/MJobs/pull/940#issuecomment-6646020493 (142 tests and 171 subtests passed).
