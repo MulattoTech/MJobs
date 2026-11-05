@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-004",
+  "objective": "Preserve failed resume extraction control checks through native and OCR fallbacks",
+  "owner": "web-20261105T000428Z-2735b1ba4d46",
+  "branch": "web/web-20261105T000428Z-2735b1ba4d46/MJ-REQ-004",
+  "head_sha": "6612f8c7b0bf1dd32980ab6f2176250626ecad3e",
+  "routing_state": "VERIFY",
+  "next_action": "Publish scoped PR; verify exact candidate required CI; integrate and deploy only under fresh exclusive locks",
+  "created_at": "2026-11-05T00:15:35.181457+00:00",
+  "requirements": [
+    "MJ-REQ-004"
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_resume_extraction_control_failures.py tests/unit/test_resume_extraction.py tests/unit/test_resume_ocr.py tests/integration/test_resume_extraction_control_failures.py --tb=short (63 passed, 7 subtests passed); catalogue/progress/dashboard/diff/provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted candidate CI, independent review, production deployment and live browser checks",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full MJ-REQ-004 remains PARTIAL; canonical accounting unchanged"
+  ]
+}
