@@ -1,0 +1,66 @@
+{
+  "run": "web-20261105T012848Z-5c9a70d51d99",
+  "scope": "AGENT-CONTEXT-CHILD-IDS",
+  "requirement": "MJ-REQ-008",
+  "issue": 9,
+  "baseline": "2e1c0072c2ea7241b832dc8842ce1cdc0d781cc1",
+  "source_commit": "90dc7f5f0cebc61ffeec9b58de04494533877ee8",
+  "claim_ref": "refs/heads/webpro-claims/AGENT-CONTEXT-CHILD-IDS",
+  "claim_owner": "992ecd8a646ae80ce351942f35733b671b58b737",
+  "claim_acquired_utc": "2026-11-05T01:38:43.0644153Z",
+  "claim_receipt": "HTTP201 plus exact readback",
+  "defect": "All 65 dotted canonical child requirement IDs were rejected by checkpoint path and payload validation; bootstrap found the requirement but routed its checkpoint as invalid.",
+  "change": "Accept only the existing bounded legacy task-name grammar or the canonical MJ-REQ-000.A00 child grammar. Exact ID, owner, branch and path containment checks remain enforced.",
+  "executed": [
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_agent_context_child_ids.py --tb=short --junitxml=outputs/web-5c9a70d51d99-child-ids/baseline.xml",
+      "revision": "unmodified baseline plus the new regression module",
+      "result": "EXPECTED RED: 69 failed, 2 passed, 381 subtests passed in 1.25s; exit 1",
+      "qualification": "69 includes 65 failing canonical-child subtests and 4 failing workflow tests; it is not 69 distinct test functions. The link-containment case failed because ID rejection prevented reaching the existing containment check."
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_agent_context.py tests/unit/test_agent_context_child_ids.py --tb=short --junitxml=outputs/web-5c9a70d51d99-child-ids/focused.xml",
+      "revision": "source/test contents committed unchanged in source_commit",
+      "result": "PASS: 24 tests and 462 subtests, 0 failures/errors/skips, 1.35s; exit 0"
+    },
+    {
+      "command": "python -m tools.agent_context bootstrap --task MJ-REQ-017.S07",
+      "result": "PASS: canonical requirement found, checkpoint NOT_FOUND, routing EXECUTE, no checkpoint_error; read-only"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "CURRENT"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD --strict",
+      "result": "PASS: provenance complete for 2 source files"
+    }
+  ],
+  "coverage": [
+    "All 425 current original/reference index IDs, including all 65 dotted child IDs, map to distinct contained filenames; this is ID compatibility, not acceptance credit.",
+    "Fresh-process CLI checkpoint, validate and resume preserve parent and sibling files and the exact requirement ID.",
+    "Malformed dotted names, separators, traversal, alternate streams, Unicode lookalikes and legacy length overflow are rejected without writes.",
+    "Changed owner and mismatched checkpoint identity still fail closed.",
+    "Linux directory-symlink escape is refused; original task-name boundary behavior is preserved."
+  ],
+  "platform": "Linux; Python 3.12.14; pytest 9.0.3. Isolated worktree; no host services or external providers used.",
+  "limits": [
+    "Source review so far is by the author, not independent review.",
+    "Native Windows verification, protected hosted CI, actual merge-candidate checks, protected merge and deployment are not established by this source receipt.",
+    "Full MJ-REQ-008 interruption/restart/durability acceptance remains PARTIAL; no canonical matrix, issue closure, Project or Fleet acceptance update."
+  ],
+  "risk_and_rollback": "Narrow path-validation extension for fixed-format canonical IDs. Revert the source/test/docs commit through protected review if needed; existing checkpoint files remain ordinary JSON and are not rewritten or deleted.",
+  "recorded_utc": "2026-11-05T01:43:47.023042+00:00"
+}
