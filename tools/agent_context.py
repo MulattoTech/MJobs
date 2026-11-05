@@ -15,7 +15,11 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-TASK_ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,70}\Z")
+# Canonical child requirements have one dotted suffix; arbitrary dotted paths
+# remain invalid. Keep the existing bounded grammar for other owned task names.
+TASK_ID = re.compile(
+    r"(?:[A-Za-z][A-Za-z0-9_-]{0,70}|MJ-REQ-[0-9]{3}\.[A-Z][0-9]{2})\Z"
+)
 SHA = re.compile(r"[a-f0-9]{40}\Z")
 RESULTS = {"PASS", "FAIL", "NOT_RUN"}
 ROUTING_STATES = {
@@ -67,7 +71,10 @@ def git(root: Path, *args: str) -> str | None:
 
 def checkpoint_path(root: Path, task: str) -> Path:
     if TASK_ID.fullmatch(task) is None:
-        raise ValueError("task ID must contain only letters, digits, underscores or hyphens")
+        raise ValueError(
+            "task ID must start with a letter and contain at most 71 letters, digits, "
+            "underscores or hyphens, or match a child requirement such as MJ-REQ-017.S07"
+        )
     root = root.resolve()
     path = (root / "planning" / "agent_handoffs" / f"{task}.json").resolve()
     if not path.is_relative_to(root):
