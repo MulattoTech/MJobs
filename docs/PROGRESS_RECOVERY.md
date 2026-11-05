@@ -58,14 +58,30 @@ Strict consistency checks compare every generated authoritative field and the
 milestone ID, timestamp and schema version. A matching phase and commit alone
 are insufficient when completed work, remaining work or limitations differ.
 
-## Cooperating writers
+## Cooperating readers and writers
 
-Record and explicit sync share a local operating-system lock for the whole
-read, validation and publication sequence. A competing command waits for at
+Record, explicit sync, validation and resume share a local operating-system
+lock for the whole read, validation and publication sequence. A competing command waits for at
 most three seconds to acquire it, then raises a fixed busy error before reading
-or changing the journal. Once the active publisher finishes, retry the refused
+or changing the canonical journal. Once the active publisher finishes, retry the refused
 command after inspecting the latest checkpoint. A command interrupted after
 canonical publication still needs the explicit sync procedure above.
+
+Readers hold the same lock through validation and construction of the returned
+snapshot. They wait for an active two-file publication rather than reporting its
+temporary mismatch as corruption. If the writer finishes within the acquisition
+budget, the reader validates the completed publication. If it does not, the
+reader reports busy without changing either journal. A genuinely stale generated
+copy left after a writer exits is still rejected by canonical validation/resume;
+readers never silently repair it or ignore the consistency checks.
+
+An explicit canonical `--source` uses that file's coordination lock. Its initial
+format inspection may precede acquisition, but the returned snapshot is reloaded
+and validated under the lock. Explicit generated-copy reads coordinate with the
+root's canonical publisher when that journal exists. They continue to validate
+the chosen copy as a standalone checkpoint, not prove that a historical copy is
+the latest canonical milestone. Output-only recovery still works when the
+canonical journal and planning directory are absent, without creating either.
 
 The coordination file is `planning/.implementation-progress.lock`. It is
 created privately beside the canonical file and remains present after release;
@@ -73,14 +89,15 @@ its presence alone does not mean a writer is active. Do not delete, replace
 or use it as an output destination while publishers may run. Both commands
 refuse that destination, including normalized aliases, and refuse symbolic
 links or multi-link coordination files. The ignored file contains no journal
-data. First use needs permission to create it in the planning directory.
+data. First use, including validation/resume, needs permission to create it in
+the planning directory; subsequent commands need access to the coordination
+file. Neither reader changes journal contents.
 
 The lock is released when the operation finishes, fails, or its process exits.
 Windows uses a nonblocking byte-range lock; Linux uses an advisory file lock.
 The acquisition wait is bounded, not arbitrary filesystem I/O, flush duration
-or the full publication operation. Validation and resume remain read-only
-observations and may report an in-progress two-file mismatch; repeat them once
-the active writer finishes.
+or the full publication/validation operation. Readers serialize with each other
+as well as writers, so a busy error may also indicate another active reader.
 
 This coordinates commands using this implementation on the same local journal.
 It does not coordinate separate Git worktrees, manual editors, older tools or
@@ -99,6 +116,13 @@ regressions cover record/record, record/sync, sync/record, bounded refusal and
 subsequent retry, coordination-file output aliases, unrelated journals, and
 hard-link/symlink refusal. The existing real process-exit regression also checks
 that an abandoned OS lock does not prevent fresh-process sync.
+
+Reader process regressions pause a real publication between its two replacements
+and exercise default/explicit validation, canonical resume and generated-copy
+resume. They cover bounded busy classification without journal writes, retry,
+a reader waiting for publication to finish, a reader retaining its snapshot
+through validation, output-only recovery, lock release after invalid history,
+and independence of unrelated journals.
 
 Durability regressions observe real file/directory flushes in publication
 order and inject failures at the content, directory-open and directory-flush
