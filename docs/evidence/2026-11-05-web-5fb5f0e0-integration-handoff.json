@@ -1,0 +1,70 @@
+{
+  "run": "web-20261105T024405Z-5fb5f0e00ed3",
+  "status": "ACTIVE_PROTECTED_INTEGRATION_PENDING",
+  "requirements": {
+    "MJ-REQ-008": "PARTIAL",
+    "MJ-REQ-155": "PARTIAL",
+    "MJ-REQ-004": "PARTIAL",
+    "MJ-TH-014": "PARTIAL"
+  },
+  "recovery": {
+    "pr": 949,
+    "source_pr": 941,
+    "head": "046ad6fd1cbc5a28bf751f84f52a85fd7db9000d",
+    "base": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+    "tree": "669465603908d043a45651db32f49334c31ca684",
+    "proposed_merge": "50fe697134f6b0e956bdb7abc4b8aeccffabdf37",
+    "unchanged_reviewed_blobs": 11,
+    "tests": {
+      "passed": 48,
+      "subtests_passed": 37,
+      "skipped": 7,
+      "failed": 0,
+      "pytest_seconds": 20.37
+    },
+    "publication_receipt": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6648718620",
+    "checks": "PENDING: current-main exact candidate protected gates required"
+  },
+  "resume_review": {
+    "pr": 932,
+    "frozen_head": "824645355437637b70e85a19c0f4e5a5c72bf2da",
+    "status": "OWNED_CURRENT_MAIN_REFRESH_PENDING",
+    "scope_comment": "https://github.com/MulattoTech/MJobs/pull/932#issuecomment-6648768471",
+    "prior_independent_review": "https://github.com/MulattoTech/MJobs/pull/932#pullrequestreview-5777897235"
+  },
+  "independent_review": {
+    "pr": 956,
+    "reviewed_head": "3adea2724bd1e8434131d28926e8891f5a7aef83",
+    "review_url": "https://github.com/MulattoTech/MJobs/pull/956#pullrequestreview-5779368541",
+    "result": "No blocking finding within independently verified Cloudflare Access metadata; not human approval or authenticated journey proof"
+  },
+  "ownership": {
+    "PR-949-INTEGRATION": "1a193139777e1ef3e436511ddfbad222874328b1",
+    "PR-941-INTEGRATION": "a7e2b6a00b76ddae0df5e0f21190ffdf7b6c0ec9",
+    "PR-932-INTEGRATION": "e4b00cfd823b153f04f6609217cf9cc817c5cb2e"
+  },
+  "released_integration_owners": [
+    "1684cc188b618409abc349823d58b2ed5ca482fe",
+    "f030b256b7abf17cce10cc632a505e60c117f90a",
+    "a49aeb2ec1fa66d8be2cf67e9a904d4ddac42d00"
+  ],
+  "deployment": {
+    "attempted_by_this_run": false,
+    "observed_at": "2026-11-05T03:20:52Z",
+    "origin_sha": "d6650e4bc9bfd784bd6e3a346c793c372f02518a",
+    "readiness": "PASS: configuration/database/queue/worker/scheduler/schema and all five worker queues",
+    "mode": "PERSONAL",
+    "browser": "BLOCKED: selected Brave originating context unavailable"
+  },
+  "limitations": [
+    "No full canonical acceptance promotion",
+    "GitHub Project API lacks read:project; no Project or Fleet reconciliation claimed",
+    "No authenticated browser journey",
+    "No heavy or browser slot used",
+    "No separate AI/model invocation or fleet/quota modification",
+    "No TalentHop reconnaissance or HAR capture performed",
+    "Ownership snapshot is not a lease; live refs and latest PR comments are authoritative"
+  ],
+  "recorded_at": "2026-11-05T03:23:50.453982+00:00",
+  "checkpoint_base": "c6d499f391a8e092e06892d7fdea25cbfd177e53"
+}
