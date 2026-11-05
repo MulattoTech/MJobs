@@ -420,3 +420,11 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-ats-integration.md . Fresh published-head CI is required before PR935 merge. No acceptance matrix status is promoted.
 - Earlier current-main release cf882ef5 was deployed by the existing scheduled updater and independently verified for source/image/readiness and fresh backup integrity; PR946 release and authenticated UI remain separate gates.
 - PR935-INTEGRATION ownership remains active only for this continuation. Source claim MJ-REQ-179 can be released after its merge receipt is recorded. The short integration lock is released after publication. No heavy/browser slot is used. Successors must freshly read main, exact heads and ownership; this checkpoint grants no lease.
+
+
+## Web sprint 58c1462f - ATS refresh after PR937
+
+- UTC: 2026-11-05T02:16:05.291400+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR935 updated from 41e4d43d2c3ab02b735f18281f62af5843b355c5 against protected main 0d3fbc5749fba8c682033a343a7ec9695e4dd743.
+- Previous candidate passed all five protected gates before another worker merged PR937. New candidate requires fresh checks; source/test blobs remain unchanged. 77 passed, 113 subtests passed in 8.89s. Catalogue/progress/dashboard checks pass. Existing SESSION_HANDOFF appends are preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-ats-integration.md . The capture fix PR946 is merged and independently verified deployed at 2e1c0072; authenticated Brave remains unavailable. No acceptance matrix credit is added.
+- PR-935-INTEGRATION claim remains owned for the continuation. Release this transaction's integration lock immediately after publication; successors must freshly validate current main, exact published head, ownership and all protected checks.

@@ -1,25 +1,25 @@
 {
   "schema_version": 1,
   "task_id": "PR-935-INTEGRATION",
-  "objective": "Integrate the independently reviewed ATS form-action hostname correction after protected diagnostic remediation",
+  "objective": "Integrate reviewed ATS hostname correction on current protected main after PR937",
   "owner": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
   "branch": "web/web-20261104T235920Z-58c1462f/PR-935-review",
-  "head_sha": "88f8e50299066b3f961c6fbe06fab37680afd65b",
+  "head_sha": "41e4d43d2c3ab02b735f18281f62af5843b355c5",
   "routing_state": "VERIFY",
-  "next_action": "Verify every protected check on the exact published continuation, then merge under fresh integration ownership. Deployment is separate.",
-  "created_at": "2026-11-05T01:30:29.833809+00:00",
+  "next_action": "Verify fresh checks on the published head and current main, then acquire integration ownership and merge through the protected API.",
+  "created_at": "2026-11-05T02:16:05.442248+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "77 tests and 113 subtests passed in 8.75s; catalogue/progress/dashboard passed",
+      "command": "77 passed, 113 subtests passed in 8.89s; catalogue/progress/dashboard pass",
       "result": "PASS"
     },
     {
-      "command": "Fresh published-head protected CI; live authenticated ATS browser verification",
+      "command": "Fresh hosted checks on the new candidate; authenticated live ATS browser behavior",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Hosted candidate checks must complete after publication"
+    "Previous candidate was superseded by a concurrent protected main merge; new-head checks must complete"
   ]
 }

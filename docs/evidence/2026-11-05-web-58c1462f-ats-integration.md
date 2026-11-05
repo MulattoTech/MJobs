@@ -25,3 +25,13 @@ Publication uses the complete candidate-specific existing-PR gate, binding the p
 
 Fresh hosted checks on the new published candidate are required before serialized protected merge. Current main deployment, live ATS/browser behavior and full-project acceptance are separate. No real external application, provider request, production data change or additional model is used. Revert of the narrow detector source is the rollback route if needed; no migration is included.
 The existing updater's earlier cf882ef5 release was independently verified for source/image/readiness and backup integrity: https://github.com/MulattoTech/MJobs/pull/939#issuecomment-6647013740 . That release does not include PR946 or this ATS correction. Authenticated Brave access remains unavailable and is NOT RUN.
+
+## Current-main refresh after protected PR937
+
+- UTC: 2026-11-05T02:16:05.291400+00:00; previous candidate: 41e4d43d2c3ab02b735f18281f62af5843b355c5; new protected main: 0d3fbc5749fba8c682033a343a7ec9695e4dd743; tested merge-index tree before evidence additions: 96b756861a68f34b8e6957762f42ca2491ebb156.
+- The previous 41e4d43 candidate passed all five protected GitHub checks at 01:55 UTC with zero unresolved review threads. Another session held the integration lock and merged PR937 before this candidate could merge. Those passes remain historical evidence; they do not authorize this new head.
+- Historical gate and changed-base receipts: https://github.com/MulattoTech/MJobs/pull/935#issuecomment-6647525866 and https://github.com/MulattoTech/MJobs/pull/935#issuecomment-6647559498 .
+- The source and regression-test blobs remain exactly those independently reviewed in the original ATS change. Both append-only SESSION_HANDOFF contributions are preserved if a conflict occurs.
+- Executed combined proof on the new main: **77 passed, 113 subtests passed in 8.89s**; RuntimeWarning and pytest unraisable warnings are errors. Catalogue/progress/dashboard checks pass. No assertion, scanner policy or acceptance status was weakened.
+- Publication is a normal update of the existing PR after the complete candidate-specific preflight. Fresh exact-head hosted checks, current-main verification and a newly owned integration lock are required before merge. No global lock is held while waiting for CI.
+- Production checkpoint: the existing scheduled updater deployed PR946 merge 2e1c0072; source/image/readiness and a fresh verified backup were independently checked. https://github.com/MulattoTech/MJobs/pull/946#issuecomment-6647559218 . This is distinct from this still-open ATS change. Authenticated Brave verification remains NOT RUN.
