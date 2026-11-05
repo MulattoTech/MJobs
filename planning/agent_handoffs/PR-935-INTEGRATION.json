@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-935-INTEGRATION",
+  "objective": "Integrate the independently reviewed ATS form-action hostname correction after protected diagnostic remediation",
+  "owner": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
+  "branch": "web/web-20261104T235920Z-58c1462f/PR-935-review",
+  "head_sha": "88f8e50299066b3f961c6fbe06fab37680afd65b",
+  "routing_state": "VERIFY",
+  "next_action": "Verify every protected check on the exact published continuation, then merge under fresh integration ownership. Deployment is separate.",
+  "created_at": "2026-11-05T01:30:29.833809+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "77 tests and 113 subtests passed in 8.75s; catalogue/progress/dashboard passed",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh published-head protected CI; live authenticated ATS browser verification",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Hosted candidate checks must complete after publication"
+  ]
+}

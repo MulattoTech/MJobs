@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 import os
 import tempfile
@@ -289,11 +290,53 @@ def _document(children):
             "documentURL": "https://PRIVATE.invalid/token=PRIVATE"}
 
 
+class _PhaseBudgetClock:
+    """Start the capture clock at the phase under test, not during fixture setup.
+
+    asyncio waits and cancellation still use the real event-loop clock. Separate
+    tests cover exhaustion of the shared total budget before a phase is entered.
+    """
+    def __init__(self, phase):
+        self.phase = phase
+        self.started = None
+
+    def enter(self, phase):
+        if phase == self.phase and self.started is None:
+            self.started = time.monotonic()
+
+    def monotonic(self):
+        elapsed = 0.0 if self.started is None else time.monotonic() - self.started
+        return 100.0 + elapsed
+
+
 class NativeDomCaptureTests(unittest.TestCase):
     def snapshot(self, page, *, deadline=None, checkpoint=lambda: None):
         return debug_capture_module._dom_snapshot(
             page, deadline=time.monotonic() + 2 if deadline is None else deadline,
             checkpoint=checkpoint)
+
+    def test_sync_bridge_rejection_closes_unstarted_capture(self):
+        for error in (RuntimeError("PRIVATE bridge failure"), asyncio.CancelledError()):
+            with self.subTest(error=type(error).__name__):
+                page = _CdpPage(_document([]))
+                received = []
+
+                def reject(coroutine):
+                    received.append(coroutine)
+                    raise error
+
+                page._sync = reject
+                try:
+                    dom = self.snapshot(page)
+                    self.assertEqual(dom["status"], "OMITTED_CAPTURE_FAILED")
+                    self.assertEqual(page.calls, [])
+                    self.assertNotIn("PRIVATE", json.dumps(dom))
+                    self.assertEqual(len(received), 1)
+                    self.assertEqual(inspect.getcoroutinestate(received[0]), inspect.CORO_CLOSED)
+                finally:
+                    # Keep the intentionally failing baseline from leaking a warning.
+                    for coroutine in received:
+                        coroutine.close()
 
     def test_native_structure_omits_content_values_urls_and_custom_names(self):
         root = _document([{"nodeType": 1, "nodeName": "FORM", "attributes": ["id", "PRIVATE"],
@@ -355,10 +398,13 @@ class NativeDomCaptureTests(unittest.TestCase):
 
     def test_each_stalled_protocol_phase_is_cancelled_without_background_tasks(self):
         for phase in ("create", "target", "world", "send", "detach"):
-            with self.subTest(phase=phase), mock.patch.object(debug_capture_module, "DOM_TIMEOUT_MS", 40):
-                page = _CdpPage(_document([]), stall=phase)
+            clock = _PhaseBudgetClock(phase)
+            with self.subTest(phase=phase), mock.patch.object(debug_capture_module, "DOM_TIMEOUT_MS", 40), \
+                    mock.patch.object(debug_capture_module, "time", SimpleNamespace(monotonic=clock.monotonic)):
+                page = _CdpPage(_document([]), stall=phase, phase_hook=clock.enter)
                 started = time.monotonic()
-                dom = self.snapshot(page)
+                dom = self.snapshot(page, deadline=102.0)
+                self.assertIsNotNone(clock.started)
                 self.assertEqual(dom["status"], "OMITTED_TIMEOUT")
                 self.assertLess(time.monotonic() - started, 1)
                 self.assertEqual(page.cancelled, [phase])
@@ -383,6 +429,8 @@ class NativeDomCaptureTests(unittest.TestCase):
         class NativeProtocolPage(_CdpPage):
             async def phase(self, name):
                 self.calls.append(name)
+                if self.phase_hook:
+                    self.phase_hook(name)
                 if name != self.stall:
                     return
                 loop = asyncio.get_running_loop()
@@ -407,10 +455,13 @@ class NativeDomCaptureTests(unittest.TestCase):
                     guard.cancel()
 
         for phase in ("create", "target", "world", "send", "detach"):
-            with self.subTest(phase=phase), mock.patch.object(debug_capture_module, "DOM_TIMEOUT_MS", 50):
-                page = NativeProtocolPage(_document([]), stall=phase)
+            clock = _PhaseBudgetClock(phase)
+            with self.subTest(phase=phase), mock.patch.object(debug_capture_module, "DOM_TIMEOUT_MS", 50), \
+                    mock.patch.object(debug_capture_module, "time", SimpleNamespace(monotonic=clock.monotonic)):
+                page = NativeProtocolPage(_document([]), stall=phase, phase_hook=clock.enter)
                 started = time.monotonic()
-                dom = self.snapshot(page)
+                dom = self.snapshot(page, deadline=102.0)
+                self.assertIsNotNone(clock.started)
                 self.assertEqual(dom["status"], "OMITTED_TIMEOUT")
                 self.assertLess(time.monotonic() - started, .5)
                 self.assertTrue(page.callback.future.cancelled())
@@ -425,7 +476,7 @@ class NativeDomCaptureTests(unittest.TestCase):
             clock[0] += .2 if phase == "create" else .15
 
         page = _CdpPage(_document([]), phase_hook=advance)
-        with mock.patch.object(debug_capture_module.time, "monotonic", lambda: clock[0]):
+        with mock.patch.object(debug_capture_module, "time", SimpleNamespace(monotonic=lambda: clock[0])):
             dom = self.snapshot(page, deadline=102)
         self.assertEqual(dom["status"], "OMITTED_TIMEOUT")
         self.assertEqual(page.calls, ["create", "target"])
