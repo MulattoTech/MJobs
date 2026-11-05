@@ -1,7 +1,7 @@
 {
   "run": "web-20261105T024405Z-5fb5f0e00ed3",
-  "status": "ACTIVE; PR961 protected-merged and deployed; PR949/PR960 diagnostic candidates pending fresh hosted integration",
-  "previous_checkpoint": "f767f9ca944f670a79503bab1a0d3b8b0c87bee5",
+  "status": "ACTIVE; PR961 protected-merged and deployed; PR949/960 integration failed and claims released; PR958 integration claimed",
+  "previous_checkpoint": "79e84d5989cc0e9c172392581118448658655765",
   "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
   "merged": {
     "pr": 961,
@@ -34,6 +34,22 @@
       "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr949",
       "checks": [
         {
+          "id": 127066171063,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127066171063",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127060340542,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007442/job/127060340542",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
           "id": 127059199665,
           "name": "CodeQL",
           "status": "completed",
@@ -44,16 +60,16 @@
         {
           "id": 127059001769,
           "name": "Integration / shard 0",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127059001769",
           "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
         },
         {
           "id": 127059001697,
           "name": "Integration / shard 1",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127059001697",
           "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
         },
@@ -76,16 +92,16 @@
         {
           "id": 127059001494,
           "name": "Integration / shard 2",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127059001494",
           "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
         },
         {
           "id": 127059001399,
           "name": "Disposable Compose / mock end-to-end",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007457/job/127059001399",
           "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
         },
@@ -108,9 +124,33 @@
         {
           "id": 127059001214,
           "name": "Python / unit and integrity",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007442/job/127059001214",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127058992989,
+          "name": "Analyze (actions)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971003556/job/127058992989",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127058992891,
+          "name": "Analyze (python)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971003556/job/127058992891",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127058992745,
+          "name": "Analyze (javascript-typescript)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971003556/job/127058992745",
           "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
         }
       ],
@@ -135,10 +175,34 @@
           "skip": 0
         }
       },
-      "status": "OPEN / NOT MERGED / NOT DEPLOYED; fresh required gates pending",
-      "checks_as_of": "2026-11-05T05:01:45Z",
+      "status": "OPEN / NOT MERGED / NOT DEPLOYED; required Integration FAILED; scope owner-released",
+      "checks_as_of": "2026-11-05T05:22:00Z",
       "diagnostic_proof": "https://github.com/MulattoTech/MJobs/blob/fbcbc1797be5c4411f7a961493e4f28dbdeeee38/docs/evidence/2026-11-05-web-5fb5f0e0-pr949-ci-diagnostics.md",
-      "source_evidence_preserved": true
+      "source_evidence_preserved": true,
+      "current_failure": {
+        "pr": 949,
+        "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+        "run": 41971007499,
+        "job": 127059001769,
+        "test": "DurableTLSRecoveryTests.test_tls_cancellation_and_deadline_persist_without_uncertain_replay",
+        "provider": "azure-openai",
+        "cancel": false,
+        "bound_ms": 900,
+        "socket_close_ms": 291.8,
+        "worker_terminal_ms": 998.5,
+        "worker_exit_ms": 998.5,
+        "probe_ms": 831.312,
+        "stack_top": "sqlalchemy event/registry.py:104:_collection_gced during UPDATE compilation",
+        "counts": {
+          "failed": 1,
+          "passed": 914,
+          "skipped": 17,
+          "subtests_passed": 555
+        },
+        "root_cause": "UNCONFIRMED",
+        "comment": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6650439881",
+        "handoff": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6650534234"
+      }
     },
     {
       "pr": 960,
@@ -158,6 +222,22 @@
       "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr960",
       "checks": [
         {
+          "id": 127065315437,
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127065315437",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
+          "id": 127060250682,
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013683/job/127060250682",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
           "id": 127059146148,
           "name": "CodeQL",
           "status": "completed",
@@ -176,8 +256,8 @@
         {
           "id": 127059021124,
           "name": "Integration / shard 2",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127059021124",
           "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
@@ -192,24 +272,24 @@
         {
           "id": 127059021066,
           "name": "Integration / shard 1",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127059021066",
           "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
           "id": 127059020912,
           "name": "Python / unit and integrity",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013683/job/127059020912",
           "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
           "id": 127059020853,
           "name": "Integration / shard 0",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127059020853",
           "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
@@ -232,9 +312,33 @@
         {
           "id": 127059020238,
           "name": "Disposable Compose / mock end-to-end",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013517/job/127059020238",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
+          "id": 127059014758,
+          "name": "Analyze (python)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971010492/job/127059014758",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
+          "id": 127059014634,
+          "name": "Analyze (actions)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971010492/job/127059014634",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
+          "id": 127059014468,
+          "name": "Analyze (javascript-typescript)",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971010492/job/127059014468",
           "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         }
       ],
@@ -246,21 +350,43 @@
         "pytest_seconds": 108.65,
         "command_seconds": 110.61
       },
-      "status": "OPEN / NOT MERGED / NOT DEPLOYED; fresh required gates pending",
-      "checks_as_of": "2026-11-05T05:01:45Z",
+      "status": "OPEN / NOT MERGED / NOT DEPLOYED; required Integration FAILED; scope owner-released",
+      "checks_as_of": "2026-11-05T05:22:00Z",
       "diagnostic_proof": "https://github.com/MulattoTech/MJobs/blob/3e9ed3b6ea4263ee0958574f79ac12829a5b14d5/docs/evidence/2026-11-05-web-5fb5f0e0-source-tcp-cleanup.md",
-      "source_evidence_preserved": true
+      "source_evidence_preserved": true,
+      "current_failure": {
+        "pr": 960,
+        "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
+        "run": 41971013678,
+        "job": 127059020853,
+        "test": "DurableTLSRecoveryTests.test_tls_cancellation_and_deadline_persist_without_uncertain_replay",
+        "provider": "azure-openai",
+        "cancel": true,
+        "bound_ms": 900,
+        "socket_close_ms": 961.2,
+        "worker_terminal_ms": 968.2,
+        "cancel_ack_ms": 961.8,
+        "excluded_client_setup_ms": 252.4,
+        "counts": {
+          "failed": 1,
+          "passed": 894,
+          "skipped": 27,
+          "subtests_passed": 596
+        },
+        "root_cause": "UNCONFIRMED; previous route failure did not recur but no remediation proven",
+        "comment": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650440079",
+        "handoff": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650534475"
+      }
     }
   ],
   "ownership": {
     "held": [
       {
-        "ref": "refs/heads/webpro-claims/PR-949-INTEGRATION",
-        "owner": "1a193139777e1ef3e436511ddfbad222874328b1"
-      },
-      {
-        "ref": "refs/heads/webpro-claims/PR-960-INTEGRATION",
-        "owner": "a68d6f77981c8bcea56011b698d9c0dcb327e783"
+        "ref": "refs/heads/webpro-claims/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY",
+        "owner": "8738512886478221e4f91c3ec7edcf34bb959c81",
+        "acquired_at": "2026-11-05T05:28:01.580307+00:00",
+        "http": 201,
+        "readback": true
       }
     ],
     "released": [
@@ -301,6 +427,26 @@
         "release_http": 204,
         "absence_http": 404,
         "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
+      },
+      {
+        "pr": 949,
+        "ref": "refs/heads/webpro-claims/PR-949-INTEGRATION",
+        "owner": "1a193139777e1ef3e436511ddfbad222874328b1",
+        "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+        "released_at": "2026-11-05T05:30:36.057067+00:00",
+        "release_http": 204,
+        "absence_http": 404,
+        "handoff": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6650534234"
+      },
+      {
+        "pr": 960,
+        "ref": "refs/heads/webpro-claims/PR-960-INTEGRATION",
+        "owner": "a68d6f77981c8bcea56011b698d9c0dcb327e783",
+        "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
+        "released_at": "2026-11-05T05:30:38.692023+00:00",
+        "release_http": 204,
+        "absence_http": 404,
+        "handoff": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650534475"
       }
     ],
     "global_locks": [],
@@ -319,6 +465,22 @@
         "ref": "refs/heads/webpro-slots/heavy-01",
         "owner": "e714223b08e8d98f6abfe94d35bd5446b5da9baf",
         "released_at": "2026-11-05T04:53:14.048263Z"
+      },
+      {
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "owner": "91bbdcf213e9ec757e71c138a711943b273aef99",
+        "acquired_at": "2026-11-05T05:18:12.737806+00:00",
+        "released_at": "2026-11-05T05:18:52.132564+00:00",
+        "release_http": 204,
+        "absence_http": 404
+      },
+      {
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "owner": "7b19f9638f7c163f9318a8b56e50128475068708",
+        "acquired_at": "2026-11-05T05:24:17.285621+00:00",
+        "released_at": "2026-11-05T05:28:19.241128+00:00",
+        "release_http": 204,
+        "absence_http": 404
       }
     ],
     "active_slots": []
@@ -413,7 +575,7 @@
     "All original/additive acceptance counts unchanged; no Project/Fleet reconciliation; no other model/agent invoked.",
     "Current CI diagnostics are test-only, retain existing assertions/budgets, and are not source fixes for the unresolved hosted timing/race failures."
   ],
-  "next_action": "Inspect fresh actual-candidate gates once ready; analyze any failure using new diagnostics. If all mandatory checks pass, acquire a fresh integration lock, revalidate main/head/candidate/tree/threads/rules and merge one candidate. Refresh the second against resulting main and rerun required gates before merging; never reuse stale-base green. Deploy only a verified current main with separate guarded ownership. On stop, publish final checkpoint and owner-release the two remaining scoped claims.",
+  "next_action": "Advance PR958 under short integration ownership with unchanged reviewed blobs and fresh actual-candidate gates. PR949/960 are handed off and require new atomic scope claims before any further writes; AI TLS timing investigation belongs with issue769. Preserve all failures and the 900ms assertion.",
   "production": {
     "at": "2026-11-05T04:44:33.686808+00:00",
     "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
@@ -508,7 +670,293 @@
       "completed_at": "2026-11-05T04:55:48.890908Z",
       "expected_failure_control": "PASS; delayed worker still fails assertion; bounded stack present; sensitive local absent"
     },
-    "root_causes": "UNCONFIRMED; neither isolated success nor instrumentation dismisses retained hosted failures"
+    "root_causes": "UNCONFIRMED; neither isolated success nor instrumentation dismisses retained hosted failures",
+    "gc_repetition": {
+      "methods": 8,
+      "subtests": 48,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 31.57,
+      "events": 4090,
+      "largest_events": [
+        {
+          "start": 24089.495907166,
+          "seconds": 0.5760529669969401,
+          "generation": 2,
+          "collected": 204344,
+          "uncollectable": 0,
+          "thread": "MainThread"
+        },
+        {
+          "start": 24092.742792486,
+          "seconds": 0.4803500060006627,
+          "generation": 2,
+          "collected": 179806,
+          "uncollectable": 0,
+          "thread": "MainThread"
+        },
+        {
+          "start": 24078.832000257,
+          "seconds": 0.4628981370005931,
+          "generation": 2,
+          "collected": 167181,
+          "uncollectable": 0,
+          "thread": "MainThread"
+        },
+        {
+          "start": 24086.741671985,
+          "seconds": 0.44253709799886565,
+          "generation": 2,
+          "collected": 193400,
+          "uncollectable": 0,
+          "thread": "asyncio-portal-7520c3d761b0"
+        },
+        {
+          "start": 24083.837172519,
+          "seconds": 0.41871595599877764,
+          "generation": 2,
+          "collected": 152301,
+          "uncollectable": 0,
+          "thread": "MainThread"
+        },
+        {
+          "start": 24081.257897462,
+          "seconds": 0.3662297139999282,
+          "generation": 2,
+          "collected": 176384,
+          "uncollectable": 0,
+          "thread": "asyncio-portal-7520c824b740"
+        },
+        {
+          "start": 24076.12715602,
+          "seconds": 0.3540843650007446,
+          "generation": 2,
+          "collected": 177012,
+          "uncollectable": 0,
+          "thread": "asyncio-portal-7520c885be30"
+        },
+        {
+          "start": 24073.870088147,
+          "seconds": 0.3431071750019328,
+          "generation": 2,
+          "collected": 164901,
+          "uncollectable": 0,
+          "thread": "MainThread"
+        }
+      ],
+      "gc_after": {
+        "enabled": true,
+        "thresholds": [
+          700,
+          10,
+          10
+        ],
+        "stats": [
+          {
+            "collections": 4059,
+            "collected": 93258,
+            "uncollectable": 0
+          },
+          {
+            "collections": 369,
+            "collected": 54041,
+            "uncollectable": 0
+          },
+          {
+            "collections": 17,
+            "collected": 1450978,
+            "uncollectable": 0
+          }
+        ]
+      },
+      "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+      "receipt": {
+        "run": "web-20261105T024405Z-5fb5f0e00ed3",
+        "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+        "image": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+        "capacity": {
+          "cpu": 5,
+          "free_mb": 15563,
+          "disk_gb": 311.25
+        },
+        "owner": "91bbdcf213e9ec757e71c138a711943b273aef99",
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "acquired_at": "2026-11-05T05:18:12.737806+00:00",
+        "http": 201,
+        "readback": true,
+        "exit": 0,
+        "seconds": 36.047,
+        "completed_at": "2026-11-05T05:18:50.220263+00:00",
+        "released_at": "2026-11-05T05:18:52.132564+00:00",
+        "release_http": 204,
+        "absence_http": 404
+      },
+      "limitation": "Existing method repeated eight times; no failing terminal bound reproduced; GC correlation/root cause unproven."
+    },
+    "gc_shard_prefix": {
+      "exit": 0,
+      "seconds": 232.359,
+      "events_over_50ms": [
+        {
+          "node": "collection",
+          "seconds": 0.07690187700063689,
+          "generation": 2,
+          "collected": 51536,
+          "thread": "MainThread"
+        },
+        {
+          "node": "collection",
+          "seconds": 0.06120283599739196,
+          "generation": 2,
+          "collected": 52224,
+          "thread": "MainThread"
+        },
+        {
+          "node": "collection",
+          "seconds": 0.05876560599790537,
+          "generation": 2,
+          "collected": 52856,
+          "thread": "MainThread"
+        },
+        {
+          "node": "collection",
+          "seconds": 0.06536684399907244,
+          "generation": 2,
+          "collected": 50,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_agent_browser_budget_entrypoint_sustain_403.py::AgentBrowserBudgetEntrypointSustain403Tests::test_complete_inventory_supplies_authoritative_count_anchor call",
+          "seconds": 0.05383715599964489,
+          "generation": 2,
+          "collected": 3335,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_agent_browser_budget_entrypoint_sustain_403.py::AgentBrowserBudgetEntrypointSustain403Tests::test_explicit_count_and_tail_anchor_an_incomplete_batch call",
+          "seconds": 0.1028274739983317,
+          "generation": 2,
+          "collected": 10535,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_agent_browser_budget_entrypoint_sustain_403.py::AgentBrowserBudgetEntrypointSustain403Tests::test_public_discover_persists_verified_budget_and_collection_artifact call",
+          "seconds": 0.12179077100154245,
+          "generation": 2,
+          "collected": 13916,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_agent_browser_budget_entrypoint_sustain_403.py::AgentBrowserBudgetEntrypointSustain403Tests::test_rejected_actual_tail_cannot_make_an_earlier_matching_tail_pass call",
+          "seconds": 0.13367177700274624,
+          "generation": 2,
+          "collected": 10943,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_evaluation_job_migration.py::AIEvaluationJobMigrationTests::test_legacy_upgrade_empty_rollback_and_populated_refusal call",
+          "seconds": 0.16576103900297312,
+          "generation": 2,
+          "collected": 47706,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_source_quotes.py::AISourceQuoteTests::test_real_worker_quotes_survive_reload_and_job_edit_without_recall call",
+          "seconds": 0.19979109300038544,
+          "generation": 2,
+          "collected": 21964,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_request_owner_finishes_cleanup_before_guard_returns call",
+          "seconds": 0.2780405269986659,
+          "generation": 2,
+          "collected": 8661,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay call",
+          "seconds": 0.33999100099754287,
+          "generation": 2,
+          "collected": 162143,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay teardown",
+          "seconds": 0.4064937189978082,
+          "generation": 2,
+          "collected": 183051,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay teardown",
+          "seconds": 0.3061102020001272,
+          "generation": 2,
+          "collected": 0,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay teardown",
+          "seconds": 0.2732448499991733,
+          "generation": 2,
+          "collected": 0,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay teardown",
+          "seconds": 0.21813189199747285,
+          "generation": 2,
+          "collected": 0,
+          "thread": "MainThread"
+        },
+        {
+          "node": "tests/integration/test_ai_tls_recovery.py::DurableTLSRecoveryTests::test_tls_cancellation_and_deadline_persist_without_uncertain_replay teardown",
+          "seconds": 0.2756053709999833,
+          "generation": 2,
+          "collected": 0,
+          "thread": "MainThread"
+        }
+      ],
+      "gc_unchanged": {
+        "enabled": true,
+        "thresholds": [
+          700,
+          10,
+          10
+        ]
+      },
+      "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+      "files_collected": 134,
+      "passed": 42,
+      "subtests_passed": 35,
+      "skipped": 1,
+      "deselected": 888,
+      "pytest_seconds": 229.66,
+      "warning_count": 1,
+      "receipt": {
+        "run": "web-20261105T024405Z-5fb5f0e00ed3",
+        "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+        "image": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+        "capacity": {
+          "cpu": 21,
+          "free_mb": 15590,
+          "disk_gb": 311.25
+        },
+        "owner": "7b19f9638f7c163f9318a8b56e50128475068708",
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "acquired_at": "2026-11-05T05:24:17.285621+00:00",
+        "http": 201,
+        "readback": true,
+        "exit": 0,
+        "seconds": 238.406,
+        "completed_at": "2026-11-05T05:28:17.290371+00:00",
+        "released_at": "2026-11-05T05:28:19.241128+00:00",
+        "release_http": 204,
+        "absence_http": 404
+      },
+      "limitation": "Selected SQLite/unittest prefix after collecting all shard files; PostgreSQL services not configured and PostgreSQL function fixtures deselected. Not a full hosted shard. No failure reproduced."
+    }
   },
   "current_parent_failures": {
     "949": {
@@ -597,7 +1045,7 @@
       "absence_http": 404
     }
   ],
-  "as_of": "2026-11-05T05:03:48.667822+00:00",
+  "as_of": "2026-11-05T05:30:38.692527+00:00",
   "codeql_static_triage": {
     "reported_main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
     "local_revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
@@ -636,5 +1084,78 @@
       "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
     }
   },
-  "evidence_updated_at": "2026-11-05T05:11:44.747593+00:00"
+  "evidence_updated_at": "2026-11-05T05:30:38.692527+00:00",
+  "current_candidate_failures": [
+    {
+      "pr": 949,
+      "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
+      "run": 41971007499,
+      "job": 127059001769,
+      "test": "DurableTLSRecoveryTests.test_tls_cancellation_and_deadline_persist_without_uncertain_replay",
+      "provider": "azure-openai",
+      "cancel": false,
+      "bound_ms": 900,
+      "socket_close_ms": 291.8,
+      "worker_terminal_ms": 998.5,
+      "worker_exit_ms": 998.5,
+      "probe_ms": 831.312,
+      "stack_top": "sqlalchemy event/registry.py:104:_collection_gced during UPDATE compilation",
+      "counts": {
+        "failed": 1,
+        "passed": 914,
+        "skipped": 17,
+        "subtests_passed": 555
+      },
+      "root_cause": "UNCONFIRMED",
+      "comment": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6650439881",
+      "handoff": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6650534234"
+    },
+    {
+      "pr": 960,
+      "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
+      "run": 41971013678,
+      "job": 127059020853,
+      "test": "DurableTLSRecoveryTests.test_tls_cancellation_and_deadline_persist_without_uncertain_replay",
+      "provider": "azure-openai",
+      "cancel": true,
+      "bound_ms": 900,
+      "socket_close_ms": 961.2,
+      "worker_terminal_ms": 968.2,
+      "cancel_ack_ms": 961.8,
+      "excluded_client_setup_ms": 252.4,
+      "counts": {
+        "failed": 1,
+        "passed": 894,
+        "skipped": 27,
+        "subtests_passed": 596
+      },
+      "root_cause": "UNCONFIRMED; previous route failure did not recur but no remediation proven",
+      "comment": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650440079",
+      "handoff": "https://github.com/MulattoTech/MJobs/pull/960#issuecomment-6650534475"
+    }
+  ],
+  "integration_958": {
+    "run": "web-20261105T024405Z-5fb5f0e00ed3",
+    "ref": "refs/heads/webpro-claims/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY",
+    "owner": "8738512886478221e4f91c3ec7edcf34bb959c81",
+    "acquired_at": "2026-11-05T05:28:01.580307+00:00",
+    "http": 201,
+    "readback": true,
+    "head": "73d176f4b2091e33a91b1e7fabb95c5441e78af2",
+    "base": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr958-integration",
+    "branch": "web/web-20261105T024405Z-5fb5f0e00ed3/pr958-integration",
+    "source_branch": "web/web-20261105T024508Z-59bece5f637e/resume-preview-errors",
+    "overlaps": {},
+    "status": "ISOLATED CHECKOUT; current-main refresh and fresh protected gates NOT RUN",
+    "blobs": {
+      "apps/api/resume_workspace_preview.py": "14449527918efb10cda18399a261b5d066f6af5d",
+      "docs/evidence/2026-11-05-web-59bece5f-preview-error-privacy.md": "276c071877a1937b11b1f79147070c93ea38cf96",
+      "planning/agent_handoffs/RESUME-WORKSPACE-PREVIEW-ERROR-PRIVACY.json": "96f237bc59d2e06c08220a45bd5d9c48e44d4ce1",
+      "tests/integration/test_resume_workspace_preview_error_privacy.py": "942c02eb7dba2ac3436826feb6094b40be318021"
+    },
+    "git_common_dir": "C:/Tools/Dev/MJobs-Web/web-5fb5f0e0-pr958-integration/.git",
+    "independent_review": "https://github.com/MulattoTech/MJobs/pull/958#pullrequestreview-5779465467",
+    "claim_comment": "https://github.com/MulattoTech/MJobs/pull/958#issuecomment-6650533989"
+  }
 }
