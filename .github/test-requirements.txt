@@ -1,5 +1,6 @@
 # Test tooling for GitHub runners, kept separate from application runtime.
 pytest==9.0.3
+coverage==7.17.1
 PyYAML==6.0.3
 ruff==0.17.2
 mypy==2.4.0
