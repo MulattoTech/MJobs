@@ -1,0 +1,37 @@
+# Lever optional salary safety — 2026-11-05
+
+Run: `web-20261105T012951Z-f867bf6e69cc`.
+Scope: `MJ-REQ-018` / issue #19, with the existing Lever employer pipeline under `MJ-REQ-155` / #156.
+Base main: `2e1c0072c2ea7241b832dc8842ce1cdc0d781cc1`.
+Atomic claim: `refs/heads/webpro-claims/LEVER-OPTIONAL-SALARY-SAFETY`, owner `6b14f97cc2fa745d9cf83170357f3c7ec51a071c`; HTTP201 plus matching readback at 2026-11-05T01:48:31.2920912Z.
+Branch: `web/web-20261105T012951Z-f867bf6e69cc/lever-salary`.
+
+## Problem and behavior
+
+Lever's optional salary normalization called `math.isfinite()` before its existing numeric bounds. A valid JSON integer such as `10**400` raised OverflowError while converting to float. A JSON list/object in `salaryRange.interval` also reached a dictionary-key lookup and raised TypeError. Either failure aborted a valid complete employer inventory.
+
+The normalizer now checks the existing numeric bounds without float conversion; these comparisons also reject NaN and both infinities. Non-string periods become UNKNOWN while valid amounts and the raw optional salary structure remain available. Invalid bounds retain the existing description-parsed fallback. The one-billion upper limit, bool rejection, ordered ranges, native IDs, regional URL validation, transport/deadline behavior and collection policy are unchanged.
+
+## Reproduced baseline
+
+Only the two regression test files were changed while the product module remained identical to the base-main blob.
+
+```text
+python -B -m pytest -q -p no:cacheprovider --basetemp .tmp/f867-lever/red tests/unit/test_lever_salary_safety.py tests/integration/test_lever_autodiscovery.py::LeverAutodiscoveryTests::test_optional_salary_faults_preserve_durable_inventory --tb=short
+```
+
+**Expected FAIL:** 10 failed results, 4 passed tests, 41 passing subtests; 10.93 seconds, exit1. The 10 includes eight failed unit subcases, the complete-inventory test, and the real collector regression returning SOURCE_COLLECTION_FAILED. Earlier failures are retained, not relabeled as passes.
+
+## Focused correction result
+
+The same command with isolated `green` basetemp returned **6 tests +49 subtests PASS**, zero failures/skips, 3.39 seconds, exit0.
+
+The regressions cover oversized positive/negative bounds at both endpoints, booleans, strings, collections, missing values, NaN/infinity, negative/inverted/upper-limit ranges, finite boundaries/fractions, supported and unknown periods, and complete mocked public GET inventory. The connected reviewed-employer fixture confirms durable job/provenance/snapshot preservation, description fallback, explicit UNKNOWN period, healthy collection, database reopen and idempotent recollection alongside a valid neighboring posting.
+
+No live Lever request, browser session, provider account, external application, paid model, shared dependency change or production mutation was used.
+
+## Remaining gates and limits
+
+At this initial source checkpoint, complete focused Lever regression execution on the committed source, repository validators, independent review and fresh protected CI remain pending. PostgreSQL-specific execution, live-provider behavior, browser journey and production are NOT_RUN locally. The new persistence fixture is SQLite; it does not certify an actual PostgreSQL migration or production dataset.
+
+No canonical requirement result, original denominator, Project/Fleet completion or issue closure changed. Both umbrella requirements remain PARTIAL. Protected merge needs current-candidate checks and short exclusive integration ownership. Deployment is separately guarded. Rollback is a protected revert of this source/test change; there is no schema migration or data rewrite.
