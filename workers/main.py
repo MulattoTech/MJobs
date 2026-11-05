@@ -4,6 +4,7 @@ import logging
 import threading
 
 from redis import Redis
+from redis.exceptions import RedisError
 from rq import Worker
 
 from packages.persistence.store import Store
@@ -73,15 +74,27 @@ def main():
     # committed terminal event needs the INFO sink installed before it runs.
     configure_operation_logger()
     thread = threading.Thread(target=dispatch, daemon=True)
-    thread.start()
-    redis = Redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=10)
+    redis = None
+    thread_started = False
     try:
+        thread.start()
+        thread_started = True
+        redis = Redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=10)
         Worker([queue], connection=redis).work(logging_level=log_level)
     finally:
-        stopped.set()
-        thread.join(timeout=5)
-        redis.close()
-        store.engine.dispose()
+        try:
+            stopped.set()
+            if thread_started:
+                thread.join(timeout=5)
+        finally:
+            try:
+                if redis is not None:
+                    redis.close()
+            except RedisError:
+                # A disconnected cleanup must not replace the worker's outcome.
+                logging.warning("Worker Redis connection cleanup failed")
+            finally:
+                store.engine.dispose()
 
 
 if __name__ == "__main__":
