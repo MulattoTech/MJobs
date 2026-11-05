@@ -27,10 +27,22 @@
   },
   "resume_review": {
     "pr": 932,
-    "frozen_head": "824645355437637b70e85a19c0f4e5a5c72bf2da",
-    "status": "OWNED_CURRENT_MAIN_REFRESH_PENDING",
-    "scope_comment": "https://github.com/MulattoTech/MJobs/pull/932#issuecomment-6648768471",
-    "prior_independent_review": "https://github.com/MulattoTech/MJobs/pull/932#pullrequestreview-5777897235"
+    "head": "9dc156b88529fbd7760badcb4e4375ee7883c196",
+    "base": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+    "tree": "c7b4b53d1fd6541e234ba0667694a1952d4f307d",
+    "proposed_merge": "9abb4fb05a90ebdf5f793dee8a4e5bea5ad155aa",
+    "frozen_source": "824645355437637b70e85a19c0f4e5a5c72bf2da",
+    "unchanged_reviewed_blobs": 4,
+    "status": "PUBLISHED_PROTECTED_GATES_PENDING",
+    "tests": {
+      "passed": 13,
+      "skipped": 0,
+      "failed": 0,
+      "vitest_ms": 783
+    },
+    "typecheck": "PASS",
+    "lint": "PASS: 297 files",
+    "publication_receipt": "https://github.com/MulattoTech/MJobs/pull/932#issuecomment-6648857599"
   },
   "independent_review": {
     "pr": 956,
@@ -46,7 +58,8 @@
   "released_integration_owners": [
     "1684cc188b618409abc349823d58b2ed5ca482fe",
     "f030b256b7abf17cce10cc632a505e60c117f90a",
-    "a49aeb2ec1fa66d8be2cf67e9a904d4ddac42d00"
+    "a49aeb2ec1fa66d8be2cf67e9a904d4ddac42d00",
+    "eb3efbbf85ed4570a3799556332508e0d0dd99f6"
   ],
   "deployment": {
     "attempted_by_this_run": false,
@@ -66,5 +79,100 @@
     "Ownership snapshot is not a lease; live refs and latest PR comments are authoritative"
   ],
   "recorded_at": "2026-11-05T03:23:50.453982+00:00",
-  "checkpoint_base": "c6d499f391a8e092e06892d7fdea25cbfd177e53"
+  "checkpoint_base": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+  "production": {
+    "sha": "d6650e4bc9bfd784bd6e3a346c793c372f02518a",
+    "image": "mjobs-micro:sha-d6650e4bc9bfd784bd6e3a346c793c372f02518a",
+    "image_id": "sha256:6dfe7f51530c9ae080d83e97ec14f41d1fb895a1382d90cb3218a692489fb233",
+    "healthy_containers": 9,
+    "updater_state": "Ready",
+    "updater_last_result": 0,
+    "last_run": "2026-11-05T03:21:01Z",
+    "observed_readiness": "2026-11-05T03:20:52Z",
+    "deployed_at": "2026-11-05T03:01:38.614709+00:00"
+  },
+  "historical_required_runs": {
+    "pr949_previous_head": [
+      {
+        "id": 41957912501,
+        "name": "Dependency review",
+        "head": "25a2b11161025952c18437e3e6b5d1e6f7b9a9d3",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41957912501"
+      },
+      {
+        "id": 41957912434,
+        "name": "Secret scan - reviewed history",
+        "head": "25a2b11161025952c18437e3e6b5d1e6f7b9a9d3",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41957912434"
+      },
+      {
+        "id": 41957912424,
+        "name": "CI - fast",
+        "head": "25a2b11161025952c18437e3e6b5d1e6f7b9a9d3",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41957912424"
+      },
+      {
+        "id": 41957912430,
+        "name": "Connected acceptance ? synthetic",
+        "head": "25a2b11161025952c18437e3e6b5d1e6f7b9a9d3",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41957912430"
+      },
+      {
+        "id": 41957912418,
+        "name": "Integration - PostgreSQL and Redis",
+        "head": "25a2b11161025952c18437e3e6b5d1e6f7b9a9d3",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41957912418"
+      }
+    ],
+    "pr941_source_head": [
+      {
+        "id": 41958711789,
+        "name": "Dependency review",
+        "head": "159f139b83ee23bd7f581d156208a20dd3f00f6d",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41958711789"
+      },
+      {
+        "id": 41958711795,
+        "name": "Secret scan - reviewed history",
+        "head": "159f139b83ee23bd7f581d156208a20dd3f00f6d",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41958711795"
+      },
+      {
+        "id": 41958711791,
+        "name": "CI - fast",
+        "head": "159f139b83ee23bd7f581d156208a20dd3f00f6d",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41958711791"
+      },
+      {
+        "id": 41958711790,
+        "name": "Connected acceptance ? synthetic",
+        "head": "159f139b83ee23bd7f581d156208a20dd3f00f6d",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41958711790"
+      },
+      {
+        "id": 41958711792,
+        "name": "Integration - PostgreSQL and Redis",
+        "head": "159f139b83ee23bd7f581d156208a20dd3f00f6d",
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/41958711792"
+      }
+    ],
+    "scope": "Historical individual heads passed all five required workflows. They do not authorize current combined candidate merge."
+  },
+  "latest_short_lock_release": {
+    "owner": "eb3efbbf85ed4570a3799556332508e0d0dd99f6",
+    "utc": "2026-11-05T03:26:15.846868Z",
+    "http": 204,
+    "absence": true
+  },
+  "updated_at": "2026-11-05T03:32:30.976945+00:00"
 }
