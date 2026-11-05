@@ -1,26 +1,26 @@
 {
   "schema_version": 1,
   "task_id": "MJ-TH-013",
-  "objective": "Integrate verified salary-search, collector resilience and ATS hostname changes through one current-main candidate without changing reviewed runtime blobs",
+  "objective": "Integrate reviewed salary search, collector resilience and ATS host validation through one protected candidate",
   "owner": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
   "branch": "web/web-20261104T235920Z-58c1462f/MJ-TH-013-range",
-  "head_sha": "ec400d5b3551c5ba3dc7c77fb177ac75d3f25c37",
+  "head_sha": "990efacab9f22d783c9127be79146142155dd8ff",
   "routing_state": "VERIFY",
-  "next_action": "Obtain fresh exact-head protected checks and independent salary-review result; verify current main under fresh integration ownership and merge PR934. Reconcile included PR935/951/947 only after ancestry proof; deploy separately.",
-  "created_at": "2026-11-05T02:49:57.867734+00:00",
+  "next_action": "Require fresh exact-head gates on the current main, then final owned protected merge of PR934; verify included PR935/951/947 ancestry and deploy separately.",
+  "created_at": "2026-11-05T03:07:17.547236+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "182 passed, 1 skipped, 243 subtests passed in 154.62s (0:02:34); seventeen authored source/test blobs unchanged; catalogue/progress/dashboard pass",
+      "command": "287 passed, 284 subtests passed in 23.33s; seventeen original and fourteen incoming blobs unchanged; independent salary12 tests/20 subtestsPASS",
       "result": "PASS"
     },
     {
-      "command": "Fresh published-head hosted gates; independent numeric follow-up result; protected merge/deployment; authenticated Brave",
+      "command": "Fresh published-head hosted gates; protected merge/deployment; authenticated Brave",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Main advanced through PR953; this consolidated head needs fresh hosted checks; independent salary review is active"
+    "Main advanced through PR942; refreshed exact head requires fresh hosted checks"
   ],
   "transfer_history": [
     {

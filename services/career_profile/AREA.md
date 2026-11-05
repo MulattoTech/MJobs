@@ -21,7 +21,14 @@ and a small environment allowlist
 that excludes application credentials. Linux parser children also receive address
 space, CPU, file-size and core-dump limits; Windows relies on the parent wall deadline
 and streaming output cap. Request disconnect cancels and reaps both native parser and
-currently running OCR tool children. The profile UI also has an explicit, profile- and
+currently running OCR tool children. A failure raised by a cancellation/deadline
+check uses this same stop-and-cleanup path and is re-raised unchanged at the
+public extraction boundary. Optional parser/OCR error handling cannot convert a
+failed control check into reviewable native text, even if a later check would
+succeed or a cleanup error replaces the local stop exception. An observed boolean
+cancellation is also latched for the whole extraction. Ordinary tool failures
+still preserve native text for review.
+The profile UI also has an explicit, profile- and
 resume-scoped cancellation action for browsers that keep an HTTP connection reusable
 after a fetch abort. OCR retains its own 45-second total deadline and 10-second
 per-tool deadline for non-cancelled requests.
@@ -36,8 +43,9 @@ child file-size limit. At most 16 KiB of diagnostic-size metadata is retained;
 diagnostic contents are never returned, logged, or persisted because they may
 contain private paths or document data. Timeouts, launch failures, nonzero exits,
 missing output, and output-limit failures receive distinct sanitized review
-warnings. Private temporary files are removed on every outcome. Hosts without
-the supported tools/resource limits retain the explicit unavailable state.
+warnings. Owned temporary-file cleanup is attempted on every outcome; an OS
+permission failure can prevent deletion, but cannot erase an observed stop.
+Hosts without the supported tools/resource limits retain the explicit unavailable state.
 Mixed PDFs retain page order and native text. OCR results carry a warning and
 confidence 70, remain unverified/unapproved, and need deliberate review before
 document use. OCR can misread even clear text; never silently correct guesses.

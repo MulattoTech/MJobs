@@ -453,3 +453,11 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - All seventeen authored source/test blobs remain unchanged. 182 passed, 1 skipped, 243 subtests passed in 154.62s (0:02:34). One existing live-provider skip remains explicit; RuntimeWarning/unraisable warnings are errors. Catalogue/progress/dashboard checks pass; prior failures and all author/reviewer attribution remain preserved.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-job-integrity.md and adjacent JSON. Complete candidate-specific preflight and normal primary-branch push required; fresh hosted checks and separately attributed salary-review result remain pending. Included branches remain unchanged/open until protected-main ancestry proves delivery.
 - Owned PostgreSQL container and labeled volume removed; heavy slot released. Release integration lock after publication. Scope claims remain active for this bounded continuation. No canonical acceptance or candidate deployment claim; authenticated Brave remains NOT RUN.
+
+
+## Web sprint 58c1462f - refreshed combined jobs after PR942
+
+- UTC: 2026-11-05T03:07:15.222036+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; PR934 refreshed from 990efacab9f22d783c9127be79146142155dd8ff to protected main c6d499f391a8e092e06892d7fdea25cbfd177e53 without changing seventeen authored runtime/test blobs. Incoming fourteen main files are unchanged.
+- Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
+- Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
