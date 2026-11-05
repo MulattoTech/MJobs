@@ -3,7 +3,9 @@ import unittest
 from unittest.mock import patch
 
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
-from workers.operations import OperationCancelled
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 class GreenhouseApplicationAdapterTests(unittest.TestCase):
@@ -124,6 +126,47 @@ class GreenhouseApplicationAdapterTests(unittest.TestCase):
         with patch.object(self.adapter, "analyze_page", return_value=analysis):
             with self.assertRaises(OperationCancelled):
                 self.adapter.validate_page(MockPage(), analysis, check=check)
+
+    def test_validate_page_preserves_direct_operation_control_failures(self):
+        analysis = {
+            "status": "PASS",
+            "fields": [{"input_type": "text", "sensitivity": "STANDARD", "ambiguous": False}],
+        }
+        for error in (
+            OperationCancelled("synthetic cancellation"),
+            OperationTimedOut("synthetic timeout"),
+            OperationControlUnavailable(),
+        ):
+            class FailingLocator:
+                def evaluate_all(self, script, **kwargs):
+                    raise error
+
+            class MockPage:
+                def locator(self, selector):
+                    return FailingLocator()
+
+            with self.subTest(error=type(error).__name__):
+                with patch.object(self.adapter, "analyze_page", return_value=analysis):
+                    with self.assertRaises(type(error)) as caught:
+                        self.adapter.validate_page(MockPage(), analysis, check=lambda: None)
+                self.assertIs(caught.exception, error)
+
+    def test_validate_page_returns_opaque_error_for_ordinary_eval_failure(self):
+        analysis = {
+            "status": "PASS",
+            "fields": [{"input_type": "text", "sensitivity": "STANDARD", "ambiguous": False}],
+        }
+        class FailingLocator:
+            def evaluate_all(self, script, **kwargs):
+                raise RuntimeError("PRIVATE_FORM_VALUE_MUST_NOT_LEAK")
+
+        class MockPage:
+            def locator(self, selector):
+                return FailingLocator()
+
+        with patch.object(self.adapter, "analyze_page", return_value=analysis):
+            result = self.adapter.validate_page(MockPage(), analysis, check=lambda: None)
+        self.assertEqual(result, {"status": "UNKNOWN", "reason": "FORM_VALIDATION_UNAVAILABLE"})
 
     def test_upload_mock_fixture_documents_observes_cancellation(self):
         def check():
