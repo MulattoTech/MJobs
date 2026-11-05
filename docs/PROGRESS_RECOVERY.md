@@ -9,6 +9,27 @@ process can stop after the canonical replacement and before the generated
 copy is replaced. The new milestone is already recorded even if the command
 did not report success. Do not blindly append the same milestone again.
 
+On POSIX, each publication flushes the temporary file before replacement and
+then flushes the containing directory. Flushing file contents alone does not
+persist the changed directory entry. A failed directory open or flush is an
+error, including when the filesystem does not support that operation; it is
+never silently reported as durable success. The replacement may already be
+visible when this error occurs. Inspect and recover it with explicit sync
+instead of assuming the old checkpoint is still current.
+
+Explicit sync also flushes the canonical directory before publishing the
+generated copy. This repairs the barrier missed by a writer that exited or
+failed just after canonical replacement, without rewriting canonical bytes
+or appending a duplicate milestone. If that flush fails, sync stops before
+changing the generated copy. The journal lock is released on either outcome.
+
+Windows retains its existing file-flush and atomic-replacement behavior; this
+change does not establish Windows directory durability. The POSIX barrier
+covers entries in the immediate parent directories. Newly created ancestor
+directories, filesystem/device persistence guarantees, physical power loss,
+and host restart remain separate, unverified durability obligations. Directory
+flushes, like the existing file flush, are synchronous and not time-bounded.
+
 ## Explicit recovery
 
 From the intended checkout, with its normal single-writer ownership:
@@ -78,6 +99,13 @@ regressions cover record/record, record/sync, sync/record, bounded refusal and
 subsequent retry, coordination-file output aliases, unrelated journals, and
 hard-link/symlink refusal. The existing real process-exit regression also checks
 that an abandoned OS lock does not prevent fresh-process sync.
+
+Durability regressions observe real file/directory flushes in publication
+order and inject failures at the content, directory-open and directory-flush
+boundaries. They verify descriptor and temporary-file cleanup, propagation
+of uncertain-publication errors, canonical-directory repair before derived
+publication, and fresh-process recovery without a duplicate milestone. These
+are syscall-order and failure-path checks, not simulated proof of power loss.
 
 This proves recovery at the two-file process-interruption boundary. It does
 not establish physical host-restart/power-loss durability, recovery of already
