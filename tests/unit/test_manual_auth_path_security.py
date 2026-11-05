@@ -111,8 +111,23 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
         self.assertEqual(sentinel.read_text(encoding="utf-8"), "not-a-real-secret")
         self.assertNotIn(str(redirected), result)
 
+
+    @unittest.skipUnless(os.name == "posix", "POSIX directory-mode admission")
+    def test_permissive_session_is_refused_before_manual_browser_launch(self):
+        self.profile.mkdir(mode=0o755)
+        self.profile.chmod(0o755)
+        cookie = self.profile / "Cookies"
+        cookie.write_bytes(b"synthetic-session-fixture")
+        with patch.object(manual_auth, "run_browser", return_value="BROWSER_STARTED") as run_browser:
+            result = self._open()
+        self.assertEqual(result, manual_auth.STALE)
+        run_browser.assert_not_called()
+        self.assertEqual(cookie.read_bytes(), b"synthetic-session-fixture")
+        self.assertEqual(self.profile.stat().st_mode & 0o777, 0o755)
+        self.assertFalse((self.application_root / "browser-profile-selection.json").exists())
+
     def test_direct_profile_preserves_fixture_manual_auth_flow(self):
-        self.profile.mkdir()
+        self.profile.mkdir(mode=0o700)
 
         with patch.object(
             manual_auth, "run_browser", return_value=manual_auth.MANUAL_AUTH_WINDOW_CLOSED,
@@ -127,7 +142,7 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
             self.application_root / "debug-captures")
 
     def test_diagnostic_root_is_recontained_after_attempt_resolution(self):
-        self.profile.mkdir()
+        self.profile.mkdir(mode=0o700)
         resolve_attempt = manual_auth._resolve_auth_attempt
         realpath = os.path.realpath
         for destination in (
@@ -187,7 +202,7 @@ class ManualAuthPathSecurityTests(unittest.TestCase):
                     application_root / "debug-captures")
 
     def test_persisted_path_shaped_application_id_fails_closed(self):
-        self.profile.mkdir()
+        self.profile.mkdir(mode=0o700)
         (self.root / "nested" / APPLICATION_ID / "browser-profile").mkdir(parents=True)
         for application_id in (
             "nested/" + APPLICATION_ID, "../" + APPLICATION_ID, str(self.application_root),
