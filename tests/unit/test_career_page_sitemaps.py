@@ -92,6 +92,59 @@ class CareerPageSitemapTests(unittest.TestCase):
             "career_pages": [], "child_sitemaps": []
         })
 
+    def test_rejects_dtd_after_xml_encoding_detection(self):
+        expected = {"career_pages": [], "child_sitemaps": []}
+        for encoding in ("utf-8", "utf-16-le", "utf-16-be"):
+            for root, item in (("urlset", "url"), ("sitemapindex", "sitemap")):
+                for entity in (False, True):
+                    with self.subTest(encoding=encoding, root=root, entity=entity):
+                        declaration = f"<!DOCTYPE {root}>"
+                        location = "https://example.test/careers"
+                        if entity:
+                            declaration = (
+                                f'<!DOCTYPE {root} [<!ENTITY route "{location}">]>'
+                            )
+                            location = "&route;"
+                        xml = (
+                            '<?xml version="1.0"?>' + declaration
+                            + f"<{root}><{item}><loc>{location}</loc></{item}></{root}>"
+                        )
+                        # A transport-decoded string can retain the byte pattern
+                        # that Expat recognizes as UTF-16 rather than UTF-8.
+                        body = xml.encode(encoding).decode("latin-1")
+                        self.assertEqual(
+                            parse_sitemap("https://example.test/sitemap.xml", body),
+                            expected,
+                        )
+
+    def test_unsupported_xml_encodings_fail_closed(self):
+        for encoding in ("unknown-encoding", "utf-7"):
+            with self.subTest(encoding=encoding):
+                xml = f'<?xml version="1.0" encoding="{encoding}"?><urlset/>'
+                self.assertEqual(
+                    parse_sitemap("https://example.test/sitemap.xml", xml),
+                    {"career_pages": [], "child_sitemaps": []},
+                )
+
+    def test_accepts_ordinary_sitemaps_after_xml_encoding_detection(self):
+        for encoding in ("utf-8", "utf-16-le", "utf-16-be"):
+            for root, item, target in (
+                ("urlset", "url", "career_pages"),
+                ("sitemapindex", "sitemap", "child_sitemaps"),
+            ):
+                with self.subTest(encoding=encoding, root=root):
+                    location = "https://example.test/careers"
+                    xml = (
+                        '<?xml version="1.0"?>'
+                        + f"<{root}><{item}><loc>{location}</loc></{item}></{root}>"
+                    )
+                    body = xml.encode(encoding).decode("latin-1")
+                    expected = {"career_pages": [], "child_sitemaps": []}
+                    expected[target] = [location]
+                    self.assertEqual(
+                        parse_sitemap("https://example.test/sitemap.xml", body), expected,
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()
