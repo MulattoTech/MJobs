@@ -1,12 +1,11 @@
 """Malformed optional Lever pay must not discard valid employer postings."""
-from copy import deepcopy
 import unittest
+from copy import deepcopy
 
 import httpx
 
 from services.discovery.sources.lever import Lever
 from tests.unit.test_lever_source import posting
-
 
 DESCRIPTION = "Salary: $80,000 - $100,000 per year. Remote Python role."
 

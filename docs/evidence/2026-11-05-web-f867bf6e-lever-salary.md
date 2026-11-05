@@ -56,3 +56,14 @@ Repository gates on that commit also passed:
 - `git diff --check`: PASS.
 
 The follow-up evidence-only commit preserves all three tested source/test blobs. Independent review, fresh protected CI, protected merge and guarded production validation remain pending at publication; this evidence does not promote either umbrella requirement.
+
+
+## Test import-order follow-up
+
+An explicit Ruff check of the new unit module at `60d1607868c87d9af862a92584f4241fb6f32fea` found one I001 import-order error. New atomic source ownership was obtained at `2026-11-05T02:08:45.4976873Z`: `refs/heads/webpro-claims/LEVER-OPTIONAL-SALARY-SAFETY` owner `2ca0d8b547edaf45d4564ebf0a47b21defcf682c`, HTTP201 and exact readback.
+
+The follow-up only orders the standard-library imports and removes an extra blank line in `tests/unit/test_lever_salary_safety.py`; Lever production code and the connected persistence test are unchanged. The corrected focused command with `--basetemp .tmp/f867-lever/lint` reports **6 tests and 49 subtests PASS in 2.92s**, with no failures or skips. The transient remote process handle expired before its final exit receipt was collected; this test result was recovered from the complete persisted log, without rerunning the test. Ruff was independently read back as **All checks passed**. The prior full 29-test/56-subtest result remains applicable to unchanged production and test logic.
+
+`python -B -m tools.verification.agent_skills` also passed; it validates repository metadata and launches no agents. A direct Python `-c` AST-comparison helper initially failed from PowerShell argument quoting, before analysis; executing the same helper from an owned file confirmed that the test AST excluding imports is identical. `git diff --check` passed.
+
+Independent technical review of the previous frozen head is recorded in [review 5778806236](https://github.com/MulattoTech/MJobs/pull/954#pullrequestreview-5778806236), including 6 tests and 49 subtests independently passed. Applicability to this import-only follow-up, fresh hosted checks, current-base integration and deployment remain separate gates.
