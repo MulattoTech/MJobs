@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-TH-015",
+  "objective": "Correct closed-posting recent history and verify safe PostgreSQL migration for PR930",
+  "owner": "web-20261105T000436Z-dae77e607c6e",
+  "branch": "web/web-20261105T000436Z-dae77e607c6e/MJ-TH-015",
+  "head_sha": "e6e3a15b4d362b08eff99240a7f5002ae37e726b",
+  "routing_state": "VERIFY",
+  "next_action": "Verify protected refreshed PR930 checks and connected browser behavior; prepare guarded migration window before protected integration",
+  "created_at": "2026-11-05T00:20:54.051204+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "SQLite: 7 tests plus 10 subtests; UI: 8 tests; typecheck, scoped lint, build and integrity checks; PostgreSQL17: 2 real migration/concurrency tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh protected CI, mounted browser journey, guarded production migration and deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Changed migration digest requires an offline guarded release; scheduled updater must keep refusing it"
+  ]
+}
