@@ -52,6 +52,14 @@ in 422 responses. This guard applies to the common RequestValidationError
 handler; it does not make arbitrary route-specific HTTPException detail or
 ValueError text safe. Those remain separate review surfaces.
 
+The browser job extraction and cheap prefilter preview routes also use fixed
+messages for their handled service/validation failures. Their existing status
+codes, machine-readable codes and `detail` shape are preserved, but exception
+text is never included. Captured content, persisted search criteria and provider
+diagnostics must not become response diagnostics. These guards do not add retry,
+persistence or external requests. Synthetic fault-injection tests cover both
+error classifications, bounded output, unchanged stored records and recovery.
+
 ## Security boundaries and limitations
 
 Local clients with no browser-origin headers remain trusted by the existing
