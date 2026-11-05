@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-179",
+  "objective": "Close unstarted rejected native captures and verify bounded diagnostic phases",
+  "owner": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
+  "branch": "web/web-20261104T235920Z-58c1462f/MJ-REQ-179",
+  "head_sha": "2b6d023064f6e519dd76daad11f91446801adbb3",
+  "routing_state": "VERIFY",
+  "next_action": "Publish scoped PR, require exact-candidate protected CI, then serial integration and guarded release",
+  "created_at": "2026-11-05T00:30:28.101215+00:00",
+  "requirements": [
+    "MJ-REQ-179"
+  ],
+  "tests": [
+    {
+      "command": "Focused unit: 35 passed / 31 subtests; cancellation stress: 40 executions / 200 phase cases; browser budget: 5 passed / 2 subtests",
+      "result": "PASS"
+    },
+    {
+      "command": "Protected CI and production release on final PR revision",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Historical CI and intermittent browser failure preserved in docs/evidence/2026-11-05-web-58c1462f-dom-capture-lifecycle.md"
+  ]
+}
