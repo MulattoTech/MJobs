@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import patch
 
 from services.applications.adapters.recruitee import RecruiteeApplicationAdapter
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 class RecruiteeApplicationAdapterTests(unittest.TestCase):
@@ -115,6 +118,43 @@ class RecruiteeApplicationAdapterTests(unittest.TestCase):
             "status": "UNKNOWN", "reason": "CHALLENGE_PRESENT", "fields": [],
         })
 
+
+    @patch("services.applications.adapters.greenhouse.analyze_form_page")
+    def test_challenge_probe_preserves_direct_operation_control_failures(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": []}
+        for error in (
+            OperationCancelled("synthetic cancellation"),
+            OperationTimedOut("synthetic timeout"),
+            OperationControlUnavailable(),
+        ):
+            class FailingChallengeLocator:
+                def count(self):
+                    raise error
+
+            class MockPage:
+                def locator(self, selector):
+                    return FailingChallengeLocator()
+
+            with self.subTest(error=type(error).__name__):
+                with self.assertRaises(type(error)) as caught:
+                    self.adapter.analyze_page(MockPage(), check=lambda: None)
+                self.assertIs(caught.exception, error)
+
+    @patch("services.applications.adapters.greenhouse.analyze_form_page")
+    def test_challenge_probe_returns_opaque_error_for_ordinary_failure(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": []}
+        class FailingChallengeLocator:
+            def count(self):
+                raise RuntimeError("PRIVATE_FORM_VALUE_MUST_NOT_LEAK")
+
+        class MockPage:
+            def locator(self, selector):
+                return FailingChallengeLocator()
+
+        self.assertEqual(
+            self.adapter.analyze_page(MockPage(), check=lambda: None),
+            {"status": "UNKNOWN", "reason": "CHALLENGE_CHECK_UNAVAILABLE", "fields": []},
+        )
 
 if __name__ == "__main__":
     unittest.main()

@@ -101,36 +101,58 @@ class DebugCaptureBudgetTests(unittest.TestCase):
         test.assertNotIn("SYNTHETIC_PRIVATE_VALUE", raw.decode())
 
     def test_real_renderer_stall_is_bounded_then_independent_capture_reads_back(self):
-        # Schedule, but do not wait for, a finite renderer stall. This test-only
-        # evaluate happens before the page-world evaluate prohibition is armed.
-        # Diagnostics may only use their bounded isolated-world collector.
-        self.page.evaluate("""() => setTimeout(() => {
-          const end = performance.now() + 1000;
-          while (performance.now() < end) {}
-        }, 0)""")
-        check = _BudgetCheck(0.12)
         original_screenshot = self.page.screenshot
-        observed_timeouts = []
+        original_dom = debug_capture_module._dom_snapshot
+        observed_screenshots = []
+        observed_dom = []
 
         def capture_screenshot(*args, **kwargs):
-            observed_timeouts.append(kwargs["timeout"])
+            observed_screenshots.append({
+                "timeout": kwargs["timeout"], "started": time.monotonic()})
             return original_screenshot(*args, **kwargs)
+
+        def capture_dom(*args, **kwargs):
+            observed_dom.append({
+                "deadline": kwargs["deadline"], "started": time.monotonic()})
+            return original_dom(*args, **kwargs)
 
         with tempfile.TemporaryDirectory(prefix="mjobs-t12-renderer-stall-") as directory:
             root = Path(directory) / "captures"
-            started = time.monotonic()
+            root.mkdir()
+            # Schedule, but do not wait for, a finite renderer stall after
+            # filesystem fixture setup. Only this fixture may use page-world
+            # evaluate; diagnostics must use the bounded isolated-world path.
+            self.page.evaluate("""() => setTimeout(() => {
+              const end = performance.now() + 1000;
+              while (performance.now() < end) {}
+            }, 0)""")
             with patch.object(self.page, "evaluate", side_effect=AssertionError(
                     "diagnostics must not evaluate in the page world")) as diagnostic_evaluate, \
-                    patch.object(self.page, "screenshot", side_effect=capture_screenshot):
+                    patch.object(self.page, "screenshot", side_effect=capture_screenshot), \
+                    patch.object(debug_capture_module, "_dom_snapshot", side_effect=capture_dom):
+                check = _BudgetCheck(0.12)
+                started = time.monotonic()
                 stalled = self.capture(self.page, root, "a" * 32, check,
                                        RuntimeError("SYNTHETIC_ORIGINAL_FAILURE"))
             elapsed = time.monotonic() - started
 
             self.assertIsNone(stalled)
             self.assertLess(elapsed, 0.75)
-            self.assertEqual(len(observed_timeouts), 1)
-            self.assertGreater(observed_timeouts[0], 0)
-            self.assertLessEqual(observed_timeouts[0], 120)
+            self.assertEqual(len(observed_dom), 1)
+            deadline = observed_dom[0]["deadline"]
+            self.assertLessEqual(deadline, check.started + check.seconds)
+            self.assertLess(observed_dom[0]["started"], deadline)
+            # DOM runs first and may exhaust the shared deadline. A screenshot
+            # is required only when admitted before expiry, never after it.
+            self.assertLessEqual(len(observed_screenshots), 1)
+            for screenshot in observed_screenshots:
+                self.assertGreater(screenshot["timeout"], 0)
+                self.assertLessEqual(screenshot["timeout"], 120)
+                self.assertLess(screenshot["started"], deadline)
+                self.assertGreaterEqual(
+                    screenshot["started"], observed_dom[0]["started"])
+            if not observed_screenshots:
+                self.assertLess(check._remaining(), 0.001)
             diagnostic_evaluate.assert_not_called()
             self.assertEqual(check.remaining_calls, 1)
             self.assertGreaterEqual(check.calls, 2)

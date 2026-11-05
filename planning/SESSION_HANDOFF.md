@@ -400,3 +400,14 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Original hosted unit 2 FAIL, Compose HTTP409 failure, and WWR integration 1 FAIL remain retained. Restore full-suite results belong to provisional test956; final b1 has only the FIFO case rerun. No historical result is relabeled as this new candidate.
 - Preservation evidence: docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json. Private preparation receipt records validators and exact staged tree; no commit/push is performed by the helper.
 - Next: review the staged preservation proof, execute the actual merged candidate and required hosted gates, then separately own and verify any171 rollout. Those gates remainPENDING.
+
+
+## Web sprint 58c1462f ? diagnostic regression integration checkpoint
+
+- UTC: 2026-11-05T01:03:52.741252+00:00; run `web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1`.
+- PR [#946](https://github.com/MulattoTech/MJobs/pull/946), MJ-REQ-179: source `2b6d023064f6e519dd76daad11f91446801adbb3` closes an unstarted rejected capture and verifies phase deadlines. Current refresh base: `cf882ef513b23429a3433ef690471bf7dff1fe21`. Diagnostic source/test blobs remain identical to prior candidate `6e89a1f9`.
+- Prior exact-head hosted proof: 3689 unit passes / 53 skips / 3946 passing subtests; 50 integrity passes / 39 subtests; 5 disposable Compose passes; required CI, scanner and dependency checks succeeded. Integration aggregate and fresh-main candidate checks remain separate gates. One SQLAlchemy deprecation warning remains; the unawaited-capture warning was absent.
+- Local proof: 35 diagnostic tests / 31 subtests; 40 stress executions / 200 phase cases; browser budget 5 tests / 2 subtests; 6 scanner-policy tests. Historical failures and independent source review are preserved in the owned evidence note and PR.
+- PR [#935](https://github.com/MulattoTech/MJobs/pull/935) has independent ATS review and 36 tests / 82 subtests, but its failed old DOM CI must be superseded after #946 reaches protected main. Salary repair review was handed to the sole #934 owner; immutable review commit `4bfea366e6d39705df5da55cd0aaad68489a8e12` is available.
+- No acceptance promotion or deployment in this checkpoint. Read GitHub main, exact PR heads and live ownership before resuming. Current objective claims: MJ-REQ-179 and PR-935-INTEGRATION; shared scanner claim and all heavy/browser slots were released. Integration locks are held only for bounded transactions.
+- Next: all protected gates on the fresh candidate, serialized merge, then guarded current-main deployment and live verification. Selected Brave access was unavailable; authenticated UI verification remains NOT RUN.
