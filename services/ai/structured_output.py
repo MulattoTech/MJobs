@@ -103,6 +103,17 @@ def parse_structured_output(raw: object, result_model: object) -> ResultT:
         raise StructuredOutputError("AI_STRUCTURED_OUTPUT_INVALID") from None
 
 
+class JobParsingResult(StrictAIResult):
+    """Canonical synthetic contract for bounded, explicit job field extraction."""
+    title: str
+    company: str
+    location: str
+    salary_min: int | None
+    salary_max: int | None
+    salary_currency: str | None
+    requirements: list[str]
+
+
 class JobScoreResult(StrictAIResult):
     """Canonical schema for AI job scoring evaluations."""
     score: int
@@ -126,6 +137,7 @@ class CompanySummaryResult(StrictAIResult):
 
 
 CANONICAL_SCHEMAS: dict[str, type[StrictAIResult]] = {
+    "job_parsing": JobParsingResult,
     "job_score": JobScoreResult,
     "requirement_classification": RequirementClassificationResult,
     "company_summary": CompanySummaryResult,
@@ -155,6 +167,7 @@ def validate_structured_payload(raw: str, schema_name: str) -> dict[str, object]
 __all__ = [
     "CANONICAL_SCHEMAS",
     "CompanySummaryResult",
+    "JobParsingResult",
     "JobScoreResult",
     "MAX_STRUCTURED_OUTPUT_CHARACTERS",
     "RequirementClassificationResult",

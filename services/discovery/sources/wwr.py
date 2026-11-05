@@ -350,7 +350,24 @@ class WeWorkRemotely:
         """
         self._reset_request_status()
         channel = self._request()
-        all_items = self._parse_items(channel)
+        # Validate the full feed before local filters or limits can hide a
+        # conflicting native identity. The importer also checks this boundary,
+        # but callers of search() and fetch() must receive truthful health.
+        all_items = []
+        seen_by_identity = {}
+        for item in self._parse_items(channel):
+            self.check()
+            identity = _posting_id_from_guid(item.get("guid") or item.get("link", ""))
+            first = seen_by_identity.get(identity)
+            if first is not None:
+                if item != first:
+                    with self._status_lock:
+                        self.status = "SOURCE_DUPLICATE_JOB_ID"
+                        self._request_failed = True
+                    raise SourceError("SOURCE_DUPLICATE_JOB_ID")
+                continue
+            seen_by_identity[identity] = item
+            all_items.append(item)
 
         # Client-side filtering (RSS does not support query params)
         if category:

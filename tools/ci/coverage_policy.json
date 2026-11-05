@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "backend": {
+    "files": [
+      "services/ai/tasks.py",
+      "services/ai/prompt_versioning.py",
+      "services/ai/structured_output.py",
+      "services/ai/providers/__init__.py"
+    ],
+    "minimum_lines_pct": 85
+  },
+  "frontend": {
+    "files": [
+      "src/ai-provider-settings.tsx",
+      "src/ai-prompt-versioning.tsx"
+    ],
+    "minimum_lines_pct": 60
+  }
+}
