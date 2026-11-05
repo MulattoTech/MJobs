@@ -1,7 +1,7 @@
 # PR941 current-main integration verification
 
-Run: `web-20261105T012958Z-8ea0f53d51f6`  
-Requirement: MJ-REQ-155 and MJ-REQ-004 (both remain PARTIAL)  
+Run: `web-20261105T012958Z-8ea0f53d51f6`
+Requirement: MJ-REQ-155 and MJ-REQ-004 (both remain PARTIAL)
 PR: https://github.com/MulattoTech/MJobs/pull/941
 
 ## Scope and ownership
@@ -65,3 +65,14 @@ Canonical matrices, denominators, Project state and Fleet controls are unchanged
 Next: inspect live ownership and current main/head, verify all five required
 checks and resolved review threads, then use a fresh short integration lock for
 the protected merge. Deployment requires its separate lock and guarded updater.
+
+## Hosted policy failure and correction
+
+At published head `f799bc60749688a5b2982c22a577b5d6d1812542`, the repository
+policy job failed its whitespace step on two Markdown hard-break spaces in this
+evidence file (job `126999071394`). The earlier working-tree whitespace check
+did not cover that then-untracked document. This failure is retained as evidence.
+The correction removes those two spaces and verifies both the staged diff and
+the complete diff from protected base `0d3fbc5749fba8c682033a343a7ec9695e4dd743`.
+No application or test blob changes; the 12 focused results above remain the
+source evidence, and fresh hosted required checks must certify the new head.
