@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-008",
+  "objective": "Flush POSIX immediate-parent journal entries and repair the canonical durability barrier before derived sync",
+  "owner": "web-20261105T000026Z-d18a5de9925b",
+  "branch": "web/web-20261105T000026Z-d18a5de9925b/MJ-REQ-008",
+  "head_sha": "ee6a126ba1cf4cc7aafea5753852808d4891e5d7",
+  "routing_state": "RESUME",
+  "next_action": "Publish scoped PR, inspect exact candidate protected CI, and integrate only under a fresh integration lock",
+  "created_at": "2026-11-05T00:12:34.183771+00:00",
+  "requirements": [
+    "MJ-REQ-008"
+  ],
+  "tests": [
+    {
+      "command": "Linux unittest: 36 PASS/1 platform SKIP; Windows pytest: 30 PASS/7 platform SKIP/25 subtests PASS; catalogue, progress validation, dashboard, diff and provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Physical host restart/power loss, Windows directory durability, new ancestor durability, independent review, exact candidate hosted CI, production deployment",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}

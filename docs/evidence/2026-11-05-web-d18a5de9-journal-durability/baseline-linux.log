@@ -1,0 +1,81 @@
+test_failed_canonical_directory_flush_recovers_without_duplicate_milestone (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_failed_canonical_directory_flush_recovers_without_duplicate_milestone) ... FAIL
+test_sync_cannot_report_success_while_canonical_directory_flush_fails (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_sync_cannot_report_success_while_canonical_directory_flush_fails) ... FAIL
+test_sync_reflushes_canonical_directory_before_repairing_derived_copy (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_sync_reflushes_canonical_directory_before_repairing_derived_copy) ... FAIL
+test_failed_content_flush_preserves_previous_checkpoint (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_failed_content_flush_preserves_previous_checkpoint) ... ok
+test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor) ... FAIL
+test_non_posix_retains_file_flush_and_atomic_replacement (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_non_posix_retains_file_flush_and_atomic_replacement) ... skipped 'Native non-POSIX compatibility control'
+test_success_flushes_contents_then_replacement_directory (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_success_flushes_contents_then_replacement_directory) ... FAIL
+test_unavailable_directory_flush_is_not_silently_downgraded (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_unavailable_directory_flush_is_not_silently_downgraded) ... FAIL
+
+======================================================================
+FAIL: test_failed_canonical_directory_flush_recovers_without_duplicate_milestone (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_failed_canonical_directory_flush_recovers_without_duplicate_milestone)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<isolated-linux-worktree>/tests/unit/test_progress_journal_durability.py", line 145, in test_failed_canonical_directory_flush_recovers_without_duplicate_milestone
+    with self.assertRaisesRegex(OSError, "fixture canonical directory flush failure"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: OSError not raised
+
+======================================================================
+FAIL: test_sync_cannot_report_success_while_canonical_directory_flush_fails (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_sync_cannot_report_success_while_canonical_directory_flush_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<isolated-linux-worktree>/tests/unit/test_progress_journal_durability.py", line 198, in test_sync_cannot_report_success_while_canonical_directory_flush_fails
+    with self.assertRaisesRegex(OSError, "fixture recovery durability failure"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: OSError not raised
+
+======================================================================
+FAIL: test_sync_reflushes_canonical_directory_before_repairing_derived_copy (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityRecoveryTests.test_sync_reflushes_canonical_directory_before_repairing_derived_copy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<isolated-linux-worktree>/tests/unit/test_progress_journal_durability.py", line 180, in test_sync_reflushes_canonical_directory_before_repairing_derived_copy
+    self.assertEqual(events, ["canonical", "derived"])
+AssertionError: Lists differ: [] != ['canonical', 'derived']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'canonical'
+
+- []
++ ['canonical', 'derived']
+
+======================================================================
+FAIL: test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<isolated-linux-worktree>/tests/unit/test_progress_journal_durability.py", line 79, in test_failed_directory_flush_reports_uncertain_publication_and_closes_descriptor
+    with self.assertRaisesRegex(OSError, "fixture directory flush failure"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: OSError not raised
+
+======================================================================
+FAIL: test_success_flushes_contents_then_replacement_directory (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_success_flushes_contents_then_replacement_directory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<isolated-linux-worktree>/tests/unit/test_progress_journal_durability.py", line 64, in test_success_flushes_contents_then_replacement_directory
+    self.assertEqual(events, ["contents", "replacement", "directory"])
+AssertionError: Lists differ: ['contents', 'replacement'] != ['contents', 'replacement', 'directory']
+
+Second list contains 1 additional elements.
+First extra element 2:
+'directory'
+
+- ['contents', 'replacement']
++ ['contents', 'replacement', 'directory']
+?                           +++++++++++++
+
+
+======================================================================
+FAIL: test_unavailable_directory_flush_is_not_silently_downgraded (tests.unit.test_progress_journal_durability.ProgressJournalDurabilityTests.test_unavailable_directory_flush_is_not_silently_downgraded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<isolated-linux-worktree>/tests/unit/test_progress_journal_durability.py", line 101, in test_unavailable_directory_flush_is_not_silently_downgraded
+    with self.assertRaisesRegex(OSError, "fixture directory inaccessible"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: OSError not raised
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.416s
+
+FAILED (failures=6, skipped=1)
