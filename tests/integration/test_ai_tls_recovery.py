@@ -1,7 +1,9 @@
 """A stalled TLS handshake terminates durable advisory work without publication."""
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from contextlib import ExitStack, contextmanager
+from pathlib import Path
 import socket
+import sys
 import threading
 import time
 import unittest
@@ -237,9 +239,19 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                         self.assertEqual(ready.status_code, 200, ready.text)
                         self.assertEqual(ready.json()['state'], 'QUEUED')
                         cancel_client_setup_ms = (time.monotonic() - setup_started) * 1000
+                    worker_thread, worker_finished = [], []
+
+                    def run_recorded_worker(operation_id, worker_thread, worker_finished):
+                        worker_thread.append(threading.get_ident())
+                        try:
+                            return self.run_worker(operation_id)
+                        finally:
+                            worker_finished.append(time.monotonic())
+
                     try:
                         with ThreadPoolExecutor(max_workers=2) as pool:
-                            work = pool.submit(self.run_worker, operation_id)
+                            work = pool.submit(
+                                run_recorded_worker, operation_id, worker_thread, worker_finished)
                             self.assertTrue(started.wait(3), 'TLS ClientHello never reached the peer')
                             before = time.monotonic()
                             acknowledged_at = None
@@ -270,7 +282,28 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                                     closed_before_commit,
                                     'uncommitted cancellation interrupted TLS before commit',
                                 )
-                            result = work.result(timeout=3)
+                            # Sample only a late test-owned worker; preserve the
+                            # original result-wait budget and terminal assertion.
+                            result_deadline = time.monotonic() + 3
+                            done, _ = wait([work], timeout=max(
+                                0, before + .75 - time.monotonic()))
+                            worker_stack, probe_ms = [], None
+                            if not done:
+                                probe_ms = round((time.monotonic() - before) * 1000, 3)
+                                frame = sys._current_frames().get(worker_thread[0])
+                                try:
+                                    while frame is not None and len(worker_stack) < 12:
+                                        worker_stack.append(
+                                            f'{Path(frame.f_code.co_filename).name}:'
+                                            f'{frame.f_lineno}:{frame.f_code.co_name}')
+                                        frame = frame.f_back
+                                finally:
+                                    del frame
+                                print(f'durable-ai-tls-pending-worker provider={provider_type.name} '
+                                      f'cancel={cancel}; probe_ms={probe_ms}; '
+                                      f'pending_worker_stack={worker_stack}')
+                            result = work.result(timeout=max(
+                                0, result_deadline - time.monotonic()))
                             terminal_at = time.monotonic()
                             self.assertFalse(any(t.name == 'mjobs-request-deadline'
                                                  for t in threading.enumerate()),
@@ -292,7 +325,9 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                             phase_details = (f'provider={provider_type.name} cancel={cancel}; '
                                              f'client_setup={setup_phase}; ack={ack_phase}; '
                                              f'socket_close={close_phase}; '
-                                             f'worker_terminal={elapsed * 1000:.1f}ms')
+                                             f'worker_terminal={elapsed * 1000:.1f}ms; '
+                                             f'worker_exit={(worker_finished[0] - before) * 1000:.1f}ms; '
+                                             f'probe_ms={probe_ms}; pending_worker_stack={worker_stack}')
                             print('durable-ai-tls-timing ' + phase_details)
                             self.assertLess(elapsed, .9, phase_details)
                     finally:
