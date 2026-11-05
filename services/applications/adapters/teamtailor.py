@@ -12,6 +12,9 @@ from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.form_analysis import analyze_form_page
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 _TEAMTAILOR_HOST = re.compile(
@@ -195,6 +198,9 @@ class TeamtailorApplicationAdapter:
                     check()
                 if page.locator(selector).count() > 0:
                     return {"status": "UNKNOWN", "reason": "CHALLENGE_PROTECTED", "fields": []}
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()
@@ -220,6 +226,9 @@ class TeamtailorApplicationAdapter:
             ).evaluate_all(_CONTROL_STATE_SCRIPT, **timeout_kwargs)
             if check is not None:
                 check()
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()
