@@ -152,7 +152,11 @@ class _Stream(httpcore.NetworkStream):
                           timeout_error=httpcore.ConnectTimeout, io_error=httpcore.ConnectError)
             return self
         except BaseException:
-            self.close()
+            # Expected socket-close errors must not replace the TLS/control failure.
+            try:
+                self.close()
+            except OSError:
+                pass
             raise
 
     def get_extra_info(self, info):
