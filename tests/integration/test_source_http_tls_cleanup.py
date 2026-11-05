@@ -13,6 +13,8 @@ from workers.operations import OperationCancelled
 class SourceTlsCleanupLoopbackTests(unittest.TestCase):
     def assert_stop_preserved(self, primary, after_wrap):
         context = ssl.create_default_context()
+        # State the fixture protocol floor explicitly for both runtime and static analysis.
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
         self.assertTrue(context.check_hostname)
         self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
         with socket.socket() as listener:
