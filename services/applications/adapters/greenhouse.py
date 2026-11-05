@@ -16,6 +16,9 @@ from services.applications.form_analysis import analyze_form_page
 from services.applications.upload_integrity import (
     UploadSnapshot, attach_verified_files, snapshot_bytes,
 )
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 _GREENHOUSE_HOSTS = {"boards.greenhouse.io", "job-boards.greenhouse.io"}
@@ -117,6 +120,9 @@ class GreenhouseApplicationAdapter:
                 "}))",
                 **timeout_kwargs,
             )
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Control failures must reach the worker instead of becoming form errors.
+            raise
         except Exception:
             if check is not None:
                 check()
