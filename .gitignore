@@ -6,6 +6,7 @@ __pycache__/
 .coverage
 node_modules/
 apps/web/dist/
+apps/web/coverage/
 test-tmp/
 .next/
 .env
