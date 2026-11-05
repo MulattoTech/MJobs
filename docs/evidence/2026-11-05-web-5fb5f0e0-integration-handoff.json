@@ -1,7 +1,7 @@
 {
   "run": "web-20261105T024405Z-5fb5f0e00ed3",
-  "status": "ACTIVE; PR961 protected-merged; PR949 and PR960 current candidates await remaining hosted gates",
-  "previous_checkpoint": "140b077878eeb6b755ea4fbd5cc57d58e4af8945",
+  "status": "ACTIVE; PR961 protected-merged and deployed; PR949/PR960 diagnostic candidates pending fresh hosted integration",
+  "previous_checkpoint": "f767f9ca944f670a79503bab1a0d3b8b0c87bee5",
   "main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
   "merged": {
     "pr": 961,
@@ -11,21 +11,111 @@
     "tree": "5f4607003cdedcebc94512d32aa143164cc5ae30",
     "at": "2026-11-05T04:13:49Z",
     "proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6649517003",
-    "deployed_by_this_run": false
+    "deployed_by_this_run": true,
+    "deployed_at": "2026-11-05T04:40:44.583387+00:00"
   },
   "candidates": [
     {
       "pr": 949,
-      "head": "65317ca499ff2adb0a10b84ae346560555e89785",
+      "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38",
       "base": "ecd987dcaecce05eed13391a765f27cf5b9def76",
-      "merge": "fffa2b05662987ebcde924b77a7051d4d7ddacb7",
-      "tree": "dd245b01a20199606242c6d046d77edd6866a8ea",
+      "merge": "c51a39e63c75d2b3f14dbf4eb5d95b4d8fdacd63",
+      "tree": "75243ef8c292d851dfd046c47c1c8be53c82d06a",
       "parents": [
         "ecd987dcaecce05eed13391a765f27cf5b9def76",
-        "65317ca499ff2adb0a10b84ae346560555e89785"
+        "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
       ],
       "exactTree": true,
-      "native": {
+      "included_prs": [
+        941,
+        932
+      ],
+      "proof": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6649652245",
+      "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr949",
+      "checks": [
+        {
+          "id": 127059199665,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/runs/127059199665",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001769,
+          "name": "Integration / shard 0",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127059001769",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001697,
+          "name": "Integration / shard 1",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127059001697",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001538,
+          "name": "Dependencies / introduced vulnerabilities",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007543/job/127059001538",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001525,
+          "name": "Security / secret scan",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007521/job/127059001525",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001494,
+          "name": "Integration / shard 2",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007499/job/127059001494",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001399,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007457/job/127059001399",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001378,
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007442/job/127059001378",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001362,
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007442/job/127059001362",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        },
+        {
+          "id": 127059001214,
+          "name": "Python / unit and integrity",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971007442/job/127059001214",
+          "head": "fbcbc1797be5c4411f7a961493e4f28dbdeeee38"
+        }
+      ],
+      "previous_head": "65317ca499ff2adb0a10b84ae346560555e89785",
+      "source_native": {
         "backend": {
           "pass": 48,
           "subtests": 37,
@@ -45,137 +135,22 @@
           "skip": 0
         }
       },
-      "included_prs": [
-        941,
-        932
-      ],
-      "proof": "https://github.com/MulattoTech/MJobs/pull/949#issuecomment-6649652245",
-      "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr949",
-      "checks": [
-        {
-          "id": 127047717624,
-          "name": "CodeQL",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/runs/127047717624",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047537700,
-          "name": "Integration / shard 0",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421121/job/127047537700",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047537672,
-          "name": "Integration / shard 2",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421121/job/127047537672",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047537396,
-          "name": "Integration / shard 1",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421121/job/127047537396",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047537249,
-          "name": "Repository / policy and docs",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421080/job/127047537249",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047537205,
-          "name": "Python / unit and integrity",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421080/job/127047537205",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047537085,
-          "name": "Web / Vitest and production build",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421080/job/127047537085",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047536947,
-          "name": "Security / secret scan",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421034/job/127047536947",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047536716,
-          "name": "Dependencies / introduced vulnerabilities",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421138/job/127047536716",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047536657,
-          "name": "Disposable Compose / mock end-to-end",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967421023/job/127047536657",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047526158,
-          "name": "Analyze (python)",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967416559/job/127047526158",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047526065,
-          "name": "Analyze (actions)",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967416559/job/127047526065",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        },
-        {
-          "id": 127047525825,
-          "name": "Analyze (javascript-typescript)",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967416559/job/127047525825",
-          "head": "65317ca499ff2adb0a10b84ae346560555e89785"
-        }
-      ]
+      "status": "OPEN / NOT MERGED / NOT DEPLOYED; fresh required gates pending",
+      "checks_as_of": "2026-11-05T05:01:45Z",
+      "diagnostic_proof": "https://github.com/MulattoTech/MJobs/blob/fbcbc1797be5c4411f7a961493e4f28dbdeeee38/docs/evidence/2026-11-05-web-5fb5f0e0-pr949-ci-diagnostics.md",
+      "source_evidence_preserved": true
     },
     {
       "pr": 960,
-      "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2",
+      "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
       "base": "ecd987dcaecce05eed13391a765f27cf5b9def76",
-      "merge": "d6224fbda5a733a9d499dd788eff5a47da4a14cf",
-      "tree": "99dff880f3528ff88bca0855e0a83d743b6c6068",
+      "merge": "85800bcc3ca8d412280ec5032db797f4ffdcc235",
+      "tree": "d94619f73a775ef0c4e2b2879e5863eb78adc04a",
       "parents": [
         "ecd987dcaecce05eed13391a765f27cf5b9def76",
-        "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+        "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
       ],
       "exactTree": true,
-      "native": {
-        "pass": 55,
-        "subtests": 37,
-        "skip": 0,
-        "pytest_seconds": 108.65,
-        "command_seconds": 110.61
-      },
       "source": "3b411bcf1be8f2a63c513c214abdecc53a707749",
       "fixture_source": "db2d800253fef1c1e069150fe068cb9a944f9c31",
       "new_tcp_independent_review": "PENDING; author reinspection is not independent",
@@ -183,110 +158,98 @@
       "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr960",
       "checks": [
         {
-          "id": 127047721909,
+          "id": 127059146148,
           "name": "CodeQL",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/runs/127047721909",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "url": "https://github.com/MulattoTech/MJobs/runs/127059146148",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047563460,
-          "name": "Integration / shard 1",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429324/job/127047563460",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
-        },
-        {
-          "id": 127047563435,
-          "name": "Integration / shard 2",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429324/job/127047563435",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
-        },
-        {
-          "id": 127047563246,
-          "name": "Integration / shard 0",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429324/job/127047563246",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
-        },
-        {
-          "id": 127047563036,
-          "name": "Disposable Compose / mock end-to-end",
-          "status": "in_progress",
-          "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429195/job/127047563036",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
-        },
-        {
-          "id": 127047563003,
+          "id": 127059021197,
           "name": "Repository / policy and docs",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429102/job/127047563003",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013683/job/127059021197",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047562990,
-          "name": "Python / unit and integrity",
+          "id": 127059021124,
+          "name": "Integration / shard 2",
           "status": "in_progress",
           "conclusion": null,
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429102/job/127047562990",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127059021124",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047562611,
+          "id": 127059021120,
           "name": "Web / Vitest and production build",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429102/job/127047562611",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013683/job/127059021120",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047562498,
-          "name": "Security / secret scan",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429228/job/127047562498",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "id": 127059021066,
+          "name": "Integration / shard 1",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127059021066",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047562479,
+          "id": 127059020912,
+          "name": "Python / unit and integrity",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013683/job/127059020912",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
+          "id": 127059020853,
+          "name": "Integration / shard 0",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013678/job/127059020853",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
+        },
+        {
+          "id": 127059020506,
           "name": "Dependencies / introduced vulnerabilities",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429050/job/127047562479",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013558/job/127059020506",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047548705,
-          "name": "Analyze (actions)",
+          "id": 127059020451,
+          "name": "Security / secret scan",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967423680/job/127047548705",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013538/job/127059020451",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         },
         {
-          "id": 127047548072,
-          "name": "Analyze (javascript-typescript)",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967423680/job/127047548072",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
-        },
-        {
-          "id": 127047548005,
-          "name": "Analyze (python)",
-          "status": "completed",
-          "conclusion": "success",
-          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967423680/job/127047548005",
-          "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2"
+          "id": 127059020238,
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/41971013517/job/127059020238",
+          "head": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5"
         }
-      ]
+      ],
+      "previous_head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2",
+      "source_native": {
+        "pass": 55,
+        "subtests": 37,
+        "skip": 0,
+        "pytest_seconds": 108.65,
+        "command_seconds": 110.61
+      },
+      "status": "OPEN / NOT MERGED / NOT DEPLOYED; fresh required gates pending",
+      "checks_as_of": "2026-11-05T05:01:45Z",
+      "diagnostic_proof": "https://github.com/MulattoTech/MJobs/blob/3e9ed3b6ea4263ee0958574f79ac12829a5b14d5/docs/evidence/2026-11-05-web-5fb5f0e0-source-tcp-cleanup.md",
+      "source_evidence_preserved": true
     }
   ],
   "ownership": {
@@ -315,10 +278,34 @@
         "ref": "refs/heads/webpro-claims/PR-961-INTEGRATION",
         "owner": "55d229cdc141964efb61f5fb8c2aed1d96cce38b",
         "at": "2026-11-05T04:14:16.037449Z"
+      },
+      {
+        "ref": "refs/heads/webpro-claims/PR-952-REVIEW",
+        "owner": "ce0836d0a0e79542fc531b6395f0854fe2c3f1ce",
+        "at": "2026-11-05T04:38:35.484617Z",
+        "http": 204,
+        "absent": true
       }
     ],
-    "global_locks": "NONE at 04:26 query",
-    "slots_used": []
+    "global_locks": [],
+    "slots_used": [
+      {
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "owner": "9e655b1dc2b10ce67444a72db5e8a2d8946567a2",
+        "released_at": "2026-11-05T04:40:46.570110+00:00"
+      },
+      {
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "owner": "c193464379cd896c32e03c482d2ffd061919d3b9",
+        "released_at": "2026-11-05T04:48:24.276133Z"
+      },
+      {
+        "ref": "refs/heads/webpro-slots/heavy-01",
+        "owner": "e714223b08e8d98f6abfe94d35bd5446b5da9baf",
+        "released_at": "2026-11-05T04:53:14.048263Z"
+      }
+    ],
+    "active_slots": []
   },
   "released_latest_locks": [
     {
@@ -405,83 +392,194 @@
     "Authenticated Brave UI unavailable because originating browser context is missing",
     "GitHub Project read:project scope unavailable; no Project/Fleet reconciliation",
     "No new TalentHop reconnaissance or raw HAR capture",
-    "No external model/agent runs, paid AI calls, real applications or fleet/quota changes"
+    "No external model/agent runs, paid AI calls, real applications or fleet/quota changes",
+    "Authenticated Brave context unavailable; four unauthenticated edge checks passed but no signed-in profile journey.",
+    "All original/additive acceptance counts unchanged; no Project/Fleet reconciliation; no other model/agent invoked.",
+    "Current CI diagnostics are test-only, retain existing assertions/budgets, and are not source fixes for the unresolved hosted timing/race failures."
   ],
-  "next_action": "Observe remaining current-candidate gates, preserve any failure; use a fresh atomic global lock to revalidate main/head/tree/reviews before protected merge. A main advance requires a fresh candidate. Use separate deployment ownership and existing guarded updater only after new-main release checks; retain precise production evidence. Release exact scoped claims on handoff.",
-  "as_of": "2026-11-05T04:28:15.557452+00:00",
+  "next_action": "Inspect fresh actual-candidate gates once ready; analyze any failure using new diagnostics. If all mandatory checks pass, acquire a fresh integration lock, revalidate main/head/candidate/tree/threads/rules and merge one candidate. Refresh the second against resulting main and rerun required gates before merging; never reuse stale-base green. Deploy only a verified current main with separate guarded ownership. On stop, publish final checkpoint and owner-release the two remaining scoped claims.",
   "production": {
-    "observed_at": "2026-11-05T04:24:23.389792+00:00",
-    "deployment_attempted": false,
-    "revision": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
-    "readiness": {
-      "http": 200,
-      "data": {
-        "status": "ready",
-        "checks": {
-          "configuration": true,
-          "database": true,
-          "queue": true,
-          "worker": true,
-          "scheduler": true,
-          "workers": {
-            "mjobs-ai": true,
-            "mjobs-application": true,
-            "mjobs-company-discovery": true,
-            "mjobs-discovery": true,
-            "mjobs-document": true
-          },
-          "schema": true
-        },
-        "db_backend": "postgresql"
-      }
+    "at": "2026-11-05T04:44:33.686808+00:00",
+    "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+    "containers_healthy": 9,
+    "readiness_http": 200,
+    "deployment_http": 200,
+    "attempted": true,
+    "verified": true,
+    "release": {
+      "sha": "ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "image": "mjobs-micro:sha-ecd987dcaecce05eed13391a765f27cf5b9def76",
+      "deployed_at": "2026-11-05T04:40:44.583387+00:00"
     },
-    "image_identifier": "sha256:52accf0d7d70cd38aec2a81a80d5ae56dcfa30f5cd1a22746ce202b078580ea9",
-    "containers": [
-      {
-        "name": "mjobs-micro-worker-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
+    "image_identifier": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+    "proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6649913015",
+    "edge": {
+      "utc": "2026-11-05T04:59:08.055849Z",
+      "paths": [
+        "/",
+        "/__deployment",
+        "/ready",
+        "/profiles"
+      ],
+      "status": 302,
+      "redirect": "configured Cloudflare Access login",
+      "body_read": false
+    },
+    "edge_proof": "https://github.com/MulattoTech/MJobs/pull/961#issuecomment-6650117825",
+    "backup": {
+      "observed_at": "2026-11-05T05:02:13.870580Z",
+      "manifest_entries": 3,
+      "all_hashes_match": true,
+      "document_file_count": 0,
+      "prior_image_retained": true,
+      "restore_attempted": false
+    }
+  },
+  "diagnostics": {
+    "unchanged_linux": {
+      "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2",
+      "methods": 2,
+      "tlsSubtests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "test_seconds": 9.907,
+      "command_seconds": 13.828,
+      "python": "3.12.16",
+      "linux": "6.18.33.2-microsoft-standard-WSL2",
+      "image": "sha256:f1ffb742baa8037ed5ecbea2dd180512684366ed9f307278c40347b649386727",
+      "completed_at": "2026-11-05T04:48:22.387686+00:00",
+      "slot_owner": "c193464379cd896c32e03c482d2ffd061919d3b9",
+      "slot_released_at": "2026-11-05T04:48:24.276133+00:00",
+      "azure_deadline_socket_ms": 295.2,
+      "azure_deadline_terminal_ms": 298.2,
+      "limitation": "Isolated unittest on immutable runtime image with read-only candidate code, synthetic tempfs data, no network; does not reproduce full hosted pytest shard/disk/scheduling conditions."
+    },
+    "linux_controls": {
+      "tls": {
+        "methods": 3,
+        "subtests": 6,
+        "normal_seconds": 6.127,
+        "with_control_seconds": 14.338,
+        "blob": "2762204039f3b4d75e91c9122f5a5c252f58a898"
       },
-      {
-        "name": "mjobs-micro-source-worker-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
+      "route": {
+        "methods": 5,
+        "subtests": 0,
+        "normal_seconds": 11.794,
+        "with_control_seconds": 18.139,
+        "blob": "7b8b028db503f54dd5d8a0535de59a8de7a760e1"
       },
-      {
-        "name": "mjobs-micro-api-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
+      "negative_controls": {
+        "expected_failures": 2,
+        "diagnostic_present": true,
+        "sensitive_value_absent": true
       },
-      {
-        "name": "mjobs-micro-document-worker-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
-      },
-      {
-        "name": "mjobs-micro-scheduler-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
-      },
-      {
-        "name": "mjobs-micro-company-discovery-worker-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
-      },
-      {
-        "name": "mjobs-micro-ai-worker-1",
-        "status": "Up 52 minutes (healthy)",
-        "image": "mjobs-micro:sha-c6d499f391a8e092e06892d7fdea25cbfd177e53"
-      },
-      {
-        "name": "mjobs-micro-postgres-1",
-        "status": "Up 6 hours (healthy)",
-        "image": "postgres:17"
-      },
-      {
-        "name": "mjobs-micro-redis-1",
-        "status": "Up 6 hours (healthy)",
-        "image": "redis:7"
-      }
-    ]
-  }
+      "command_seconds": 32.953,
+      "slot_owner": "e714223b08e8d98f6abfe94d35bd5446b5da9baf",
+      "slot_released_at": "2026-11-05T04:53:14.048263+00:00",
+      "completed_at": "2026-11-05T04:53:12.384361+00:00"
+    },
+    "final_native_tls": {
+      "blob": "ca6a79fe088027635f05b42c37ca93ae7ef86608",
+      "methods": 3,
+      "subtests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.077,
+      "with_negative_control_seconds": 16.234,
+      "completed_at": "2026-11-05T04:55:48.890908Z",
+      "expected_failure_control": "PASS; delayed worker still fails assertion; bounded stack present; sensitive local absent"
+    },
+    "root_causes": "UNCONFIRMED; neither isolated success nor instrumentation dismisses retained hosted failures"
+  },
+  "current_parent_failures": {
+    "949": {
+      "head": "65317ca499ff2adb0a10b84ae346560555e89785",
+      "merge": "fffa2b05662987ebcde924b77a7051d4d7ddacb7",
+      "job": 127047537700,
+      "run": 41967421121,
+      "failed": 1,
+      "passed": 914,
+      "skipped": 17,
+      "subtests": 555,
+      "terminal_ms": 909.6,
+      "peer_close_ms": 293.8,
+      "assertion_ms": 900
+    },
+    "960": {
+      "head": "7cc4809a0168de733da72b60dbd2185dc3b1b7f2",
+      "merge": "d6224fbda5a733a9d499dd788eff5a47da4a14cf",
+      "job": 127047563435,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/41967429324/job/127047563435",
+      "failed": 1,
+      "passed": 997,
+      "skipped": 10,
+      "subtests": 561,
+      "observed": [
+        "BLOCKED",
+        "DEAD_LETTERED"
+      ],
+      "expected": [
+        "BLOCKED",
+        "COMPLETED"
+      ]
+    }
+  },
+  "independent_review_952": {
+    "head": "204167ba86af86b7554c1c65ee2e191662ab348a",
+    "scope": "Three-file company-feed XML declaration guard only",
+    "methods": 19,
+    "subtests": 47,
+    "failed": 0,
+    "skipped": 0,
+    "proof": "https://github.com/MulattoTech/MJobs/pull/952#pullrequestreview-5779926889",
+    "claim_released_at": "2026-11-05T04:38:35.484617Z"
+  },
+  "release_and_resource_receipts": [
+    {
+      "ref": "refs/heads/webpro-locks/deployment",
+      "owner": "dc913ffea149f487266b644fd6277f4cf74d4195",
+      "acquired_at": "2026-11-05T04:39:38.827155+00:00",
+      "http": 201,
+      "readback": true,
+      "released_at": "2026-11-05T04:40:48.301556+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    {
+      "ref": "refs/heads/webpro-slots/heavy-01",
+      "owner": "9e655b1dc2b10ce67444a72db5e8a2d8946567a2",
+      "acquired_at": "2026-11-05T04:39:40.615098+00:00",
+      "http": 201,
+      "readback": true,
+      "released_at": "2026-11-05T04:40:46.570110+00:00",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    {
+      "ref": "refs/heads/webpro-slots/heavy-01",
+      "owner": "c193464379cd896c32e03c482d2ffd061919d3b9",
+      "released_at": "2026-11-05T04:48:24.276133Z",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    {
+      "ref": "refs/heads/webpro-slots/heavy-01",
+      "owner": "e714223b08e8d98f6abfe94d35bd5446b5da9baf",
+      "released_at": "2026-11-05T04:53:14.048263Z",
+      "release_http": 204,
+      "absence_http": 404
+    },
+    {
+      "ref": "refs/heads/webpro-locks/integration",
+      "owner": "838270bb1021be1e4f11049726180bf9c6de301c",
+      "acquired_at": "2026-11-05T04:57:45.878777Z",
+      "released_at": "2026-11-05T04:57:59.633118Z",
+      "release_http": 204,
+      "absence_http": 404
+    }
+  ],
+  "as_of": "2026-11-05T05:03:48.667822+00:00"
 }
