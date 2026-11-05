@@ -445,3 +445,11 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Six provider source/test blobs remain unchanged from independently reviewed heads. 61 passed, 1 skipped, 75 subtests passed in 28.89s. One existing live-provider skip remains explicit; catalogue/progress/dashboard pass. Prior failures and attribution preserved.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-provider-salary-integration.md and adjacent JSON. Full candidate-specific preflight and normal existing-PR push required. Fresh hosted checks and protected integration remain pending; PR947 remains open until main ancestry proves delivery.
 - Source scopes PR-951-INTEGRATION and PR-947-INTEGRATION freshly owned; integration lock released after publication; no heavy/browser slot. No canonical acceptance or deployment claim.
+
+
+## Web sprint 58c1462f - one current-main job workflow candidate
+
+- UTC: 2026-11-05T02:49:57.726915+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR934 becomes the current-main integration candidate on d6650e4bc9bfd784bd6e3a346c793c372f02518a, including frozen PR935/c583e54 and PR951/c02ea380 (and PR947/e7996c4d).
+- All seventeen authored source/test blobs remain unchanged. 182 passed, 1 skipped, 243 subtests passed in 154.62s (0:02:34). One existing live-provider skip remains explicit; RuntimeWarning/unraisable warnings are errors. Catalogue/progress/dashboard checks pass; prior failures and all author/reviewer attribution remain preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-job-integrity.md and adjacent JSON. Complete candidate-specific preflight and normal primary-branch push required; fresh hosted checks and separately attributed salary-review result remain pending. Included branches remain unchanged/open until protected-main ancestry proves delivery.
+- Owned PostgreSQL container and labeled volume removed; heavy slot released. Release integration lock after publication. Scope claims remain active for this bounded continuation. No canonical acceptance or candidate deployment claim; authenticated Brave remains NOT RUN.

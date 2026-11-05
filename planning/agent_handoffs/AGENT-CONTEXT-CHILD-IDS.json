@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "AGENT-CONTEXT-CHILD-IDS",
+  "objective": "Restore exact canonical child requirement checkpoint and resume support for MJ-REQ-008",
+  "owner": "ChatGPT-Web web-20261105T012848Z-5c9a70d51d99",
+  "branch": "web/web-20261105T012848Z-5c9a70d51d99/agent-context-child-ids",
+  "head_sha": "90dc7f5f0cebc61ffeec9b58de04494533877ee8",
+  "routing_state": "VERIFY",
+  "next_action": "Publish scoped PR; verify native Windows behavior and exact-candidate protected CI; integrate only under fresh global ownership",
+  "created_at": "2026-11-05T01:43:47.341490+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "24 focused tests and 462 subtests; catalogue; progress; dashboard; diff; source provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "Native Windows and protected hosted candidate CI",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
