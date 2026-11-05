@@ -1,7 +1,7 @@
 """Synthetic WWR XML parser rejection and durable collection regressions."""
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
 import httpx
 from sqlalchemy import select, update
@@ -11,7 +11,6 @@ from packages.persistence.store import Store
 from services.discovery.sources.collect import collect_source, configure_source
 from services.discovery.sources.wwr import FEED_URL, SourceError, WeWorkRemotely
 from tests.integration.test_spine import PROFILE
-
 
 ENCODINGS = (
     ("utf-8", "utf-8"),
