@@ -1,0 +1,130 @@
+{
+  "schema_version": "triage-finding/v0",
+  "repository": {
+    "path": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr943-integration",
+    "revision": "43cad34752c5b2f281ce94277bd0bf5af04506e8"
+  },
+  "findings": [
+    {
+      "triage_item_id": "triage-001",
+      "input_id": "GitHub CodeQL alert 122 / py/path-injection / Python analysis 2101152167",
+      "source_type": "sarif",
+      "title": "Reported application_id path injection in the manual authentication path validator",
+      "normalized_input": {
+        "vulnerable_component": "Fixture manual-authentication HTTP route and services/applications/manual_auth.py::_has_reparse_component",
+        "claimed_source": "Untrusted application_id path parameter at apps/api/manual_auth.py:119",
+        "claimed_sink": "Path.is_symlink() at services/applications/manual_auth.py:320, reached through configured application/browser-profile paths",
+        "claimed_control": "The scanner tracks user influence into a filesystem path; its alert does not establish that the existing identifier and containment controls can be bypassed",
+        "affected_version_or_path": "Reported main e56f9022185c209465f53cf89bbf7818c60efe8a; local target 43cad34752c5b2f281ce94277bd0bf5af04506e8 has the identical complete tree cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+        "preconditions": [
+          "The manual-auth HTTP route is called in an ACTIVE FIXTURE workspace for a matching profile/application, MOCK target, AUTH_REQUIRED application and current attempt.",
+          "The caller supplies an application_id that survives service-level validation before path construction."
+        ],
+        "impact": "Claimed access to unexpected filesystem resources through a user-influenced path; no exploit or arbitrary file-content access was supplied",
+        "references": [
+          "https://github.com/MulattoTech/MJobs/security/code-scanning/122",
+          "https://api.github.com/repos/MulattoTech/MJobs/code-scanning/analyses/2101152167",
+          "https://github.com/MulattoTech/MJobs/blob/e56f9022185c209465f53cf89bbf7818c60efe8a/apps/api/manual_auth.py",
+          "https://github.com/MulattoTech/MJobs/blob/e56f9022185c209465f53cf89bbf7818c60efe8a/services/applications/manual_auth.py",
+          "https://github.com/MulattoTech/MJobs/blob/e56f9022185c209465f53cf89bbf7818c60efe8a/SECURITY.md"
+        ]
+      },
+      "verdict": "not_actionable",
+      "confidence": "high",
+      "affected_locations": [
+        {
+          "label": "entrypoint",
+          "path": "apps/api/manual_auth.py",
+          "lines": "118-138,176-187",
+          "detail": "HTTP application_id source; FIXTURE, profile/application identity, MOCK target, AUTH_REQUIRED application and current-attempt checks precede dispatch."
+        },
+        {
+          "label": "dispatch",
+          "path": "apps/api/manual_auth.py",
+          "lines": "34-43",
+          "detail": "Windows dispatches through the isolated helper; non-Windows dispatches through mock_adapter."
+        },
+        {
+          "label": "identifier controls",
+          "path": "services/applications/manual_auth.py",
+          "lines": "27-28,328-338,396-414",
+          "detail": "Anchored lowercase hexadecimal identifier of exactly 64 characters and a basename-equality check precede every reported application-root construction; attempt IDs are32 hexadecimal characters."
+        },
+        {
+          "label": "reported sink and containment",
+          "path": "services/applications/manual_auth.py",
+          "lines": "313-325,369-393,417-432",
+          "detail": "The reported sink checks symlinks/junctions, fails closed on path exceptions, and is used before/after canonicalization with separator-terminated containment checks."
+        },
+        {
+          "label": "Windows caller",
+          "path": "services/applications/manual_auth_isolated.py",
+          "lines": "56-88",
+          "detail": "The operation binding is checked, _resolve_auth_attempt applies the common identifier validation, and the validated ID enters a bounded private child payload."
+        },
+        {
+          "label": "Windows child",
+          "path": "services/applications/manual_auth_host.py",
+          "lines": "33-64,91-95",
+          "detail": "The child validates a bounded JSON object and separator-free identifier, requires an absolute configured root, checks aliases and exact application-parent/name plus browser-profile containment before use."
+        },
+        {
+          "label": "non-Windows caller",
+          "path": "services/applications/mock_adapter.py",
+          "lines": "491-503",
+          "detail": "Forwards to open_manual_auth_window, which independently repeats the identifier validation before _resolve_auth_attempt."
+        },
+        {
+          "label": "profile selection",
+          "path": "services/applications/browser_profiles.py",
+          "lines": "16-25,32-71,74-107",
+          "detail": "Profile labels have a narrow separator-free grammar and Windows reserved-name rejection; bounded manifest parsing and alias checks preserve application confinement. The reported resolver uses initialize=False."
+        },
+        {
+          "label": "configuration provenance",
+          "path": "apps/api/main.py",
+          "lines": "786-793,852-853,2839-2842",
+          "detail": "The API factory closes over output_dir supplied by server startup from MJOBS_OUTPUT_DIR; the reported request does not supply that filesystem root."
+        }
+      ],
+      "reachable_path": [
+        "An HTTP caller supplies application_id to the FIXTURE-only manual-auth route; the API checks the persisted application/profile, target and current attempt.",
+        "On Windows, the isolated helper validates the operation binding and calls _resolve_auth_attempt; on other platforms, mock_adapter calls open_manual_auth_window, which calls the same resolver.",
+        "Before joining paths, the resolver rejects any application_id that is not exactly 64 lowercase hexadecimal characters, rejects basename changes, and validates the 32-character hexadecimal attempt ID.",
+        "The configured root receives only the validated application path component; browser profile selection returns a separately validated, application-confined path.",
+        "The selected SARIF sink is the symlink/junction check itself. Canonicalization and repeated alias/containment checks follow it before a profile can be returned.",
+        "The Windows child and optional diagnostic-root handling apply additional validation; no later transformation of the accepted application ID restores separators or traversal syntax."
+      ],
+      "boundary_assessment": {
+        "product_surface": "local developer UI",
+        "source_trust": "untrusted",
+        "boundary_crossed": false,
+        "policy_basis": "Root SECURITY.md:3,5,11 identifies a developer preview, requires preserving open findings and private handling of actual vulnerabilities, and points to supported installation/automation boundaries. No nearer SECURITY.md exists under apps/api or services/applications. docs/INSTALLATION.md:3,15,23,31 supports the fictional FIXTURE workflow. The verdict evaluates that supported alternate path; it does not rely solely on PERSONAL mode denying the route."
+      },
+      "exploitability_stack_rank": {
+        "rank_queue": null,
+        "rank": null,
+        "rationale": "Positive identifier and containment controls defeat the reported HTTP application_id traversal across the traced supported callers.",
+        "drivers": []
+      },
+      "evidence": [
+        "The actual current-main CodeQL instance and Python SARIF analysis 2101152167 were retrieved. The selected result contains source-to-sink flows from apps/api/manual_auth.py:119 into manual_auth.py:320 through both platform dispatch paths.",
+        "The source and local revisions differ in commit identity but have exactly the same complete tree cd799ec69c2afc2190b0a98c20ba299f7ade50ae. The read-only checkout remained clean.",
+        "manual_auth.py blob 22546aea6c2246aff31acce447b0263b000b5384 and API blob a2a48f0dde0379df0aa92d501cf781dbcb637c33 were inspected with both the lexical identifier guards and downstream consumers.",
+        "Manual policy resolution checked root and each applicable ancestor for API, service, isolated child, profile helper and adapter files. Shared skill resolver/assessment references were unavailable in this environment, as recorded in this run's earlier triage; the explicit nearest-policy checks are retained."
+      ],
+      "counterevidence": [
+        "The application ID remains untrusted, but the effective allowlist of 64 hexadecimal characters excludes slashes, backslashes, dots, drive syntax, percent escapes and other path-control characters before filesystem path construction. A matching persisted record does not bypass this service-level check.",
+        "The sink at line 320 is a defensive metadata check, not an unguarded file-content read/write. It rejects aliases and exceptions.",
+        "Both actual platform paths apply the common guard. The Windows child additionally validates its bounded payload and confines the resolved application/profile paths.",
+        "The output root is startup configuration captured by the router, rather than a field on the reported HTTP request; profile selection values are constrained independently."
+      ],
+      "proof_gaps": [
+        "This is static evidence only: no tests, browser launch, application execution, PoC or runtime exploit validation was performed.",
+        "The verdict is limited to alert 122's HTTP application_id traversal claim. A separate actor able to modify the server process environment or race filesystem objects, and the other 48 open alerts, are not assessed here."
+      ],
+      "recommended_next_step": "Retain this narrow evidence for maintainer disposition of alert 122. No source change or broad scanner suppression is justified for the reported application_id path. The alert remains open and no acceptance status is promoted.",
+      "fix_finding_handoff": null
+    }
+  ]
+}

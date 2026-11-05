@@ -1,7 +1,7 @@
 {
   "run": "web-20261105T024405Z-5fb5f0e00ed3",
   "status": "ACTIVE; PR961 and PR958 merged/deployed; PR943 protected-merged and awaits its actual-main release gates; PR949/960 remain blocked/released; no task claims or resource locks held",
-  "previous_checkpoint": "3b79fe5198ec8b87ef46ace92b98eb075b553c7a",
+  "previous_checkpoint": "0e0adb042480a9082176f8327817b51458dbc28b",
   "main": "e56f9022185c209465f53cf89bbf7818c60efe8a",
   "merged": {
     "pr": 961,
@@ -681,6 +681,26 @@
         "released_at": "2026-11-05T06:27:09.474576+00:00",
         "release_http": 204,
         "absence_http": 404
+      },
+      {
+        "run": "web-20261105T024405Z-5fb5f0e00ed3",
+        "ref": "refs/heads/webpro-claims/CODEQL-ALERT-122-REVIEW",
+        "owner": "f4f4ea9a1e4345ad7fd8570e4b3895e333d19410",
+        "acquired_at": "2026-11-05T06:37:12.290544+00:00",
+        "http": 201,
+        "readback": true,
+        "reported_revision": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+        "local_revision": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+        "tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+        "local_tree_matches_reported": true,
+        "source": "https://github.com/MulattoTech/MJobs/security/code-scanning/122",
+        "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr943-integration",
+        "scope": "Static source/control/sink and supported-boundary review of CodeQL alert122 only; no source changes or runtime testing",
+        "released_at": "2026-11-05T06:45:57.117014+00:00",
+        "release_http": 204,
+        "absence_http": 404,
+        "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6651650575",
+        "source_tree_unchanged": true
       }
     ],
     "global_locks": [],
@@ -1316,7 +1336,7 @@
       "absence_http": 404
     }
   ],
-  "as_of": "2026-11-05T06:31:57.802522+00:00",
+  "as_of": "2026-11-05T06:48:29.105727+00:00",
   "codeql_static_triage": {
     "reported_main": "ecd987dcaecce05eed13391a765f27cf5b9def76",
     "local_revision": "3e9ed3b6ea4263ee0958574f79ac12829a5b14d5",
@@ -1355,7 +1375,7 @@
       "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6650266765"
     }
   },
-  "evidence_updated_at": "2026-11-05T06:31:57.802522+00:00",
+  "evidence_updated_at": "2026-11-05T06:48:29.105727+00:00",
   "current_candidate_failures": [
     {
       "pr": 949,
@@ -1997,7 +2017,7 @@
   },
   "main_release_checks": {
     "sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
-    "as_of": "2026-11-05T06:31:57.802522+00:00",
+    "as_of": "2026-11-05T06:48:29.105727+00:00",
     "checks": [
       {
         "id": 127090655124,
@@ -2059,8 +2079,8 @@
         "id": 127089169385,
         "name": "Integration / shard 0",
         "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
-        "status": "in_progress",
-        "conclusion": null,
+        "status": "completed",
+        "conclusion": "success",
         "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476058/job/127089169385"
       },
       {
@@ -2075,8 +2095,8 @@
         "id": 127089169252,
         "name": "Integration / shard 1",
         "head_sha": "e56f9022185c209465f53cf89bbf7818c60efe8a",
-        "status": "in_progress",
-        "conclusion": null,
+        "status": "completed",
+        "conclusion": "success",
         "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/41980476058/job/127089169252"
       },
       {
@@ -2757,5 +2777,45 @@
     "client_signature_docs": "https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/",
     "no_updater_rerun": true,
     "no_access_policy_change": true
+  },
+  "codeql_122_static_triage": {
+    "source": "https://github.com/MulattoTech/MJobs/security/code-scanning/122",
+    "analysis": 2101152167,
+    "reported_revision": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+    "local_revision": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+    "identical_tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+    "verdict": "not_actionable",
+    "confidence": "high",
+    "artifact": "docs/evidence/2026-11-05-web-5fb5f0e0-codeql122-triage.json",
+    "comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6651650575",
+    "claim_receipt": {
+      "run": "web-20261105T024405Z-5fb5f0e00ed3",
+      "ref": "refs/heads/webpro-claims/CODEQL-ALERT-122-REVIEW",
+      "owner": "f4f4ea9a1e4345ad7fd8570e4b3895e333d19410",
+      "acquired_at": "2026-11-05T06:37:12.290544+00:00",
+      "http": 201,
+      "readback": true,
+      "reported_revision": "e56f9022185c209465f53cf89bbf7818c60efe8a",
+      "local_revision": "43cad34752c5b2f281ce94277bd0bf5af04506e8",
+      "tree": "cd799ec69c2afc2190b0a98c20ba299f7ade50ae",
+      "local_tree_matches_reported": true,
+      "source": "https://github.com/MulattoTech/MJobs/security/code-scanning/122",
+      "worktree": "C:\\Tools\\Dev\\MJobs-Web\\web-5fb5f0e0-pr943-integration",
+      "scope": "Static source/control/sink and supported-boundary review of CodeQL alert122 only; no source changes or runtime testing",
+      "released_at": "2026-11-05T06:45:57.117014+00:00",
+      "release_http": 204,
+      "absence_http": 404,
+      "verdict_comment": "https://github.com/MulattoTech/MJobs/issues/524#issuecomment-6651650575",
+      "source_tree_unchanged": true
+    },
+    "runtime_validation": false,
+    "source_changed": false,
+    "alert_dismissed": false,
+    "open_alert_count_at_intake": 49,
+    "other48not_assessed": true
+  },
+  "pr_descriptions_reconciled": {
+    "943": "Protected merge and released ownership are current; production pending release gates; prior evidence preserved as historical",
+    "958": "Verified deployment and initial verification observations are current; prior evidence preserved as historical"
   }
 }
