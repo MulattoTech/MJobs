@@ -58,3 +58,17 @@ locally. The focused fixtures use isolated synthetic SQLite stores.
 No original P0/P1 acceptance row or denominator changes. Cloudflare policy,
 production services, fleet controls and the 7 percent cutoff are untouched.
 Rollback is a protected revert of the source commit; no data migration is needed.
+
+## Hosted scanner finding retained
+
+The initial hosted secret scan failed: run 41939033837, artifact 13375980064.
+Its two generic-api-key findings are the Git blob IDs on lines 45 and 46 of
+this file in source commit c5339366e7372f9a5fca24c4c0410edacf8a6b2d.
+Both were verified against that immutable commit with git rev-parse and exactly
+match the source blobs listed above. They are source identities, not credentials.
+
+Under scoped SECRET-SCAN-FINGERPRINTS ownership, only those two immutable
+commit/path/rule/line findings were added to the existing reviewed exception
+list. No scanner binary, detector rule, workflow, directory or wildcard
+exemption changed. Author triage is documented in PR937 comment 6645844602;
+independent review and the next hosted scan remain separate gates.
