@@ -568,6 +568,9 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.assertEqual(self.docker.unpause_calls, ["b" * 64])
         self.assertTrue(release["released"])
         self.assertFalse(release["scheduler_contained"])
+        self.assertFalse(release["source_policy_exclusive"])
+        self.assertFalse(release["source_collection_exclusive"])
+        self.assertNotIn("token", release)
 
     def test_public_source_helper_runs_through_containment_then_explicit_release(self):
         self.api.collection_state = "COMPLETED"
@@ -610,6 +613,10 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             ),
         )
         self.assertTrue(released["released"])
+        self.assertFalse(released["source_policy_exclusive"])
+        self.assertFalse(released["scheduler_contained"])
+        self.assertFalse(released["source_collection_exclusive"])
+        self.assertNotIn("token", released)
         self.assertEqual(self.docker.pause_calls, ["b" * 64])
         self.assertEqual(self.docker.unpause_calls, ["b" * 64])
 

@@ -1028,11 +1028,11 @@ class OwnedPublicContainment:
             return {
                 "released": True,
                 "scheduler_contained": False,
-                "source_policy_exclusive": True,
+                "source_policy_exclusive": False,
                 "source_collection_exclusive": False,
-                "owner": self.owner,
-                "token": self.token,
-                "lease_expires_at": self._lease_expiry.isoformat(),
+                "project": self.project_name,
+                "scheduler_container_id": self._scheduler_id,
+                "lease_expired_at": self._lease_expiry.isoformat(),
             }
         return {
             "scheduler_contained": True,
