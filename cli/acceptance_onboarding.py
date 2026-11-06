@@ -43,6 +43,28 @@ def _digest(value):
         separators=(',', ':'), allow_nan=False).encode()).hexdigest()
 
 
+def assert_first_run_search_profile_version(operation, search_profile_version,
+                                             current_profile_version):
+    """Bind search history to the profile version actually used at discovery time.
+
+    Later user-approved edits may advance the current profile. They must not
+    rewrite or invalidate the profile-version pin persisted on the completed
+    discovery operation.
+    """
+    params = operation.get('params') if isinstance(operation, dict) else None
+    valid_versions = lambda *values: all(isinstance(value, str) and len(value) == 64
+        and all(character in '0123456789abcdef' for character in value) for value in values)
+    _require(isinstance(params, dict) and valid_versions(
+        params.get('profile_version'), search_profile_version, current_profile_version),
+        'FIRST_RUN_SEARCH_PROFILE_VERSION_INVALID')
+    _require(params['profile_version'] == search_profile_version,
+        'FIRST_RUN_SEARCH_PROFILE_VERSION_MISMATCH')
+    return dict(search_profile_version=search_profile_version,
+        operation_profile_version=params['profile_version'],
+        current_profile_version=current_profile_version,
+        current_profile_advanced=(current_profile_version != search_profile_version))
+
+
 def _read(page, origin, path):
     response = page.request.get(origin + path, max_redirects=0)
     _require(response.ok, 'FIRST_RUN_API_READ_FAILED')
@@ -163,7 +185,8 @@ def begin_first_run(page, base_url, *, acceptance_run_id):
         reason='FIRST_RUN_AWAITING_RESUME_REVIEW_AND_SAVED_SEARCH')
 
 
-def observe_first_run(page, base_url, initial, *, search_profile_id=None, operation_id=None, request_id=None):
+def observe_first_run(page, base_url, initial, *, search_profile_id=None, operation_id=None,
+                      request_id=None, search_profile_version=None):
     """Reload and bind all ten visible steps to this run's exact saved identity.
 
     Acknowledgements are browser-local, not durable server setup flags. Pending
@@ -202,13 +225,15 @@ def observe_first_run(page, base_url, initial, *, search_profile_id=None, operat
         search = _read(page, origin, '/search-profiles/' + quote(search_profile_id, safe=''))
         operation = _read(page, origin, '/operations/' + quote(operation_id, safe=''))
         params = operation.get('params') or {}
+        search_version_binding = assert_first_run_search_profile_version(
+            operation, search_profile_version, configuration['profile_version'])
         _require(search.get('id') == search_profile_id and search.get('profile_id') == profile_id
             and search.get('enabled') is True and search.get('criteria', {}).get('include_titles')
             and operation.get('id') == operation_id and operation.get('kind') == 'DISCOVER'
             and operation.get('entity_id') == profile_id and operation.get('state') == 'COMPLETED'
             and params.get('request_id') == request_id
             and params.get('search_profile_id') == search_profile_id
-            and params.get('profile_version') == configuration['profile_version'],
+            and params.get('profile_version') == search_profile_version,
             'FIRST_RUN_SEARCH_LINEAGE_MISMATCH')
         history_id = operation_id + ':' + str(operation['attempt_count'])
         rows = [item for item in history['items'] if item.get('id') == history_id]
@@ -217,6 +242,7 @@ def observe_first_run(page, base_url, initial, *, search_profile_id=None, operat
             and rows[0].get('filters') == search['criteria'], 'FIRST_RUN_SEARCH_LINEAGE_MISMATCH')
         receipt.update(search_profile_id=search_profile_id, discovery_operation_id=operation_id,
             discovery_request_id=request_id, search_sha256=_digest(search), operation_sha256=_digest(operation),
+            search_profile_version_binding=search_version_binding,
             search_history=rows[0], search_history_sha256=_digest(rows[0]))
         if pending:
             return dict(receipt, result='PARTIAL', reason='FIRST_RUN_STEPS_INCOMPLETE')

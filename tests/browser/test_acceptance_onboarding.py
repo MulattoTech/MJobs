@@ -197,20 +197,42 @@ class FirstRunAcceptanceTests(unittest.TestCase):
         expect(self.page.get_by_role('status').filter(
             has_text='Local fixture jobs collected for your saved profile. No employer was contacted.')).to_be_visible()
         expect(self.page.get_by_role('button', name='Refresh matches', exact=True)).to_be_enabled()
+        profile_path = '/profiles/' + initial['profile_id']
+        search_time_profile = self.page.request.get(self.origin + profile_path).json()
+        search_operation = self.page.request.get(
+            self.origin + '/operations/' + collected['operation_id']).json()
+        search_profile_version = search_time_profile['version']
+        self.assertEqual(search_operation['params']['profile_version'], search_profile_version)
+        # A later visible user edit must not rewrite the version used by the
+        # already completed search or make its first-run history disappear.
+        self.page.get_by_role('navigation').get_by_role('button', name='Profile', exact=True).click()
+        self.page.get_by_label('city', exact=True).fill('Synthetic Later City')
+        self.page.get_by_role('button', name='Save profile', exact=True).click()
+        expect(self.page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()
+        current_profile_version = self.page.request.get(self.origin + profile_path).json()['version']
+        self.assertNotEqual(current_profile_version, search_profile_version)
         observed = observe_first_run(self.page, self.origin, initial, search_profile_id=search_id,
-            operation_id=collected['operation_id'], request_id=collected['request_id'])
+            operation_id=collected['operation_id'], request_id=collected['request_id'],
+            search_profile_version=search_profile_version)
         self.assertEqual(observed['result'], 'PASS', observed)
         self.assertEqual(observed['completed_steps'], 10)
         self.assertEqual(observed['pending_steps'], [])
         self.assertEqual(observed['profile_id'], initial['profile_id'])
         self.assertEqual(observed['discovery_operation_id'], collected['operation_id'])
         self.assertEqual(observed['search_history']['source'], 'mock-fixture')
+        self.assertEqual(observed['search_profile_version_binding'], {
+            'search_profile_version': search_profile_version,
+            'operation_profile_version': search_profile_version,
+            'current_profile_version': current_profile_version,
+            'current_profile_advanced': True,
+        })
         self.assertTrue(observed['checks'][0]['passed'])
         self.assertEqual(len(self.store.profiles()), 1)
         self.assertEqual(self.store.count('applications'), 0)
         self.assertEqual(self.blocked, [])
         wrong = observe_first_run(self.page, self.origin, initial, search_profile_id=search_id,
-            operation_id=collected['operation_id'], request_id='wrong-request')
+            operation_id=collected['operation_id'], request_id='wrong-request',
+            search_profile_version=search_profile_version)
         self.assertEqual(wrong['result'], 'FAIL')
         self.assertEqual(wrong['reason'], 'FIRST_RUN_SEARCH_LINEAGE_MISMATCH')
         self.assertFalse(wrong['checks'][0]['passed'])

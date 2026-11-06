@@ -16,7 +16,7 @@ from urllib.parse import quote, urlsplit
 
 import httpx
 from docx import Document
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_playwright, expect
 from reportlab.pdfgen import canvas
 
 from cli.live_feedback import capture_redacted_screenshot
@@ -789,11 +789,15 @@ def assert_previous_review_operation(request, *, onboarding, operation_id, appli
 
 def is_allowed_onboarding_application_write(method, path):
     """Allow only the explicit local application operations used by onboarding."""
+    parts = path.strip("/").split("/")
+    if (method == "PUT" and len(parts) == 6 and parts[0] == "profiles" and bool(parts[1])
+            and parts[2] == "applications" and bool(parts[3])
+            and parts[4:] == ["tracking", "status"]):
+        return True
     if method != "POST":
         return False
     if path == "/applications":
         return True
-    parts = path.strip("/").split("/")
     if (len(parts) == 5 and parts[0] == "profiles" and bool(parts[1])
             and parts[2] == "applications" and bool(parts[3])
             and parts[4] in {"reprepare", "mock-run"}):
@@ -1322,6 +1326,13 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         discovery_request, operation, jobs,
                         profile_id=profile_id, search_profile_id=search["id"],
                         expected_titles=set(expected_titles))
+                    profile_at_discovery = request("/profiles/" + profile_id)
+                    assert profile_at_discovery.get("id") == profile_id
+                    search_profile_version = profile_at_discovery.get("version")
+                    assert (isinstance(search_profile_version, str)
+                            and operation.get("params", {}).get("profile_version")
+                            == search_profile_version), (
+                                "completed discovery did not retain the profile version observed at search time")
                     # Operation completion and filtered readback can precede the
                     # UI action's own refresh/loadJobs and busy-gate release.
                     wait_for_fixture_collection_ui_idle(page)
@@ -1330,6 +1341,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         "operation_id": operation_id,
                         "request_id": request_id,
                         "profile_id": profile_id,
+                        "profile_version": search_profile_version,
+                        "operation_profile_version": operation["params"]["profile_version"],
                         "filtered_titles": [row["title"] for row in jobs],
                         "result": "PASS",
                     })
@@ -2106,12 +2119,22 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     assert_onboarding_profile_facts(after_latest_rejections, pending_fact_ids)
                     from cli.acceptance_onboarding import observe_first_run
 
+                    first_run_search_proof = next(row for row in discovery_search_proofs
+                        if row["search_profile_id"] == matching_search["id"]
+                        and row["operation_id"] == discovery_operation_id
+                        and row["request_id"] == discovery_request_id)
+
                     first_run_report = observe_first_run(
                         page, base_url, first_run_initial,
                         search_profile_id=matching_search["id"],
                         operation_id=discovery_operation_id,
                         request_id=discovery_request_id,
+                        search_profile_version=first_run_search_proof["profile_version"],
                     )
+                    version_binding = first_run_report.get("search_profile_version_binding")
+                    if isinstance(version_binding, dict):
+                        first_run_search_proof["current_profile_version"] = (
+                            version_binding["current_profile_version"])
                     observe_acceptance_step(
                         3, first_run_report["result"],
                         "First-run configuration, saved search, and current-version fact decisions were reloaded.",
@@ -2203,6 +2226,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 native_attempt = expected_attempts[0] if len(expected_attempts) == 1 else {}
                 native_proof = native_attempt.get("native_fixture") or {}
                 verified_uploads = native_attempt.get("verified_uploads") or []
+                native_steps = set(native_attempt.get("steps", []))
                 current_profile = request("/profiles/" + profile_id)
                 from services.applications.owned_ats_fixture import _digest as native_digest
 
@@ -2225,19 +2249,60 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 history_ui = page.get_by_role(
                     "region", name="Durable attempt history", exact=True)
                 expect(history_ui).to_be_visible()
-                native_review_ui = history_ui.get_by_role(
-                    "region", name="Controlled local fixture adapter", exact=True)
                 refresh_history = history_ui.get_by_role(
                     "button", name="Refresh attempt history", exact=True)
-                if refresh_history.is_enabled():
-                    refresh_history.click()
-                history_ui_text = history_ui.inner_text()
-                native_steps = set(native_attempt.get("steps", []))
+                history_ui_text = ""
+                native_review_ui = None
+                attempt_id = native_attempt.get("attempt_id")
+                required_visible_steps = {
+                    "NAVIGATE:COMPLETED", "DETECT_FORM:COMPLETED",
+                    "FILL_CONTACT:COMPLETED", "UPLOAD_RESUME:COMPLETED",
+                    "VALIDATE:COMPLETED",
+                }
+                selected_attempt_uploads = [row for row in verified_uploads
+                    if isinstance(row, dict) and row.get("kind") in {"resume", "cover-letter"}]
+                selected_upload_kinds = {row["kind"] for row in selected_attempt_uploads}
+                if (isinstance(attempt_id, str) and attempt_id
+                        and required_visible_steps.issubset(native_steps)
+                        and selected_upload_kinds == {"resume", "cover-letter"}):
+                    try:
+                        expect(refresh_history).to_be_enabled()
+                        refresh_history.click()
+                        attempts_ui = history_ui.get_by_role(
+                            "list", name="Durable application attempts", exact=True)
+                        attempt_row = attempts_ui.get_by_role("listitem").filter(has_text=attempt_id)
+                        expect(attempt_row).to_have_count(1)
+                        attempt_details = attempt_row.locator("details")
+                        if attempt_details.get_attribute("open") is None:
+                            attempt_row.locator("summary").click()
+                        expect(attempt_row.locator("code").get_by_text(
+                            attempt_id, exact=True)).to_be_visible()
+                        for step_name in sorted(required_visible_steps):
+                            expect(attempt_row.get_by_text(step_name, exact=True)).to_be_visible()
+                        expect(attempt_row.get_by_role(
+                            "region", name="Controlled local fixture adapter", exact=True)).to_be_visible()
+                        for upload in selected_attempt_uploads:
+                            expect(attempt_row.get_by_text(
+                                upload["kind"], exact=True)).to_be_visible()
+                            expect(attempt_row.get_by_text(
+                                upload.get("sha256", ""), exact=True)).to_be_visible()
+                            expect(attempt_row.get_by_text(
+                                f"{upload.get('size_bytes')} bytes", exact=False)).to_be_visible()
+                        history_ui_text = attempt_row.inner_text()
+                        native_review_ui = attempt_row.get_by_role(
+                            "region", name="Controlled local fixture adapter", exact=True)
+                    except (AssertionError, PlaywrightTimeoutError):
+                        # A missing or stale UI row withholds UI proof; durable
+                        # API evidence remains available to the readback pair.
+                        history_ui_text = ""
+                        native_review_ui = None
                 native_scope_ok = (
                     native_attempt.get("application_id") == identifier
                     and native_attempt.get("profile_version") == current_profile["version"]
                     and native_proof.get("job_id") == application["job_id"]
-                    and native_proof.get("request_id") == dry_run_lineage["operation_id"])
+                    and native_proof.get("request_id") == dry_run_lineage["operation_id"]
+                    and bool(attempt_id)
+                    and required_visible_steps.issubset(native_steps))
                 profile_digest_matches = (
                     native_proof.get("profile_sha256") == native_digest(current_profile))
                 record_application_step(
@@ -2458,7 +2523,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                             == "CONFIRMED",
                             local_owned_run and admitted_intent["submit"] is True),
                         "external_submission_absent": _paired_evidence(
-                            "Submit to local mock" in controls.inner_text(),
+                            controls.get_by_text(
+                                "No real employer application is sent", exact=False).is_visible(),
                             request("/health")["external_submission_enabled"] is False
                             and confirmed["target"] == "MOCK"),
                     },

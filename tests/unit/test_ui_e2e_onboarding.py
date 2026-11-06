@@ -4,10 +4,28 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from cli import ui_e2e
+from cli import acceptance_onboarding, ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_first_run_search_binds_historical_profile_version_after_later_edit(self):
+        searched = "a" * 64
+        current = "b" * 64
+        binding = acceptance_onboarding.assert_first_run_search_profile_version(
+            {"params": {"profile_version": searched}}, searched, current)
+        self.assertEqual(binding, {
+            "search_profile_version": searched,
+            "operation_profile_version": searched,
+            "current_profile_version": current,
+            "current_profile_advanced": True,
+        })
+        with self.assertRaisesRegex(ValueError, "FIRST_RUN_SEARCH_PROFILE_VERSION_MISMATCH"):
+            acceptance_onboarding.assert_first_run_search_profile_version(
+                {"params": {"profile_version": searched}}, current, current)
+        with self.assertRaisesRegex(ValueError, "FIRST_RUN_SEARCH_PROFILE_VERSION_INVALID"):
+            acceptance_onboarding.assert_first_run_search_profile_version(
+                {"params": {"profile_version": "not-a-version"}}, "not-a-version", current)
+
     def test_terminal_application_readback_requires_exact_profile_and_application(self):
         current = {
             "id": "application-1",
@@ -443,9 +461,12 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
             ("POST", "/profiles/p1/applications/a1/mock-run"),
             ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
             ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel"),
+            ("PUT", "/profiles/p1/applications/a1/tracking/status"),
         )
         blocked = (
             ("PUT", "/profiles/p1/applications/a1/reprepare"),
+            ("POST", "/profiles/p1/applications/a1/tracking/status"),
+            ("PUT", "/profiles/p1/applications/a1/tracking/notes"),
             ("GET", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
             ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel/extra"),
             ("POST", "/profiles/p1/applications/a1/submit"),
@@ -464,6 +485,11 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
         comparison = "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/" \
                     "uploaded-resume-comparison/operations?request_id=private-query"
         self.assertTrue(ui_e2e.is_allowed_onboarding_request("POST", comparison, origin))
+        tracking_status = "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/tracking/status"
+        self.assertTrue(ui_e2e.is_allowed_onboarding_request("PUT", tracking_status, origin))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request("PUT", tracking_status, "employer.example"))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "PUT", tracking_status.replace("/tracking/status", "/tracking/notes"), origin))
         self.assertFalse(ui_e2e.is_allowed_onboarding_request(
             "POST", comparison, "employer.example"))
         self.assertFalse(ui_e2e.is_allowed_onboarding_request(
