@@ -616,6 +616,29 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
 
         self.assertEqual(approved, {"Python": "python-entry"})
 
+    def test_onboarding_inventory_capture_requires_complete_v4_for_same_profile(self):
+        inventory = {
+            "schema_version": 4, "scope": "ALL_PERSISTED_JOBS", "profile_id": "profile-1",
+            "profile_version": "a" * 64, "job_count": 1, "source_copy_count": 2,
+            "snapshot_sha256": "b" * 64, "sha256": "c" * 64,
+            "jobs": [{"job_id": "job-1", "canonical_sha256": "d" * 64,
+                      "route_count": 1, "source_copy_count": 2,
+                      "source_copies": [{"source": "fixture"}],
+                      "source_copies_sha256": "e" * 64}],
+        }
+        with patch.object(ui_e2e, "collect_persisted_job_inventory", return_value=inventory) as collect:
+            captured = ui_e2e.collect_onboarding_job_inventory(lambda path: None, "profile-1")
+        self.assertIs(captured, inventory)
+        collect.assert_called_once()
+
+        for key, value in (("schema_version", 3), ("scope", "VISIBLE_JOBS"),
+                           ("profile_id", "other-profile")):
+            with self.subTest(key=key), patch.object(
+                    ui_e2e, "collect_persisted_job_inventory",
+                    return_value={**inventory, key: value}):
+                with self.assertRaisesRegex(ValueError, "complete v4 inventory for this profile"):
+                    ui_e2e.collect_onboarding_job_inventory(lambda path: None, "profile-1")
+
     def test_documents_must_exclude_imported_pending_facts(self):
         ui_e2e.assert_no_pending_facts_in_documents([
             {"fact_ids": ["python-entry"], "facts_used": [

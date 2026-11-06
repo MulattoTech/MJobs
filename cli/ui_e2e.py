@@ -20,7 +20,7 @@ from playwright.sync_api import sync_playwright, expect
 from reportlab.pdfgen import canvas
 
 from cli.live_feedback import capture_redacted_screenshot
-from cli.compose_recovery import collect_public_job_inventory
+from cli.compose_recovery import collect_persisted_job_inventory
 from cli import local_persistence_acceptance as persistence
 from cli.ui_e2e_jobs_journey import (
     build_observation, run_fixture_job_observations, validate_run_id,
@@ -630,6 +630,18 @@ def validate_onboarding_target(base_url):
         pass
     if parsed.scheme != "http" or not loopback or parsed.username or parsed.password:
         raise RuntimeError("onboarding target must be an HTTP loopback Compose service")
+
+
+def collect_onboarding_job_inventory(get_json, profile_id):
+    """Capture the complete same-profile persisted inventory for restart recovery."""
+    inventory = collect_persisted_job_inventory(get_json, profile_id)
+    if (not isinstance(inventory, dict)
+            or type(inventory.get("schema_version")) is not int
+            or inventory.get("schema_version") != 4
+            or inventory.get("scope") != "ALL_PERSISTED_JOBS"
+            or inventory.get("profile_id") != profile_id):
+        raise ValueError("Onboarding recovery requires a complete v4 inventory for this profile")
+    return inventory
 
 
 def assert_onboarding_profile_facts(profile, pending_fact_ids, *,
@@ -2599,10 +2611,10 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                         if row['id'] == sources[0]['id'])['priority'] == 'USER_PINNED'
             local_persistence = persistence.collect(request, read_bytes, profile_id, identifier)
             if onboarding:
-                # Capture the public same-profile jobs/source-copy baseline while
-                # the Playwright API request context is still open. The connected
-                # recovery workflow compares this exact inventory after restart.
-                job_inventory = collect_public_job_inventory(request, profile_id)
+                # Capture the complete persisted same-profile jobs/source-copy
+                # baseline while the Playwright API request context is open. The
+                # connected recovery workflow compares this exact inventory after restart.
+                job_inventory = collect_onboarding_job_inventory(request, profile_id)
         except BaseException as error:
             try:
                 journal.fail(error)
