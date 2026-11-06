@@ -989,6 +989,48 @@ def _locked_request(connection, request_id, revision, *, transaction_locked=Fals
     return row
 
 
+def _supersede_queued_aggregator_bootstrap(connection, request):
+    """Cancel only the exact unclaimed bootstrap task before explicit review."""
+    if request['authorization'] != AGGREGATOR_BOOTSTRAP_PENDING:
+        return False
+    if request['state'] != 'QUEUED' or not request['operation_id']:
+        return False
+    operation = connection.execute(select(m.operations).where(
+        m.operations.c.id == request['operation_id']).with_for_update()).mappings().one_or_none()
+    if (operation is None or operation['kind'] != 'COMPANY_DISCOVER'
+            or operation['entity_id'] != request['company_id']
+            or operation['state'] != 'QUEUED' or operation['cancel_requested']):
+        raise ValueError('DISCOVERY_REQUEST_NOT_REVIEWABLE')
+    try:
+        current = _current_aggregator_bootstrap(connection, operation, request,
+            fixture=_fixture(connection))
+    except ValueError:
+        raise ValueError('DISCOVERY_REQUEST_NOT_REVIEWABLE') from None
+    if current.get('authorization') != AGGREGATOR_BOOTSTRAP_PENDING:
+        raise ValueError('DISCOVERY_REQUEST_NOT_REVIEWABLE')
+
+    timestamp = now()
+    cancelled = connection.execute(update(m.operations).where(
+        m.operations.c.id == operation['id'],
+        m.operations.c.state == 'QUEUED',
+        m.operations.c.cancel_requested.is_(False),
+    ).values(cancel_requested=True, state='CANCELLED', updated_at=timestamp,
+        completed_at=timestamp, current_step='FINALIZING', next_attempt_at=None,
+        recovery_metadata={'action': 'NONE'}))
+    if cancelled.rowcount != 1:
+        raise ValueError('DISCOVERY_REQUEST_NOT_REVIEWABLE')
+    pending_sha256 = request['domain_evidence'][0]['sha256']
+    _audit(connection, request, 'COMPANY_DISCOVERY_BOOTSTRAP_SUPERSEDED',
+        previous_operation_id=operation['id'], previous_pending_sha256=pending_sha256,
+        superseded_by='USER_REVIEW', next_revision=request['revision'] + 1)
+    cleared = dict(state='NEEDS_ORIGIN_REVIEW', selected_website=None,
+        authorization=None, domain_evidence=[], operation_id=None)
+    connection.execute(update(m.company_discovery_requests).where(
+        m.company_discovery_requests.c.id == request['id']).values(**cleared))
+    request.update(cleared)
+    return True
+
+
 def approve_discovery_request(store, request_id, website, revision, confirm_company_identity=False):
     if type(confirm_company_identity) is not bool:
         raise ValueError('DISCOVERY_IDENTITY_CONFIRMATION_INVALID')
@@ -1012,11 +1054,17 @@ def approve_discovery_request(store, request_id, website, revision, confirm_comp
             lock_company_source_hosts(connection, [host])
             _lock_source_owners_for_domain(connection, host, initial['company_id'],
                 request_source_id=initial['company_source_id'])
-        row = _locked_request(connection, request_id, revision, transaction_locked=confirm_company_identity)
+        row = dict(_locked_request(connection, request_id, revision,
+            transaction_locked=confirm_company_identity))
         if (confirm_company_identity and
                 (row['company_id'] != initial['company_id'] or row['company_source_id'] != initial['company_source_id'])):
             raise ValueError('DISCOVERY_REQUEST_CHANGED')
-        if _status(connection, row) not in REVIEWABLE:
+        status = _status(connection, row)
+        if (status == 'QUEUED'
+                and row['authorization'] == AGGREGATOR_BOOTSTRAP_PENDING):
+            _supersede_queued_aggregator_bootstrap(connection, row)
+            status = _status(connection, row)
+        if status not in REVIEWABLE:
             raise ValueError('DISCOVERY_REQUEST_NOT_REVIEWABLE')
         _source(connection, row)
         if confirm_company_identity:
