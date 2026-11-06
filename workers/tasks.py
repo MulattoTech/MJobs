@@ -389,6 +389,14 @@ def execute_operation(operation_id, *, registry_module=None,
                             profile_version=params.get("profile_version"),
                         )
                         history_results = len(discovery_jobs)
+            elif operation["kind"] == "COMPANY_DISCOVER" and (
+                    "fixture_monitoring" in params or "fixture_source_id" in params):
+                # Presence selects the restricted handler even for a malformed
+                # marker. It may never fall through to broad company discovery.
+                if operation_mode != "FIXTURE":
+                    raise FixtureOperationDisabled()
+                from services.company_discovery.fixture_monitoring import refresh_fixture_source
+                result = refresh_fixture_source(store, origin, operation, check=check)
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
                 if params.get("monitoring_source_id") or params.get("discovery_request_id"):

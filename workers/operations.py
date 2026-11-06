@@ -556,6 +556,9 @@ def company_refresh_saved(connection, operation):
     Callers hold the operation lock. The source/monitor pointer can change after
     a later refresh, so only the immutable, exactly bound audit is authoritative.
     """
+    if operation['kind'] == 'COMPANY_DISCOVER':
+        from services.company_discovery.fixture_monitoring import fixture_refresh_saved
+        return fixture_refresh_saved(connection, operation)
     if operation['kind'] != 'COMPANY_SOURCE_REFRESH':
         return False
     return connection.execute(select(m.audit.c.id).where(
