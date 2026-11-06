@@ -1,0 +1,161 @@
+{
+  "run": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
+  "captured_at": "2026-11-05T02:13:40.369544+00:00",
+  "numeric_baseline": {
+    "source": "c0f9d969a09d9b3a4f721b8cf0999b6fe42d90ca",
+    "probe": "valid numeric JSON beyond float range",
+    "api": [
+      {
+        "params": {
+          "sort": "title"
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "salary_period": "YEAR",
+          "salary_known_only": "true"
+        },
+        "status": 500
+      },
+      {
+        "params": {
+          "salary_period": "HOUR",
+          "salary_known_only": "true"
+        },
+        "status": 500
+      },
+      {
+        "params": {
+          "salary_period": "YEAR",
+          "salary_min": 90000,
+          "salary_max": 110000,
+          "sort": "title",
+          "limit": 1
+        },
+        "status": 500
+      },
+      {
+        "params": {
+          "salary_period": "HOUR",
+          "salary_min": 30,
+          "salary_max": 40,
+          "sort": "title",
+          "limit": 1
+        },
+        "status": 500
+      },
+      {
+        "params": {
+          "sort": "salary_high"
+        },
+        "status": 500
+      },
+      {
+        "params": {
+          "sort": "salary_low"
+        },
+        "status": 500
+      }
+    ],
+    "direct_store": {
+      "type": "DataError",
+      "sqlstate": "22003"
+    },
+    "source_metadata_unchanged": true
+  },
+  "numeric_only_combined_result": {
+    "source": "0400759d0fdc6ef2f2df48bb9abcd3e47949339e",
+    "test_exit": 1,
+    "seconds": 95.547,
+    "summary": [
+      "2 failed, 50 passed, 53 subtests passed in 91.73s (0:01:31)"
+    ]
+  },
+  "pristine_ordering_baseline": {
+    "source": "c0f9d969a09d9b3a4f721b8cf0999b6fe42d90ca",
+    "version_and_collation": "17.11 (Debian 17.11-1.pgdg13+2)|en_US.utf8",
+    "exit": 1,
+    "summary": [
+      "2 failed, 1 passed in 3.71s"
+    ]
+  },
+  "corrected_combined_result": {
+    "source": "2a443fbbea40ff68a14aa92cf46b6133ca2cd04b",
+    "test_exit": 0,
+    "seconds": 78.657,
+    "database": "17.11 (Debian 17.11-1.pgdg13+2)|en_US.utf8",
+    "summary": [
+      "50 passed, 55 subtests passed in 75.29s (0:01:15)"
+    ]
+  },
+  "numeric_replay": {
+    "source": "2a443fbbea40ff68a14aa92cf46b6133ca2cd04b",
+    "probe": "valid numeric JSON beyond float range",
+    "api": [
+      {
+        "params": {
+          "sort": "title"
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "salary_period": "YEAR",
+          "salary_known_only": "true"
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "salary_period": "HOUR",
+          "salary_known_only": "true"
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "salary_period": "YEAR",
+          "salary_min": 90000,
+          "salary_max": 110000,
+          "sort": "title",
+          "limit": 1
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "salary_period": "HOUR",
+          "salary_min": 30,
+          "salary_max": 40,
+          "sort": "title",
+          "limit": 1
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "sort": "salary_high"
+        },
+        "status": 200
+      },
+      {
+        "params": {
+          "sort": "salary_low"
+        },
+        "status": 200
+      }
+    ],
+    "direct_store": "NO_ERROR",
+    "source_metadata_unchanged": true
+  },
+  "protected_main_integration": {
+    "base": "0d3fbc5749fba8c682033a343a7ec9695e4dd743",
+    "index_tree": "728b4f2bed87a6edc47c445ac8900dcae47569bc",
+    "source_before_merge": "f0ef23fa75b9685d80b4c1fd37f119738a4b5e11",
+    "test_exit": 0,
+    "summary": [
+      "50 passed, 55 subtests passed in 74.63s (0:01:14)"
+    ]
+  }
+}
