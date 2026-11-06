@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import json
+import os
 import re
 from dataclasses import asdict, dataclass
 from urllib.parse import urlsplit
@@ -71,6 +72,15 @@ class OwnedATSFixtureContract:
     document_version: int
     documents: tuple[DocumentBinding, ...]
     reviewed_fields: tuple[ReviewedFieldBinding, ...]
+
+
+@dataclass(frozen=True)
+class OwnedFixtureForwardingContract:
+    application_id: str
+    request_id: str
+    virtual_origin: str
+    upstream_origin: str
+    routes: tuple[tuple[str, str], ...]
 
 
 def _fail(code):
@@ -265,6 +275,49 @@ def validate_fixture(contract, **current):
     return actual
 
 
+class _ReviewedFixtureLeverAdapter(LeverApplicationAdapter):
+    """One validated fixture's exact approvals; never registered as a provider."""
+
+    def __init__(self, contract):
+        self._analysis_sha256 = contract.analysis_sha256
+        self._approved_fields = frozenset(row.field_sha256 for row in contract.reviewed_fields)
+
+    def requires_human_review(self, analysis):
+        try:
+            fields = _fields(analysis)
+            if _digest(analysis) != self._analysis_sha256:
+                return True
+            return any(
+                super(_ReviewedFixtureLeverAdapter, self).requires_human_review(
+                    {"status": "PASS", "fields": [field]})
+                and _digest(field) not in self._approved_fields
+                for field in fields.values())
+        except OwnedATSFixtureError:
+            return True
+
+
+def _fill_reviewed_fields(page, contract, current, guard, timeout):
+    fields = _fields(current["analysis"])
+    plan = []
+    for binding in contract.reviewed_fields:
+        field = fields[binding.field_key]
+        if not (field["tag"] == "textarea" or (field["tag"] == "input"
+                and (field["input_type"] or "text").casefold() in {"text", "email", "tel", "url"})):
+            _fail("OWNED_ATS_REVIEWED_CONTROL_UNSUPPORTED")
+        attribute = "name" if field["name"] else "id"
+        control = page.locator(f'form [{attribute}="{binding.field_key}"]')
+        if control.count() != 1:
+            _fail("OWNED_ATS_REVIEW_STALE")
+        answer = next(row for row in current["profile"]["answers"] if row["id"] == binding.answer_id)
+        plan.append((control, answer["text"]))
+    for control, value in plan:
+        guard()
+        control.fill(value, timeout=timeout())
+        guard()
+        if control.input_value(timeout=timeout()) != value:
+            _fail("OWNED_ATS_ANSWER_READBACK_MISMATCH")
+
+
 def upload_fixture_documents(page, contract, *, current, check=None):
     """Select exact prepared bytes using the real adapter on an already owned page.
 
@@ -274,10 +327,26 @@ def upload_fixture_documents(page, contract, *, current, check=None):
     live DOM, origin and page/frame isolation at every adapter checkpoint.
     A reviewed custom binding never overrides the adapter's own review policy.
     """
+    return _prepare_fixture(page, contract, current=current, check=check, reviewed=False)
+
+
+def prepare_reviewed_fixture(page, contract, *, current, check=None):
+    """Fill exact approved fixture answers, validate and select prepared bytes.
+
+    This explicit fixture-only entry point permits only the immutable reviewed
+    STANDARD field hashes. Public adapter classes and their conservative entry
+    points remain unchanged. The caller still owns any separate submit consent.
+    """
+    return _prepare_fixture(page, contract, current=current, check=check, reviewed=True)
+
+
+def _prepare_fixture(page, contract, *, current, check, reviewed):
     if not isinstance(current, dict):
         _fail("OWNED_ATS_REVIEW_STALE")
     contract = validate_fixture(contract, **current)
     adapter = _adapter(contract.provider)
+    if reviewed and contract.provider == "lever":
+        adapter = _ReviewedFixtureLeverAdapter(contract)
 
     def guard():
         if check is not None:
@@ -291,19 +360,24 @@ def upload_fixture_documents(page, contract, *, current, check=None):
     remaining = getattr(check, "remaining_seconds", None)
     if callable(remaining):
         guard.remaining_seconds = remaining
+
+    def timeout():
+        return max(1, min(5000, int(remaining() * 1000))) if callable(remaining) else 5000
+
     try:
         guard()
         analysis = adapter.analyze_page(page, check=guard)
         if _digest(analysis) != contract.analysis_sha256:
             _fail("OWNED_ATS_REVIEW_STALE")
+        if reviewed:
+            _fill_reviewed_fields(page, contract, current, guard, timeout)
         validation = adapter.validate_page(page, analysis, check=guard)
         if validation.get("status") != "PASS":
             _fail("OWNED_ATS_ADAPTER_REVIEW_REQUIRED")
         documents = tuple(current["documents"])
         manifest = adapter.upload_mock_fixture_documents(page, analysis, documents, check=guard)
         guard()
-        timeout = {"timeout": max(1, min(5000, int(remaining() * 1000)))} if callable(remaining) else {}
-        if page.locator("form").evaluate("form => form.checkValidity()", **timeout) is not True:
+        if page.locator("form").evaluate("form => form.checkValidity()", timeout=timeout()) is not True:
             _fail("OWNED_ATS_ADAPTER_REVIEW_REQUIRED")
         guard()
     except (OwnedATSFixtureError, OperationCancelled, OperationControlUnavailable, OperationTimedOut):
@@ -316,4 +390,201 @@ def upload_fixture_documents(page, contract, *, current, check=None):
         _fail("OWNED_ATS_BROWSER_UNAVAILABLE")
     return {"context": "OWNED_ATS_FIXTURE", "provider": contract.provider,
             "template_sha256": contract.template_sha256, "verification": "BROWSER_SELECTED_BYTES",
-            "documents": manifest, "external_submission_enabled": False}
+            "documents": manifest, "external_submission_enabled": False,
+            **({"reviewed_field_count": len(contract.reviewed_fields)} if reviewed else {})}
+
+
+def freeze_forwarding(*, workspace_mode, application_id, request_id, virtual_origin,
+                      upstream_origin, routes):
+    """Freeze an owned transport mapping, not a grant of submission permission.
+
+    Application/request IDs and this entire payload belong in the caller's
+    queued review snapshot. An allowlisted POST still needs the caller's normal
+    policy, reservation, consent and receipt-aware recovery gates.
+    """
+    if workspace_mode != "FIXTURE":
+        _fail("OWNED_ATS_FIXTURE_MODE_REQUIRED")
+    if not isinstance(virtual_origin, str) or not isinstance(upstream_origin, str):
+        _fail("OWNED_ATS_ORIGIN_INVALID")
+    _origin(virtual_origin, virtual_origin + "/")
+    if upstream_origin == "http://mock:8090":
+        if os.environ.get("MJOBS_COMPOSE_MOCK") != "1":
+            _fail("OWNED_ATS_ORIGIN_INVALID")
+    else:
+        _origin(upstream_origin, upstream_origin + "/")
+        # Match the existing mock client's numeric host; other loopback aliases
+        # are not new network destinations merely because the browser is local.
+        if urlsplit(upstream_origin).hostname != "127.0.0.1":
+            _fail("OWNED_ATS_ORIGIN_INVALID")
+    if not isinstance(routes, (list, tuple)) or not 1 <= len(routes) <= 12:
+        _fail("OWNED_ATS_FORWARDING_ROUTES_INVALID")
+    normalized = []
+    for row in routes:
+        if not isinstance(row, (tuple, list)) or len(row) != 2:
+            _fail("OWNED_ATS_FORWARDING_ROUTES_INVALID")
+        method, path = row
+        if (method not in ("GET", "POST") or not isinstance(path, str) or len(path) > 512
+                or not re.fullmatch(r"/(?:[A-Za-z0-9_-]+/?)+", path, re.ASCII)
+                or (method, path) in normalized):
+            _fail("OWNED_ATS_FORWARDING_ROUTES_INVALID")
+        normalized.append((method, path))
+    return OwnedFixtureForwardingContract(_identifier(application_id), _identifier(request_id),
+                                         virtual_origin, upstream_origin, tuple(sorted(normalized)))
+
+
+def validate_forwarding(contract, **current):
+    """Validate a persisted mapping against fresh authoritative runtime inputs."""
+    if not isinstance(contract, (OwnedFixtureForwardingContract, dict)):
+        _fail("OWNED_ATS_FORWARDING_STALE")
+    try:
+        actual = freeze_forwarding(**current)
+        expected = asdict(contract) if isinstance(contract, OwnedFixtureForwardingContract) else contract
+        matches = _digest(asdict(actual)) == _digest(expected)
+    except (OwnedATSFixtureError, TypeError):
+        _fail("OWNED_ATS_FORWARDING_STALE")
+    if not matches:
+        _fail("OWNED_ATS_FORWARDING_STALE")
+    return actual
+
+
+class _OwnedFixtureFacade:
+    """Owned browser transport; never creates a server receipt or retries a POST."""
+
+    def __init__(self, browser, contract, current, check):
+        self.contract = validate_forwarding(contract, **current)
+        if check is not None:
+            check()
+        self._current = current
+        self._check = check
+        self._error = None
+        self._control_error = None
+        self._page = None
+        self.context = browser.new_context(service_workers="block", accept_downloads=False)
+        try:
+            self.context.route("**/*", self._forward)
+            self.context.route_web_socket("**/*", self._block_socket)
+        except BaseException:
+            self.context.close()
+            raise
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+    def close(self):
+        """Close only this facade's browser context, never the caller's browser."""
+        self.context.close()
+
+    def __call__(self):
+        self.assert_healthy()
+
+    def remaining_seconds(self):
+        remaining = getattr(self._check, "remaining_seconds", None)
+        return remaining() if callable(remaining) else 5
+
+    def assert_healthy(self):
+        if self._control_error is not None:
+            raise self._control_error
+        if self._check is not None:
+            self._check()
+        if self._error is not None:
+            _fail(self._error)
+        validate_forwarding(self.contract, **self._current)
+        if self._page is not None and (
+                self.context.pages != [self._page] or self._page.frames != [self._page.main_frame]):
+            _fail("OWNED_ATS_FORWARDING_CONTEXT_CHANGED")
+
+    def upstream_url(self, observed_url, *, method):
+        """Map an observed URL exactly; the caller still verifies the real receipt."""
+        self.assert_healthy()
+        if not isinstance(observed_url, str):
+            _fail("OWNED_ATS_FORWARDING_REQUEST_BLOCKED")
+        origin = self.contract.virtual_origin
+        if not observed_url.startswith(origin + "/"):
+            _fail("OWNED_ATS_FORWARDING_REQUEST_BLOCKED")
+        path = observed_url[len(origin):]
+        if (method, path) not in self.contract.routes:
+            _fail("OWNED_ATS_FORWARDING_REQUEST_BLOCKED")
+        return self.contract.upstream_origin + path
+
+    def _block_socket(self, socket):
+        self._error = self._error or "OWNED_ATS_FORWARDING_REQUEST_BLOCKED"
+        socket.close(code=1008, reason="Owned fixture requests only")
+
+    def _forward(self, route):
+        response = None
+        try:
+            self.assert_healthy()
+            request = route.request
+            if self._page is None:
+                if len(self.context.pages) != 1:
+                    _fail("OWNED_ATS_FORWARDING_CONTEXT_CHANGED")
+                self._page = self.context.pages[0]
+            if (request.frame != self._page.main_frame or not request.is_navigation_request()
+                    or request.redirected_from is not None):
+                _fail("OWNED_ATS_FORWARDING_REQUEST_BLOCKED")
+            destination = self.upstream_url(request.url, method=request.method)
+            body = request.post_data_buffer
+            if body is not None and (not isinstance(body, bytes) or len(body) > 4_100_000):
+                _fail("OWNED_ATS_FORWARDING_BODY_INVALID")
+            headers = {}
+            if request.method == "POST":
+                content_type = request.headers.get("content-type", "")
+                if (not body or content_type.split(";", 1)[0] not in {
+                        "multipart/form-data", "application/x-www-form-urlencoded"}):
+                    _fail("OWNED_ATS_FORWARDING_BODY_INVALID")
+                headers["content-type"] = content_type
+            elif body:
+                _fail("OWNED_ATS_FORWARDING_BODY_INVALID")
+            remaining = getattr(self._check, "remaining_seconds", None)
+            timeout = max(1, min(5000, int(remaining() * 1000))) if callable(remaining) else 5000
+            self.assert_healthy()
+            # Exact multipart bytes and content type are forwarded. No credentials,
+            # host override, redirects or retry policy are inherited from the page.
+            response = route.fetch(url=destination, method=request.method, headers=headers,
+                                   post_data=body, max_redirects=0, max_retries=0, timeout=timeout)
+            self.assert_healthy()
+            if response.url != destination or 300 <= response.status < 400:
+                _fail("OWNED_ATS_FORWARDING_REDIRECT_BLOCKED")
+            content_type = response.headers.get("content-type", "")
+            if content_type.split(";", 1)[0] not in {"text/html", "application/json"}:
+                _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
+            content = response.body()
+            if len(content) > _MAX_BYTES or "set-cookie" in response.headers:
+                _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
+            self.assert_healthy()
+            route.fulfill(status=response.status, body=content, headers={
+                "content-type": content_type,
+                "Content-Security-Policy": "default-src 'none'; form-action 'self'; base-uri 'none'; frame-src 'none'",
+            })
+        except (OperationCancelled, OperationControlUnavailable, OperationTimedOut) as error:
+            self._control_error = error
+            route.abort()
+        except OwnedATSFixtureError as error:
+            self._error = self._error or str(error)
+            route.abort()
+        except Exception:  # noqa: BLE001 - Never expose upstream/browser payloads in errors.
+            self._error = self._error or "OWNED_ATS_FORWARDING_UNAVAILABLE"
+            route.abort()
+        finally:
+            if response is not None:
+                response.dispose()
+
+
+def open_fixture_facade(browser, contract, *, current, check=None):
+    """Create a fresh isolated context mapping virtual loopback to an owned mock.
+
+    Persist ``asdict(freeze_forwarding(...))`` alongside the application's exact
+    reviewed fixture contract; pass fresh runtime inputs here. All browser
+    requests except the exact navigation allowlist are aborted. Redirects and
+    retries are disabled. Responses, including confirmation, come from the mock
+    service. Explicit submit consent, at-most-once admission and receipt-aware
+    recovery remain the caller's responsibility; this helper never clicks.
+    Pass the returned callable facade as the preparation helper's ``check`` to
+    retain both transport health and the operation's remaining-time budget.
+    """
+    if not isinstance(current, dict):
+        _fail("OWNED_ATS_FORWARDING_STALE")
+    return _OwnedFixtureFacade(browser, contract, current, check)

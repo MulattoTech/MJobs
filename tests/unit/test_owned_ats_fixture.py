@@ -240,3 +240,89 @@ def test_browser_consumer_propagates_cancellation_before_dom_read():
 
     with pytest.raises(OperationCancelled):
         upload_fixture_documents(object(), contract, current=inputs, check=cancelled)
+
+
+def forwarding_inputs():
+    return {"workspace_mode": "FIXTURE", "application_id": "application-1",
+            "request_id": "request-1", "virtual_origin": "http://127.0.0.1:1",
+            "upstream_origin": "http://127.0.0.1:8765",
+            "routes": (("GET", "/form"), ("POST", "/submit/application-1/request-1"))}
+
+
+@pytest.mark.parametrize("change", ["mode", "public_origin", "credentials", "origin_query",
+                                   "virtual_public", "method", "absolute_path", "query",
+                                   "traversal", "escaped_path", "duplicate", "empty", "compose",
+                                   "missing_origin", "missing_virtual", "other_loopback", "ipv6_upstream"])
+def test_forwarding_contract_cannot_admit_unowned_or_ambiguous_routes(change, monkeypatch):
+    from services.applications.owned_ats_fixture import freeze_forwarding
+    inputs = forwarding_inputs()
+    if change == "mode":
+        inputs["workspace_mode"] = "PERSONAL"
+    elif change == "public_origin":
+        inputs["upstream_origin"] = "http://example.test:8090"
+    elif change == "credentials":
+        inputs["upstream_origin"] = "http://user@127.0.0.1:8090"
+    elif change == "origin_query":
+        inputs["upstream_origin"] += "?host=other"
+    elif change == "virtual_public":
+        inputs["virtual_origin"] = "http://example.test:8090"
+    elif change == "method":
+        inputs["routes"] = (("DELETE", "/form"),)
+    elif change == "absolute_path":
+        inputs["routes"] = (("GET", "http://example.test/form"),)
+    elif change == "query":
+        inputs["routes"] = (("GET", "/form?target=other"),)
+    elif change == "traversal":
+        inputs["routes"] = (("GET", "/form/../other"),)
+    elif change == "escaped_path":
+        inputs["routes"] = (("GET", "/form%2fother"),)
+    elif change == "duplicate":
+        inputs["routes"] *= 2
+    elif change == "empty":
+        inputs["routes"] = ()
+    elif change == "missing_origin":
+        inputs["upstream_origin"] = None
+    elif change == "missing_virtual":
+        inputs["virtual_origin"] = None
+    elif change == "other_loopback":
+        inputs["upstream_origin"] = "http://127.0.0.2:8090"
+    elif change == "ipv6_upstream":
+        inputs["upstream_origin"] = "http://[::1]:8090"
+    else:
+        monkeypatch.delenv("MJOBS_COMPOSE_MOCK", raising=False)
+        inputs["upstream_origin"] = "http://mock:8090"
+    from services.applications.owned_ats_fixture import OwnedATSFixtureError
+    with pytest.raises(OwnedATSFixtureError):
+        freeze_forwarding(**inputs)
+
+
+def test_forwarding_freezes_mapping_and_accepts_only_explicit_compose_mock(monkeypatch):
+    from services.applications.owned_ats_fixture import (
+        freeze_forwarding,
+        validate_forwarding,
+    )
+    inputs = forwarding_inputs()
+    monkeypatch.setenv("MJOBS_COMPOSE_MOCK", "1")
+    inputs["upstream_origin"] = "http://mock:8090"
+    contract = freeze_forwarding(**inputs)
+    stored = json.loads(json.dumps(asdict(contract)))
+    assert validate_forwarding(stored, **inputs) == contract
+    inputs["upstream_origin"] = "http://127.0.0.1:8765"
+    from services.applications.owned_ats_fixture import OwnedATSFixtureError
+    with pytest.raises(OwnedATSFixtureError, match="OWNED_ATS_FORWARDING_STALE"):
+        validate_forwarding(stored, **inputs)
+
+
+def test_cancelled_facade_never_creates_browser_context():
+    from services.applications.owned_ats_fixture import (
+        freeze_forwarding,
+        open_fixture_facade,
+    )
+    from workers.operations import OperationCancelled
+    inputs = forwarding_inputs()
+
+    def cancelled():
+        raise OperationCancelled("cancelled")
+
+    with pytest.raises(OperationCancelled):
+        open_fixture_facade(object(), freeze_forwarding(**inputs), current=inputs, check=cancelled)
