@@ -32,18 +32,17 @@ APPLICATION_CHECKS = {
 }
 
 _SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
-_SAFE_SHA = re.compile(r"[a-f0-9]{64}\Z")
-_SAFE_IMAGE = re.compile(r"sha256:[a-f0-9]{64}\Z")
 _SAFE_RESULT = re.compile(r"[A-Za-z0-9][A-Za-z0-9 .,:;()/_-]{0,239}\Z")
 _STAGE_KINDS = frozenset({"PREPARE", "APPLY_MOCK"})
 
 
 @dataclass(frozen=True)
 class AssertionEvidence:
-    """One named assertion observed in Playwright and confirmed by service readback.
+    """One producer-side UI assertion plus its matching service readback.
 
     Callers should construct this immediately after the actual browser assertion
-    and the corresponding API readback; a bare boolean is rejected.
+    and corresponding API readback; a bare boolean is rejected. These paired
+    values are producer claims, not independent attestations or acceptance review.
     """
 
     ui: bool
@@ -51,19 +50,17 @@ class AssertionEvidence:
 
 
 def _valid_runtime_identity(runtime_identity):
+    """Require the runner-supplied binding shape; the coordinator authenticates it."""
     if not isinstance(runtime_identity, dict):
         return False
     manifest = runtime_identity.get("source_manifest_sha256")
     images = runtime_identity.get("images")
-    if not isinstance(manifest, str) or not _SAFE_SHA.fullmatch(manifest):
+    if not isinstance(manifest, str) or not manifest:
         return False
-    if not isinstance(images, dict) or not images:
+    if not isinstance(images, dict) or not images or not isinstance(images.get("api"), str):
         return False
-    api_image = images.get("api")
-    return (isinstance(api_image, str) and _SAFE_IMAGE.fullmatch(api_image) is not None
-            and all(isinstance(name, str) and _SAFE_ID.fullmatch(name)
-                    and isinstance(image, str) and _SAFE_IMAGE.fullmatch(image)
-                    for name, image in images.items()))
+    return all(isinstance(name, str) and name and isinstance(image, str) and image
+               for name, image in images.items())
 
 
 def _validate_lineage(step, lineage):
@@ -73,9 +70,12 @@ def _validate_lineage(step, lineage):
         return False
     if lineage.get("step") != step or type(lineage.get("step")) is not int:
         return False
-    if lineage.get("operation_kind") not in _STAGE_KINDS:
+    kind = lineage.get("operation_kind")
+    if kind not in _STAGE_KINDS:
         return False
-    if step >= 44 and lineage.get("operation_kind") != "APPLY_MOCK":
+    if step in {36, 37} and kind != "PREPARE":
+        return False
+    if step >= 38 and kind != "APPLY_MOCK":
         return False
     return all(isinstance(lineage.get(key), str) and _SAFE_ID.fullmatch(lineage[key])
                for key in ("request_id", "application_id", "profile_id", "job_id")) and (
@@ -88,13 +88,17 @@ def record_application_step(journal, step, *, observable_result, assertions,
     """Record one application step from paired UI/readback evidence.
 
     The helper determines PASS itself. Missing or mismatched runtime, identity,
-    operation lineage, or document proof downgrades the row to PARTIAL. It
+    operation lineage, or document proof downgrades the row to PARTIAL. The
+    paired assertion values are not independent proof; the real callsite must
+    run Playwright assertions and scoped API readbacks, and the coordinator's
+    runtime preflight must bind the supplied IDs and hashes. It
     carries step-local operation/request IDs in the UI artifact's stage_lineage
     list, keeping them separate from the final submit IDs in recovery identity.
     """
     if step not in APPLICATION_CHECKS or type(step) is not int:
         raise ValueError("unsupported application acceptance step")
     if (not isinstance(observable_result, str) or not _SAFE_RESULT.fullmatch(observable_result)
+            or observable_result != observable_result.strip()
             or "://" in observable_result or "@" in observable_result):
         raise ValueError("observable_result must be bounded sanitized text")
 
@@ -110,8 +114,8 @@ def record_application_step(journal, step, *, observable_result, assertions,
     source = binding.get("source", {}) if isinstance(binding, dict) else {}
     source_commit = source.get("commit") if isinstance(source, dict) else None
     run_id = getattr(journal, "acceptance_run_id", None)
-    source_ok = isinstance(source_commit, str) and re.fullmatch(r"[a-f0-9]{40}", source_commit) is not None
-    run_ok = isinstance(run_id, str) and _SAFE_ID.fullmatch(run_id) is not None
+    source_ok = isinstance(source_commit, str) and bool(source_commit)
+    run_ok = isinstance(run_id, str) and bool(run_id)
     # The shared observation schema requires both bindings. Without either,
     # leave the step unobserved instead of manufacturing an unanchored PARTIAL.
     if not (source_ok and run_ok):

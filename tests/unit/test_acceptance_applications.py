@@ -38,7 +38,9 @@ class Journal:
         return observation
 
 
-def lineage(step, *, kind="APPLY_MOCK", app="app-B", profile="profile-B", job="job-B"):
+def lineage(step, *, kind=None, app="app-B", profile="profile-B", job="job-B"):
+    if kind is None:
+        kind = "PREPARE" if step in {36, 37} else "APPLY_MOCK"
     return {
         "step": step,
         "operation_id": "e" * 64,
@@ -92,7 +94,7 @@ def test_missing_runtime_or_stage_ids_cannot_earn_pass(missing):
 
 
 def test_missing_source_or_run_binding_leaves_step_unobserved():
-    for journal in (Journal(run_id=None), Journal(source_commit="incomplete")):
+    for journal in (Journal(run_id=None), Journal(source_commit="")):
         assert record(journal, 36) is None
         assert journal.observations == []
         assert journal.stage_lineage == []
@@ -128,10 +130,21 @@ def test_stale_or_cross_application_lineage_cannot_earn_pass():
     assert journal.stage_lineage == []
 
 
-def test_steps_44_through_48_require_actual_apply_mock_operation_kind():
+@pytest.mark.parametrize("step", range(39, 44))
+def test_native_form_steps_reject_prepare_operation_kind(step):
     journal = Journal()
 
-    result = record(journal, 45, stage_lineage=lineage(45, kind="PREPARE"))
+    result = record(journal, step, stage_lineage=lineage(step, kind="PREPARE"))
+
+    assert result["status"] == "PARTIAL"
+    assert journal.stage_lineage == []
+
+
+@pytest.mark.parametrize("step", [36, 37])
+def test_prepare_steps_reject_apply_mock_operation_kind(step):
+    journal = Journal()
+
+    result = record(journal, step, stage_lineage=lineage(step, kind="APPLY_MOCK"))
 
     assert result["status"] == "PARTIAL"
     assert journal.stage_lineage == []
@@ -159,9 +172,9 @@ def test_upload_step_binds_the_selected_document(step, document):
 @pytest.mark.parametrize("runtime", [
     None,
     {"source_manifest_sha256": "b" * 64, "images": {"web": "sha256:" + "d" * 64}},
-    {"source_manifest_sha256": "invalid", "images": {"api": "sha256:" + "c" * 64}},
+    {"source_manifest_sha256": "b" * 64, "images": {"api": ""}},
 ])
-def test_invalid_runtime_binding_forces_partial(runtime):
+def test_missing_runtime_binding_fields_force_partial(runtime):
     journal = Journal()
 
     result = record(journal, 36, runtime_identity=runtime)
@@ -175,4 +188,11 @@ def test_untrusted_or_unbounded_observable_result_is_rejected():
 
     with pytest.raises(ValueError, match="sanitized"):
         record(journal, 36, observable_result="Submitted to https://real-employer.example")
+
+
+def test_observable_result_rejects_leading_or_trailing_whitespace():
+    journal = Journal()
+
+    with pytest.raises(ValueError, match="sanitized"):
+        record(journal, 36, observable_result="Application result has trailing space ")
 
