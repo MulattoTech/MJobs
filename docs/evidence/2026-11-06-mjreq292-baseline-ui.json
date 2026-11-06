@@ -1,0 +1,322 @@
+{
+  "actions": [
+    {
+      "action": "UI created a new synthetic profile without replacing existing profiles",
+      "result": "PASS"
+    },
+    {
+      "action": "PDF imported through UI and extraction suggestions remain unverified and unapproved after readback",
+      "result": "PASS"
+    },
+    {
+      "action": "UI saves two explicitly approved synthetic answers and keeps the required mock-form answer unreviewed for later question review",
+      "result": "PASS"
+    },
+    {
+      "action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved",
+      "result": "PASS"
+    },
+    {
+      "action": "Created a remote IT title search in the Sources UI; actual fixture discovery completed and the selected same-profile filter returned no matching jobs",
+      "boundary": "Sources search form \u2192 Jobs saved-search selection \u2192 queued /discovery \u2192 Compose source worker \u2192 selected-search jobs API",
+      "result": "PASS"
+    },
+    {
+      "action": "Selected a matching remote Data Engineer search; actual fixture worker completed and only the matching job appeared in same-profile filtered readback",
+      "boundary": "Jobs UI \u2192 Sources UI \u2192 queued /discovery \u2192 Compose source worker \u2192 selected-search jobs API",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+      "result": "PASS"
+    },
+    {
+      "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+      "result": "PASS"
+    },
+    {
+      "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+      "result": "PASS"
+    },
+    {
+      "action": "Pending fact excluded from matching and downloaded factual DOCX",
+      "result": "PASS"
+    },
+    {
+      "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+      "result": "PASS"
+    },
+    {
+      "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+      "result": "PASS"
+    },
+    {
+      "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+      "result": "PASS"
+    },
+    {
+      "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+      "result": "PASS"
+    },
+    {
+      "action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history",
+      "boundary": "Connected React UI \u2192 public profile/reprepare APIs \u2192 actual document worker",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit new reviewed run clears only the prior terminal browser intent; blocked operation and stale preflight remain readable",
+      "boundary": "Connected React UI \u2192 public run receipt/operation APIs",
+      "result": "PASS"
+    },
+    {
+      "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+      "result": "PASS"
+    },
+    {
+      "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+      "result": "PASS"
+    },
+    {
+      "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+      "result": "PASS"
+    }
+  ],
+  "application_id": "2628752999381e0d217222fbeda42bf11753d66fb4a0fed251a49bf364d8d45f",
+  "artifacts": [
+    {
+      "filename": "activity-mobile.png",
+      "availability": "Preserved locally; original run hashes recorded separately"
+    },
+    {
+      "filename": "application-confirmed.png",
+      "availability": "Preserved locally; original run hashes recorded separately"
+    },
+    {
+      "filename": "fictional-document.pdf",
+      "availability": "Preserved locally; original run hashes recorded separately"
+    }
+  ],
+  "checks": [
+    {
+      "action": "UI created a new synthetic profile without replacing existing profiles",
+      "result": "PASS"
+    },
+    {
+      "action": "PDF imported through UI and extraction suggestions remain unverified and unapproved after readback",
+      "result": "PASS"
+    },
+    {
+      "action": "UI saves two explicitly approved synthetic answers and keeps the required mock-form answer unreviewed for later question review",
+      "result": "PASS"
+    },
+    {
+      "action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved",
+      "result": "PASS"
+    },
+    {
+      "action": "Created a remote IT title search in the Sources UI; actual fixture discovery completed and the selected same-profile filter returned no matching jobs",
+      "boundary": "Sources search form \u2192 Jobs saved-search selection \u2192 queued /discovery \u2192 Compose source worker \u2192 selected-search jobs API",
+      "result": "PASS"
+    },
+    {
+      "action": "Selected a matching remote Data Engineer search; actual fixture worker completed and only the matching job appeared in same-profile filtered readback",
+      "boundary": "Jobs UI \u2192 Sources UI \u2192 queued /discovery \u2192 Compose source worker \u2192 selected-search jobs API",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+      "result": "PASS"
+    },
+    {
+      "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+      "result": "PASS"
+    },
+    {
+      "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+      "result": "PASS"
+    },
+    {
+      "action": "Pending fact excluded from matching and downloaded factual DOCX",
+      "result": "PASS"
+    },
+    {
+      "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+      "result": "PASS"
+    },
+    {
+      "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+      "result": "PASS"
+    },
+    {
+      "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+      "result": "PASS"
+    },
+    {
+      "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+      "result": "PASS"
+    },
+    {
+      "action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history",
+      "boundary": "Connected React UI \u2192 public profile/reprepare APIs \u2192 actual document worker",
+      "result": "PASS"
+    },
+    {
+      "action": "Explicit new reviewed run clears only the prior terminal browser intent; blocked operation and stale preflight remain readable",
+      "boundary": "Connected React UI \u2192 public run receipt/operation APIs",
+      "result": "PASS"
+    },
+    {
+      "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+      "result": "PASS"
+    },
+    {
+      "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+      "result": "PASS"
+    },
+    {
+      "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+      "result": "PASS"
+    }
+  ],
+  "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18732 --onboarding",
+  "confirmation": {
+    "application_id": "2628752999381e0d217222fbeda42bf11753d66fb4a0fed251a49bf364d8d45f",
+    "confirmation_text": "Thank you for applying. Application received. Application reference: MOCK-2628752999381e0d",
+    "confirmation_url": "http://mock:8090/ats/submit/B",
+    "receipt": "MOCK-2628752999381e0d",
+    "reference_number": "MOCK-2628752999381e0d",
+    "requisition": "B",
+    "submission_count": 1,
+    "timestamp": "2026-11-06T10:31:10.680966+00:00"
+  },
+  "discovery_operation_id": "fda82bc56ea9f0554ead14291998d642737619638400d409d9d9412f8efa5c3d",
+  "discovery_request_id": "14f35a8e-c127-4fc7-823a-f8ca58cd885a",
+  "discovery_search_proofs": [
+    {
+      "filtered_titles": [],
+      "operation_id": "5c24de9f4506d8a524fb7c91bae2c9a816364149a1e1a2091eeba31565759ed5",
+      "profile_id": "8c037035-beec-460b-8bb0-e7aa316b63a5",
+      "request_id": "d4472a73-061a-49ba-b284-9756c55a5c61",
+      "result": "PASS",
+      "search_profile_id": "35fc2742-7507-4f76-8da3-6eb97c50992c"
+    },
+    {
+      "filtered_titles": [
+        "Data Engineer"
+      ],
+      "operation_id": "fda82bc56ea9f0554ead14291998d642737619638400d409d9d9412f8efa5c3d",
+      "profile_id": "8c037035-beec-460b-8bb0-e7aa316b63a5",
+      "request_id": "14f35a8e-c127-4fc7-823a-f8ca58cd885a",
+      "result": "PASS",
+      "search_profile_id": "77fc18fb-b07c-49bb-91bf-71c79a6e987a"
+    }
+  ],
+  "external_submission_enabled": false,
+  "job_inventory": {
+    "job_count": 2,
+    "jobs": [
+      {
+        "canonical_sha256": "f0a946bc557f5a43e7138409c7f5b1dd24060e7ada6b2e017a69ecf6e4daa116",
+        "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+        "source_copies_sha256": "5a399ce81eab747121366fa3ce328853bcd2bcfd8d3876c63f2dc342f931d83b",
+        "source_copy_count": 3
+      },
+      {
+        "canonical_sha256": "627b2b2dfcbd8d8d9a1685ab69b64c8b640ba9c2fe4985a39ebcce73baa32317",
+        "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+        "source_copies_sha256": "b30c4db48a457b176793d8265bf6aaaae24f9f1d8f38070c8c2c15f52d299223",
+        "source_copy_count": 1
+      }
+    ],
+    "profile_id": "8c037035-beec-460b-8bb0-e7aa316b63a5",
+    "schema_version": 3,
+    "sha256": "41b9b8135cdc65fac1e0b75fe906a5131ef099b50eb41a4f3795223e9b3fd6d9",
+    "source_copy_count": 4
+  },
+  "limitations": [
+    "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
+    "Source identity/deduplication and live public-source proof are outside this local fixture run."
+  ],
+  "local_persistence": {
+    "domains": {
+      "application_history": {
+        "count": 1,
+        "sha256": "77c2811a399dc7e30d5992e620e1583d77443b7405ac30415e941e55f48a13ed"
+      },
+      "company_source_catalog": {
+        "count": 1,
+        "sha256": "2bb039dade47a740004582c797aa9f8e1ae8648cbad78b1cec2f6ba146e16b34"
+      },
+      "configuration": {
+        "count": 1,
+        "sha256": "2c116ccf3036619d03325d092d27937c1f6d801af50f8cfb3a9f52e66c3c008c"
+      },
+      "cover_letters": {
+        "count": 6,
+        "sha256": "64b305e7847a238e95e11330fe7d8e760e3b6c8f3d7199a1fc2872f72087ebaa"
+      },
+      "generated_resumes": {
+        "count": 6,
+        "sha256": "5ec6a29eb9d3837b096f0c5f9f0977cd7967a518435cecc0094b5b8cc54e0273"
+      },
+      "postgresql": {
+        "count": 1,
+        "sha256": "3a350248d9b9aa719c56bc3228cd920567d06d458f954f96db66aba27973b420"
+      },
+      "uploaded_resumes": {
+        "count": 2,
+        "sha256": "6c72cf8e7f3fe44c0bbff3ba18b038914d788f7a6346dcec936081e03140858b"
+      }
+    },
+    "schema_version": 1
+  },
+  "mode": "ONBOARDING_FIXTURE",
+  "operation_id": "478159a0127ff79729042e3a8e8d400812c55de5a109215473d5030baa1cfc05",
+  "overall_state": "PARTIAL",
+  "profile_id": "8c037035-beec-460b-8bb0-e7aa316b63a5",
+  "remaining_state": "NONE",
+  "request_id": "92d92238-c1a7-4e6c-a7e6-f421087f3791",
+  "result": "PARTIAL",
+  "schema_version": 1,
+  "source": {
+    "commit": "1c63324fd566244b2a7abc247973cf538c9d23b5",
+    "tree": "89f854be165657c8da34a9e0e75f81abb4ab0f12",
+    "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "working_tree_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
+  "target_origin": "http://127.0.0.1:18732",
+  "timestamp": "2026-11-06T10:31:18.389979+00:00",
+  "publication": {
+    "kind": "SANITIZED_BASELINE_DERIVATIVE",
+    "original_sha256": "37b60fd8edca80c28ea14163a16881540e2d1c3a18a893481ccf235c6cdf8f5f",
+    "changes": [
+      "Machine-local artifact paths replaced with filenames"
+    ],
+    "acceptance_credit": "No numbered 60-step credit; 22 scoped original harness actions only"
+  }
+}

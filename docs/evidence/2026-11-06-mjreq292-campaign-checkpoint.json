@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "result": "PARTIAL",
+  "scoreboard": {
+    "verified_pass": 0,
+    "total": 60
+  },
+  "recorded_at_utc": "2026-11-06T10:50:38Z",
+  "baseline": {
+    "source_commit": "1c63324fd566244b2a7abc247973cf538c9d23b5",
+    "source_tree": "89f854be165657c8da34a9e0e75f81abb4ab0f12",
+    "image_id": "sha256:11082f2fec6dda6a9ac317dd5790a70bd98b1924aee43f7a88820f3e5e934808",
+    "source_archive_sha256": "0c233ea34f0cb51a59c567f2cd714bde760fae5623d1612e681bd21c1c17d1a6",
+    "project": "mjobs-fixture-1c63324fd566",
+    "long_running_services": 10,
+    "migration_exit_code": 0,
+    "readiness": "ready",
+    "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18732 --evidence outputs/mjreq292-runtime-1c63324fd566/ui-onboarding.json --onboarding",
+    "started_at_utc": "2026-11-06T10:30:04.3188783Z",
+    "completed_at_utc": "2026-11-06T10:31:18.6112846Z",
+    "exit_code": 0,
+    "scoped_actions_passed": 22,
+    "scoped_actions_total": 22,
+    "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-baseline-ui.json",
+    "evidence_sha256": "acb549c8180fd26185f9918fed7f810c07b71d9d5697a7c45fd8414d0ad0d22d",
+    "original_runtime_record_sha256": "a0869e227a2a0cc02d4ddda3ca1b72dbbad75eb7ed5eeef8cccbc67929f054a1",
+    "limitations": [
+      "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
+      "Source identity/deduplication and live public-source proof are outside this local fixture run."
+    ]
+  },
+  "current_scoped_validation": {
+    "tested_commit": "037b8bdffb7a9a912fa899f6af5fbc67b1930e12",
+    "tests": [
+      {
+        "command": "pytest tests/integration/test_native_mock_ats_fixture.py tests/integration/test_unique_cover_letter_document_provenance.py tests/browser/test_acceptance_onboarding.py",
+        "result": "8 passed, 5 skipped (frontend dist absent)"
+      },
+      {
+        "command": "pytest tests/browser/test_acceptance_onboarding.py after importing cached dist from exact unchanged apps/web source inputs of baseline image",
+        "result": "5 passed in 28.23s; real React/API/Chromium with SQLite fixture, no RQ/Compose claim"
+      },
+      {
+        "command": "pytest tests/unit/test_owned_ats_fixture.py tests/browser/test_owned_ats_fixture.py",
+        "result": "108 passed in 53.29s; final result observed after 2026-11-06T10:45:44Z"
+      }
+    ]
+  },
+  "provenance_correction": {
+    "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
+    "integrated_commit": "aef531cc4fa4cd53e092140220eaef9de01d3d3c",
+    "invalid_utc_trailer": "2026-11-06T10:55:00Z",
+    "reason": "Author reported a manually typed future timestamp. Do not use that trailer as execution evidence. Source history preserved; current scoped retest above is independently executed."
+  },
+  "protected_dependency": {
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
+    "refreshed_head": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+    "local_review": "Independent local Luna source approval by Leia",
+    "local_tests": "27 passed, 3 subtests passed",
+    "merge_status": "NOT_MERGED_REQUIRED_CHECKS_PENDING"
+  },
+  "external_submission_enabled": false
+}

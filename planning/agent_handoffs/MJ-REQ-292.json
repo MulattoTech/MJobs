@@ -4,7 +4,7 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "dfb7b391141dc341029939b02cce471877011a38",
+  "head_sha": "037b8bdffb7a9a912fa899f6af5fbc67b1930e12",
   "routing_state": "EXECUTE",
   "next_action": "Finish native ATS execution and fixture contracts; complete first-run/document UI assertions; run final exact-image connected acceptance including naturally scheduled monitoring after restart; publish and merge through all protected checks.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
@@ -110,7 +110,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T10:30:31Z",
+  "updated_at_utc": "2026-11-06T10:50:38Z",
   "acceptance_note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -210,8 +210,18 @@
     "api_url": "http://127.0.0.1:18732",
     "source_commit": "1c63324fd566244b2a7abc247973cf538c9d23b5",
     "image_id": "sha256:11082f2fec6dda6a9ac317dd5790a70bd98b1924aee43f7a88820f3e5e934808",
-    "observed_status": "9 long-running services healthy, migration completed, API /ready ready; ui_e2e --onboarding running",
+    "observed_status": "10 long-running services healthy; migrations complete; existing onboarding command 22/22 actions PASS, result PARTIAL; full numbered journey remains NOT_RUN",
     "worktree": "C:/Users/Dylan/.codex/worktrees/mjobs-292-runtime/MJobs",
     "boundary": "Owned isolated synthetic resources; existing mjobs-micro preserved; no live provider or real submission"
-  }
+  },
+  "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
+  "current_evidence_boundary": "Current scoped tests at 037b8bdffb7a9a912fa899f6af5fbc67b1930e12 are not evidence that the complete connected journey has run at this revision.",
+  "provenance_corrections": [
+    {
+      "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
+      "integrated_commit": "aef531cc4fa4cd53e092140220eaef9de01d3d3c",
+      "invalid_utc_trailer": "2026-11-06T10:55:00Z",
+      "reason": "Author reported a manually typed future timestamp. Do not use that trailer as execution evidence. Source history preserved; current scoped retest above is independently executed."
+    }
+  ]
 }
