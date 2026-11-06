@@ -204,3 +204,40 @@ def test_child_policy_drift_after_cleanup_retains_pause_and_claim(joined):
         owner('release', {**context, 'cleanup_status': 'NOT_REQUIRED'})
     assert joined['boundary'].docker.unpause_calls == []
     assert owner.claim_path.exists()
+
+
+@pytest.mark.parametrize('resource', ['collector', 'company'])
+def test_child_resource_drift_during_lease_wait_never_unpauses(joined, resource):
+    owner, worker = joined['owner'], joined['worker']
+    owner('poll', joined['context'])
+    finish_parent(joined)
+    assert worker._execute()['status'] == 'COMPLETED'
+    context = current_context(joined)
+    owner('finalize', context)
+    admitted = context['owned_child_sources'][0]
+    slept = []
+    advance_clock = owner.sleep
+
+    def mutate_during_wait(seconds):
+        assert joined['boundary'].docker.rows['scheduler']['paused'] is True
+        assert owner.claim_path.exists()
+        advance_clock(seconds)
+        if not slept:
+            with worker.case.store.engine.begin() as connection:
+                if resource == 'collector':
+                    connection.execute(update(m.job_sources).where(
+                        m.job_sources.c.id == admitted['source_id']).values(request_timeout=7))
+                else:
+                    connection.execute(update(m.company_sources).where(
+                        m.company_sources.c.id == admitted['company_source_id']).values(enabled=True))
+        slept.append(seconds)
+
+    owner.sleep = mutate_during_wait
+    expected_error = ('CHILD_SOURCE_POLICY_CHANGED' if resource == 'collector'
+                      else 'CHILD_COMPANY_SOURCE_CLEANUP_UNCONFIRMED')
+    with pytest.raises(ContainmentError, match=expected_error):
+        owner('release', {**context, 'cleanup_status': 'NOT_REQUIRED'})
+    assert slept, 'The drift must occur during the inherited lease wait, after release prechecks.'
+    assert joined['boundary'].docker.unpause_calls == []
+    assert joined['boundary'].docker.rows['scheduler']['paused'] is True
+    assert owner.claim_path.exists()
