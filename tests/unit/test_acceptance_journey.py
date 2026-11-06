@@ -819,8 +819,8 @@ def application_stage_artifact(step=44):
 
 
 def test_stage_lineage_preserves_earlier_operation_without_replacing_final_submit(tmp_path):
-    artifact = application_stage_artifact()
     checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    artifact = application_stage_artifact()
     checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
     checkpoint.complete_segment("ui", artifact, "a" * 64)
     report = checkpoint.payload()
@@ -867,6 +867,7 @@ def test_application_credit_requires_runtime_identity_and_final_lineage_matches_
     artifact["runtime_identity"] = {**artifact["runtime_identity"], "images": {"api": "sha256:" + "0" * 64}}
     checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
     checkpoint.binding["runtime"] = RUNTIME
+    artifact["timestamp"] = journey.utc_now()
     with pytest.raises(ValueError, match="runtime"):
         checkpoint.complete_segment("ui", artifact, "a" * 64)
 
