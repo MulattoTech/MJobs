@@ -123,6 +123,30 @@ def submit_control_is_absent_or_disabled(locator):
     return count == 0 or (count == 1 and locator.is_disabled())
 
 
+def exact_primary_question_row(question_list, expected_prompt):
+    """Find exactly one row whose direct primary prompt matches the API label."""
+    matches = []
+    for row in question_list.locator(":scope > li").all():
+        primary_prompt = row.locator(":scope > strong")
+        if (primary_prompt.count() == 1
+                and primary_prompt.inner_text().strip() == expected_prompt):
+            matches.append(row)
+    assert len(matches) == 1
+    return matches[0]
+
+
+def current_missing_question_by_id(question_preflight, question_id):
+    """Read one unique unresolved question from the current application preflight."""
+    assert isinstance(question_preflight, dict)
+    assert question_preflight.get("is_current") is True
+    missing = question_preflight.get("missing")
+    assert isinstance(missing, list)
+    matches = [row for row in missing
+               if isinstance(row, dict) and row.get("question_id") == question_id]
+    assert len(matches) == 1
+    return matches[0]
+
+
 def _attempt_history_summary(history):
     """Project the public history DTO onto a bounded set of fixed safe fields."""
     if not isinstance(history, dict) or not isinstance(history.get("attempts"), list):
@@ -1844,11 +1868,21 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
                     "REVIEW_REQUIRED", timeout=30000)
                 preflight = page.get_by_role("region", name="ATS question preflight", exact=True)
-                expect(preflight.get_by_role("list", name="Unresolved required questions")).to_contain_text(
-                    "Approved fixture answer")
                 previous_profile = request("/profiles/" + profile_id)
                 paused_application = request(
                     f"/profiles/{profile_id}/applications/{identifier}")
+                question_preflight = paused_application.get("question_preflight")
+                fixture_question = current_missing_question_by_id(
+                    question_preflight, "fixture_question")
+                assert fixture_question.get("question") == "Approved fixture answer"
+                assert "fixture_question" in fixture_question.get("answer_ids", [])
+                unresolved_list = preflight.get_by_role(
+                    "list", name="Unresolved required questions", exact=True)
+                expect(unresolved_list).to_contain_text(fixture_question["question"])
+                review_row = exact_primary_question_row(
+                    unresolved_list, fixture_question["question"])
+                unresolved_prompt = review_row.locator(":scope > strong").inner_text().strip()
+                assert unresolved_prompt == fixture_question["question"]
                 paused_receipt = request(
                     f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
                     + paused_lineage["request_id"])
@@ -1889,9 +1923,6 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     },
                     stage_lineage=paused_lineage,
                 )
-                review_row = preflight.get_by_role("list", name="Unresolved required questions").locator(
-                    "li").filter(has_text="Approved fixture answer")
-                unresolved_prompt = review_row.locator("strong").inner_text()
                 review_row.get_by_role("button", name="Review this question", exact=True).click()
                 answer_group = page.get_by_role("region", name="Application answers", exact=True).get_by_role(
                     "group", name="Question 1")

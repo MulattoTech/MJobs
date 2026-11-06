@@ -331,6 +331,26 @@ def test_submit_control_is_absent_or_a_single_disabled_control(count, disabled, 
     assert submit_control_is_absent_or_disabled(Locator()) is expected
 
 
+def test_current_preflight_question_is_selected_by_unique_question_identity():
+    from cli.ui_e2e import current_missing_question_by_id
+
+    country = {"question_id": "country", "question": "Country", "answer_ids": ["country"]}
+    fixture = {"question_id": "fixture_question",
+               "question": "Approved fixture answer",
+               "answer_ids": ["fixture_question"]}
+    preflight = {"is_current": True, "missing": [country, fixture]}
+
+    assert current_missing_question_by_id(preflight, "fixture_question") is fixture
+
+    with pytest.raises(AssertionError):
+        current_missing_question_by_id(
+            {"is_current": False, "missing": [fixture]}, "fixture_question")
+    with pytest.raises(AssertionError):
+        current_missing_question_by_id(
+            {"is_current": True, "missing": [fixture, dict(fixture)]},
+            "fixture_question")
+
+
 def test_employer_discovery_lineage_is_persisted_only_for_observed_jobs(tmp_path):
     from cli.ui_e2e import EvidenceJournal
 
