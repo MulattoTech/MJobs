@@ -2354,11 +2354,12 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 navigation("Activity")
                 audit_ui = page.get_by_role("region", name="Audit history", exact=True)
                 expect(audit_ui).to_contain_text("Data Engineer")
-                exact_public_event_shape = all(
+                has_scoped_audit_events = bool(scoped_audit_events)
+                exact_public_event_shape = has_scoped_audit_events and all(
                     set(event) == {"id", "type", "summary", "subject", "company",
                                    "timestamp", "application_id"}
                     for event in scoped_audit_events)
-                no_answer_values = all(
+                no_answer_values = has_scoped_audit_events and all(
                     REVIEWED_FIXTURE_ANSWER not in value
                     and "onboarding@example.invalid" not in value
                     for event in scoped_audit_events for value in event.values()
