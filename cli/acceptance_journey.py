@@ -956,10 +956,7 @@ def bind_recovery_evidence(baseline, raw_path, run_id, target, before, after):
                          and set(persisted.get("domains", [])) == set(persistence.DOMAINS))
     observed = observe_recovery_readbacks(target, baseline) if inventory_proof or persistence_proof else None
     if inventory_proof:
-        expected = recovery.validate_public_job_inventory(baseline.get("job_inventory"))
-        if any(inventory_result.get(key) != expected[key]
-               for key in ("profile_id", "sha256", "job_count", "source_copy_count")):
-            raise ValueError("Recovery inventory receipt differs from its exact baseline")
+        _validate_recovery_inventory_receipt(inventory_result, baseline)
         recovery.compare_public_job_inventory(baseline, observed["job_inventory"], observed["job_inventory"])
     if persistence_proof:
         persistence.compare_baseline(baseline, observed["local_persistence"])
@@ -987,6 +984,15 @@ def bind_recovery_evidence(baseline, raw_path, run_id, target, before, after):
             "acceptance_observations": observations}
 
 
+def _validate_recovery_inventory_receipt(summary, baseline):
+    expected = recovery.validate_public_job_inventory(baseline.get("job_inventory"))
+    keys = ("profile_id", "sha256", "job_count", "source_copy_count")
+    if expected["schema_version"] == 4:
+        keys += ("schema_version", "profile_version", "snapshot_sha256")
+    if any(summary.get(key) != expected[key] for key in keys):
+        raise ValueError("Recovery inventory receipt differs from its exact baseline")
+
+
 def _validate_bound_recovery(receipt, baseline, directory):
     path = Path(directory).resolve() / "compose-recovery.json"
     raw, sha = _read_artifact(path)
@@ -1001,6 +1007,9 @@ def _validate_bound_recovery(receipt, baseline, directory):
     for key in ("result", "external_submission_enabled", "local_persistence", "public_job_inventory_recovery", "container_health"):
         if receipt.get(key) != raw.get(key):
             raise ValueError("Bound recovery predicate differs from its raw artifact")
+    summary = raw.get("public_job_inventory_recovery", {})
+    if summary.get("result") == "PASS":
+        _validate_recovery_inventory_receipt(summary, baseline)
     return receipt
 
 
@@ -1371,9 +1380,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 if inventory.get("schema_version") not in (recovery.JOB_INVENTORY_VERSION, 4):
                     raise ValueError("Criterion 55 requires current complete baseline inventory")
                 recovered = artifact.get("public_job_inventory_recovery", {})
-                if any(recovered.get(key) != inventory[key]
-                       for key in ("profile_id", "sha256", "job_count", "source_copy_count")):
-                    raise ValueError("Criterion 55 inventory differs from the connected UI baseline")
+                _validate_recovery_inventory_receipt(recovered, baseline)
         rows = numbered_observations(artifact, segment=observation_segment, run_id=self.binding["run_id"],
                                     source=self.binding["source"], identity=identity)
         for row in rows:

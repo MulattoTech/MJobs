@@ -801,6 +801,47 @@ def test_v4_recovery_receipt_preserves_601_job_manifest_and_schema_neutral_check
     assert bound["public_job_inventory_recovery"]["job_count"] == 601
 
 
+@pytest.mark.parametrize("field", ["schema_version", "profile_version", "snapshot_sha256"])
+@pytest.mark.parametrize("mutation", ["missing", "changed"])
+def test_v4_raw_recovery_summary_requires_exact_snapshot_fields(tmp_path, field, mutation):
+    state = baseline()
+    state["job_inventory"] = complete_inventory()
+    raw = complete_recovery_payload()
+    raw["public_job_inventory_recovery"] = {"result": "PASS", **{
+        key: state["job_inventory"][key] for key in (
+            "schema_version", "profile_version", "snapshot_sha256", "profile_id", "job_count", "source_copy_count", "sha256")}}
+    if mutation == "missing":
+        raw["public_job_inventory_recovery"].pop(field)
+    else:
+        raw["public_job_inventory_recovery"][field] = 3 if field == "schema_version" else "c" * 64
+    with patch.object(journey, "observe_recovery_readbacks", return_value={
+            "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"],
+            "application_recovered": True}), pytest.raises(ValueError, match="inventory receipt"):
+        bind_test_recovery(tmp_path, state, raw,
+            recovery_runtime("2000-01-01T00:00:00+00:00"), recovery_runtime("2001-01-01T00:00:00+00:00"))
+
+
+def test_imported_v4_bound_recovery_rechecks_raw_snapshot_binding(tmp_path):
+    state = baseline()
+    state["job_inventory"] = complete_inventory()
+    raw = complete_recovery_payload()
+    raw["public_job_inventory_recovery"] = {"result": "PASS", **{
+        key: state["job_inventory"][key] for key in (
+            "schema_version", "profile_version", "snapshot_sha256", "profile_id", "job_count", "source_copy_count", "sha256")}}
+    with patch.object(journey, "observe_recovery_readbacks", return_value={
+            "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"],
+            "application_recovered": True}):
+        bound = bind_test_recovery(tmp_path, state, raw,
+            recovery_runtime("2000-01-01T00:00:00+00:00"), recovery_runtime("2001-01-01T00:00:00+00:00"))
+    raw["public_job_inventory_recovery"]["snapshot_sha256"] = "c" * 64
+    path = tmp_path / "compose-recovery.json"
+    emit(path, raw)
+    bound["recovery_artifact_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    bound["public_job_inventory_recovery"] = raw["public_job_inventory_recovery"]
+    with pytest.raises(ValueError, match="inventory receipt"):
+        journey._validate_bound_recovery(bound, state, tmp_path)
+
+
 def test_legacy_recovery_overall_pass_does_not_fabricate_54_to_58(tmp_path):
     with patch.object(journey, "observe_recovery_readbacks") as observe:
         bound = bind_test_recovery(tmp_path, baseline(), recovered(), RUNTIME, RUNTIME)
