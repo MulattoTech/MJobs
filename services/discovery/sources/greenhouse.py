@@ -346,7 +346,11 @@ class Greenhouse:
             if not isinstance(row, dict):
                 continue
             lower, upper = row.get("min_cents"), row.get("max_cents")
-            if all(type(value) in (int, float) and math.isfinite(value) and 0 <= value < 1e11 for value in (lower, upper)) and lower <= upper:
+            # Bound integers before math.isfinite converts them to a float.
+            if all(
+                type(value) in (int, float) and 0 <= value < 1e11 and math.isfinite(value)
+                for value in (lower, upper)
+            ) and lower <= upper:
                 ranges.append({"min": lower / 100, "max": upper / 100, "currency": str(row.get("currency_type") or "Unknown")[:8], "period": "UNKNOWN"})
         if ranges:
             currencies = {row["currency"] for row in ranges}
