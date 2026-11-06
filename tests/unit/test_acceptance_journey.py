@@ -839,8 +839,8 @@ def test_stage_lineage_rejects_scope_and_operation_drift(field, value):
         journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
 
 
-@pytest.mark.parametrize("step", [44, 45, 46, 47, 48])
-def test_review_stages_require_actual_stage_lineage(step):
+@pytest.mark.parametrize("step", range(36, 54))
+def test_application_stages_require_actual_stage_lineage(step):
     artifact = application_stage_artifact(step)
     artifact.pop("stage_lineage")
     with pytest.raises(ValueError, match="lineage"):

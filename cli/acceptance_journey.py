@@ -751,7 +751,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 raise ValueError("PASS requires exactly the registered step-specific checks")
             if 36 <= step <= 53:
                 validate_runtime_identity(artifact.get("runtime_identity"))
-            if 44 <= step <= 48 and step not in lineage:
+            if 36 <= step <= 53 and step not in lineage:
                 raise ValueError("Application observation requires actual stage lineage")
         result.append({"step": step, "status": status, "observable_result": observable,
                        "evidence_kind": kind, "source_commit": source["commit"],
