@@ -464,6 +464,36 @@ def _bounded_identity_ids(value, maximum, context):
     return list(value)
 
 
+def _ui_discovery_identity(artifact, identity):
+    """Bind saved-search observations to their historical completed DISCOVER.
+
+    The artifact's source/run envelope is checked by numbered_observations.
+    A later profile edit or APPLY_MOCK must not replace this search-time pair.
+    """
+    pair = {key: artifact.get("discovery_" + key) for key in ("operation_id", "request_id")}
+    proofs = artifact.get("discovery_search_proofs")
+    if (artifact.get("profile_id") != identity.get("profile_id")
+            or any(not isinstance(value, str) or not SAFE_ID.fullmatch(value)
+                   or value == identity.get(key) for key, value in pair.items())
+            or not isinstance(proofs, list) or not 1 <= len(proofs) <= 20
+            or any(not isinstance(proof, dict) for proof in proofs)):
+        raise ValueError("Invalid saved-search discovery identity or proof collection")
+    matches = [proof for proof in proofs if all(proof.get(key) == value for key, value in pair.items())]
+    if len(matches) != 1:
+        raise ValueError("Saved-search discovery identity requires one matching completed proof")
+    proof = matches[0]
+    version, titles = proof.get("profile_version"), proof.get("filtered_titles")
+    if (proof.get("profile_id") != identity["profile_id"] or proof.get("result") != "PASS"
+            or not isinstance(proof.get("search_profile_id"), str)
+            or not SAFE_ID.fullmatch(proof["search_profile_id"])
+            or not isinstance(version, str) or re.fullmatch(r"[a-f0-9]{64}", version) is None
+            or proof.get("operation_profile_version") != version
+            or not isinstance(titles, list) or not 1 <= len(titles) <= 200
+            or any(not isinstance(title, str) or not title.strip() or len(title) > 500 for title in titles)):
+        raise ValueError("Saved-search discovery proof profile or completed readback mismatch")
+    return {**identity, **pair}
+
+
 def _validate_continuity(continuity, identity, step, status, segment):
     if not isinstance(continuity, dict) or not set(continuity).issubset(CONTINUITY_KEYS):
         raise ValueError("Invalid continuity identifiers")
@@ -1121,7 +1151,13 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         if not isinstance(observable, str) or not observable.strip() or len(observable) > 500:
             raise ValueError("Numbered observation requires bounded sanitized observable result")
         continuity = row.get("continuity")
-        _validate_continuity(continuity, identity, step, status, segment)
+        expected_identity = identity
+        if (segment == "ui" and step in {8, 10, 11} and isinstance(continuity, dict)
+                and (status == "PASS" or {"operation_id", "request_id"}.intersection(continuity))):
+            if set(continuity) != {"profile_id", "operation_id", "request_id"}:
+                raise ValueError("Saved-search continuity requires only its profile and discovery pair")
+            expected_identity = _ui_discovery_identity(artifact, identity)
+        _validate_continuity(continuity, expected_identity, step, status, segment)
         if status == "PASS":
             if step == 11 and segment not in {"public", "public_source", "public_browser"}:
                 raise ValueError("Criterion 11 cannot PASS from fixture evidence")

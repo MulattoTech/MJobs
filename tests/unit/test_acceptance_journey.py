@@ -1256,6 +1256,81 @@ def employer_artifact(step):
     return artifact
 
 
+def saved_search_artifact(step=10):
+    """Sanitized shape of the completed ea58 UI producer's historical searches."""
+    artifact = baseline()
+    artifact.update(discovery_operation_id="matching-discovery", discovery_request_id="matching-request")
+    artifact["discovery_search_proofs"] = [
+        {"search_profile_id": "it-search", "operation_id": "initial-discovery", "request_id": "initial-request",
+         "profile_id": IDENTITY["profile_id"], "profile_version": "a" * 64,
+         "operation_profile_version": "a" * 64, "filtered_titles": [], "result": "PASS"},
+        {"search_profile_id": "data-search", "operation_id": "matching-discovery", "request_id": "matching-request",
+         "profile_id": IDENTITY["profile_id"], "profile_version": "a" * 64,
+         "operation_profile_version": "a" * 64, "current_profile_version": "b" * 64,
+         "filtered_titles": ["Data Engineer"], "result": "PASS"},
+    ]
+    artifact["acceptance_observations"] = [{"step": step, "status": "PARTIAL" if step == 11 else "PASS",
+        "observable_result": "Same-profile saved search and completed fixture discovery read back",
+        "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": SOURCE["commit"], "run_id": RUN_ID,
+        "continuity": {"profile_id": IDENTITY["profile_id"], "operation_id": "matching-discovery",
+                       "request_id": "matching-request"},
+        "checks": [{"name": name, "passed": step != 11} for name in journey.REQUIRED_CHECKS[step]]}]
+    return artifact
+
+
+@pytest.mark.parametrize("step", [8, 10, 11])
+def test_ui_saved_search_uses_completed_discover_identity_not_final_submit(step):
+    artifact = saved_search_artifact(step)
+    rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
+        source=SOURCE, identity=journey._identity(artifact))
+    assert rows[0]["continuity"] == artifact["acceptance_observations"][0]["continuity"]
+    assert rows[0]["status"] == ("PARTIAL" if step == 11 else "PASS")
+    assert artifact["operation_id"] == IDENTITY["operation_id"]
+
+
+@pytest.mark.parametrize("change", ["missing-proof", "duplicate-proof", "replaced-proof", "missing-top-request",
+    "proof-request", "proof-profile", "proof-version", "proof-result", "proof-search", "proof-empty-results",
+    "row-final-operation", "row-final-request", "row-earlier-search", "row-partial-pair", "row-application",
+    "artifact-profile", "artifact-source", "artifact-run"])
+def test_ui_saved_search_rejects_missing_replaced_or_unrelated_proof(change):
+    artifact = saved_search_artifact()
+    proof = artifact["discovery_search_proofs"][1]
+    row = artifact["acceptance_observations"][0]["continuity"]
+    if change == "missing-proof": artifact.pop("discovery_search_proofs")
+    if change == "duplicate-proof": artifact["discovery_search_proofs"].append(copy.deepcopy(proof))
+    if change == "replaced-proof": artifact["discovery_search_proofs"] = [artifact["discovery_search_proofs"][0]]
+    if change == "missing-top-request": artifact.pop("discovery_request_id")
+    if change == "proof-request": proof["request_id"] = "other-request"
+    if change == "proof-profile": proof["profile_id"] = "other-profile"
+    if change == "proof-version": proof["operation_profile_version"] = "c" * 64
+    if change == "proof-result": proof["result"] = "PARTIAL"
+    if change == "proof-search": proof["search_profile_id"] = ""
+    if change == "proof-empty-results": proof["filtered_titles"] = []
+    if change == "row-final-operation": row["operation_id"] = IDENTITY["operation_id"]
+    if change == "row-final-request": row["request_id"] = IDENTITY["request_id"]
+    if change == "row-earlier-search": row.update(operation_id="initial-discovery", request_id="initial-request")
+    if change == "row-partial-pair": row.pop("request_id")
+    if change == "row-application": row["application_id"] = IDENTITY["application_id"]
+    if change == "artifact-profile": artifact["profile_id"] = "other-profile"
+    if change == "artifact-source": artifact["source"] = {**SOURCE, "commit": "c" * 40}
+    if change == "artifact-run": artifact["acceptance_run_id"] = "other-run"
+    with pytest.raises(ValueError):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
+            source=SOURCE, identity=journey._identity(baseline()))
+
+
+@pytest.mark.parametrize("segment,step", [("ui", 4), ("public_source", 11), ("recovery", 54)])
+def test_saved_search_identity_does_not_relax_other_steps_or_segments(segment, step):
+    artifact = saved_search_artifact()
+    row = artifact["acceptance_observations"][0]
+    row.update(step=step, status="PASS", checks=[{"name": name, "passed": True}
+        for name in journey.REQUIRED_CHECKS[step]])
+    if segment == "public_source": row["evidence_kind"] = "PUBLIC_READ_ONLY"
+    with pytest.raises(ValueError, match="continuity"):
+        journey.numbered_observations(artifact, segment=segment, run_id=RUN_ID,
+            source=SOURCE, identity=journey._identity(artifact))
+
+
 @pytest.mark.parametrize("step", range(23, 32))
 def test_employer_discovery_uses_original_discover_identity_not_final_submit(step):
     artifact = employer_artifact(step)
