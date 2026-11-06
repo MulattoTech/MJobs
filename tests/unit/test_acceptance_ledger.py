@@ -363,6 +363,18 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         "employer_discovery_lineage": {
             "profile_id": "profile-1", "operation_id": "employer-operation-1",
             "request_id": "employer-request-1", "job_ids": ["browse-job-1"]},
+        "discovery_operation_id": "discovery-operation-1",
+        "discovery_request_id": "discovery-request-1",
+        "discovery_search_proofs": [{
+            "search_profile_id": "data-search-1",
+            "operation_id": "discovery-operation-1",
+            "request_id": "discovery-request-1",
+            "profile_id": "profile-1",
+            "profile_version": "f" * 64,
+            "operation_profile_version": "f" * 64,
+            "filtered_titles": ["Data Engineer"],
+            "result": "PASS",
+        }],
     }
 
     def inventory(job_ids, schema_version=recovery_inventory_schema):
@@ -407,6 +419,9 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         if 23 <= number <= 31:
             return {"profile_id": "profile-1", "operation_id": "employer-operation-1",
                     "request_id": "employer-request-1", "job_id": "browse-job-1"}
+        if number in {8, 10}:
+            return {"profile_id": "profile-1", "operation_id": "discovery-operation-1",
+                    "request_id": "discovery-request-1"}
         identifiers = (journey.IDENTIFIERS if not 17 <= number <= 22
                        else ("profile_id",))
         value = {key: ui_baseline[key] for key in identifiers}
