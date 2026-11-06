@@ -880,6 +880,8 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
                 errors.append("step 9 source setup requires the completed same-run public source segment")
             elif public_data is not None:
                 try:
+                    if type(setup.get("schema_version")) is not int or setup["schema_version"] != 2:
+                        raise ValueError("source setup requires schema version 2 ownership and release receipts")
                     setup_observation = journey.validate_source_setup_artifact(
                         setup, ui_baseline, public_data[0], target, runtime)
                     if step9_claimed:

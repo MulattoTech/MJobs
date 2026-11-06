@@ -139,6 +139,7 @@ def _write_json_lf(path: Path, value: dict) -> tuple[str, bytes]:
 def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeypatch,
                         *, producer_recovery_path: str | None = None,
                         source_setup_result: str | None = None,
+                        source_setup_schema_version: int = 2,
                         include_source_setup_reference: bool = True,
                         include_public_segment_reference: bool = True) -> None:
     """Create typed local fixture evidence; this does not claim real execution."""
@@ -409,37 +410,29 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
 
     runtime = {"source_manifest_sha256": "1" * 64, "dockerfile_sha256": "d" * 64,
                "images": runtime_identity["images"], "compose_files": ["compose.yml"],
+               "containers": {"scheduler": "scheduler-container-fixture"},
                "frontend_assets": {"index.html": "c" * 64}}
     target = {"project_name": "mjobs-fixture-123456789abc", "port": 18777,
               "base_url": "http://127.0.0.1:18777"}
     source_setup_ref = None
     source_setup_observation = None
     if source_setup_needed:
-        setup_result = source_setup_result or "PASS"
-        source_setup_observation = {
-            "step": 9, "status": setup_result,
-            "observable_result": ("Two distinct public provider sources were visible and enabled before the primary collection."
-                                  if setup_result == "PASS" else
-                                  "Controlled browser and API fixture did not establish live source configuration."),
-            "evidence_kind": "PUBLIC_READ_ONLY", "source_commit": source["commit"],
-            "run_id": run_id, "continuity": {"profile_id": "profile-1"},
-            "checks": [{"name": name, "passed": setup_result == "PASS"}
-                       for name in sorted(checks[9])],
-        }
-        source_setup = {
-            "schema_version": 1, "result": setup_result, "acceptance_run_id": run_id,
-            "timestamp": timestamp, "source": source, "target_origin": target["base_url"],
-            "runtime_identity": runtime_identity, "profile_id": "profile-1",
-            "application_id": "application-1", "job_id": "mock-job-1",
-            "primary": {"provider": "wwr", "source_id": "primary-source-1",
-                        "policy_sha256": "a" * 64},
-            "owned_extra": {"provider": "remotive", "source_id": "extra-source-1",
-                            "enabled_policy_sha256": "b" * 64,
-                            "disabled_policy_sha256": "c" * 64, "disabled": True},
-            "extra_collection_operation_ids": [],
-            "extra_operation_readback_sha256": journey.digest([]),
-            "acceptance_observations": [source_setup_observation],
-        }
+        from tests.unit import test_acceptance_journey as source_setup_tests
+
+        monkeypatch.setattr(source_setup_tests, "SOURCE", source)
+        monkeypatch.setattr(source_setup_tests, "RUN_ID", run_id)
+        monkeypatch.setattr(source_setup_tests, "TARGET", target)
+        monkeypatch.setattr(source_setup_tests, "RUNTIME", {
+            "source_manifest_sha256": runtime_identity["source_manifest_sha256"],
+            "images": runtime_identity["images"],
+            "containers": {"scheduler": "scheduler-container-fixture"},
+        })
+        monkeypatch.setattr(journey, "utc_now", lambda: timestamp)
+        source_setup = source_setup_tests.source_setup_artifact(ui_baseline, public_artifact)
+        source_setup["schema_version"] = source_setup_schema_version
+        if source_setup_result == "NOT_RUN":
+            source_setup_tests.source_setup_controlled(source_setup)
+        source_setup_observation = source_setup["acceptance_observations"][0]
         source_setup_path = run_root / "public-source-setup.json"
         source_setup_sha, _ = _write_json_lf(source_setup_path, source_setup)
         source_setup_ref = {"artifact": source_setup_path.name, "sha256": source_setup_sha}
@@ -992,6 +985,16 @@ def test_runtime_evidence_requires_source_setup_reference_for_credited_step_9(tm
     verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
     assert any("step 9" in error and "source setup" in error.lower()
                for error in verified.errors), verified.errors
+
+
+def test_runtime_evidence_rejects_legacy_source_setup_schema(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, list(range(1, 61)), monkeypatch,
+                        source_setup_schema_version=1)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert any("schema version 2" in error.lower() for error in verified.errors), verified.errors
 
 
 def test_runtime_evidence_does_not_credit_controlled_not_run_source_setup(tmp_path, monkeypatch):
