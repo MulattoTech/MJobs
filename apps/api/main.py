@@ -853,6 +853,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_document_archive_router(store))
     from apps.api.manual_auth import create_manual_auth_router
     app.include_router(create_manual_auth_router(store, mock_origin, output_dir, operation_mode))
+    from apps.api.fixture_company_monitoring import create_fixture_company_monitoring_router
+    app.include_router(create_fixture_company_monitoring_router(store, mock_origin, operation_mode))
     from apps.api.company_discovery_activity import create_company_discovery_activity_router
     app.include_router(create_company_discovery_activity_router(store))
     from apps.api.company_discovery_queue import create_company_discovery_queue_router
@@ -1602,6 +1604,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
         from services.company_discovery.company_context import list_company_contexts
         rows = list_company_source_view(store, profile_id)
+        if operation_mode == "FIXTURE" and profile_id:
+            from apps.api.fixture_company_monitoring_view import fixture_company_monitoring_view
+            for row in rows:
+                overlay = fixture_company_monitoring_view(store, mock_origin, profile_id, row)
+                if overlay is not None:
+                    row.update(overlay)
         for row in rows:
             row["company_contexts"] = list_company_contexts(store, row["id"])
         return {"company_sources": rows}
