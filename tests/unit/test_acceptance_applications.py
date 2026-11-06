@@ -1,5 +1,6 @@
 """Fail-closed contracts for MJ-REQ-292 application observation production."""
 
+import json
 import pytest
 
 from cli.acceptance_applications import (
@@ -79,6 +80,37 @@ def test_passing_step_requires_runtime_source_run_and_matching_application_linea
     assert result["continuity"] == {
         "profile_id": "profile-B", "application_id": "app-B", "job_id": "job-B"}
     assert journal.stage_lineage == [lineage(49)]
+
+
+def test_real_evidence_journal_persists_step_and_exact_stage_lineage(tmp_path):
+    from cli.ui_e2e import EvidenceJournal
+
+    artifact_path = tmp_path / "ui-evidence.json"
+    journal = EvidenceJournal(
+        artifact_path,
+        {"source": {"commit": SOURCE_COMMIT}, "runtime_identity": RUNTIME},
+        acceptance_run_id=RUN_ID,
+    )
+    journal.record_application_readback(
+        profile_id="profile-B", application_id="app-B", job_id="job-B",
+        documents=[{"id": "resume-B"}, {"id": "letter-B"}])
+
+    result = record_application_step(
+        journal, 36,
+        observable_result="Application preparation readback matched selected pins.",
+        assertions=assertions_for(36),
+        runtime_identity=RUNTIME,
+        stage_lineage=lineage(36, kind="PREPARE"),
+    )
+
+    assert result["status"] == "PASS"
+    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+    assert payload["acceptance_run_id"] == RUN_ID
+    assert payload["selected_profile_id"] == "profile-B"
+    assert payload["selected_application_id"] == "app-B"
+    assert payload["selected_application_job_id"] == "job-B"
+    assert payload["stage_lineage"] == [lineage(36, kind="PREPARE")]
+    assert payload["acceptance_observations"][0] == result
 
 
 @pytest.mark.parametrize("missing", ["runtime_identity", "stage_lineage"])
