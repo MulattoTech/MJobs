@@ -1,0 +1,43 @@
+{
+  "run": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
+  "utc": "2026-11-05T02:26:01.863442+00:00",
+  "source_heads": {
+    "951": "3f3b546667894cd275387113fb80fc6b85ab3794",
+    "947": "e7996c4d65fbc9051bdfffdf1b940a516e037d75"
+  },
+  "base": "0d3fbc5749fba8c682033a343a7ec9695e4dd743",
+  "combined": "77a0404c65480ed74cc64cd91be16e2214090c82",
+  "tested_index_tree": "72008a29845b3c15e3c8113cdbc80d0f5939f657",
+  "source_test_blobs": {
+    "services/discovery/sources/greenhouse.py": "433a773097509b2a97ed1a2e26a48fd6e94fe3a0",
+    "tests/unit/test_greenhouse_salary.py": "cc6b5dfe7faa1e4088a470438c69ea373afb7094",
+    "tests/integration/test_greenhouse.py": "b06ae88f5959498c4b8c9c51a7998452ae4fad1e",
+    "services/discovery/sources/remoteok.py": "96d4899945dbc06cf3c9645e257a5f9d4d625c25",
+    "tests/unit/test_remoteok_salary.py": "1ead9cdc0c98cdecb6bb2a40409de2f520caa9dc",
+    "tests/integration/test_remoteok.py": "838a2fe56bd724e7ceb3d1313f06966cc7bd1013"
+  },
+  "command": [
+    "C:\\Tools\\Dev\\MJobs-Web\\web-58c1462f-935\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "C:\\Tools\\Dev\\MJobs-Web\\logs-web-58c1462f-951\\pytest-integrated",
+    "tests/unit/test_greenhouse_salary.py",
+    "tests/integration/test_greenhouse.py",
+    "tests/unit/test_remoteok_salary.py",
+    "tests/integration/test_remoteok.py",
+    "tests/unit/test_p0_evidence_secret_fingerprints.py",
+    "tests/unit/test_secret_scan_sustain_176.py",
+    "--tb=short"
+  ],
+  "summary": [
+    "61 passed, 1 skipped, 75 subtests passed in 28.89s"
+  ],
+  "claims": {
+    "PR-951-INTEGRATION": "4045b6194c4163ab3c29a623536cf197db2cdd67",
+    "PR-947-INTEGRATION": "b96298e5d0d4135fe853891ecaabcf6430387232"
+  }
+}
