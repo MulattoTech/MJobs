@@ -508,6 +508,13 @@
       "authored_commit": "ebf2de411e4a0e1b15ca985a86427c4a98b9b28f",
       "invalid_utc_trailer": "2026-11-06T12:40:00Z",
       "reason": "Root manually typed a future timestamp before the 12:38:45Z clock observation. Do not use the trailer as execution timing evidence. Merge ancestry and source are preserved."
+    },
+    {
+      "original_commit": "60fc43f81c46bd7feda04efa212bcd8937844e82",
+      "corrected_commit": "41d319a8a1e599ff162e4e2ce39ce7cae959dd25",
+      "reason": "Blank lines separated required Git trailers; corrected final-block formatting before publication. Source trees and authors preserved for all25 descendants.",
+      "evidence": "docs/evidence/2026-11-06-mjreq292-provenance-replay.json",
+      "preserved_local_branch": "codex/mj292-preserved-pre-provenance-20261106-1933"
     }
   ],
   "pending_dependency": {
