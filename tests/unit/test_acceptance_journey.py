@@ -1279,10 +1279,14 @@ def test_employer_discovery_rejects_unrelated_stage_or_job(change):
 
 
 @pytest.mark.parametrize("cleanup_status", ["RESTORED_DISABLED", "NOT_REQUIRED"])
-def test_public_release_preserves_latched_live_callback_identity(tmp_path, cleanup_status):
+@pytest.mark.parametrize("child_count", [0, 1])
+def test_public_release_preserves_latched_live_callback_identity(tmp_path, cleanup_status, child_count):
+    from cli.acceptance_public_source import child_containment_context, CHILD_FIELDS, CHILD_DYNAMIC
     latched = {}
     events = []
-    fields = ("collection_operation_id", "collection_request_id", "source_id", "source_policy_sha256", "newly_created")
+    fields = ("collection_operation_id", "collection_request_id", "source_id", "source_policy_sha256", "newly_created",
+              "collection_operation_attempt", "child_discovery_requested", "owned_child_operation_ids",
+              "owned_child_request_ids", "owned_child_lineage_sha256", "owned_child_sources")
     def containment(stage, context):
         if stage == "poll":
             latched.update({key: context[key] for key in fields})
@@ -1295,11 +1299,23 @@ def test_public_release_preserves_latched_live_callback_identity(tmp_path, clean
     def public_run(url, original, path, **kwargs):
         value = public_artifact()
         value["cleanup"]["status"] = cleanup_status
+        value["collection_operation_attempt"] = 1
+        child = {key: "child-" + key for key in CHILD_FIELDS}
+        child.update(revision=2, operation_attempt=1, parent_operation_attempt=1, state="COMPLETED", reason=None,
+                     profile_id=value["profile_id"], source_id=value["source_id"],
+                     parent_operation_id=value["collection_operation_id"])
+        children = [child] if child_count else []
+        value["child_discovery"] = {"status": "COMPLETED" if children else "NOT_RUN",
+            "parent_operation_id": value["collection_operation_id"], "parent_operation_attempt": 1,
+            "children": children, "enrolled_sources": [],
+            "lineage_sha256": journey.digest([{key: row[key] for key in CHILD_FIELDS if key not in CHILD_DYNAMIC}
+                                               for row in children])}
         # This is the exact post-POST callback context emitted by the LIVE
         # helper's own HTTP transport, without injecting a request proxy.
         assert "request" not in kwargs
         kwargs["containment_preflight"]("poll", {
-            **{key: value[key] for key in fields[:-1]}, "newly_created": cleanup_status == "RESTORED_DISABLED"})
+            **{key: value[key] for key in fields[:4]}, "newly_created": cleanup_status == "RESTORED_DISABLED",
+            **child_containment_context(value)})
         emit(path, value)
     with patch.object(journey, "current_source", return_value=SOURCE), \
             patch.object(journey, "preflight", return_value=RUNTIME), \

@@ -1561,10 +1561,12 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
                 JourneyCheckpoint(derived_path, updated).persist()
                 _, derived_sha = _read_artifact(derived_path)
                 checkpoint.binding["derived_baseline"] = {"artifact": derived_path.name, "sha256": derived_sha}
+                from cli.acceptance_public_source import child_containment_context
                 public_source_preflight("release", {"provider": public_source_provider,
                     "base_url": target["base_url"], "acceptance_run_id": run_id,
                     "cleanup_status": public["cleanup"]["status"],
                     "newly_created": public["cleanup"]["status"] == "RESTORED_DISABLED",
+                    **child_containment_context(public),
                     **{key: public[key] for key in ("collection_operation_id", "collection_request_id",
                                                    "source_id", "source_policy_sha256")}})
                 setup_path = directory / "public-source-setup.json"
