@@ -95,6 +95,44 @@ def prepare_root(destination: Path) -> Path:
     return destination
 
 
+def recovery_inventory_fixture(schema_version: int) -> dict:
+    from cli import compose_recovery
+
+    if schema_version == 3:
+        jobs = [{"job_id": "fixture-job", "canonical_sha256": "a" * 64,
+                 "source_copy_count": 1, "source_copies_sha256": "b" * 64}]
+        return {"schema_version": 3, "profile_id": "profile-fixture", "job_count": 1,
+                "source_copy_count": 1, "jobs": jobs,
+                "sha256": compose_recovery._inventory_digest(jobs)}
+    from packages.persistence.job_inventory import digest, snapshot_digest
+
+    jobs = [{"job_id": "fixture-job", "canonical_sha256": "a" * 64,
+             "route_count": 0, "source_copy_count": 0, "source_copies": [],
+             "source_copies_sha256": digest([])}]
+    profile_version = "c" * 64
+    return {"schema_version": 4, "scope": "ALL_PERSISTED_JOBS",
+            "profile_id": "profile-fixture", "profile_version": profile_version,
+            "job_count": 1, "source_copy_count": 0, "jobs": jobs,
+            "sha256": digest(jobs),
+            "snapshot_sha256": snapshot_digest("profile-fixture", profile_version, jobs)}
+
+
+def validate_recovery_summary(tmp_path, schema_version: int, mutate=None) -> list[str]:
+    from cli import compose_recovery
+
+    inventory = recovery_inventory_fixture(schema_version)
+    summary = compose_recovery.compare_public_job_inventory(
+        {"job_inventory": inventory}, inventory, inventory)
+    if mutate is not None:
+        mutate(summary)
+    errors = []
+    ledger._validate_recovery_inventory(
+        {}, {"job_inventory": inventory},
+        {"public_job_inventory_recovery": summary}, tmp_path,
+        tmp_path / "journey.json", "", errors)
+    return errors
+
+
 def make_checkpoint() -> dict:
     return {
         "schema_version": 1,
@@ -138,6 +176,8 @@ def _write_json_lf(path: Path, value: dict) -> tuple[str, bytes]:
 
 def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeypatch,
                         *, producer_recovery_path: str | None = None,
+                        recovery_inventory_schema: int = 3,
+                        recovery_summary_mutation=None,
                         source_setup_result: str | None = None,
                         source_setup_schema_version: int = 2,
                         include_source_setup_reference: bool = True,
@@ -325,11 +365,24 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
             "request_id": "employer-request-1", "job_ids": ["browse-job-1"]},
     }
 
-    def inventory(job_ids):
+    def inventory(job_ids, schema_version=recovery_inventory_schema):
         jobs = [{"job_id": job_id, "canonical_sha256": hashlib.sha256(job_id.encode()).hexdigest(),
                  "source_copy_count": 1,
                  "source_copies_sha256": hashlib.sha256((job_id + "-copies").encode()).hexdigest()}
                  for job_id in job_ids]
+        if schema_version == 4:
+            from packages.persistence.job_inventory import digest, snapshot_digest
+
+            jobs = [{"job_id": job_id,
+                     "canonical_sha256": hashlib.sha256(job_id.encode()).hexdigest(),
+                     "route_count": 0, "source_copy_count": 0, "source_copies": [],
+                     "source_copies_sha256": digest([])} for job_id in job_ids]
+            profile_version = "e" * 64
+            return {"schema_version": 4, "scope": "ALL_PERSISTED_JOBS",
+                    "profile_id": "profile-1", "profile_version": profile_version,
+                    "job_count": len(jobs), "source_copy_count": 0, "jobs": jobs,
+                    "sha256": digest(jobs),
+                    "snapshot_sha256": snapshot_digest("profile-1", profile_version, jobs)}
         return {"schema_version": journey.recovery.JOB_INVENTORY_VERSION,
                 "profile_id": "profile-1", "job_count": len(jobs),
                 "source_copy_count": len(jobs), "jobs": jobs,
@@ -587,6 +640,10 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         else:
             effective_baseline = monitoring_baseline if monitoring_enabled else monitoring_source_baseline
             recovered_inventory = effective_baseline["job_inventory"]
+            recovery_inventory_summary = journey.recovery.compare_public_job_inventory(
+                {"job_inventory": recovered_inventory}, recovered_inventory, recovered_inventory)
+            if recovery_summary_mutation is not None:
+                recovery_summary_mutation(recovery_inventory_summary)
             compose_target = {"project_name": "mjobs-fixture-123456789abc", "port": 18777,
                               "profile": "fixture", "project_directory": str(journey.ROOT.resolve()),
                               "compose_files": ["compose.yml"]}
@@ -594,11 +651,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                 "timestamp": timestamp, "source": source, "acceptance_run_id": run_id,
                 "application_id": "application-1", "result": "PASS",
                 "external_submission_enabled": False, "compose_target": compose_target,
-                "public_job_inventory_recovery": {"result": "PASS",
-                    "profile_id": recovered_inventory["profile_id"],
-                    "sha256": recovered_inventory["sha256"],
-                    "job_count": recovered_inventory["job_count"],
-                    "source_copy_count": recovered_inventory["source_copy_count"]},
+                "public_job_inventory_recovery": recovery_inventory_summary,
                 "local_persistence": {"result": "PASS", "domains": list(journey.persistence.DOMAINS)},
                 "container_health": {"after": {"api": {"status": "running", "health": "healthy"}}},
             }
@@ -974,6 +1027,73 @@ def test_runtime_evidence_mode_can_validate_all_60_and_remove_permanent_pass_blo
     assert verified.errors == []
     assert verified.runtime_evidence_validated is True
     assert verified.counts["PASS"] == 60
+
+
+def test_runtime_evidence_accepts_v4_recovery_inventory_snapshot_identity(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2, 55], monkeypatch, recovery_inventory_schema=4)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert verified.errors == []
+    assert verified.counts["PASS"] == 2
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda receipt: receipt.pop("scope"),
+    lambda receipt: receipt.pop("schema_version"),
+    lambda receipt: receipt.pop("profile_version"),
+    lambda receipt: receipt.pop("snapshot_sha256"),
+    lambda receipt: receipt.update(profile_version="d" * 64),
+    lambda receipt: receipt.update(snapshot_sha256="d" * 64),
+    lambda receipt: receipt.update(job_count=True),
+])
+def test_runtime_evidence_rejects_rehashed_v4_recovery_summary_drift(
+        tmp_path, monkeypatch, mutation):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, [2, 55], monkeypatch, recovery_inventory_schema=4,
+                        recovery_summary_mutation=mutation)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+
+    assert any("step 55" in error for error in verified.errors), verified.errors
+
+
+@pytest.mark.parametrize("schema_version", [3, 4])
+def test_recovery_inventory_receipt_accepts_exact_supported_producer_summary(
+        tmp_path, schema_version):
+    assert validate_recovery_summary(tmp_path, schema_version) == []
+
+
+@pytest.mark.parametrize("mutate", [
+    lambda receipt: receipt.pop("schema_version"),
+    lambda receipt: receipt.update(schema_version=3),
+    lambda receipt: receipt.pop("profile_version"),
+    lambda receipt: receipt.update(profile_version="d" * 64),
+    lambda receipt: receipt.pop("snapshot_sha256"),
+    lambda receipt: receipt.update(snapshot_sha256="d" * 64),
+    lambda receipt: receipt.update(scope="Same-profile public job view"),
+    lambda receipt: receipt.update(job_count=True),
+])
+def test_recovery_inventory_receipt_rejects_v4_identity_drift(tmp_path, mutate):
+    errors = validate_recovery_summary(tmp_path, 4, mutate)
+    assert any("step 55" in error for error in errors), errors
+
+
+def test_recovery_inventory_receipt_rejects_boolean_schema_version(tmp_path):
+    inventory = recovery_inventory_fixture(4)
+    inventory["schema_version"] = True
+    summary = {"result": "PASS", "profile_id": inventory["profile_id"],
+               "sha256": inventory["sha256"], "job_count": inventory["job_count"],
+               "source_copy_count": inventory["source_copy_count"]}
+    errors = []
+    ledger._validate_recovery_inventory(
+        {}, {"job_inventory": inventory},
+        {"public_job_inventory_recovery": summary}, tmp_path,
+        tmp_path / "journey.json", "", errors)
+    assert any("step 55 inventory baseline is invalid" in error for error in errors), errors
 
 
 def test_runtime_evidence_requires_source_setup_reference_for_credited_step_9(tmp_path, monkeypatch):

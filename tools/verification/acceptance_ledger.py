@@ -460,15 +460,27 @@ def _validate_recovery_inventory(report: dict, ui_baseline: dict, recovery_artif
     except (AttributeError, KeyError, TypeError, ValueError) as exc:
         errors.append(f"step 55 inventory baseline is invalid: {exc}")
         return
-    if inventory.get("schema_version") != journey.recovery.JOB_INVENTORY_VERSION:
-        errors.append("step 55 requires the current complete versioned job inventory")
+    schema_version = inventory.get("schema_version")
+    if (type(schema_version) is not int
+            or schema_version not in {journey.recovery.JOB_INVENTORY_VERSION, 4}):
+        errors.append("step 55 requires a supported complete v3 or v4 job inventory")
+        return
     recovered = recovery_artifact.get("public_job_inventory_recovery")
     if not isinstance(recovered, dict) or recovered.get("result") != "PASS":
         errors.append("step 55 recovery lacks positive complete inventory readback")
         return
-    if any(recovered.get(key) != inventory.get(key)
-           for key in ("profile_id", "sha256", "job_count", "source_copy_count")):
-        errors.append("step 55 recovered inventory differs from the connected pre-restart inventory")
+    try:
+        # Reuse the runner's typed identity join, then require the exact summary
+        # produced by compare_public_job_inventory. This binds v4 schema,
+        # profile version, snapshot digest and scope; v3 keeps its legacy shape.
+        journey._validate_recovery_inventory_receipt(
+            recovered, {"job_inventory": inventory})
+        expected = journey.recovery.compare_public_job_inventory(
+            {"job_inventory": inventory}, inventory, inventory)
+        if recovered != expected:
+            errors.append("step 55 recovery inventory summary differs from the exact baseline readback")
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        errors.append(f"step 55 recovered inventory differs from the connected pre-restart inventory: {exc}")
 
 
 def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> bool:
