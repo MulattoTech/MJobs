@@ -21,6 +21,8 @@ class AggregatorPendingReviewPrecedenceTests(unittest.TestCase):
         from tests.integration.test_reviewed_greenhouse_enrollment import ReviewedGreenhouseEnrollmentTests
 
         self.case = ReviewedGreenhouseEnrollmentTests()
+        if hasattr(self, 'database_url'):
+            self.case.database_url = self.database_url
         self.case.setUp()
         self.addCleanup(self.case.doCleanups)
         self.addCleanup(self.case.tearDown)
@@ -159,8 +161,14 @@ class AggregatorPendingReviewPostgresTests(AggregatorPendingReviewPrecedenceTest
         with patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.database_url}):
             command.upgrade(Config('alembic.ini'), 'head')
         super().setUp()
+        self.assertEqual(self.case.store.engine.dialect.name, 'postgresql')
 
     def cleanup_schema(self):
+        prefix = 'aggregator_pending_review_'
+        suffix = self.schema.removeprefix(prefix)
+        if not self.schema.startswith(prefix) or len(suffix) != 32 or any(
+                character not in '0123456789abcdef' for character in suffix):
+            raise RuntimeError('Refusing to drop an unowned PostgreSQL schema')
         with self.admin.begin() as connection:
             connection.execute(text('DROP SCHEMA IF EXISTS "' + self.schema + '" CASCADE'))
         self.admin.dispose()
