@@ -88,3 +88,40 @@ Rollback is a protected source revert, assessed against intervening changes;
 there is no schema migration or user-data rewrite. Final candidate/CI/merge,
 release and owner-only claim-release receipts belong in the PR's durable
 conversation after the corresponding actions actually occur.
+
+## AO current-main continuation — 2026-11-06
+
+Exclusive continuation owner: `mjobs-3`, assigned under issue #18 / MJ-REQ-017
+for this bounded existing Lever robustness slice. The original issue #19/#156
+attribution above is preserved; no umbrella requirement is promoted.
+
+Verified published input: `c7e502fabe666b301f7378f6780d7106d28111c2`.
+Refreshed main: `560b97eda0fcb0b80f4b63e8fe5b28e805414580`.
+Tested candidate tree before this receipt-only append:
+`c90671e459d502a08aa8c8b5ab7cfcdc20df2fa0`.
+The containing commit names the final candidate and preserves both parents.
+
+The existing fix and regression coverage were reused without product or test
+changes. All three owned Lever source/test blobs match the input head exactly;
+all 28 incoming main blobs, including its canonical handoff, match main exactly.
+Both former objective refs were absent. PR934 remains frozen on its separate
+branch and was neither modified nor polled by this continuation.
+
+Executed from the registered AO worktree on Windows/Python 3.12.10 using the
+existing pinned environment, with the candidate root on `PYTHONPATH`:
+
+```text
+python -X utf8 -B -m pytest -q -p no:cacheprovider tests/unit/test_lever_salary_safety.py tests/unit/test_lever_source.py tests/integration/test_lever_autodiscovery.py --tb=short -W error::RuntimeWarning -W error::pytest.PytestUnraisableExceptionWarning
+```
+
+**29 tests and 56 subtests PASS**, zero failures/skips, 30.84 seconds, completed
+2026-11-06 around 05:02 UTC. Staged whitespace validation passed. The bounded
+fixture batch used authorized heavy slot 3 and has exited; no containers were
+started. Prior red tests and independent reviews above remain historical,
+separately attributed evidence. No additional tests were invented or rerun.
+
+New-head hosted checks and native review remain pending, as do protected
+integration and deployment. PostgreSQL-specific, live-provider, browser and
+production validation remain NOT_RUN locally. No canonical acceptance matrices
+or new canonical handoff text were authored. No source HTTP, company feeds,
+host configuration, external application or production data was changed.
