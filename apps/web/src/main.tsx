@@ -562,7 +562,7 @@ function App() {
     return()=>window.removeEventListener('popstate',restore);
   },[]);
   const profileListSequence = useRef(0);
-  const jobsSequence = useRef(0); const detailSequence = useRef(0); const appSequence = useRef(0); const editorSequence = useRef(0); const applicationRestoreProfile = useRef(''); const reviewQueueSequence = useRef(0); const documentArchiveSequence = useRef(0);
+  const jobsSequence = useRef(0); const detailSequence = useRef(0); const appSequence = useRef(0); const applicationTrackingSequence = useRef(0); const editorSequence = useRef(0); const applicationRestoreProfile = useRef(''); const reviewQueueSequence = useRef(0); const documentArchiveSequence = useRef(0);
   const navigationSequence = useRef(0);
   const pendingApplicationRestore = useRef<{profileId:string;navigation:number}|null>(null);
 
@@ -1118,7 +1118,7 @@ function App() {
     });
   }
   async function showApp(id:string,summary?:Application,navigate=true) {
-    const sequence=++appSequence.current;const selected=profileRef.current;
+    const sequence=++appSequence.current;const trackingSequence=++applicationTrackingSequence.current;const selected=profileRef.current;
     if(!selected)return;
     // Explicit selection wins over a still-pending restored selection.
     if(navigate)applicationRestoreProfile.current=selected;
@@ -1135,10 +1135,12 @@ function App() {
     const sameEditScope=selectedAppRef.current?.id===id&&selectedAppRef.current?.profile_id===selected;
     const previousStatus=applicationTrackingRef.current?.status||'';
     setSelectedApp({...listSummary,...application,title:application.title||listSummary?.title||'',company:application.company||listSummary?.company||'',answer_bank:answerBank.answers});
-    setApplicationTracking(tracking);
     // Readback refreshes saved data, but must not erase newer local edits.
     // A pristine status follows the server; a user-selected stage stays local.
-    setApplicationStatusDraft(current=>!sameEditScope||current===previousStatus?tracking.status||'':current);
+    if(trackingSequence===applicationTrackingSequence.current){
+      setApplicationTracking(tracking);
+      setApplicationStatusDraft(current=>!sameEditScope||current===previousStatus?tracking.status||'':current);
+    }
     if(!sameEditScope){setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setAnswerDrafts([]);}
     setDocs(documents.documents);setAnswerExportText(answerExport?{documentId:answerExport.id,text:answerText}:null);if(navigate)setTab('Applications');
     } finally {
@@ -1184,16 +1186,26 @@ function App() {
   }
   async function updateApplicationStatus() {
     if(!selectedApp||!profileId||!applicationStatusDraft)throw new Error('Choose a manual application stage first.');
-    const applicationId=selectedApp.id;const selectedProfile=profileId;const selectionSequence=appSequence.current;const status=applicationStatusDraft;
+    const applicationId=selectedApp.id;const selectedProfile=profileId;const status=applicationStatusDraft;
+    const previousStatus=applicationTrackingRef.current?.status||'';
     await action('Saving reported application status',async()=>{
+      ++applicationTrackingSequence.current;
       const key=`${selectedProfile}:${applicationId}:${status}`;
       const requestId=applicationStatusRequestIds.current.get(key)||crypto.randomUUID();applicationStatusRequestIds.current.set(key,requestId);
-      const result=await api<ApplicationTracking>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(applicationId)}/tracking/status`,{method:'PUT',body:JSON.stringify({status,request_id:requestId})});
+      await api<ApplicationTracking>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(applicationId)}/tracking/status`,{method:'PUT',body:JSON.stringify({status,request_id:requestId})});
       applicationStatusRequestIds.current.delete(key);
       const prefix=`${selectedProfile}:${applicationId}:`;
       for(const pendingKey of applicationStatusRequestIds.current.keys())if(pendingKey.startsWith(prefix))applicationStatusRequestIds.current.delete(pendingKey);
-      setApps(rows=>rows.map(row=>row.id===applicationId?{...row,pipeline_status:result.status,pipeline_attribution:result.attribution}:row));
-      if(selectionSequence===appSequence.current)setApplicationTracking(result);
+      if(profileRef.current!==selectedProfile||selectedAppRef.current?.profile_id!==selectedProfile||selectedAppRef.current?.id!==applicationId)return;
+      // A same-application selection read may have started before the write and
+      // can finish with an older tracking projection. Re-read after the commit,
+      // then apply only while the same application remains selected.
+      const trackingSequence=++applicationTrackingSequence.current;
+      const tracking=await api<ApplicationTracking>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(applicationId)}/tracking`);
+      if(trackingSequence!==applicationTrackingSequence.current||profileRef.current!==selectedProfile||selectedAppRef.current?.profile_id!==selectedProfile||selectedAppRef.current?.id!==applicationId)return;
+      setApps(rows=>rows.map(row=>row.id===applicationId?{...row,pipeline_status:tracking.status,pipeline_attribution:tracking.attribution}:row));
+      setApplicationTracking(tracking);
+      setApplicationStatusDraft(current=>!current||current===previousStatus?tracking.status||'':current);
     });
   }
   async function addApplicationNote() {
