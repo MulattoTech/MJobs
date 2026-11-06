@@ -671,9 +671,166 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
         "runtime_identity": projection, "acceptance_observations": rows}
 
 
+def _validate_source_setup_release_history(artifact, baseline, target, runtime):
+    """Validate the cooperative owner's observed policy and release receipts."""
+    boundary = artifact.get("trust_boundary", {})
+    if (boundary.get("target") != "ISOLATED_LOCAL_FIXTURE"
+            or boundary.get("source_policy_ownership") != "OPERATOR_COOPERATIVE_EXCLUSIVE"
+            or boundary.get("source_policy_atomic_cas") is not False):
+        raise ValueError("Source setup requires the explicit cooperative ownership boundary")
+    extra, primary = artifact["owned_extra"], artifact["primary"]
+    live = artifact["result"] != "NOT_RUN"
+
+    def history(key, minimum, maximum):
+        rows = artifact.get(key)
+        if (not isinstance(rows, list) or not minimum <= len(rows) <= maximum
+                or any(not isinstance(row, dict) for row in rows)):
+            raise ValueError("Source setup history is missing or unbounded: " + key)
+        return rows
+
+    policies = history("extra_policy_readbacks", 6, 6)
+    expected_policy = {"provider": "remotive", "tenant": "default", "enabled": True,
+        "poll_interval": 604800, "concurrency": 1, "request_timeout": 10, "rate_limit": 1, "jitter_seconds": 0}
+    expected_policies = [{"stage": stage, "provider": "remotive", "tenant": "default", "present": False}
+        for stage in ("preflight_absent", "immediately_before_create")]
+    expected_policies.extend({"stage": stage, "source_id": extra["source_id"], "enabled": enabled,
+        "policy_sha256": extra["enabled_policy_sha256" if enabled else "disabled_policy_sha256"]}
+        for stage, enabled in (("created_enabled", True), ("before_disable", True),
+                               ("disabled_readback", False), ("release", False)))
+    enabled_projection = policies[2].get("policy")
+    if (not isinstance(enabled_projection, dict)
+            or set(enabled_projection) != {"id", *expected_policy, "strategy", "capabilities"}
+            or enabled_projection.get("id") != extra["source_id"]
+            or any(enabled_projection.get(key) != value or type(enabled_projection.get(key)) is not type(value)
+                   for key, value in expected_policy.items())):
+        raise ValueError("Source setup enabled policy projection is incomplete")
+    for index, (row, expected) in enumerate(zip(policies, expected_policies)):
+        projection = None if index < 2 else {**enabled_projection, "enabled": index < 4}
+        if (row != {**expected, "expected_policy": expected_policy, "policy": projection}
+                or type(row.get("present", row.get("enabled"))) is not bool
+                or index >= 2 and digest(projection) != row["policy_sha256"]):
+            raise ValueError("Source setup policy history does not prove absence and exact disable")
+    operations = history("extra_operation_readbacks", 3, 3)
+    if [row.get("stage") for row in operations] != [
+            "created_before_primary_collection", "disabled_before_primary_collection", "release"]:
+        raise ValueError("Source setup operation readbacks are out of order")
+    for index, row in enumerate(operations):
+        if (type(row.get("inventory_count")) is not int or not 0 <= row["inventory_count"] < 100
+                or row.get("source_id") != extra["source_id"]
+                or row.get("source_policy_sha256") != extra["enabled_policy_sha256" if index == 0 else "disabled_policy_sha256"]
+                or row.get("matching_operation_ids") != [] or row.get("matching_ids_sha256") != digest([])):
+            raise ValueError("Source setup extra collection inventory is incomplete or nonempty")
+
+    checks = history("primary_containment_checks", 4, 4096)
+    stages = [row.get("stage") for row in checks]
+    if (stages[0] != "preflight" or stages[-1] != "release" or stages.count("release") != 1
+            or stages.count("preflight") != 1 or "dispatch" not in stages or "finalize" not in stages
+            or any(stage not in {"preflight", "enable", "dispatch", "poll", "read", "finalize", "cleanup", "release"}
+                   for stage in stages)):
+        raise ValueError("Source setup containment history lacks the single completed lifecycle")
+    binding = {"acceptance_run_id": artifact["acceptance_run_id"], "target_origin": target["base_url"],
+        "profile_id": baseline["profile_id"], "application_id": baseline["application_id"],
+        "job_id": baseline["selected_application_job_id"], "primary_provider": "wwr"}
+    flags = ("scheduler_contained", "source_policy_exclusive", "source_collection_exclusive")
+    owner, token = checks[0].get("owner"), checks[0].get("token_sha256")
+    if (not isinstance(owner, str) or not owner or len(owner) > 200
+            or not isinstance(token, str) or re.fullmatch(r"[a-f0-9]{64}", token) is None):
+        raise ValueError("Source setup containment owner identity is missing")
+    previous = _instant(baseline["timestamp"])
+    primary_seen = extra_seen = extra_disabled = False
+    for index, row in enumerate(checks):
+        released = index == len(checks) - 1
+        checked = _instant(row.get("checked_at"))
+        if (any(row.get(key) != value for key, value in binding.items())
+                or row.get("verified") is not live or "token" in row
+                or not previous <= checked <= _instant(artifact["timestamp"])
+                or any(row.get(key) is not (not released) for key in flags)):
+            raise ValueError("Source setup containment identity, timing or lease state changed")
+        previous = checked
+        if not released:
+            if (row.get("owner") != owner or row.get("token_sha256") != token
+                    or _instant(row.get("lease_expires_at")) <= checked
+                    or any(row.get("receipt", {}).get(key) is not True for key in flags)
+                    or row.get("receipt", {}).get("lease_expires_at") != row.get("lease_expires_at")):
+                raise ValueError("Source setup containment lease is stale or changed")
+        source_id = row.get("primary_source_id")
+        if source_id is not None or primary_seen or row["stage"] in {"dispatch", "release"}:
+            if source_id != primary["source_id"] or row.get("primary_policy_sha256") != primary["policy_sha256"]:
+                raise ValueError("Source setup primary policy changed during containment")
+            primary_seen = True
+        elif row.get("primary_policy_sha256") is not None:
+            raise ValueError("Source setup unknown primary policy fingerprint")
+        extra_id = row.get("extra_source_id")
+        if extra_id is not None or extra_seen or released:
+            if (extra_id != extra["source_id"] or row.get("extra_enabled_policy_sha256") != extra["enabled_policy_sha256"]
+                    or type(row.get("extra_enabled")) is not bool
+                    or row.get("extra_disabled_policy_sha256") not in {None, extra["disabled_policy_sha256"]}
+                    or extra_disabled and row["extra_enabled"]):
+                raise ValueError("Source setup additional policy changed during containment")
+            extra_seen = True
+            if not row["extra_enabled"]:
+                if row.get("extra_disabled_policy_sha256") != extra["disabled_policy_sha256"]:
+                    raise ValueError("Source setup disabled extra policy fingerprint is missing")
+                extra_disabled = True
+        elif (row.get("extra_enabled") is not False or row.get("extra_enabled_policy_sha256") is not None
+              or row.get("extra_disabled_policy_sha256") is not None):
+            raise ValueError("Source setup extra source was not initially absent")
+
+    owners = history("additional_owner_checks", 5, 4096)
+    if [row.get("stage") for row in owners if row.get("stage") != "check"] != [
+            "bind_absent", "created", "before_disable", "disabled", "release"]:
+        raise ValueError("Source setup additional owner lifecycle is incomplete or out of order")
+    disabled = False
+    for index, row in enumerate(owners):
+        if (row.get("verification_scope") != ("LIVE_OWNER_API" if live else "CONTROLLED_TRANSPORT")
+                or row.get("verified") is not live or "token" in row):
+            raise ValueError("Source setup additional policy lacks its declared owner proof")
+        receipt = row.get("receipt")
+        if not isinstance(receipt, dict) or receipt.get("lease_expires_at") != row.get("lease_expires_at"):
+            raise ValueError("Source setup additional owner receipt is missing")
+        if _instant(row.get("lease_expires_at")) <= _instant(checks[0]["checked_at"]):
+            raise ValueError("Source setup additional owner lease is stale")
+        if index == 0:
+            if (row.get("provider") != "remotive" or row.get("tenant") != "default" or row.get("source_id") is not None
+                    or row.get("enabled") is not False or row.get("enabled_policy_sha256") is not None
+                    or row.get("disabled_policy_sha256") is not None
+                    or receipt.get("additional_source_absent") is not True
+                    or receipt.get("provider") != "remotive" or receipt.get("tenant") != "default"
+                    or row.get("lease_model") != "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS"
+                    or receipt.get("lease_model") != row.get("lease_model")):
+                raise ValueError("Source setup additional owner did not bind an absent source")
+            continue
+        if row["stage"] == "disabled":
+            disabled = True
+        if (row.get("source_id") != extra["source_id"] or row.get("enabled") is not (not disabled)
+                or row.get("enabled_policy_sha256") != extra["enabled_policy_sha256"]
+                or row.get("disabled_policy_sha256") != (extra["disabled_policy_sha256"] if disabled else None)
+                or receipt.get("additional_source_policy_verified") is not True
+                or receipt.get("additional_source_id") != extra["source_id"]
+                or receipt.get("additional_source_enabled") is not (not disabled)):
+            raise ValueError("Source setup additional owner receipt does not match the exact policy")
+    release = artifact.get("release_receipt", {})
+    raw = release.get("receipt", {})
+    final_binding = {**binding, "primary_source_id": primary["source_id"], "primary_policy_sha256": primary["policy_sha256"],
+        "extra_provider": "remotive", "extra_source_id": extra["source_id"],
+        "extra_enabled_policy_sha256": extra["enabled_policy_sha256"],
+        "extra_disabled_policy_sha256": extra["disabled_policy_sha256"], "extra_enabled": False,
+        "owner": owner, "token_sha256": token, "lease_expires_at": checks[-2]["lease_expires_at"],
+        "project": target["project_name"], "scheduler_container_id": runtime.get("containers", {}).get("scheduler")}
+    if (release.get("released") is not True or raw.get("released") is not True
+            or not final_binding["scheduler_container_id"] or release.get("binding") != final_binding
+            or raw != checks[-1].get("receipt") or release.get("additional_owner_release") != owners[-1]
+            or raw.get("project") != target["project_name"]
+            or raw.get("scheduler_container_id") != final_binding["scheduler_container_id"]
+            or any(raw.get(key) is not False for key in flags)
+            or raw.get("additional_source_exclusive", False) is not False
+            or not _instant(checks[-2]["checked_at"]) <= _instant(raw.get("lease_expired_at")) <= _instant(checks[-1]["checked_at"])):
+        raise ValueError("Source setup has no matching successful owned release receipt")
+
+
 def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
     """Join optional source configuration proof after successful containment release."""
-    if (type(artifact.get("schema_version")) is not int or artifact["schema_version"] != 1
+    if (type(artifact.get("schema_version")) is not int or artifact["schema_version"] != 2
             or artifact.get("result") not in {"PASS", "PARTIAL", "NOT_RUN"}
             or artifact.get("source") != baseline["source"]
             or artifact.get("acceptance_run_id") != public["acceptance_run_id"]
@@ -698,11 +855,12 @@ def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
         raise ValueError("Owned extra source cleanup proof is incomplete")
     if not _instant(public["timestamp"]) <= _instant(artifact.get("timestamp")) <= datetime.now(timezone.utc) + timedelta(seconds=5):
         raise ValueError("Source setup publication must follow its public collection")
+    _validate_source_setup_release_history(artifact, baseline, target, runtime)
     rows = numbered_observations(artifact, segment="source_setup", run_id=public["acceptance_run_id"],
                                  source=baseline["source"], identity=_identity(baseline))
     if (len(rows) != 1 or rows[0]["step"] != 9
             or rows[0]["continuity"] != {"profile_id": baseline["profile_id"]}
-            or rows[0]["status"] == "PASS" and artifact["result"] != "PASS"):
+            or rows[0]["status"] != artifact["result"]):
         raise ValueError("Source setup requires its exact same-profile numbered observation")
     return rows[0]
 
