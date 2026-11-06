@@ -1,5 +1,7 @@
 """Deterministic contract tests; fake time is never connected acceptance evidence."""
 import copy
+import hashlib
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
@@ -7,7 +9,7 @@ import unittest
 
 from cli import acceptance_monitoring as acceptance
 from cli import local_persistence_acceptance as persistence
-from cli.compose_recovery import _inventory_digest
+from cli.compose_recovery import _inventory_digest, RECOVERY_RESTART_SERVICES
 from services.company_discovery.monitoring import source_version
 
 
@@ -105,10 +107,25 @@ class AcceptanceMonitoringTests(unittest.TestCase):
     def prepare(self, **kwargs):
         return acceptance.prepare('http://127.0.0.1:18700', self.world.baseline, self.root/'prepared.json',
             acceptance_run_id='run1', **{**self.world.options(), **kwargs})
-    def restart(self, prepared, **kwargs):
-        recovery = dict(scope='CONTROLLED_RECOVERY_SEGMENT', result='PASS', source=self.world.binding, acceptance_run_id='run1',
-            recovery_artifact_sha256='e'*64, completed_at_utc=self.world.now().isoformat(),
+    def recovery(self):
+        target = dict(project_name='mjobs-fixture-012345abcdef', port=18700, profile='fixture',
+            services=list(RECOVERY_RESTART_SERVICES), project_directory=str(acceptance.ROOT),
+            compose_files=[str(acceptance.ROOT/'compose.yml')], compose_config_files_label=str(acceptance.ROOT/'compose.yml'))
+        health = {name: dict(status='running', health='healthy') for name in RECOVERY_RESTART_SERVICES}
+        raw = dict(result='PASS', timestamp=self.world.now().isoformat(), compose_target=target,
+            application_id='app1', external_submission_enabled=False,
+            actions=[dict(action='All services restarted; original application, operation and independent receipt survived without another submission', result='PASS')],
+            container_health=dict(before=health, after=health),
+            local_persistence=dict(result='PASS', domains=list(persistence.DOMAINS)),
+            public_job_inventory_recovery=dict(result='PASS', sha256=self.world.inventory['sha256']))
+        path = self.root/'compose-recovery.json'
+        path.write_bytes(json.dumps(raw).encode())
+        return dict(scope='CONTROLLED_RECOVERY_SEGMENT', result='PASS', source=self.world.binding, acceptance_run_id='run1',
+            recovery_artifact_path=str(path), recovery_artifact_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+            compose_target=target, completed_at_utc=raw['timestamp'],
             **{key: self.world.baseline[key] for key in ('profile_id','application_id','operation_id','request_id')})
+    def restart(self, prepared, **kwargs):
+        recovery = self.recovery()
         return acceptance.after_restart('http://127.0.0.1:18700', self.world.baseline, prepared, self.root/'restarted.json',
             acceptance_run_id='run1', **{**self.world.options(), 'recovery_evidence': recovery, **kwargs})
 
@@ -164,6 +181,59 @@ class AcceptanceMonitoringTests(unittest.TestCase):
         after = self.restart(prepared, recovery_evidence=None)
         self.assertEqual(after['observations'], [])
         self.assertEqual(after['stage_result'], 'PARTIAL')
+
+    def test_hash_only_recovery_receipt_cannot_receive_credit(self):
+        prepared = self.prepare()
+        receipt = self.recovery()
+        receipt.pop('recovery_artifact_path')
+        receipt['recovery_artifact_sha256'] = 'e'*64
+        with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, 'RECOVERY_ARTIFACT'):
+            self.restart(prepared, recovery_evidence=receipt)
+
+    def test_missing_or_changed_recovery_bytes_cannot_receive_credit(self):
+        for failure in ('missing', 'hash'):
+            with self.subTest(failure=failure):
+                receipt = self.recovery()
+                if failure == 'missing':
+                    receipt['recovery_artifact_path'] = str(self.root/'missing.json')
+                else:
+                    receipt['recovery_artifact_sha256'] = 'e'*64
+                with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, 'RECOVERY_ARTIFACT'):
+                    acceptance._validate_recovery_artifact(receipt, self.world.baseline, 'http://127.0.0.1:18700')
+
+    def test_changed_recovery_facts_refuse_even_with_matching_hash(self):
+        for field in ('result', 'timestamp', 'services', 'health', 'actions', 'target', 'application_id'):
+            with self.subTest(field=field):
+                receipt = self.recovery()
+                path = Path(receipt['recovery_artifact_path'])
+                raw = json.loads(path.read_bytes())
+                if field == 'services':
+                    raw['compose_target']['services'].remove('scheduler')
+                    receipt['compose_target'] = raw['compose_target']
+                elif field == 'health':
+                    raw['container_health']['after']['scheduler']['health'] = 'unhealthy'
+                elif field == 'actions':
+                    raw['actions'] = []
+                elif field == 'target':
+                    raw['compose_target']['port'] = 18701
+                    receipt['compose_target'] = raw['compose_target']
+                else:
+                    raw[field] = 'changed'
+                path.write_bytes(json.dumps(raw).encode())
+                receipt['recovery_artifact_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+                with self.assertRaises(acceptance.MonitoringAcceptanceError):
+                    acceptance._validate_recovery_artifact(receipt, self.world.baseline, 'http://127.0.0.1:18700')
+
+    def test_recovery_artifact_change_during_wait_withholds_observations(self):
+        prepared = self.prepare()
+        receipt = self.recovery()
+        original = self.world.sleep
+        def change(seconds):
+            original(seconds)
+            Path(receipt['recovery_artifact_path']).write_bytes(b'changed while waiting')
+        with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, 'RECOVERY_ARTIFACT_HASH_MISMATCH'):
+            self.restart(prepared, recovery_evidence=receipt, sleep=change)
+        self.assertNotIn('"status": "PASS"', (self.root/'restarted.json').read_text())
 
     def test_restart_operation_or_persistence_drift_cannot_receive_credit(self):
         prepared = self.prepare()

@@ -19,7 +19,8 @@ import httpx
 
 from cli import local_persistence_acceptance as persistence
 from cli.compose_recovery import (collect_public_job_inventory, validate_public_job_inventory,
-    validate_baseline, verify_recovered_application, compare_public_job_inventory)
+    validate_baseline, verify_recovered_application, compare_public_job_inventory,
+    RECOVERY_RESTART_SERVICES, validate_project_name)
 from services.company_discovery.monitoring import source_version
 
 
@@ -357,6 +358,51 @@ def prepare(base_url, baseline, evidence_path, *, acceptance_run_id, source_id=N
     return _run('prepare', base_url, baseline, evidence_path, acceptance_run_id, action, options)
 
 
+def _validate_recovery_artifact(receipt, baseline, base_url):
+    """Bind trusted coordinator metadata to bounded, preserved raw recovery bytes.
+
+    The legacy raw schema has only application identity; the coordinator binds
+    source/run/remaining identities. This checks its actual restart evidence,
+    not authenticity against a malicious local administrator.
+    """
+    path_value = receipt.get('recovery_artifact_path')
+    _require(isinstance(path_value, str) and Path(path_value).is_absolute(), 'MONITOR_RECOVERY_ARTIFACT_PATH_REQUIRED')
+    try:
+        with Path(path_value).open('rb') as stream:
+            payload = stream.read(8*1024*1024+1)
+        _require(len(payload) <= 8*1024*1024 and hashlib.sha256(payload).hexdigest() == receipt.get('recovery_artifact_sha256'),
+            'MONITOR_RECOVERY_ARTIFACT_HASH_MISMATCH')
+        raw = json.loads(payload)
+        _require(isinstance(raw, dict) and raw.get('result') == 'PASS'
+            and raw.get('external_submission_enabled') is False and raw.get('application_id') == baseline['application_id']
+            and raw.get('timestamp') == receipt.get('completed_at_utc'), 'MONITOR_RECOVERY_ARTIFACT_RESULT_INVALID')
+        # Future raw schemas may include the coordinator bindings directly.
+        for key in ('source', 'acceptance_run_id', *IDS):
+            if key in raw:
+                _require(raw[key] == receipt.get(key), 'MONITOR_RECOVERY_ARTIFACT_IDENTITY_CHANGED')
+        target = raw.get('compose_target')
+        _require(isinstance(target, dict) and target == receipt.get('compose_target')
+            and target.get('profile') == 'fixture' and type(target.get('port')) is int
+            and target['port'] == urlsplit(base_url).port
+            and target.get('services') == list(RECOVERY_RESTART_SERVICES), 'MONITOR_RECOVERY_ARTIFACT_TARGET_INVALID')
+        validate_project_name(target.get('project_name'))
+        health = {name: dict(status='running', health='healthy') for name in RECOVERY_RESTART_SERVICES}
+        _require(raw.get('container_health', {}).get('before') == health
+            and raw.get('container_health', {}).get('after') == health, 'MONITOR_RECOVERY_ARTIFACT_HEALTH_INVALID')
+        _require(any(row.get('action') == 'All services restarted; original application, operation and independent receipt survived without another submission'
+            and row.get('result') == 'PASS' for row in raw.get('actions', [])), 'MONITOR_RECOVERY_ARTIFACT_RESTART_MISSING')
+        domains = raw.get('local_persistence', {})
+        inventory = raw.get('public_job_inventory_recovery', {})
+        _require(domains.get('result') == 'PASS' and sorted(domains.get('domains', [])) == sorted(persistence.DOMAINS)
+            and inventory.get('result') == 'PASS' and inventory.get('sha256') == baseline['job_inventory']['sha256'],
+            'MONITOR_RECOVERY_ARTIFACT_PERSISTENCE_INVALID')
+        return raw
+    except MonitoringAcceptanceError:
+        raise
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        raise MonitoringAcceptanceError('MONITOR_RECOVERY_ARTIFACT_INVALID') from None
+
+
 def after_restart(base_url, baseline, preparation, evidence_path, *, acceptance_run_id, recovery_evidence=None, **options):
     def action(session, evidence):
         _require(preparation.get('stage') == 'prepare' and preparation.get('stage_result') == 'PASS'
@@ -370,6 +416,7 @@ def after_restart(base_url, baseline, preparation, evidence_path, *, acceptance_
                 and all(recovery_evidence.get(key) == baseline[key] for key in IDS)
                 and re.fullmatch('[a-f0-9]{64}', recovery_evidence.get('recovery_artifact_sha256', '')),
                 'MONITOR_RECOVERY_BINDING_CHANGED')
+            _validate_recovery_artifact(recovery_evidence, baseline, session.base_url)
             completed = _instant(recovery_evidence['completed_at_utc'])
             _require(_instant(preparation['timestamp']) <= completed <= session.now()
                 and completed < _instant(expected['next_due']), 'MONITOR_RECOVERY_WINDOW_MISSED')
@@ -390,6 +437,7 @@ def after_restart(base_url, baseline, preparation, evidence_path, *, acceptance_
                 source_id=context['source_id'], profile_id=baseline['profile_id'], operation_id=row['completed_operation_id']),
             stage_result='PASS' if recovery_evidence is not None else 'PARTIAL')
         if recovery_evidence is not None:
+            _validate_recovery_artifact(recovery_evidence, baseline, session.base_url)
             evidence['observations'] = [dict(step=step, status='PASS', evidence_kind='CONTROLLED_FIXTURE',
                 observable_result=('Scheduler admitted the persisted naturally due same-source task after the bound restart'
                     if step == 59 else 'Same-profile direct company monitoring completed once after restart; inventory and seven persistence domains remained stable'),
