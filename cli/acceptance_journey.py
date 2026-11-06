@@ -608,6 +608,9 @@ def validate_public_artifact(artifact, baseline, provider, run_id):
     if any(not isinstance(artifact.get(key), str) or not SAFE_ID.fullmatch(artifact[key])
            for key in ("collection_operation_id", "collection_request_id", "source_id")):
         raise ValueError("Public collection source and operation identity is missing")
+    if (not isinstance(artifact.get("source_policy_sha256"), str)
+            or re.fullmatch(r"[a-f0-9]{64}", artifact["source_policy_sha256"]) is None):
+        raise ValueError("Public collection source policy identity is missing")
     rows = numbered_observations(artifact, segment="public_source", run_id=run_id,
                                 source=baseline["source"], identity=_identity(baseline))
     if len(rows) != 1 or rows[0]["step"] != 11 or rows[0]["status"] != "PASS":
@@ -1335,7 +1338,10 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
                 checkpoint.binding["derived_baseline"] = {"artifact": derived_path.name, "sha256": derived_sha}
                 public_source_preflight("release", {"provider": public_source_provider,
                     "base_url": target["base_url"], "acceptance_run_id": run_id,
-                    "cleanup_status": public["cleanup"]["status"]})
+                    "cleanup_status": public["cleanup"]["status"],
+                    "newly_created": public["cleanup"]["status"] == "RESTORED_DISABLED",
+                    **{key: public[key] for key in ("collection_operation_id", "collection_request_id",
+                                                   "source_id", "source_policy_sha256")}})
             elif name == "monitor_prepare":
                 reference = copy.deepcopy(_baseline_reference(checkpoint.binding))
                 baseline = _read_reference(directory, reference)

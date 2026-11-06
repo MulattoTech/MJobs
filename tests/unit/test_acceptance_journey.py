@@ -422,6 +422,7 @@ def public_artifact():
     return {**IDENTITY, "timestamp": journey.utc_now(), "source": SOURCE,
             "acceptance_run_id": RUN_ID, "result": "PASS", "provider": "wwr",
             "collection_operation_id": "collection-op", "collection_request_id": "collection-request", "source_id": "public-source",
+            "source_policy_sha256": "7" * 64,
             "profile_version": 1,
             "execution_scope": "LIVE_PUBLIC_READ_ONLY", "external_submission_enabled": False,
             "observed_real_job_ids": ["real-job-1"], "selected_application_job_id": "mock-job-1",
@@ -1105,3 +1106,46 @@ def test_employer_discovery_rejects_unrelated_stage_or_job(change):
     if change == "application-scope": continuity["application_id"] = IDENTITY["application_id"]
     with pytest.raises(ValueError, match="identity|continuity"):
         journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+
+
+@pytest.mark.parametrize("cleanup_status", ["RESTORED_DISABLED", "NOT_REQUIRED"])
+def test_public_release_preserves_latched_live_callback_identity(tmp_path, cleanup_status):
+    latched = {}
+    events = []
+    fields = ("collection_operation_id", "collection_request_id", "source_id", "source_policy_sha256", "newly_created")
+    def containment(stage, context):
+        if stage == "poll":
+            latched.update({key: context[key] for key in fields})
+            return {"scheduler_contained": True}
+        assert stage == "release"
+        assert latched and {key: context.get(key) for key in fields} == latched
+        assert context["cleanup_status"] == cleanup_status
+        events.append("release")
+        return {"released": True, "scheduler_contained": False}
+    def public_run(url, original, path, **kwargs):
+        value = public_artifact()
+        value["cleanup"]["status"] = cleanup_status
+        # This is the exact post-POST callback context emitted by the LIVE
+        # helper's own HTTP transport, without injecting a request proxy.
+        assert "request" not in kwargs
+        kwargs["containment_preflight"]("poll", {
+            **{key: value[key] for key in fields[:-1]}, "newly_created": cleanup_status == "RESTORED_DISABLED"})
+        emit(path, value)
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public_run)), \
+            patch.object(journey, "recapture_public_baseline", side_effect=lambda original, *_: {
+                **original, "job_inventory": inventory(("mock-job-1", "real-job-1"))}), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.recovery, "run", side_effect=lambda _, path, *args: (events.append("recovery"), emit(path, recovered()))):
+        report = invoke(tmp_path, public_source_provider="wwr", public_source_preflight=containment)
+    assert events == ["release", "recovery"]
+    assert report["segments"]["public"]["status"] == "COMPLETE"
+
+
+@pytest.mark.parametrize("policy_hash", [None, "not-a-policy-hash"])
+def test_public_release_cannot_use_missing_or_malformed_policy_identity(policy_hash):
+    artifact = public_artifact()
+    artifact["source_policy_sha256"] = policy_hash
+    with pytest.raises(ValueError, match="policy identity"):
+        journey.validate_public_artifact(artifact, baseline(), "wwr", RUN_ID)
