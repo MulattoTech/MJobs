@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "037b8bdffb7a9a912fa899f6af5fbc67b1930e12",
+  "head_sha": "1977d6e44f4a21378b821fad1c291562042d8248",
   "routing_state": "EXECUTE",
-  "next_action": "Finish native ATS execution and fixture contracts; complete first-run/document UI assertions; run final exact-image connected acceptance including naturally scheduled monitoring after restart; publish and merge through all protected checks.",
+  "next_action": "Finish reviewed UI callsites and source-bound startup/public observation joins; freeze exact source; build fresh native-greenhouse image and run the connected PostgreSQL/Redis/RQ/Playwright journey, including natural monitoring after restart.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -39,14 +39,19 @@
       "result": "PASS",
       "tested_commit": "b53ccd5cd660c1db6535dd477a96eca0dfc44ba8",
       "observed": "30 tests and 25 subtests passed after reproducing real browser unsupported-timeout failure; independent local review 19 tests and 10 subtests passed. Cooperative deadline only."
+    },
+    {
+      "command": "python -m pytest tests/unit/test_acceptance_monitoring.py tests/unit/test_acceptance_journey.py -q",
+      "result": "PASS",
+      "tested_commit": "1977d6e44f4a21378b821fad1c291562042d8248",
+      "observed": "137 tests and 11 subtests passed in3.35s; structural/controlled test scope only; no numbered runtime acceptance credit"
     }
   ],
   "blockers": [
-    "Baseline UI onboarding is running on isolated full stack; final integrated exact-source journey remains NOT_RUN.",
-    "Native controlled GH/Lever executor and server routes remain under implementation.",
-    "First-run wizard and unique-letter connected proofs remain under implementation.",
-    "Natural scheduled monitor after final restart remains under implementation.",
-    "PR967 refreshed candidate3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674 awaiting independent review, publication and fresh protected checks; campaign protected CI/merge NOT_RUN."
+    "Final numbered connected journey on current integrated source remains NOT_RUN.",
+    "UI evidence callsites and strict publication verifier are completing independent review.",
+    "Fresh isolated native-greenhouse stack, live read-only source observation, and naturally scheduled post-restart monitoring remain NOT_RUN.",
+    "Campaign PR protected checks and merge remain NOT_RUN."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -100,6 +105,10 @@
     {
       "name": "r2d2_ledger",
       "role": "ledger/scoreboard verifier"
+    },
+    {
+      "name": "mace_applications_acceptance",
+      "role": "application steps36-53 producer and negative controls"
     }
   ],
   "exclusive_campaign_paths": [
@@ -110,7 +119,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T10:50:38Z",
+  "updated_at_utc": "2026-11-06T11:18:53.896437+00:00",
   "acceptance_note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -122,7 +131,49 @@
       "head": "358ee29",
       "integration_commit": "e1da21e0585cbd839d518c134949af9015067df3"
     },
-    "protected_main_merge": "NOT_RUN"
+    "protected_main_merge": {
+      "result": "MERGED",
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
+      "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+      "base_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+      "merged_commit": "fe7042676ffa0d1db530ce8b8eab80975a6e4be8",
+      "merged_at_utc": "2026-11-06T10:54:17Z",
+      "campaign_adoption_commit": "0f18b2498408db75612f52bee5015071e26d6b90",
+      "independent_local_review": "Leia approved exact unchanged PR-owned source and tests; GitHub COMMENT review 5798902110",
+      "unresolved_threads": 0,
+      "checks": [
+        {
+          "name": "CI / required",
+          "result": "SUCCESS",
+          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494796/job/127846183508"
+        },
+        {
+          "name": "Integration / PostgreSQL and Redis",
+          "result": "SUCCESS",
+          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494957/job/127852333569"
+        },
+        {
+          "name": "Disposable Compose / mock end-to-end",
+          "result": "SUCCESS",
+          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494772/job/127844283617"
+        },
+        {
+          "name": "Dependencies / introduced vulnerabilities",
+          "result": "SUCCESS",
+          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494703/job/127844282867"
+        },
+        {
+          "name": "Security / secret scan",
+          "result": "SUCCESS",
+          "head_commit": "3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674",
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42203494996/job/127844284596"
+        }
+      ]
+    }
   },
   "integrated_slices": [
     {
@@ -191,18 +242,54 @@
         "dfb7b391"
       ],
       "review": "Yoda and phase_ab approved exact source; runtime NOT_RUN"
+    },
+    {
+      "name": "explicit imported-fact rejection and first-run completion",
+      "commits": [
+        "6a1bb63f387ae280b6114358f8518995af11d5dd"
+      ],
+      "review": "Phase AB independently approved; root11tests6subtests PASS, connected PostgreSQL NOT_RUN"
+    },
+    {
+      "name": "native Greenhouse/Lever execution through existing mock application workflow",
+      "commits": [
+        "0317acc22a931c56d4c545be0ad128c87fdcb06e"
+      ],
+      "review": "Phase EF independently approved132tests, actual API/direct worker/browser; RQ NOT_RUN"
+    },
+    {
+      "name": "native adapter review identity in application history",
+      "commits": [
+        "747e858d9baea0c41c9183b795cecf7b637dcb2e"
+      ],
+      "review": "Phase AB independently approved34frontend tests; full frontend build PASS"
+    },
+    {
+      "name": "source-bound recovery and natural-monitor observations",
+      "commits": [
+        "a6017f49494e52ab4b8e07d531663c88ff12f41d",
+        "6cfc667bbf7aa42696a42df9d1b014d89980b155",
+        "0b745ea1bf5b8ddda7fdf1191bafe531114ea18c",
+        "770c2976c9e0359c111b26b7175cf92353564621",
+        "1977d6e44f4a21378b821fad1c291562042d8248"
+      ],
+      "review": "Yoda independently approved after raw-artifact and all-application-step lineage fixes"
     }
   ],
   "active_path_owners": {
     "services/applications/mock_adapter.py": "vader_ats_flow controlled native ATS executor",
     "services/applications/owned_ats_execution.py": "vader_ats_flow",
     "services/applications/owned_ats_fixture.py": "vader_ats_flow bounded transport correction",
-    "fixtures/mock_server.py": "r2d2_ledger native fixture endpoints and persisted receipts",
+    "fixtures/mock_server.py": "vader_ats_flow paired synthetic persona correction under phase CD review",
     "cli/ui_e2e.py": "rey_ui_observations",
     "cli/acceptance_journey.py": "luke_journey_runner",
     "cli/acceptance_monitoring.py": "han_recovery natural post-restart monitoring proof",
     "cli/acceptance_onboarding.py": "obiwan_employer actual first-run wizard",
-    "cli/acceptance_documents.py": "ahsoka_documents unique-letter proof"
+    "cli/acceptance_documents.py": "ahsoka_documents unique-letter proof",
+    "tools/verification/acceptance_ledger.py": "r2d2_ledger strict exact-source proof validation",
+    "cli/acceptance_public_browser.py": "ahsoka_documents live provenance and visible job join",
+    "cli/acceptance_containment.py": "chewbacca_runtime owned scheduler containment",
+    "cli/acceptance_applications.py": "mace_applications_acceptance numbered application proof producer"
   },
   "acceptance_ledger_sha256": "f7172df7d4eb32afc109a54833fd6ff4d0cfe04c2029ab63ed8dbe0f6638114a",
   "runtime": {
@@ -215,7 +302,7 @@
     "boundary": "Owned isolated synthetic resources; existing mjobs-micro preserved; no live provider or real submission"
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "Current scoped tests at 037b8bdffb7a9a912fa899f6af5fbc67b1930e12 are not evidence that the complete connected journey has run at this revision.",
+  "current_evidence_boundary": "Scoped tests at 1977d6e44f4a21378b821fad1c291562042d8248 do not establish the complete connected journey. Ledger remains0/60; requirement and issue remain PARTIAL/open.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
