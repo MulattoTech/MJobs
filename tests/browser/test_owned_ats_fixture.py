@@ -250,6 +250,18 @@ def upstream_fixture():
             elif self.path == "/slow":
                 time.sleep(0.3)
                 self.reply(200, FORWARDED_HTML)
+            elif self.path == "/oversized":
+                self.reply(200, "x" * 1_000_001)
+            elif self.path == "/chunked-oversized":
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html")
+                self.end_headers()
+                try:
+                    for _ in range(32):
+                        self.wfile.write(b"x" * 65536)
+                        self.wfile.flush()
+                except ConnectionError:
+                    pass
             else:
                 self.reply(404, "Not found")
 
@@ -381,7 +393,7 @@ def test_facade_rechecks_current_origin_before_forwarding_any_request(upstream_f
             browser.close()
 
 
-@pytest.mark.parametrize("scenario", ["wrong_origin", "wrong_path", "redirect", "external-redirect", "drop"])
+@pytest.mark.parametrize("scenario", ["wrong_origin", "wrong_path", "redirect", "external-redirect", "drop", "oversized", "chunked-oversized"])
 def test_facade_blocks_unowned_requests_redirects_and_does_not_retry(upstream_fixture, scenario):
     from services.applications.owned_ats_fixture import (
         freeze_forwarding,
@@ -389,7 +401,8 @@ def test_facade_blocks_unowned_requests_redirects_and_does_not_retry(upstream_fi
     )
     forwarding = forwarding_for_server(upstream_fixture)
     forwarding["routes"] = (*forwarding["routes"], ("GET", "/redirect"),
-                            ("GET", "/external-redirect"), ("GET", "/drop"))
+                            ("GET", "/external-redirect"), ("GET", "/drop"),
+                            ("GET", "/oversized"), ("GET", "/chunked-oversized"))
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         try:

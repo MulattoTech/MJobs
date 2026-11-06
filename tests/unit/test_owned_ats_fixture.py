@@ -326,3 +326,26 @@ def test_cancelled_facade_never_creates_browser_context():
 
     with pytest.raises(OperationCancelled):
         open_fixture_facade(object(), freeze_forwarding(**inputs), current=inputs, check=cancelled)
+
+
+def test_upstream_response_limit_stops_consuming_chunked_body_before_exhaustion():
+    from services.applications.owned_ats_fixture import (
+        OwnedATSFixtureError,
+        _read_response,
+    )
+
+    class ChunkedResponse:
+        def __init__(self):
+            self.consumed = 0
+            self.headers = {"content-type": "text/html"}
+
+        def iter_bytes(self, chunk_size):
+            assert chunk_size <= 65536
+            for _ in range(100):
+                self.consumed += 65536
+                yield b"x" * 65536
+
+    response = ChunkedResponse()
+    with pytest.raises(OwnedATSFixtureError, match="RESPONSE_INVALID"):
+        _read_response(response, lambda: None)
+    assert 1_000_000 < response.consumed <= 1_000_000 + 65536

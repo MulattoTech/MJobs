@@ -13,8 +13,11 @@ import ipaddress
 import json
 import os
 import re
+import time
 from dataclasses import asdict, dataclass
 from urllib.parse import urlsplit
+
+import httpx
 
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
 from services.applications.adapters.lever import LeverApplicationAdapter
@@ -447,6 +450,25 @@ def validate_forwarding(contract, **current):
     return actual
 
 
+def _read_response(response, check):
+    """Stop reading before retaining more than the fixture response limit."""
+    content_type = response.headers.get("content-type", "")
+    if (content_type.split(";", 1)[0] not in {"text/html", "application/json"}
+            or "set-cookie" in response.headers or "content-encoding" in response.headers):
+        _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
+    length = response.headers.get("content-length")
+    if length is not None and (not length.isascii() or not length.isdecimal() or int(length) > _MAX_BYTES):
+        _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
+    content = bytearray()
+    for chunk in response.iter_bytes(chunk_size=65536):
+        check()
+        if len(content) + len(chunk) > _MAX_BYTES:
+            _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
+        content.extend(chunk)
+    check()
+    return bytes(content), content_type
+
+
 class _OwnedFixtureFacade:
     """Owned browser transport; never creates a server receipt or retries a POST."""
 
@@ -514,7 +536,6 @@ class _OwnedFixtureFacade:
         socket.close(code=1008, reason="Owned fixture requests only")
 
     def _forward(self, route):
-        response = None
         try:
             self.assert_healthy()
             request = route.request
@@ -539,23 +560,28 @@ class _OwnedFixtureFacade:
             elif body:
                 _fail("OWNED_ATS_FORWARDING_BODY_INVALID")
             remaining = getattr(self._check, "remaining_seconds", None)
-            timeout = max(1, min(5000, int(remaining() * 1000))) if callable(remaining) else 5000
+            timeout = max(0.001, min(5, remaining())) if callable(remaining) else 5
+            expires = time.monotonic() + timeout
+
+            def bounded_check():
+                self.assert_healthy()
+                if time.monotonic() >= expires:
+                    _fail("OWNED_ATS_FORWARDING_UNAVAILABLE")
+
             self.assert_healthy()
             # Exact multipart bytes and content type are forwarded. No credentials,
             # host override, redirects or retry policy are inherited from the page.
-            response = route.fetch(url=destination, method=request.method, headers=headers,
-                                   post_data=body, max_redirects=0, max_retries=0, timeout=timeout)
+            headers["accept-encoding"] = "identity"
+            with httpx.Client(trust_env=False, follow_redirects=False, timeout=timeout,
+                              transport=httpx.HTTPTransport(retries=0)) as client, \
+                    client.stream(request.method, destination, headers=headers, content=body) as response:
+                bounded_check()
+                if str(response.url) != destination or 300 <= response.status_code < 400:
+                    _fail("OWNED_ATS_FORWARDING_REDIRECT_BLOCKED")
+                content, content_type = _read_response(response, bounded_check)
+                status = response.status_code
             self.assert_healthy()
-            if response.url != destination or 300 <= response.status < 400:
-                _fail("OWNED_ATS_FORWARDING_REDIRECT_BLOCKED")
-            content_type = response.headers.get("content-type", "")
-            if content_type.split(";", 1)[0] not in {"text/html", "application/json"}:
-                _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
-            content = response.body()
-            if len(content) > _MAX_BYTES or "set-cookie" in response.headers:
-                _fail("OWNED_ATS_FORWARDING_RESPONSE_INVALID")
-            self.assert_healthy()
-            route.fulfill(status=response.status, body=content, headers={
+            route.fulfill(status=status, body=content, headers={
                 "content-type": content_type,
                 "Content-Security-Policy": "default-src 'none'; form-action 'self'; base-uri 'none'; frame-src 'none'",
             })
@@ -568,9 +594,6 @@ class _OwnedFixtureFacade:
         except Exception:  # noqa: BLE001 - Never expose upstream/browser payloads in errors.
             self._error = self._error or "OWNED_ATS_FORWARDING_UNAVAILABLE"
             route.abort()
-        finally:
-            if response is not None:
-                response.dispose()
 
 
 def open_fixture_facade(browser, contract, *, current, check=None):
