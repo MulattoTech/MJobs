@@ -21,10 +21,18 @@ from tests.integration import test_document_generation_audit as fixture
 
 
 class ResumeOutcomeObservationTests(unittest.TestCase):
-    _new_store = fixture.DocumentGenerationAuditTests._new_store
     setUp = fixture.DocumentGenerationAuditTests.setUp
     _client = fixture.DocumentGenerationAuditTests._client
     tearDown = fixture.DocumentGenerationAuditTests.tearDown
+
+    def _new_store(self):
+        """Exercise the deployed migration path, not metadata.create_all."""
+        self.database_url = f"sqlite:///{(self.root / 'history.db').as_posix()}"
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", self.database_url.replace("%", "%%"))
+        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": self.database_url}):
+            command.upgrade(config, "head")
+        return Store(self.database_url)
 
     def resume_document(self):
         with self.store.engine.connect() as connection:
@@ -143,6 +151,79 @@ class ResumeOutcomeObservationTests(unittest.TestCase):
         self.assertEqual(early["versions"][0]["unknown"]["response"], 1)
         self.assertEqual(analyze_resume_outcomes(self.store, "fixture",
                          "2026-11-02T00:00:00+00:00")["sample_size"], 0)
+
+    def test_api_binding_event_and_windowed_readback_are_observational(self):
+        state_before = self.store.application(self.application_id)["state"]
+        base = f"/profiles/fixture/applications/{self.application_id}/resume-outcomes"
+        binding = {"document_id": self.resume_document()["id"],
+                   "reported_at": "2026-11-01T10:00:00+00:00", "request_id": "binding-api"}
+        created = self.client.post(base + "/binding", json=binding)
+        self.assertEqual(created.status_code, 200, created.text)
+        self.assertEqual(created.json()["document_id"], binding["document_id"])
+        self.assertEqual(created.json()["attribution"], "USER_REPORTED")
+        self.assertEqual(self.client.post(base + "/binding", json=binding).json(), created.json())
+
+        event = {"kind": "RESPONSE", "observed_at": "2026-11-02T10:00:00+00:00",
+                 "request_id": "response-api"}
+        observed = self.client.post(base + "/events", json=event)
+        self.assertEqual(observed.status_code, 200, observed.text)
+        self.assertEqual(observed.json()["kind"], "RESPONSE")
+        self.assertEqual(self.client.post(base + "/events", json=event).json(), observed.json())
+        self.assertEqual(self.client.post(base + "/events", json={
+            **event, "kind": "SCREEN",
+        }).status_code, 409)
+        result = self.client.get("/profiles/fixture/resume-outcomes", params={
+            "since": "2026-11-01T00:00:00+00:00",
+            "until": "2026-11-03T00:00:00+00:00",
+        })
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual(result.json()["sample_size"], 1)
+        self.assertEqual(result.json()["totals"]["counts"]["response"], 1)
+        self.assertEqual(result.json()["totals"]["unknown"]["interview"], 1)
+        self.assertEqual(result.json()["interpretation"], "OBSERVATIONAL")
+        self.assertEqual(self.store.application(self.application_id)["state"], state_before)
+
+    def test_api_rejects_foreign_invalid_and_conflicting_observations(self):
+        base = f"/profiles/fixture/applications/{self.application_id}/resume-outcomes"
+        binding = {"document_id": self.resume_document()["id"],
+                   "reported_at": "2026-11-01T10:00:00+00:00", "request_id": "binding-api"}
+        before_binding = self.client.post(base + "/events", json={
+            "kind": "RESPONSE", "observed_at": "2026-11-02T10:00:00+00:00",
+            "request_id": "too-early",
+        })
+        self.assertEqual(before_binding.status_code, 404)
+        foreign = self.client.post(base.replace("/fixture/", "/other/", 1) + "/binding",
+                                   json=binding)
+        self.assertEqual(foreign.status_code, 404)
+        with self.store.engine.connect() as connection:
+            cover_letter = connection.execute(select(m.documents.c.id).where(
+                m.documents.c.application_id == self.application_id,
+                m.documents.c.kind == "cover-letter",
+            )).scalar_one()
+        invalid_document = self.client.post(base + "/binding", json={
+            **binding, "document_id": cover_letter,
+        })
+        self.assertEqual(invalid_document.status_code, 422)
+        self.assertEqual(self.client.post(base + "/binding", json=binding).status_code, 200)
+        conflict = self.client.post(base + "/binding", json={
+            **binding, "reported_at": "2026-11-01T11:00:00+00:00",
+        })
+        self.assertEqual(conflict.status_code, 409)
+        invalid_kind = self.client.post(base + "/events", json={
+            "kind": "PROVIDER_CONFIRMED", "observed_at": "2026-11-02T10:00:00+00:00",
+            "request_id": "invalid-kind",
+        })
+        self.assertEqual(invalid_kind.status_code, 422)
+        invalid_time = self.client.get("/profiles/fixture/resume-outcomes",
+                                       params={"since": "2026-11-01T00:00:00"})
+        self.assertEqual(invalid_time.status_code, 422)
+        invalid_request = self.client.post(base + "/events", json={
+            "kind": "SCREEN", "observed_at": "2026-11-02T10:00:00+00:00",
+            "request_id": " padded ",
+        })
+        self.assertEqual(invalid_request.status_code, 422)
+        self.assertEqual(self.client.get("/profiles/other/resume-outcomes").json()["sample_size"], 0)
+        self.assertEqual(self.client.get("/profiles/fixture/resume-outcomes").json()["sample_size"], 1)
 
 
 class ResumeOutcomeMigrationTests(unittest.TestCase):

@@ -110,7 +110,6 @@ class Store:
             raise ValueError("Use alembic upgrade head for PostgreSQL")
         # Register tables declared outside models.py before creating the shared metadata.
         from packages.persistence import resume_workspace  # noqa: F401
-        from packages.persistence import resume_outcomes  # noqa: F401
 
         m.metadata.create_all(self.engine)
 
