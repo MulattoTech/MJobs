@@ -364,6 +364,13 @@ def test_source_setup_wrapper_receives_validated_runtime_and_same_mock_baseline(
 
 
 def test_normal_launch_forwards_resume_stop_and_explicit_monitoring(tmp_path, monkeypatch, capsys):
+    # run_campaign intentionally prepares process environment for the connected
+    # journey. This unit test calls it in-process, so isolate and restore those
+    # CLI-only settings before later Compose tests inspect the checkout.
+    for name in (
+            "COMPOSE_FILE", "COMPOSE_PROFILES", "COMPOSE_PROJECT_NAME", "MJOBS_PORT",
+            "MJOBS_OPERATION_MODE", "MJOBS_COMPOSE_MOCK", "MJOBS_IMAGE"):
+        monkeypatch.setenv(name, "")
     startup, build, startup_path, build_path = _receipt_files(tmp_path)
     journey = FakeJourney(startup, build)
     monkeypatch.setattr(campaign, "ROOT", tmp_path)
