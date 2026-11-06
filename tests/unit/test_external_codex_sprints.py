@@ -37,14 +37,13 @@ def activity_fixture(tmp_path):
     return repo, linked, sessions
 
 
-def write_rollout(session_root, day, name, events, *, modified=None):
+def write_rollout(session_root, day, name, events, *, modified):
     directory = session_root / day.strftime("%Y/%m/%d")
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / name
     path.write_text("\n".join(json.dumps(item) for item in events) + "\n", encoding="utf8")
-    if modified is not None:
-        import os
-        os.utime(path, (modified.timestamp(), modified.timestamp()))
+    import os
+    os.utime(path, (modified.timestamp(), modified.timestamp()))
     return path
 
 
@@ -180,7 +179,7 @@ def test_recent_linked_worktree_activity_supersedes_historical_checkpoint(activi
         rollout_event("response_item", {"type": "message", "content": "private message body"}),
         rollout_event("event_msg", {"type": "token_count", "info": {
             "total_token_usage": {"input_tokens": 120, "output_tokens": 9}}}),
-    ])
+    ], modified=now)
     result = current_activity(repo, session_root=sessions, processes=[], now=now)
     assert result["available"] and result["read_only"]
     assert result["observation"] == "RECENT_ACTIVITY"
@@ -200,7 +199,7 @@ def test_recent_log_activity_does_not_claim_running_without_process_evidence(act
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "new", "cwd": str(linked)}),
         rollout_event("turn_context", {"cwd": str(linked)}, "2026-11-06T17:59:00Z"),
-    ])
+    ], modified=now)
     result = current_activity(repo, session_root=sessions, processes=[], now=now)
     assert result["observation"] == "RECENT_ACTIVITY"
 
@@ -265,7 +264,7 @@ def test_unrelated_recent_repository_session_is_excluded(activity_fixture, tmp_p
     write_rollout(sessions, now.date(), "rollout-other.jsonl", [
         rollout_event("session_meta", {"id": "other", "cwd": str(unrelated)}),
         rollout_event("turn_context", {"cwd": str(unrelated)}, "2026-11-06T17:59:00Z"),
-    ])
+    ], modified=now)
     result = current_activity(repo, session_root=sessions, processes=[], now=now)
     assert result["observation"] == "NO_RECENT_ACTIVITY"
     assert result["sessions"] == []
@@ -278,7 +277,7 @@ def test_status_count_is_not_limited_by_changed_files_preview(activity_fixture):
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "active", "cwd": str(linked)}),
         rollout_event("turn_context", {"cwd": str(linked)}, "2026-11-06T17:59:00Z"),
-    ])
+    ], modified=now)
     for index in range(105):
         (linked / f"changed-{index:03}.txt").write_text("changed\n", encoding="utf8")
     result = current_activity(repo, session_root=sessions, processes=[], now=now)
@@ -321,7 +320,7 @@ def test_git_status_failure_makes_changed_count_unknown(activity_fixture, monkey
     now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "active", "cwd": str(linked)}),
-    ])
+    ], modified=now)
     import tools.agent_dashboard.external_sprints as observer
     original_git = observer._git
 
@@ -362,7 +361,7 @@ def test_observer_does_not_write_to_repo_or_session_logs(activity_fixture):
     now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     rollout = write_rollout(sessions, now.date(), "rollout-readonly.jsonl", [
         rollout_event("session_meta", {"id": "new", "cwd": str(linked)}),
-    ])
+    ], modified=now)
     before = {str(path): path.read_bytes() for path in [rollout, repo / "README.md"]}
     current_activity(repo, session_root=sessions, processes=[], now=now)
     assert {path: Path(path).read_bytes() for path in before} == before
@@ -412,3 +411,15 @@ def test_mission_control_endpoint_reports_only_readonly_observer(fixture, monkey
         )
         assert blocked.status_code == 409
         assert "already running" in blocked.text
+
+
+@pytest.mark.parametrize("seconds_ahead, expected", [(300, "RECENT_ACTIVITY"), (301, "NO_RECENT_ACTIVITY")])
+def test_future_log_mtime_is_bounded(activity_fixture, seconds_ahead, expected):
+    repo, linked, sessions = activity_fixture
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
+    write_rollout(sessions, now.date(), "rollout-future.jsonl", [
+        rollout_event("session_meta", {"id": "future", "cwd": str(linked)}),
+    ], modified=now + timedelta(seconds=seconds_ahead))
+    result = current_activity(repo, session_root=sessions, processes=[], now=now)
+    assert result["observation"] == expected
+    assert bool(result["sessions"]) == (seconds_ahead == 300)

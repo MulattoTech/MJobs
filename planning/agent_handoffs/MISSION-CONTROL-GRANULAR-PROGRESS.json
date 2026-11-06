@@ -2,7 +2,7 @@
   "schema_version": 1,
   "task_id": "MISSION-CONTROL-GRANULAR-PROGRESS",
   "owner": "Codex fork 01a1b1ef",
-  "updated_at_utc": "2026-11-06T19:31:55.621598+00:00",
+  "updated_at_utc": "2026-11-06T19:45:41.171047+00:00",
   "routing_state": "VERIFY",
   "objective": "Preserve overall acceptance; expand P0 to readable requirement rows, then MJ-REQ-292 to six phases and 60 evidence-backed steps on local and protected web Mission Control.",
   "approved_design": "User explicitly rejected campaign-first. Use progressive disclosure within existing priority hierarchy, compact verified/partial/not-run counts, evidence, blocker, source and freshness. Never fractional PASS.",
@@ -14,7 +14,7 @@
     "leia_dashboard_truth": "remote publisher/UI path inspection",
     "yoda_layout_review": "source contract and independent review"
   },
-  "next_action": "Publish reviewed dashboard source via bounded PR and protected checks; finish remote publisher proof; install exact reviewed source preserving freshness work and live feeds, verify local and protected web origins.",
+  "next_action": "Publish deterministic test-clock correction to PR974; integrate under campaign owner after exact protected checks; deploy narrow preserved local/web assets and verify installed hierarchy.",
   "deployment": {
     "local": "http://127.0.0.1:18729/",
     "web": "https://m-techlabs.com/mission-control/",
@@ -23,8 +23,8 @@
   },
   "observed_campaign_scoreboard": {
     "verified_pass": 0,
-    "partial": 39,
-    "not_run": 21,
+    "partial": 50,
+    "not_run": 10,
     "total": 60,
     "source": "campaign ledger read 2026-11-06; display must read live data, never this copied checkpoint count"
   },
@@ -35,15 +35,15 @@
     "Live deployments and authenticated web verification remain unperformed"
   ],
   "branch": "codex/dashboard-current-first-20261106",
-  "head_sha": "ae7268a0ebe9e8bf68fb4093550e5179eb9645d3",
+  "head_sha": "7656b89be082d786e2569fbe6443922fd59c5655",
   "created_at": "2026-11-06T18:47:36.276447+00:00",
-  "updated_at": "2026-11-06T19:31:55.621598+00:00",
+  "updated_at": "2026-11-06T19:45:41.171047+00:00",
   "requirements": [
     "MJ-REQ-292"
   ],
   "blockers": [
-    "Protected publication, merge, and installed runtime activation are not yet complete",
-    "Final remote semantic-phase-label projection/readability followup pending"
+    "MJobs protected checks on fixture correction and serialized integration pending",
+    "Installed local and web activation pending"
   ],
   "tests": [
     {
@@ -81,5 +81,13 @@
       "observed": "Catalogue and journal valid, dashboard CURRENT, diff clean"
     }
   ],
-  "preserved_freshness_source": "Existing ac52f19e,8d1ff2de,259bb96e,6ba37176 integrated preserving original authorship and installed behaviors; independent semantic comparison passed."
+  "preserved_freshness_source": "Existing ac52f19e,8d1ff2de,259bb96e,6ba37176 integrated preserving original authorship and installed behaviors; independent semantic comparison passed.",
+  "publication": {
+    "mjobs_pr": "https://github.com/MulattoTech/MJobs/pull/974",
+    "fleet_pr": "https://github.com/MulattoTech/Fleet-Control-Hub/pull/30",
+    "fleet_merged_revision": "3a7c9316e842e0cacd87d6083afc4295f19e949e",
+    "local_review": "Local Luna approval7656b89b; remote2d3a661 scoped approval",
+    "ci": "MJobs7656:4freshness fixture failures;3919passed54skipped4578subtests. Reproduced locally4failed16passed; fixed fixture mtimes and added300/301second future guard boundary;22passed11.86s. Production observer unchanged. Fleetcontrollers CI PASS1m37s."
+  },
+  "head_sha_scope": "Reviewed production source before this fixture-and-checkpoint-only commit"
 }
