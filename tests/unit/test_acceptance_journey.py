@@ -842,6 +842,18 @@ def test_imported_v4_bound_recovery_rechecks_raw_snapshot_binding(tmp_path):
         journey._validate_bound_recovery(bound, state, tmp_path)
 
 
+@pytest.mark.parametrize("version", [3, 4])
+@pytest.mark.parametrize("field", ["job_count", "source_copy_count"])
+def test_recovery_inventory_receipt_rejects_boolean_counts(version, field):
+    state = baseline()
+    if version == 4:
+        state["job_inventory"] = complete_inventory(1)
+    summary = journey.recovery.compare_public_job_inventory(state, state["job_inventory"], state["job_inventory"])
+    summary[field] = bool(summary[field])
+    with pytest.raises(ValueError, match="inventory receipt"):
+        journey._validate_recovery_inventory_receipt(summary, state)
+
+
 def test_legacy_recovery_overall_pass_does_not_fabricate_54_to_58(tmp_path):
     with patch.object(journey, "observe_recovery_readbacks") as observe:
         bound = bind_test_recovery(tmp_path, baseline(), recovered(), RUNTIME, RUNTIME)

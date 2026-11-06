@@ -989,7 +989,7 @@ def _validate_recovery_inventory_receipt(summary, baseline):
     keys = ("profile_id", "sha256", "job_count", "source_copy_count")
     if expected["schema_version"] == 4:
         keys += ("schema_version", "profile_version", "snapshot_sha256")
-    if any(summary.get(key) != expected[key] for key in keys):
+    if any(type(summary.get(key)) is not type(expected[key]) or summary[key] != expected[key] for key in keys):
         raise ValueError("Recovery inventory receipt differs from its exact baseline")
 
 
