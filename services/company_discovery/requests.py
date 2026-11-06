@@ -304,11 +304,14 @@ def _parent_collection_binding(connection, request, source_id, parent_operation_
             or (params.get('profile_version') is not None
                 and params.get('profile_version') != request['profile_version'])):
         return None
-    if staging:
-        if (operation['state'] != 'RUNNING' or operation['cancel_requested']
-                or not operation['lease_expires_at'] or operation['lease_expires_at'] <= now()):
+    if operation['cancel_requested']:
+        return None
+    if operation['state'] == 'RUNNING':
+        if not operation['lease_expires_at'] or operation['lease_expires_at'] <= now():
             return None
-    elif operation['state'] not in {'RUNNING', 'COMPLETED'}:
+    elif operation['state'] != 'COMPLETED':
+        return None
+    if staging and operation['state'] != 'RUNNING':
         return None
     return {'parent_operation_id': parent_operation_id,
             'parent_operation_attempt': parent_operation_attempt}
@@ -319,8 +322,7 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
                                   validate_parent_staging=False):
     """Bind a generated, non-authoritative pointer to current persisted intake."""
     from services.company_discovery.aggregator_bootstrap import (
-        AGGREGATORS, canonical_digest, extract_bootstrap_hint,
-        normalized_projection, source_policy_projection,
+        AGGREGATORS, canonical_digest, normalized_projection, source_policy_projection,
     )
 
     fields = {'schema', 'version', 'provider', 'listing_url', 'selected_requisition',
@@ -375,7 +377,6 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
             or hint['raw_sha256'] != raw_join['snapshot_sha256']
             or hint['normalized_sha256'] != canonical_digest(projection)
             or hint['selected_requisition'] != projection['requisition']
-            or extract_bootstrap_hint(raw, normalized) != hint
             or raw_join['job_attributes'].get('fictional')
             or not quality['succeeded'] or not quality['available']
             or quality['configured_source_id'] != source['collector_source_id']

@@ -122,6 +122,18 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             self.assertEqual(staged['binding']['parent_operation_id'], parent_id)
             self.assertEqual(staged['binding']['parent_operation_attempt'], 1)
             connection.execute(update(m.operations).where(m.operations.c.id == parent_id).values(
+                cancel_requested=True))
+            self.assertIsNone(_aggregator_bootstrap_pending(connection, request, hint, fixture=True,
+                target_revision=request['revision'], parent_operation_id=parent_id,
+                parent_operation_attempt=1))
+            connection.execute(update(m.operations).where(m.operations.c.id == parent_id).values(
+                cancel_requested=False, lease_expires_at='2000-01-01T00:00:00+00:00'))
+            self.assertIsNone(_aggregator_bootstrap_pending(connection, request, hint, fixture=True,
+                target_revision=request['revision'], parent_operation_id=parent_id,
+                parent_operation_attempt=1))
+            connection.execute(update(m.operations).where(m.operations.c.id == parent_id).values(
+                lease_expires_at='2099-01-01T00:00:00+00:00'))
+            connection.execute(update(m.operations).where(m.operations.c.id == parent_id).values(
                 state='COMPLETED'))
             after_completion = _aggregator_bootstrap_pending(connection, request, hint, fixture=True,
                 target_revision=request['revision'], parent_operation_id=parent_id,
@@ -162,6 +174,20 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.assertEqual(authorized['authorization'], 'AGGREGATOR_BOOTSTRAP_PENDING')
         self.assertEqual(authorized['aggregator_bootstrap_pending']['binding']['parent_operation_id'],
             lineage['parent_operation_id'])
+
+    def test_collection_parses_untrusted_hint_once_before_admission(self):
+        from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
+        from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
+
+        case = AggregatorBootstrapCollectionTests()
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(case.tearDown)
+        with patch('services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint',
+                   wraps=extract_bootstrap_hint) as extract:
+            case.collect()
+        self.assertEqual(extract.call_count, 1,
+            'expensive source markup parsing must happen once before transactional admission')
 
     def _public_request(self, url, _deadline):
         self.network.append(url)
