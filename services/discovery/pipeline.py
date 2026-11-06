@@ -38,7 +38,7 @@ class MockClient:
     bounded_redirects = True
     fixture_only = True
 
-    def __init__(self, origin, check=None):
+    def __init__(self, origin, check=None, *, allow_redirects=True):
         parsed = urlsplit(origin)
         allowed_hosts = ("127.0.0.1", "localhost") + (("mock",) if os.environ.get("MJOBS_COMPOSE_MOCK") == "1" else ())
         if (parsed.scheme != "http" or parsed.hostname not in allowed_hosts
@@ -46,6 +46,7 @@ class MockClient:
             raise ValueError("Mock origin must be an explicit local fixture server")
         self.origin = origin.rstrip("/")
         self.check = check or (lambda: None)
+        self.allow_redirects = allow_redirects
         # Own connect/read sockets before a response exists so the worker check
         # also bounds DNS, pending connects, and response headers.
         self.client = httpx.Client(transport=SourceTransport(self.check), timeout=10,
@@ -92,6 +93,8 @@ class MockClient:
                 with self.client.stream("GET", url) as response:
                     active_response.append(response)
                     if response.is_redirect:
+                        if not self.allow_redirects:
+                            raise ValueError("FIXTURE_DIRECT_ENDPOINT_REDIRECT_BLOCKED")
                         redirect = urljoin(url, response.headers["location"])
                     else:
                         response.raise_for_status()
@@ -169,7 +172,8 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
     step, so a stopped batch can be retried against already discovered sources.
     """
     profile = store.profile(profile_id, profile_version)
-    client = MockClient(mock_origin, check=check)
+    client_options = {"allow_redirects": False} if company_source is not None else {}
+    client = MockClient(mock_origin, check=check, **client_options)
     try:
         if company_source is not None:
             # A reviewed direct refresh reads this employer endpoint only. It

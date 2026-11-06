@@ -7,12 +7,13 @@ from unittest.mock import patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fastapi.responses import RedirectResponse
 import httpx
 from sqlalchemy import select, update
 
 from apps.api.fixture_company_monitoring import create_fixture_company_monitoring_router
 from cli.compose_recovery import collect_public_job_inventory
-from fixtures.mock_server import fixture_server
+from fixtures.mock_server import fixture_server, create_mock_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.company_discovery import fixture_monitoring as monitor
@@ -32,8 +33,20 @@ class FixtureCompanyMonitoringTests(unittest.TestCase):
         self.store.save_profile(PROFILE)
         save_search_profile(self.store, dict(id='reviewed', profile_id='fixture', name='Reviewed',
             enabled=True, source_ids=[], scheduler={'enabled': False, 'interval_seconds': 300}))
-        self.server = fixture_server()
-        self.origin = self.server.__enter__()
+        self.requested_paths = []
+        self.redirect_direct = False
+        def observed_app(*args, **kwargs):
+            app = create_mock_app(*args, **kwargs)
+            @app.middleware('http')
+            async def record_request(request, call_next):
+                self.requested_paths.append(request.url.path)
+                if self.redirect_direct and request.url.path == '/ats/example/jobs':
+                    return RedirectResponse('/board/jobs', status_code=302)
+                return await call_next(request)
+            return app
+        with patch('fixtures.mock_server.create_mock_app', side_effect=observed_app):
+            self.server = fixture_server()
+            self.origin = self.server.__enter__()
         discover(self.store, self.origin, 'fixture')
         with self.store.engine.connect() as connection:
             self.source = dict(connection.execute(select(m.company_sources)).mappings().one())
@@ -122,6 +135,18 @@ class FixtureCompanyMonitoringTests(unittest.TestCase):
         state = monitor.read_fixture_monitoring(self.store, self.origin, 'fixture', self.source['id'])
         self.assertIsNotNone(state['last_attempt'])
         self.assertIsNone(state['completed_operation_id'])
+        with self.store.engine.connect() as connection:
+            self.assertFalse(monitor.fixture_refresh_saved(connection, operation))
+
+    def test_direct_endpoint_redirect_never_requests_aggregator(self):
+        operation = self.queued()
+        before = self.store.jobs('fixture')
+        self.requested_paths.clear()
+        self.redirect_direct = True
+        with self.assertRaises(ValueError):
+            monitor.refresh_fixture_source(self.store, self.origin, operation)
+        self.assertEqual(self.requested_paths, ['/ats/example/jobs'])
+        self.assertEqual(self.store.jobs('fixture'), before)
         with self.store.engine.connect() as connection:
             self.assertFalse(monitor.fixture_refresh_saved(connection, operation))
 
