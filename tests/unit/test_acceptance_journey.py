@@ -1,5 +1,6 @@
 """Failure controls for the connected journey coordinator; no browser or Docker."""
 import copy
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -277,6 +278,8 @@ def test_preflight_rejects_stale_container_source_before_ui(tmp_path):
     targets = {name: {"container_id": name} for name in journey.recovery.RECOVERY_RESTART_SERVICES}
 
     def command(args, **kwargs):
+        if kwargs["action"] == "Inspect journey service start":
+            return "2000-01-01T00:00:00+00:00"
         if kwargs["action"] == "Inspect journey fixture mode":
             return "MJOBS_OPERATION_MODE=FIXTURE\nMJOBS_COMPOSE_MOCK=1\n"
         return json.dumps("sha256:" + "e" * 64) if args[1] == "inspect" else json.dumps({"cli/ui_e2e.py": "b" * 64})
@@ -296,6 +299,8 @@ def test_preflight_refuses_personal_worker_even_with_matching_source():
     targets = {name: {"container_id": name} for name in journey.recovery.RECOVERY_RESTART_SERVICES}
 
     def command(args, **kwargs):
+        if kwargs["action"] == "Inspect journey service start":
+            return "2000-01-01T00:00:00+00:00"
         if kwargs["action"] == "Inspect journey fixture mode":
             return ""
         return json.dumps("sha256:" + "e" * 64) if args[1] == "inspect" else json.dumps(source_hashes)
@@ -332,7 +337,7 @@ def test_unregistered_step_or_wrong_check_cannot_earn_observed_pass():
         if step == 36:
             artifact["acceptance_observations"][0]["continuity"]["job_id"] = "mock-job-1"
         with pytest.raises(ValueError, match="registered"):
-            journey.numbered_observations(artifact, segment="recovery" if step >= 54 else "ui",
+            journey.numbered_observations(artifact, segment="monitor_after" if step >= 59 else "ui",
                                           run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
 
 
@@ -459,7 +464,8 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
         report = invoke(tmp_path, public_source_provider="wwr",
                         public_source_preflight=lambda stage, context: events.append(stage))
     assert events == ["public", "release", "recovery"]
-    assert report["steps"][10]["status"] == "PASS"
+    assert report["steps"][10]["status"] == "PARTIAL"
+    assert report["steps"][10]["credit_withheld"] == "PUBLIC_BROWSER_NOT_OBSERVED"
     assert report["steps"][10]["observation"]["evidence_kind"] == "PUBLIC_READ_ONLY"
     assert report["selected_application_job_id"] == "mock-job-1"
     assert report["observed_real_job_ids"] == ["real-job-1"]
@@ -621,3 +627,299 @@ def test_report_keeps_browsed_job_scope_separate_from_selected_application_scope
     assert report["steps"][17]["verification"]["continuity"]["job_id"] == "browse-job-1"
     assert report["steps"][32]["verification"]["continuity"]["job_id"] == "mock-job-1"
     assert report["steps"][32]["verification"]["continuity"]["document_ids"] == ["resume-1", "letter-1"]
+
+
+def complete_recovery_payload():
+    value = recovered()
+    value["compose_target"]["services"] = list(journey.recovery.RECOVERY_RESTART_SERVICES)
+    health = {name: {"status": "running", "health": "healthy"} for name in journey.recovery.RECOVERY_RESTART_SERVICES}
+    value["container_health"] = {"before": health, "after": copy.deepcopy(health)}
+    value["local_persistence"] = {"result": "PASS", "domains": list(journey.persistence.DOMAINS)}
+    value["public_job_inventory_recovery"] = {"result": "PASS", **{
+        key: inventory()[key] for key in ("profile_id", "job_count", "source_copy_count", "sha256")}}
+    return value
+
+
+def recovery_runtime(started):
+    return {**RUNTIME, "service_started_at": {name: started for name in journey.recovery.RECOVERY_RESTART_SERVICES}}
+
+
+def test_recovery_credit_requires_real_restart_markers_and_specific_readbacks(tmp_path):
+    raw = complete_recovery_payload()
+    before = recovery_runtime("2000-01-01T00:00:00+00:00")
+    after = recovery_runtime("2001-01-01T00:00:00+00:00")
+    state = baseline()
+    with patch.object(journey, "observe_recovery_readbacks", return_value={
+            "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"],
+            "application_recovered": True}):
+        bound = bind_test_recovery(tmp_path, state, raw, before, after)
+    assert bound["recovery_artifact_sha256"] == hashlib.sha256((tmp_path / "compose-recovery.json").read_bytes()).hexdigest()
+    assert bound["completed_at_utc"] == raw["timestamp"]
+    assert bound["source"] == SOURCE
+    assert all(bound[key] == IDENTITY[key] for key in IDENTITY)
+    assert {row["step"] for row in bound["acceptance_observations"] if row["status"] == "PASS"} == set(range(54, 59))
+
+
+def test_legacy_recovery_overall_pass_does_not_fabricate_54_to_58(tmp_path):
+    with patch.object(journey, "observe_recovery_readbacks") as observe:
+        bound = bind_test_recovery(tmp_path, baseline(), recovered(), RUNTIME, RUNTIME)
+    observe.assert_not_called()
+    assert {row["status"] for row in bound["acceptance_observations"]} == {"NOT_RUN"}
+
+
+def test_step55_nested_not_run_is_not_promoted_by_persistence_pass(tmp_path):
+    raw = complete_recovery_payload()
+    raw["public_job_inventory_recovery"] = {"result": "NOT_RUN"}
+    state = baseline()
+    with patch.object(journey, "observe_recovery_readbacks", return_value={
+            "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"],
+            "application_recovered": True}):
+        bound = bind_test_recovery(tmp_path, state, raw,
+            recovery_runtime("2000-01-01T00:00:00+00:00"), recovery_runtime("2001-01-01T00:00:00+00:00"))
+    by_step = {row["step"]: row for row in bound["acceptance_observations"]}
+    assert by_step[55]["status"] == "NOT_RUN"
+    assert by_step[56]["status"] == by_step[57]["status"] == by_step[58]["status"] == "PASS"
+
+
+def test_restart_marker_or_fresh_inventory_drift_cannot_earn_pass(tmp_path):
+    raw = complete_recovery_payload()
+    state = baseline()
+    readbacks = {"job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"],
+                 "application_recovered": True}
+    runtime = recovery_runtime("2000-01-01T00:00:00+00:00")
+    with patch.object(journey, "observe_recovery_readbacks", return_value=readbacks):
+        bound = bind_test_recovery(tmp_path, state, raw, runtime, runtime)
+    assert next(row for row in bound["acceptance_observations"] if row["step"] == 54)["status"] != "PASS"
+    assert not any(row["status"] == "PASS" for row in bound["acceptance_observations"])
+    changed = {**readbacks, "job_inventory": inventory(("different-job",))}
+    with patch.object(journey, "observe_recovery_readbacks", return_value=changed), pytest.raises(ValueError):
+        bind_test_recovery(tmp_path, state, raw, runtime, runtime)
+
+
+def bind_test_recovery(tmp_path, state, raw, before, after):
+    path = tmp_path / "compose-recovery.json"
+    emit(path, raw)
+    return journey.bind_recovery_evidence(state, path, RUN_ID, TARGET, before, after)
+
+
+def monitor_preparation(state):
+    now = journey.datetime.now(timezone.utc)
+    binding = {"profile_id": state["profile_id"], "source_id": "company-source-1",
+               "source_version": "a" * 64, "revision": 1, "enabled": True,
+               "poll_interval": 300, "external_submission_enabled": False,
+               "operation_id": "monitor-before", "completed_operation_id": "monitor-before",
+               "next_due": (now + timedelta(seconds=300)).isoformat()}
+    operation = {"id": "monitor-before", "state": "COMPLETED", "attempt_count": 1,
+                 "started_at": now.isoformat(), "completed_at": now.isoformat(),
+                 "params": {"fixture_source_id": "company-source-1", "profile_id": state["profile_id"]}}
+    return {**IDENTITY, "source": SOURCE, "acceptance_run_id": RUN_ID, "result": "PARTIAL",
+            "stage": "prepare", "stage_result": "PASS", "timestamp": now.isoformat(),
+            "baseline_sha256": journey.digest(state), "external_submission_enabled": False,
+            "monitoring_binding": binding, "monitoring_context": {"source_id": "company-source-1"},
+            "refresh_operation": operation,
+            "refresh_receipt": {"kind": "PUBLIC_COMPLETED_OPERATION_POINTER", "profile_id": state["profile_id"],
+                                "source_id": "company-source-1", "operation_id": "monitor-before"},
+            "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"], "observations": []}
+
+
+def monitor_after_artifact(state, prep, receipt):
+    value = copy.deepcopy(prep)
+    value.update(stage="after_restart", timestamp=journey.utc_now(), preparation_sha256=journey.digest(prep),
+                 recovery_evidence_sha256=journey.digest(receipt))
+    value["monitoring_binding"].update(operation_id="monitor-after", completed_operation_id="monitor-after",
+                                      next_due=(journey.datetime.now(timezone.utc) + timedelta(seconds=300)).isoformat())
+    value["refresh_operation"].update(id="monitor-after", started_at=journey.utc_now(), completed_at=journey.utc_now())
+    value["refresh_operation"]["params"].update(predecessor_operation_id="monitor-before", scheduled_for=prep["monitoring_binding"]["next_due"])
+    value["refresh_receipt"]["operation_id"] = "monitor-after"
+    value["observations"] = [{"step": step, "status": "PASS", "observable_result": "Bound natural scheduled operation observed",
+        "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": SOURCE["commit"], "run_id": RUN_ID,
+        "continuity": dict(IDENTITY), "checks": [{"name": name, "passed": True} for name in sorted(journey.REQUIRED_CHECKS[step])]}
+        for step in (59, 60)]
+    return value
+
+
+def test_monitoring_is_opt_in_and_hooks_bracket_actual_recovery(tmp_path):
+    clock = [datetime.now(timezone.utc)]
+    initial_time = clock[0]
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return clock[0]
+    events = []
+    retained = {}
+    def prepare(url, state, path, **kwargs):
+        events.append("prepare")
+        retained["baseline"] = copy.deepcopy(state)
+        retained["preparation"] = monitor_preparation(state)
+        emit(path, retained["preparation"])
+    def raw_recovery(path, output, *args):
+        events.append("recovery")
+        candidate = json.loads(Path(path).read_text())
+        assert "monitoring_preparation" in candidate
+        assert candidate["monitoring_preparation"]["artifact_sha256"] == hashlib.sha256((tmp_path / "monitor_prepare.json").read_bytes()).hexdigest()
+        clock[0] += timedelta(seconds=10)
+        emit(output, complete_recovery_payload())
+    def after(url, state, preparation, path, **kwargs):
+        events.append("after")
+        assert state == retained["baseline"] and preparation == retained["preparation"]
+        receipt = kwargs["recovery_evidence"]
+        assert receipt["recovery_artifact_sha256"] == hashlib.sha256(Path(receipt["recovery_artifact_path"]).read_bytes()).hexdigest()
+        clock[0] = journey._instant(preparation["monitoring_binding"]["next_due"]) + timedelta(seconds=1)
+        emit(path, monitor_after_artifact(state, preparation, receipt))
+    def runtime(*_):
+        stamp = initial_time - timedelta(seconds=10) if "recovery" not in events else initial_time + timedelta(seconds=1)
+        return recovery_runtime(stamp.isoformat())
+    with patch.object(journey, "datetime", Clock), patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", side_effect=runtime), \
+            patch.object(journey, "_monitoring_module", return_value=SimpleNamespace(prepare=prepare, after_restart=after)), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.recovery, "run", side_effect=raw_recovery), \
+            patch.object(journey, "observe_recovery_readbacks", side_effect=lambda _, state: {
+                "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"], "application_recovered": True}):
+        report = invoke(tmp_path, monitoring=True)
+        restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, monitoring=True).payload()
+        assert restored["steps"][59]["verification"]["resume_imported"] is True
+        assert restored["steps"][59]["verification"]["executed_at_utc"] == report["steps"][59]["verification"]["executed_at_utc"]
+        with (tmp_path / "monitor_prepare.json").open("ab") as stream:
+            stream.write(b" ")
+        with pytest.raises(ValueError, match="lineage"):
+            journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, monitoring=True)
+    assert events == ["prepare", "recovery", "after"]
+    assert all(report["steps"][step - 1]["status"] == "PASS" for step in range(54, 61))
+    assert report["result"] == "PARTIAL"
+    assert json.loads((tmp_path / "ui.json").read_text()) == retained["baseline"]
+
+
+def test_monitoring_prepare_failure_stops_before_recovery(tmp_path):
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey, "_monitoring_module", return_value=SimpleNamespace(
+                prepare=lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("controlled failure")))), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.recovery, "run") as recovery:
+        with pytest.raises(RuntimeError):
+            invoke(tmp_path, monitoring=True)
+    recovery.assert_not_called()
+    assert json.loads((tmp_path / "journey.json").read_text())["segments"]["monitor_prepare"]["status"] == "FAIL"
+
+
+def application_stage_artifact(step=44):
+    artifact = baseline()
+    row = observation(step)
+    row["checks"] = [{"name": name, "passed": True} for name in sorted(journey.REQUIRED_CHECKS[step])]
+    row["continuity"] = {"profile_id": IDENTITY["profile_id"], "application_id": IDENTITY["application_id"], "job_id": "mock-job-1"}
+    if step in {41, 42}:
+        row["continuity"]["document_id"] = "resume-1" if step == 41 else "letter-1"
+    artifact["acceptance_observations"] = [row]
+    artifact["runtime_identity"] = {key: RUNTIME[key] for key in ("source_manifest_sha256", "images")}
+    artifact["stage_lineage"] = [{"step": step, "operation_kind": "APPLY_MOCK", "operation_id": "paused-operation",
+        "request_id": "paused-request", "profile_id": IDENTITY["profile_id"],
+        "application_id": IDENTITY["application_id"], "job_id": "mock-job-1"}]
+    return artifact
+
+
+def test_stage_lineage_preserves_earlier_operation_without_replacing_final_submit(tmp_path):
+    artifact = application_stage_artifact()
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    checkpoint.binding.update(runtime=RUNTIME, frontend_build={"status": "PASS"})
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    report = checkpoint.payload()
+    assert report["continuity"]["operation_id"] == IDENTITY["operation_id"]
+    assert report["stage_lineage"][0]["operation_id"] == "paused-operation"
+    assert report["steps"][43]["verification"]["stage_lineage"] == artifact["stage_lineage"][0]
+    assert report["steps"][43]["status"] == "PASS"
+
+
+@pytest.mark.parametrize("field,value", [("application_id", "other-app"), ("profile_id", "other-profile"),
+    ("job_id", "browse-job-1"), ("operation_id", "https://private"), ("operation_kind", "PREPARE"), ("step", True)])
+def test_stage_lineage_rejects_scope_and_operation_drift(field, value):
+    artifact = application_stage_artifact()
+    artifact["stage_lineage"][0][field] = value
+    with pytest.raises(ValueError, match="lineage"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+
+
+@pytest.mark.parametrize("step", [44, 45, 46, 47, 48])
+def test_review_stages_require_actual_stage_lineage(step):
+    artifact = application_stage_artifact(step)
+    artifact.pop("stage_lineage")
+    with pytest.raises(ValueError, match="lineage"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+
+
+@pytest.mark.parametrize("step", [41, 42])
+def test_upload_observations_require_document_identity(step):
+    artifact = application_stage_artifact(step)
+    artifact["acceptance_observations"][0]["continuity"].pop("document_id")
+    with pytest.raises(ValueError, match="continuity"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+
+
+def test_application_credit_requires_runtime_identity_and_final_lineage_matches_submit(tmp_path):
+    artifact = application_stage_artifact()
+    artifact.pop("runtime_identity")
+    with pytest.raises(ValueError, match="runtime"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+    artifact = application_stage_artifact(49)
+    with pytest.raises(ValueError, match="lineage"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+    artifact = application_stage_artifact()
+    artifact["runtime_identity"] = {**artifact["runtime_identity"], "images": {"api": "sha256:" + "0" * 64}}
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    checkpoint.binding["runtime"] = RUNTIME
+    with pytest.raises(ValueError, match="runtime"):
+        checkpoint.complete_segment("ui", artifact, "a" * 64)
+
+
+def test_runtime_identity_is_passed_only_to_compatible_ui_producer():
+    captured = {}
+    def producer(*args, acceptance_run_id=None, runtime_identity=None):
+        captured.update(run_id=acceptance_run_id, runtime_identity=runtime_identity)
+    runtime = {key: RUNTIME[key] for key in ("source_manifest_sha256", "images")}
+    journey._invoke(producer, (), RUN_ID, runtime_identity=runtime)
+    assert captured == {"run_id": RUN_ID, "runtime_identity": runtime}
+    journey._invoke(lambda: None, (), RUN_ID, runtime_identity=runtime)
+
+
+@pytest.mark.parametrize("mutation", ["run", "source", "baseline", "preparation", "receipt", "early", "same-operation", "missed-due", "documents"])
+def test_monitoring_rejects_stale_or_mismatched_proof(mutation):
+    state = baseline()
+    prep = monitor_preparation(state)
+    prep["monitoring_binding"]["next_due"] = (datetime.now(timezone.utc) - timedelta(seconds=5)).isoformat()
+    prep["timestamp"] = (datetime.now(timezone.utc) - timedelta(seconds=20)).isoformat()
+    receipt = {"completed_at_utc": (datetime.now(timezone.utc) - timedelta(seconds=10)).isoformat()}
+    after = monitor_after_artifact(state, prep, receipt)
+    if mutation == "run": after["acceptance_run_id"] = "other-run"
+    if mutation == "source": after["source"] = {**SOURCE, "commit": "c" * 40}
+    if mutation == "baseline": after["baseline_sha256"] = "0" * 64
+    if mutation == "preparation": after["preparation_sha256"] = "0" * 64
+    if mutation == "receipt": after["recovery_evidence_sha256"] = "0" * 64
+    if mutation == "early": after["refresh_operation"]["started_at"] = receipt["completed_at_utc"]
+    if mutation == "same-operation": after["refresh_operation"]["id"] = prep["refresh_operation"]["id"]
+    if mutation == "missed-due": receipt["completed_at_utc"] = journey.utc_now(); after["recovery_evidence_sha256"] = journey.digest(receipt)
+    if mutation == "documents": after["local_persistence"] = copy.deepcopy(after["local_persistence"]); after["local_persistence"]["domains"]["cover_letters"]["sha256"] = "b" * 64
+    with pytest.raises(ValueError):
+        journey.validate_monitoring_result("monitor_after", after, state, RUN_ID, preparation=prep, recovery_evidence=receipt)
+
+
+def test_bound_recovery_rejects_modified_actual_raw_bytes(tmp_path):
+    state = baseline()
+    bound = bind_test_recovery(tmp_path, state, recovered(), RUNTIME, RUNTIME)
+    assert journey._validate_bound_recovery(bound, state, tmp_path) == bound
+    with (tmp_path / "compose-recovery.json").open("ab") as stream:
+        stream.write(b" ")
+    with pytest.raises(ValueError, match="raw artifact"):
+        journey._validate_bound_recovery(bound, state, tmp_path)
+
+
+def test_default_run_never_loads_monitoring_and_requires_explicit_boolean(tmp_path):
+    with patch.object(journey, "_monitoring_module") as module, \
+            patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.recovery, "run", side_effect=lambda _, path, *args: emit(path, recovered())):
+        report = invoke(tmp_path)
+        module.assert_not_called()
+        assert set(report["segments"]) == {"ui", "recovery"}
+        with pytest.raises(ValueError, match="boolean"):
+            invoke(tmp_path, monitoring="true")
