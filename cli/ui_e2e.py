@@ -632,21 +632,35 @@ def validate_onboarding_target(base_url):
         raise RuntimeError("onboarding target must be an HTTP loopback Compose service")
 
 
-def assert_onboarding_profile_facts(profile, pending_fact_ids):
+def assert_onboarding_profile_facts(profile, pending_fact_ids, *,
+                                    expected_approved_fact_texts=frozenset({"Python", "SQL"}),
+                                    expected_unapproved_fact_texts=frozenset()):
     facts = profile["facts"]
     by_id = {row["fact_id"]: row for row in facts}
     pending_fact_ids = set(pending_fact_ids)
+    expected_approved_fact_texts = set(expected_approved_fact_texts)
+    expected_unapproved_fact_texts = set(expected_unapproved_fact_texts)
+    if expected_approved_fact_texts & expected_unapproved_fact_texts:
+        raise ValueError("a profile fact cannot be expected as both approved and unapproved")
     assert len(by_id) == len(facts), "duplicate profile fact IDs"
     approved = [row for row in facts if row["verified"] and row["user_approved"]]
-    if ({row["text"] for row in approved} != {"Python", "SQL"}
-            or len(approved) != 2
+    if ({row["text"] for row in approved} != expected_approved_fact_texts
+            or len(approved) != len(expected_approved_fact_texts)
             or any(row["kind"] != "skill" for row in approved)
             or any(row["fact_id"] in pending_fact_ids for row in approved)):
         raise AssertionError("unexpected approved facts in onboarding profile")
+    expected_unapproved = [row for row in facts
+                           if row["text"] in expected_unapproved_fact_texts]
+    if (len(expected_unapproved) != len(expected_unapproved_fact_texts)
+            or {row["text"] for row in expected_unapproved} != expected_unapproved_fact_texts
+            or any(row["kind"] != "skill" or not row["verified"] or row["user_approved"]
+                   or row["fact_id"] in pending_fact_ids for row in expected_unapproved)):
+        raise AssertionError("expected unapproved onboarding facts changed")
     pending = [row for row in facts if row["fact_id"] in pending_fact_ids]
     if (len(pending) != len(pending_fact_ids)
             or any(row["verified"] or row["user_approved"] for row in pending)
-            or set(by_id) != pending_fact_ids | {row["fact_id"] for row in approved}):
+            or set(by_id) != pending_fact_ids
+            | {row["fact_id"] for row in approved + expected_unapproved}):
         raise AssertionError("onboarding profile facts differ from reviewed fact set")
     return {row["text"]: row["fact_id"] for row in approved}
 
@@ -1619,7 +1633,10 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 assert all(rejected_rows.get(fact_id, {}).get("review_status") == "REJECTED"
                            for fact_id in pending_fact_ids)
                 profile_after_rejection = request("/profiles/" + profile_id)
-                assert_onboarding_profile_facts(profile_after_rejection, pending_fact_ids)
+                assert_onboarding_profile_facts(
+                    profile_after_rejection, pending_fact_ids,
+                    expected_approved_fact_texts={"Python"},
+                    expected_unapproved_fact_texts={"SQL"})
                 assert {row["fact_id"] for row in profile_after_rejection["facts"]
                         if not row["verified"] and not row["user_approved"]} == pending_fact_ids
                 actions.append({

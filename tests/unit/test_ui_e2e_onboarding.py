@@ -600,6 +600,22 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "unexpected approved facts"):
             ui_e2e.assert_onboarding_profile_facts(corrupted, {"imported-summary"})
 
+    def test_profile_readback_preserves_explicitly_unapproved_skill_before_reapproval(self):
+        profile = {"facts": [
+            {"fact_id": "python-entry", "kind": "skill", "text": "Python", "verified": True,
+             "user_approved": True},
+            {"fact_id": "sql-entry", "kind": "skill", "text": "SQL", "verified": True,
+             "user_approved": False},
+            {"fact_id": "imported-summary", "kind": "summary", "text": "Synthetic imported summary",
+             "verified": False, "user_approved": False},
+        ]}
+
+        approved = ui_e2e.assert_onboarding_profile_facts(
+            profile, {"imported-summary"}, expected_approved_fact_texts={"Python"},
+            expected_unapproved_fact_texts={"SQL"})
+
+        self.assertEqual(approved, {"Python": "python-entry"})
+
     def test_documents_must_exclude_imported_pending_facts(self):
         ui_e2e.assert_no_pending_facts_in_documents([
             {"fact_ids": ["python-entry"], "facts_used": [
