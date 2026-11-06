@@ -151,6 +151,13 @@ def test_bare_boolean_check_flags_are_rejected():
         record(journal, 39, assertions=flags)
 
 
+def test_contact_and_approved_answers_use_readback_checks_not_value_visibility():
+    assert APPLICATION_CHECKS[40] == {
+        "contact_fields_match_verified_profile", "contact_fields_readback_verified"}
+    assert APPLICATION_CHECKS[43] == {
+        "approved_answers_match_questions", "approved_answers_readback_verified"}
+
+
 def test_stale_or_cross_application_lineage_cannot_earn_pass():
     journal = Journal()
     other = lineage(44, app="app-A")
