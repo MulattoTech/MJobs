@@ -300,8 +300,10 @@ from packages.persistence import models as m
 from packages.persistence.store import now
 from workers import tasks
 def synthetic_collect(store, source_id, profile_id, profile_version=None, check=None, transport=None,
-                      *, refresh_matches=True):
+                      *, refresh_matches=True, parent_operation_id=None, parent_operation_attempt=None):
     assert refresh_matches is True, "Generic source polling must retain ingestion scoring"
+    assert parent_operation_id == os.environ["MJOBS_TEST_OPERATION_ID"]
+    assert type(parent_operation_attempt) is int and parent_operation_attempt == 1
     if check:
         check()
     with store.engine.begin() as connection:
