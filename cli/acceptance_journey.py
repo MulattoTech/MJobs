@@ -674,7 +674,7 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
 def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
     """Join optional source configuration proof after successful containment release."""
     if (type(artifact.get("schema_version")) is not int or artifact["schema_version"] != 1
-            or artifact.get("result") not in {"PASS", "PARTIAL"}
+            or artifact.get("result") not in {"PASS", "PARTIAL", "NOT_RUN"}
             or artifact.get("source") != baseline["source"]
             or artifact.get("acceptance_run_id") != public["acceptance_run_id"]
             or artifact.get("target_origin") != target["base_url"]
@@ -685,7 +685,8 @@ def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
                 key: runtime[key] for key in ("source_manifest_sha256", "images")}
             or artifact.get("primary") != {"provider": "wwr", "source_id": public["source_id"],
                                             "policy_sha256": public["source_policy_sha256"]}
-            or public.get("provider") != "wwr" or artifact.get("extra_collection_operation_ids") != []):
+            or public.get("provider") != "wwr" or artifact.get("extra_collection_operation_ids") != []
+            or artifact.get("extra_operation_readback_sha256") != digest([])):
         raise ValueError("Source setup identity differs from its connected public run")
     extra = artifact.get("owned_extra", {})
     if (extra.get("provider") != "remotive" or extra.get("disabled") is not True
@@ -941,7 +942,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         if row.get("run_id") != run_id or row.get("source_commit") != source["commit"]:
             raise ValueError("Numbered observation run or source mismatch")
         status = row.get("status")
-        kind = "PUBLIC_READ_ONLY" if segment in {"public", "public_source", "public_browser"} else "CONTROLLED_FIXTURE"
+        kind = "PUBLIC_READ_ONLY" if segment in {"public", "public_source", "public_browser", "source_setup"} else "CONTROLLED_FIXTURE"
         if status not in STATUSES or row.get("evidence_kind") != kind:
             raise ValueError("Unsupported observation status or source semantics")
         observable = row.get("observable_result")
@@ -1092,6 +1093,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         if self.binding["source_setup"] != {"artifact": "public-source-setup.json", "sha256": sha}:
             raise ValueError("Source setup evidence reference hash mismatch")
         row = validate_source_setup_artifact(artifact, baseline, public, self.binding["target"], self.binding["runtime"])
+        if row["status"] == "NOT_RUN":
+            return  # A controlled producer cannot replace the prior UI observation.
         report = {"number": 9, "status": row["status"], "observation": row, "verification": {
             "tested_commit": self.binding["source"]["commit"], "evidence_artifact": "public-source-setup.json",
             "evidence_sha256": sha, "run_id": self.binding["run_id"], "evidence_kind": row["evidence_kind"],

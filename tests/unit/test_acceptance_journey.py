@@ -1200,8 +1200,9 @@ def source_setup_artifact(state, public):
         "owned_extra": {"provider": "remotive", "source_id": "extra-remotive", "enabled_policy_sha256": "8" * 64,
                         "disabled_policy_sha256": "9" * 64, "disabled": True},
         "extra_collection_operation_ids": [],
+        "extra_operation_readback_sha256": journey.digest([]),
         "acceptance_observations": [{"step": 9, "status": "PASS", "observable_result": "Both configured sources visible and enabled before owned extra was disabled",
-            "evidence_kind": "CONTROLLED_FIXTURE", "run_id": RUN_ID, "source_commit": SOURCE["commit"],
+            "evidence_kind": "PUBLIC_READ_ONLY", "run_id": RUN_ID, "source_commit": SOURCE["commit"],
             "continuity": {"profile_id": state["profile_id"]},
             "checks": [{"name": name, "passed": True} for name in sorted(journey.REQUIRED_CHECKS[9])]}]}
 
@@ -1213,7 +1214,7 @@ def test_source_setup_requires_same_run_ui_source_policy_and_cleanup():
     assert row["step"] == 9 and row["status"] == "PASS"
 
 
-@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "job", "runtime", "primary", "policy", "enabled-extra", "same-source", "missing-cleanup", "extra-operation", "stale", "checks"])
+@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "job", "runtime", "primary", "policy", "enabled-extra", "same-source", "missing-cleanup", "extra-operation", "operation-digest", "stale", "checks", "fixture-kind", "wrong-step"])
 def test_source_setup_rejects_unbound_or_unclean_evidence(change):
     state, public = baseline(), public_artifact()
     artifact = source_setup_artifact(state, public)
@@ -1229,8 +1230,11 @@ def test_source_setup_rejects_unbound_or_unclean_evidence(change):
     if change == "same-source": artifact["owned_extra"]["source_id"] = public["source_id"]
     if change == "missing-cleanup": artifact["owned_extra"].pop("disabled_policy_sha256")
     if change == "extra-operation": artifact["extra_collection_operation_ids"] = ["unapproved-collect"]
+    if change == "operation-digest": artifact["extra_operation_readback_sha256"] = "a" * 64
     if change == "stale": artifact["timestamp"] = "2000-01-01T00:00:00Z"
     if change == "checks": artifact["acceptance_observations"][0]["checks"][0]["passed"] = False
+    if change == "fixture-kind": artifact["acceptance_observations"][0]["evidence_kind"] = "CONTROLLED_FIXTURE"
+    if change == "wrong-step": artifact["acceptance_observations"][0]["step"] = 11
     with pytest.raises(ValueError):
         journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
 
@@ -1280,3 +1284,51 @@ def test_optional_source_setup_joins_only_after_successful_release(tmp_path, set
             stream.write(b" ")
         with pytest.raises(ValueError, match="Source setup evidence reference hash mismatch"):
             journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr")
+
+
+@pytest.mark.parametrize("execution_scope,expected_status", [("LIVE_PUBLIC_READ_ONLY", "PASS"), ("CONTROLLED_TRANSPORT", "NOT_RUN")])
+def test_actual_source_setup_publisher_schema_joins_without_relabeling(tmp_path, execution_scope, expected_status):
+    """Use the real serializer, not a duplicate fixture envelope; no HTTP/browser execution."""
+    producer = pytest.importorskip("cli.acceptance_source_setup")
+    state, public = baseline(), public_artifact()
+    sample = source_setup_artifact(state, public)
+    path = tmp_path / "public-source-setup.json"
+    # Only serializer state is seeded. This verifies the schema contract and
+    # earns no browser/provider acceptance; any accidental HTTP call fails.
+    def no_request(*args, **kwargs):
+        raise AssertionError("Schema test must not perform HTTP requests")
+    with patch.object(journey.httpx, "Client") as client:
+        client.return_value.request.side_effect = no_request
+        wrapped = producer.compose_owned_public_containment(lambda *_: None,
+            base_url=TARGET["base_url"], baseline=state, acceptance_run_id=RUN_ID,
+            artifact_path=path, runtime_identity=sample["runtime_identity"], execution_scope=execution_scope,
+            **({"request": no_request} if execution_scope == "CONTROLLED_TRANSPORT" else {}))
+        composed = wrapped.composed if execution_scope == "LIVE_PUBLIC_READ_ONLY" else wrapped
+        composed.primary = sample["primary"]
+        composed.extra_id = sample["owned_extra"]["source_id"]
+        composed.enabled_policy_sha = sample["owned_extra"]["enabled_policy_sha256"]
+        composed.disabled_policy_sha = sample["owned_extra"]["disabled_policy_sha256"]
+        composed.extra_disabled = True
+        composed.extra_operation_ids = []
+        composed.extra_operation_readback_sha = sample["extra_operation_readback_sha256"]
+        composed.observation = sample["acceptance_observations"][0]
+        composed._publish_after_release()
+        client.return_value.request.assert_not_called()
+    artifact, _ = journey._read_artifact(path)
+    assert artifact["result"] == expected_status
+    row = journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+    assert row["status"] == expected_status and row["evidence_kind"] == "PUBLIC_READ_ONLY"
+
+
+def test_controlled_source_setup_does_not_replace_prior_ui_partial(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    state, public = baseline(), public_artifact()
+    artifact = source_setup_artifact(state, public)
+    artifact["result"] = artifact["acceptance_observations"][0]["status"] = "NOT_RUN"
+    path = tmp_path / "public-source-setup.json"
+    emit(path, artifact)
+    checkpoint.binding.update(runtime=RUNTIME, source_setup={"artifact": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+    original = {"number": 9, "status": "PARTIAL", "verification": {"evidence_artifact": "ui.json"}}
+    checkpoint.binding["steps"][8] = copy.deepcopy(original)
+    checkpoint.record_source_setup(state, public)
+    assert checkpoint.binding["steps"][8] == original
