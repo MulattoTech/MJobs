@@ -1,6 +1,7 @@
 """Connected FIXTURE browser acceptance for saved Jobs filters."""
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import re
 import tempfile
 import threading
 import time
@@ -436,6 +437,38 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Salary unit", exact=True)).to_have_value("HOUR")
                     expect(page.get_by_label("Salary availability", exact=True)).to_have_value("ALLOW_UNKNOWN")
                     expect(page.get_by_label("Minimum hourly salary (USD)", exact=True)).to_have_value("25")
+
+                    # Controls replace the current URL rather than adding one
+                    # entry per keystroke. Retain an entry to exercise real
+                    # same-document Back/Forward restoration via popstate.
+                    page.evaluate("history.pushState({}, '', location.href)")
+                    page.get_by_label("Salary unit", exact=True).select_option("YEAR")
+                    expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("")
+                    page.get_by_label("Salary availability", exact=True).select_option("KNOWN_ONLY")
+                    expect(page).to_have_url(re.compile("salary_policy=KNOWN_ONLY"))
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "salary_period=HOUR" in response.url
+                            and "salary_min=25" in response.url
+                            and "salary_unknown_allowed=true" in response.url) as history_hourly:
+                        page.go_back()
+                    self.assertEqual(history_hourly.value.status, 200)
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("HOUR")
+                    expect(page.get_by_label("Salary availability", exact=True)).to_have_value("ALLOW_UNKNOWN")
+                    expect(page.get_by_label("Minimum hourly salary (USD)", exact=True)).to_have_value("25")
+                    page.go_forward()
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("YEAR")
+                    expect(page.get_by_label("Salary availability", exact=True)).to_have_value("KNOWN_ONLY")
+                    expect(page.get_by_label("Minimum annual salary (USD)", exact=True)).to_have_value("")
+                    page.go_back()
+                    expect(page.get_by_label("Salary unit", exact=True)).to_have_value("HOUR")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "salary_period=HOUR" in response.url
+                            and "salary_min=25" in response.url
+                            and "sort=salary_high" in response.url) as sorted_hourly:
+                        page.get_by_label("Sort", exact=True).select_option("salary_high")
+                    self.assertEqual(sorted_hourly.value.status, 200)
 
                     page.get_by_label("Active profile", exact=True).select_option("other")
                     isolated_search = filters.get_by_label("Saved search profile", exact=True)
