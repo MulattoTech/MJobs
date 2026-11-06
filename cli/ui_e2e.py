@@ -221,11 +221,49 @@ class EvidenceJournal:
             validate_run_id(acceptance_run_id)
         self.acceptance_run_id = acceptance_run_id
         self.acceptance_observations = []
+        self.observed_job_ids = []
+        self.selected_application_id = None
+        self.selected_application_job_id = None
+        self.application_document_ids = []
         self.checks = []
         self.attempted = None
         self.failure = None
         self.overall_state = "IN_PROGRESS"
         self.remaining_state = "NOT_RUN"
+
+    @staticmethod
+    def _lineage_id(value):
+        return isinstance(value, str) and re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", value) is not None
+
+    def record_observed_jobs(self, job_ids):
+        for job_id in job_ids:
+            if not self._lineage_id(job_id):
+                raise ValueError("job readback contains an invalid identity")
+            if job_id not in self.observed_job_ids:
+                self.observed_job_ids.append(job_id)
+        if len(self.observed_job_ids) > 100:
+            raise ValueError("observed job readback exceeds limit")
+
+    def record_application_readback(self, *, application_id, job_id, documents):
+        if not self._lineage_id(application_id) or not self._lineage_id(job_id):
+            raise ValueError("application readback contains an invalid identity")
+        if self.selected_application_id not in {None, application_id}:
+            raise ValueError("selected application identity changed during journey")
+        if self.selected_application_job_id not in {None, job_id}:
+            raise ValueError("selected application job identity changed during journey")
+        self.selected_application_id = application_id
+        self.selected_application_job_id = job_id
+        if not isinstance(documents, list):
+            raise ValueError("document readback must be a list")
+        for document in documents:
+            document_id = document.get("id") if isinstance(document, dict) else None
+            if not self._lineage_id(document_id):
+                raise ValueError("document readback contains an invalid identity")
+            if document_id not in self.application_document_ids:
+                self.application_document_ids.append(document_id)
+        if len(self.application_document_ids) > 100:
+            raise ValueError("application document readback exceeds limit")
 
     def record_observation(self, *, step, status, observable_result,
                            evidence_kind, checks, continuity=None):
@@ -249,6 +287,10 @@ class EvidenceJournal:
         return {
             "acceptance_run_id": self.acceptance_run_id,
             "acceptance_observations": list(self.acceptance_observations),
+            "observed_job_ids": list(self.observed_job_ids),
+            "selected_application_id": self.selected_application_id,
+            "selected_application_job_id": self.selected_application_job_id,
+            "application_document_ids": list(self.application_document_ids),
         }
 
     def begin(self, name):
@@ -1002,14 +1044,15 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 observe_acceptance_step(
                     11, "PARTIAL", "Synthetic fixture discovery does not prove real-provider jobs.",
                     evidence_kind="CONTROLLED_FIXTURE",
-                    checks=[{"name": "real_provider_browser_discovery", "passed": False}],
+                    checks=[{"name": "same_profile_public_readonly_jobs_observed", "passed": False}],
                     continuity={"profile_id": profile_id,
                                 "operation_id": discovery_operation_id,
                                 "request_id": discovery_request_id},
                 )
                 if acceptance_run_id is not None:
                     run_fixture_job_observations(
-                        page, request, profile_id, navigation, observe_acceptance_step)
+                        page, request, profile_id, navigation, observe_acceptance_step,
+                        record_observed_jobs=journal.record_observed_jobs)
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
                 expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()
@@ -1019,6 +1062,33 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 python_fact_id, sql_fact_id = "python", "sql"
             select_data_job()
             expect(page.locator(".big-score")).to_have_text("100% · Exceptional")
+            if acceptance_run_id is not None and onboarding:
+                matching = request("/jobs?profile_id=" + profile_id).get("jobs", [])
+                data_job = next(row for row in matching
+                                if row.get("title") == "Data Engineer")
+                selected_detail = request(
+                    "/jobs/" + data_job["id"] + "?profile_id=" + profile_id)
+                selected_score = (selected_detail.get("match") or {}).get("score")
+                strong_match = (isinstance(selected_score, (int, float))
+                                and not isinstance(selected_score, bool)
+                                and selected_score >= 70)
+                if strong_match:
+                    page.locator("section.job-detail").get_by_role(
+                        "button", name="Save job", exact=True).click()
+                    expect(page.locator("section.job-detail").get_by_text(
+                        "Current status: SAVED", exact=True)).to_be_visible()
+                tracking_readback = request(
+                    "/jobs/" + data_job["id"] + "?profile_id=" + profile_id).get("tracking", {})
+                saved_status = strong_match and tracking_readback.get("disposition") == "SAVED"
+                observe_acceptance_step(
+                    32, "PASS" if saved_status else "PARTIAL",
+                    "The selected Data Engineer job was saved and read back."
+                    if saved_status else "The selected Data Engineer job was not confirmed saved.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "strong_match_available", "passed": strong_match},
+                            {"name": "saved_status_readback", "passed": saved_status}],
+                    continuity={"profile_id": profile_id, "job_id": data_job["id"]},
+                )
             actions.append({"action": "Explicit fictional demo, connected search, match explanation and raw provenance", "result": "PASS"})
 
             navigation("Profile")
@@ -1033,6 +1103,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 assert application["job_id"] in discovery_job_ids, "selected application job was not returned by this profile's fixture discovery"
             assert application["fact_ids"] == [python_fact_id]
             first_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
+            journal.record_application_readback(
+                application_id=identifier, job_id=application["job_id"], documents=first_documents)
             first_resume = next(row for row in first_documents if row["kind"] == "resume")
             assert first_resume['created_at'] and first_resume['generation_model'] == 'deterministic-fact-copy-v2'
             assert [fact['text'] for fact in first_resume['facts_used']] == ['Python']
@@ -1056,7 +1128,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                     checks=[{"name": "cover_letter_generated",
                              "passed": first_cover.get("kind") == "cover-letter"},
                             {"name": "cross_job_uniqueness_compared", "passed": False}],
-                    continuity={"profile_id": profile_id, "application_id": identifier},
+                    continuity={"profile_id": profile_id, "application_id": identifier,
+                                "job_id": application["job_id"], "document_id": first_cover["id"]},
                 )
             actions.append({'action':'ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording','result':'PASS'})
             assert text_bytes.decode('utf-8').strip() == text
@@ -1072,6 +1145,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             revised = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert revised["document_version"] == 2 and set(revised["fact_ids"]) == {python_fact_id, sql_fact_id}
             documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
+            journal.record_application_readback(
+                application_id=identifier, job_id=application["job_id"], documents=documents)
             assert len(documents) == 4
             old = download_document(first_resume["id"], "docx")
             assert old == original
@@ -1103,6 +1178,13 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             comparison.get_by_label('Base resume',exact=True).select_option(label='v2')
             comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
             result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
+            comparison_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
+            journal.record_application_readback(
+                application_id=identifier, job_id=application['job_id'], documents=comparison_documents)
+            base_document=next(row for row in comparison_documents
+                               if row['version']==2 and row['kind']=='resume')
+            tailored_document=next(row for row in comparison_documents
+                                   if row['version']==3 and row['kind']=='resume')
             expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('No content omitted.')
             expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
             expect(result.get_by_role('heading',name='Generated base · v2',exact=True)).to_be_visible()
@@ -1113,7 +1195,9 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 checks=[{"name": "generated_base_visible", "passed": True},
                         {"name": "tailored_version_visible", "passed": True},
                         {"name": "omission_and_change_summary_visible", "passed": True}],
-                continuity={"profile_id": profile_id, "application_id": identifier},
+                continuity={"profile_id": profile_id, "application_id": identifier,
+                            "job_id": application["job_id"],
+                            "document_ids": [base_document["id"], tailored_document["id"]]},
             )
             actions.append({'action':'Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI','result':'PASS'})
 
@@ -1144,6 +1228,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             page.get_by_label('Include SQL',exact=True).uncheck()
             prepare()
             selected_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
+            journal.record_application_readback(
+                application_id=identifier, job_id=application['job_id'], documents=selected_documents)
             selected_resume=next(row for row in selected_documents if row['version']==4 and row['kind']=='resume')
             selected_cover=next(row for row in selected_documents if row['version']==4 and row['kind']=='cover-letter')
             assert selected_resume['generation_model']=='deterministic-fact-selection-and-bullet-emphasis-v1'
@@ -1166,7 +1252,9 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 evidence_kind="CONTROLLED_FIXTURE",
                 checks=[{"name": "tailored_resume_uses_selected_approved_facts", "passed": True},
                         {"name": "omitted_fact_visible_and_excluded", "passed": True}],
-                continuity={"profile_id": profile_id, "application_id": identifier},
+                continuity={"profile_id": profile_id, "application_id": identifier,
+                            "job_id": application["job_id"],
+                            "document_ids": [selected_resume["id"], selected_cover["id"]]},
             )
             actions.append({'action':'Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions','result':'PASS'})
 

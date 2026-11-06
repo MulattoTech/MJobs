@@ -5,7 +5,10 @@ import re
 
 OBSERVATION_STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
 EVIDENCE_KINDS = {"CONTROLLED_FIXTURE", "PUBLIC_READ_ONLY"}
-CONTINUITY_KEYS = {"profile_id", "application_id", "operation_id", "request_id"}
+CONTINUITY_KEYS = {
+    "profile_id", "application_id", "operation_id", "request_id", "job_id",
+    "document_id", "document_ids",
+}
 OBSERVABLE_RESULT_MAX_LENGTH = 240
 CHECKS_MAX_LENGTH = 12
 _SAFE_RUN_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
@@ -24,7 +27,7 @@ REQUIRED_CHECKS_BY_STEP = {
     8: frozenset({"remote_it_search_read_back", "remote_data_search_read_back"}),
     9: frozenset({"source_rows_visible", "multiple_sources_enabled"}),
     10: frozenset({"discovery_operation_completed", "search_scoped_job_readback"}),
-    11: frozenset({"real_provider_browser_discovery"}),
+    11: frozenset({"same_profile_public_readonly_jobs_observed"}),
     12: frozenset({"matching_job_visible", "nonmatching_job_hidden"}),
     13: frozenset({"filtered_job_visible", "other_title_hidden"}),
     14: frozenset({"match_sort_order"}),
@@ -36,7 +39,8 @@ REQUIRED_CHECKS_BY_STEP = {
     19: frozenset({"source_copy_ids_read_back", "source_copy_panels_visible"}),
     20: frozenset({"verified_ats_authority_visible", "preferred_route_readback"}),
     21: frozenset({"application_route_visible"}),
-    22: frozenset({"match_score_explained"}),
+    22: frozenset({"visible_numeric_match_score",
+                   "selected_job_requirement_explanation_visible"}),
     32: frozenset({"strong_match_available", "saved_status_readback"}),
     33: frozenset({"tailored_resume_uses_selected_approved_facts", "omitted_fact_visible_and_excluded"}),
     34: frozenset({"generated_base_visible", "tailored_version_visible",
@@ -97,9 +101,28 @@ def build_observation(*, step, status, observable_result, evidence_kind,
         raise ValueError("continuity contains unsupported fields")
     safe_continuity = {}
     for key, value in continuity.items():
+        if key == "document_ids":
+            if (not isinstance(value, list) or not 1 <= len(value) <= 10
+                    or any(not isinstance(item, str)
+                           or not _SAFE_CONTINUITY_ID.fullmatch(item) for item in value)
+                    or len(set(value)) != len(value)):
+                raise ValueError("document_ids must contain 1 to 10 unique bounded identifiers")
+            safe_continuity[key] = list(value)
+            continue
         if (not isinstance(value, str) or not _SAFE_CONTINUITY_ID.fullmatch(value)):
             raise ValueError("continuity values must be bounded opaque identifiers")
         safe_continuity[key] = value
+    if status == "PASS" and step in {*range(17, 23), *range(32, 36)}:
+        if "job_id" not in safe_continuity:
+            raise ValueError("passing job observations require job_id continuity")
+    if status == "PASS" and step in {33, 34, 35} and "application_id" not in safe_continuity:
+        raise ValueError("passing application observations require application_id continuity")
+    if status == "PASS" and step in {33, 34} and "document_ids" not in safe_continuity:
+        raise ValueError("passing document observations require document_ids continuity")
+    if status == "PASS" and step == 34 and len(safe_continuity.get("document_ids", [])) < 2:
+        raise ValueError("step 34 requires base and tailored document identifiers")
+    if status == "PASS" and step == 35 and "document_id" not in safe_continuity:
+        raise ValueError("step 35 requires document_id continuity")
     return {
         "step": step,
         "status": status,
@@ -112,7 +135,8 @@ def build_observation(*, step, status, observable_result, evidence_kind,
     }
 
 
-def run_fixture_job_observations(page, request, profile_id, navigate, observe):
+def run_fixture_job_observations(page, request, profile_id, navigate, observe,
+                                 record_observed_jobs=None):
     """Exercise and observe fixture-backed Jobs UI behavior, without live providers."""
     from playwright.sync_api import expect
 
@@ -191,6 +215,9 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe):
         "/jobs?profile_id=" + profile_id).get("jobs", [])}
     remote_visible = "REMOTE" in remote_types
     jobs = request("/jobs?profile_id=" + profile_id).get("jobs", [])
+    if record_observed_jobs is not None:
+        record_observed_jobs([row["id"] for row in jobs
+                              if isinstance(row, dict) and isinstance(row.get("id"), str)])
     job_a = next((row for row in jobs if row.get("title") == "Python Developer"), None)
     if job_a is None:
         record(17, "PARTIAL", "Fixture has no Python Developer canonical job for duplicate-count review.",
@@ -206,7 +233,8 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe):
            "The job card and readback expose the same duplicate posting count." if count_visible and posting_count > 1
            else "The fixture does not expose multiple postings with a visible matching count.",
            [{"name": "canonical_duplicate_job_available", "passed": visible_count == 1},
-            {"name": "duplicate_count_matches_readback", "passed": count_visible and posting_count > 1}])
+            {"name": "duplicate_count_matches_readback", "passed": count_visible and posting_count > 1}],
+           continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
     page.get_by_label("Search jobs", exact=True).fill("")
     python_card.click()
@@ -221,7 +249,7 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe):
            if is_canonical_detail else "The selected job detail did not match the canonical fixture identity.",
            [{"name": "canonical_job_detail_visible",
              "passed": detail_region.count() == 1 and is_canonical_detail}],
-           continuity={"profile_id": profile_id})
+           continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
     salaries = (detail.get("attributes") or {}).get("salary") or []
     salary_visible = bool(salaries)
@@ -267,7 +295,8 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe):
            [{"name": "source_copy_ids_read_back",
              "passed": len(postings) == 3 and observed_sources == expected_sources},
             {"name": "source_copy_panels_visible",
-             "passed": visible_postings.count() == len(postings) and source_links_match}])
+             "passed": visible_postings.count() == len(postings) and source_links_match}],
+           continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
     resolution = (detail.get("attributes") or {}).get("source_resolution") or {}
     authoritative = (detail.get("provider") == "mock-ats"
@@ -305,7 +334,8 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe):
            if authoritative and route_is_preferred
            else "The fixture does not expose a verified, preferred employer ATS route.",
            [{"name": "verified_ats_authority_visible", "passed": authoritative and ui_authority_visible},
-            {"name": "preferred_route_readback", "passed": route_is_preferred}])
+            {"name": "preferred_route_readback", "passed": route_is_preferred}],
+           continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
     route_visible = False
     if ats_route is not None:
@@ -318,34 +348,42 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe):
     record(21, "PASS" if route_visible else "PARTIAL",
            "The selected authoritative application route is visible in source evidence."
            if route_visible else "No selected authoritative application route is visible in the fixture.",
-           [{"name": "application_route_visible", "passed": route_visible}])
+           [{"name": "application_route_visible", "passed": route_visible}],
+           continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
     match = detail.get("match") or {}
-    match_explanation_visible = (
-        bool(match.get("score") is not None and isinstance(match.get("components"), dict)
-             and "missing" in match)
-    )
+    selected_job_matches = (detail.get("id") == job_a.get("id")
+                            and detail.get("title") == job_a.get("title"))
+    match_score = match.get("score")
+    numeric_score = (isinstance(match_score, (int, float))
+                     and not isinstance(match_score, bool) and 0 <= match_score <= 100)
+    visible_numeric_score = False
+    if numeric_score:
+        expect(detail_region.locator(".big-score")).to_contain_text(f"{match_score}%")
+        visible_numeric_score = True
+    requirements = (match.get("components") or {}).get("requirements") or []
+    concrete_requirement = next((row for row in requirements
+                                 if isinstance(row, dict) and row.get("skill")
+                                 and isinstance(row.get("explanation"), str)
+                                 and row["explanation"].strip()), None)
+    requirement_visible = False
+    if concrete_requirement is not None and selected_job_matches:
+        explanation_list = detail_region.get_by_role("list", name="Skill match explanation", exact=True)
+        expect(explanation_list).to_contain_text(str(concrete_requirement["skill"]))
+        expect(explanation_list).to_contain_text(str(concrete_requirement["explanation"]))
+        requirement_visible = True
     expect(detail_region.get_by_role("heading", name="Why this match?", exact=True)).to_be_visible()
     expect(detail_region.get_by_text("Supported by approved facts:", exact=False)).to_be_visible()
     if match.get("components", {}).get("skill_evidence_coverage"):
         expect(detail_region.get_by_role(
             "group", name="Base skill evidence coverage", exact=True)).to_be_visible()
+    match_explanation_visible = selected_job_matches and visible_numeric_score and requirement_visible
     record(22, "PASS" if match_explanation_visible else "PARTIAL",
-           "The visible match panel includes score components and approved-fact evidence."
-           if match_explanation_visible else "The fixture match explanation is incomplete.",
-           [{"name": "match_score_explained", "passed": match_explanation_visible}])
-
-    strong_match = match.get("score", 0) >= 70
-    if strong_match:
-        detail_region.get_by_role("button", name="Save job", exact=True).click()
-        expect(detail_region.get_by_text("Current status: SAVED", exact=True)).to_be_visible()
-    saved = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id).get("tracking", {})
-    saved_readback = strong_match and saved.get("disposition") == "SAVED"
-    record(32, "PASS" if saved_readback else "PARTIAL",
-           "A strong fixture match was saved and remained saved on readback." if saved_readback
-           else "No strong fixture match was available to save and read back.",
-           [{"name": "strong_match_available", "passed": strong_match},
-            {"name": "saved_status_readback", "passed": saved_readback}])
+           "The selected job score and requirement explanation are visible."
+           if match_explanation_visible else "The fixture match score or requirement explanation is incomplete.",
+           [{"name": "visible_numeric_match_score", "passed": visible_numeric_score},
+            {"name": "selected_job_requirement_explanation_visible", "passed": requirement_visible}],
+           continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
     page.get_by_label("Salary availability", exact=True).select_option("DEFAULT")
     page.get_by_label("Minimum annual salary (USD)", exact=True).fill("")

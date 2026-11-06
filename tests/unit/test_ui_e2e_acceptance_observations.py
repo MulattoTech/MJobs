@@ -48,7 +48,7 @@ def test_fixture_observation_cannot_pass_real_provider_discovery_step_11():
             step=11, status="PASS", observable_result="Provider jobs were seen.",
             evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT,
             run_id=RUN_ID,
-            checks=[{"name": "real_provider_browser_discovery", "passed": True}],
+            checks=[{"name": "same_profile_public_readonly_jobs_observed", "passed": True}],
         )
 
 
@@ -103,6 +103,56 @@ def test_observation_checks_must_match_the_registered_step_names():
         run_id=RUN_ID,
         checks=[{"name": "match_sort_order", "passed": True}],
     )["step"] == 14
+
+
+def test_observation_accepts_job_and_document_lineage_with_bounded_lists():
+    observation = build_observation(
+        step=34, status="PASS", observable_result="Base and tailored versions compared.",
+        evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT, run_id=RUN_ID,
+        continuity={"profile_id": "profile-123", "application_id": "app-456",
+                    "job_id": "job-789", "document_ids": ["doc-base", "doc-tailored"]},
+        checks=[{"name": "generated_base_visible", "passed": True},
+                {"name": "tailored_version_visible", "passed": True},
+                {"name": "omission_and_change_summary_visible", "passed": True}],
+    )
+    assert observation["continuity"]["document_ids"] == ["doc-base", "doc-tailored"]
+
+    with pytest.raises(ValueError, match="document_ids"):
+        build_observation(
+            step=34, status="PASS", observable_result="Base and tailored versions compared.",
+            evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT, run_id=RUN_ID,
+            continuity={"document_ids": ["same", "same"]},
+            checks=[{"name": "generated_base_visible", "passed": True},
+                    {"name": "tailored_version_visible", "passed": True},
+                    {"name": "omission_and_change_summary_visible", "passed": True}],
+        )
+
+
+def test_step_22_requires_visible_numeric_score_and_selected_job_explanation():
+    observation = build_observation(
+        step=22, status="PASS", observable_result="Selected job score and requirement explanation are visible.",
+        evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT, run_id=RUN_ID,
+        continuity={"profile_id": "profile-123", "job_id": "job-789"},
+        checks=[{"name": "visible_numeric_match_score", "passed": True},
+                {"name": "selected_job_requirement_explanation_visible", "passed": True}],
+    )
+    assert observation["status"] == "PASS"
+
+
+def test_evidence_journal_records_actual_readback_lineage(tmp_path):
+    from cli.ui_e2e import EvidenceJournal
+
+    journal = EvidenceJournal(
+        tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT}}, acceptance_run_id=RUN_ID)
+    journal.record_observed_jobs(["job-A"])
+    journal.record_application_readback(
+        application_id="app-B", job_id="job-B",
+        documents=[{"id": "doc-1"}, {"id": "doc-2"}])
+    payload = journal.payload()
+    assert payload["observed_job_ids"] == ["job-A"]
+    assert payload["selected_application_job_id"] == "job-B"
+    assert payload["selected_application_id"] == "app-B"
+    assert payload["application_document_ids"] == ["doc-1", "doc-2"]
 
 
 def test_journal_persists_run_identity_and_acceptance_rows(tmp_path):
