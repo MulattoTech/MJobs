@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-952-RECOVERY",
+  "objective": "Refresh existing PR952 for issue19/MJ-REQ-018 while preserving frozen Atom PR929 and HTTP cleanup PR957 components",
+  "owner": "mjobs-2",
+  "branch": "ao/pr949-recovery/pr952",
+  "head_sha": "df0153586d7a1dca9c60ae25cdb040f38ae61836",
+  "routing_state": "VERIFY",
+  "next_action": "Primary serial publication authorization and native review of exact refreshed head; update existingPR952 only; source edits parked",
+  "created_at": "2026-11-06T05:02:09.889459+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source df0153586d7a1dca9c60ae25cdb040f38ae61836 tree7ef5b6a9545da5ec5b7dd71d39bcefedfa2cbc8e: C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest -q tests/unit/test_company_job_endpoints.py tests/unit/test_company_feed_xml_safety.py tests/unit/test_public_company_response_cleanup.py tests/integration/test_company_atom_destinations.py tests/integration/test_company_feed_xml_safety.py tests/integration/test_public_company_response_cleanup.py tests/integration/test_wwr_xml_safety.py tests/integration/test_wwr.py;62 passed,1 existing opt-in live-WWR skip,108 subtests34.88s;UTC2026-11-06T05:01:00Z to05:01:36Z;Windows Python3.12.10 SQLAlchemy2.1.1;assigned heavy slot2 released after run",
+      "result": "PASS"
+    },
+    {
+      "command": "All18 current PR-owned paths byte-identical to original204167ba86af86b7554c1c65ee2e191662ab348a; PR9299504e0e6ac614e57f80aa59eca5843305a1cbd70 and PR9573f1973fd552c255ee05a1b802d095c3cce08c407 remain ancestors and sole overlapping frozen sources; relevant historical claim refs absent",
+      "result": "PASS"
+    },
+    {
+      "command": "Catalogue,progress validation,dashboard consistency,whitespace,merge commit provenance PASS; scanner disposition and canonical files exactly main560b97eda0fcb0b80f4b63e8fe5b28e805414580",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh exact-head hosted gates and native review; live-provider/browser acceptance; full MJ-REQ-018 acceptance; merge/deploy unauthorized",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "No new scoped behavior gap found; source edits parked. Historical original-head hosted success and XML-guard COMMENT review remain limited to original revision/scope."
+  ]
+}
