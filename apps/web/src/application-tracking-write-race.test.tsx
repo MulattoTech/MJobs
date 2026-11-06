@@ -167,4 +167,53 @@ describe('application tracking write readback', () => {
     expect((getByRole(trackingB, 'combobox', { name: 'Manual application status' }) as HTMLSelectElement).value).toBe('');
     expect(getByRole(trackingB, 'list', { name: 'Application history' }).textContent).toBe('');
   });
+
+  it('reuses the write request id when the PUT commits but the readback fails', async () => {
+    const requestIds: string[] = [];
+    const recorded = new Set<string>();
+    let persistedTracking = trackingBefore;
+    let failNextTrackingRead = false;
+    activeFetch = async (input, init) => {
+      const path = String(input);
+      const method = init?.method || 'GET';
+      if (path.endsWith('/tracking/status') && method === 'PUT') {
+        const requestId = (JSON.parse(String(init?.body)) as {request_id:string}).request_id;
+        requestIds.push(requestId);
+        if (!recorded.has(requestId)) {
+          recorded.add(requestId);
+          const sequence = recorded.size;
+          persistedTracking = {...trackingAfter, history: Array.from({length: sequence}, (_, index) => ({
+            ...trackingAfter.history[0], sequence: index + 1,
+          }))};
+        }
+        failNextTrackingRead = requestIds.length === 1;
+        return json(persistedTracking);
+      }
+      if (path.endsWith('/tracking')) {
+        if (failNextTrackingRead) {
+          failNextTrackingRead = false;
+          return json({detail:'Temporary readback failure.'}, 503);
+        }
+        return json(persistedTracking);
+      }
+      return response(path, method);
+    };
+
+    await mount();
+    await click('Applications 1');
+    await click('Synthetic company Synthetic role');
+    const tracking = getByRole(container, 'region', { name: 'Application tracking' });
+    fireEvent.change(getByRole(tracking, 'combobox', { name: 'Manual application status' }), {
+      target: { value: 'READY' },
+    });
+    await click('Update status');
+    expect(requestIds).toHaveLength(1);
+    expect((getByRole(tracking, 'button', { name: 'Update status' }) as HTMLButtonElement).disabled).toBe(false);
+
+    await click('Update status');
+    expect(requestIds).toHaveLength(2);
+    expect(requestIds[1]).toBe(requestIds[0]);
+    expect(persistedTracking.history).toHaveLength(1);
+    expect(getByRole(tracking, 'list', { name: 'Application history' }).textContent).toContain('Ready');
+  });
 });

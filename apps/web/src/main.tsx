@@ -1193,9 +1193,6 @@ function App() {
       const key=`${selectedProfile}:${applicationId}:${status}`;
       const requestId=applicationStatusRequestIds.current.get(key)||crypto.randomUUID();applicationStatusRequestIds.current.set(key,requestId);
       await api<ApplicationTracking>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(applicationId)}/tracking/status`,{method:'PUT',body:JSON.stringify({status,request_id:requestId})});
-      applicationStatusRequestIds.current.delete(key);
-      const prefix=`${selectedProfile}:${applicationId}:`;
-      for(const pendingKey of applicationStatusRequestIds.current.keys())if(pendingKey.startsWith(prefix))applicationStatusRequestIds.current.delete(pendingKey);
       if(profileRef.current!==selectedProfile||selectedAppRef.current?.profile_id!==selectedProfile||selectedAppRef.current?.id!==applicationId)return;
       // A same-application selection read may have started before the write and
       // can finish with an older tracking projection. Re-read after the commit,
@@ -1203,6 +1200,9 @@ function App() {
       const trackingSequence=++applicationTrackingSequence.current;
       const tracking=await api<ApplicationTracking>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(applicationId)}/tracking`);
       if(trackingSequence!==applicationTrackingSequence.current||profileRef.current!==selectedProfile||selectedAppRef.current?.profile_id!==selectedProfile||selectedAppRef.current?.id!==applicationId)return;
+      applicationStatusRequestIds.current.delete(key);
+      const prefix=`${selectedProfile}:${applicationId}:`;
+      for(const pendingKey of applicationStatusRequestIds.current.keys())if(pendingKey.startsWith(prefix))applicationStatusRequestIds.current.delete(pendingKey);
       setApps(rows=>rows.map(row=>row.id===applicationId?{...row,pipeline_status:tracking.status,pipeline_attribution:tracking.attribution}:row));
       setApplicationTracking(tracking);
       setApplicationStatusDraft(current=>!current||current===previousStatus?tracking.status||'':current);
