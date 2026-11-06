@@ -106,15 +106,45 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.disabled_policy_sha = None
             self.extra_operation_ids = None
             self.extra_operation_readback_sha = None
+            self.policy_checks = []
+            self.operation_checks = []
+            self.additional_owner_checks = []
+            self.extra_enabled = False
+            self.extra_bound = False
+            self.additional_declared = False
             self.primary = None
             self.observation = None
             self.extra_disabled = False
             self._write_count = 0
 
         def _call_owned(self, stage, context):
-            proof = owned_containment(stage, context)
+            if (not isinstance(context, dict) or context.get("provider") != PRIMARY_PROVIDER
+                    or not isinstance(context.get("base_url"), str)
+                    or context["base_url"].rstrip("/") != origin
+                    or context.get("acceptance_run_id") not in {None, acceptance_run_id}):
+                raise SourceSetupError("PRIMARY_CONTAINMENT_CONTEXT_MISMATCH")
+            owner_context = dict(context)
+            if self.additional_declared:
+                owner_context["additional_source"] = ({
+                    "provider": EXTRA_PROVIDER,
+                    "tenant": "default",
+                    "source_id": self.extra_id,
+                    "enabled_policy_sha256": self.enabled_policy_sha,
+                    "disabled_policy_sha256": self.disabled_policy_sha,
+                    "enabled": self.extra_enabled,
+                } if self.extra_id is not None else {
+                    "provider": EXTRA_PROVIDER,
+                    "tenant": "default",
+                    "source_id": None,
+                    "enabled_policy_sha256": None,
+                    "disabled_policy_sha256": None,
+                    "enabled": False,
+                })
+            proof = owned_containment(stage, owner_context)
             if not isinstance(proof, dict):
                 raise SourceSetupError("SOURCE_CONTAINMENT_PROOF_INVALID")
+            if stage == "release" and proof.get("released") is not True:
+                raise SourceSetupError("SOURCE_CONTAINMENT_RELEASE_UNCONFIRMED")
             if stage != "release" and not (
                     proof.get("scheduler_contained") is True
                     and proof.get("source_policy_exclusive") is True
@@ -123,6 +153,56 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     and isinstance(proof.get("token"), str) and proof["token"]):
                 raise SourceSetupError("SOURCE_CONTAINMENT_REQUIRED")
             return proof
+
+        def _additional_event(self, event, context, *, enabled):
+            callback = getattr(owned_containment, "additional_source", None)
+            if not callable(callback):
+                if execution_scope == "LIVE_PUBLIC_READ_ONLY":
+                    raise SourceSetupError("ADDITIONAL_SOURCE_CONTAINMENT_UNAVAILABLE")
+                return None
+            event_context = dict(context,
+                additional_source_id=self.extra_id,
+                additional_enabled_policy_sha256=self.enabled_policy_sha,
+                additional_disabled_policy_sha256=self.disabled_policy_sha,
+                additional_enabled=enabled)
+            proof = callback(event, event_context)
+            if (execution_scope == "LIVE_PUBLIC_READ_ONLY"
+                    and (not isinstance(proof, dict)
+                         or proof.get("additional_source_policy_verified") is not True
+                         or proof.get("additional_source_id") != self.extra_id
+                         or proof.get("additional_source_enabled") is not enabled)):
+                raise SourceSetupError("ADDITIONAL_SOURCE_OWNERSHIP_NOT_CONFIRMED")
+            if execution_scope == "LIVE_PUBLIC_READ_ONLY":
+                self.additional_owner_checks.append({"stage": event, "verified": True,
+                    "source_id": self.extra_id, "enabled": enabled,
+                    "lease_expires_at": proof.get("lease_expires_at")})
+            return proof
+
+        def _source_policy_sha(self, source):
+            calculate = getattr(owned_containment, "policy_sha256", None)
+            value = calculate(source) if callable(calculate) else _policy_sha(source)
+            if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value):
+                raise SourceSetupError("SOURCE_POLICY_FINGERPRINT_INVALID")
+            return value
+
+        def _bind_additional_policy(self, context):
+            binder = getattr(owned_containment, "bind_additional_source", None)
+            if not callable(binder):
+                if execution_scope == "LIVE_PUBLIC_READ_ONLY":
+                    raise SourceSetupError("ADDITIONAL_SOURCE_CONTAINMENT_UNAVAILABLE")
+                return
+            proof = binder(policy=dict(POLICY), primary_context=dict(context))
+            if (execution_scope == "LIVE_PUBLIC_READ_ONLY"
+                    and (not isinstance(proof, dict)
+                         or proof.get("additional_source_absent") is not True
+                         or proof.get("provider") != EXTRA_PROVIDER
+                         or proof.get("tenant") != "default")):
+                raise SourceSetupError("ADDITIONAL_SOURCE_ABSENCE_NOT_CONFIRMED")
+            if execution_scope == "LIVE_PUBLIC_READ_ONLY":
+                self.additional_owner_checks.append({"stage": "bind_absent", "verified": True,
+                    "provider": EXTRA_PROVIDER, "tenant": "default",
+                    "lease_expires_at": proof.get("lease_expires_at")})
+            self.additional_declared = True
 
         def _page(self):
             if self.page is not None:
@@ -155,8 +235,12 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
 
         def _with_lease(self, context, action):
             self._call_owned("read", context)
+            if self.extra_bound:
+                self._additional_event("check", context, enabled=self.extra_enabled)
             result = action()
             self._call_owned("read", context)
+            if self.extra_bound:
+                self._additional_event("check", context, enabled=self.extra_enabled)
             return result
 
         def _open_sources(self, context):
@@ -169,10 +253,18 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             return page_obj
 
         def _create_extra(self, context):
+            settings = self._with_lease(context, lambda: request("GET", "/settings"))
+            health = self._with_lease(context, lambda: request("GET", "/health"))
+            if (settings.get("operation_mode") != "FIXTURE"
+                    or settings.get("external_submission_enabled") is not False
+                    or health.get("external_submission_enabled") is not False):
+                raise SourceSetupError("SOURCE_SETUP_FIXTURE_MODE_REQUIRED")
             before = self._with_lease(context, lambda: _source_rows(request))
             if any(row.get("provider") == EXTRA_PROVIDER and row.get("tenant") == "default"
                    for row in before):
                 raise SourceSetupError("EXTRA_SOURCE_MUST_BE_ABSENT")
+            self.policy_checks.append({"stage": "preflight_absent", "provider": EXTRA_PROVIDER,
+                "tenant": "default", "present": False})
             page_obj = self._open_sources(context)
             self._with_lease(context, lambda: page_obj.get_by_label("Source provider", exact=True)
                              .select_option(EXTRA_PROVIDER))
@@ -189,8 +281,13 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             if any(row.get("provider") == EXTRA_PROVIDER and row.get("tenant") == "default"
                    for row in still_absent):
                 raise SourceSetupError("EXTRA_SOURCE_APPEARED_BEFORE_CREATE")
-            self._with_lease(context, lambda: page_obj.get_by_role("button", name="Add source", exact=True).click())
-            rows = self._with_lease(context, lambda: _source_rows(request))
+            self.policy_checks.append({"stage": "immediately_before_create", "provider": EXTRA_PROVIDER,
+                "tenant": "default", "present": False})
+            self._call_owned("read", context)
+            page_obj.get_by_role("button", name="Add source", exact=True).click()
+            page_obj.get_by_text("Source saved. Create a search profile below to enable scheduled discovery.",
+                                 exact=True).wait_for(state="visible", timeout=5000)
+            rows = _source_rows(request)
             matches = [row for row in rows if row.get("provider") == EXTRA_PROVIDER
                        and row.get("tenant") == "default"]
             if len(matches) != 1 or any(matches[0].get(key) != value for key, value in POLICY.items()):
@@ -202,10 +299,19 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.extra_id = source.get("id")
             if not isinstance(self.extra_id, str) or not self.extra_id:
                 raise SourceSetupError("EXTRA_SOURCE_ID_INVALID")
-            self.enabled_policy_sha = _policy_sha(source)
-            self._verify_extra_operations(context)
+            self.enabled_policy_sha = self._source_policy_sha(source)
+            self.policy_checks.append({"stage": "created_enabled", "source_id": self.extra_id,
+                "policy_sha256": self.enabled_policy_sha, "enabled": True})
+            self.extra_enabled = True
+            if callable(getattr(owned_containment, "additional_source", None)):
+                self._additional_event("created", context, enabled=True)
+                self.extra_bound = True
+            elif execution_scope == "LIVE_PUBLIC_READ_ONLY":
+                raise SourceSetupError("ADDITIONAL_SOURCE_CONTAINMENT_UNAVAILABLE")
+            self._call_owned("read", context)
+            self._verify_extra_operations(context, "created_before_primary_collection")
 
-        def _verify_extra_operations(self, context):
+        def _verify_extra_operations(self, context, stage):
             inventory = self._with_lease(context, lambda: request("GET", "/operations"))
             operations = inventory.get("operations") if isinstance(inventory, dict) else None
             if (not isinstance(operations, list) or len(operations) >= 100
@@ -221,6 +327,9 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     matches.append(operation_id)
             self.extra_operation_ids = sorted(set(matches))
             self.extra_operation_readback_sha = _sha(matches)
+            self.operation_checks.append({"stage": stage, "inventory_count": len(operations),
+                "matching_operation_ids": list(self.extra_operation_ids),
+                "matching_ids_sha256": self.extra_operation_readback_sha})
             if self.extra_operation_ids:
                 raise SourceSetupError("EXTRA_SOURCE_COLLECTION_ALREADY_OBSERVED")
 
@@ -231,34 +340,45 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             if len(candidates) != 1:
                 raise SourceSetupError("EXTRA_SOURCE_OWNERSHIP_UNCONFIRMED")
             current = candidates[0]
-            if (_policy_sha(current) != self.enabled_policy_sha or current.get("enabled") is not True
+            if (self._source_policy_sha(current) != self.enabled_policy_sha or current.get("enabled") is not True
                     or current.get("last_attempt") is not None or current.get("last_success") is not None
                     or current.get("jobs_seen") != 0):
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_CHANGED")
+            self.policy_checks.append({"stage": "before_disable", "source_id": self.extra_id,
+                "policy_sha256": self.enabled_policy_sha, "enabled": True})
             page_obj = self._page()
-            section = page_obj.get_by_role("heading", name=current.get("name"), exact=True).locator(
-                "xpath=ancestor::section[1]")
+            card_text = f"{current.get('provider')} / {current.get('tenant')}"
+            section = page_obj.locator("section.panel").filter(has_text=card_text)
             if section.count() != 1:
                 raise SourceSetupError("EXTRA_SOURCE_UI_CARD_AMBIGUOUS")
             def disable_from_ui():
+                self._call_owned("read", context)
+                if self.extra_bound:
+                    self._additional_event("before_disable", context, enabled=True)
                 section.get_by_role("button", name="Disable", exact=True).click()
                 section.get_by_role("button", name="Enable", exact=True).wait_for(state="visible", timeout=5000)
-            self._with_lease(context, disable_from_ui)
-            after = self._with_lease(context, lambda: _source_rows(request))
+            disable_from_ui()
+            after = _source_rows(request)
             matches = [row for row in after if row.get("id") == self.extra_id]
             if len(matches) != 1:
                 raise SourceSetupError("EXTRA_SOURCE_READBACK_INVALID")
             disabled = matches[0]
             expected = dict(current)
             expected["enabled"] = False
-            if (_policy_sha(disabled) != _policy_sha(expected) or disabled.get("enabled") is not False
+            if (self._source_policy_sha(disabled) != self._source_policy_sha(expected) or disabled.get("enabled") is not False
                     or disabled.get("last_attempt") is not None or disabled.get("last_success") is not None
                     or disabled.get("jobs_seen") != 0):
                 raise SourceSetupError("EXTRA_SOURCE_DISABLE_UNCONFIRMED")
-            self.disabled_policy_sha = _policy_sha(disabled)
+            self.disabled_policy_sha = self._source_policy_sha(disabled)
+            self.policy_checks.append({"stage": "disabled_readback", "source_id": self.extra_id,
+                "policy_sha256": self.disabled_policy_sha, "enabled": False})
             if self.disabled_policy_sha == self.enabled_policy_sha:
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_TRANSITION_INVALID")
             self.extra_disabled = True
+            self.extra_enabled = False
+            if self.extra_bound:
+                self._additional_event("disabled", context, enabled=False)
+            self._call_owned("read", context)
 
         def _observe_and_disable(self, context):
             if self.observation is not None:
@@ -281,18 +401,18 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             if (len(primary_rows) != 1 or len(extra_rows) != 1
                     or primary_rows[0].get("id") != primary_id
                     or primary_rows[0].get("enabled") is not True
-                    or _policy_sha(primary_rows[0]) != primary_hash
+                    or self._source_policy_sha(primary_rows[0]) != primary_hash
                     or self.extra_id == primary_id or extra_rows[0].get("enabled") is not True):
                 raise SourceSetupError("DISTINCT_ENABLED_SOURCES_UNCONFIRMED")
-            names = [row.get("name") for row in rows]
             visible = bool(rows)
-            for name in names:
-                if not isinstance(name, str) or not name:
+            for row in rows:
+                provider, tenant = row.get("provider"), row.get("tenant")
+                if not isinstance(provider, str) or not isinstance(tenant, str):
                     visible = False
                     break
-                locator = page_obj.get_by_role("heading", name=name, exact=True)
-                self._with_lease(context, lambda locator=locator: locator.wait_for(state="visible", timeout=5000))
-                if locator.count() != 1:
+                card = page_obj.locator("section.panel").filter(has_text=f"{provider} / {tenant}")
+                self._with_lease(context, lambda card=card: card.first.wait_for(state="visible", timeout=5000))
+                if card.count() != 1:
                     visible = False
                     break
             enabled_providers = {row.get("provider") for row in rows if row.get("enabled") is True}
@@ -316,7 +436,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 ],
             }
             self._disable_extra(context, rows)
-            self._verify_extra_operations(context)
+            self._verify_extra_operations(context, "disabled_before_primary_collection")
             self._close_browser()
 
         def _publish_after_release(self):
@@ -346,6 +466,15 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     "disabled_policy_sha256": self.disabled_policy_sha,
                     "disabled": True,
                 },
+                "trust_boundary": {
+                    "target": "ISOLATED_LOCAL_FIXTURE",
+                    "source_policy_ownership": "OPERATOR_COOPERATIVE_EXCLUSIVE",
+                    "source_policy_atomic_cas": False,
+                    "description": "An operator-owned lease and designated callback bind this exact new source; API source-policy writes do not provide atomic compare-and-swap.",
+                },
+                "extra_policy_readbacks": self.policy_checks,
+                "extra_operation_readbacks": self.operation_checks,
+                "additional_owner_checks": self.additional_owner_checks,
                 "extra_collection_operation_ids": self.extra_operation_ids,
                 "extra_operation_readback_sha256": self.extra_operation_readback_sha,
                 "acceptance_observations": [dict(self.observation,
@@ -378,14 +507,18 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     raise SourceSetupError("SOURCE_SETUP_INCOMPLETE")
                 self._call_owned("finalize", context)
                 rows = self._with_lease(context, lambda: _source_rows(request))
-                self._verify_extra_operations(context)
+                self._verify_extra_operations(context, "release")
                 matches = [row for row in rows if row.get("id") == self.extra_id]
                 if (not self.extra_disabled or len(matches) != 1 or matches[0].get("enabled") is not False
-                        or _policy_sha(matches[0]) != self.disabled_policy_sha
+                        or self._source_policy_sha(matches[0]) != self.disabled_policy_sha
                         or matches[0].get("last_attempt") is not None
                         or matches[0].get("last_success") is not None or matches[0].get("jobs_seen") != 0):
                     raise SourceSetupError("EXTRA_SOURCE_RELEASE_GUARD_FAILED")
+                self.policy_checks.append({"stage": "release", "source_id": self.extra_id,
+                    "policy_sha256": self.disabled_policy_sha, "enabled": False})
                 try:
+                    if self.extra_bound:
+                        self._additional_event("release", context, enabled=False)
                     result = self._call_owned("release", context)
                     self._publish_after_release()
                     return result
@@ -394,6 +527,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             proof = self._call_owned(stage, context)
             try:
                 if stage == "preflight" and self.extra_id is None:
+                    self._bind_additional_policy(context)
                     self._create_extra(context)
                 elif stage == "dispatch" and self.observation is None:
                     self._observe_and_disable(context)

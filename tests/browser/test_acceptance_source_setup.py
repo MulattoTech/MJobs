@@ -7,6 +7,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 from cli.acceptance_source_setup import _policy_sha, compose_owned_public_containment
+from packages.persistence.store import identity
+from services.discovery.sources.registry import source_adapter
 
 
 STAMP = "2026-11-06T18:00:00+00:00"
@@ -37,10 +39,12 @@ PROOF = {
 class SourceSetupBrowserTests(unittest.TestCase):
     def test_preexisting_extra_is_preserved_and_setup_fails_closed(self):
         existing = {"id": "operator-source", "provider": "remotive", "tenant": "default",
-            "name": "Remotive", "enabled": False}
+            "name": "default", "enabled": False}
         writes = []
 
         def request(method, path, **kwargs):
+            if method == "GET" and path in {"/settings", "/health"}:
+                return {"operation_mode": "FIXTURE", "external_submission_enabled": False}
             if method == "GET" and path == "/sources":
                 return {"sources": [dict(existing)]}
             writes.append((method, path, kwargs))
@@ -67,6 +71,8 @@ class SourceSetupBrowserTests(unittest.TestCase):
 
         def request(method, path, **kwargs):
             calls.append((method, path, kwargs))
+            if method == "GET" and path in {"/settings", "/health"}:
+                return {"operation_mode": "FIXTURE", "external_submission_enabled": False}
             if method == "GET" and path == "/sources":
                 return {"sources": [dict(row) for row in rows]}
             if method == "GET" and path == "/operations":
@@ -75,13 +81,15 @@ class SourceSetupBrowserTests(unittest.TestCase):
                 policy = dict(kwargs["json"])
                 row = next((item for item in rows if (item["provider"], item["tenant"])
                             == (policy["provider"], policy["tenant"])), None)
+                configured = _configured_source(policy, previous=row)
                 if row is None:
-                    row = {"id": "source-" + policy["provider"], "name": policy["provider"].title()}
-                    rows.append(row)
-                row.update(policy)
-                row.update(strategy="FEED", capabilities={"direct_application": False},
-                           last_attempt=None, last_success=None, jobs_seen=0)
-                return {"id": row["id"]}
+                    rows.append(configured)
+                    source_id = configured["id"]
+                else:
+                    row.clear()
+                    row.update(configured)
+                    source_id = row["id"]
+                return {"id": source_id}
             raise AssertionError((method, path))
 
         with sync_playwright() as playwright:
@@ -93,13 +101,48 @@ class SourceSetupBrowserTests(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as directory:
                     artifact_path = Path(directory) / "public-source-setup.json"
                     stages = []
+                    source_events = []
+                    release_receipts = [dict(PROOF, released=False), dict(PROOF),
+                                        dict(PROOF, released=True)]
 
-                    def containment(stage, context):
-                        stages.append(stage)
-                        return dict(PROOF)
+                    class Containment:
+                        def __call__(self, stage, context):
+                            stages.append(stage)
+                            if source_events and "additional_source" in context:
+                                self.assert_binding(context["additional_source"])
+                            if stage == "release":
+                                return release_receipts.pop(0)
+                            return dict(PROOF)
+
+                        def assert_binding(self, binding):
+                            if binding.get("provider") != "remotive" or binding.get("tenant") != "default":
+                                raise AssertionError(binding)
+                            if binding.get("source_id") is None:
+                                if (binding.get("enabled_policy_sha256") is not None
+                                        or binding.get("disabled_policy_sha256") is not None
+                                        or binding.get("enabled") is not False):
+                                    raise AssertionError(binding)
+                            elif (not isinstance(binding.get("source_id"), str)
+                                  or not isinstance(binding.get("enabled_policy_sha256"), str)
+                                  or binding.get("enabled") not in {True, False}
+                                  or binding.get("enabled") is False
+                                  and not isinstance(binding.get("disabled_policy_sha256"), str)):
+                                raise AssertionError(binding)
+
+                        def bind_additional_source(self, *, policy, primary_context):
+                            if policy["provider"] != "remotive" or policy["tenant"] != "default":
+                                raise AssertionError(policy)
+                            source_events.append(("bind", dict(policy)))
+
+                        def additional_source(self, event, context):
+                            source_events.append((event, dict(context)))
+
+                        @staticmethod
+                        def policy_sha256(source):
+                            return _policy_sha(source)
 
                     wrapped = compose_owned_public_containment(
-                        containment,
+                        Containment(),
                         base_url="http://127.0.0.1:18700",
                         baseline=BASELINE,
                         acceptance_run_id="step9-browser-contract",
@@ -128,8 +171,13 @@ class SourceSetupBrowserTests(unittest.TestCase):
                     self.assertIsNone(extra["last_success"])
                     self.assertEqual(extra["jobs_seen"], 0)
 
-                    wrapped("release", {"provider": "wwr", "base_url": "http://127.0.0.1:18700",
-                        "cleanup_status": "RESTORED_DISABLED"})
+                    release_context = {"provider": "wwr", "base_url": "http://127.0.0.1:18700",
+                        "cleanup_status": "RESTORED_DISABLED"}
+                    for _ in range(2):
+                        with self.assertRaisesRegex(ValueError, "SOURCE_CONTAINMENT_RELEASE_UNCONFIRMED"):
+                            wrapped("release", release_context)
+                        self.assertFalse(artifact_path.exists())
+                    wrapped("release", release_context)
                     artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
                     self.assertEqual(artifact["acceptance_observations"][0]["step"], 9)
                     self.assertEqual(artifact["acceptance_observations"][0]["evidence_kind"], "PUBLIC_READ_ONLY")
@@ -139,6 +187,11 @@ class SourceSetupBrowserTests(unittest.TestCase):
                     self.assertEqual(artifact["extra_collection_operation_ids"], [])
                     self.assertNotIn("/collect", [path for _, path, _ in calls])
                     self.assertLess(stages.index("finalize"), stages.index("release"))
+                    self.assertEqual(source_events[0][0], "bind")
+                    self.assertIn("created", [event for event, _ in source_events])
+                    self.assertIn("before_disable", [event for event, _ in source_events])
+                    self.assertIn("disabled", [event for event, _ in source_events])
+                    self.assertIn("release", [event for event, _ in source_events])
             finally:
                 browser.close()
 
@@ -149,13 +202,34 @@ def rows_update_from_ui(body, rows):
     payload = json_module.loads(body)
     row = next((item for item in rows if (item["provider"], item["tenant"])
                 == (payload["provider"], payload["tenant"])), None)
+    configured = _configured_source(payload, previous=row)
     if row is None:
-        row = {"id": "source-" + payload["provider"], "name": payload["provider"].title()}
-        rows.append(row)
-    row.update(payload)
-    row.update(strategy="FEED", capabilities={"direct_application": False},
-               last_attempt=None, last_success=None, jobs_seen=0)
-    return json.dumps({"id": row["id"]})
+        rows.append(configured)
+        source_id = configured["id"]
+    else:
+        row.clear()
+        row.update(configured)
+        source_id = row["id"]
+    return json.dumps({"id": source_id})
+
+
+def _configured_source(policy, *, previous=None):
+    capabilities = source_adapter({
+        "provider": policy["provider"], "tenant": policy["tenant"],
+        "request_timeout": policy["request_timeout"],
+        "rate_limit": policy["rate_limit"], "concurrency": policy["concurrency"],
+    }).capabilities()
+    return {
+        "id": identity(policy["provider"], policy["tenant"]),
+        "provider": policy["provider"], "tenant": policy["tenant"], "name": policy["tenant"],
+        **policy,
+        "strategy": capabilities.strategy.value,
+        "capabilities": capabilities.as_dict(),
+        "health_status": "NOT_CHECKED",
+        "last_attempt": previous.get("last_attempt") if previous else None,
+        "last_success": previous.get("last_success") if previous else None,
+        "jobs_seen": previous.get("jobs_seen", 0) if previous else 0,
+    }
 
 
 def _route_ui_request(route, rows):
@@ -184,7 +258,7 @@ def _sources_ui():
       <label>Source concurrency<input aria-label="Source concurrency" value="1"></label>
       <label>Schedule jitter (seconds)<input aria-label="Schedule jitter (seconds)" value="30"></label>
       <button type="submit">Add source</button>
-    </form><main id="sources"></main>
+    </form><p role="status" id="notice"></p><main id="sources"></main>
     <script>
       async function load(){const rows=await (await fetch('/sources')).json();
         document.querySelector('#sources').innerHTML=rows.sources.map(s=>`<section class="panel">
@@ -207,7 +281,7 @@ def _sources_ui():
             rate_limit:Number(document.querySelector('[aria-label="Rate limit (requests/minute)"]').value),
             concurrency:Number(document.querySelector('[aria-label="Source concurrency"]').value),
             jitter_seconds:Number(document.querySelector('[aria-label="Schedule jitter (seconds)"]').value)})});
-        await load();}; load();
+        await load(); document.querySelector('#notice').textContent='Source saved. Create a search profile below to enable scheduled discovery.';}; load();
     </script>"""
 
 
