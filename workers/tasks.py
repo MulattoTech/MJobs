@@ -336,6 +336,8 @@ def execute_operation(operation_id, *, registry_module=None,
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
+                        parent_operation_id=operation_id,
+                        parent_operation_attempt=operation["attempt_count"],
                         refresh_matches=search_profile is None,
                         **collection_options,
                     )
@@ -389,6 +391,24 @@ def execute_operation(operation_id, *, registry_module=None,
                             profile_version=params.get("profile_version"),
                         )
                         history_results = len(discovery_jobs)
+            elif operation["kind"] == "COMPANY_DISCOVER" and "aggregator_bootstrap" in operation["params"]:
+                # Presence selects this restricted path even for malformed
+                # markers. An unverified aggregator hint must never fall through
+                # to a broader company-discovery handler.
+                from services.company_discovery.requests import AGGREGATOR_BOOTSTRAP_OPERATION_MARKER
+                params = operation["params"]
+                if (params.get("aggregator_bootstrap") != AGGREGATOR_BOOTSTRAP_OPERATION_MARKER
+                        or type(params.get("aggregator_bootstrap_version")) is not int
+                        or params["aggregator_bootstrap_version"] != 1
+                        or params.get("fetch_mode") != "PUBLIC_HTTPS"
+                        or not params.get("discovery_request_id")
+                        or any(key in params for key in (
+                            "fixture_monitoring", "fixture_source_id", "fixture_native_acquisition",
+                            "monitoring_source_id"))):
+                    raise FixtureOperationDisabled()
+                from services.company_discovery.aggregator_workflow import execute_aggregator_bootstrap
+                result = execute_aggregator_bootstrap(
+                    store, operation, check=check, total_timeout=min(90, timeout() - 5))
             elif operation["kind"] == "COMPANY_DISCOVER" and (
                     "fixture_monitoring" in params or "fixture_source_id" in params):
                 # Presence selects the restricted handler even for a malformed
