@@ -427,6 +427,61 @@ class GreenhouseTests(unittest.TestCase):
         self.assertTrue(all("jobs" in str(request.url) or str(request.url).endswith("/example") for request in self.requests))
         self.assertFalse(Greenhouse("example").capabilities().supports(SourceCapability.DIRECT_APPLICATION))
 
+    def test_optional_pay_overflow_preserves_batch_provenance_health_and_reopen(self):
+        source = configure_source(
+            self.store, "example", rate_limit=600, jitter_seconds=0,
+        )
+        malformed = dict(RAW, pay_input_ranges=[{
+            "min_cents": 10 ** 400, "max_cents": 7_500_000, "currency_type": "USD",
+        }])
+        valid = dict(
+            RAW, id=1235, internal_job_id=5679, title="Platform Engineer",
+            absolute_url="https://job-boards.greenhouse.io/example/jobs/1235",
+            pay_input_ranges=[{
+                "min_cents": 5_000_000, "max_cents": 7_500_000, "currency_type": "USD",
+            }],
+        )
+        requests = []
+
+        def response(request):
+            requests.append(request)
+            self.assertEqual(request.method, "GET")
+            self.assertEqual(request.url.host, "boards-api.greenhouse.io")
+            if request.url.path.endswith("/jobs"):
+                return httpx.Response(200, json={"jobs": [malformed, valid]})
+            return httpx.Response(200, json={"name": "Example Public Employer"})
+
+        result = collect_source(
+            self.store, source, "fixture", transport=httpx.MockTransport(response),
+        )
+        self.assertEqual((result["jobs_seen"], result["rejected"]), (2, 0))
+        self.assertEqual(len(requests), 2)
+        reopened = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        try:
+            self.assertEqual(reopened.count("canonical_jobs"), 2)
+            self.assertEqual(reopened.count("job_postings"), 2)
+            self.assertEqual(reopened.count("posting_snapshots"), 2)
+            with reopened.engine.connect() as connection:
+                snapshots = list(connection.execute(select(m.posting_snapshots)).mappings())
+                policy = connection.execute(select(m.job_sources).where(
+                    m.job_sources.c.id == source,
+                )).mappings().one()
+            self.assertEqual({row["raw"]["id"] for row in snapshots}, {1234, 1235})
+            self.assertEqual(next(row["raw"] for row in snapshots if row["raw"]["id"] == 1234),
+                             malformed)
+            self.assertEqual(policy["health_status"], "HEALTHY")
+            self.assertEqual(policy["consecutive_failures"], 0)
+            self.assertIsNone(policy["backoff_until"])
+            company_id = identity("greenhouse", "example")
+            first = reopened.job(identity(company_id, "greenhouse", "example", "1234"))
+            second = reopened.job(identity(company_id, "greenhouse", "example", "1235"))
+            self.assertIsNone(first["attributes"]["salary_min"])
+            self.assertIsNone(first["attributes"]["salary_max"])
+            self.assertEqual((second["attributes"]["salary_min"],
+                              second["attributes"]["salary_max"]), (50_000, 75_000))
+        finally:
+            reopened.engine.dispose()
+
     def test_multiple_postings_share_one_canonical_job_and_route(self):
         source = configure_source(self.store, "example")
         collect_source(self.store, source, "fixture", transport=httpx.MockTransport(self.transport))
