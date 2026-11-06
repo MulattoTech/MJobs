@@ -10,9 +10,13 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from uuid import uuid4
 
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import select, update
+from sqlalchemy import create_engine, select, text, update
+from sqlalchemy.engine import make_url
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -30,10 +34,11 @@ class FixtureNativeAcquisitionTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix='mjobs-fixture-native-')
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.url = 'sqlite:///' + (self.root/'proof.db').as_posix()
+        self.url = getattr(self, 'database_url', 'sqlite:///' + (self.root/'proof.db').as_posix())
         self.store = Store(self.url)
         self.addCleanup(self.store.engine.dispose)
-        self.store.migrate()
+        if self.store.engine.dialect.name == 'sqlite':
+            self.store.migrate()
         self.store.bind_workspace_mode('FIXTURE')
         self.enterContext(patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.url,
             'MJOBS_OPERATION_MODE': 'FIXTURE', 'MJOBS_REDIS_URL': 'redis://127.0.0.1:1/0',
@@ -203,3 +208,33 @@ class FixtureNativeAcquisitionTests(unittest.TestCase):
     test_cross_origin_redirect_blocked = native.OfficialDomainAcquisitionTests.test_cross_origin_employer_redirect_is_blocked_without_verification
     test_midresponse_revocation_no_promotion = native.OfficialDomainAcquisitionTests.test_source_revocation_during_candidate_response_prevents_promotion
     test_domain_owner_conflict_no_fetch = native.OfficialDomainAcquisitionTests.test_conflicting_domain_owner_after_admission_prevents_fetch
+
+
+@unittest.skipUnless(os.environ.get('MJOBS_TEST_POSTGRES_URL'), 'disposable PostgreSQL not configured')
+class FixtureNativeAcquisitionPostgresTests(FixtureNativeAcquisitionTests):
+    """The same native FIXTURE oracles on an owned, migrated PostgreSQL schema."""
+    def setUp(self):
+        url = make_url(os.environ['MJOBS_TEST_POSTGRES_URL'])
+        if (url.get_backend_name() != 'postgresql' or url.host not in {'localhost', '127.0.0.1', '::1'}
+                or not url.database or not (url.database == 'mjobs_test' or url.database.startswith('mjobs_test_'))
+                or url.query):
+            raise ValueError('An explicit loopback disposable mjobs_test database URL is required')
+        self._pg_schema = 'fixture_native_' + uuid4().hex
+        self._pg_admin = create_engine(url, connect_args={'connect_timeout': 5})
+        self.addCleanup(self._pg_admin.dispose)
+        with self._pg_admin.begin() as connection:
+            connection.execute(text('CREATE SCHEMA "' + self._pg_schema + '"'))
+        self.addCleanup(self._drop_owned_schema)
+        self.database_url = url.update_query_dict({'options': '-csearch_path=' + self._pg_schema
+            + ' -clock_timeout=5000 -cstatement_timeout=30000'}).render_as_string(hide_password=False)
+        with patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.database_url}):
+            command.upgrade(Config('alembic.ini'), 'head')
+        super().setUp()
+
+    def _drop_owned_schema(self):
+        suffix = self._pg_schema.removeprefix('fixture_native_')
+        if not self._pg_schema.startswith('fixture_native_') or len(suffix) != 32 or any(
+                char not in '0123456789abcdef' for char in suffix):
+            raise ValueError('Unexpected disposable schema identifier')
+        with self._pg_admin.begin() as connection:
+            connection.execute(text('DROP SCHEMA "' + self._pg_schema + '" CASCADE'))
