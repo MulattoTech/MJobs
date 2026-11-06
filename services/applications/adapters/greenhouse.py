@@ -111,10 +111,11 @@ class GreenhouseApplicationAdapter:
             if callable(remaining):
                 timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
         try:
-            validity = page.locator(
-                'form input:not([type="file"]), form select, form textarea'
-            ).evaluate_all(
-                "nodes => nodes.map(node => ({"
+            # Locator.evaluate_all has no timeout argument. Evaluate against the
+            # single analyzed form so the worker's remaining deadline is honored.
+            validity = page.locator("form").evaluate(
+                'form => Array.from(form.querySelectorAll('
+                '\'input:not([type="file"]), select, textarea\')).map(node => ({'
                 "validates: Boolean(node.willValidate), "
                 "valid: Boolean(node.validity && node.validity.valid)"
                 "}))",
