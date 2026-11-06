@@ -580,3 +580,10 @@ Tracker state/readback and retry-idempotency fixes71735a3a/36db9ac9 independentl
 Fresh current-head CI, candidate runtime, protected merge, and exact merged-source60-step verification remain separate gates. Preserve c1 failed runtime/CI and all historical source/evidence. Main971 dashboard source retained. Continue only within authorized window ending21:22:28UTC.
 
 Corrected PG adapter c1c993ab now explicitly binds the nested fixture and asserts PostgreSQL. Its exact mixed batch passed42 tests/10subtests with0skips; prior invalid adapter receipts remain preserved. Root Greenhouse priority-order suite12PASS. Unpublished trailer formatting was repaired with identical source trees, authorship and merge ancestry; original12-commit chain retained, mapping committed.
+
+
+## 2026-11-06T20:46:56.937091+00:00 - MJ-REQ-292 discovery identity repair
+
+**MJ-REQ-292: 0/60 VERIFIED PASS**, 53 PARTIAL,7 NOT_RUN. New diagnostic rows3/52/53 bind sanitized ea58 evidence. The actual browser producer completed52 observations, including tracker and audit; the wrapper failed because UI discovery steps8/10/11 were compared to final application operation IDs. Yoda reviewed narrow runner repair edbb823c, integrated `f183afdc5921710123f1f7df029fe9b7bcc9a59e`; root313 runner/UI tests passed. R2 owns synthetic ledger fixture alignment. Preserve failed ea58 checkpoint and all resources; do not resume it.
+
+Next: fresh candidate publication/build/run, complete UI then same-run public-source/recovery/monitoring, protected merge and exact merged-source verification. Current deadline21:22:28UTC remains unchanged.

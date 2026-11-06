@@ -3,14 +3,14 @@
   "requirement_id": "MJ-REQ-292",
   "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
   "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-  "updated_at_utc": "2026-11-06T19:28:40.975394+00:00",
+  "updated_at_utc": "2026-11-06T20:46:01.345347+00:00",
   "umbrella_result": "PARTIAL",
   "scoreboard": {
     "total": 60,
     "verified_pass": 0,
-    "PARTIAL": 50,
+    "PARTIAL": 53,
     "FAIL": 0,
-    "NOT_RUN": 10,
+    "NOT_RUN": 7,
     "BLOCKED": 0
   },
   "specification": {
@@ -132,14 +132,14 @@
         "tests/browser/test_profile_import.py",
         "services/career_profile/durable_extraction.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Rerun first-run wizard, PDF/DOCX extraction correction and verified profile persistence through the same isolated full stack. Existing onboarding does not demonstrate actual parsing-error correction or first-run wizard.",
+      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
       "responsible_agent": "rey_ui_observations",
       "exclusive_source_ownership": [
         "cli/ui_e2e.py",
@@ -150,15 +150,17 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
       "required_integration_validation": "First-run wizard finishes and the saved setup survives reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+        "evidence_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+        "command": "python -m cli.acceptance_campaign --evidence-dir outputs/mjreq292-native-ea58d86af3f3/journey --startup-receipt outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json --build-receipt outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json --source-setup --monitoring --stop-after-ui",
+        "observed_result": "Producer PASS in an incomplete candidate run: First-run configuration, saved search, and current-version fact decisions were reloaded. Independent EF sanitized projection retains checks; journey wrapper failed continuity validation, source unmerged, so ledger remains PARTIAL.",
+        "executed_at_utc": "2026-11-06T14:39:48.477702-06:00",
+        "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -166,7 +168,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2661,14 +2663,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2679,15 +2681,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Tracker shows the same application and confirmed state after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+        "evidence_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+        "command": "python -m cli.acceptance_campaign --evidence-dir outputs/mjreq292-native-ea58d86af3f3/journey --startup-receipt outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json --build-receipt outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json --source-setup --monitoring --stop-after-ui",
+        "observed_result": "Producer PASS in an incomplete candidate run: The selected B application tracking status persisted through a browser reload. Independent EF sanitized projection retains checks; journey wrapper failed continuity validation, source unmerged, so ledger remains PARTIAL.",
+        "executed_at_utc": "2026-11-06T14:39:48.477702-06:00",
+        "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2695,7 +2701,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2710,14 +2716,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2728,15 +2734,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Relevant audit events are complete, ordered, scoped and privacy-safe. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+        "evidence_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+        "command": "python -m cli.acceptance_campaign --evidence-dir outputs/mjreq292-native-ea58d86af3f3/journey --startup-receipt outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json --build-receipt outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json --source-setup --monitoring --stop-after-ui",
+        "observed_result": "Producer PASS in an incomplete candidate run: The B audit timeline shows submission, confirmation and reported tracking with redacted values. Independent EF sanitized projection retains checks; journey wrapper failed continuity validation, source unmerged, so ledger remains PARTIAL.",
+        "executed_at_utc": "2026-11-06T14:39:48.477702-06:00",
+        "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2744,7 +2754,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },

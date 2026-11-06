@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "29509754248aff32803b90491d82f807e5eaa725",
+  "head_sha": "191fd88e3b3d596ced4f78d104f6ef6dad527ab9",
   "routing_state": "EXECUTE",
-  "next_action": "Publish the qualified candidate normally to PR973 after live update-only preflight, then follow current-head required checks. Han builds exact frozen source; root runs committed acceptance_campaign with source-setup and monitoring. A failed UI cannot resume. After protected merge, fresh merged-source build/run and independent evidence review are still required.",
+  "next_action": "Finish ledger fixture alignment, freeze/publish normally, build fresh exact candidate and run committed campaign launcher. ea58 failed UI checkpoint is not resumable despite completed browser producer. Once fresh UI is COMPLETE, resume same run with source-setup and monitoring; qualify protected merge then fresh merged-source verification.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -207,23 +207,34 @@
       "tested_commit": "29509754248aff32803b90491d82f807e5eaa725",
       "result": "PASS",
       "observed": "31 tests,3subtests passed13.55s;4PGsubclasses skipped locally, independently executed in isolated PostgreSQL batch."
+    },
+    {
+      "command": "pytest acceptance journey and UI observation units",
+      "tested_commit": "f183afdc5921710123f1f7df029fe9b7bcc9a59e",
+      "result": "PASS",
+      "observed": "313 passed4.34s after Yoda independent exact runner review. Canonical ledger/checkpoint documentation dirty for new PARTIAL rows; executable source matches commit. No new live run."
+    },
+    {
+      "command": "pytest acceptance journey, ledger and UI observation units",
+      "tested_commit": "191fd88e3b3d596ced4f78d104f6ef6dad527ab9",
+      "result": "PASS",
+      "observed": "420 passed9.04s; synthetic DISCOVER fixture aligned without weakening negative assertions. Canonical docs dirty only; new live run still NOT_RUN."
     }
   ],
   "blockers": [
-    "MJ-REQ-292 remains0/60 VERIFIED PASS,50 PARTIAL,10 NOT_RUN. No protected-merged-source full journey has completed.",
-    "Published c1 unit and integration checks failed; repaired candidate needs fresh hosted checks. Local Windows full unit stops on fcntl; Linux runtime image is not a complete test-tool image.",
-    "c1 connected run failed tracker history visibility after confirmed persisted READY. Reviewed frontend fix and3 composed regressions passed; fresh connected runtime still pending.",
-    "Public-source setup, recovery and natural monitoring remain unexecuted in a complete connected campaign.",
-    "Earlier PG supersession adapter42745 accidentally ran its nested fixture on SQLite; invalid receipts preserved. Corrected c1c993ab explicitly binds and asserts PostgreSQL; exact mixed PG/SQLite batch42 tests10subtests passed,0skips. Hosted and live journey remain separate gates."
+    "0/60 VERIFIED PASS,53 PARTIAL,7 NOT_RUN. New diagnostic steps3,52,53 are not acceptance.",
+    "ea58 browser producer completed52 observations(48PASS/4PARTIAL), including tracker and audit, but wrapper rejected DISCOVER IDs for8/10/11 against final APPLY_MOCK IDs. Reviewed narrow stage-proof repair integrated; fresh runtime required.",
+    "Public-source setup, restart/persistence and resumed monitoring have not completed in the connected campaign.",
+    "Current candidate and later merged source require their own protected checks, complete runtime and independent acceptance evidence."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
     "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
     "verified_pass": 0,
     "total": 60,
-    "PARTIAL": 50,
+    "PARTIAL": 53,
     "FAIL": 0,
-    "NOT_RUN": 10,
+    "NOT_RUN": 7,
     "BLOCKED": 0,
     "umbrella_result": "PARTIAL",
     "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec"
@@ -536,19 +547,16 @@
     "services/company_discovery/requests.py": "ahsoka_documents staged bootstrap authorization while preserving PR933 guards",
     "workers/tasks.py": "root explicit presence-based bootstrap dispatch; patch preserved ignored, not yet integrated"
   },
-  "acceptance_ledger_sha256": "148f1de69281883580cdb7e86374568e38d78f7ddd8f02c5e65dfb0c38cc0e5f",
+  "acceptance_ledger_sha256": "1267baec2d4fd9a249655811d93724266ce2b4d2c9d149fd37162ad086fb1519",
   "runtime": {
-    "project": "mjobs-fixture-c1b349810cef",
-    "source_commit": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
-    "source_tree": "10699f0a74c91590a2878e6b77a10a28845d50a3",
-    "image_id": "sha256:437b7d8eaf509c75565ba46e4d83527da313a445217f726776bc0ac33792adf7",
-    "run_id": "mjreq292-c1b349810cef-native-greenhouse-01",
-    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-han-runtime-next\\MJobs",
-    "status": "UI_FAILED_AT_TRACKER_VISIBLE_HISTORY;46 producerPASS4PARTIAL through51; no ledger PASS",
-    "startup_receipt": "outputs/mjreq292-native-c1b349810cef/startup-receipt.json",
-    "build_receipt": "outputs/mjreq292-native-c1b349810cef/frontend-build-receipt.json",
-    "diagnostic_evidence": "outputs/mjreq292-native-c1b349810cef/journey/ui.json",
-    "journey_session": "99465 completed exit1"
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-runtime-ea58d86a/MJobs",
+    "project": "mjobs-fixture-ea58d86af3f3",
+    "api_url": "http://127.0.0.1:18743",
+    "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+    "source_tree": "f167a446980ad98b622aecb6f978b15a810a6a46",
+    "image_id": "sha256:31e8f3fdbb5ea364e0dabdbf9f0c4d5238dee0c8a284a007e7215a55157eaea6",
+    "startup_receipt": "outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json",
+    "observed_status": "All services healthy; completed UI producer52 observations; wrapperFAIL historical discovery identity mismatch. All failed artifacts preserved, no resume/public/recovery/monitoring executed."
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
   "current_evidence_boundary": "Published c1 source is unmerged and failed required CI. StartupPASS; UIFAIL at tracker after all emitted native form/submission checks passed. Ledger0PASS50PARTIAL10NOT_RUN remains conservative; no public/restart/monitoring execution. Current fixes are active and not yet qualified.",
@@ -585,13 +593,13 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T20:33:32.079038+00:00",
+  "updated_at": "2026-11-06T20:46:56.937091+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
-    "published_head": "c2bbf9e039d7b2f2556bf55a0b5704695706717c",
-    "required_checks": "Last observation only: all fast/static/Compose checks PASS; integration shards1 and2 PASS; shard0 IN_PROGRESS. Polling stopped at user pause. No final aggregate result inferred.",
-    "next_candidate_source": "58c0cc3bce1654aff6d03a208165ecebeb829fa2",
+    "published_head": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+    "required_checks": "ea58 unit/required/Compose/web/policy/security/dependency PASS; integration shards pending at latest read. Next source needs fresh exact-head checks.",
+    "next_candidate_source": "191fd88e3b3d596ced4f78d104f6ef6dad527ab9",
     "local_unpublished_head": "70595258e4cac188d641629298a5ee4e8131a45c"
   },
   "runtime_history": [
@@ -664,6 +672,19 @@
       "startup_receipt": "outputs/mjreq292-native-70595258e4ca/startup-receipt.json",
       "diagnostic_evidence": "outputs/mjreq292-native-70595258e4ca-journey/ui.json",
       "journey_session": "90540 completed exit1"
+    },
+    {
+      "project": "mjobs-fixture-c1b349810cef",
+      "source_commit": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
+      "source_tree": "10699f0a74c91590a2878e6b77a10a28845d50a3",
+      "image_id": "sha256:437b7d8eaf509c75565ba46e4d83527da313a445217f726776bc0ac33792adf7",
+      "run_id": "mjreq292-c1b349810cef-native-greenhouse-01",
+      "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-han-runtime-next\\MJobs",
+      "status": "UI_FAILED_AT_TRACKER_VISIBLE_HISTORY;46 producerPASS4PARTIAL through51; no ledger PASS",
+      "startup_receipt": "outputs/mjreq292-native-c1b349810cef/startup-receipt.json",
+      "build_receipt": "outputs/mjreq292-native-c1b349810cef/frontend-build-receipt.json",
+      "diagnostic_evidence": "outputs/mjreq292-native-c1b349810cef/journey/ui.json",
+      "journey_session": "99465 completed exit1"
     }
   ],
   "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
@@ -810,5 +831,16 @@
       "log_sha256": "0d80f58f7e98f9d68c2021447bab28e0d7e562b6a2607e67198dbca87d5bbea0",
       "scope": "Owned PostgreSQL17.11, controlled HTTP, explicit dialect assertion, exact container cleanup. No real RQ/provider or hosted acceptance."
     }
+  },
+  "continuity_repair": {
+    "author_commit": "edbb823c6217957c1442ce55de73f85573301275",
+    "integrated_commit": "f183afdc5921710123f1f7df029fe9b7bcc9a59e",
+    "review": "Yoda independent static review approved exact source. UI8/10/11 must bind unique same-profile PASS DISCOVER proof; later application/public/recovery identities unchanged.",
+    "diagnostic_revalidation": "Untouched ea58 artifact52 rows accepted by repaired validator; historical diagnostic only, no new source runtime acceptance.",
+    "projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+    "projection_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+    "ledger_fixture_commit": "d6cb0a03eb44890b96e5fff1210bf01e2a8ebb27",
+    "composed_source": "191fd88e3b3d596ced4f78d104f6ef6dad527ab9",
+    "ledger_fixture_review": "Yoda approved exact d6cb0a03:15 test-only lines, validator and negative checks unchanged. Root composed420 tests passed."
   }
 }
