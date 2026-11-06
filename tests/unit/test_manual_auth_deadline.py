@@ -73,7 +73,7 @@ class ManualAuthDeadlineTests(unittest.TestCase):
     def test_host_exposes_decreasing_original_budget(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
-            (root / 'app1/browser-profile').mkdir(parents=True)
+            (root / 'app1/browser-profile').mkdir(mode=0o700, parents=True)
             payload = {'schema': 1, 'output_dir': str(root), 'application_id': 'app1',
                 'mock_origin': 'http://127.0.0.1:8123', 'requisition': 'A', 'budget_seconds': 1}
             now = [10.0]
@@ -86,5 +86,6 @@ class ManualAuthDeadlineTests(unittest.TestCase):
                     check.remaining_seconds()
                 return manual_auth.OPEN_UNAVAILABLE
             with patch.object(manual_auth_host, 'monotonic', side_effect=lambda: now[0]), \
-                    patch.object(manual_auth_host, 'run_browser', side_effect=browser):
+                    patch.object(manual_auth_host, 'run_browser', side_effect=browser) as run_browser:
                 self.assertEqual(manual_auth_host.run(io.BytesIO(json.dumps(payload).encode())), 2)
+            run_browser.assert_called_once()

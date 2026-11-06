@@ -436,6 +436,29 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Next: all protected gates on the fresh candidate, serialized merge, then guarded current-main deployment and live verification. Selected Brave access was unavailable; authenticated UI verification remains NOT RUN.
 
 
+## 2026-11-05T02:57:02.744318+00:00 - PR938 integration web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f
+
+- Preserved reviewed browser-profile/manual-auth source at d35c5496898d72b5b3741b54110c7fab828494cb; tested current-main merge 7af007f9521302dff18d247fba99cb7136d09d31.
+- Focused Windows candidate: 80 passed, 8 skipped, 143 subtests passed in 9.05s. Catalogue, progress, dashboard, source preservation and provenance PASS.
+- Evidence: docs/evidence/2026-11-05-web-f4dd2b32-pr938-integration.json. MJ-REQ-171 stays PARTIAL; production NOT DEPLOYED by this run.
+- Next: fresh exact-candidate hosted gates and protected integration; current ownership must be rediscovered from refs/heads/webpro-claims/PR-938-INTEGRATION.
+
+
+## 2026-11-05T03:06:09.886260+00:00 - PR938 integration web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f
+
+- Preserved reviewed browser-profile/manual-auth source at 1cd2c715594d877134a0acdab6c73ccb3c5feb76; tested current-main merge 9fce42c7cc4aab293de889e5555c474fbc668fd5.
+- Focused Windows candidate: 80 passed, 8 skipped, 143 subtests passed in 9.21s. Catalogue, progress, dashboard, source preservation and provenance PASS.
+- Evidence: docs/evidence/2026-11-05-web-f4dd2b32-pr938-integration.json. MJ-REQ-171 stays PARTIAL; production NOT DEPLOYED by this run.
+- Next: fresh exact-candidate hosted gates and protected integration; current ownership must be rediscovered from refs/heads/webpro-claims/PR-938-INTEGRATION.
+
+
+## 2026-11-05T03:38:54.188931+00:00 - PR938 integration web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f
+
+- Preserved reviewed browser-profile/manual-auth source at 32ced02b56900b9f161c7397c4650a5f6025865b; tested current-main merge 52763d4c464fb0ba8b6f8a284aa96688aafcd87b.
+- Focused Windows candidate: 167 passed, 8 skipped, 171 subtests passed in 53.46s. Catalogue, progress, dashboard, source preservation and provenance PASS.
+- Includes frozen PR959 b6e3d982e7a8d404c5d70c1d91931278c5dfd146 unchanged; both components independently reviewed. Evidence: docs/evidence/2026-11-05-web-f4dd2b32-pr938-integration.json. MJ-REQ-171/018/004 stay PARTIAL; production NOT DEPLOYED by this run.
+- Next: fresh exact-candidate hosted gates and protected integration; current ownership must be rediscovered from refs/heads/webpro-claims/PR-938-INTEGRATION.
+
 ## Web sprint 58c1462f - salary numeric range and locale-order continuation
 
 - UTC: 2026-11-05T02:20:01.888354+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR934; protected base: 0d3fbc5749fba8c682033a343a7ec9695e4dd743.

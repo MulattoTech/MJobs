@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261105T024451Z-f4dd2b32-d1a0-4538-ac3a-ce4c8890aa6f",
+  "recorded_at_utc": "2026-11-05T03:21:15.367037+00:00",
+  "task": "COMPANY-SITEMAP-XML-DECLARATION-SAFETY",
+  "requirements": [
+    "MJ-REQ-018",
+    "MJ-REQ-004"
+  ],
+  "issue": "https://github.com/MulattoTech/MJobs/issues/19",
+  "claim": {
+    "ref": "refs/heads/webpro-claims/COMPANY-SITEMAP-XML-DECLARATION-SAFETY",
+    "owner_commit": "1ccd509049e22f0be192a6640516eab3dc38b871",
+    "acquired_http": 201,
+    "readback_matched": true
+  },
+  "base_main": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+  "tested_source_commit": "5bc3e0bcaa00b7692461d0df51707c6cc89748c2",
+  "source_sha256": {
+    "services/company_discovery/career_pages.py": "980451c5d5b33d3a83ca1c7ceca1124d37a868e4ac62a8b3759b5bd83d6474b6",
+    "tests/unit/test_career_page_sitemaps.py": "5ee7e5f0367fd7e23b03f8c7bf8804b18188e94a3299fcfd383b9b6a7db98a10",
+    "tests/integration/test_company_discovery_sitemap_safety.py": "c8b338db2607691d974d4db5185022e38ff6629e31de1666d527865c7e91efa3"
+  },
+  "behavior": "Reject DTDs at the sitemap XML parser boundary after encoding detection; handle unsupported encodings as empty results and retain legitimate discovery fallback.",
+  "verification": {
+    "environment": {
+      "platform": "Windows",
+      "python": "3.12.10",
+      "fixture": "isolated SQLite; synthetic in-memory transport; no external requests"
+    },
+    "regression_before_fix": {
+      "base": "c6d499f391a8e092e06892d7fdea25cbfd177e53",
+      "command": "python -B -m pytest -q tests/unit/test_career_page_sitemaps.py tests/integration/test_company_discovery_sitemap_safety.py",
+      "exit_code": 1,
+      "result": "12 failed (9 subtest failures plus 3 integration failures), 17 passed, 11 subtests passed in 6.40s"
+    },
+    "focused_after_fix": {
+      "command": "python -B -m pytest -q tests/unit/test_career_page_sitemaps.py tests/integration/test_company_discovery_sitemap_safety.py tests/integration/test_company_discovery_sitemaps.py tests/integration/test_company_career_candidates.py",
+      "exit_code": 0,
+      "result": "59 passed, 20 subtests passed in 46.00s",
+      "skipped": 0
+    },
+    "integrity": [
+      "catalogue PASS",
+      "progress journal validation PASS",
+      "progress dashboard CURRENT",
+      "git diff --check PASS",
+      "strict commit provenance PASS"
+    ],
+    "coverage": [
+      "UTF-8 and detected UTF-16 LE/BE",
+      "urlset and sitemapindex",
+      "DTD with and without a benign internal entity",
+      "unsupported encoding empty result",
+      "ordinary XML acceptance retained",
+      "rejected career and child-sitemap routes never requested",
+      "safe fallback imports one synthetic job",
+      "GET-only; zero application attempts"
+    ]
+  },
+  "nonduplicate_review": {
+    "open_prs_checked": 22,
+    "overlapping_product_or_test_paths": []
+  },
+  "review": "Author source review only; no independent review claimed",
+  "status": {
+    "implemented": true,
+    "focused_tests": "PASS",
+    "required_hosted_checks": "PENDING",
+    "merged": false,
+    "deployed": false,
+    "MJ-REQ-018": "PARTIAL",
+    "MJ-REQ-004": "PARTIAL"
+  },
+  "limits": [
+    "No acceptance promotion",
+    "No production or authenticated browser check for this change",
+    "Feed endpoint parser is outside this claim",
+    "No migration, dependency, request-limit, or authorization changes"
+  ],
+  "next_action": "Required hosted checks and current-main review; serialized protected integration; separately guarded deployment when eligible"
+}
