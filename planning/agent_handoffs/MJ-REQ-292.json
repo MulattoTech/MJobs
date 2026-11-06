@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "0318c475373b21b2f4abcfc43499d5feff3f34d6",
+  "head_sha": "0ba370e9a73e0354c69976fccef5e100dd95eea7",
   "routing_state": "EXECUTE",
-  "next_action": "Repair the observed Jobs match refresh flow, rebuild the next exact source and run the connected native ATS UI journey. Finish PR933 protected checks before reconciling the isolated native-domain acquisition candidate, then run recovery and natural monitoring.",
+  "next_action": "Run the fresh ff5ecfc2 native stack after the reviewed profile snapshot fix. Repair the actual hosted paused-operation lineage failure, finish optional public source setup joins, and run connected restart and natural monitoring. Publish only through existing PR973 update preflight; preserve all prior failures.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -63,14 +63,39 @@
       "tested_commit": "0318c475373b21b2f4abcfc43499d5feff3f34d6",
       "result": "PASS",
       "observed": "82passed,3.63s against integrated runner contracts; synthetic proof-validator tests only"
+    },
+    {
+      "command": "Combined acceptance/audit suite",
+      "tested_commit": "90681f28f53984cbd292a781c6bd4305538c37a7",
+      "result": "PASS",
+      "observed": "386 passed, 49 subtests, 2 Windows symlink skips, 19.21s. Subsequent 9667cbb9 removed two EOF blank lines only."
+    },
+    {
+      "command": "pytest tests/unit/test_ui_e2e_acceptance_observations.py -q",
+      "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "result": "PASS",
+      "observed": "33 passed, 2.36s; root execution after independent phase-EF approval. Connected rerun pending."
+    },
+    {
+      "command": "Native acquisition plus request-policy candidate review tests",
+      "tested_commit": "b46fb500a4e16d88098bd9ff1e0f7bac389a000a",
+      "result": "PASS",
+      "observed": "Author 98 passed, 23 PostgreSQL skips, 42 subtests; independent CD 47 passed, 23 PostgreSQL skips, 42 subtests. Separate fresh PostgreSQL run pending."
+    },
+    {
+      "command": "pytest test_company_cancellation_fixture_dispatch.py test_operation_cancellation_commit.py test_fixture_monitoring_worker_recovery.py test_fixture_native_acquisition.py -q",
+      "tested_commit": "0ba370e9a73e0354c69976fccef5e100dd95eea7",
+      "result": "PASS",
+      "observed": "Root executed 43 passed, 46 subtests passed, 87.75s; SQLite scoped test runtime, not full journey. Unchanged cancellation threshold."
     }
   ],
   "blockers": [
-    "The connected diagnostic stopped at step22 because the selected Python job has no current profile match; a real Refresh matches UI action is being added, preserving the explanation assertion.",
-    "Step9 and other job observations returned PARTIAL; actual API/schema and source configuration are being reconciled, not inferred from unit tests.",
-    "Step25 fixture domain remains unverified; isolated qualified FIXTURE/native-domain admission candidate awaits PR933 integration and real connected evidence.",
-    "Complete native ATS browser/RQ submission, public read-only visibility, full restart and natural monitoring are NOT_RUN in the final numbered journey.",
-    "Campaign protected PR/CI/merge and exact merged-source acceptance remain NOT_RUN."
+    "Full 60-step connected run remains incomplete. The 90681f28 run passed runtime preflight and reached application preparation, then failed a stale local profile snapshot assertion; reviewed c8513dc9 is integrated as ff5ecfc2 for a fresh run.",
+    "PR973 old head 9667cbb9 failed the unchanged cancellation latency threshold (DISCOVER 1.040s) and Compose paused-operation request lineage assertion. Local company-cancellation cold import is fixed separately; the hosted DISCOVER cause remains unproven.",
+    "Step9 requires actual two-source browser/API setup evidence and public read-only collection. Optional producer/join candidates are under independent review.",
+    "Step25 needs actual official-domain corroboration on a qualifying native job. Protected policy-preserving admission is implemented, but no actual connected official-domain PASS is claimed.",
+    "Native ATS final browser/RQ completion, public visibility, full restart and natural monitoring remain NOT_RUN in a completed final journey.",
+    "PR973 is draft. Exact merged-source acceptance, independent whole-journey review and all 60-step evidence remain incomplete."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -342,17 +367,16 @@
   },
   "acceptance_ledger_sha256": "f7172df7d4eb32afc109a54833fd6ff4d0cfe04c2029ab63ed8dbe0f6638114a",
   "runtime": {
-    "project": "mjobs-fixture-12b8bb3d46f9",
-    "api_url": "http://127.0.0.1:18733",
-    "source_commit": "12b8bb3d46f96b81ebed450cef737539960014c7",
-    "image_id": "sha256:9aede8538b3571d0ef2b2fb33c02a41b8eec9967b4f0e66012e005685597e72b",
-    "observed_status": "All ten long-running services healthy; migration exited0. Coordinator preflight rejected Docker extra blank output line (fixed in next source); direct browser diagnostic reached step22 and failed the explanation assertion. No final acceptance credit.",
-    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-diagnostic/MJobs",
-    "boundary": "Owned isolated synthetic resources; existing mjobs-micro preserved; no live provider or real submission",
-    "source_tree": "454c3fa48ee386b22a5aa0880983306fbab40107",
-    "startup_receipt": "outputs/mjreq292-native-12b8bb3d46f9/startup-receipt.json",
-    "diagnostic_evidence": "outputs/mjreq292-native-12b8bb3d46f9-ui-diagnostic/ui.json",
-    "preserved_previous_project": "mjobs-fixture-1c63324fd566; six named volumes preserved"
+    "project": "mjobs-fixture-90681f28f539",
+    "api_url": "http://127.0.0.1:18735",
+    "source_commit": "90681f28f53984cbd292a781c6bd4305538c37a7",
+    "source_tree": "2f15e4fadf41465f32a828d354dbaaccc4075241",
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-refresh/MJobs",
+    "observed_status": "All ten services healthy; migration exited0. Coordinator preflight PASS; connected UI advanced through jobs/employer to preparation, then failed stale local profile version comparison at ui_e2e.py1377. No final numbered acceptance credit.",
+    "startup_receipt": "outputs/mjreq292-native-90681f28f539/startup-receipt.json",
+    "diagnostic_evidence": "outputs/mjreq292-native-90681f28f539-journey",
+    "run_log": "outputs/mjreq292-native-90681f28f539/journey-run.log",
+    "preservation": "All earlier owned stacks and volumes preserved; fresh ff5ecfc2 runtime starting separately."
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
   "current_evidence_boundary": "0/60 independently verified final acceptance. Real startup and partial UI execution are preserved as diagnostic evidence. Unit/browser helper receipts and protected dependency merges do not certify the continuous final journey.",
@@ -362,6 +386,11 @@
       "integrated_commit": "aef531cc4fa4cd53e092140220eaef9de01d3d3c",
       "invalid_utc_trailer": "2026-11-06T10:55:00Z",
       "reason": "Author reported a manually typed future timestamp. Do not use that trailer as execution evidence. Source history preserved; current scoped retest above is independently executed."
+    },
+    {
+      "authored_commit": "ebf2de411e4a0e1b15ca985a86427c4a98b9b28f",
+      "invalid_utc_trailer": "2026-11-06T12:40:00Z",
+      "reason": "Root manually typed a future timestamp before the 12:38:45Z clock observation. Do not use the trailer as execution timing evidence. Merge ancestry and source are preserved."
     }
   ],
   "pending_dependency": {
@@ -369,14 +398,39 @@
     "head_commit": "654beb8bfc12f19a56966cdf9ad93dc5494aeebd",
     "base_commit": "fe7042676ffa0d1db530ce8b8eab80975a6e4be8",
     "original_head": "384a5becb958232534d74e7c504e1820dbc13c2e",
-    "state": "OPEN_FRESH_PROTECTED_CHECKS_PENDING",
+    "state": "MERGED_PROTECTED",
     "local_validation": "RealPostgreSQL17.11 policy41tests44subtests PASS; exactGreenhouse concurrency1PASS; independentLeia reviewAPPROVED; fiveoriginalPRblobs unchanged",
     "review_url": "https://github.com/MulattoTech/MJobs/pull/933#pullrequestreview-5799686850",
-    "dependent_isolated_candidate": "e1da38974e9c1c3d711207b16ca40f97515e92ff; do not integrate before dependency reconciliation"
+    "dependent_isolated_candidate": "b46fb500 reconciled and independently reviewed; integrated as ebf2de41 preserving PR933 guards",
+    "merge_commit": "f7b7a2f621036f828e83e2cb9293e30eb82bac5f",
+    "merged_at": "2026-11-06T12:25:24Z",
+    "protected_checks": "All five required checks PASS on 654beb8b; zero unresolved review threads; base fe704267 revalidated under the integration lock."
   },
   "session_notes": [
     "User selected Astra High during this campaign; assignments and integration ownership retained.",
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
+  ],
+  "updated_at": "2026-11-06T12:40:14.205087+00:00",
+  "campaign_pr": {
+    "url": "https://github.com/MulattoTech/MJobs/pull/973",
+    "state": "DRAFT",
+    "published_head": "9667cbb9cff7290f2c10799c890cefc6e0047520",
+    "required_checks": "FAIL on published old head: Python cancellation timing and Compose paused request lineage; no rerun/bypass; fresh source publication pending"
+  },
+  "runtime_history": [
+    {
+      "project": "mjobs-fixture-12b8bb3d46f9",
+      "api_url": "http://127.0.0.1:18733",
+      "source_commit": "12b8bb3d46f96b81ebed450cef737539960014c7",
+      "image_id": "sha256:9aede8538b3571d0ef2b2fb33c02a41b8eec9967b4f0e66012e005685597e72b",
+      "observed_status": "All ten long-running services healthy; migration exited0. Coordinator preflight rejected Docker extra blank output line (fixed in next source); direct browser diagnostic reached step22 and failed the explanation assertion. No final acceptance credit.",
+      "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-diagnostic/MJobs",
+      "boundary": "Owned isolated synthetic resources; existing mjobs-micro preserved; no live provider or real submission",
+      "source_tree": "454c3fa48ee386b22a5aa0880983306fbab40107",
+      "startup_receipt": "outputs/mjreq292-native-12b8bb3d46f9/startup-receipt.json",
+      "diagnostic_evidence": "outputs/mjreq292-native-12b8bb3d46f9-ui-diagnostic/ui.json",
+      "preserved_previous_project": "mjobs-fixture-1c63324fd566; six named volumes preserved"
+    }
   ]
 }
