@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "455eb652f59983e684c5715a37b992378360d03c",
-  "routing_state": "VERIFY",
-  "next_action": "Publish this reviewed campaign batch through the live PR973 update preflight and normal push. Build the exact frozen commit after this checkpoint; execute the committed acceptance_campaign CLI with monitoring and source-setup. First stop after UI; resume only after a complete same-run UI baseline. Follow required protected checks, merge when qualified, then repeat the full journey on the exact merged commit for numbered PASS evidence. Deadline remains 2026-11-06T21:22:28Z.",
+  "head_sha": "388a8884eb00b01fb755ced5f66735a2d6eb9564",
+  "routing_state": "EXECUTE",
+  "next_action": "Finish and independently review the CI environment isolation, legacy discovery integration and tracker product fixes; run affected regressions; normally update PR973. Build/run a fresh exact candidate, then qualify protected integration and repeat the complete campaign on the exact merged source. Deadline21:22:28Z remains active.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -174,11 +174,10 @@
     }
   ],
   "blockers": [
-    "Native62c advanced through document generation/comparison and uncertain-answer approval, then rejected a repeated fact review with HTTP409. Profile editor retains an older version after answer approval and has no reload control; Rey implements explicit draft-safe recovery.",
-    "Hosted33ad integration shard2 failed cancellation service budget1.016s versus0.35s. One unchanged instrumented local cancellation passed47ms; hosted cause remains unproven. No production fix or threshold change inferred.",
-    "Bounded Greenhouse inventory and native apply proof handoff are integrated. Pure aggregator resolver is reviewed; collection pending-intent, durable authorization, and company-worker workflow wiring remain in progress.",
-    "Inventory v4 API/recovery/UI/journey/monitoring are integrated and scoped-tested. Strict ledger join is pending; no v4 acceptance credit.",
-    "Complete connected public/native/restart/natural-monitoring, protected merged-source verification and independent whole-journey evidence remain outstanding."
+    "Published c1 Python unit/integrity failed53 tests because the new in-process campaign unit test leaked Compose environment variables. Fixed locally in388a8884 from independently reviewed1b73c55e;49 ordered tests passed. Fresh hosted validation not yet run. Root full Windows unit attempt stopped at collection on preexisting Linux-only fcntl import; it did not execute the suite.",
+    "Published c1 integration shard2 failed33 tests, including DISCOVERY_REQUEST_NOT_REVIEWABLE and native/domain acquisition DEAD_LETTERED. Ahsoka owns requests/domain/ATS diagnosis; Obiwan owns collector precedence diagnosis. Preserve legacy review/native acquisition and strict authorization guards; no workaround or test weakening authorized.",
+    "The c1 connected UI passed every emitted native form/application check through51 and historical setup proof, but failed immediate tracker history visibility after PUT200 and GET READY/history readback. Rey owns a reproduced product UI fix, preserving selection guards and immediate readback assertions.",
+    "No public-source setup, recovery, natural monitoring or exact protected-merged-source full journey has completed. Ledger remains0/60 PASS,50 PARTIAL,10 NOT_RUN."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -246,7 +245,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T19:49:34.425541+00:00",
+  "updated_at_utc": "2026-11-06T20:06:09.464096+00:00",
   "acceptance_note": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -502,19 +501,20 @@
   },
   "acceptance_ledger_sha256": "148f1de69281883580cdb7e86374568e38d78f7ddd8f02c5e65dfb0c38cc0e5f",
   "runtime": {
-    "project": "mjobs-fixture-70595258e4ca",
-    "source_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
-    "source_tree": "cb7091f7b3820c80869bdb7a95b920efbaeedceb",
-    "image_id": "sha256:84d1f58019edc6c3eb511b46de9a575295641f0ce7589dc950f4882f1d5fa564",
-    "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
-    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-native-70595258-runtime\\MJobs",
-    "status": "UI_FAILED_TRACKER_INTERCEPTOR; resources retained",
-    "startup_receipt": "outputs/mjreq292-native-70595258e4ca/startup-receipt.json",
-    "diagnostic_evidence": "outputs/mjreq292-native-70595258e4ca-journey/ui.json",
-    "journey_session": "90540 completed exit1"
+    "project": "mjobs-fixture-c1b349810cef",
+    "source_commit": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
+    "source_tree": "10699f0a74c91590a2878e6b77a10a28845d50a3",
+    "image_id": "sha256:437b7d8eaf509c75565ba46e4d83527da313a445217f726776bc0ac33792adf7",
+    "run_id": "mjreq292-c1b349810cef-native-greenhouse-01",
+    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-han-runtime-next\\MJobs",
+    "status": "UI_FAILED_AT_TRACKER_VISIBLE_HISTORY;46 producerPASS4PARTIAL through51; no ledger PASS",
+    "startup_receipt": "outputs/mjreq292-native-c1b349810cef/startup-receipt.json",
+    "build_receipt": "outputs/mjreq292-native-c1b349810cef/frontend-build-receipt.json",
+    "diagnostic_evidence": "outputs/mjreq292-native-c1b349810cef/journey/ui.json",
+    "journey_session": "99465 completed exit1"
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN. The latest actual connected run is705 and failed at tracking. Bootstrap, historical wizard proof, native history observation, child API/cleanup and launcher wiring are now integrated and independently reviewed. The final cleanup changes passed negative controls for policy drift during release wait. Fresh full-stack execution of this source and exact merged-source acceptance are NOT_RUN.",
+  "current_evidence_boundary": "Published c1 source is unmerged and failed required CI. StartupPASS; UIFAIL at tracker after all emitted native form/submission checks passed. Ledger0PASS50PARTIAL10NOT_RUN remains conservative; no public/restart/monitoring execution. Current fixes are active and not yet qualified.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -536,17 +536,19 @@
     }
   ],
   "pending_dependency": {
-    "implementation": "INTEGRATED; no outstanding author slice at this checkpoint",
-    "runtime": "Han owns the next exact-source image build and startup after root freeze. d2 image is preserved diagnostic-only; it predates the final cleanup correction and must not be relabeled or started as the final candidate.",
-    "publication": "PR973 last verified remote head c2bb; all checks on that old head passed. A new live preflight and normal push are pending.",
-    "review": "AB and Mace approved95ce UI source; CD approved bootstrap/worker/PG/RQ slices; Yoda approved878a5c08 cleanup repair; Mace approved launcher factory wiring. These are scoped source reviews, not whole-journey acceptance."
+    "Mace": "Completed test-only env isolation1b73c55e; integrated388a8884, CD/Yoda reviewed,49 ordered testsPASS. No production guard change.",
+    "Ahsoka": "Active: reproduce/fix c1 integration shard2 native/reviewed discovery regressions; owns requests/domain/ATS.",
+    "Obiwan": "Active: collector bootstrap admission/precedence audit; owns collect.py only if needed.",
+    "Rey": "Active: reproduce/fix tracker immediate visible state in apps/web/src/main.tsx; PUT/GET share the same projection, investigate selection sequence/late state. Preserve guards; no navigation workaround.",
+    "Leia": "Active: monitor exact c1 checks; Python/required and shard2 failed; ComposeE2E passed, shards0/1 pending at last report. No reruns or merges.",
+    "runtime": "c1 stack retained for read-only diagnosis.705 stopped with11containers/6volumes/3networks and20artifacts preserved. d2 image remains diagnostic-only; no d2 startup."
   },
   "session_notes": [
     "User selected Astra High during this campaign; assignments and integration ownership retained.",
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T19:49:34.425541+00:00",
+  "updated_at": "2026-11-06T20:06:09.464096+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -613,6 +615,18 @@
       "startup_receipt": "outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json",
       "diagnostic_evidence": "outputs/mjreq292-native-62c85c9d4adc-journey/ui.json",
       "observed_status": "StartupPASS10healthyservices+migrateexit0. UI FAIL at2033 repeated fact-rejection HTTP409; new producer observations33,34,35,38,44,45 await independent diagnostic review. No publicsource setup/restart/monitoring executed, no acceptance promotion."
+    },
+    {
+      "project": "mjobs-fixture-70595258e4ca",
+      "source_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+      "source_tree": "cb7091f7b3820c80869bdb7a95b920efbaeedceb",
+      "image_id": "sha256:84d1f58019edc6c3eb511b46de9a575295641f0ce7589dc950f4882f1d5fa564",
+      "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+      "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-native-70595258-runtime\\MJobs",
+      "status": "UI_FAILED_TRACKER_INTERCEPTOR; resources retained",
+      "startup_receipt": "outputs/mjreq292-native-70595258e4ca/startup-receipt.json",
+      "diagnostic_evidence": "outputs/mjreq292-native-70595258e4ca-journey/ui.json",
+      "journey_session": "90540 completed exit1"
     }
   ],
   "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
@@ -723,6 +737,8 @@
       "redis_rq": "One controlled real Redis/RQ child delivery test passed on source7bb; test98f1f5c was independently reviewed by CD and integrated (mapped replay commit retained). Parent admission used the collection helper, not public HTTP or parent RQ execution.",
       "pending": "Implementation dependencies are integrated. Root owns publication, canonical files and live source policies; Han owns next runtime build. Yoda/EF/R2 remain available for exact acceptance review. Dashboard PR974 retains separate file ownership and awaits its own protected integration; no competing main merge is authorized by this checkpoint.",
       "final_source_candidate": "455eb652f59983e684c5715a37b992378360d03c"
-    }
+    },
+    "published_head": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
+    "published_issue_comment": "https://github.com/MulattoTech/MJobs/issues/293#issuecomment-6694012914"
   }
 }

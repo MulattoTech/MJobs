@@ -516,3 +516,9 @@ Resumed checkpoint `1598b7f9`; deadline remains 2026-11-06T21:22:28Z. **0/60 VER
 **MJ-REQ-292: 0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN.** The bootstrap, child tracking/cleanup, UI observer repairs and committed launcher are integrated. Source candidate before this checkpoint: `455eb652f59983e684c5715a37b992378360d03c`. Independent reviews are recorded in the task checkpoint. The old705 run remains failed diagnostic evidence; no observations have been promoted to PASS. The d2 image is also preserved as diagnostic-only because it predates the final cleanup fix.
 
 Next: publish the reviewed PR973 batch, build the exact frozen checkpoint revision, run the connected journey, then qualify protected integration and repeat against the exact merged commit. The session deadline remains21:22:28Z. Dashboard PR974 retains its separate ownership. No real employer submission is enabled.
+
+## c1 diagnostic and CI repair checkpoint — 2026-11-06T20:06:09.464096+00:00
+
+PR973 is published at `c1b349810cefa260cbb5e064d0812a13cebe8c45`; main remains unchanged. **0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** The new exact stack passed startup and all emitted native form/submission observations through51, but tracker history did not update visibly after successful server readback. Rey is repairing product state handling, without a navigation workaround.
+
+CI unit failures traced to test environment leakage; independently reviewed test-only fix is integrated as `388a8884` with49 ordered tests passing. Full Windows unit collection was blocked by existing Linux-only fcntl; not a suite PASS. Hosted integration shard2 also exposed33 legacy discovery failures, now assigned to Ahsoka/Obiwan for reproduction and repair. No required check is waived. Compose E2E passed on c1; further CI results are tracked by Leia.
