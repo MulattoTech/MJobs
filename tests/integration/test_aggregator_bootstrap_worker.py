@@ -187,14 +187,14 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             return {'name': self.company}
         return {'jobs': [dict(self.native_job)]}
 
-    def _execute(self, *, mutate=None):
+    def _execute(self, *, mutate=None, operation_mode='FIXTURE'):
         if mutate:
             mutate()
         output = self.output_dir / 'outputs'
         output.mkdir(exist_ok=True)
         env = {
             'MJOBS_DATABASE_URL': self.case.url,
-            'MJOBS_OPERATION_MODE': 'FIXTURE',
+            'MJOBS_OPERATION_MODE': operation_mode,
             'MJOBS_REDIS_URL': 'redis://127.0.0.1:1/0',
             'MJOBS_OUTPUT_DIR': str(output),
         }
@@ -254,6 +254,49 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.assertEqual(source_audit['aggregator_receipt_sha256'], receipt['sha256'])
         self.assertTrue(any(job['company_id'] == self.request['company_id'] for job in jobs))
         self.assertEqual(snapshots[0]['raw'], self.raw_before)
+
+    def test_personal_worker_runs_same_public_https_chain_without_fixture_marker(self):
+        from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
+
+        case = AggregatorBootstrapCollectionTests()
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(case.tearDown)
+        with case.store.engine.begin() as connection:
+            connection.execute(update(m.workspace_identity).where(
+                m.workspace_identity.c.id == 'workspace').values(operation_mode='PERSONAL'))
+        raw = case.rows[0]
+        raw['description'] += '<p><a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a></p>'
+        self.case = case
+        self.raw_before = deepcopy(raw)
+        self.title, self.company = raw['title'], raw['company_name']
+        self.collection = case.collect()
+        self.network = []
+        self.saw_unconfigured_source_before_first_fetch = None
+        self.job_url = 'https://acme.example/careers/listing/senior-python-engineer/1001'
+        self.apply_url = 'https://acme.example/careers/apply/senior-python-engineer/1001'
+        self.job_html = _job_page(canonical=self.job_url, job_url=self.job_url, job_id='1001',
+            title=self.title, company=self.company, apply_href=self.apply_url).replace(
+                'https://employer.example', 'https://acme.example')
+        self.apply_html = _apply_page(iframe_src=(
+            'https://job-boards.greenhouse.io/embed/job_app?for=acme&token=1001'))
+        self.native_job = {'id': 1001, 'title': self.title, 'absolute_url': self.job_url,
+            'content': '<p>Build Python SQL backend services.</p>'}
+        with case.store.engine.connect() as connection:
+            self.request = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            self.operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == self.request['operation_id'])).mappings().one())
+        self.assertNotIn('fixture_aggregator_bootstrap', self.operation['params'])
+        self.assertEqual(self.operation['params']['fetch_mode'], 'PUBLIC_HTTPS')
+        outcome = self._execute(operation_mode='PERSONAL')
+        self.assertEqual(outcome['status'], 'COMPLETED', outcome)
+        self.assertTrue(self.saw_unconfigured_source_before_first_fetch)
+        self.assertIn(self.job_url, self.network)
+        with case.store.engine.connect() as connection:
+            request = connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == self.request['id'])).mappings().one()
+        self.assertEqual(request['authorization'], 'AGGREGATOR_BOOTSTRAP_VERIFIED')
+        self.assertEqual(request['domain_evidence'][1]['receipt']['execution_scope'], 'CONTROLLED_TRANSPORT')
 
     def test_profile_change_after_collection_blocks_all_employer_egress(self):
         changed = deepcopy(self.case.store.profile('fixture'))
