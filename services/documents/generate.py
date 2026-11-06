@@ -745,7 +745,19 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         application_id = identity(job_id, profile_id)
         revision = prior["document_version"] + 1 if prior else 1
         relative = profile["version"] + "/" + str(revision)
-        root = Path(output_dir).resolve() / application_id / relative
+        # A hashed name does not prevent an existing parent junction/symlink
+        # from redirecting generation outside the configured artifact root.
+        # Resolve and validate before staging creates directories or files.
+        try:
+            approved_root = Path(output_dir).resolve()
+            root = (approved_root / application_id / relative).resolve()
+            if root == approved_root or not root.is_relative_to(approved_root):
+                raise ValueError('destination escapes artifact root')
+        except (OSError, RuntimeError, ValueError):
+            raise PreparationError(
+                'DOCUMENT_DESTINATION_UNSAFE',
+                'Generated document destination is outside the approved artifact root',
+            ) from None
         staging = root.with_name(f".{root.name}.staging-{uuid4().hex}")
         staging.mkdir(parents=True, exist_ok=False)
         staged.append(staging)
