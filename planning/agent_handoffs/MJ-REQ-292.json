@@ -4,7 +4,7 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
+  "head_sha": "0a38856ad141a82bbf8267a79b29241880d941af",
   "routing_state": "EXECUTE",
   "next_action": "Repair native onboarding readback and exact-head hosted cancellation failure; integrate independently reviewed Greenhouse inventory and official-domain proof handoff; add complete paginated persisted inventory/recovery v4. Then rebuild frozen source and execute fresh connected journey. Keep original 60-step scoreboard unchanged until exact-source independent acceptance qualifies.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
@@ -138,9 +138,9 @@
     }
   ],
   "blockers": [
-    "Native33ad connected UI failed onboarding profile fact readback; Rey diagnosis with AB independent review.",
+    "Native33ad onboarding failure explained by SQL approval deliberately revoked earlier. Reviewed phase-aware fix integrated62c85c9d; fresh exact62c85 runtime being prepared; no new connected PASS.",
     "Hosted33ad integration shard2 failed public cancellation response budget: store1.015s, service1.016s versus0.35s. Mace diagnoses; threshold unchanged.",
-    "Public native employer path needs complete Greenhouse metadata inventory fallback and preservation of validated apply-page proof through guarded enrollment.",
+    "Greenhouse metadata fallback and native apply proof handoff now integrated and scoped-tested. Aggregator bootstrap remains missing; Luke/Ahsoka/Obiwan implementing bounded company-worker resolution and durable source/profile/candidate-bound staged authorization.",
     "Complete persisted inventory beyond200 visible jobs requires new bounded paginated API and strict recovery v4; Han implementation with Yoda review.",
     "Complete connected native/public/restart/natural-monitoring and exact merged-source verification remain outstanding."
   ],
@@ -210,7 +210,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T17:55:43.818068+00:00",
+  "updated_at_utc": "2026-11-06T18:10:47.173006+00:00",
   "acceptance_note": "Current incomplete connected runs are retained as diagnostic evidence. 0/60 VERIFIED PASS; 33 PARTIAL and 27 NOT_RUN remain authoritative.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -395,6 +395,21 @@
       "name": "actual Docker empty-line projection correction",
       "commit": "8a1a10d7482aed61f622ed9a25fce0a24ddaa202",
       "review": "Yoda approved166runner tests; actualfailure reproduced from ownedruntime"
+    },
+    {
+      "name": "phase-aware onboarding fact approval",
+      "commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+      "review_and_validation": "AB independent review approved cb554f39; root69tests35subtests PASS,6.43s."
+    },
+    {
+      "name": "validated native apply proof into guarded enrollment",
+      "commit": "b8f45eb1187ca7d9b7726eacf1579baaa0721e73",
+      "review_and_validation": "CD exact source approved ed178f2b and independent35tests5subtestsPASS; rootcomposed36tests5subtestsPASS87.55s."
+    },
+    {
+      "name": "bounded complete Greenhouse metadata inventory and truthful title skill evidence",
+      "commit": "0a38856ad141a82bbf8267a79b29241880d941af",
+      "review_and_validation": "EF exact2407e2a7 approved; root12tests33subtestsPASS7.13s. Author broader batch had one unchanged concurrency timing failure; separate instrumented rerunPASS does not establish cause."
     }
   ],
   "active_path_owners": {
@@ -465,12 +480,13 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T17:55:43.818068+00:00",
+  "updated_at": "2026-11-06T18:10:47.173006+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
     "published_head": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
-    "required_checks": "Compose PASS at17:50:52Z; fast Python/required, repository, web, dependencies, secrets PASS. Integration shard2 FAIL at17:54:38Z, run42263696521/job128049947737; other integration results pending at checkpoint."
+    "required_checks": "Exact33ad Compose and allfast/static checksPASS; integration shards0/1PASS; shard2 andaggregateFAIL on cancellation service budget. Mace instrumenting persistence path; no threshold changes/manualreruns.",
+    "next_candidate_source": "0a38856ad141a82bbf8267a79b29241880d941af"
   },
   "runtime_history": [
     {
@@ -547,5 +563,15 @@
       "limit_utc": "2026-11-06T21:22:28Z",
       "resumed_checkpoint": "fa4e626027704ca2fe8c6e9f7998a3ce83dbd0e8"
     }
-  ]
+  ],
+  "preserved_runtime_cleanup": {
+    "observed": "Six old owned campaign projects stopped;60servicecontainers stopped,36volumes and18networks retained; no deletion. Current33ad remained running.",
+    "receipt": "outputs/campaign-stop-preserve/stopped-projects-receipt.json",
+    "scope": "1c63324fd566,12b8bb3d46f9,90681f28f539,ff5ecfc200de,f7d784fe988f,fdd3503dc2ab"
+  },
+  "public_bootstrap_limits": [
+    "WWR feed100items contains no native links in descriptions; two allowed listingpages returned403 afterrobotsallow. No bypass/retry.",
+    "RemoteOK feed100items contains at leastone ApryseLevercandidate; existingdomaincorroboration supportsGreenhouse only. Candidate is unverified; no acceptancecredit."
+  ],
+  "other_active_work": "Separate user-authorized dashboard layout branch codex/dashboard-current-first-20261106 is owned by the forked chat. Campaign remains soleintegrationowner; no overlapping campaign/planning writes reported."
 }
