@@ -30,6 +30,7 @@ RUNTIME = {"source_manifest_sha256": "d" * 64, "compose_files": ["compose.yml"],
 @pytest.fixture(autouse=True)
 def bound_archive(monkeypatch):
     monkeypatch.setattr(journey, "source_archive_sha256", lambda _: "1" * 64)
+    monkeypatch.setattr(journey, "_public_browser_module", lambda: None)
 
 
 def build_receipt():
@@ -420,6 +421,8 @@ def public_artifact():
         {"name": "same_profile_public_readonly_jobs_observed", "passed": True}])
     return {**IDENTITY, "timestamp": journey.utc_now(), "source": SOURCE,
             "acceptance_run_id": RUN_ID, "result": "PASS", "provider": "wwr",
+            "collection_operation_id": "collection-op", "collection_request_id": "collection-request", "source_id": "public-source",
+            "profile_version": 1,
             "execution_scope": "LIVE_PUBLIC_READ_ONLY", "external_submission_enabled": False,
             "observed_real_job_ids": ["real-job-1"], "selected_application_job_id": "mock-job-1",
             "selected_application_route_id": "mock-route-1", "cleanup": {"status": "RESTORED_DISABLED"},
@@ -433,7 +436,8 @@ def test_public_stage_requires_explicit_provider_and_containment_callback(tmp_pa
     ui.assert_not_called()
 
 
-def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path):
+@pytest.mark.parametrize("browser_enabled", [False, True])
+def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path, browser_enabled):
     events = []
     def public_run(url, original, path, **kwargs):
         assert kwargs["provider"] == "wwr" and kwargs["acceptance_run_id"] == RUN_ID
@@ -447,6 +451,10 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
                 "selected_application_job_id": "mock-job-1",
                 "selected_application_route_id": "mock-route-1"}
 
+    def browser_run(url, original, public, **kwargs):
+        events.append("browser")
+        return public_browser_artifact(original, public)
+
     def recovery(path, output, *args):
         events.append("recovery")
         assert Path(path).name == "recovery-baseline.json"
@@ -458,14 +466,22 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
     with patch.object(journey, "current_source", return_value=SOURCE), \
             patch.object(journey, "preflight", return_value=RUNTIME), \
             patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public_run)), \
+            patch.object(journey, "_public_browser_module", return_value=SimpleNamespace(run=browser_run) if browser_enabled else None), \
             patch.object(journey, "recapture_public_baseline", side_effect=recapture), \
             patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
             patch.object(journey.recovery, "run", side_effect=recovery):
         report = invoke(tmp_path, public_source_provider="wwr",
                         public_source_preflight=lambda stage, context: events.append(stage))
-    assert events == ["public", "release", "recovery"]
-    assert report["steps"][10]["status"] == "PARTIAL"
-    assert report["steps"][10]["credit_withheld"] == "PUBLIC_BROWSER_NOT_OBSERVED"
+    assert events == (["public", "browser", "release", "recovery"] if browser_enabled else ["public", "release", "recovery"])
+    assert report["steps"][10]["status"] == ("PASS" if browser_enabled else "PARTIAL")
+    if browser_enabled:
+        assert report["steps"][15]["status"] == "PASS"
+        assert report["steps"][10]["verification"]["evidence_artifact"] == "public-observations.json"
+        joined = json.loads((tmp_path / "public-observations.json").read_text())
+        assert joined["public_sha256"] == hashlib.sha256((tmp_path / "public.json").read_bytes()).hexdigest()
+        assert joined["browser_sha256"] == hashlib.sha256((tmp_path / "public-browser.json").read_bytes()).hexdigest()
+    else:
+        assert report["steps"][10]["credit_withheld"] == "PUBLIC_BROWSER_NOT_OBSERVED"
     assert report["steps"][10]["observation"]["evidence_kind"] == "PUBLIC_READ_ONLY"
     assert report["selected_application_job_id"] == "mock-job-1"
     assert report["observed_real_job_ids"] == ["real-job-1"]
@@ -473,6 +489,13 @@ def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application
     restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr").payload()
     assert restored["steps"][10]["verification"]["resume_imported"] is True
     assert restored["derived_baseline"] == report["derived_baseline"]
+    if browser_enabled:
+        browser_path = tmp_path / "public-browser.json"
+        encoded = browser_path.read_bytes()
+        browser_path.write_bytes(encoded + b" ")
+        with pytest.raises(ValueError, match="browser joined evidence lineage"):
+            journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr")
+        browser_path.write_bytes(encoded)
     with (tmp_path / "recovery-baseline.json").open("ab") as stream:
         stream.write(b" ")
     with pytest.raises(ValueError, match="lineage"):
@@ -953,7 +976,7 @@ def test_startup_requires_actual_initial_creation_migration_and_ready_stack():
     assert {check["name"] for check in row["checks"]} == journey.REQUIRED_CHECKS[1]
 
 
-@pytest.mark.parametrize("change", ["prior-container", "prior-volume", "old-created", "restarted", "migration", "image", "run", "target", "source", "command", "compose-files", "schema"])
+@pytest.mark.parametrize("change", ["prior-container", "prior-volume", "old-created", "restarted", "migration", "image", "run", "target", "source", "command", "compose-files", "duplicate-project", "schema"])
 def test_startup_rejects_reused_or_unready_runtime(change):
     receipt, runtime = startup_receipt_and_runtime()
     if change == "prior-container": receipt["preexisting_container_ids"] = ["already-there"]
@@ -967,6 +990,7 @@ def test_startup_rejects_reused_or_unready_runtime(change):
     if change == "source": receipt["source"] = {**SOURCE, "commit": "f" * 40}
     if change == "command": receipt["command"] = ["docker", "compose", "restart"]
     if change == "compose-files": receipt["command"][6] = "other.yml"
+    if change == "duplicate-project": receipt["command"][2:2] = ["-p", "mjobs-fixture-aaaaaaaaaaaa"]
     if change == "schema": receipt["schema_version"] = True
     with pytest.raises(ValueError):
         journey.validate_startup_receipt(receipt, SOURCE, RUN_ID, TARGET, runtime)
@@ -999,4 +1023,85 @@ def test_ui_cannot_claim_startup_from_its_numbered_boolean():
     receipt, runtime = startup_receipt_and_runtime()
     artifact["acceptance_observations"] = [journey.validate_startup_receipt(receipt, SOURCE, RUN_ID, TARGET, runtime)]
     with pytest.raises(ValueError, match="out-of-segment"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+
+
+def public_browser_artifact(state, public):
+    runtime = {key: RUNTIME[key] for key in ("source_manifest_sha256", "images", "dockerfile_sha256", "frontend_assets")}
+    value = {key: public.get(key) for key in (*IDENTITY, "source", "acceptance_run_id", "selected_application_job_id", "observed_real_job_ids",
+        "collection_operation_id", "collection_request_id", "source_id", "provider", "execution_scope")}
+    value.update(schema_version=1, result="PASS", evidence_kind="PUBLIC_BROWSER_READ_ONLY", timestamp_utc=journey.utc_now(),
+        runtime_identity=runtime, runtime_identity_sha256=journey.digest(runtime),
+        browser={"loopback_only": True, "get_head_only": True, "external_requests": 0, "page_errors": 0,
+                 "blocked_write_attempts": 0, "blocked_write_paths": []},
+        baseline_readback={"unchanged": True, "before_sha256": "a" * 64, "after_sha256": "a" * 64, "profile_version": public["profile_version"],
+            "selected_application_job_id": public["selected_application_job_id"],
+            "selected_application_route_id": public["selected_application_route_id"], "document_ids": state["application_document_ids"]},
+        acceptance_observations=[{"step": 11, "status": "PASS", "checks": {"public_jobs_visible_in_same_profile_ui": True}},
+                                 {"step": 16, "status": "PASS", "checks": {"source_remote_restriction_visible": True}}])
+    value["sha256"] = journey.digest(value)
+    return value
+
+
+def test_public_browser_join_requires_both_provenance_and_visible_checks():
+    state, public = baseline(), public_artifact()
+    browser = public_browser_artifact(state, public)
+    joined = journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+    rows = journey.numbered_observations(joined, segment="public_browser", run_id=RUN_ID, source=SOURCE, identity=journey._identity(state))
+    assert [(row["step"], row["status"]) for row in rows] == [(11, "PASS"), (16, "PASS")]
+    assert {row["name"] for row in rows[0]["checks"]} == journey.REQUIRED_CHECKS[11]
+    browser["acceptance_observations"][0].update(status="PARTIAL", checks={"public_jobs_visible_in_same_profile_ui": False})
+    browser["sha256"] = journey.digest({key: value for key, value in browser.items() if key != "sha256"})
+    assert journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)["acceptance_observations"][0]["status"] == "PARTIAL"
+
+
+@pytest.mark.parametrize("change", ["run", "source", "jobs", "runtime", "documents", "mutated", "egress", "stale", "fabricated-pass"])
+def test_public_browser_join_rejects_mismatched_or_missing_observation(change):
+    state, public = baseline(), public_artifact()
+    browser = public_browser_artifact(state, public)
+    if change == "run": browser["acceptance_run_id"] = "other-run"
+    if change == "source": browser["source"] = {**SOURCE, "commit": "b" * 40}
+    if change == "jobs": browser["observed_real_job_ids"] = ["other-job"]
+    if change == "runtime": browser["runtime_identity"] = {}
+    if change == "documents": browser["baseline_readback"]["document_ids"] = ["other-doc"]
+    if change == "mutated": browser["baseline_readback"]["after_sha256"] = "c" * 64
+    if change == "egress": browser["browser"]["external_requests"] = 1
+    if change == "stale": browser["timestamp_utc"] = "2000-01-01T00:00:00Z"
+    if change == "fabricated-pass": browser["acceptance_observations"][0]["checks"]["public_jobs_visible_in_same_profile_ui"] = False
+    browser["sha256"] = journey.digest({key: value for key, value in browser.items() if key != "sha256"})
+    with pytest.raises(ValueError):
+        journey.join_public_browser(state, public, browser, "a" * 64, "b" * 64, RUNTIME)
+
+
+def employer_artifact(step):
+    artifact = baseline()
+    artifact["employer_discovery_lineage"] = {"profile_id": IDENTITY["profile_id"], "operation_id": "initial-discovery",
+        "request_id": "initial-discovery-request", "job_ids": ["browse-job-1", "mock-job-1"]}
+    artifact["acceptance_observations"] = [{"step": step, "status": "PASS", "observable_result": "Observed same-profile employer discovery predicate",
+        "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": SOURCE["commit"], "run_id": RUN_ID,
+        "continuity": {"profile_id": IDENTITY["profile_id"], "job_id": "browse-job-1", "operation_id": "initial-discovery",
+                       "request_id": "initial-discovery-request"},
+        "checks": [{"name": name, "passed": True} for name in journey.REQUIRED_CHECKS[step]]}]
+    return artifact
+
+
+@pytest.mark.parametrize("step", range(23, 32))
+def test_employer_discovery_uses_original_discover_identity_not_final_submit(step):
+    artifact = employer_artifact(step)
+    rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
+    assert rows[0]["continuity"]["operation_id"] == "initial-discovery"
+    assert artifact["operation_id"] == IDENTITY["operation_id"]
+
+
+@pytest.mark.parametrize("change", ["missing-lineage", "final-operation", "final-request", "wrong-profile", "wrong-job", "application-scope"])
+def test_employer_discovery_rejects_unrelated_stage_or_job(change):
+    artifact = employer_artifact(24)
+    continuity = artifact["acceptance_observations"][0]["continuity"]
+    if change == "missing-lineage": artifact.pop("employer_discovery_lineage")
+    if change == "final-operation": continuity["operation_id"] = IDENTITY["operation_id"]
+    if change == "final-request": continuity["request_id"] = IDENTITY["request_id"]
+    if change == "wrong-profile": artifact["employer_discovery_lineage"]["profile_id"] = "other-profile"
+    if change == "wrong-job": artifact["employer_discovery_lineage"]["job_ids"] = ["other-job"]
+    if change == "application-scope": continuity["application_id"] = IDENTITY["application_id"]
+    with pytest.raises(ValueError, match="identity|continuity"):
         journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))

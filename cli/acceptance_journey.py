@@ -57,7 +57,7 @@ REQUIRED_CHECKS = {
     8: {"remote_it_search_read_back", "remote_data_search_read_back"},
     9: {"source_rows_visible", "multiple_sources_enabled"},
     10: {"discovery_operation_completed", "search_scoped_job_readback"},
-    11: {"same_profile_public_readonly_jobs_observed"},
+    11: {"same_profile_public_readonly_jobs_observed", "public_jobs_visible_in_same_profile_ui"},
     12: {"matching_job_visible", "nonmatching_job_hidden"},
     13: {"filtered_job_visible", "other_title_hidden"},
     14: {"match_sort_order"},
@@ -69,6 +69,15 @@ REQUIRED_CHECKS = {
     20: {"verified_ats_authority_visible", "preferred_route_readback"},
     21: {"application_route_visible"},
     22: {"visible_numeric_match_score", "selected_job_requirement_explanation_visible"},
+    23: {"previously_unknown_employer_observed"},
+    24: {"employer_discovery_ran_automatically"},
+    25: {"official_employer_domain_verified"},
+    26: {"employer_careers_page_found"},
+    27: {"employer_ats_tenant_identified"},
+    28: {"employer_source_enrolled_automatically"},
+    29: {"employer_openings_enumerated"},
+    30: {"employer_only_opening_observed"},
+    31: {"employer_duplicate_sources_collapsed"},
     32: {"strong_match_available", "saved_status_readback"},
     33: {"tailored_resume_uses_selected_approved_facts", "omitted_fact_visible_and_excluded"},
     34: {"generated_base_visible", "tailored_version_visible", "omission_and_change_summary_visible"},
@@ -77,10 +86,10 @@ REQUIRED_CHECKS = {
     37: {"selected_route_matches_application", "route_bound_to_job"},
     38: {"supported_adapter_matches_provider", "provider_matches_route"},
     39: {"playwright_form_opened", "selected_application_loaded"},
-    40: {"contact_fields_match_verified_profile", "contact_values_visible"},
+    40: {"contact_fields_match_verified_profile", "contact_fields_readback_verified"},
     41: {"resume_upload_matches_document", "resume_sha256_matches"},
     42: {"cover_letter_upload_matches_document", "cover_letter_sha256_matches"},
-    43: {"approved_answers_match_questions", "approved_values_visible"},
+    43: {"approved_answers_match_questions", "approved_answers_readback_verified"},
     44: {"uncertain_question_paused", "submit_not_attempted"},
     45: {"explicit_answer_approval_persisted", "approval_bound_to_question"},
     46: {"reviewed_application_resumed", "stale_approval_rejected"},
@@ -372,8 +381,9 @@ def validate_startup_receipt(receipt, source, run_id, target, runtime):
             or any(not isinstance(value, str) or not value or len(value) > 512 for value in command)
             or command[:2] != ["docker", "compose"] or "up" not in command
             or not any(flag in command[command.index("up") + 1:] for flag in ("-d", "--detach"))
-            or not any(command[index:index + 2] == [flag, target["project_name"]]
-                       for index in range(len(command) - 1) for flag in ("-p", "--project-name"))):
+            or [command[index + 1] for index, value in enumerate(command[:-1]) if value in {"-p", "--project-name"}] != [target["project_name"]]
+            or any(value.startswith("--project-name=") or value.startswith("-p") and value not in {"-p", "--pull"}
+                   for value in command)):
         raise ValueError("Startup receipt requires the actual owned detached Compose up command")
     files = [str((ROOT / command[index + 1]).resolve()) for index, value in enumerate(command[:-1]) if value in {"-f", "--file"}]
     if files != [str(Path(value).resolve()) for value in runtime["compose_files"]]:
@@ -434,6 +444,15 @@ def _identity(baseline):
                                  ("application_document_ids", "document_ids", 100)):
         if field in baseline:
             identity[key] = _bounded_identity_ids(baseline[field], maximum, "readback identity")
+    if "employer_discovery_lineage" in baseline:
+        lineage = baseline["employer_discovery_lineage"]
+        if (not isinstance(lineage, dict) or set(lineage) != {"profile_id", "operation_id", "request_id", "job_ids"}
+                or lineage.get("profile_id") != identity["profile_id"]
+                or any(not isinstance(lineage.get(key), str) or not SAFE_ID.fullmatch(lineage[key])
+                       for key in ("operation_id", "request_id"))
+                or not set(_bounded_identity_ids(lineage.get("job_ids"), 200, "employer discovery identity")).issubset(identity.get("observed_job_ids", []))):
+            raise ValueError("Employer discovery identity differs from the observed profile jobs")
+        identity["employer_discovery_lineage"] = copy.deepcopy(lineage)
     return identity
 
 
@@ -448,6 +467,8 @@ def _bounded_identity_ids(value, maximum, context):
 def _validate_continuity(continuity, identity, step, status, segment):
     if not isinstance(continuity, dict) or not set(continuity).issubset(CONTINUITY_KEYS):
         raise ValueError("Invalid continuity identifiers")
+    if 23 <= step <= 31 and "application_id" in continuity:
+        raise ValueError("Employer discovery continuity must not assert application identity")
     for key, value in continuity.items():
         if key == "document_ids":
             documents = _bounded_identity_ids(value, 10, "continuity document identity")
@@ -461,10 +482,16 @@ def _validate_continuity(continuity, identity, step, status, segment):
         elif key == "job_id":
             # Browsing may inspect A; saving/preparing B must stay tied to B.
             # Including any application-scoped identifier also asserts that tie.
-            application_scope = step >= 32 or any(name in continuity for name in IDENTIFIERS[1:])
+            application_scope = step >= 32 or "application_id" in continuity or (
+                not 23 <= step <= 31 and any(name in continuity for name in IDENTIFIERS[1:]))
             if ((application_scope and value != identity.get("job_id"))
                     or (not application_scope and value not in identity.get("observed_job_ids", []))):
                 raise ValueError("Numbered observation continuity job identity mismatch")
+            if 23 <= step <= 31 and value not in identity.get("employer_discovery_lineage", {}).get("job_ids", []):
+                raise ValueError("Employer observation continuity job was not observed by that discovery")
+        elif 23 <= step <= 31 and key in {"operation_id", "request_id"}:
+            if value != identity.get("employer_discovery_lineage", {}).get(key):
+                raise ValueError("Employer observation continuity discovery operation identity mismatch")
         elif identity.get(key) != value:
             raise ValueError("Numbered observation continuity identity mismatch")
     if ("document_id" in continuity and "document_ids" in continuity
@@ -474,8 +501,10 @@ def _validate_continuity(continuity, identity, step, status, segment):
         required = set(IDENTIFIERS if step >= 54 or segment == "public" else
                        ("profile_id", "application_id") if step >= 33 else
                        ("profile_id",) if step >= 3 else ())
-        if 17 <= step <= 22 or 32 <= step <= 53:
+        if 17 <= step <= 53:
             required.add("job_id")
+        if 23 <= step <= 31:
+            required.update(("operation_id", "request_id"))
         if step in {33, 34}:
             required.add("document_ids")
         elif step in {35, 41, 42}:
@@ -529,6 +558,16 @@ def _monitoring_module():
     return acceptance_monitoring
 
 
+def _public_browser_module():
+    try:
+        from cli import acceptance_public_browser
+    except ImportError as error:
+        if "acceptance_public_browser" not in str(error):
+            raise
+        return None
+    return acceptance_public_browser
+
+
 def _segment_names(public_provider, monitoring):
     return ("ui",) + (("public",) if public_provider else ()) + (
         ("monitor_prepare",) if monitoring else ()) + ("recovery",) + (("monitor_after",) if monitoring else ())
@@ -566,11 +605,67 @@ def validate_public_artifact(artifact, baseline, provider, run_id):
             or (baseline.get("selected_application_job_id") is not None
                 and selected != baseline["selected_application_job_id"])):
         raise ValueError("Real public jobs must remain distinct from the selected mock application job")
-    rows = numbered_observations(artifact, segment="public", run_id=run_id,
+    if any(not isinstance(artifact.get(key), str) or not SAFE_ID.fullmatch(artifact[key])
+           for key in ("collection_operation_id", "collection_request_id", "source_id")):
+        raise ValueError("Public collection source and operation identity is missing")
+    rows = numbered_observations(artifact, segment="public_source", run_id=run_id,
                                 source=baseline["source"], identity=_identity(baseline))
     if len(rows) != 1 or rows[0]["step"] != 11 or rows[0]["status"] != "PASS":
         raise ValueError("Same-profile public collection lacks its exact positive observation")
     return artifact
+
+
+def join_public_browser(baseline, public, browser, public_sha, browser_sha, runtime):
+    """Join reviewed read-only browser assertions to collected posting provenance."""
+    projection = {key: runtime[key] for key in ("source_manifest_sha256", "images", "dockerfile_sha256", "frontend_assets")}
+    keys = (*IDENTIFIERS, "source", "acceptance_run_id", "selected_application_job_id", "observed_real_job_ids",
+            "collection_operation_id", "collection_request_id", "source_id", "provider", "execution_scope")
+    if (type(browser.get("schema_version")) is not int or browser["schema_version"] != 1
+            or browser.get("result") != "PASS" or browser.get("evidence_kind") != "PUBLIC_BROWSER_READ_ONLY"
+            or any(browser.get(key) != public.get(key) for key in keys)
+            or browser.get("runtime_identity") != projection or browser.get("runtime_identity_sha256") != digest(projection)
+            or browser.get("sha256") != digest({key: value for key, value in browser.items() if key != "sha256"})):
+        raise ValueError("Public browser provenance, source, runtime or read-only identity mismatch")
+    controls = browser.get("browser", {})
+    if (controls.get("loopback_only") is not True or controls.get("get_head_only") is not True
+            or controls.get("external_requests") != 0 or controls.get("page_errors") != 0
+            or type(controls.get("blocked_write_attempts")) is not int or not 0 <= controls["blocked_write_attempts"] <= 10000
+            or not isinstance(controls.get("blocked_write_paths"), list)
+            or len(controls["blocked_write_paths"]) != min(20, controls["blocked_write_attempts"])):
+        raise ValueError("Public browser read-only controls are invalid")
+    readback = browser.get("baseline_readback", {})
+    if (readback.get("unchanged") is not True or readback.get("before_sha256") != readback.get("after_sha256")
+            or readback.get("profile_version") != public.get("profile_version")
+            or re.fullmatch(r"[a-f0-9]{64}", str(readback.get("before_sha256"))) is None
+            or readback.get("selected_application_job_id") != public["selected_application_job_id"]
+            or readback.get("selected_application_route_id") != public.get("selected_application_route_id")
+            or set(readback.get("document_ids", [])) != set(baseline.get("application_document_ids", []))):
+        raise ValueError("Public browser changed the selected application or documents")
+    records = browser.get("acceptance_observations", [])
+    if not isinstance(records, list) or len(records) != 2 or {row.get("step") for row in records} != {11, 16}:
+        raise ValueError("Public browser requires explicit visibility and restriction observations")
+    rows = []
+    for item in records:
+        step = item["step"]
+        check = "public_jobs_visible_in_same_profile_ui" if step == 11 else "source_remote_restriction_visible"
+        checks = item.get("checks", {})
+        if (set(checks) != {check} or type(checks[check]) is not bool or item.get("status") not in STATUSES
+                or item.get("status") == "PASS" and (checks[check] is not True or browser["execution_scope"] != "LIVE_PUBLIC_READ_ONLY")):
+            raise ValueError("Public browser named assertion is invalid")
+        named = [{"name": check, "passed": checks[check]}]
+        if step == 11:
+            named.append({"name": "same_profile_public_readonly_jobs_observed", "passed": True})
+        rows.append({"step": step, "status": item["status"], "checks": named,
+            "observable_result": "Collected real jobs visible in the same profile UI" if step == 11 else "Provider-authored remote restriction visibility observed",
+            "evidence_kind": "PUBLIC_READ_ONLY", "source_commit": baseline["source"]["commit"],
+            "run_id": public["acceptance_run_id"], "continuity": {key: baseline[key] for key in IDENTIFIERS}})
+    timestamp = browser.get("timestamp_utc")
+    if not _instant(public["timestamp"]) <= _instant(timestamp) <= datetime.now(timezone.utc) + timedelta(seconds=5):
+        raise ValueError("Public browser evidence predates collection or is future-dated")
+    return {"schema_version": 1, "result": "PARTIAL", "timestamp": timestamp, "source": baseline["source"],
+        "acceptance_run_id": public["acceptance_run_id"], "public_artifact": "public.json", "public_sha256": public_sha,
+        "browser_artifact": "public-browser.json", "browser_sha256": browser_sha,
+        "runtime_identity": projection, "acceptance_observations": rows}
 
 
 def _validate_recaptured_baseline(original, updated):
@@ -797,7 +892,8 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         if (type(step) is not int or not 1 <= step <= 60 or step in seen
                 or (segment == "ui" and (step == 1 or step >= 54))
                 or (segment == "startup" and step != 1)
-                or (segment == "public" and step != 11)
+                or (segment in {"public", "public_source"} and step != 11)
+                or (segment == "public_browser" and step not in {11, 16})
                 or (segment == "recovery" and not 54 <= step <= 58)
                 or (segment == "monitor_after" and step not in {59, 60})
                 or segment == "monitor_prepare"):
@@ -806,7 +902,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         if row.get("run_id") != run_id or row.get("source_commit") != source["commit"]:
             raise ValueError("Numbered observation run or source mismatch")
         status = row.get("status")
-        kind = "PUBLIC_READ_ONLY" if segment == "public" else "CONTROLLED_FIXTURE"
+        kind = "PUBLIC_READ_ONLY" if segment in {"public", "public_source", "public_browser"} else "CONTROLLED_FIXTURE"
         if status not in STATUSES or row.get("evidence_kind") != kind:
             raise ValueError("Unsupported observation status or source semantics")
         observable = row.get("observable_result")
@@ -815,7 +911,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         continuity = row.get("continuity")
         _validate_continuity(continuity, identity, step, status, segment)
         if status == "PASS":
-            if step == 11 and segment != "public":
+            if step == 11 and segment not in {"public", "public_source", "public_browser"}:
                 raise ValueError("Criterion 11 cannot PASS from fixture evidence")
         checks = row.get("checks")
         if (not isinstance(checks, list) or len(checks) > 30
@@ -831,7 +927,9 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                 raise ValueError("Criterion 55 requires positive complete inventory recovery")
         if status == "PASS":
             names = [check["name"] for check in checks]
-            if (step not in REQUIRED_CHECKS or set(names) != REQUIRED_CHECKS[step]
+            required_checks = ({"same_profile_public_readonly_jobs_observed"} if segment == "public_source" else
+                               {"source_remote_restriction_visible"} if segment == "public_browser" and step == 16 else REQUIRED_CHECKS.get(step))
+            if (required_checks is None or set(names) != required_checks
                     or len(names) != len(set(names))):
                 raise ValueError("PASS requires exactly the registered step-specific checks")
             if 36 <= step <= 53:
@@ -886,6 +984,9 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         restored.binding["runtime_checks"] = saved.get("runtime_checks", {})
         restored.binding["frontend_build"] = saved.get("frontend_build", {"status": "NOT_RUN"})
         restored.binding["resume_imported"] = True
+        for key in ("public_browser", "public_observations"):
+            if key in saved:
+                restored.binding[key] = saved[key]
         if "startup" in saved:
             startup, startup_sha = _read_artifact(Path(path).parent / "startup.json")
             if saved["startup"] != {"artifact": "startup.json", "sha256": startup_sha}:
@@ -924,7 +1025,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                     raise ValueError("Checkpoint artifact hash mismatch")
                 restored.complete_segment(name, artifact, sha, persist=False)
                 for row in restored.binding["steps"]:
-                    if row.get("verification", {}).get("evidence_artifact") == f"{name}.json":
+                    if row.get("verification", {}).get("evidence_artifact") in ({f"{name}.json", "public-observations.json"} if name == "public" else {f"{name}.json"}):
                         row["verification"]["resume_imported"] = True
         return restored
 
@@ -964,6 +1065,9 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         self.persist()
 
     def complete_segment(self, name, artifact, sha, *, persist=True):
+        segment_sha = sha
+        observation_segment = name
+        evidence_name = f"{name}.json"
         try:
             timestamp = datetime.fromisoformat(artifact["timestamp"])
             started = datetime.fromisoformat(self.binding["started_at_utc"])
@@ -981,6 +1085,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 raise ValueError("Connected UI baseline is incomplete")
             identity = _identity(artifact)
             self.binding["continuity"] = identity
+            if "employer_discovery_lineage" in identity:
+                self.binding["employer_discovery_lineage"] = copy.deepcopy(identity["employer_discovery_lineage"])
             lineage = validate_stage_lineage(artifact, identity)
             if "runtime_identity" in artifact:
                 expected_runtime = {key: self.binding["runtime"][key] for key in ("source_manifest_sha256", "images")}
@@ -994,6 +1100,21 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
             identity = self.binding["continuity"]
             self.binding["observed_real_job_ids"] = artifact["observed_real_job_ids"]
             self.binding["selected_application_job_id"] = artifact["selected_application_job_id"]
+            if "public_browser" in self.binding:
+                browser, browser_sha = _read_artifact(self.path.parent / "public-browser.json")
+                joined, joined_sha = _read_artifact(self.path.parent / "public-observations.json")
+                if (self.binding["public_browser"] != {"artifact": "public-browser.json", "sha256": browser_sha}
+                        or self.binding["public_observations"] != {"artifact": "public-observations.json", "sha256": joined_sha}
+                        or joined != join_public_browser(original, artifact, browser, sha, browser_sha, self.binding["runtime"])):
+                    raise ValueError("Public browser joined evidence lineage mismatch")
+                artifact, sha = joined, joined_sha
+                observation_segment, evidence_name = "public_browser", "public-observations.json"
+            else:
+                artifact = copy.deepcopy(artifact)
+                for row in artifact.get("acceptance_observations", []):
+                    if row["step"] == 11 and row["status"] == "PASS":
+                        row["status"] = "PARTIAL"
+                        row["checks"].append({"name": "public_jobs_visible_in_same_profile_ui", "passed": False})
         elif name in {"monitor_prepare", "monitor_after"}:
             identity = self.binding["continuity"]
             original = _read_reference(self.path.parent, self.binding["monitoring_input_baseline"])
@@ -1032,13 +1153,13 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 if any(recovered.get(key) != inventory[key]
                        for key in ("profile_id", "sha256", "job_count", "source_copy_count")):
                     raise ValueError("Criterion 55 inventory differs from the connected UI baseline")
-        rows = numbered_observations(artifact, segment=name, run_id=self.binding["run_id"],
+        rows = numbered_observations(artifact, segment=observation_segment, run_id=self.binding["run_id"],
                                     source=self.binding["source"], identity=identity)
         for row in rows:
             report_row = {
                 "number": row["step"], "status": row["status"], "observation": row,
                 "verification": {"tested_commit": self.binding["source"]["commit"],
-                                 "evidence_artifact": f"{name}.json", "evidence_sha256": sha,
+                                 "evidence_artifact": evidence_name, "evidence_sha256": sha,
                                  "run_id": self.binding["run_id"], "evidence_kind": row["evidence_kind"],
                                  "command": {"ui": "python -m cli.ui_e2e --onboarding",
                                              "public": "cli.acceptance_public_source.run (explicit contained opt-in)",
@@ -1051,16 +1172,20 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                                  "continuity": row["continuity"]}}
             if name == "ui" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
-            if name == "public" and row["step"] == 11 and row["status"] == "PASS":
+            if name == "public" and "public_browser" not in self.binding and row["step"] == 11:
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="PUBLIC_BROWSER_NOT_OBSERVED")
+            if observation_segment == "public_browser" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
+                report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
             if "job_id" in row["continuity"]:
                 report_row["verification"]["job_scope"] = (
                     "SELECTED_APPLICATION_JOB" if row["step"] >= 32 else "SAME_PROFILE_BROWSED_JOB")
             lineage_row = next((item for item in self.binding.get("stage_lineage", []) if item["step"] == row["step"]), None)
             if lineage_row is not None:
                 report_row["verification"]["stage_lineage"] = copy.deepcopy(lineage_row)
+            if 23 <= row["step"] <= 31 and "employer_discovery_lineage" in identity:
+                report_row["verification"]["employer_discovery_lineage"] = copy.deepcopy(identity["employer_discovery_lineage"])
             self.binding["steps"][row["step"] - 1] = report_row
-        self.binding["segments"][name] = {"status": "COMPLETE", "artifact": f"{name}.json", "sha256": sha}
+        self.binding["segments"][name] = {"status": "COMPLETE", "artifact": f"{name}.json", "sha256": segment_sha}
         self.binding.pop("active_segment", None)
         # All 60 must actually be observed. A fixture-only run cannot satisfy 11.
         statuses = [row["status"] for row in self.binding["steps"]]
@@ -1104,6 +1229,7 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
             public_source_provider not in {"wwr", "remotive"} or not callable(public_source_preflight)):
         raise ValueError("Public source opt-in requires an explicit supported provider and ownership containment callback")
     public_module = _public_source_module() if public_source_provider else None
+    browser_module = _public_browser_module() if public_source_provider else None
     if type(monitoring) is not bool:
         raise ValueError("Monitoring opt-in must be boolean")
     monitor_module = _monitoring_module() if monitoring else None
@@ -1181,6 +1307,20 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
                                   containment_preflight=public_source_preflight)
                 public, public_sha = _read_artifact(artifact_path)
                 validate_public_artifact(public, baseline, public_source_provider, run_id)
+                if browser_module is not None:
+                    browser_path = directory / "public-browser.json"
+                    joined_path = directory / "public-observations.json"
+                    if browser_path.exists() or joined_path.exists():
+                        raise ValueError("Refusing to replace public browser evidence")
+                    projection = {key: latest[key] for key in ("source_manifest_sha256", "images", "dockerfile_sha256", "frontend_assets")}
+                    browser = browser_module.run(target["base_url"], baseline, public, runtime_identity=projection)
+                    JourneyCheckpoint(browser_path, browser).persist()
+                    _, browser_sha = _read_artifact(browser_path)
+                    joined = join_public_browser(baseline, public, browser, public_sha, browser_sha, latest)
+                    JourneyCheckpoint(joined_path, joined).persist()
+                    _, joined_sha = _read_artifact(joined_path)
+                    checkpoint.binding["public_browser"] = {"artifact": browser_path.name, "sha256": browser_sha}
+                    checkpoint.binding["public_observations"] = {"artifact": joined_path.name, "sha256": joined_sha}
                 updated = recapture_public_baseline(baseline, public, target)
                 _validate_recaptured_baseline(baseline, updated)
                 inventory_ids = {row["job_id"] for row in updated["job_inventory"]["jobs"]}
