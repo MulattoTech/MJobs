@@ -11,6 +11,9 @@ from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.form_analysis import analyze_controls, analyze_form_page
+from workers.operations import (
+    OperationCancelled, OperationControlUnavailable, OperationTimedOut,
+)
 
 
 _TENANT = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\Z", re.I)
@@ -468,6 +471,9 @@ class BreezyApplicationAdapter:
             )
             if check is not None:
                 check()
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()
@@ -639,6 +645,9 @@ class BreezyApplicationAdapter:
             )
             if check is not None:
                 check()
+        except (OperationCancelled, OperationTimedOut, OperationControlUnavailable):
+            # Preserve durable stop/control failures instead of returning form metadata.
+            raise
         except Exception:
             if check is not None:
                 check()

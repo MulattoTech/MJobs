@@ -1864,6 +1864,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                            "application_priority"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),
              salary_max: float | None = Query(default=None, ge=0, le=100000000),
+             salary_period: Literal["HOUR", "YEAR"] = "YEAR",
+             salary_known_only: bool = False,
+             salary_unknown_allowed: bool | None = None,
              min_match_score: int | None = Query(default=None, ge=0, le=100),
              experience_level: Literal["INTERNSHIP", "ENTRY", "JUNIOR", "ASSOCIATE", "MID", "SENIOR",
                                        "LEAD", "MANAGER", "DIRECTOR", "EXECUTIVE", "UNKNOWN"] | None = None,
@@ -1887,7 +1890,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              include_blacklisted: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         if salary_min is not None and salary_max is not None and salary_min > salary_max:
-            raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
+            raise HTTPException(422, "Minimum USD salary cannot exceed maximum for the selected pay period")
+        if salary_known_only and salary_unknown_allowed:
+            raise HTTPException(422, "Known-only salary and unknown-allowed salary are mutually exclusive")
         if posted_within_days is not None and posted_within_days not in {1, 3, 7, 14, 30}:
             raise HTTPException(422, "Posted-within window must be 1, 3, 7, 14, or 30 days")
         explicit_date_window = date_window is not None or date_start is not None or date_end is not None
@@ -2040,6 +2045,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
+                          salary_period=salary_period, salary_known_only=salary_known_only,
+                          salary_unknown_allowed=salary_unknown_allowed,
                           min_match_score=effective_match_score, experience_level=experience_level,
                           employment_type=employment_type,
                           skill_id=skill_id,

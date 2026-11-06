@@ -1,5 +1,28 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Mission UI continuation — 2026-11-05
+
+User-authorized continuation of the unified Fleet workspace rollout, tracked in
+MJobs PR962 and Fleet-Control-Hub PR23. Native Mission Control now has a prominent
+Fleet Overview return link, a neutral shared-design theme covering runtime,
+ledger, historical comparison and token details, and guarded five-second
+acceptance polling. Launcher/process scans keep their existing slower interval.
+No launch, approval, quota, acceptance-matrix or real-application behavior changed.
+
+Six direct Mission UI source contracts, JavaScript syntax, catalogue, progress
+journal, dashboard-currentness and diff checks passed locally. The earlier
+PR962 integration shard failed its unchanged real-worker concurrency assertion;
+that assertion now emits only status/error-category diagnostics without weakening
+the required outcomes. Exact successor hosted checks, normal protected merge,
+Windows installation and signed-in browser validation remain separate gates.
+This checkpoint does not claim deployment, new requirement PASS or fleet launch.
+The containing PR records the exact source revision and subsequent gate results.
+Shared Fleet PR23 merged at e9982c1d084568643a4ad3e80b250bd52ef660b4
+after hosted controller checks; the application source pointer now names that
+revision. The Windows verification of source d9e064c2 passed 34 tests plus 31
+subtests, including the earlier failing fixture concurrency case. No production
+database, real application, or Fleet dispatch was used by those fixture tests.
+
 ## Current authorized-audit integration checkpoint - 2026-11-03T09:27:45.402Z
 
 Run webpro-20261103T073112Z-bbbb6d; [PR921](https://github.com/MulattoTech/MJobs/pull/921). The audit branch now incorporates independently merged main57e524ab through an ordinary merge. All latest canonical matrices, journal/queue and the full incoming handoff text are preserved; the audit adds no original or parity acceptance. Its containing PR records exact refreshed source/candidate checks and final merge/release.
@@ -400,3 +423,64 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Original hosted unit 2 FAIL, Compose HTTP409 failure, and WWR integration 1 FAIL remain retained. Restore full-suite results belong to provisional test956; final b1 has only the FIFO case rerun. No historical result is relabeled as this new candidate.
 - Preservation evidence: docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json. Private preparation receipt records validators and exact staged tree; no commit/push is performed by the helper.
 - Next: review the staged preservation proof, execute the actual merged candidate and required hosted gates, then separately own and verify any171 rollout. Those gates remainPENDING.
+
+
+## Web sprint 58c1462f ? diagnostic regression integration checkpoint
+
+- UTC: 2026-11-05T01:03:52.741252+00:00; run `web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1`.
+- PR [#946](https://github.com/MulattoTech/MJobs/pull/946), MJ-REQ-179: source `2b6d023064f6e519dd76daad11f91446801adbb3` closes an unstarted rejected capture and verifies phase deadlines. Current refresh base: `cf882ef513b23429a3433ef690471bf7dff1fe21`. Diagnostic source/test blobs remain identical to prior candidate `6e89a1f9`.
+- Prior exact-head hosted proof: 3689 unit passes / 53 skips / 3946 passing subtests; 50 integrity passes / 39 subtests; 5 disposable Compose passes; required CI, scanner and dependency checks succeeded. Integration aggregate and fresh-main candidate checks remain separate gates. One SQLAlchemy deprecation warning remains; the unawaited-capture warning was absent.
+- Local proof: 35 diagnostic tests / 31 subtests; 40 stress executions / 200 phase cases; browser budget 5 tests / 2 subtests; 6 scanner-policy tests. Historical failures and independent source review are preserved in the owned evidence note and PR.
+- PR [#935](https://github.com/MulattoTech/MJobs/pull/935) has independent ATS review and 36 tests / 82 subtests, but its failed old DOM CI must be superseded after #946 reaches protected main. Salary repair review was handed to the sole #934 owner; immutable review commit `4bfea366e6d39705df5da55cd0aaad68489a8e12` is available.
+- No acceptance promotion or deployment in this checkpoint. Read GitHub main, exact PR heads and live ownership before resuming. Current objective claims: MJ-REQ-179 and PR-935-INTEGRATION; shared scanner claim and all heavy/browser slots were released. Integration locks are held only for bounded transactions.
+- Next: all protected gates on the fresh candidate, serialized merge, then guarded current-main deployment and live verification. Selected Brave access was unavailable; authenticated UI verification remains NOT RUN.
+
+
+## Web sprint 58c1462f - salary numeric range and locale-order continuation
+
+- UTC: 2026-11-05T02:20:01.888354+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR934; protected base: 0d3fbc5749fba8c682033a343a7ec9695e4dd743.
+- Fresh MJ-TH-013 owner 5f2c69c1 acquired after previous source-owner release. The prior authors' salary feature and type-guard repair remain attributed and preserved. This follow-up fixes reproduced valid-JSON numeric overflow and existing locale-dependent salary ID ties.
+- Exact current-main candidate: 50 passed, 55 subtests passed in 74.63s (0:01:14). Source-only corrected batch also passed 50 tests / 55 subtests; original six failing HTTP requests are now 200 and all seven probes pass with metadata unchanged. All earlier failures are retained in docs/evidence/2026-11-05-web-58c1462f-salary-numeric-range.md and adjacent JSON.
+- Complete candidate-specific preflight and normal existing-PR push are required. Fresh hosted checks and independent follow-up review are pending; merge, deployment and full MJ-TH-013 acceptance remain separate. No canonical acceptance changes.
+- Owned fixture and heavy slot released after testing; release integration lock after publication. Objective claim remains active for bounded follow-up. Fresh ownership, main/head and all gates must be revalidated before any next integration.
+
+
+## Web sprint 58c1462f - ATS protected integration continuation
+
+- UTC: 2026-11-05T01:30:29.707740+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1. PR946 is merged at protected main 2e1c0072c2ea7241b832dc8842ce1cdc0d781cc1, with verified tested tree f1335ae4c3e60e21c90de750caa03b5e84d3b837 and all five protected gates passed.
+- PR935 now incorporates this protected base. ATS source/test blobs remain unchanged from independently reviewed head 88f8e502. Combined candidate: 77 tests / 113 subtests PASS in 8.75s; catalogue, progress and dashboard pass. The old failed CI remains linked in the owned continuation note.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-ats-integration.md . Fresh published-head CI is required before PR935 merge. No acceptance matrix status is promoted.
+- Earlier current-main release cf882ef5 was deployed by the existing scheduled updater and independently verified for source/image/readiness and fresh backup integrity; PR946 release and authenticated UI remain separate gates.
+- PR935-INTEGRATION ownership remains active only for this continuation. Source claim MJ-REQ-179 can be released after its merge receipt is recorded. The short integration lock is released after publication. No heavy/browser slot is used. Successors must freshly read main, exact heads and ownership; this checkpoint grants no lease.
+
+
+## Web sprint 58c1462f - ATS refresh after PR937
+
+- UTC: 2026-11-05T02:16:05.291400+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR935 updated from 41e4d43d2c3ab02b735f18281f62af5843b355c5 against protected main 0d3fbc5749fba8c682033a343a7ec9695e4dd743.
+- Previous candidate passed all five protected gates before another worker merged PR937. New candidate requires fresh checks; source/test blobs remain unchanged. 77 passed, 113 subtests passed in 8.89s. Catalogue/progress/dashboard checks pass. Existing SESSION_HANDOFF appends are preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-ats-integration.md . The capture fix PR946 is merged and independently verified deployed at 2e1c0072; authenticated Brave remains unavailable. No acceptance matrix credit is added.
+- PR-935-INTEGRATION claim remains owned for the continuation. Release this transaction's integration lock immediately after publication; successors must freshly validate current main, exact published head, ownership and all protected checks.
+
+
+## Web sprint 58c1462f - combined optional-salary collectors
+
+- UTC: 2026-11-05T02:26:01.863442+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; primary PR951 includes reviewed PR947 history against protected main 0d3fbc5749fba8c682033a343a7ec9695e4dd743.
+- Six provider source/test blobs remain unchanged from independently reviewed heads. 61 passed, 1 skipped, 75 subtests passed in 28.89s. One existing live-provider skip remains explicit; catalogue/progress/dashboard pass. Prior failures and attribution preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-provider-salary-integration.md and adjacent JSON. Full candidate-specific preflight and normal existing-PR push required. Fresh hosted checks and protected integration remain pending; PR947 remains open until main ancestry proves delivery.
+- Source scopes PR-951-INTEGRATION and PR-947-INTEGRATION freshly owned; integration lock released after publication; no heavy/browser slot. No canonical acceptance or deployment claim.
+
+
+## Web sprint 58c1462f - one current-main job workflow candidate
+
+- UTC: 2026-11-05T02:49:57.726915+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; existing PR934 becomes the current-main integration candidate on d6650e4bc9bfd784bd6e3a346c793c372f02518a, including frozen PR935/c583e54 and PR951/c02ea380 (and PR947/e7996c4d).
+- All seventeen authored source/test blobs remain unchanged. 182 passed, 1 skipped, 243 subtests passed in 154.62s (0:02:34). One existing live-provider skip remains explicit; RuntimeWarning/unraisable warnings are errors. Catalogue/progress/dashboard checks pass; prior failures and all author/reviewer attribution remain preserved.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-job-integrity.md and adjacent JSON. Complete candidate-specific preflight and normal primary-branch push required; fresh hosted checks and separately attributed salary-review result remain pending. Included branches remain unchanged/open until protected-main ancestry proves delivery.
+- Owned PostgreSQL container and labeled volume removed; heavy slot released. Release integration lock after publication. Scope claims remain active for this bounded continuation. No canonical acceptance or candidate deployment claim; authenticated Brave remains NOT RUN.
+
+
+## Web sprint 58c1462f - refreshed combined jobs after PR942
+
+- UTC: 2026-11-05T03:07:15.222036+00:00; run: web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1; PR934 refreshed from 990efacab9f22d783c9127be79146142155dd8ff to protected main c6d499f391a8e092e06892d7fdea25cbfd177e53 without changing seventeen authored runtime/test blobs. Incoming fourteen main files are unchanged.
+- Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
+- Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
+- Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.

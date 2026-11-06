@@ -3,11 +3,13 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 import hashlib
+import logging
 import os
 import time
 
 from sqlalchemy import select
 from redis import Redis
+from redis.exceptions import RedisError
 
 from packages.domain.automation import SavedSearchRule
 from packages.domain.operation_mode import operation_mode_from_env
@@ -280,7 +282,6 @@ def scheduler_tick(store, redis_connection, at=None, interval_seconds=30):
 
 def run_forever():
     mode = operation_mode_from_env()
-    store = Store(os.environ["MJOBS_DATABASE_URL"])
     interval = int(os.environ.get("MJOBS_SCHEDULER_TICK_SECONDS", "30"))
     if not 5 <= interval <= 300:
         raise ValueError("MJOBS_SCHEDULER_TICK_SECONDS must be 5 through 300")
@@ -288,16 +289,17 @@ def run_forever():
                                             str(DEFAULT_RETENTION_INTERVAL_SECONDS)))
     if not 300 <= retention_interval <= 2592000:
         raise ValueError(f"{RETENTION_INTERVAL_ENV} must be 300 through 2592000")
-    store.bind_workspace_mode(mode)
-    redis = Redis.from_url(os.environ["MJOBS_REDIS_URL"],
-                           socket_connect_timeout=2, socket_timeout=2)
+    store = Store(os.environ["MJOBS_DATABASE_URL"])
+    redis = None
     next_retention_at = 0.0
     try:
+        store.bind_workspace_mode(mode)
+        redis = Redis.from_url(os.environ["MJOBS_REDIS_URL"],
+                               socket_connect_timeout=2, socket_timeout=2)
         while True:
             try:
                 scheduler_tick(store, redis, interval_seconds=interval)
             except Exception:
-                import logging
                 # Dependency errors can contain secrets in messages or tracebacks.
                 logging.error("SCHEDULER_TICK_FAILED: retrying without losing durable state")
             current = time.monotonic()
@@ -306,8 +308,14 @@ def run_forever():
                 next_retention_at = current + retention_interval
             time.sleep(interval)
     finally:
-        redis.close()
-        store.engine.dispose()
+        try:
+            if redis is not None:
+                redis.close()
+        except RedisError:
+            # A disconnected cleanup must not replace the scheduler's outcome.
+            logging.warning("Scheduler Redis connection cleanup failed")
+        finally:
+            store.engine.dispose()
 
 
 if __name__ == "__main__":

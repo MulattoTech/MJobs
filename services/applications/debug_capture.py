@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
+import inspect
 import json
 import math
 import os
@@ -404,8 +405,16 @@ def _dom_snapshot(page, *, deadline, checkpoint):
                 await bounded_call(session.detach, dom_deadline)
         return result
 
+    coroutine = capture()
     try:
-        result = sync(capture())
+        try:
+            result = sync(coroutine)
+        finally:
+            # The bridge can reject before taking ownership of the coroutine.
+            # Close only an unstarted capture; running work keeps its existing
+            # bounded cancellation and cleanup path.
+            if inspect.getcoroutinestate(coroutine) == inspect.CORO_CREATED:
+                coroutine.close()
         check_dom()
         if not isinstance(result, dict) or "exceptionDetails" in result:
             raise ValueError("Diagnostic evaluation failed")
