@@ -1281,4 +1281,3 @@ def test_cli_reports_malformed_checkpoint_type_without_traceback(tmp_path, monke
     output = capsys.readouterr().out
     assert "ERROR: checkpoint must be an object" in output
     assert "Traceback" not in output
-

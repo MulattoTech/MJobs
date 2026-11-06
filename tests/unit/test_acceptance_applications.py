@@ -235,4 +235,3 @@ def test_observable_result_rejects_leading_or_trailing_whitespace():
 
     with pytest.raises(ValueError, match="sanitized"):
         record(journal, 36, observable_result="Application result has trailing space ")
-
