@@ -19,6 +19,12 @@ _MAX_FEED_BYTES = 2_000_000
 _MAX_JOBS = 1000
 
 
+class _JobFeedTreeBuilder(ET.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        # Enforce the no-DTD contract after the parser detects its encoding.
+        raise ET.ParseError("Document type declarations are not supported")
+
+
 def _origin(url):
     try:
         parsed = urlsplit(str(url or ""))
@@ -93,7 +99,8 @@ def parse_public_job_feed(body, strategy):
     if "<!doctype" in body.casefold() or "<!entity" in body.casefold():
         raise ValueError("COMPANY_JOB_FEED_INVALID")
     try:
-        root = ET.fromstring(body)
+        parser = ET.XMLParser(target=_JobFeedTreeBuilder())
+        root = ET.fromstring(body, parser=parser)
     except (ET.ParseError, ValueError) as error:
         raise ValueError("COMPANY_JOB_FEED_INVALID") from error
     root_name = root.tag.rsplit("}", 1)[-1].casefold()
@@ -108,12 +115,32 @@ def parse_public_job_feed(body, strategy):
     normalized = []
     for item in items:
         row = {}
+        atom_alternates = set()
         for child in item:
             key = child.tag.rsplit("}", 1)[-1].casefold()
-            if key == "link":
+            if key == "link" and root_name == "feed":
+                # Atom entries can also advertise self/enclosure links. Their
+                # order must never decide the job destination.
+                if child.attrib.get("rel", "alternate").strip().casefold() == "alternate":
+                    # A declared PDF/feed/image alternate is not a job page.
+                    # Omitted media types remain supported; declarations are
+                    # advisory, so this does not verify the destination itself.
+                    media_type = child.attrib.get("type", "").split(";", 1)[0].strip().casefold()
+                    if media_type not in {"", "text/html", "application/xhtml+xml"}:
+                        continue
+                    target = (child.attrib.get("href") or child.text or "").strip()
+                    if target:
+                        atom_alternates.add(target)
+            elif key == "link":
                 row[key] = child.attrib.get("href") or child.text or ""
             else:
                 row[key] = child.text or ""
+        if root_name == "feed":
+            # Distinct alternate destinations are ambiguous; do not invent a
+            # winner or publish a self/enclosure URL as an application route.
+            if len(atom_alternates) != 1:
+                raise ValueError("COMPANY_JOB_FEED_INVALID")
+            row["link"] = next(iter(atom_alternates))
         if not str(row.get("title") or "").strip() or not str(row.get("link") or "").strip():
             raise ValueError("COMPANY_JOB_FEED_INVALID")
         normalized.append(row)

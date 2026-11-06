@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "WWR-XML-DECLARATION-REJECTION",
+  "objective": "Reject WWR DTDs and classify unsupported XML encodings while preserving stored jobs",
+  "owner": "web-20261105T012919Z-d048983a-e264-48a1-8f3b-496f3fec1ae9",
+  "branch": "web/web-20261105T012919Z-d048983a-e264-48a1-8f3b-496f3fec1ae9/wwr-xml",
+  "head_sha": "2e9e3d7d923bb9337e52582102fe8db8b13a5fa4",
+  "routing_state": "VERIFY",
+  "next_action": "Publish scoped PR; require independent review and fresh protected merge-candidate checks before serialized integration and separately guarded deployment",
+  "created_at": "2026-11-05T01:45:52.402373+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "35 focused WWR tests and 56 subtests; one existing live-provider skip; tested blobs match source commit 2e9e3d7d",
+      "result": "PASS"
+    },
+    {
+      "command": "Catalogue, journal, dashboard, whitespace and source provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent review, live provider, local PostgreSQL parser-failure path, protected integration, production validation",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
