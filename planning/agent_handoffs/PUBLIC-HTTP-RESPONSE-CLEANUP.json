@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "PUBLIC-HTTP-RESPONSE-CLEANUP",
+  "objective": "Preserve monitored public request outcomes and owned sockets after HTTP response close failure",
+  "owner": "web-20261105T024458Z-1b12b8fc-3b08-4780-ba5c-488849ee318d",
+  "branch": "web/web-20261105T024458Z-1b12b8fc-3b08-4780-ba5c-488849ee318d/public-response-cleanup",
+  "head_sha": "758def9393832db78f014ac92334ef20bcb95354",
+  "routing_state": "RESUME",
+  "next_action": "Independent technical review and fresh protected candidate checks; serialize any integration and guarded deployment",
+  "created_at": "2026-11-05T03:02:46.420752+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "45 tests and18 subtests; zero skips; final production/test blobs match source 758def9393832db78f014ac92334ef20bcb95354",
+      "result": "PASS"
+    },
+    {
+      "command": "New-test Ruff PASS; production findings identical to baseline",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent review, protected candidate CI, protected merge and production validation",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
