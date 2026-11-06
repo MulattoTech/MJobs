@@ -112,7 +112,8 @@ class GreenhouseApplicationAdapter:
                 timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
         try:
             # Locator.evaluate_all has no timeout argument. Evaluate against the
-            # single analyzed form so the worker's remaining deadline is honored.
+            # single analyzed form to bound locator resolution. The operation
+            # check after evaluation enforces the cooperative worker deadline.
             validity = page.locator("form").evaluate(
                 'form => Array.from(form.querySelectorAll('
                 '\'input:not([type="file"]), select, textarea\')).map(node => ({'
