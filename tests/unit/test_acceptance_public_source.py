@@ -124,6 +124,42 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertEqual(self.api.calls, [])
         self.assertFalse(self.path.exists())
 
+    def test_containment_context_uses_only_dispatched_collection_identity(self):
+        contexts = []
+        def containment(stage, context):
+            dispatched = [kwargs['json'] for method, path, kwargs in self.api.calls
+                if method == 'POST' and path.endswith('/collect')]
+            contexts.append((stage, deepcopy(context), deepcopy(dispatched)))
+            return deepcopy(PROOF)
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertTrue(any(not dispatched for _, _, dispatched in contexts))
+        self.assertTrue(any(dispatched for _, _, dispatched in contexts))
+        for _stage, context, dispatched in contexts:
+            self.assertIn('collection_operation_id', context)
+            self.assertIn('collection_request_id', context)
+            self.assertEqual(context['collection_operation_id'], 'public-operation' if dispatched else None)
+            self.assertEqual(context['collection_request_id'], dispatched[0]['request_id'] if dispatched else None)
+        self.assertNotEqual(result['collection_operation_id'], BASELINE['operation_id'])
+        self.assertNotEqual(result['collection_request_id'], BASELINE['request_id'])
+
+    def test_unconfirmed_dispatch_does_not_invent_callback_identity(self):
+        original = self.api.request
+        contexts = []
+        def failed_dispatch(method, path, **kwargs):
+            if method == 'POST' and path.endswith('/collect'):
+                raise RuntimeError('No confirmed response')
+            return original(method, path, **kwargs)
+        self.api.request = failed_dispatch
+        def containment(_stage, context):
+            contexts.append(deepcopy(context))
+            return deepcopy(PROOF)
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertTrue(contexts)
+        self.assertTrue(all('collection_operation_id' in row and row['collection_operation_id'] is None
+            and 'collection_request_id' in row and row['collection_request_id'] is None for row in contexts))
+
     def test_existing_evidence_is_preserved_before_any_request(self):
         self.path.write_text('prior receipt', encoding='utf-8')
         with self.assertRaises(FileExistsError):

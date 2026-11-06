@@ -179,6 +179,8 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
     manual clients and retry dispatchers. Every contained API read checks the
     lease before and after; an expiry gap or lost proof cannot be reacquired here.
     Stages include preflight, enable, dispatch, poll, read, finalize and cleanup.
+    Context collection IDs are None until the collect POST returns its actual
+    operation ID; subsequent callbacks receive that ID and its submitted request ID.
     The caller owns the lease and scheduler lifecycle; this helper never stops
     or starts host services. Injected requests require CONTROLLED_TRANSPORT and
     cannot earn criterion 11 PASS. evidence_path must be absent in an existing,
@@ -231,6 +233,8 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 required_until = now + timedelta(seconds=API_TIMEOUT_SECONDS)
                 proof = containment_preflight(stage, dict(provider=provider, base_url=base_url,
                     acceptance_run_id=acceptance_run_id, source_id=evidence.get('source_id') or owned_source,
+                    collection_operation_id=evidence.get('collection_operation_id'),
+                    collection_request_id=evidence.get('collection_request_id'),
                     source_policy_sha256=evidence.get('source_policy_sha256'), newly_created=bool(owned_source),
                     lease_required_until=required_until.isoformat()))
                 _require(isinstance(proof, dict) and proof.get('scheduler_contained') is True
