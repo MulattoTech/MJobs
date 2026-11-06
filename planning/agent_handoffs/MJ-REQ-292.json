@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92",
+  "head_sha": "2313c41c045fa94f4487e3399165b6f6fe10d070",
   "routing_state": "EXECUTE",
-  "next_action": "On authorized continuation, verify current PR973 head/checks and source ownership. Build exact6dc9039c or the final reviewed source, using durable build/start markers and normalized completed_at_utc. Run one connected native UI/public/recovery/monitoring journey; do not reuse known-bad f7d runner or promote existing partial observations. Finish independent schema2 source-setup join review before integrating that lane.",
+  "next_action": "Build the frozen integrated source; execute one fresh native Greenhouse UI journey with owned source-setup, public WWR, restart and natural monitoring. Reconcile fresh PR973 protected checks and merge only qualified source; verify acceptance against exact merged source. Keep0PASS until complete evidence qualifies.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -129,15 +129,19 @@
       "tested_commit": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92",
       "result": "PASS",
       "observed": "Root44tests3.66s; independentAB exactreview; pausedrun identity and noSUBMIT oracle retained."
+    },
+    {
+      "command": "pytest acceptance journey/containment/public/monitor/application/ledger/UI units plus source-setup and question-prompt browser regressions",
+      "tested_commit": "2313c41c045fa94f4487e3399165b6f6fe10d070",
+      "result": "PASS",
+      "observed": "472passed,2Windows symlink skips,49subtests21.17s. Controlled helper tests do not certify live/public/60-step acceptance."
     }
   ],
   "blockers": [
-    "0/60 independently verified acceptance; 33 rows preserve actual incomplete ff5 observations as PARTIAL and27 remain NOT_RUN.",
-    "PR973 at97085b75 passed fast required/unit/web checks but Compose failed on a hidden submit-control assumption. Exact reviewed repair6dc9039c passed44 root unit tests; new protected checks pending publication.",
-    "Official-domain canonical/apply-page enhancement59b8511 integrated5cbe50f1 passed43tests50subtests atroot; actual publicprovider/DNS/RQ/browser proof remains NOT_RUN.",
-    "Optional two-source schema2 producer, containment, runner and ledger candidates remain outside integration pending final joined review/retest. No source9 promotion.",
-    "Fresh f7d runtime on18738 has a valid one-command startup receipt. Coordinator failed beforeUI because build receipt used build_completed_at_utc instead of completed_at_utc. A separate normalized receipt copies the actual recorded timestamp; original failure retained. No UI/public/recovery/monitoring ran on that attempt.",
-    "Full native controlled submission, public read-only visibility, restart, natural monitoring, protected merged-source run and independent whole-journey acceptance remain incomplete."
+    "Full connected native/public/restart/monitoring journey remains incomplete; no independently verified PASS rows.",
+    "Publishedfa4 CI failed question prompt strict locator; reviewed6aff correction is integrated and tested; newprotectedchecks pending.",
+    "Positive live Stripe parser/network path observed with productionguards, but native company DB promotion/RQ/enrollment end-to-end remains NOT_RUN.",
+    "Exact merged-source run, independent whole-journey review and typed integration receipts are still required."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -453,12 +457,12 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T13:21:14.905103+00:00",
+  "updated_at": "2026-11-06T17:36:46.295931+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
-    "published_head": "97085b7527d267e36a1c32d4ae3e6fed309de052",
-    "required_checks": "97085b75 fast required/unit/web/dependency/security PASS; ComposeFAIL hidden submit assumption; integration incomplete atlatestobservation. Newhead checks NOT_RUN at checkpoint.",
+    "published_head": "fa4e626027704ca2fe8c6e9f7998a3ce83dbd0e8",
+    "required_checks": "Current live reconciliation: all required checks PASS except Compose, strict two-strong-elements question locator at ui_e2e.py1894. Repair in progress; no rerun/bypass.",
     "next_candidate_source": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92"
   },
   "runtime_history": [
@@ -502,18 +506,28 @@
   "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
   "latest_diagnostic_review": "Independent EF static review verified33PARTIAL/27NOT_RUN/0PASS mapping, rawsource/run/image hashes, public projection SHA and sanitized content. No runtime or acceptance promotion.",
   "session_boundary": {
-    "four_hour_limit_utc": "2026-11-06T13:21:34Z",
-    "extension_request": "PENDING_USER_REPLY",
+    "four_hour_limit_utc": "2026-11-06T21:22:28Z",
+    "extension_request": "APPROVED_BY_USER",
     "goal_complete": false,
     "no_new_unattended_work_authorized_by_this_checkpoint": true
   },
   "pending_source_setup": {
     "containment": "a9faa0ebbb7986bb4046cd7b56e4704c11c1630b",
     "producer": "bfb28d1c8114c274b040f3b769d69996aa4b14c7",
-    "runner": "11b26157ff2f5ea50684984264dcc51c2aaf1b35",
-    "ledger": "248dfd1e4859fa5822a50f42bf75adc9d803ba87",
-    "integration": "HELD_PENDING_FINAL_JOINED_REVIEW",
-    "validation": "Runner254tests39subtests; exactproducer cross-contract59testsPASS withHTTPblocked. Producer2controlledbrowser testsPASS. Ledger prior87testsPASS againstolderproducer; finalv2 retest/review pending. No live source setup."
+    "runner": "5388dd2ab06135843f7d904f4eea39094fcf2e59",
+    "ledger": "2b4afc058a297f0674444fe8ca2c0cf1ca2af801",
+    "integration": "INTEGRATED_AND_LOCALLY_VERIFIED",
+    "validation": "Independent Yoda composed review approved; root combined472tests49subtestsPASS,2Windows-symlinkskips21.17s. Includes actual controlledbrowser producer artifact+strictv2join. Live source9 NOT_RUN.",
+    "integrated_source": "2313c41c045fa94f4487e3399165b6f6fe10d070"
   },
-  "ownership_state": "User-transferred root integration retained; global integration lock verified released. Child branches/worktrees preserved; no production changes or real submissions. No new test or polling loop launched by this checkpoint."
+  "ownership_state": "User-transferred root integration retained; global integration lock verified released. Child branches/worktrees preserved; no production changes or real submissions. No new test or polling loop launched by this checkpoint.",
+  "session_extensions": [
+    {
+      "authorized_by": "user",
+      "instruction": "Extend the session by another four hours and resume from the checkpoint.",
+      "started_at_utc": "2026-11-06T17:22:28Z",
+      "limit_utc": "2026-11-06T21:22:28Z",
+      "resumed_checkpoint": "fa4e626027704ca2fe8c6e9f7998a3ce83dbd0e8"
+    }
+  ]
 }
