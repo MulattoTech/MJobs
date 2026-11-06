@@ -18,7 +18,7 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from cli import local_persistence_acceptance as persistence
-from cli.compose_recovery import (collect_public_job_inventory, validate_public_job_inventory,
+from cli.compose_recovery import (collect_baseline_job_inventory, validate_public_job_inventory,
     validate_baseline, verify_recovered_application, compare_public_job_inventory,
     RECOVERY_RESTART_SERVICES, validate_project_name)
 from services.company_discovery.monitoring import source_version
@@ -38,7 +38,7 @@ CHECKS = {
          'scheduler_same_profile_source', 'scheduler_no_manual_enqueue', 'scheduler_single_operation'),
     60: ('natural_due_time_reached', 'same_profile_direct_source_refresh_completed',
          'refresh_attempt_count_one', 'direct_source_identity_preserved', 'refresh_receipt_pointer_advanced',
-         'next_due_advanced', 'no_duplicate_refresh', 'stable_seven_domains_and_v3_inventory'),
+         'next_due_advanced', 'no_duplicate_refresh', 'stable_seven_domains_and_job_inventory'),
 }
 
 
@@ -237,7 +237,7 @@ def _observe(session, context):
     _require(profile.get('id') == session.baseline['profile_id'] and profile.get('version') == context['profile_version'], 'MONITOR_PROFILE_CHANGED')
     verify_recovered_application(session.request, session.baseline)
     inventory = (session.inventory_observer() if session.inventory_observer else
-        collect_public_job_inventory(session.get, session.baseline['profile_id']))
+        collect_baseline_job_inventory(session.get, session.baseline))
     validate_public_job_inventory(inventory)
     compare_public_job_inventory(session.baseline, inventory, inventory)
     domains = (session.persistence_observer() if session.persistence_observer else

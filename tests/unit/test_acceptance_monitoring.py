@@ -17,6 +17,7 @@ class World:
     def __init__(self):
         self.start = datetime(2026, 1, 1, tzinfo=timezone.utc)
         self.seconds = 0
+        self.profile_version = 'version1'
         self.calls = []
         self.source = dict(id='source1', company_id='company1', provider='mock-ats', tenant='example',
             collection_strategy='FIXTURE', career_url='http://mock:8090/ats/example',
@@ -49,7 +50,7 @@ class World:
         previous = self.monitor['operation_id']
         identifier = 'refresh' + str(len(self.operations)+1)
         params = dict(fixture_monitoring='direct-company-source-v1', fixture_source_id='source1', profile_id='profile1',
-            profile_version='version1', fixture_origin='http://mock:8090', monitoring_revision=1,
+            profile_version=self.profile_version, fixture_origin='http://mock:8090', monitoring_revision=1,
             source_version=source_version(self.source), scheduled_for=due, predecessor_operation_id=previous, fetch_mode='FIXTURE')
         self.operations.append(dict(id=identifier, kind='COMPANY_DISCOVER', entity_id='source1', state='COMPLETED',
             attempt_count=1, cancel_requested=False, error=None, params=params, started_at=due, completed_at=self.now().isoformat()))
@@ -63,7 +64,7 @@ class World:
         if path == '/settings':
             return dict(mode='LOCAL_FIRST', operation_mode='FIXTURE', external_submission_enabled=False)
         if path == '/profiles/profile1':
-            return dict(id='profile1', version='version1')
+            return dict(id='profile1', version=self.profile_version)
         if path.startswith('/search-profiles?'):
             return dict(search_profiles=[copy.deepcopy(self.search)])
         if path.startswith('/company-sources/view?'):
@@ -74,7 +75,7 @@ class World:
         if path.endswith('/fixture-monitoring'):
             if method == 'PUT':
                 self.monitor = dict(source_id='source1', source_version=source_version(self.source), profile_id='profile1',
-                    profile_version='version1', marker='direct-company-source-v1', origin='http://mock:8090',
+                    profile_version=self.profile_version, marker='direct-company-source-v1', origin='http://mock:8090',
                     search_fingerprint='d'*64, revision=1, enabled=True, poll_interval=300, status='IDLE',
                     operation_id=None, completed_operation_id=None, next_due=(self.now()+timedelta(seconds=300)).isoformat(),
                     last_attempt=None, failure_count=0, last_error=None, external_submission_enabled=False)
@@ -153,6 +154,20 @@ class AcceptanceMonitoringTests(unittest.TestCase):
                 with self.assertRaises(acceptance.MonitoringAcceptanceError):
                     acceptance.prepare('http://127.0.0.1:18700', world.baseline, self.root/(field+'.json'), acceptance_run_id='run1', **world.options())
                 self.assertFalse(any(method=='PUT' for method, _, _ in world.calls))
+
+    def test_v4_complete_inventory_is_preserved_through_natural_monitor_recovery(self):
+        from packages.persistence.job_inventory import digest, snapshot_digest
+        self.world.profile_version = 'f' * 64
+        rows = [dict(job_id='job1', canonical_sha256='a' * 64, route_count=1,
+            source_copy_count=0, source_copies=[], source_copies_sha256=digest([]))]
+        self.world.inventory = dict(schema_version=4, scope='ALL_PERSISTED_JOBS', profile_id='profile1',
+            profile_version=self.world.profile_version, job_count=1, source_copy_count=0,
+            jobs=rows, sha256=digest(rows), snapshot_sha256=snapshot_digest('profile1', self.world.profile_version, rows))
+        self.world.baseline['job_inventory'] = copy.deepcopy(self.world.inventory)
+        prepared = self.prepare()
+        after = self.restart(prepared)
+        self.assertEqual([row['status'] for row in after['observations']], ['PASS', 'PASS'])
+        self.assertEqual(after['job_inventory']['schema_version'], 4)
 
     def test_stalled_scheduler_times_out_without_any_manual_enqueue(self):
         self.world.stall = True
