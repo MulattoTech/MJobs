@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "70595258e4cac188d641629298a5ee4e8131a45c",
-  "routing_state": "PAUSED",
-  "next_action": "Await explicit user resume. First inspect preserved705 build manifest mismatch without recreating successful prior work; then finish staged bootstrap dependencies/review and bounded child containment, integrate reviewed launcher, and execute fresh connected journey. Reconcile current protected checks only after resume.",
+  "head_sha": "464f7bcf40cfe35e3a5748a72f71b29938415255",
+  "routing_state": "EXECUTE",
+  "next_action": "Qualify the preserved 705 image against canonical Git-export source manifest and run fresh connected journey. Integrate independently reviewed bootstrap, parent lineage and child containment; retain 0/60 until exact complete evidence passes.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -528,7 +528,7 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T18:53:13.600752+00:00",
+  "updated_at": "2026-11-06T19:05:39.349365+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -604,9 +604,10 @@
     "extension_request": "APPROVED_BY_USER",
     "goal_complete": false,
     "no_new_unattended_work_authorized_by_this_checkpoint": true,
-    "paused_by_user": true,
+    "paused_by_user": false,
     "paused_at_utc": "2026-11-06T18:53:13.600752+00:00",
-    "new_work_stopped": true
+    "new_work_stopped": false,
+    "resumed_at_utc": "2026-11-06T19:05:39.349365+00:00"
   },
   "pending_source_setup": {
     "containment": "a9faa0ebbb7986bb4046cd7b56e4704c11c1630b",
@@ -686,5 +687,15 @@
       }
     ],
     "other_chat": "User-authorized dashboard hierarchy redesign remains owned by the separate fork under tools/agent_dashboard; no campaign/planning writes. Do not overwrite its work or claim it deployed."
+  },
+  "resume_checkpoint": {
+    "from_commit": "1598b7f93a3050e51a5e71717ea053cf853d13d6",
+    "authorized_by": "Explicit current user resume instruction",
+    "at_utc": "2026-11-06T19:05:39.349365+00:00",
+    "scoreboard": "0/60 VERIFIED PASS; 39 PARTIAL; 21 NOT_RUN",
+    "deadline_utc": "2026-11-06T21:22:28Z",
+    "published_ci": "Leia observed all listed PR973 checks PASS on c2bbf9e039d7b2f2556bf55a0b5704695706717c; aggregate completed 2026-11-06T19:01:16Z. This does not certify later local commits.",
+    "launcher": "Reviewed 57fe81f72c19941c7a00f9674075e0488773b985 integrated as 464f7bcf40cfe35e3a5748a72f71b29938415255.",
+    "image_diagnosis": "705 image matches Git-export context. Three TSX manifest differences arise from LF Git blobs versus canonical CRLF archive bytes. Runtime owner qualifying corrected manifest; no fresh journey PASS yet."
   }
 }
