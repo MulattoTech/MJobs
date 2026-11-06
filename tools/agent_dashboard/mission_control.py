@@ -181,6 +181,7 @@ class MissionControl:
             return {
                 "available": True, "observed_at": utc_now(),
                 "source": "LIVE LOCAL CANONICAL MATRICES",
+                "source_root": str(self.root.resolve()),
                 "original": original, "reference": reference,
                 "original_as_of": state["original_as_of"],
                 "reference_as_of": state["reference_as_of"],

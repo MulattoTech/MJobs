@@ -20,7 +20,11 @@
   const proofAge=Date.now()-Date.parse(readiness?.at||'');
   const currentReadiness=readiness&&Number.isFinite(proofAge)&&proofAge>=0&&proofAge<25000&&!readiness.inspectionPending&&!readiness.stale&&Number.isInteger(readiness.total)&&Number.isInteger(readiness.verified);
   const managed=live?snapshot.sessions.filter(s=>!s.isTerminated&&!['exited','stopped'].includes(s.activity)):[];
-  $('live-fleet-summary').textContent=!live?'Fleet observation unavailable or stale. Independent launcher status does not describe the AO fleet.':managed.length+' managed sessions; '+managed.filter(s=>s.busy).length+' working; '+(currentReadiness?'startup targets '+readiness.verified+' / '+readiness.total+' verified':'runtime verification pending');
+  const snapshotTime=Date.parse(snapshot?.snapshotAt||'');
+  const unavailable=snapshot?.offline
+   ?'AO daemon unavailable. Preserved snapshot: '+(Number.isFinite(snapshotTime)?new Date(snapshotTime).toISOString():'date unknown')+'. Current agent activity is unknown.'
+   :'Fleet observation unavailable or stale. Independent launcher status does not describe the AO fleet.';
+  $('live-fleet-summary').textContent=!live?unavailable:managed.length+' managed sessions; '+managed.filter(s=>s.busy).length+' working; '+(currentReadiness?'startup targets '+readiness.verified+' / '+readiness.total+' verified':'runtime verification pending');
   const knownMode=live&&health?.ok===true&&typeof health.turboEnabled==='boolean'&&typeof health.sustainedEnabled==='boolean'&&!(health.turboEnabled&&health.sustainedEnabled);
   $('fleet-work-mode').textContent=!knownMode?'Mode unavailable':health.turboEnabled?'Mode: Turbo':health.sustainedEnabled?'Mode: Steady':'Mode: Paused';
   const holder=$('live-provider-cards');holder.replaceChildren();
