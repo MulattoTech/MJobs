@@ -3,14 +3,14 @@
   "requirement_id": "MJ-REQ-292",
   "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
   "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-  "updated_at_utc": "2026-11-06T12:53:47.971246+00:00",
+  "updated_at_utc": "2026-11-06T18:35:34.990189+00:00",
   "umbrella_result": "PARTIAL",
   "scoreboard": {
     "total": 60,
     "verified_pass": 0,
-    "PARTIAL": 33,
+    "PARTIAL": 39,
     "FAIL": 0,
-    "NOT_RUN": 27,
+    "NOT_RUN": 21,
     "BLOCKED": 0
   },
   "specification": {
@@ -1651,14 +1651,14 @@
         "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
         "cli/ui_e2e.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join truthful document and comparison evidence to the same shortlisted job, profile, artifact versions and following application; verify distinct job-specific cover content.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
       "responsible_agent": "ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
@@ -1667,15 +1667,23 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "Tailored resume uses verified facts only and preserves base/version provenance. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Tailored resume contains only selected approved facts and preserves approved cover-letter facts. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "document_ids": [
+            "document-05",
+            "document-06"
+          ],
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -1683,7 +1691,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -1697,14 +1705,14 @@
         "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
         "cli/ui_e2e.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join truthful document and comparison evidence to the same shortlisted job, profile, artifact versions and following application; verify distinct job-specific cover content.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
       "responsible_agent": "ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
@@ -1713,15 +1721,23 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "Comparison displays actual differences between the selected base and tailored resume versions. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The UI compared immutable generated base and tailored resume versions. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "document_ids": [
+            "document-03",
+            "document-04"
+          ],
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -1729,7 +1745,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -1743,14 +1759,14 @@
         "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
         "cli/ui_e2e.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Join truthful document and comparison evidence to the same shortlisted job, profile, artifact versions and following application; verify distinct job-specific cover content.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
       "responsible_agent": "ahsoka_documents",
       "exclusive_source_ownership": [
         "tests/browser/test_journey_document_provenance.py"
@@ -1759,15 +1775,20 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
       "required_integration_validation": "Cover letter is specific to the selected job and distinct from a different job letter without invented facts. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Distinct job-specific cover letters match the persisted A and B application records. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "document_id": "cover-letter-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -1775,7 +1796,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -1896,14 +1917,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -1914,15 +1935,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Supported adapter selection matches the route and provider identity. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The selected route and fixture-only adapter were rechecked during the local attempt. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -1930,7 +1955,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2190,14 +2215,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2208,15 +2233,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Unknown/ambiguous/sensitive/unapproved question stops for review before submission. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The uncertain required answer paused the local attempt before any submit step. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2224,7 +2253,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2239,14 +2268,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2257,15 +2286,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Explicit human review/correction produces a fresh question-bound approval. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The user confirmed an answer for the paused required question and persisted it in the profile. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2273,7 +2306,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },

@@ -4,7 +4,7 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "58c0cc3bce1654aff6d03a208165ecebeb829fa2",
+  "head_sha": "fa76cab8ee9a24ed937b838f774ab6082687ec8f",
   "routing_state": "EXECUTE",
   "next_action": "Complete the strict v4 ledger join, explicit stale-fact UI recovery, and staged aggregator bootstrap workflow. Publish reviewed source through PR973 and require exact-head protected checks. Then build the next frozen source and run the full connected native/public/restart/monitor journey. Preserve all diagnostic failures and 0 PASS until independently qualified.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
@@ -141,6 +141,12 @@
       "tested_commit": "58c0cc3bce1654aff6d03a208165ecebeb829fa2",
       "result": "PASS",
       "observed": "384 passed,69 subtests,8.96s; no connected acceptance credit."
+    },
+    {
+      "command": "python -m pytest tests/unit/test_acceptance_ledger.py -q",
+      "result": "PASS",
+      "tested_commit": "fa76cab8ee9a24ed937b838f774ab6082687ec8f",
+      "observed": "107 passed,5.29s; strict v3/v4 ledger contract. Local ledger/checkpoint structural validation passes at39PARTIAL/21NOT_RUN/0PASS; no runtime acceptance promotion."
     }
   ],
   "blockers": [
@@ -155,9 +161,9 @@
     "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
     "verified_pass": 0,
     "total": 60,
-    "PARTIAL": 33,
+    "PARTIAL": 39,
     "FAIL": 0,
-    "NOT_RUN": 27,
+    "NOT_RUN": 21,
     "BLOCKED": 0,
     "umbrella_result": "PARTIAL",
     "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec"
@@ -216,8 +222,8 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T18:29:31.383534+00:00",
-  "acceptance_note": "Current incomplete connected runs are retained as diagnostic evidence. 0/60 VERIFIED PASS; 33 PARTIAL and 27 NOT_RUN remain authoritative.",
+  "updated_at_utc": "2026-11-06T18:37:19.861237+00:00",
+  "acceptance_note": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
     "authorization": "Current user explicitly answered: Transfer integration to this campaign",
@@ -470,7 +476,7 @@
     "services/company_discovery/requests.py": "ahsoka_documents staged bootstrap authorization while preserving PR933 guards",
     "workers/tasks.py": "root explicit presence-based bootstrap dispatch; patch preserved ignored, not yet integrated"
   },
-  "acceptance_ledger_sha256": "e474533180451d5a085331bd0c0da3b7944731dea1dcf1c09f6631d015aa4036",
+  "acceptance_ledger_sha256": "f7ae17090be6a6c3460ff8a4cd182e1a2aeed6b1c805815270681ee18b25ad0f",
   "runtime": {
     "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-f7d784fe-run2/MJobs",
     "project": "mjobs-fixture-fdd3503dc2ab",
@@ -484,7 +490,7 @@
     "observed_status": "10 running healthy services plus migration exited0. Coordinator exited1 beforeUI on build receipt timestamp key; no acceptance credit. Original and normalized build receipts preserved in TEMP/mjreq292-runtime-f7d784fe988f. Earlier f7d project18737 has no startup receipt and remains ineligible; all volumes preserved."
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "0/60 VERIFIED PASS. 33 ledger rows now retain current incomplete-run observations as PARTIAL, with exact source and a public diagnostic projection. No raw producer PASS is promoted to independent acceptance.",
+  "current_evidence_boundary": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -516,12 +522,12 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T18:29:31.383534+00:00",
+  "updated_at": "2026-11-06T18:37:19.861237+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
-    "published_head": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
-    "required_checks": "Exact33ad Compose and allfast/static checksPASS; integration shards0/1PASS; shard2 andaggregateFAIL on cancellation service budget. Mace instrumenting persistence path; no threshold changes/manualreruns.",
+    "published_head": "c2bbf9e039d7b2f2556bf55a0b5704695706717c",
+    "required_checks": "On exactc2bbf9e0, fast Python/required, repo/docs, web, dependency, secrets and schema/Chromium smoke PASS; Compose and integration shards running at18:35Z. No current failure observed; prior33ad cancel-budget failure remains retained.",
     "next_candidate_source": "58c0cc3bce1654aff6d03a208165ecebeb829fa2"
   },
   "runtime_history": [
@@ -584,8 +590,8 @@
       "observed_status": "StartupPASS10healthyservices+migrateexit0. UI FAIL at2033 repeated fact-rejection HTTP409; new producer observations33,34,35,38,44,45 await independent diagnostic review. No publicsource setup/restart/monitoring executed, no acceptance promotion."
     }
   ],
-  "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
-  "latest_diagnostic_review": "Independent EF static review verified33PARTIAL/27NOT_RUN/0PASS mapping, rawsource/run/image hashes, public projection SHA and sanitized content. No runtime or acceptance promotion.",
+  "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+  "latest_diagnostic_review": "Independent EF checked38 UI observations and four raw artifact hashes, source/tree/run/image and privacy. Root independently rehashed all four originals and matched exact six new rows/checks. Six rows33,34,35,38,44,45 are PARTIAL only; no acceptance PASS.",
   "session_boundary": {
     "four_hour_limit_utc": "2026-11-06T21:22:28Z",
     "extension_request": "APPROVED_BY_USER",
