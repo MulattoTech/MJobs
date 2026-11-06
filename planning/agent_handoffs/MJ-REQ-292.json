@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-292",
+  "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
+  "owner": "Codex 01a1b028 campaign",
+  "branch": "codex/mj-req292-full-journey-20261106",
+  "head_sha": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+  "routing_state": "EXECUTE",
+  "next_action": "Integrate reviewed runner and validator; implement owned domain acquisition, numbered UI observations, ATS fixture binding and direct fixture monitoring; execute isolated connected stack.",
+  "created_at": "2026-11-06T09:36:42.894560+00:00",
+  "requirements": [
+    "MJ-REQ-292"
+  ],
+  "tests": [
+    {
+      "command": "All 60 numbered current-campaign acceptance steps; existing historical evidence remains separately scoped.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "AO coordination send failed because daemon is down; existing mjobs-16 integration ownership retained and workers/tasks.py remains owned by frozen PR967."
+  ],
+  "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
+  "scoreboard": {
+    "verified_pass": 0,
+    "total": 60,
+    "umbrella_result": "PARTIAL",
+    "source_revision": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+    "note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved."
+  },
+  "campaign_workers": [
+    {
+      "name": "luke_journey_runner",
+      "role": "connected runner"
+    },
+    {
+      "name": "leia_ownership",
+      "role": "AO scope and protected integration coordination"
+    },
+    {
+      "name": "obiwan_employer",
+      "role": "reciprocal official-domain acquisition"
+    },
+    {
+      "name": "vader_ats_flow",
+      "role": "owned ATS fixture adapter contract"
+    },
+    {
+      "name": "yoda_evidence_review",
+      "role": "independent evidence review"
+    },
+    {
+      "name": "rey_ui_observations",
+      "role": "numbered React/UI journey assertions"
+    },
+    {
+      "name": "han_recovery",
+      "role": "direct fixture source monitoring/restart"
+    },
+    {
+      "name": "ahsoka_documents",
+      "role": "document-to-upload provenance proof"
+    },
+    {
+      "name": "chewbacca_runtime",
+      "role": "isolated runtime and exact source image"
+    },
+    {
+      "name": "r2d2_ledger",
+      "role": "ledger/scoreboard verifier"
+    }
+  ],
+  "exclusive_campaign_paths": [
+    "planning/acceptance/MJ-REQ-292.json",
+    "planning/agent_handoffs/MJ-REQ-292.json"
+  ],
+  "foreign_owned_paths_preserved": [
+    "workers/tasks.py",
+    "services/company_discovery/requests.py",
+    "services/documents/generate.py"
+  ]
+}
