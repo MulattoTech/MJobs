@@ -1,37 +1,30 @@
 {
   "schema_version": 1,
   "task_id": "PR-949-RECOVERY",
-  "objective": "Continue PR949 MJ-REQ-008 recovery and MJ-REQ-004 TLS investigation while preserving frozen PR941/932",
+  "objective": "Measure GC overlap in PR949 TLS failure without changing GC policy or timing contract",
   "owner": "mjobs-2",
   "branch": "ao/pr949-recovery/continuation",
-  "head_sha": "071e3e6d3aa3b0dd49449f2edf27d2ee2787664b",
+  "head_sha": "3cb77d8aa36fb82a406e7688d68fe780a155357a",
   "routing_state": "VERIFY",
-  "next_action": "Primary review of concrete refreshed head; authenticated update-only publication preflight then non-force update PR949; exact-head hosted gates remain required",
-  "created_at": "2026-11-06T04:50:47.304756+00:00",
+  "next_action": "Primary review and serial existing-PR publication slot for bounded instrumentation; inspect one fresh hosted measurement, stop if no discrimination",
+  "created_at": "2026-11-06T05:25:50.141468+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Source commit071e3e6d3aa3b0dd49449f2edf27d2ee2787664b tree529cef94c125ea988973c04f7bcef30acabb2d90: pinned pytest TLS + test_progress_journal,recovery,concurrency,durability,readers + test_mock_discovery_transaction_control:49 passed,7 platform skips,43 subtests38.94s; UTC2026-11-06T04:49:24Z to04:50:08Z; Windows Python3.12.10 SQLAlchemy2.1.1 httpx0.28.1 httpcore1.0.9; CPU62%-75%; primary exclusive test slot",
+      "command": "Source3cb77d8aa36fb82a406e7688d68fe780a155357a; test blob77de5b28bd746416200f6ba43051f1e19cdded05; tested pre-evidence tree180a2d5b386cdc6ff85550e89a97517433375cdd. One pinned Windows batch UTC2026-11-06T05:22:59Z-05:23:15Z CPU36%-47%:TLS3tests/all6subcases PASS8.847s,zero skips; bounded per-generation observer/privacy/exception cleanup controls PASS; delayed worker exactly1expected900ms failure,diagnostic present and private local/path absent; callback registration/GC policy unchanged",
       "result": "PASS"
     },
     {
-      "command": "main560b97ed baseline pinned Windows first6 shard0 modules:42 passed,3 skipped,35 subtests176.15s; isolated Linux Python3.12.16 SQLAlchemy2.1.1 unittest TLS:3 tests/all6 subcases9.267s; existing hosted main integration42108131127 success",
+      "command": "Catalogue,progress,dashboard,whitespace,source provenance PASS; Ruff10 baseline code/message findings unchanged; source histories preserved; shared/canonical files exactly main2621132e0a37c64d4b2a2b04960c91fc0cb49733",
       "result": "PASS"
     },
     {
-      "command": "OriginalPR949 fbcbc179 pinned Windows pytest full shard0 collection and first6 modules:42 passed,3 skipped,886 deselected,35 subtests93.33s; concurrent worker load recorded",
-      "result": "PASS"
-    },
-    {
-      "command": "Original17 PR949 blobs unchanged; frozen PR941159f139b and PR9329dc156b8 remain ancestors; canonical files exactly main; catalogue/progress/dashboard/diff/provenance PASS",
-      "result": "PASS"
-    },
-    {
-      "command": "Refreshed exact-head hosted checks, independent review, fresh frontend/browser acceptance; full MJ-REQ-004 and MJ-REQ-008 acceptance; merge/deployment unauthorized",
+      "command": "New-head hosted GC measurement and native review; full MJ-REQ-004/MJ-REQ-008 acceptance; merge/deployment unauthorized",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Historical PR949 shard0 job127059001769: Azure deadline peer291.8ms,worker998.5ms,SQLAlchemy registry GC/update compilation at831ms; root cause not established by local nonreproduction. PR960 cancellation961.8ms ack is a separate observation owned by mjobs-4."
+    "Instrumentation NOT a fix: historical11128e62 hosted905.1ms worker terminal vs900ms,peer293.1ms,GC callback sampled807.305ms remains FAIL. Prior998.5ms/291.8ms failure retained. One observed exact-case run each on11128e62 and main2621132e passed without workerGC>=25ms; no causal discrimination.",
+    "No gc.collect,policy/clock/budget/assertion changes,skips or product fixes. At most12 scalar GC events retained; diagnostic reports generation/thread class/start/stop/duration and omissions. Stop after next hosted measurement if it does not discriminate."
   ]
 }
