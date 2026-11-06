@@ -4,6 +4,7 @@ No live source, RQ queue, browser or external application is exercised. The
 existing selected synthetic application is prepared before the helper runs.
 """
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
 import tempfile
@@ -83,7 +84,8 @@ class SameProfilePublicObservationIntegrationTests(unittest.TestCase):
                 acceptance_run_id='synthetic-campaign', provider=provider, request=self.request,
                 execution_scope='CONTROLLED_TRANSPORT', containment_preflight=lambda *_: dict(
                     scheduler_contained=True, source_policy_exclusive=True, source_collection_exclusive=True,
-                    owner='isolated-sqlite-test', token='test-only'))
+                    owner='isolated-sqlite-test', token='test-only',
+                    lease_expires_at=(datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()))
         self.assertEqual(result['result'], 'PASS', result)
         self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
         self.assertEqual(before, {name: self.store.count(name) for name in before})

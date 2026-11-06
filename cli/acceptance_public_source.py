@@ -10,8 +10,11 @@ from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
+import stat
+import tempfile
 import time
 from urllib.parse import quote, urlsplit
 from uuid import uuid4
@@ -26,6 +29,7 @@ POLICY_FIELDS = ('provider', 'tenant', 'enabled', 'poll_interval', 'concurrency'
 FINGERPRINT_FIELDS = ('id', *POLICY_FIELDS, 'strategy', 'capabilities')
 TERMINAL = {'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED', 'DEAD_LETTERED', 'DISCARDED'}
 CHECK = 'same_profile_public_readonly_jobs_observed'
+API_TIMEOUT_SECONDS = 15
 
 
 class ObservationError(ValueError):
@@ -46,6 +50,48 @@ def _timestamp(value):
     parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
     _require(parsed.tzinfo is not None, 'SOURCE_TIMESTAMP_INVALID')
     return parsed
+
+
+def _evidence_destination(value):
+    """Require an absent target in an existing, operator-owned stable directory.
+
+    The coordinator must prevent concurrent directory renames/replacements. We
+    reject links/reparse points along the path and recheck its parent identity
+    before publishing; the final hard-link creation never replaces a target.
+    """
+    path = Path(value)
+    _require('..' not in path.parts, 'EVIDENCE_PATH_INVALID')
+    path = path.absolute()
+    for parent in reversed(path.parents):
+        info = parent.lstat()
+        _require(stat.S_ISDIR(info.st_mode) and not stat.S_ISLNK(info.st_mode)
+            and not getattr(info, 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0),
+            'EVIDENCE_PARENT_INVALID')
+    try:
+        path.lstat()
+    except FileNotFoundError:
+        pass
+    else:
+        raise FileExistsError('EVIDENCE_TARGET_EXISTS')
+    parent_info = path.parent.stat()
+    return path, (parent_info.st_dev, parent_info.st_ino)
+
+
+def _save_evidence(path, parent_identity, evidence):
+    _, current_identity = _evidence_destination(path)
+    _require(current_identity == parent_identity, 'EVIDENCE_PARENT_CHANGED')
+    descriptor, temporary = tempfile.mkstemp(prefix='.public-observation-', dir=path.parent)
+    try:
+        with os.fdopen(descriptor, 'w', encoding='utf-8', newline='\n') as stream:
+            stream.write(json.dumps(evidence, indent=2, sort_keys=True) + '\n')
+            stream.flush()
+            os.fsync(stream.fileno())
+        _, current_identity = _evidence_destination(path)
+        _require(current_identity == parent_identity, 'EVIDENCE_PARENT_CHANGED')
+        # Same-directory hard link is atomic and absent-only, unlike replace().
+        os.link(temporary, path)
+    finally:
+        os.unlink(temporary)
 
 
 def _source(request, provider):
@@ -83,6 +129,7 @@ def _selection(request, baseline):
 def _public_jobs(request, source, operation, selection, profile_id, endpoint):
     rows = request('GET', '/jobs', params={'profile_id': profile_id,
         'job_source_id': source['id'], 'limit': 5})['jobs']
+    _require(isinstance(rows, list) and len(rows) <= 5, 'PUBLIC_JOB_RESPONSE_INVALID')
     _require(rows, 'PUBLIC_JOBS_NOT_OBSERVED')
     seen, observed = set(), []
     for row in rows:
@@ -126,11 +173,16 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
 
     containment_preflight(stage, context) returns scheduler_contained=True,
     source_policy_exclusive=True, source_collection_exclusive=True and stable
-    nonempty owner/token strings. Exclusive collection includes manual clients
-    and retry dispatchers, not only the scheduled polling loop. The callback is
-    called at preflight, enable, dispatch and cleanup. The caller owns the lease
-    and scheduler lifecycle; this helper never stops or starts host services.
-    CONTROLLED_TRANSPORT checks helper behavior but cannot earn criterion 11 PASS.
+    nonempty owner/token strings, plus lease_expires_at (UTC ISO timestamp).
+    The operator must verify an actual lease that cannot be released before its
+    expiry, covering at least the next 15 seconds. Exclusive collection includes
+    manual clients and retry dispatchers. Every contained API read checks the
+    lease before and after; an expiry gap or lost proof cannot be reacquired here.
+    Stages include preflight, enable, dispatch, poll, read, finalize and cleanup.
+    The caller owns the lease and scheduler lifecycle; this helper never stops
+    or starts host services. Injected requests require CONTROLLED_TRANSPORT and
+    cannot earn criterion 11 PASS. evidence_path must be absent in an existing,
+    operator-owned directory kept stable throughout this run.
     """
     url = urlsplit(base_url)
     if (url.scheme != 'http' or url.hostname not in {'localhost', '127.0.0.1', '::1'}
@@ -140,12 +192,15 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             or not callable(containment_preflight) or not 2 <= timeout_seconds <= 120
             or not .05 <= poll_interval <= 2):
         raise ValueError('PUBLIC_OBSERVATION_CONFIGURATION_INVALID')
+    if request is not None and execution_scope != 'CONTROLLED_TRANSPORT':
+        raise ValueError('PUBLIC_OBSERVATION_TRANSPORT_SCOPE_INVALID')
     continuity = {key: baseline.get(key) for key in ('profile_id', 'application_id', 'operation_id', 'request_id')}
     if (not all(isinstance(value, str) and value for value in continuity.values())
             or not isinstance(acceptance_run_id, str) or not acceptance_run_id
             or baseline.get('external_submission_enabled') is not False
             or not isinstance(baseline.get('source'), dict) or not baseline['source'].get('commit')):
         raise ValueError('PUBLIC_OBSERVATION_BASELINE_INVALID')
+    path, parent_identity = _evidence_destination(evidence_path)
     evidence = dict(schema_version=1, result='FAIL', acceptance_run_id=acceptance_run_id,
         timestamp=utc_now().isoformat(), source=baseline['source'], **continuity,
         execution_scope=execution_scope, evidence_kind='PUBLIC_READ_ONLY', provider=provider,
@@ -156,8 +211,10 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                     'No real application form or submission is exercised.',
                     'Source policy ownership is operator verified; the API provides no atomic policy CAS.'])
     owned_source = fingerprint = initial_selection = ownership = None
+    lease_expiry = operation_id = operation_state = None
+    containment_lost = False
     enable_attempted = False
-    with (httpx.Client(base_url=base_url, timeout=15, trust_env=False, follow_redirects=False)
+    with (httpx.Client(base_url=base_url, timeout=API_TIMEOUT_SECONDS, trust_env=False, follow_redirects=False)
           if request is None else nullcontext()) as client:
         if request is None:
             def request(method, path, **kwargs):
@@ -166,20 +223,46 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 return response.json()
 
         def contained(stage):
-            nonlocal ownership
-            proof = containment_preflight(stage, dict(provider=provider, base_url=base_url,
-                acceptance_run_id=acceptance_run_id, source_id=evidence.get('source_id') or owned_source,
-                source_policy_sha256=evidence.get('source_policy_sha256'), newly_created=bool(owned_source)))
-            _require(isinstance(proof, dict) and proof.get('scheduler_contained') is True
-                and proof.get('source_policy_exclusive') is True
-                and proof.get('source_collection_exclusive') is True
-                and all(isinstance(proof.get(key), str) and proof[key] for key in ('owner', 'token')),
-                'SCHEDULER_CONTAINMENT_REQUIRED')
-            current = (proof['owner'], proof['token'])
-            _require(ownership is None or ownership == current, 'SOURCE_OWNERSHIP_CHANGED')
-            ownership = current
+            nonlocal ownership, lease_expiry, containment_lost
+            try:
+                _require(not containment_lost, 'SOURCE_CONTAINMENT_LOST')
+                now = utc_now()
+                _require(lease_expiry is None or lease_expiry > now, 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+                required_until = now + timedelta(seconds=API_TIMEOUT_SECONDS)
+                proof = containment_preflight(stage, dict(provider=provider, base_url=base_url,
+                    acceptance_run_id=acceptance_run_id, source_id=evidence.get('source_id') or owned_source,
+                    source_policy_sha256=evidence.get('source_policy_sha256'), newly_created=bool(owned_source),
+                    lease_required_until=required_until.isoformat()))
+                _require(isinstance(proof, dict) and proof.get('scheduler_contained') is True
+                    and proof.get('source_policy_exclusive') is True
+                    and proof.get('source_collection_exclusive') is True
+                    and all(isinstance(proof.get(key), str) and proof[key] for key in ('owner', 'token')),
+                    'SCHEDULER_CONTAINMENT_REQUIRED')
+                current = (proof['owner'], proof['token'])
+                _require(ownership is None or ownership == current, 'SOURCE_OWNERSHIP_CHANGED')
+                now = utc_now()
+                _require(lease_expiry is None or lease_expiry > now, 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+                required_until = now + timedelta(seconds=API_TIMEOUT_SECONDS)
+                try:
+                    expires = _timestamp(proof['lease_expires_at'])
+                    _require(expires.utcoffset() == timedelta(0) and expires > required_until,
+                             'SOURCE_CONTAINMENT_LEASE_INVALID')
+                except (KeyError, TypeError, AttributeError, ValueError):
+                    raise ObservationError('SOURCE_CONTAINMENT_LEASE_INVALID') from None
+                ownership, lease_expiry = current, expires
+            except Exception:
+                containment_lost = True
+                raise
             evidence['containment'] = dict(owner=proof['owner'], token_sha256=_digest(proof['token']),
-                scheduler_contained=True, source_policy_exclusive=True, source_collection_exclusive=True)
+                scheduler_contained=True, source_policy_exclusive=True, source_collection_exclusive=True,
+                lease_expires_at=expires.isoformat(), checked_at=now.isoformat(), last_stage=stage)
+
+        def read(method, path, **kwargs):
+            stage = 'poll' if path.startswith('/operations/') else 'read'
+            contained(stage)
+            response = request(method, path, **kwargs)
+            contained(stage)
+            return response
 
         try:
             settings = request('GET', '/settings')
@@ -191,16 +274,16 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 selected_application_route_id=initial_selection['route_id'],
                 selected_state_sha256=initial_selection['sha256'])
             contained('preflight')
-            source = _source(request, provider)
+            source = _source(read, provider)
             if source is None:
-                contained('enable')
-                _require(_source(request, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
+                _require(_source(read, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
                 policy = dict(provider=provider, tenant='default', enabled=True, poll_interval=604800,
                     concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0)
+                contained('enable')
                 enable_attempted = True
                 configured = request('PUT', '/sources', json=policy)
                 owned_source = configured['id']
-                source = _source(request, provider)
+                source = _source(read, provider)
                 _require(source is not None and source['id'] == owned_source
                     and all(source[key] == value for key, value in policy.items()), 'SOURCE_CONFIGURATION_CHANGED')
                 fingerprint = _policy_fingerprint(source)
@@ -211,24 +294,26 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 timedelta(seconds=source['poll_interval']) <= now, 'SOURCE_COOLDOWN')
             evidence.update(source_id=source['id'], source_policy_sha256=_policy_fingerprint(source))
             contained('dispatch')
-            current = _source(request, provider)
+            current = _source(read, provider)
             _require(current is not None and _policy_fingerprint(current) == evidence['source_policy_sha256']
                 and current.get('last_attempt') == source.get('last_attempt')
                 and current.get('backoff_until') == source.get('backoff_until'), 'SOURCE_CONFIGURATION_CHANGED')
-            _require(_selection(request, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
+            _require(_selection(read, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
             collection_request_id = 'public-observation-' + uuid4().hex
+            contained('dispatch')
             queued = request('POST', '/sources/' + quote(source['id'], safe='') + '/collect',
                 json=dict(profile_id=baseline['profile_id'], request_id=collection_request_id))
             operation_id = queued['operation_id']
             evidence.update(collection_operation_id=operation_id, collection_request_id=collection_request_id)
             deadline = monotonic() + timeout_seconds
             while True:
-                operation = request('GET', '/operations/' + quote(operation_id, safe=''))
+                operation = read('GET', '/operations/' + quote(operation_id, safe=''))
                 params = operation.get('params') or {}
                 _require(operation.get('id') == operation_id and operation.get('kind') == 'DISCOVER'
                     and operation.get('entity_id') == baseline['profile_id']
                     and params.get('source_id') == source['id'] and params.get('request_id') == collection_request_id
                     and params.get('profile_version') == initial_selection['profile_version'], 'COLLECTION_IDENTITY_CHANGED')
+                operation_state = operation['state']
                 error = operation.get('error_category') or operation.get('error')
                 evidence.update(collection_state=operation['state'], collection_error=(error if
                     isinstance(error, str) and re.fullmatch(r'[A-Z][A-Z0-9_]{0,99}', error)
@@ -237,42 +322,50 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 if operation['state'] in TERMINAL:
                     break
                 if monotonic() >= deadline:
-                    cancelled = request('POST', '/operations/' + quote(operation_id, safe='') + '/cancel')
-                    evidence['cancellation_requested'] = cancelled.get('cancel_requested') is True
                     raise ObservationError('PUBLIC_COLLECTION_TIMEOUT')
                 sleep(poll_interval)
             _require(operation['state'] == 'COMPLETED', 'PUBLIC_COLLECTION_' + operation['state'])
             _require(operation.get('attempt_count') == 1 and operation.get('retry_count', 0) == 0,
                      'PUBLIC_COLLECTION_RETRIED')
-            source = _source(request, provider)
+            source = _source(read, provider)
             _require(source is not None and source['id'] == evidence['source_id']
                 and source.get('last_success') == source.get('last_attempt'), 'SOURCE_RECEIPT_CHANGED')
             _require(_policy_fingerprint(source) == evidence['source_policy_sha256'], 'SOURCE_CONFIGURATION_CHANGED')
             evidence['source_record_sha256'] = _digest(source)
-            _require(_selection(request, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
-            evidence['observations'] = _public_jobs(request, source, operation, initial_selection,
+            _require(_selection(read, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
+            evidence['observations'] = _public_jobs(read, source, operation, initial_selection,
                 baseline['profile_id'], ENDPOINTS[provider])
             evidence['observed_real_job_ids'] = sorted(row['job_id'] for row in evidence['observations'])
-            _require(request('GET', '/health').get('external_submission_enabled') is False,
+            _require(read('GET', '/health').get('external_submission_enabled') is False,
                      'EXTERNAL_SUBMISSION_SETTING_CHANGED')
+            contained('finalize')
             evidence['result'] = 'PASS'
         except ObservationError as error:
             evidence['error_code'] = str(error)
         except Exception:
             evidence['error_code'] = 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID'
         finally:
+            if operation_id and operation_state not in TERMINAL:
+                # Cancelling this helper's queued operation remains safe even
+                # after lease loss. Never retry a cancellation or collection.
+                try:
+                    cancelled = request('POST', '/operations/' + quote(operation_id, safe='') + '/cancel')
+                    evidence['cancellation_requested'] = cancelled.get('cancel_requested') is True
+                except Exception:
+                    evidence['cancellation_requested'] = False
             if enable_attempted and owned_source is None:
                 evidence['cleanup'] = {'status': 'ENABLE_UNCONFIRMED_PRESERVE_CONTAINMENT'}
             if owned_source:
                 try:
                     contained('cleanup')
-                    current = _source(request, provider)
+                    current = _source(read, provider)
                     if current is None or fingerprint is None or _policy_fingerprint(current) != fingerprint:
                         evidence['cleanup'] = {'status': 'PRESERVED_POLICY_CHANGED'}
                     else:
                         policy = {key: current[key] for key in POLICY_FIELDS}
+                        contained('cleanup')
                         request('PUT', '/sources', json={**policy, 'enabled': False})
-                        restored = _source(request, provider)
+                        restored = _source(read, provider)
                         _require(restored is not None and restored['id'] == owned_source
                             and all(restored[key] == value for key, value in
                                     {**policy, 'enabled': False}.items()), 'SOURCE_RESTORE_UNCONFIRMED')
@@ -285,7 +378,10 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                     evidence['result'] = 'FAIL'
             if initial_selection:
                 try:
-                    _require(_selection(request, baseline) == initial_selection, 'BASELINE_SELECTION_CHANGED')
+                    _require(_selection(request if containment_lost else read, baseline) == initial_selection,
+                             'BASELINE_SELECTION_CHANGED')
+                except ObservationError as error:
+                    evidence.update(result='FAIL', error_code=str(error))
                 except Exception:
                     evidence.update(result='FAIL', error_code='BASELINE_SELECTION_CHANGED')
     accepted = evidence['result'] == 'PASS' and execution_scope == 'LIVE_PUBLIC_READ_ONLY'
@@ -295,7 +391,5 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             if accepted else 'Controlled transport or failed observation does not establish live-source acceptance.'),
         evidence_kind='PUBLIC_READ_ONLY', source_commit=baseline['source']['commit'], run_id=acceptance_run_id,
         continuity=continuity, checks=[dict(name=CHECK, passed=accepted)])]
-    path = Path(evidence_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    _save_evidence(path, parent_identity, evidence)
     return evidence

@@ -3,9 +3,12 @@ from copy import deepcopy
 from datetime import datetime
 import hashlib
 import json
+import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from cli.acceptance_public_source import run
 
@@ -16,7 +19,7 @@ BASELINE = dict(source={'commit': 'a' * 40}, profile_id='profile', application_i
     operation_id='original-operation', request_id='original-request', external_submission_enabled=False,
     selected_application_job_id='fixture-job', selected_application_route_id='fixture-route')
 PROOF = dict(scheduler_contained=True, source_policy_exclusive=True, source_collection_exclusive=True,
-    owner='test-operator', token='test-lease')
+    owner='test-operator', token='test-lease', lease_expires_at='2026-11-06T12:05:00+00:00')
 
 
 class ControlledAPI:
@@ -87,9 +90,13 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.api = ControlledAPI()
         self.directory = self.enterContext(tempfile.TemporaryDirectory())
         self.path = Path(self.directory) / 'public.json'
+        self.observation_count = 0
 
     def observe(self, **kwargs):
-        return run('http://127.0.0.1:18700', BASELINE, self.path,
+        self.observation_count += 1
+        path = self.path if self.observation_count == 1 else self.path.with_name(
+            'public-' + str(self.observation_count) + '.json')
+        return run('http://127.0.0.1:18700', BASELINE, path,
             acceptance_run_id='campaign', request=self.api.request, execution_scope='CONTROLLED_TRANSPORT',
             containment_preflight=kwargs.pop('containment_preflight', lambda *_: deepcopy(PROOF)),
             utc_now=lambda: datetime.fromisoformat(STAMP), **kwargs)
@@ -108,6 +115,156 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertFalse(self.api.source['enabled'])
         self.assertEqual(json.loads(self.path.read_text()), result)
         self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+
+    def test_injected_request_cannot_claim_live_scope_even_by_default(self):
+        for options in ({}, {'execution_scope': 'LIVE_PUBLIC_READ_ONLY'}):
+            with self.subTest(options=options), self.assertRaisesRegex(ValueError, 'TRANSPORT_SCOPE'):
+                run('http://127.0.0.1:18700', BASELINE, self.path, acceptance_run_id='campaign',
+                    request=self.api.request, containment_preflight=lambda *_: deepcopy(PROOF), **options)
+        self.assertEqual(self.api.calls, [])
+        self.assertFalse(self.path.exists())
+
+    def test_existing_evidence_is_preserved_before_any_request(self):
+        self.path.write_text('prior receipt', encoding='utf-8')
+        with self.assertRaises(FileExistsError):
+            self.observe()
+        self.assertEqual(self.path.read_text(), 'prior receipt')
+        self.assertEqual(self.api.calls, [])
+
+    def test_symlink_evidence_or_parent_is_rejected_before_any_request(self):
+        for parent_link in (False, True):
+            with self.subTest(parent_link=parent_link):
+                target = Path(self.directory) / ('target-directory' if parent_link else 'missing.json')
+                link = Path(self.directory) / ('linked-directory' if parent_link else 'linked.json')
+                if parent_link:
+                    target.mkdir()
+                try:
+                    link.symlink_to(target, target_is_directory=parent_link)
+                except OSError as error:
+                    self.skipTest('This Windows account cannot create symlinks: ' + str(error.winerror))
+                self.path = link / 'receipt.json' if parent_link else link
+                with self.assertRaises((ValueError, FileExistsError)):
+                    self.observe()
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(self.api.calls, [])
+
+    def test_late_evidence_collision_is_preserved_after_source_cleanup(self):
+        self.api.after_collection = lambda: self.path.write_text('another receipt', encoding='utf-8')
+        with self.assertRaises(FileExistsError):
+            self.observe()
+        self.assertEqual(self.path.read_text(), 'another receipt')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(list(Path(self.directory).iterdir()), [self.path])
+
+    def test_atomic_publication_cannot_overwrite_a_last_instant_collision(self):
+        original = os.link
+        def raced(source, destination):
+            Path(destination).write_text('concurrent receipt', encoding='utf-8')
+            return original(source, destination)
+        with patch('cli.acceptance_public_source.os.link', side_effect=raced), self.assertRaises(FileExistsError):
+            self.observe()
+        self.assertEqual(self.path.read_text(), 'concurrent receipt')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(list(Path(self.directory).iterdir()), [self.path])
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows junction contract')
+    def test_junction_parent_is_rejected_before_any_request(self):
+        target = Path(self.directory) / 'target-directory'
+        target.mkdir()
+        junction = Path(self.directory) / 'junction-directory'
+        created = subprocess.run(['cmd', '/c', 'mklink', '/J', str(junction), str(target)],
+            capture_output=True, text=True, check=False)
+        self.assertEqual(created.returncode, 0, created.stderr)
+        self.path = junction / 'public.json'
+        with self.assertRaisesRegex(ValueError, 'EVIDENCE_PARENT_INVALID'):
+            self.observe()
+        self.assertEqual(self.api.calls, [])
+        self.assertEqual(list(target.iterdir()), [])
+
+    def test_absent_expired_or_short_lease_blocks_before_enable(self):
+        for expiry in (None, '2026-11-06T11:59:59+00:00', '2026-11-06T12:00:10+00:00'):
+            with self.subTest(expiry=expiry):
+                self.api = ControlledAPI()
+                proof = dict(PROOF, lease_expires_at=expiry)
+                result = self.observe(containment_preflight=lambda *_: proof)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_INVALID')
+                self.assertTrue(all(method == 'GET' for method, _, _ in self.api.calls))
+
+    def test_containment_is_checked_between_polls_and_loss_cancels_once(self):
+        self.api.state = 'RUNNING'
+        heartbeat = {'lost': False}
+        clock = [0.0]
+        def sleep(_seconds):
+            heartbeat['lost'] = True
+            clock[0] += _seconds
+        result = self.observe(sleep=sleep, timeout_seconds=2, monotonic=lambda: clock[0],
+            containment_preflight=lambda *_: dict(PROOF,
+            source_collection_exclusive=not heartbeat['lost']))
+        self.assertEqual(result['error_code'], 'SCHEDULER_CONTAINMENT_REQUIRED')
+        self.assertTrue(result['cancellation_requested'])
+        self.assertEqual(sum(path.endswith('/cancel') for _, path, _ in self.api.calls), 1)
+        self.assertEqual(sum(path == '/operations/public-operation' for _, path, _ in self.api.calls), 1)
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+
+    def test_lease_gap_cannot_be_hidden_by_renewal_after_a_poll(self):
+        now = [datetime.fromisoformat(STAMP)]
+        original = self.api.request
+        def delayed(method, path, **kwargs):
+            value = original(method, path, **kwargs)
+            if path == '/operations/public-operation':
+                now[0] = datetime.fromisoformat('2026-11-06T12:06:00+00:00')
+            return value
+        self.api.request = delayed
+        result = run('http://127.0.0.1:18700', BASELINE, self.path, acceptance_run_id='campaign',
+            request=self.api.request, execution_scope='CONTROLLED_TRANSPORT', utc_now=lambda: now[0],
+            containment_preflight=lambda *_: dict(PROOF, lease_expires_at=(
+                '2026-11-06T12:10:00+00:00' if now[0].minute == 6 else PROOF['lease_expires_at'])))
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['error_code'], 'SOURCE_CONTAINMENT_LEASE_EXPIRED')
+        self.assertFalse(any(path == '/jobs/real-job' for _, path, _ in self.api.calls))
+
+    def test_lost_containment_at_public_list_prevents_detail_reads(self):
+        original = self.api.request
+        lost = [False]
+        def listed(method, path, **kwargs):
+            value = original(method, path, **kwargs)
+            if path == '/jobs':
+                lost[0] = True
+            return value
+        self.api.request = listed
+        result = self.observe(containment_preflight=lambda *_: dict(PROOF, scheduler_contained=not lost[0]))
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['error_code'], 'SCHEDULER_CONTAINMENT_REQUIRED')
+        self.assertFalse(any(path == '/jobs/real-job' for _, path, _ in self.api.calls))
+
+    def test_public_rows_must_be_a_list_of_at_most_five_before_detail_reads(self):
+        for rows in ([{'id': 'real-job'}] * 6, {'id': 'real-job'}):
+            with self.subTest(rows=rows):
+                self.api = ControlledAPI()
+                original = self.api.request
+                def oversized(method, path, **kwargs):
+                    value = original(method, path, **kwargs)
+                    return {'jobs': rows} if path == '/jobs' else value
+                self.api.request = oversized
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'PUBLIC_JOB_RESPONSE_INVALID')
+                self.assertFalse(any(path == '/jobs/real-job' for _, path, _ in self.api.calls))
+
+    def test_exactly_five_public_jobs_are_allowed(self):
+        original = self.api.request
+        jobs = {f'real-job-{number}': dict(deepcopy(self.api.public), id=f'real-job-{number}')
+                for number in range(5)}
+        def five(method, path, **kwargs):
+            if method == 'GET' and path.removeprefix('/jobs/') in jobs:
+                return jobs[path.removeprefix('/jobs/')]
+            value = original(method, path, **kwargs)
+            return {'jobs': list(jobs.values())} if path == '/jobs' else value
+        self.api.request = five
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertEqual(result['observed_real_job_ids'], sorted(jobs))
 
     def test_missing_containment_blocks_before_any_write(self):
         result = self.observe(containment_preflight=lambda *_: {'scheduler_contained': False})
