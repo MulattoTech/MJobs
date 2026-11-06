@@ -187,9 +187,12 @@ def _sources_ui():
     </form><main id="sources"></main>
     <script>
       async function load(){const rows=await (await fetch('/sources')).json();
-        document.querySelector('#sources').innerHTML=rows.sources.map(s=>`<section><h2>${s.name}</h2>
-          <button type="button">${s.enabled?'Disable':'Enable'}</button></section>`).join('');
-        document.querySelectorAll('#sources button').forEach((button,i)=>button.onclick=async()=>{
+        document.querySelector('#sources').innerHTML=rows.sources.map(s=>`<section class="panel">
+          <div class="toolbar"><div><h2>${s.name}</h2><p>${s.provider} / ${s.tenant}</p></div>
+          <span class="tag">${s.enabled?'HEALTHY':'DISABLED'}</span></div>
+          <p>FEED · every ${s.poll_interval/60} minutes</p><button type="button">Collect now</button>
+          <button class="quiet" type="button">${s.enabled?'Disable':'Enable'}</button></section>`).join('');
+        document.querySelectorAll('#sources section').forEach((section,i)=>section.querySelectorAll('button')[1].onclick=async()=>{
           const rows=await (await fetch('/sources')).json(); const s=rows.sources[i];
           await fetch('/sources',{method:'PUT',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({provider:s.provider,tenant:s.tenant,enabled:!s.enabled,

@@ -236,7 +236,10 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     or current.get("jobs_seen") != 0):
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_CHANGED")
             page_obj = self._page()
-            section = page_obj.get_by_role("heading", name=current.get("name"), exact=True).locator("xpath=..")
+            section = page_obj.get_by_role("heading", name=current.get("name"), exact=True).locator(
+                "xpath=ancestor::section[1]")
+            if section.count() != 1:
+                raise SourceSetupError("EXTRA_SOURCE_UI_CARD_AMBIGUOUS")
             def disable_from_ui():
                 section.get_by_role("button", name="Disable", exact=True).click()
                 section.get_by_role("button", name="Enable", exact=True).wait_for(state="visible", timeout=5000)
