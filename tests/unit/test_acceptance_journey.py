@@ -54,6 +54,66 @@ def inventory(ids=("mock-job-1",)):
             "source_copy_count": len(jobs), "jobs": jobs, "sha256": journey.recovery._inventory_digest(jobs)}
 
 
+def complete_inventory(count=601):
+    from packages.persistence.job_inventory import digest, snapshot_digest
+    rows = [{"job_id": f"job-{index:04}", "canonical_sha256": "a" * 64,
+             "route_count": 0, "source_copy_count": 0, "source_copies": [],
+             "source_copies_sha256": digest([])} for index in range(count)]
+    return {"schema_version": 4, "scope": "ALL_PERSISTED_JOBS", "profile_id": IDENTITY["profile_id"],
+            "profile_version": "b" * 64, "job_count": count, "source_copy_count": 0,
+            "jobs": rows, "sha256": digest(rows),
+            "snapshot_sha256": snapshot_digest(IDENTITY["profile_id"], "b" * 64, rows)}
+
+
+@pytest.mark.parametrize("readback", ["public", "recovery"])
+def test_recapture_preserves_all_601_persisted_jobs_without_legacy_fallback(readback):
+    original = baseline()
+    expected = original["job_inventory"] = complete_inventory()
+    seen = []
+    def handle(request):
+        path = request.url.path
+        seen.append(str(request.url))
+        if path.endswith("/applications/" + IDENTITY["application_id"]):
+            return httpx.Response(200, json={**IDENTITY, "id": IDENTITY["application_id"],
+                "job_id": "mock-job-1", "route_id": "mock-route-1", "target": "MOCK"})
+        assert path == "/profiles/" + IDENTITY["profile_id"] + "/job-inventory"
+        start = int(request.url.params.get("cursor", "0"))
+        limit = int(request.url.params["limit"])
+        rows = expected["jobs"][start:start + limit]
+        end = start + len(rows)
+        return httpx.Response(200, json={"schema_version": 4, "scope": expected["scope"],
+            "profile_id": original["profile_id"], "profile_version": expected["profile_version"],
+            "snapshot_sha256": expected["snapshot_sha256"], "total": expected["job_count"],
+            "source_copy_count": 0, "jobs": rows, "after": expected["jobs"][start - 1]["job_id"] if start else None,
+            "complete": end == expected["job_count"], "next_cursor": str(end) if end < expected["job_count"] else None})
+    client = httpx.Client(base_url=TARGET["base_url"], transport=httpx.MockTransport(handle))
+    with patch.object(journey.httpx, "Client", return_value=client), \
+            patch.object(journey.persistence, "observe_http", return_value=original["local_persistence"]), \
+            patch.object(journey.recovery, "verify_recovered_application"):
+        if readback == "public":
+            actual = journey.recapture_public_baseline(original,
+                {"selected_application_job_id": "mock-job-1", "selected_application_route_id": "mock-route-1"}, TARGET)
+        else:
+            actual = journey.observe_recovery_readbacks(TARGET, original)
+    assert actual["job_inventory"] == expected
+    assert len(seen) == 6  # Application, four full pages, exact-snapshot confirmation.
+
+
+@pytest.mark.parametrize("before,after", [(3, 4), (4, 3)])
+def test_public_recapture_cannot_change_inventory_schema_or_scope(before, after):
+    original = baseline()
+    original["job_inventory"] = inventory() if before == 3 else complete_inventory()
+    updated = copy.deepcopy(original)
+    updated["job_inventory"] = inventory() if after == 3 else complete_inventory()
+    with pytest.raises(ValueError, match="scope|schema"):
+        journey._validate_recaptured_baseline(original, updated)
+
+
+def test_monitoring_check_registry_matches_schema_neutral_producer():
+    from cli import acceptance_monitoring
+    assert journey.REQUIRED_CHECKS[60] == set(acceptance_monitoring.CHECKS[60])
+
+
 def baseline():
     return {**IDENTITY, "source": SOURCE, "acceptance_run_id": RUN_ID,
             "timestamp": journey.utc_now(), "result": "PARTIAL", "mode": "ONBOARDING_FIXTURE",
@@ -722,6 +782,23 @@ def test_recovery_credit_requires_real_restart_markers_and_specific_readbacks(tm
     assert bound["source"] == SOURCE
     assert all(bound[key] == IDENTITY[key] for key in IDENTITY)
     assert {row["step"] for row in bound["acceptance_observations"] if row["status"] == "PASS"} == set(range(54, 59))
+
+
+def test_v4_recovery_receipt_preserves_601_job_manifest_and_schema_neutral_check(tmp_path):
+    state = baseline()
+    state["job_inventory"] = complete_inventory()
+    raw = complete_recovery_payload()
+    raw["public_job_inventory_recovery"] = journey.recovery.compare_public_job_inventory(
+        state, state["job_inventory"], state["job_inventory"])
+    with patch.object(journey, "observe_recovery_readbacks", return_value={
+            "job_inventory": state["job_inventory"], "local_persistence": state["local_persistence"],
+            "application_recovered": True}):
+        bound = bind_test_recovery(tmp_path, state, raw,
+            recovery_runtime("2000-01-01T00:00:00+00:00"), recovery_runtime("2001-01-01T00:00:00+00:00"))
+    row = next(row for row in bound["acceptance_observations"] if row["step"] == 55)
+    assert row["status"] == "PASS"
+    assert {check["name"] for check in row["checks"]} == {"same_profile_job_inventory_preserved"}
+    assert bound["public_job_inventory_recovery"]["job_count"] == 601
 
 
 def test_legacy_recovery_overall_pass_does_not_fabricate_54_to_58(tmp_path):

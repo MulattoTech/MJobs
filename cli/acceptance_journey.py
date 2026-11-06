@@ -101,7 +101,7 @@ REQUIRED_CHECKS = {
     52: {"tracker_matches_application", "tracker_survives_reload"},
     53: {"audit_sequence_complete", "audit_scope_matches_application", "audit_values_redacted"},
     54: {"all_recovery_services_restarted", "recovered_services_healthy"},
-    55: {"same_profile_v3_inventory_preserved"},
+    55: {"same_profile_job_inventory_preserved"},
     56: {"company_source_catalog_preserved"},
     57: {"uploaded_resumes_preserved", "generated_resumes_preserved", "cover_letters_preserved"},
     58: {"application_history_preserved", "same_confirmed_mock_receipt_recovered"},
@@ -109,7 +109,7 @@ REQUIRED_CHECKS = {
          "scheduler_same_profile_source", "scheduler_no_manual_enqueue", "scheduler_single_operation"},
     60: {"natural_due_time_reached", "same_profile_direct_source_refresh_completed",
          "refresh_attempt_count_one", "direct_source_identity_preserved", "refresh_receipt_pointer_advanced",
-         "next_due_advanced", "no_duplicate_refresh", "stable_seven_domains_and_v3_inventory"},
+         "next_due_advanced", "no_duplicate_refresh", "stable_seven_domains_and_job_inventory"},
 }
 
 
@@ -881,6 +881,10 @@ def _validate_recaptured_baseline(original, updated):
         if name != "company_source_catalog" and before["domains"][name] != after["domains"][name]:
             raise ValueError("Public collection changed protected persistence domain: " + name)
     inventory = recovery.validate_public_job_inventory(updated["job_inventory"])
+    original_inventory = recovery.validate_public_job_inventory(original["job_inventory"])
+    if any(inventory.get(key) != original_inventory.get(key)
+           for key in ("schema_version", "scope", "profile_version")):
+        raise ValueError("Public collection changed inventory schema, scope or profile version")
     if inventory["profile_id"] != original["profile_id"]:
         raise ValueError("Public collection inventory changed profile")
     return updated
@@ -900,7 +904,7 @@ def recapture_public_baseline(original, public, target):
                 or application.get("target") != "MOCK"):
             raise ValueError("Public collection changed the selected mock application route")
         updated = copy.deepcopy(original)
-        updated.update(job_inventory=recovery.collect_public_job_inventory(get, original["profile_id"]),
+        updated.update(job_inventory=recovery.collect_baseline_job_inventory(get, original),
                        local_persistence=persistence.observe_http(client, original),
                        selected_application_job_id=public["selected_application_job_id"],
                        selected_application_route_id=public["selected_application_route_id"],
@@ -925,7 +929,7 @@ def observe_recovery_readbacks(target, baseline):
                     and application.get("job_id") != baseline["selected_application_job_id"])):
             raise ValueError("Recovered application identity changed")
         return {"application_recovered": True,
-                "job_inventory": recovery.collect_public_job_inventory(lambda path: request("GET", path), baseline["profile_id"]),
+                "job_inventory": recovery.collect_baseline_job_inventory(lambda path: request("GET", path), baseline),
                 "local_persistence": persistence.observe_http(client, baseline)}
 
 
@@ -1364,7 +1368,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 baseline, _ = _read_artifact(self.path.parent / baseline_name)
                 inventory = baseline.get("job_inventory")
                 recovery.validate_public_job_inventory(inventory)
-                if inventory.get("schema_version") != recovery.JOB_INVENTORY_VERSION:
+                if inventory.get("schema_version") not in (recovery.JOB_INVENTORY_VERSION, 4):
                     raise ValueError("Criterion 55 requires current complete baseline inventory")
                 recovered = artifact.get("public_job_inventory_recovery", {})
                 if any(recovered.get(key) != inventory[key]
