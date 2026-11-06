@@ -144,11 +144,13 @@ def validate_plan(args, *, journey=None, root=None):
 
 
 def _source_setup_support():
-    from cli import acceptance_containment, acceptance_journey, acceptance_source_setup
-    if (not callable(getattr(acceptance_journey, "validate_source_setup_artifact", None))
-            or not callable(getattr(acceptance_containment.OwnedPublicContainment,
+    from cli import acceptance_source_containment, acceptance_journey, acceptance_source_setup
+    if (not callable(getattr(acceptance_source_containment.OwnedPublicSourceContainment,
+                                    "cleanup_owned_child_sources", None))
+            or not callable(getattr(acceptance_journey, "validate_source_setup_artifact", None))
+            or not callable(getattr(acceptance_source_containment.OwnedPublicSourceContainment,
                                     "bind_additional_source", None))
-            or not callable(getattr(acceptance_containment.OwnedPublicContainment,
+            or not callable(getattr(acceptance_source_containment.OwnedPublicSourceContainment,
                                     "additional_source", None))
             or not callable(getattr(acceptance_source_setup,
                                     "compose_owned_public_containment", None))):
@@ -158,7 +160,8 @@ def _source_setup_support():
 
 def _lazy_containment(plan, args, journey, source_setup):
     import httpx
-    from cli.acceptance_containment import DockerCLI, OwnedPublicContainment
+    from cli.acceptance_containment import DockerCLI
+    from cli.acceptance_source_containment import OwnedPublicSourceContainment
 
     root, directory = plan["root"], plan["evidence_dir"]
     source, run_id, target = plan["source"], plan["run_id"], plan["target"]
@@ -221,7 +224,7 @@ def _lazy_containment(plan, args, journey, source_setup):
                 if (metadata.get("image_id") != plan["build"]["image_id"]
                         or metadata.get("working_dir") != "/app"):
                     raise ValueError("API immutable image or container working directory changed")
-                owned = OwnedPublicContainment(
+                owned = OwnedPublicSourceContainment(
                     project_name=project, base_url=origin, source_label=args.source_label,
                     image_ref=metadata["image_ref"], image_id=plan["build"]["image_id"],
                     source_revision=source["commit"], source_tree=source["tree"],

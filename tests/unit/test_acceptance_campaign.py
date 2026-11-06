@@ -242,7 +242,7 @@ def _bind_public_artifacts(journey, plan, *, application=None):
 
 def _patch_public_boundaries(monkeypatch, application):
     import httpx
-    from cli import acceptance_containment
+    from cli import acceptance_containment, acceptance_source_containment
 
     calls = {"http": 0, "docker": 0, "constructed": []}
 
@@ -283,7 +283,7 @@ def _patch_public_boundaries(monkeypatch, application):
 
     monkeypatch.setattr(httpx, "Client", Client)
     monkeypatch.setattr(acceptance_containment, "DockerCLI", Docker)
-    monkeypatch.setattr(acceptance_containment, "OwnedPublicContainment", Owned)
+    monkeypatch.setattr(acceptance_source_containment, "OwnedPublicSourceContainment", Owned)
     return calls
 
 
