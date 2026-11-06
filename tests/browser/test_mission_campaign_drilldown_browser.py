@@ -14,6 +14,11 @@ from tools.agent_dashboard.server import create_app
 
 ROOT = __import__("pathlib").Path(__file__).resolve().parents[2]
 
+def _visible_in_scrollport(locator, selector):
+    return locator.evaluate("""(el, selector) => { const r=el.getBoundingClientRect();
+      const p=el.closest(selector).getBoundingClientRect();
+      return r.top >= p.top && r.bottom <= p.bottom && r.left >= p.left && r.right <= p.right; }""", selector)
+
 
 def _run_browser(tmp_path, campaign_response, exercise):
     with patch.object(ModelCatalog, "_discover", return_value=(
@@ -38,9 +43,12 @@ def _run_browser(tmp_path, campaign_response, exercise):
                     page.set_default_timeout(18000)
                     calls = []
                     page.on("pageerror", lambda err: calls.append("pageerror:" + str(err)))
-                    page.route("**/api/progress/campaigns", lambda route: (
-                        calls.append("campaign") or route.fulfill(status=200, json=campaign_response)
-                    ))
+                    def serve_campaign(route):
+                        sequence = 1 + calls.count("campaign")
+                        calls.append("campaign")
+                        result = campaign_response(sequence) if callable(campaign_response) else campaign_response
+                        route.fulfill(status=200, json=result)
+                    page.route("**/api/progress/campaigns", serve_campaign)
                     response = page.goto(f"http://127.0.0.1:{port}/", wait_until="domcontentloaded")
                     assert response.status == 200
                     exercise(page, calls, tmp_path)
@@ -55,9 +63,9 @@ def _run_browser(tmp_path, campaign_response, exercise):
 def _campaign_fixture():
     statuses = ["PARTIAL"] * 39 + ["NOT_RUN"] * 21
     phases = []
-    for phase_no, step_count in enumerate([6, 8, 9, 10, 12, 15], 1):
+    for phase_no, step_count in enumerate([8, 14, 9, 4, 18, 7], 1):
         steps = []
-        offset = sum([6, 8, 9, 10, 12, 15][:phase_no - 1])
+        offset = sum([8, 14, 9, 4, 18, 7][:phase_no - 1])
         for step_no in range(1, step_count + 1):
             number = offset + step_no
             steps.append({
@@ -71,18 +79,21 @@ def _campaign_fixture():
                 "review_status": "COMMENTED",
                 "merge_status": "NOT_MERGED",
             })
-        phases.append({"id": f"phase-{phase_no}", "label": f"Phase {phase_no}", "steps": steps})
+        label = chr(64 + phase_no)
+        phases.append({"id": f"phase-{label}", "label": f"Phase {label}", "steps": steps})
     return {
         "schema_version": 1,
         "available": True,
+        "requirements": [{"id": "MJ-REQ-292", "title": "Catalog title for reliable application workflow"}],
         "observed_at": "2026-11-06T16:00:00Z",
         "campaigns": [{
             "requirement_id": "MJ-REQ-292",
             "title": "Reliable employment application workflow",
-            "issue_url": "https://github.com/MulattoTech/MJobs/issues/292",
+            "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
             "updated_at_utc": "2026-11-06T16:00:00Z",
             "source_revision": "abc123def456",
             "source_kind": "WORKING_CHECKPOINT",
+            "handoff_revision": "70595258e4cac188d641629298a5ee4e8131a45c",
             "routing_state": "PAUSED",
             "routing_state_scope": "Campaign handoff state",
             "acceptance_claim_scope": "Recorded ledger claims; independent runtime and merge certification remain separate.",
@@ -106,15 +117,22 @@ def test_p0_campaign_hierarchy_is_readable_compact_and_survives_refresh(tmp_path
         row.wait_for(state="attached")
         row.locator(":scope > summary").click()
         requirement = row.locator(".progress-drilldown .progress-item").filter(has_text="MJ-REQ-292")
+        assert row.locator(".progress-drilldown .progress-item").first.locator("code").inner_text() == "MJ-REQ-292"
+        assert requirement.locator(".progress-item-identity strong").inner_text() == "Catalog title for reliable application workflow"
+        assert requirement.locator(".campaign-row-score").inner_text() == "0 verified · 39 partial · 21 not run"
+        assert _visible_in_scrollport(requirement, ".progress-item-list")
         campaign = requirement.locator("details.campaign-details")
         campaign.wait_for(state="attached")
         campaign.locator(":scope > summary").click()
         assert campaign.inner_text().find("0 verified · 39 partial · 21 not run") >= 0
         assert campaign.inner_text().find("Working checkpoint") >= 0
         assert campaign.inner_text().find("Merged acceptance") >= 0
+        assert campaign.inner_text().find("handoff revision 70595258e4cac188d641629298a5ee4e8131a45c") >= 0
         assert campaign.inner_text().find("Last recorded checkpoint state: PAUSED") >= 0
         phases = campaign.locator("details.campaign-phase")
         assert phases.count() == 6
+        assert [phases.nth(i).locator(":scope > summary .campaign-phase-label").inner_text() for i in range(6)] == [f"Phase {letter}" for letter in "ABCDEF"]
+        assert sum(phases.nth(i).locator("details.campaign-step").count() for i in range(6)) == 60
         assert phases.first.locator("details.campaign-step > summary").first.is_visible() is False
         phase = phases.first
         phase.locator(":scope > summary").click()
@@ -132,7 +150,10 @@ def test_p0_campaign_hierarchy_is_readable_compact_and_survives_refresh(tmp_path
         assert campaign.get_attribute("open") is not None
         assert phase.get_attribute("open") is not None
         assert step.get_attribute("open") is not None
-        assert requirement.inner_text().find("Reliable employment application workflow") >= 0
+        assert requirement.inner_text().find("Catalog title for reliable application workflow") >= 0
+        assert requirement.is_visible()
+        assert phase.locator(":scope > summary").is_visible()
+        assert campaign.evaluate("el => getComputedStyle(el.closest('.progress-item-list')).maxHeight") == "none"
 
     _run_browser(tmp_path, response, exercise)
 
@@ -147,3 +168,30 @@ def test_campaign_unavailable_does_not_render_zero_totals(tmp_path):
         assert body.get_by_text("0 verified", exact=False).count() == 0
 
     _run_browser(tmp_path, {"schema_version": 1, "available": False, "campaigns": []}, exercise)
+
+
+def test_campaign_success_then_failure_clears_snapshot_but_keeps_catalog_title(tmp_path):
+    valid = _campaign_fixture()
+
+    def response(sequence):
+        return valid if sequence == 1 else {
+            "schema_version": 1, "available": False,
+            "requirements": valid["requirements"], "campaigns": [],
+            "error": "Campaign checkpoint is unavailable or inconsistent.",
+        }
+
+    def exercise(page, calls, tmp_path):
+        row = page.locator('.progress-group-item[data-key="priorities:P0"]')
+        row.locator(":scope > summary").click()
+        requirement = row.locator(".progress-drilldown .progress-item").first
+        campaign = requirement.locator("details.campaign-details")
+        campaign.locator(":scope > summary").click()
+        assert campaign.get_by_text("39 partial", exact=False).count() == 1
+        page.wait_for_function("() => performance.getEntriesByType('resource').filter(x => x.name.includes('/api/progress/campaigns')).length >= 2", timeout=16000)
+        page.wait_for_function("() => document.querySelector('.campaign-unavailable')?.textContent.includes('unavailable or inconsistent')")
+        assert requirement.locator(".progress-item-identity strong").inner_text() == "Catalog title for reliable application workflow"
+        assert requirement.locator(".campaign-row-score").count() == 0
+        assert campaign.get_by_text("39 partial", exact=False).count() == 0
+        assert campaign.locator(".campaign-phase").count() == 0
+
+    _run_browser(tmp_path, response, exercise)

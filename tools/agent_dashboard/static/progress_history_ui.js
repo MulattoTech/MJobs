@@ -9,7 +9,7 @@ const stamp = at => at ? new Date(at).toLocaleString() : "Unknown";
 let timeline = [], chosenId = null, live = null, historical = null;
 let manualRefresh = 0, openState = new Map(), busy = false, rawMarkup = "";
 let knownLatest = null, generation = 0;
-let campaignData = null, campaignBusy = false, campaignGeneration = 0;
+let campaignData = null, campaignBusy = false, campaignGeneration = 0, requirementCatalog = [];
 const pct = metric => metric?.total ? (100 * metric.pass/metric.total).toFixed(1) : "0.0";
 const sign = n => n > 0 ? "+"+n : String(n);
 function panel() {
@@ -60,15 +60,24 @@ function addTrend(el,now,previous,label) {
 function groupDetails(kind,name,now,old,detail) {
   const items=detail?.data?.requirements || {};
   const matching=Object.values(items).filter(x=>x[kind==="areas"?"area":"priority"]===name);
-  matching.sort((a,b)=> a.status.localeCompare(b.status)||a.id.localeCompare(b.id));
+  const containsCampaign=matching.some(item=>item.id==="MJ-REQ-292");
+  matching.sort((a,b)=>{
+    if(containsCampaign && ((kind==="priorities"&&name==="P0") || kind==="areas")) {
+      const campaignOrder=Number(b.id==="MJ-REQ-292")-Number(a.id==="MJ-REQ-292");
+      if(campaignOrder)return campaignOrder;
+    }
+    return a.status.localeCompare(b.status)||a.id.localeCompare(b.id);
+  });
   const prior=historical?.data?.requirements||{};
   const entries=matching.map(item=>{
     const from=prior[item.id]?.status;
     const change=from && from!==item.status ? ` <span class="progress-transition">${escape(from)} → ${escape(item.status)}</span>` : "";
     const campaign=campaignFor(item.id);
-    const title=item.title || campaign?.title || item.id;
+    const catalogTitle=requirementTitle(item.id);
+    const title=catalogTitle || item.title || campaign?.title || item.id;
     const disclosure=campaign ? campaignDisclosure(campaign) : item.id==="MJ-REQ-292" ? campaignUnavailable() : "";
-    return `<div class="progress-item"><span class="progress-item-identity"><strong>${escape(title)}</strong><code>${escape(item.id)}</code></span><span>${escape(item.status)}${change}</span>${disclosure}</div>`;
+    const score=campaign ? `<span class="campaign-row-score">${Number(campaign.scoreboard?.verified_pass||0)} verified · ${Number(campaign.scoreboard?.PARTIAL||0)} partial · ${Number(campaign.scoreboard?.NOT_RUN||0)} not run</span>` : "";
+    return `<div class="progress-item"><span class="progress-item-identity"><strong>${escape(title)}</strong><code>${escape(item.id)}</code>${score}</span><span>${escape(item.status)}${change}</span>${disclosure}</div>`;
   }).join("");
   const diff=old ? `<strong>Δ accepted ${sign(now.pass-old.pass)}</strong> since ${escape(stamp(selectedPoint()?.at))}` : "No comparison snapshot selected";
   return `<div class="progress-drilldown"><div>${diff}. ${now.partial} PARTIAL · ${now.not_run} NOT_RUN · ${now.total} total.</div>
@@ -77,6 +86,15 @@ function groupDetails(kind,name,now,old,detail) {
 function campaignFor(requirementId) {
   if (!campaignData?.available || !Array.isArray(campaignData.campaigns)) return null;
   return campaignData.campaigns.find(item=>item?.requirement_id===requirementId) || null;
+}
+function requirementTitle(requirementId) {
+  const catalog=requirementCatalog.length?requirementCatalog:campaignData?.requirements;
+  if(Array.isArray(catalog)) return catalog.find(item=>item?.id===requirementId)?.title || "";
+  if(catalog && typeof catalog==="object") {
+    const item=catalog[requirementId];
+    return typeof item==="string"?item:item?.title||"";
+  }
+  return "";
 }
 function campaignUnavailable() {
   const message=campaignData?.error||(campaignData?.available?"No MJ-REQ-292 campaign is present in this snapshot.":"Campaign details are loading.");
@@ -180,7 +198,7 @@ function campaignDisclosure(campaign) {
   body.append(countline);
   const meta=document.createElement("p");
   meta.className="campaign-checkpoint";
-  meta.textContent=`Working checkpoint (recorded snapshot, not live activity): ${campaign.source_revision||"unknown revision"} (${campaign.source_kind||"recorded snapshot"}) · ledger updated ${stamp(campaign.updated_at_utc)} · dashboard observed ${stamp(campaignData?.observed_at)}. Merged acceptance: each step's merge state is shown separately.`;
+  meta.textContent=`Working checkpoint (recorded snapshot, not live activity): ${campaign.source_revision||"unknown revision"} (${campaign.source_kind||"recorded snapshot"}) · handoff revision ${campaign.handoff_revision||"not recorded"} · ledger updated ${stamp(campaign.updated_at_utc)} · dashboard observed ${stamp(campaignData?.observed_at)}. Merged acceptance: each step's merge state is shown separately.`;
   body.append(meta);
   if(campaign.routing_state) {
     const state=document.createElement("p"); state.className="campaign-routing-state";
@@ -392,6 +410,7 @@ async function refreshCampaigns() {
   try {
     const result=await request("/api/progress/campaigns",{signal:AbortSignal.timeout(6000)});
     if(seq!==campaignGeneration)return;
+    if(Array.isArray(result?.requirements)) requirementCatalog=result.requirements;
     const valid=result?.schema_version===1 && result.available===true && Array.isArray(result.campaigns) &&
       result.campaigns.every(item=>item && typeof item.requirement_id==="string" && item.scoreboard && Array.isArray(item.phases));
     campaignData=valid ? result : {available:false,error:result?.error||"Campaign response is missing or malformed."};

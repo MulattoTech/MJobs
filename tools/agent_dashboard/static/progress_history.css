@@ -36,8 +36,10 @@
 .progress-item code{color:#a4d8f6;font-family:Consolas,monospace}
 .progress-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:5px 12px}
 .progress-item-identity{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
-.progress-item-identity strong{font-size:.72rem;font-weight:600;color:#e1edf2}
+.progress-item-identity strong{font-size:.75rem;font-weight:600;color:#e1edf2}
 .progress-item-identity code{font-size:.65rem;color:#9ab7c7}
+.campaign-row-score{flex-basis:100%;font-size:.64rem;color:#d8bb82}
+.progress-item-list:has(.campaign-details[open]){max-height:none;overflow:visible}
 .campaign-details{grid-column:1/-1;margin:.25rem 0 .4rem;padding:.25rem .45rem;border-left:2px solid #55727e;background:#0b1b27;border-radius:3px}
 .campaign-details>summary,.campaign-phase>summary,.campaign-step>summary{cursor:pointer;list-style:none}
 .campaign-details>summary::-webkit-details-marker,.campaign-phase>summary::-webkit-details-marker,.campaign-step>summary::-webkit-details-marker{display:none}
@@ -51,7 +53,7 @@
 .campaign-body a{display:inline-block;margin:.15rem 0 .45rem;color:#9edbff}
 .campaign-phases{display:grid;gap:3px;margin:.4rem 0}
 .campaign-phase{border-top:1px solid #293e4b;padding:.3rem 0}
-.campaign-phase>summary{display:grid;grid-template-columns:minmax(80px,.5fr) minmax(64px,150px) minmax(200px,1fr);align-items:center;gap:8px;font-weight:650;color:#dce9ee}
+.campaign-phase>summary{display:grid;grid-template-columns:14px minmax(80px,.5fr) minmax(64px,150px) minmax(200px,1fr);align-items:center;gap:8px;font-weight:650;color:#dce9ee}
 .campaign-phase-label{min-width:0}
 .campaign-phase-counts{font-weight:400;font-size:.65rem;color:#aabfc9}
 .campaign-status-bar{height:7px;display:flex;overflow:hidden;border-radius:5px;background:#263846}
@@ -59,8 +61,8 @@
 .campaign-segment.verified{background:#55b78d}.campaign-segment.partial{background:#c39a55}.campaign-segment.not-run{background:#718694}.campaign-segment.fail{background:#c56c68}.campaign-segment.blocked{background:#8c779f}
 .campaign-steps{margin:.2rem 0 .1rem .6rem;border-left:1px solid #314855;padding-left:.55rem}
 .campaign-step{border-bottom:1px solid #223744}
-.campaign-step>summary{display:flex;justify-content:space-between;gap:10px;padding:.3rem 0;color:#d3e1e7;font-size:.67rem}
-.campaign-step-evidence{padding:0 0 .4rem .6rem;color:#a9bfca;font-size:.65rem}
+.campaign-step>summary{display:flex;justify-content:space-between;gap:10px;padding:.3rem 0;color:#d3e1e7;font-size:.75rem}
+.campaign-step-evidence{padding:0 0 .4rem .6rem;color:#a9bfca;font-size:.75rem}
 .campaign-status{white-space:nowrap;font-size:.63rem;color:#bdcbd2}.campaign-status.verified{color:#80d6ad}.campaign-status.partial{color:#e0bd7a}.campaign-status.fail{color:#efa09b}.campaign-status.blocked{color:#c4a9dd}
 .campaign-next-action{padding:.4rem .5rem;background:#142735;border-left:2px solid #637f8a}
 .campaign-unavailable{margin:.4rem 0;color:#d2b886}
