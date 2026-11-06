@@ -317,6 +317,7 @@ class OwnedPublicContainment:
         self._source_preflight_seen = False
         self._source_preflight_present = None
         self._source_cleanup_started = False
+        self._source_cleanup_enabled_digest = None
         self._enable_source_id = None
         self._own_request_id = None
         self._own_profile_id = None
@@ -881,6 +882,26 @@ class OwnedPublicContainment:
             _require(
                 source.get("id") == self._source.get("id"), "SOURCE_IDENTITY_CHANGED"
             )
+            if (
+                self._source_created
+                and self._source_cleanup_started
+                and not self._disable_attempted
+                and source.get("enabled") is False
+            ):
+                expected_disabled = dict(self._source)
+                expected_disabled["enabled"] = False
+                _require(
+                    self._source_cleanup_enabled_digest
+                    == self._policy_digest(self._source)
+                    and source_id == self._source.get("id")
+                    and expected_hash == self._source_cleanup_enabled_digest
+                    and self._policy_digest(source)
+                    == self._policy_digest(expected_disabled),
+                    "SOURCE_CLEANUP_TRANSITION_INVALID",
+                )
+                # LIVE transport belongs to acceptance_public_source. Infer only
+                # the exact observed transition after its explicit cleanup stage.
+                self._disable_attempted = True
             expected = dict(self._source)
             if self._disable_attempted and self._source_created:
                 expected["enabled"] = False
@@ -911,9 +932,14 @@ class OwnedPublicContainment:
             )
         if stage == "cleanup":
             _require(
-                newly_created and self._source_created, "SOURCE_CLEANUP_SCOPE_INVALID"
+                newly_created
+                and self._source_created
+                and source.get("enabled") is True
+                and self._policy_digest(source) == self._policy_digest(self._source),
+                "SOURCE_CLEANUP_SCOPE_INVALID",
             )
             self._source_cleanup_started = True
+            self._source_cleanup_enabled_digest = self._policy_digest(source)
 
     def _check_claim_path(self):
         _require(

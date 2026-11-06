@@ -531,30 +531,33 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             }
         ]
 
-        proof = containment(
-            "poll",
-            self.context(
-                source_id="public-source",
-                collection_operation_id="response-operation",
-                collection_request_id="public-observation-request",
-            ),
+        joined_context = self.context(
+            source_id="public-source",
+            source_policy_sha256=containment._policy_digest(self.api.sources[0]),
+            newly_created=False,
+            collection_operation_id="response-operation",
+            collection_request_id="public-observation-request",
         )
+        proof = containment("poll", joined_context)
 
         self.assertTrue(proof["source_collection_exclusive"])
         self.assertEqual(containment._own_operation_id, "response-operation")
         self.assertEqual(containment._own_request_id, "public-observation-request")
         self.api.operations[0]["params"]["request_id"] = "another-request"
         with self.assertRaisesRegex(ContainmentError, "ACTIVE_COLLECTION_EXISTS"):
-            containment(
-                "poll",
-                self.context(
-                    source_id="public-source",
-                    collection_operation_id="response-operation",
-                    collection_request_id="public-observation-request",
-                ),
-            )
+            containment("poll", joined_context)
         self.assertEqual(self.docker.unpause_calls, [])
         self.assertTrue(containment.claim_path.exists())
+        self.api.operations[0]["params"]["request_id"] = "public-observation-request"
+        self.api.operations[0]["state"] = "COMPLETED"
+
+        released = containment(
+            "release", {**joined_context, "cleanup_status": "NOT_REQUIRED"}
+        )
+
+        self.assertTrue(released["released"])
+        self.assertFalse(released["source_collection_exclusive"])
+        self.assertEqual(self.docker.unpause_calls, ["b" * 64])
 
     def test_new_source_identity_from_post_context_is_validated_against_inventory(self):
         containment = self.containment()
@@ -582,6 +585,49 @@ class OwnedPublicContainmentTests(unittest.TestCase):
 
         self.assertTrue(proof["source_policy_exclusive"])
         self.assertEqual(containment._source["id"], "created-source")
+
+    def test_new_source_cleanup_is_confirmed_by_exact_api_disable_transition(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        self.api.sources = [
+            {
+                "id": "created-source",
+                "provider": "wwr",
+                "tenant": "default",
+                "enabled": True,
+                "poll_interval": 604800,
+                "concurrency": 1,
+                "request_timeout": 10,
+                "rate_limit": 1,
+                "jitter_seconds": 0,
+                "strategy": "FEED",
+                "capabilities": {"direct_application": False},
+            }
+        ]
+        enabled_policy_hash = containment._policy_digest(self.api.sources[0])
+        context = self.context(
+            source_id="created-source",
+            source_policy_sha256=enabled_policy_hash,
+            newly_created=True,
+        )
+        containment("read", context)
+        containment("cleanup", context)
+        containment("cleanup", context)
+        self.api.sources[0]["enabled"] = False
+
+        proof = containment("read", context)
+
+        self.assertTrue(containment._disable_attempted)
+        self.assertTrue(proof["scheduler_contained"])
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.unpause_calls, [])
+
+        released = containment(
+            "release", {**context, "cleanup_status": "RESTORED_DISABLED"}
+        )
+
+        self.assertTrue(released["released"])
+        self.assertEqual(self.docker.unpause_calls, ["b" * 64])
 
     def test_callback_returns_stable_owner_token_for_each_supported_stage(self):
         containment = self.containment()
@@ -690,12 +736,18 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             sum(path.endswith("/collect") for _, path, _ in self.api.calls), 1
         )
         self.assertFalse(self.api.sources[0]["enabled"])
+        joined_context = self.context(
+            acceptance_run_id="contained-run",
+            source_id=evidence["source_id"],
+            source_policy_sha256=evidence["source_policy_sha256"],
+            newly_created=True,
+            collection_operation_id=evidence["collection_operation_id"],
+            collection_request_id=evidence["collection_request_id"],
+        )
+        containment("finalize", joined_context)
         released = containment(
             "release",
-            self.context(
-                acceptance_run_id="contained-run",
-                cleanup_status=evidence["cleanup"]["status"],
-            ),
+            {**joined_context, "cleanup_status": evidence["cleanup"]["status"]},
         )
         self.assertTrue(released["released"])
         self.assertFalse(released["source_policy_exclusive"])
