@@ -204,7 +204,7 @@
     "cli/acceptance_onboarding.py": "obiwan_employer actual first-run wizard",
     "cli/acceptance_documents.py": "ahsoka_documents unique-letter proof"
   },
-  "acceptance_ledger_sha256": "8da5ae758bbcd1a942a5c51fd2c70d1b40ac9cffd57aa8a1287cffc2cf017416",
+  "acceptance_ledger_sha256": "f7172df7d4eb32afc109a54833fd6ff4d0cfe04c2029ab63ed8dbe0f6638114a",
   "runtime": {
     "project": "mjobs-fixture-1c63324fd566",
     "api_url": "http://127.0.0.1:18732",

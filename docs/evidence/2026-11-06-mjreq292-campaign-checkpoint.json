@@ -23,7 +23,7 @@
     "scoped_actions_passed": 22,
     "scoped_actions_total": 22,
     "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-baseline-ui.json",
-    "evidence_sha256": "acb549c8180fd26185f9918fed7f810c07b71d9d5697a7c45fd8414d0ad0d22d",
+    "evidence_sha256": "26a7e4e109996c1516ed25fe43737ebc3d1a6e64dfea8a1ad8d64e4ace0d75e3",
     "original_runtime_record_sha256": "a0869e227a2a0cc02d4ddda3ca1b72dbbad75eb7ed5eeef8cccbc67929f054a1",
     "limitations": [
       "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
@@ -60,5 +60,6 @@
     "local_tests": "27 passed, 3 subtests passed",
     "merge_status": "NOT_MERGED_REQUIRED_CHECKS_PENDING"
   },
-  "external_submission_enabled": false
+  "external_submission_enabled": false,
+  "publication_integrity": "Published JSON is UTF-8 with LF before hashing; artifact hashes match Git blob bytes."
 }
