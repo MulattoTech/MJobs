@@ -359,7 +359,7 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
             value["job_id"] = "mock-job-1"
         if number in {33, 34}:
             value["document_ids"] = ["base-1", "tailored-1"]
-        elif number == 35:
+        elif number in {35, 41, 42}:
             value["document_id"] = "letter-1"
         return value
 
