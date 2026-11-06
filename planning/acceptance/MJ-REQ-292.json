@@ -3,7 +3,7 @@
   "requirement_id": "MJ-REQ-292",
   "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
   "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-  "updated_at_utc": "2026-11-06T09:38:19.439193+00:00",
+  "updated_at_utc": "2026-11-06T09:44:18Z",
   "umbrella_result": "PARTIAL",
   "scoreboard": {
     "total": 60,
