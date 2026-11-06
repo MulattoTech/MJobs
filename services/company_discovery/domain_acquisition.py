@@ -116,8 +116,12 @@ def corroborated_job_page(proof, company_name, response):
         return False
     node = nodes[0]
     organization = node.get('hiringOrganization')
+    # JobPosting markup may identify the employer website with scalar sameAs.
+    # An explicit url must still pass; sameAs cannot repair conflicting evidence.
+    organization_url = (organization.get('url', organization.get('sameAs'))
+        if isinstance(organization, dict) else None)
     if (not isinstance(organization, dict) or _title(organization.get('name')) != _title(company_name)
-            or not _same_origin(organization.get('url'), final_url)
+            or not isinstance(organization_url, str) or not _same_origin(organization_url, final_url)
             or _identifier(node) != proof['native_job_id']
             or _title(node.get('title')) != _title(proof['title'])
             or node.get('url') not in {proof['website'], final_url}):
