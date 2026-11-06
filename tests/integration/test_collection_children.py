@@ -195,6 +195,35 @@ def test_actual_pending_verified_enrollment_audit_joins_exact_parent():
         assert enrolled['policy']['tenant'] == 'acme'
         assert enrolled['policy_sha256'] == canonical_digest(enrolled['policy'])
         assert fixture.saw_unconfigured_source_before_first_fetch is True
+        # Consume the actual producer rows with the client validator, including
+        # the audited source projection. Service completion is not a fabricated
+        # worker-terminal receipt: this controlled child is still RUNNING.
+        from cli.acceptance_public_source import _observe_children, child_containment_context
+        with store.engine.connect() as connection:
+            source = dict(connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == fixture.case.source_id)).mappings().one())
+            parent_row = connection.execute(select(m.operations).where(
+                m.operations.c.id == parent['parent_operation_id'])).mappings().one()
+        evidence = dict(acceptance_run_id='controlled-child-join', profile_id='fixture',
+            collection_operation_id=parent['parent_operation_id'],
+            collection_operation_attempt=parent['parent_operation_attempt'],
+            collection_request_id=parent_row['params']['request_id'],
+            endpoint='https://remotive.com/api/remote-jobs')
+        def read(method, path, **kwargs):
+            assert method == 'GET'
+            if path.endswith('/children'):
+                assert kwargs['params'] == {'attempt': parent['parent_operation_attempt']}
+                return collection_children(*args)
+            assert path == '/jobs/' + after['children'][0]['trigger_job_id']
+            assert kwargs['params'] == {'profile_id': 'fixture'}
+            return store.job(after['children'][0]['trigger_job_id'], 'fixture')
+        ticks = iter((0, 3))
+        _observe_children(read, evidence,
+            dict(profile_version=store.profile('fixture')['version'], job_id='selected-fixture-job'),
+            source, timeout_seconds=2, poll_interval=.25, monotonic=lambda: next(ticks), sleep=lambda _: None)
+        assert evidence['child_discovery']['status'] == 'BLOCKED'
+        assert evidence['child_discovery']['reason'] == 'CHILD_DISCOVERY_TIMEOUT'
+        assert child_containment_context(evidence)['owned_child_sources'] == after['enrolled_sources']
         # Corrupting the real enrollment event must revoke the exposed source.
         with store.engine.begin() as connection:
             event = connection.execute(select(m.audit).where(m.audit.c.id == enrolled['audit_id'])).mappings().one()
