@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "0ba370e9a73e0354c69976fccef5e100dd95eea7",
+  "head_sha": "f7d784fe988fa0e2c388f375c63898fee8580e83",
   "routing_state": "EXECUTE",
-  "next_action": "Run the fresh ff5ecfc2 native stack after the reviewed profile snapshot fix. Repair the actual hosted paused-operation lineage failure, finish optional public source setup joins, and run connected restart and natural monitoring. Publish only through existing PR973 update preflight; preserve all prior failures.",
+  "next_action": "Run exact f7d784fe fresh native runtime on18737 through UI, public read-only WWR collection, restart, and natural monitoring. Publish reviewed core repairs through PR973 update-only preflight. Optional two-source setup and bounded official-domain enhancement remain isolated until independent review.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -87,6 +87,36 @@
       "tested_commit": "0ba370e9a73e0354c69976fccef5e100dd95eea7",
       "result": "PASS",
       "observed": "Root executed 43 passed, 46 subtests passed, 87.75s; SQLite scoped test runtime, not full journey. Unchanged cancellation threshold."
+    },
+    {
+      "command": "pytest UI observation + application run request suites",
+      "tested_commit": "510be94011ca7414cf7b8b7f7393f695648aaeaf",
+      "result": "PASS",
+      "observed": "Root53tests19subtests41.84s; canonical operation identity and scoped readback; independent EF source approval."
+    },
+    {
+      "command": "pytest audit privacy and criterion53 SQLite classes",
+      "tested_commit": "c225d9b9",
+      "result": "PASS",
+      "observed": "Root4tests28subtests17.81s; author broader18tests28subtests; realPG3tests26subtests0skips; independent EF source approval. No production schema change in repair."
+    },
+    {
+      "command": "ActualPG17.11 native and protected policy tests",
+      "tested_commit": "0ba370e9a73e0354c69976fccef5e100dd95eea7",
+      "result": "PASS",
+      "observed": "43tests33subtests0skips,117.24s; controlledHTTP/in-processworker. Setup-only adapter replaced by committed optionalPG subclass authored6d68d7c1, integratedcaf92cf8, directPG20tests11subtests0skips86s, independently reviewed CD. Owned PG container removed and absence verified."
+    },
+    {
+      "command": "pytest tests/unit/test_ui_e2e_acceptance_observations.py -q",
+      "tested_commit": "7a934530dd6fbc8e42bf0f98dbead34d10efc02a",
+      "result": "PASS",
+      "observed": "40tests2.06s; independent AB source review; exact Applications/B navigation and rendered provider label; finalconnected rerun pending."
+    },
+    {
+      "command": "Salary UI focused frontend tests and build; local real API/React browser/reload",
+      "tested_commit": "f5d6c0e53cf8da36ba4c6d2a86ea5ccff8ef1580",
+      "result": "PASS",
+      "observed": "31frontend tests plus buildPASS; actualbrowser syntheticjobs salary visible/reload authorPASS; independentAB reran31PASS and approved source; integratedf7d784fe. Connected step15 recheck pending."
     }
   ],
   "blockers": [
@@ -102,9 +132,9 @@
     "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
     "verified_pass": 0,
     "total": 60,
-    "PARTIAL": 0,
+    "PARTIAL": 33,
     "FAIL": 0,
-    "NOT_RUN": 60,
+    "NOT_RUN": 27,
     "BLOCKED": 0,
     "umbrella_result": "PARTIAL",
     "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec"
@@ -365,21 +395,20 @@
     "cli/acceptance_containment.py": "chewbacca_runtime owned scheduler containment",
     "cli/acceptance_applications.py": "mace_applications_acceptance numbered application proof producer"
   },
-  "acceptance_ledger_sha256": "f7172df7d4eb32afc109a54833fd6ff4d0cfe04c2029ab63ed8dbe0f6638114a",
+  "acceptance_ledger_sha256": "e474533180451d5a085331bd0c0da3b7944731dea1dcf1c09f6631d015aa4036",
   "runtime": {
-    "project": "mjobs-fixture-90681f28f539",
-    "api_url": "http://127.0.0.1:18735",
-    "source_commit": "90681f28f53984cbd292a781c6bd4305538c37a7",
-    "source_tree": "2f15e4fadf41465f32a828d354dbaaccc4075241",
-    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-refresh/MJobs",
-    "observed_status": "All ten services healthy; migration exited0. Coordinator preflight PASS; connected UI advanced through jobs/employer to preparation, then failed stale local profile version comparison at ui_e2e.py1377. No final numbered acceptance credit.",
-    "startup_receipt": "outputs/mjreq292-native-90681f28f539/startup-receipt.json",
-    "diagnostic_evidence": "outputs/mjreq292-native-90681f28f539-journey",
-    "run_log": "outputs/mjreq292-native-90681f28f539/journey-run.log",
-    "preservation": "All earlier owned stacks and volumes preserved; fresh ff5ecfc2 runtime starting separately."
+    "project": "mjobs-fixture-ff5ecfc200de",
+    "api_url": "http://127.0.0.1:18736",
+    "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+    "source_tree": "ff1e271d42461718c06cc4cd0dbbd2418643140f",
+    "image_id": "sha256:645d7e75bc40438c4da88437391556c46bf15d2beb92b15839c33e0e010b1634",
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-ff5ecfc2/MJobs",
+    "observed_status": "Startup/runtimepreflightPASS; incompleteUIrun stopped atdocumentprovenance locator. Original32UIobservations andstartup nowretained as33PARTIAL rows; nofinalacceptancecredit. Frozenstatepreserved. Fresh7a934sourcebuildrequested.",
+    "diagnostic_evidence": "outputs/mjreq292-native-ff5ecfc200de-journey/ui.json",
+    "startup_receipt": "outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json"
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "0/60 independently verified final acceptance. Real startup and partial UI execution are preserved as diagnostic evidence. Unit/browser helper receipts and protected dependency merges do not certify the continuous final journey.",
+  "current_evidence_boundary": "0/60 VERIFIED PASS. 33 ledger rows now retain current incomplete-run observations as PARTIAL, with exact source and a public diagnostic projection. No raw producer PASS is promoted to independent acceptance.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -411,7 +440,7 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T12:40:14.205087+00:00",
+  "updated_at": "2026-11-06T12:55:50.761044+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -431,6 +460,20 @@
       "startup_receipt": "outputs/mjreq292-native-12b8bb3d46f9/startup-receipt.json",
       "diagnostic_evidence": "outputs/mjreq292-native-12b8bb3d46f9-ui-diagnostic/ui.json",
       "preserved_previous_project": "mjobs-fixture-1c63324fd566; six named volumes preserved"
+    },
+    {
+      "project": "mjobs-fixture-90681f28f539",
+      "api_url": "http://127.0.0.1:18735",
+      "source_commit": "90681f28f53984cbd292a781c6bd4305538c37a7",
+      "source_tree": "2f15e4fadf41465f32a828d354dbaaccc4075241",
+      "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-refresh/MJobs",
+      "observed_status": "All ten services healthy; migration exited0. Coordinator preflight PASS; connected UI advanced through jobs/employer to preparation, then failed stale local profile version comparison at ui_e2e.py1377. No final numbered acceptance credit.",
+      "startup_receipt": "outputs/mjreq292-native-90681f28f539/startup-receipt.json",
+      "diagnostic_evidence": "outputs/mjreq292-native-90681f28f539-journey",
+      "run_log": "outputs/mjreq292-native-90681f28f539/journey-run.log",
+      "preservation": "All earlier owned stacks and volumes preserved; fresh ff5ecfc2 runtime starting separately."
     }
-  ]
+  ],
+  "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+  "latest_diagnostic_review": "Independent EF static review verified33PARTIAL/27NOT_RUN/0PASS mapping, rawsource/run/image hashes, public projection SHA and sanitized content. No runtime or acceptance promotion."
 }
