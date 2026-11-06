@@ -201,6 +201,49 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
         self.assertEqual(self.callback_calls[0]["route_id"], "pipeline-route")
         self.assertNotIn("private=synthetic", response.text)
 
+    def test_closed_job_fresh_readiness_cannot_queue_preparation(self):
+        self._seed_ready_job()
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.JOB_ID).values(
+                attributes={"status": "CLOSED"}))
+        self.snapshot_patch.stop()
+        try:
+            response = self.client.get("/profiles/fixture/pipeline-workbench")
+            self.assertEqual(response.status_code, 200, response.text)
+            self.snapshot = response.json()
+            self.item = self.snapshot["items"][0]
+            queued = self._queue(request_id="closed-fresh-readiness")
+        finally:
+            self.snapshot_patch.start()
+        self.assertEqual(queued.status_code, 409, queued.text)
+        self.assertEqual(queued.json()["detail"]["code"], "PIPELINE_PREPARE_NOT_READY")
+        self.assertFalse(self.item["can_prepare"])
+        self.assertIn("JOB_CLOSED", {blocker["code"] for blocker in self.item["blockers"]})
+        self.assertEqual(self.callback_calls, [])
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(m.operations.select()).all(), [])
+            self.assertEqual(connection.execute(m.applications.select()).all(), [])
+
+    def test_job_closing_after_read_invalidates_preparation_without_mutation(self):
+        self._seed_ready_job()
+        self.snapshot_patch.stop()
+        try:
+            self.snapshot = self.client.get("/profiles/fixture/pipeline-workbench").json()
+            self.item = self.snapshot["items"][0]
+            self.assertTrue(self.item["can_prepare"])
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == self.JOB_ID).values(
+                    attributes={"status": "EXPIRED"}))
+            queued = self._queue(request_id="closed-stale-readiness")
+        finally:
+            self.snapshot_patch.start()
+        self.assertEqual(queued.status_code, 409, queued.text)
+        self.assertEqual(queued.json()["detail"]["code"], "PIPELINE_READINESS_STALE")
+        self.assertEqual(self.callback_calls, [])
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(m.operations.select()).all(), [])
+            self.assertEqual(connection.execute(m.applications.select()).all(), [])
+
     def test_fresh_ready_request_queues_once_and_replays_actual_state(self):
         first = self._queue()
         self.assertEqual(first.status_code, 202, first.text)
