@@ -433,9 +433,13 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     if request['profile_id'] != incoming_profile_id:
         return None
     if profile and connection.execute(select(m.profiles.c.version).where(
-            m.profiles.c.id == incoming_profile_id)).scalar_one_or_none() != incoming_profile_version:
+            m.profiles.c.id == incoming_profile_id).with_for_update(
+                read=True, skip_locked=True)).scalar_one_or_none() != incoming_profile_version:
         # If the profile changed between preflight and the request lock, roll
         # back this intake transaction (including any newly inserted intent).
+        # PostgreSQL SHARE also prevents a later profile UPDATE until commit.
+        # A writer already holding the row fails closed without waiting while
+        # this intake owns request/job locks (KEY SHARE would not block UPDATE).
         raise ValueError('DISCOVERY_PROFILE_CHANGED')
     if (request['source_snapshot'] != snapshot and request['state'] != 'DISMISSED'
             and _status(connection, request) not in {'QUEUED', 'RUNNING'}):

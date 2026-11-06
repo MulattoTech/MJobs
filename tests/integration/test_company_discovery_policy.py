@@ -3,13 +3,14 @@ import copy
 import os
 import tempfile
 import threading
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import httpx
 from pydantic import ValidationError
-from sqlalchemy import delete, event, select, update
+from sqlalchemy import delete, event, select, text, update
 
 from packages.domain.profile import JobPreferences
 from packages.persistence import models as m
@@ -572,6 +573,117 @@ class CompanyDiscoveryPolicyPostgresTests(CompanyDiscoveryPolicyTests):
     )
     _new_store = _Fixture._new_store
     _drop_schema = _Fixture._drop_schema
+
+    def test_profile_update_after_validation_waits_for_renewal_commit(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active = self.save_profile(priority_match_for_discovery=97)
+        checked, release, writer_entered, writer_finished = (threading.Event() for _ in range(4))
+        local = threading.local()
+        backend = {}
+
+        def before_execute(connection, cursor, statement, parameters, context, executemany):
+            if (getattr(local, "role", None) == "writer"
+                    and statement.startswith(f"UPDATE {m.profiles.name}") and not writer_entered.is_set()):
+                backend["writer"] = connection.execute(text("SELECT pg_backend_pid()")).scalar_one()
+                writer_entered.set()
+
+        def after_execute(connection, cursor, statement, parameters, context, executemany):
+            if getattr(local, "role", None) != "renewal":
+                return
+            if "FROM company_discovery_requests" in statement and "FOR UPDATE" in statement:
+                local.request_locked = True
+            if (getattr(local, "request_locked", False) and f"SELECT {m.profiles.name}.version" in statement
+                    and not checked.is_set()):
+                checked.set()
+                if not release.wait(5):
+                    raise AssertionError("Synthetic renewal validation was not released")
+
+        def renew():
+            local.role = "renewal"
+            with self.store.engine.begin() as connection:
+                backend["renewal"] = connection.execute(text("SELECT pg_backend_pid()")).scalar_one()
+                return record_discovery_request(connection, original["trigger_job_id"], active,
+                                                explicit_reason="USER_PREFERRED_COMPANY")
+
+        def update_profile():
+            local.role = "writer"
+            try:
+                return self.save_profile(priority_match_for_discovery=98)
+            finally:
+                writer_finished.set()
+
+        event.listen(self.store.engine, "before_cursor_execute", before_execute)
+        event.listen(self.store.engine, "after_cursor_execute", after_execute)
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                renewal = pool.submit(renew)
+                try:
+                    self.assertTrue(checked.wait(5), "Renewal did not reach its post-request version check")
+                    writer = pool.submit(update_profile)
+                    self.assertTrue(writer_entered.wait(5), "Profile writer did not attempt its row update")
+                    blockers = []
+                    deadline = time.monotonic() + 5
+                    with self.store.engine.connect() as observer:
+                        while time.monotonic() < deadline and not writer_finished.is_set():
+                            blockers = observer.execute(text("SELECT pg_blocking_pids(:pid)"),
+                                                        {"pid": backend["writer"]}).scalar_one()
+                            if backend["renewal"] in blockers:
+                                break
+                            time.sleep(.01)
+                    self.assertIn(backend["renewal"], blockers,
+                                  "Profile update escaped the validated renewal transaction")
+                    self.assertFalse(writer_finished.is_set())
+                finally:
+                    release.set()
+                self.assertEqual(renewal.result(timeout=5), original["id"])
+                latest = writer.result(timeout=5)
+        finally:
+            release.set()
+            event.remove(self.store.engine, "before_cursor_execute", before_execute)
+            event.remove(self.store.engine, "after_cursor_execute", after_execute)
+
+        with self.store.engine.connect() as connection:
+            renewed = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audits = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all()
+        self.assertEqual(renewed["profile_version"], active["version"])
+        self.assertEqual(renewed["revision"], original["revision"] + 1)
+        self.assertEqual(len(audits), 1)
+        self.assertEqual(self.store.profile("fixture")["version"], latest["version"])
+        self.assertNotEqual(latest["version"], active["version"])
+
+    def test_profile_writer_lock_rejects_renewal_without_partial_rebinding(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active = self.save_profile(priority_match_for_discovery=97)
+
+        def renew():
+            with self.store.engine.begin() as connection:
+                return record_discovery_request(connection, original["trigger_job_id"], active,
+                                                explicit_reason="USER_PREFERRED_COMPANY")
+
+        # The same non-key UPDATE used by save_profile's compare-and-lock.
+        with self.store.engine.begin() as writer:
+            writer.execute(update(m.profiles).where(m.profiles.c.id == active["id"]).values(
+                version=active["version"]))
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                contender = pool.submit(renew)
+                with self.assertRaisesRegex(ValueError, "^DISCOVERY_PROFILE_CHANGED$"):
+                    contender.result(timeout=6)
+        with self.store.engine.connect() as connection:
+            retained = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audits = connection.execute(select(m.audit.c.id).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all()
+        self.assertEqual(retained, original)
+        self.assertEqual(audits, [])
+        self.assertEqual(renew(), original["id"])
 
     def test_locked_job_defers_profile_renewal_without_losing_original_intent(self):
         self.collect()
