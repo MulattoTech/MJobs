@@ -22,6 +22,9 @@ from reportlab.pdfgen import canvas
 from cli.live_feedback import capture_redacted_screenshot
 from cli.compose_recovery import collect_public_job_inventory
 from cli import local_persistence_acceptance as persistence
+from cli.ui_e2e_jobs_journey import (
+    build_observation, run_fixture_job_observations, validate_run_id,
+)
 
 
 _SAFE_OPERATION_ID = re.compile(r"[a-f0-9]{64}\Z")
@@ -211,14 +214,42 @@ class EvidenceJournal:
     MAX_CHECKS = 80
     MAX_BYTES = 512 * 1024
 
-    def __init__(self, path, binding):
+    def __init__(self, path, binding, acceptance_run_id=None):
         self.path = Path(path)
         self.binding = binding
+        if acceptance_run_id is not None:
+            validate_run_id(acceptance_run_id)
+        self.acceptance_run_id = acceptance_run_id
+        self.acceptance_observations = []
         self.checks = []
         self.attempted = None
         self.failure = None
         self.overall_state = "IN_PROGRESS"
         self.remaining_state = "NOT_RUN"
+
+    def record_observation(self, *, step, status, observable_result,
+                           evidence_kind, checks, continuity=None):
+        if self.acceptance_run_id is None:
+            return None
+        if len(self.acceptance_observations) >= self.MAX_CHECKS:
+            raise ValueError("acceptance observation limit exceeded")
+        if any(row["step"] == step for row in self.acceptance_observations):
+            raise ValueError("acceptance step already has an observation")
+        source = self.binding.get("source", {})
+        observation = build_observation(
+            step=step, status=status, observable_result=observable_result,
+            evidence_kind=evidence_kind, source_commit=source.get("commit"),
+            run_id=self.acceptance_run_id, continuity=continuity, checks=checks,
+        )
+        self.acceptance_observations.append(observation)
+        self.persist()
+        return observation
+
+    def acceptance_binding(self):
+        return {
+            "acceptance_run_id": self.acceptance_run_id,
+            "acceptance_observations": list(self.acceptance_observations),
+        }
 
     def begin(self, name):
         self.attempted = {"action": str(name)[:200], "result": "IN_PROGRESS"}
@@ -258,6 +289,7 @@ class EvidenceJournal:
             checks.append(dict(self.attempted))
         return {
             **self.binding,
+            **self.acceptance_binding(),
             "overall_state": self.overall_state,
             "checks": checks,
             "remaining_state": self.remaining_state,
@@ -591,7 +623,7 @@ def _source_binding():
         return {"commit": None, "tree": None, "state": "UNAVAILABLE"}
 
 
-def run(base_url, evidence_path, onboarding=False):
+def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
     if onboarding:
         # This read-only gate runs before output creation, Chromium launch, or any UI write.
         _onboarding_preflight(base_url)
@@ -604,7 +636,14 @@ def run(base_url, evidence_path, onboarding=False):
         "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
         "target_origin": f"{parsed_target.scheme}://{parsed_target.netloc}",
         "source": _source_binding(),
-    })
+    }, acceptance_run_id=acceptance_run_id)
+
+    def observe_acceptance_step(step, status, observable_result, *,
+                                evidence_kind, checks, continuity=None):
+        return journal.record_observation(
+            step=step, status=status, observable_result=observable_result,
+            evidence_kind=evidence_kind, checks=checks, continuity=continuity,
+        )
 
     class CheckpointActions(list):
         def append(self, value):
@@ -687,6 +726,11 @@ def run(base_url, evidence_path, onboarding=False):
         try:
             page.goto(base_url, wait_until="domcontentloaded")
             expect(page.get_by_role("heading", name="Find your next opportunity.")).to_be_visible()
+            observe_acceptance_step(
+                2, "PASS", "Dashboard landing screen is visible in the browser.",
+                evidence_kind="CONTROLLED_FIXTURE",
+                checks=[{"name": "dashboard_heading_visible", "passed": True}],
+            )
             pending_fact_ids = set()
             discovery_search_proofs = []
             if onboarding:
@@ -703,6 +747,12 @@ def run(base_url, evidence_path, onboarding=False):
                 assert profile_id and not profile_id.startswith("demo-")
                 profile = request("/profiles/" + profile_id)
                 assert profile["facts"] == []
+                observe_acceptance_step(
+                    3, "PARTIAL", "Profile created through the profile form; first-run wizard not exercised.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "new_profile_saved_and_selected", "passed": True}],
+                    continuity={"profile_id": profile_id},
+                )
                 actions.append({"action": "UI created a new synthetic profile without replacing existing profiles", "result": "PASS"})
 
                 page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
@@ -735,6 +785,41 @@ def run(base_url, evidence_path, onboarding=False):
                 assert pending_fact_ids
                 assert all(not row["verified"] and not row["user_approved"]
                            for row in imported_profile["facts"])
+                observe_acceptance_step(
+                    4, "PASS", "Synthetic resume was uploaded and extracted through the UI.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "resume_upload_and_extraction_visible", "passed": True}],
+                    continuity={"profile_id": profile_id},
+                )
+                observe_acceptance_step(
+                    5, "PASS", "Extracted suggestions remain pending until reviewed and approved.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "extracted_suggestions_remain_unapproved", "passed": True}],
+                    continuity={"profile_id": profile_id},
+                )
+
+                correction = next(row for row in imported_rows.all()
+                                  if row.get_by_role("textbox", name="Fact text", exact=True).count())
+                corrected_fact = correction.get_by_role(
+                    "textbox", name="Fact text", exact=True)
+                prior_fact_text = corrected_fact.input_value()
+                correction_text = prior_fact_text + " (corrected after review)"
+                corrected_fact.fill(correction_text)
+                expect(correction.get_by_label("I verified this fact", exact=True)).not_to_be_checked()
+                expect(correction.get_by_label("I approve its use in documents", exact=True)).not_to_be_checked()
+                save_profile()
+                corrected_profile = request("/profiles/" + profile_id)
+                corrected_row = next(row for row in corrected_profile["facts"]
+                                     if row["text"] == correction_text)
+                assert corrected_row["verified"] is False and corrected_row["user_approved"] is False
+                pending_fact_ids = {row["fact_id"] for row in corrected_profile["facts"]}
+                observe_acceptance_step(
+                    6, "PASS", "An extracted fact was corrected and saved as an unapproved pending fact.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "corrected_fact_read_back", "passed": True},
+                            {"name": "corrected_fact_remains_pending", "passed": True}],
+                    continuity={"profile_id": profile_id},
+                )
                 actions.append({"action": "PDF imported through UI and extraction suggestions remain unverified and unapproved after readback", "result": "PASS"})
 
                 for fact_text in ("Python", "SQL"):
@@ -777,6 +862,12 @@ def run(base_url, evidence_path, onboarding=False):
                 python_fact_id = skill_fact_ids["Python"]
                 sql_fact_id = skill_fact_ids["SQL"]
                 actions.append({"action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved", "result": "PASS"})
+                observe_acceptance_step(
+                    7, "PASS", "Only the explicitly reviewed synthetic Python and SQL facts are approved.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "approved_fact_set_matches_review", "passed": True}],
+                    continuity={"profile_id": profile_id},
+                )
 
                 def save_sources_fixture_search(name, title):
                     navigation("Sources")
@@ -885,6 +976,40 @@ def run(base_url, evidence_path, onboarding=False):
                 assert search_after_discovery["criteria"]["remote"] == "REQUIRED"
                 assert "job_filters" not in search_after_discovery["criteria"]
                 assert search_after_discovery["source_ids"] == []
+                it_search = next(row for row in request(
+                    "/search-profiles?profile_id=" + profile_id)["search_profiles"]
+                    if row["id"] == nonmatching_search["id"])
+                assert it_search["criteria"]["include_titles"] == ["IT Support Specialist"]
+                assert it_search["criteria"]["remote"] == "REQUIRED"
+                observe_acceptance_step(
+                    8, "PASS", "Remote IT and Data Engineer searches were saved through the Sources UI.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "remote_it_search_read_back", "passed": True},
+                            {"name": "remote_data_search_read_back", "passed": True}],
+                    continuity={"profile_id": profile_id,
+                                "operation_id": discovery_operation_id,
+                                "request_id": discovery_request_id},
+                )
+                observe_acceptance_step(
+                    10, "PASS", "Fixture discovery completed and search-scoped jobs were read back.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "discovery_operation_completed", "passed": True},
+                            {"name": "search_scoped_job_readback", "passed": True}],
+                    continuity={"profile_id": profile_id,
+                                "operation_id": discovery_operation_id,
+                                "request_id": discovery_request_id},
+                )
+                observe_acceptance_step(
+                    11, "PARTIAL", "Synthetic fixture discovery does not prove real-provider jobs.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "real_provider_browser_discovery", "passed": False}],
+                    continuity={"profile_id": profile_id,
+                                "operation_id": discovery_operation_id,
+                                "request_id": discovery_request_id},
+                )
+                if acceptance_run_id is not None:
+                    run_fixture_job_observations(
+                        page, request, profile_id, navigation, observe_acceptance_step)
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
                 expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()
@@ -923,6 +1048,16 @@ def run(base_url, evidence_path, onboarding=False):
             assert "Python" in text and "SQL" not in text
             assert first_resume['template']=='verified-headings-v1'
             assert [p.text for p in Document(io.BytesIO(original)).paragraphs if p.style.name=='Heading 1']==['Skills']
+            first_cover = next(row for row in first_documents if row["kind"] == "cover-letter")
+            if acceptance_run_id is not None:
+                observe_acceptance_step(
+                    35, "PARTIAL", "A factual cover letter was generated; cross-job uniqueness was not compared.",
+                    evidence_kind="CONTROLLED_FIXTURE",
+                    checks=[{"name": "cover_letter_generated",
+                             "passed": first_cover.get("kind") == "cover-letter"},
+                            {"name": "cross_job_uniqueness_compared", "passed": False}],
+                    continuity={"profile_id": profile_id, "application_id": identifier},
+                )
             actions.append({'action':'ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording','result':'PASS'})
             assert text_bytes.decode('utf-8').strip() == text
             actions.append({'action':'Original approved facts, generation metadata and checksum-verified TXT download visible through the browser', 'result':'PASS'})
@@ -972,6 +1107,14 @@ def run(base_url, evidence_path, onboarding=False):
             expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('No changes.')
             expect(result.get_by_role('heading',name='Generated base · v2',exact=True)).to_be_visible()
             expect(result.get_by_role('heading',name='Tailored resume · v3',exact=True)).to_be_visible()
+            observe_acceptance_step(
+                34, "PASS", "The UI compared immutable generated base and tailored resume versions.",
+                evidence_kind="CONTROLLED_FIXTURE",
+                checks=[{"name": "generated_base_visible", "passed": True},
+                        {"name": "tailored_version_visible", "passed": True},
+                        {"name": "omission_and_change_summary_visible", "passed": True}],
+                continuity={"profile_id": profile_id, "application_id": identifier},
+            )
             actions.append({'action':'Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI','result':'PASS'})
 
             profile_before_comparison=request('/profiles/'+profile_id)
@@ -1018,6 +1161,13 @@ def run(base_url, evidence_path, onboarding=False):
             comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
             expect(comparison.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('skill: SQL')
             assert request('/profiles/'+profile_id)==profile_before_comparison
+            observe_acceptance_step(
+                33, "PASS", "Tailored resume contains only selected approved facts and preserves approved cover-letter facts.",
+                evidence_kind="CONTROLLED_FIXTURE",
+                checks=[{"name": "tailored_resume_uses_selected_approved_facts", "passed": True},
+                        {"name": "omitted_fact_visible_and_excluded", "passed": True}],
+                continuity={"profile_id": profile_id, "application_id": identifier},
+            )
             actions.append({'action':'Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions','result':'PASS'})
 
             navigation('Profile')
@@ -1289,7 +1439,9 @@ def run(base_url, evidence_path, onboarding=False):
             "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
             "Source identity/deduplication and live public-source proof are outside this local fixture run.",
         ] if onboarding else []),
-        "actions": actions, "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
+        "actions": actions,
+        **journal.acceptance_binding(),
+        "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
     journal.finish(evidence)
     print(json.dumps(evidence, indent=2))
 
@@ -1300,5 +1452,8 @@ if __name__ == "__main__":
     parser.add_argument("--evidence", required=True)
     parser.add_argument("--onboarding", action="store_true",
                         help="Run the connected UI acceptance from a new synthetic profile in ready FIXTURE mode")
+    parser.add_argument("--acceptance-run-id",
+                        help="Attach numbered UI acceptance observations to the matching runner invocation")
     options = parser.parse_args()
-    run(options.base_url, options.evidence, onboarding=options.onboarding)
+    run(options.base_url, options.evidence, onboarding=options.onboarding,
+        acceptance_run_id=options.acceptance_run_id)
