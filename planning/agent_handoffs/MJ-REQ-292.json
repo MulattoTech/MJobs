@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "e61e5f16b1473bb862151517e2040b6182b28191",
+  "head_sha": "dfb7b391141dc341029939b02cce471877011a38",
   "routing_state": "EXECUTE",
-  "next_action": "Run isolated PostgreSQL/Redis/RQ browser baseline; integrate reviewed API/worker/runner changes; wire native ATS fixture workflow; rerun complete connected journey against final exact image.",
+  "next_action": "Finish native ATS execution and fixture contracts; complete first-run/document UI assertions; run final exact-image connected acceptance including naturally scheduled monitoring after restart; publish and merge through all protected checks.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -27,13 +27,26 @@
     {
       "command": "All 60 original connected acceptance steps",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_acceptance_journey.py tests/unit/test_ui_e2e_acceptance_observations.py tests/unit/test_acceptance_public_source.py tests/integration/test_acceptance_public_source.py tests/integration/test_fixture_company_monitoring_api.py tests/integration/test_fixture_monitoring_worker_recovery.py --tb=short",
+      "result": "PASS",
+      "tested_commit": "dfb7b391141dc341029939b02cce471877011a38",
+      "observed": "125 passed; 16 subtests passed; 2 privilege-dependent Windows symlink tests skipped (NOT_RUN), 30.89 seconds. No connected acceptance credit."
+    },
+    {
+      "command": "GH/Lever unit and browser adapter suites",
+      "result": "PASS",
+      "tested_commit": "b53ccd5cd660c1db6535dd477a96eca0dfc44ba8",
+      "observed": "30 tests and 25 subtests passed after reproducing real browser unsupported-timeout failure; independent local review 19 tests and 10 subtests passed. Cooperative deadline only."
     }
   ],
   "blockers": [
-    "Full connected acceptance has not run; isolated baseline stack is being provisioned.",
-    "Public-source helper review fixes and UI identity/score observation fixes pending.",
-    "Controlled native ATS helper still requires durable application API/RQ integration.",
-    "Required protected GitHub CI and merge are NOT_RUN."
+    "Baseline UI onboarding is running on isolated full stack; final integrated exact-source journey remains NOT_RUN.",
+    "Native controlled GH/Lever executor and server routes remain under implementation.",
+    "First-run wizard and unique-letter connected proofs remain under implementation.",
+    "Natural scheduled monitor after final restart remains under implementation.",
+    "PR967 refreshed candidate3dc3ce83573b61f9aaf0b1ea6cf43ca9136f4674 awaiting independent review, publication and fresh protected checks; campaign protected CI/merge NOT_RUN."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -97,7 +110,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T10:14:41Z",
+  "updated_at_utc": "2026-11-06T10:30:31Z",
   "acceptance_note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -148,13 +161,57 @@
         "e61e5f16"
       ],
       "review": "Yoda approved; structural counts are not runtime certification"
+    },
+    {
+      "name": "fixture-monitor worker/recovery dispatch",
+      "commit": "cd9e135dc15fb9610d230f126d5201609bb5fecf",
+      "review": "phase_cd independently approved; 10 worker recovery tests passed"
+    },
+    {
+      "name": "fixture-monitor actual API and source view",
+      "commit": "a854dc10",
+      "review": "phase_cd independently approved; 13 tests and 9 subtests passed"
+    },
+    {
+      "name": "public read-only observation helper",
+      "commits": [
+        "382b6c80",
+        "e347fbde"
+      ],
+      "review": "Yoda independently approved; 34 tests and 16 subtests passed; 2 symlink tests skipped; live NOT_RUN"
+    },
+    {
+      "name": "connected journey runner and numbered UI observations",
+      "commits": [
+        "3ff46d6d",
+        "3c2ce53d",
+        "4397fc55",
+        "fd5274b5",
+        "314971b1",
+        "dfb7b391"
+      ],
+      "review": "Yoda and phase_ab approved exact source; runtime NOT_RUN"
     }
   ],
   "active_path_owners": {
-    "workers/tasks.py": "han_recovery worker wiring preserving PR967",
-    "workers/operations.py": "han_recovery receipt recovery",
-    "apps/api/main.py": "ahsoka_documents narrow fixture monitor registration/readback",
-    "services/applications/owned_ats_fixture.py": "vader_ats_flow"
+    "services/applications/mock_adapter.py": "vader_ats_flow controlled native ATS executor",
+    "services/applications/owned_ats_execution.py": "vader_ats_flow",
+    "services/applications/owned_ats_fixture.py": "vader_ats_flow bounded transport correction",
+    "fixtures/mock_server.py": "r2d2_ledger native fixture endpoints and persisted receipts",
+    "cli/ui_e2e.py": "rey_ui_observations",
+    "cli/acceptance_journey.py": "luke_journey_runner",
+    "cli/acceptance_monitoring.py": "han_recovery natural post-restart monitoring proof",
+    "cli/acceptance_onboarding.py": "obiwan_employer actual first-run wizard",
+    "cli/acceptance_documents.py": "ahsoka_documents unique-letter proof"
   },
-  "acceptance_ledger_sha256": "8da5ae758bbcd1a942a5c51fd2c70d1b40ac9cffd57aa8a1287cffc2cf017416"
+  "acceptance_ledger_sha256": "8da5ae758bbcd1a942a5c51fd2c70d1b40ac9cffd57aa8a1287cffc2cf017416",
+  "runtime": {
+    "project": "mjobs-fixture-1c63324fd566",
+    "api_url": "http://127.0.0.1:18732",
+    "source_commit": "1c63324fd566244b2a7abc247973cf538c9d23b5",
+    "image_id": "sha256:11082f2fec6dda6a9ac317dd5790a70bd98b1924aee43f7a88820f3e5e934808",
+    "observed_status": "9 long-running services healthy, migration completed, API /ready ready; ui_e2e --onboarding running",
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mjobs-292-runtime/MJobs",
+    "boundary": "Owned isolated synthetic resources; existing mjobs-micro preserved; no live provider or real submission"
+  }
 }
