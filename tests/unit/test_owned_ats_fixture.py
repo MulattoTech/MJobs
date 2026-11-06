@@ -349,3 +349,19 @@ def test_upstream_response_limit_stops_consuming_chunked_body_before_exhaustion(
     with pytest.raises(OwnedATSFixtureError, match="RESPONSE_INVALID"):
         _read_response(response, lambda: None)
     assert 1_000_000 < response.consumed <= 1_000_000 + 65536
+
+
+def test_store_content_hash_profile_version_is_bound_exactly():
+    from services.applications.owned_ats_fixture import (
+        OwnedATSFixtureError,
+        freeze_fixture,
+        validate_fixture,
+    )
+    inputs = fixture_inputs()
+    inputs["profile"]["version"] = "a" * 64
+    contract = freeze_fixture(**inputs)
+    assert contract.profile_version == "a" * 64
+    for changed in ("b" * 64, "A" * 64, "short", True):
+        inputs["profile"]["version"] = changed
+        with pytest.raises(OwnedATSFixtureError, match="REVIEW_STALE"):
+            validate_fixture(contract, **inputs)

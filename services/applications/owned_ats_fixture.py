@@ -70,7 +70,7 @@ class OwnedATSFixtureContract:
     template_sha256: str
     analysis_sha256: str
     profile_id: str
-    profile_version: int
+    profile_version: int | str
     profile_sha256: str
     document_version: int
     documents: tuple[DocumentBinding, ...]
@@ -100,6 +100,12 @@ def _version(value):
     if type(value) is not int or value < 1:
         _fail("OWNED_ATS_VERSION_INVALID")
     return value
+
+
+def _profile_version(value):
+    if isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value):
+        return value
+    return _version(value)
 
 
 def _digest(value):
@@ -253,7 +259,7 @@ def freeze_fixture(*, workspace_mode, application_id, provider, route, origin, p
     return OwnedATSFixtureContract(
         _identifier(application_id), provider, normalized["url"], _digest(route), origin, page_url,
         _template_digest(template), _digest(analysis), _identifier(profile.get("id")),
-        _version(profile.get("version")), _digest(profile), _version(document_version),
+        _profile_version(profile.get("version")), _digest(profile), _version(document_version),
         tuple(bound_documents[kind] for kind in ("resume", "cover-letter")),
         _review_bindings(fields, profile, reviewed_fields))
 

@@ -213,6 +213,12 @@ def _read_questionnaire(client, route):
     if not isinstance(requisition, str) or not requisition.isalnum() or len(requisition) > 80:
         return None
     try:
+        from services.applications.owned_ats_execution import (
+            native_route,
+            read_native_questionnaire,
+        )
+        if native_route(route, client.origin) is not None:
+            return read_native_questionnaire(client, route)
         response = client.get(f"{client.origin}/ats/questions/{requisition}")
         if response.status_code != 200:
             return None
@@ -242,13 +248,19 @@ def _stop_for_answer_policy(store, application, preflight, reason):
 
 
 def _preflight(store, application, route, profile, document_kinds, client,
-               answer_bindings=None):
+               answer_bindings=None, reviewed_fingerprint=None, request_id=None):
     questionnaire = _read_questionnaire(client, route)
     form_analysis = analyze_questionnaire(questionnaire)
     # Persist only the analyzer's allowlisted, value-free metadata projection.
     # Keep it separate from the legal preflight payload and implementation.
     with store.engine.begin() as connection:
         store._audit(connection, application["id"], "APPLICATION_FORM_ANALYSIS", form_analysis)
+        observed = questionnaire.get("owned_native") if isinstance(questionnaire, dict) else None
+        if isinstance(observed, dict):
+            store._audit(connection, application["id"], "OWNED_ATS_FORM_OBSERVED", {
+                "request_id": request_id, "route_id": application["route_id"], "profile_version": profile["version"],
+                "document_version": application["document_version"], **observed,
+            })
     bindings = (answer_bindings if isinstance(answer_bindings, dict)
                 else bind_mock_answer_slots(profile.get("answers", [])))
     preflight_questionnaire = _questionnaire_with_mock_answer_bindings(questionnaire, bindings)
@@ -280,6 +292,8 @@ def _preflight(store, application, route, profile, document_kinds, client,
                    for field in form_analysis["fields"])):
         result.update({"result": "UNKNOWN", "reason": "FORM_ANALYSIS_REQUIRES_REVIEW"})
     result["document_version"] = application["document_version"]
+    if reviewed_fingerprint is not None and result.get("metadata_fingerprint") != reviewed_fingerprint:
+        result.update({"result": "UNKNOWN", "reason": "OWNED_ATS_REVIEW_STALE"})
     persist_preflight(store, application["id"], result)
     if result["result"] != "PASS":
         store.transition(application["id"], [application["state"]], "REVIEW_REQUIRED",
@@ -519,10 +533,25 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 m.documents.c.version == application["document_version"])).mappings())
         if application["target"] != "MOCK" or route["provider"] != "mock-ats" or not client.allowed(route["url"]):
             raise ValueError("This adapter supports only the configured local mock origin")
+        from services.applications.owned_ats_execution import (
+            execute_native,
+            native_route,
+            resume_fingerprint,
+            validate_native_receipt,
+        )
+        native = native_route(route, client.origin)
+        if native is not None:
+            store.assert_workspace_mode("FIXTURE")
+
+        def read_receipt():
+            receipt = _receipt(client, application, route["requisition"])
+            return (validate_native_receipt(store, application, route, client.origin, receipt)
+                    if native is not None else receipt)
+
         if application["state"] == "CONFIRMED":
             return application
         if application["state"] in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
-            receipt = _receipt(client, application, route["requisition"])
+            receipt = read_receipt()
             if receipt:
                 record_mock_application_submitted(store, application_id)
                 store.transition(application_id, [application["state"]], "CONFIRMED", "VERIFY_CONFIRMATION", receipt)
@@ -552,6 +581,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         except SupportingDocumentError as error:
             store.transition(application_id, [application["state"]], "REVIEW_REQUIRED", error.code)
             raise ValueError(error.code) from None
+        if native is not None and supporting_documents:
+            raise ValueError("OWNED_ATS_SUPPORTING_DOCUMENTS_UNSUPPORTED")
         root = Path(output_dir).resolve() / application_id
         files = {}
         for document in documents:
@@ -599,7 +630,9 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         answer_bindings = bind_mock_answer_slots(profile.get("answers", []))
         preflight = _preflight(store, application, route, profile,
                                {document["kind"] for document in documents}, client,
-                               answer_bindings)
+                               answer_bindings,
+                               reviewed_fingerprint=resume_fingerprint(store, request_id) if native else None,
+                               request_id=request_id)
         if preflight["result"] != "PASS":
             return store.application(application_id)
         # Question-aware reusable-answer metadata is outside the legacy mock
@@ -683,7 +716,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             if active_step is not None:
                 finish_step("FAILED")
             if current == "SUBMITTING":
-                receipt = _receipt(client, application, route["requisition"])
+                receipt = read_receipt()
                 if receipt:
                     record_mock_application_submitted(store, application_id)
                 store.transition(application_id, ["SUBMITTING"], "CONFIRMED" if receipt else "SUBMISSION_UNCONFIRMED",
@@ -711,6 +744,14 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             if policy_problem is not None:
                 _stop_for_answer_policy(store, application, preflight, policy_problem)
                 return store.application(application_id)
+            if native is not None:
+                return execute_native(
+                    store=store, application=application, route=route, client=client, root=root,
+                    profile=profile, documents=documents, upload_snapshots=upload_snapshots,
+                    preflight=preflight, attempt_id=attempt_id, request_id=request_id, submit=submit,
+                    confidence=min(fact.confidence for fact in (*facts, *answers)), check=check,
+                    start_step=start_step, finish_step=finish_step,
+                )
             with sync_playwright() as playwright:
                 from services.applications.browser_profiles import browser_profile_path
                 context = playwright.chromium.launch_persistent_context(str(browser_profile_path(root, initialize=True)), headless=True,
