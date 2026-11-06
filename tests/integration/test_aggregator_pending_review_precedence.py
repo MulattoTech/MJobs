@@ -2,8 +2,14 @@
 from datetime import datetime, timedelta, timezone
 import unittest
 from unittest.mock import patch
+import os
+from uuid import uuid4
 
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import select, update
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 
 from packages.persistence import models as m
 from services.company_discovery import requests
@@ -131,6 +137,33 @@ class AggregatorPendingReviewPrecedenceTests(unittest.TestCase):
         self.assertFalse(operation['cancel_requested'])
         self.assertEqual(request['operation_id'], self.operation['id'])
         self.assertEqual(request['authorization'], 'AGGREGATOR_BOOTSTRAP_PENDING')
+
+
+POSTGRES_URL = os.environ.get('MJOBS_TEST_POSTGRES_URL')
+
+
+@unittest.skipUnless(POSTGRES_URL, 'NOT_RUN: disposable loopback MJOBS_TEST_POSTGRES_URL absent')
+class AggregatorPendingReviewPostgresTests(AggregatorPendingReviewPrecedenceTests):
+    def setUp(self):
+        url = make_url(POSTGRES_URL)
+        if (not url.drivername.startswith('postgresql') or url.host not in ('localhost', '127.0.0.1', '::1')
+                or url.query or not url.database or not url.database.startswith('mjobs_test')):
+            raise RuntimeError('Disposable loopback mjobs_test PostgreSQL without URL options required')
+        self.schema = 'aggregator_pending_review_' + uuid4().hex
+        self.admin = create_engine(url)
+        self.addCleanup(self.cleanup_schema)
+        with self.admin.begin() as connection:
+            connection.execute(text('CREATE SCHEMA "' + self.schema + '"'))
+        self.database_url = url.update_query_dict({'options': '-csearch_path=' + self.schema +
+            ' -clock_timeout=5000 -cstatement_timeout=30000'}).render_as_string(hide_password=False)
+        with patch.dict(os.environ, {'MJOBS_DATABASE_URL': self.database_url}):
+            command.upgrade(Config('alembic.ini'), 'head')
+        super().setUp()
+
+    def cleanup_schema(self):
+        with self.admin.begin() as connection:
+            connection.execute(text('DROP SCHEMA IF EXISTS "' + self.schema + '" CASCADE'))
+        self.admin.dispose()
 
 
 if __name__ == '__main__':
