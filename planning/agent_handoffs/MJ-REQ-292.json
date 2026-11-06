@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "8a19ad63c05700c814f563da4f0891d232031dca",
-  "routing_state": "EXECUTE",
-  "next_action": "Integrate reviewed Rey UI observer fixes and Chew/Luke child containment, final launcher class handoff, publish PR973 exact candidate through live preflight, build new frozen source and rerun connected journey. Continue protected checks and independent evidence review; deadline21:22:28Z.",
+  "head_sha": "455eb652f59983e684c5715a37b992378360d03c",
+  "routing_state": "VERIFY",
+  "next_action": "Publish this reviewed campaign batch through the live PR973 update preflight and normal push. Build the exact frozen commit after this checkpoint; execute the committed acceptance_campaign CLI with monitoring and source-setup. First stop after UI; resume only after a complete same-run UI baseline. Follow required protected checks, merge when qualified, then repeat the full journey on the exact merged commit for numbered PASS evidence. Deadline remains 2026-11-06T21:22:28Z.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -153,6 +153,24 @@
       "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
       "result": "PASS",
       "observed": "420 passed,42 subtests,10.57s. Root frontend command could not start because Vitest is not installed in root; exact frontend source/test blobs match author and AB-tested d2edf183 (5 Vitest tests, typecheck/build author PASS). No new runtime acceptance."
+    },
+    {
+      "command": "pytest tests/unit/test_ui_e2e_onboarding.py tests/unit/test_ui_e2e_acceptance_observations.py tests/browser/test_acceptance_onboarding.py tests/unit/test_acceptance_journey.py -q",
+      "result": "PASS",
+      "tested_commit": "d4c738d732927274148cc5e63ecaead91904a9ab",
+      "observed": "322 tests and45 subtests passed in34.04 seconds. Connected browser/Compose run of this source NOT_RUN."
+    },
+    {
+      "command": "pytest targeted bootstrap PostgreSQL integration and real Redis/RQ child delivery",
+      "result": "PASS",
+      "tested_commit": "8939b752d0aa4aa47c38882ca1d79e127329a6ec",
+      "observed": "PostgreSQL17.11:31 tests and20 subtests passed without skips on the recorded PG source. Separate Linux Redis/RQ child test:1 passed in4.219 seconds with source7bb and controlled HTTP; no parent RQ or public API admission claim. Test/runtime resources were isolated and cleaned; receipts retained by Han/Lando."
+    },
+    {
+      "command": "pytest acceptance_campaign, acceptance_source_containment, acceptance_containment, acceptance_public_source, acceptance_journey units and test_public_child_containment integration",
+      "result": "PASS",
+      "tested_commit": "455eb652f59983e684c5715a37b992378360d03c",
+      "observed": "344 tests and44 subtests passed in23.32 seconds; two Windows symlink tests skipped. Includes empty-child NOT_RUN and policy drift during lease wait; no connected runtime acceptance."
     }
   ],
   "blockers": [
@@ -228,7 +246,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T19:28:40.975394+00:00",
+  "updated_at_utc": "2026-11-06T19:49:34.425541+00:00",
   "acceptance_note": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -496,7 +514,7 @@
     "journey_session": "90540 completed exit1"
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "0/60 VERIFIED PASS;50PARTIAL10NOT_RUN.705 startup PASS; UI FAIL at tracking PUT blocked by browser safety interceptor. Step3 historical-profile-version mismatch and native history render/confirmed-submit-button observation defects being fixed by Rey. No public setup/restart/monitoring run. All code after c2bb remains unpublished and has no hosted current-head qualification.",
+  "current_evidence_boundary": "0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN. The latest actual connected run is705 and failed at tracking. Bootstrap, historical wizard proof, native history observation, child API/cleanup and launcher wiring are now integrated and independently reviewed. The final cleanup changes passed negative controls for policy drift during release wait. Fresh full-stack execution of this source and exact merged-source acceptance are NOT_RUN.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -518,24 +536,17 @@
     }
   ],
   "pending_dependency": {
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/933",
-    "head_commit": "654beb8bfc12f19a56966cdf9ad93dc5494aeebd",
-    "base_commit": "fe7042676ffa0d1db530ce8b8eab80975a6e4be8",
-    "original_head": "384a5becb958232534d74e7c504e1820dbc13c2e",
-    "state": "MERGED_PROTECTED",
-    "local_validation": "RealPostgreSQL17.11 policy41tests44subtests PASS; exactGreenhouse concurrency1PASS; independentLeia reviewAPPROVED; fiveoriginalPRblobs unchanged",
-    "review_url": "https://github.com/MulattoTech/MJobs/pull/933#pullrequestreview-5799686850",
-    "dependent_isolated_candidate": "b46fb500 reconciled and independently reviewed; integrated as ebf2de41 preserving PR933 guards",
-    "merge_commit": "f7b7a2f621036f828e83e2cb9293e30eb82bac5f",
-    "merged_at": "2026-11-06T12:25:24Z",
-    "protected_checks": "All five required checks PASS on 654beb8b; zero unresolved review threads; base fe704267 revalidated under the integration lock."
+    "implementation": "INTEGRATED; no outstanding author slice at this checkpoint",
+    "runtime": "Han owns the next exact-source image build and startup after root freeze. d2 image is preserved diagnostic-only; it predates the final cleanup correction and must not be relabeled or started as the final candidate.",
+    "publication": "PR973 last verified remote head c2bb; all checks on that old head passed. A new live preflight and normal push are pending.",
+    "review": "AB and Mace approved95ce UI source; CD approved bootstrap/worker/PG/RQ slices; Yoda approved878a5c08 cleanup repair; Mace approved launcher factory wiring. These are scoped source reviews, not whole-journey acceptance."
   },
   "session_notes": [
     "User selected Astra High during this campaign; assignments and integration ownership retained.",
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T19:28:40.975394+00:00",
+  "updated_at": "2026-11-06T19:49:34.425541+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -644,7 +655,7 @@
     "WWR feed100items contains no native links in descriptions; two allowed listingpages returned403 afterrobotsallow. No bypass/retry.",
     "RemoteOK feed100items contains at leastone ApryseLevercandidate; existingdomaincorroboration supportsGreenhouse only. Candidate is unverified; no acceptancecredit."
   ],
-  "other_active_work": "Separate user-authorized dashboard layout branch codex/dashboard-current-first-20261106 is owned by the forked chat. Campaign remains soleintegrationowner; no overlapping campaign/planning writes reported.",
+  "other_active_work": "Dashboard PR974, branch codex/dashboard-current-first-20261106, preserves its separate tools/agent_dashboard ownership. It reads this ledger live. Its owner reported a test-only timestamp correction in progress; this campaign has not merged or activated that dashboard PR.",
   "pause_checkpoint": {
     "reason": "User set goal status paused",
     "root": "C:\\Users\\Dylan\\.codex\\worktrees\\mjobs-292-journey\\MJobs",
@@ -709,8 +720,9 @@
       "api_child_registration": "6d95a686",
       "root_tests": "62tests20subtestsPASS bootstrap/dispatch;323tests22subtestsPASS2Windows symlinkSKIP childAPI/journey/launcher;29tests32subtestsPASS23optionalPGSKIP scheduler/policy",
       "postgresql": "31tests20subtestsPASS0SKIP at8939b752d0aa4aa47c38882ca1d79e127329a6ec, PG17.11 controlledHTTP and actual worker claims/dispatch; authored test commits8cfb9c82+aa42c3c8 integrated68a46773+d1706926,CD staticapproved",
-      "redis_rq": "Lando1controlled realRQ child testPASS at7bb mountedsource;98f1f5c0a56683ffb21452b7e30f4b970a42b367 testcommit pendingCD review/integration; parent admitted via helper,notparentRQ or publicAPI",
-      "pending": "Rey owns ui_e2e+acceptance_onboarding and tests;AB/Mace review. Chew new source containment module+unit tests, Luke separate actualAPI join tests,Yoda review. Root sole main.py/workers/tasks.py/launcher/canonical writer. Han next frozen build owner awaiting root SHA. Dashboard tools/agent_dashboard owned by separate chat."
+      "redis_rq": "One controlled real Redis/RQ child delivery test passed on source7bb; test98f1f5c was independently reviewed by CD and integrated (mapped replay commit retained). Parent admission used the collection helper, not public HTTP or parent RQ execution.",
+      "pending": "Implementation dependencies are integrated. Root owns publication, canonical files and live source policies; Han owns next runtime build. Yoda/EF/R2 remain available for exact acceptance review. Dashboard PR974 retains separate file ownership and awaits its own protected integration; no competing main merge is authorized by this checkpoint.",
+      "final_source_candidate": "455eb652f59983e684c5715a37b992378360d03c"
     }
   }
 }

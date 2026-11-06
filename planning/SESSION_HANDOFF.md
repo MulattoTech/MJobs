@@ -510,3 +510,9 @@ Resumed checkpoint `1598b7f9`; deadline remains 2026-11-06T21:22:28Z. **0/60 VER
 ## MJ-REQ-292 connected checkpoint — 2026-11-06T19:28:40.975394+00:00
 
 **0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** Exact705 diagnostic advanced through controlled mock confirmation/history, then failed tracking because the browser safety interceptor omitted its valid PUT route. New39–43 and46–51 are diagnostic PARTIAL only; original false UI checks remain preserved. The corrected Git-export image manifest is independently verified. Bootstrap consumer, parent cancellation/lease guards, real dispatcher7bb04e21 and production child route6d95a686 are integrated locally. Root323tests22subtestsPASS with2Windows skips; realPG31tests20subtestsPASS0skip; realRQ child1PASS pending scoped review. Published PR973 remains c2bb with all observed checksPASS; later source is unpublished. Pending: reviewed UI observer corrections, bounded child-source cleanup, final launcher substitution, fresh frozen full journey and protected integration. Separate dashboard ownership preserved; deadline21:22:28Z.
+
+## Reviewed campaign batch — 2026-11-06T19:49:34.425541+00:00
+
+**MJ-REQ-292: 0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN.** The bootstrap, child tracking/cleanup, UI observer repairs and committed launcher are integrated. Source candidate before this checkpoint: `455eb652f59983e684c5715a37b992378360d03c`. Independent reviews are recorded in the task checkpoint. The old705 run remains failed diagnostic evidence; no observations have been promoted to PASS. The d2 image is also preserved as diagnostic-only because it predates the final cleanup fix.
+
+Next: publish the reviewed PR973 batch, build the exact frozen checkpoint revision, run the connected journey, then qualify protected integration and repeat against the exact merged commit. The session deadline remains21:22:28Z. Dashboard PR974 retains its separate ownership. No real employer submission is enabled.
