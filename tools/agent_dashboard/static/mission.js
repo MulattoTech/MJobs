@@ -25,7 +25,7 @@
   async function fetchJson(url, init = {}) {
     const {headers = {}, ...other} = init;
     const response = await fetch(url, {
-      ...other, headers: {"Content-Type":"application/json", ...headers}
+      cache: "no-store", ...other, headers: {"Content-Type":"application/json", ...headers}
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || "HTTP " + response.status);
@@ -601,6 +601,7 @@
   function renderProgress(data) {
     const parent = $("#releaseContent");
     if (!data.available) {
+      $("#releaseRefreshTime").textContent = "Unavailable · refresh failed";
       parent.textContent = "Cannot validate acceptance matrices: " + (data.error || "unknown error");
       return;
     }
@@ -638,6 +639,9 @@
          supplemental evidence as of ${safe(fmtTime(data.reference_as_of))}.
          Latest local check ${safe(fmtTime(data.observed_at))}.
       </div>
+      <div class="release-meta">Acceptance source: <code>${safe(data.source_root || "Unknown")}</code>.
+        Counts cover the original requirements and additional reference gaps separately.
+        Merged fixes and child tasks do not automatically accept their parent requirement.</div>
       <div class="release-meta">
         <span class="sync-pill ${synced ? "" : "warn"}">${syncText}</span>
         Local main <code>${safe(sha)}</code> · GitHub main <code>${safe(remote)}</code> ·
@@ -651,7 +655,7 @@
       </div>
       <div class="progress-disclaimer">${safe(data.caveat)} The page reads original canonical requirements and
       reference gaps on every refresh. It never marks an unfinished requirement PASS or overwrites acceptance records.</div>`;
-    $("#releaseRefreshTime").textContent = "Verified " + new Date(data.observed_at).toLocaleTimeString();
+    $("#releaseRefreshTime").textContent = "Read " + fmtTime(data.observed_at);
     if (window.MJobsProgressHistory) window.MJobsProgressHistory.onProgress(data);
   }
 
@@ -659,62 +663,61 @@
     if (progressInflight) return;
     progressInflight = true;
     try { renderProgress(await fetchJson("/api/progress", {signal: AbortSignal.timeout(8000)})); }
-    catch (error) { $("#releaseContent").textContent = "Release tracker unavailable: " + error.message; }
+    catch (error) {
+      $("#releaseRefreshTime").textContent = "Unavailable · refresh failed";
+      $("#releaseContent").textContent = "Release tracker unavailable: " + error.message;
+    }
     finally { progressInflight = false; }
   }
   function renderExternalSprint(result) {
     const holder = $("#externalSprintContent");
     const status = $("#externalSprintStatus");
-    if (!result.available) {
-      status.textContent = "No discoverable campaign";
-      holder.textContent = result.reason || "No eligible external Codex session is registered.";
+    if (!result.available || !Array.isArray(result.workspaces) || !Array.isArray(result.sessions)) {
+      status.textContent = "Observer unavailable";
+      holder.textContent = result.reason || "Current workspace observations are unavailable.";
       return;
     }
-    const running = result.observation === "RUNNING";
-    status.textContent = running ? "Codex process observed" : result.observation;
-    const root = result.root_session || {};
+    const labels = {RUNNING: "Codex process observed", RECENT_ACTIVITY: "Recent session activity",
+      NO_RECENT_ACTIVITY: "No recent session activity"};
+    status.textContent = labels[result.observation] || "Observation unavailable";
+    const n = value => value == null ? "Unknown" : Number(value).toLocaleString();
+    const workspaces = result.workspaces || [];
     const sessions = result.sessions || [];
-    const children = sessions.filter(s => s.role === "subagent");
-    const counts = result.tokens || {};
+    const workspaceRows = workspaces.map(w => `<tr>
+      <td><code>${safe(w.workspace)}</code><br/>${safe(w.branch || "Detached / unavailable")}
+        · <code>${safe((w.head || "").slice(0, 12) || "Unknown")}</code></td>
+      <td>${w.changed_count == null ? "Unavailable" : n(w.changed_count)}
+        <details><summary>File list</summary><ul>${(w.changed_files || []).map(f =>
+          `<li><code>${safe(f)}</code></li>`).join("") ||
+          (w.changed_count === 0 ? "<li>Clean working tree at this observation</li>" : "<li>File list unavailable</li>")}
+        </ul>${w.changed_count > (w.changed_files || []).length ? "List shortened; count includes all observed files." : ""}</details></td>
+    </tr>`).join("");
+    const sessionRows = sessions.map(s => `<tr><td>${safe(s.name || "Session")} · ${safe(s.role)}
+      <br/><code>${safe(s.workspace)}</code></td><td>${safe(s.model || "Unknown")} / ${safe(s.effort || "Unknown")}
+      <br/>${safe(fmtTime(s.log_modified_utc))}</td>
+      <td>${n(s.input_tokens)} in / ${n(s.output_tokens)} out</td></tr>`).join("");
     const quota = result.quota || {};
-    const n = value => Number(value || 0).toLocaleString();
     const quotaText = quota.available && quota.used_percent != null
       ? `${n(quota.used_percent)}% used / ${n(quota.remaining_percent)}% remaining`
-      : "Not available (see native Codex /status)";
-    const agentRows = sessions.map(s => (
-      `<tr><td>${safe(s.name)}</td><td>${safe(s.role)}</td>
-      <td>${safe(s.model)} / ${safe(s.effort)}</td>
-      <td>${n(s.input_tokens)} in / ${n(s.output_tokens)} out</td></tr>`
-    )).join("");
-    const changeList = (result.changed_files || []).slice(0, 12)
-      .map(f => `<li><code>${safe(f)}</code></li>`).join("");
+      : "Unavailable";
     holder.innerHTML = `
-      <div class="release-meta"><strong>${safe(result.campaign)}</strong> ?
-        ${safe(result.branch)} ? ${safe(result.observation)}
-        ? process ID(s): ${safe((result.pids || []).join(", ") || "not observed")}</div>
-      <p><strong>Current goal:</strong> ${safe(result.goal || "No native goal record found")}
-      <br/><strong>Root model:</strong> ${safe(root.model || "Not yet observed")} /
-      ${safe(root.effort || "unknown")} ? <strong>Subagent sessions:</strong>
-      ${n(children.length)} ? <strong>Changed files, not committed:</strong>
-      ${result.changed_count == null ? "unavailable" : n(result.changed_count)}</p>
-      <p><strong>Processed tokens:</strong> ${n(counts.input_tokens)} input
-        (${n(counts.cached_tokens)} cached) + ${n(counts.output_tokens)} output.
-        Account quota is separate from processed tokens.<br/>
-        <strong>Codex account usage:</strong> ${safe(quotaText)}</p>
-      <div class="release-meta"><strong>Workspace:</strong>
-        <code>${safe(result.workspace)}</code><br/>
-        <strong>Current checkout commit:</strong> <code>${safe((result.head || "").slice(0, 12))}</code></div>
-      <details><summary>Observed agent sessions (${n(sessions.length)})</summary>
-        <table><thead><tr><th>Name</th><th>Role</th><th>Model / effort</th><th>Tokens</th></tr></thead>
-        <tbody>${agentRows}</tbody></table></details>
-      <details><summary>Uncommitted files (${result.changed_count == null ? "?" : n(result.changed_count)})</summary>
-        <ul>${changeList || "<li>No uncommitted file changes observed</li>"}</ul></details>
-      <p class="progress-disclaimer">${safe(result.note)}
-      Git Graph on main cannot display uncommitted changes in this separate clone.
-      A completed feature requires a real commit and verified integration.</p>`;
+      <p class="release-meta">Observed ${safe(fmtTime(result.observed_at))}.
+        Latest session log update: ${safe(fmtTime(result.latest_activity_utc))}.</p>
+      <p>${n(sessions.length)} recent session records · ${n(workspaces.length)} workspaces inspected.
+        Uncommitted changes are listed per workspace; committed work is in delivery history below.</p>
+      <div style="max-height:22rem;overflow:auto"><table><thead><tr><th>Workspace / branch / commit</th>
+        <th>Uncommitted files now</th></tr></thead><tbody>${workspaceRows}</tbody></table></div>
+      <details><summary>Recent session records (${n(sessions.length)})</summary>
+        <div style="overflow-x:auto"><table><thead><tr><th>Session / workspace</th>
+        <th>Model / last log update</th><th>Recorded tokens</th></tr></thead><tbody>${sessionRows}</tbody></table></div></details>
+      <p class="release-meta">Codex account usage: ${safe(quotaText)}. Account quota is separate from session counters.</p>
+      <p class="progress-disclaimer">${result.coverage?.partial ? "Partial observation. " : ""}
+        ${safe((result.coverage?.notes || []).join(" "))}
+        Recent records cover the last 24 hours and may include completed sessions.
+        Unknown counters are not zero. Mission Control observes these sessions and does not own or stop them.</p>`;
   }
   async function refreshExternalSprint() {
-    try { renderExternalSprint(await fetchJson("/api/sprints/active")); }
+    try { renderExternalSprint(await fetchJson("/api/sprints/active", {signal: AbortSignal.timeout(15000)})); }
     catch (error) {
       $("#externalSprintStatus").textContent = "Observer unavailable";
       $("#externalSprintContent").textContent = error.message;
@@ -729,6 +732,7 @@
     finally { inflight = false; }
   }
   $("#missionRefresh").onclick = refreshEverything;
+  $("#refreshBtn")?.addEventListener("click", refreshEverything);
   refreshEverything();
   // Acceptance is inexpensive and independently guarded; launcher/process scans
   // retain their slower cadence and do not pile up behind a slow progress read.
