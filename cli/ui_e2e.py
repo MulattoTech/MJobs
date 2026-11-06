@@ -466,6 +466,16 @@ class EvidenceJournal:
                 temporary.unlink()
 
 
+def application_profile_version_matches(profile, application):
+    """Keep application acceptance pinned to a current profile readback."""
+    return (isinstance(profile, dict) and isinstance(application, dict)
+            and isinstance(profile.get("id"), str)
+            and profile.get("id") == application.get("profile_id")
+            and isinstance(profile.get("version"), str)
+            and bool(profile["version"])
+            and profile.get("version") == application.get("profile_version"))
+
+
 def prepare_ui_artifact_directory(base_url, evidence_path, acceptance_run_id=None):
     """Prepare a non-overwriting per-run artifact directory for the browser."""
     parsed_target = urlsplit(base_url)
@@ -1313,6 +1323,12 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     )
                     journal.record_employer_discovery_lineage(
                         employer_evidence["employer_discovery_lineage"])
+                    profile_after_job_observation = request("/profiles/" + profile_id)
+                    assert profile_after_job_observation["id"] == profile_id
+                    assert profile_after_job_observation["facts"] == profile["facts"]
+                    assert profile_after_job_observation["answers"] == profile["answers"]
+                    assert profile_after_job_observation["preferences"] == profile["preferences"]
+                    profile = profile_after_job_observation
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
                 expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()
@@ -1351,9 +1367,33 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 )
             actions.append({"action": "Explicit fictional demo, connected search, match explanation and raw provenance", "result": "PASS"})
 
+            profile_before_sql_review = profile
             navigation("Profile")
             fact_editor("SQL").get_by_label("I approve its use in documents", exact=True).uncheck()
             save_profile()
+            profile = request("/profiles/" + profile_id)
+            assert profile["id"] == profile_id
+            assert profile["preferences"] == profile_before_sql_review["preferences"]
+            assert profile["answers"] == profile_before_sql_review["answers"]
+            before_facts = {
+                row.get("fact_id", row.get("id")): {
+                    key: value for key, value in row.items() if key not in {"id", "version"}}
+                for row in profile_before_sql_review["facts"]
+            }
+            after_facts = {
+                row.get("fact_id", row.get("id")): {
+                    key: value for key, value in row.items() if key not in {"id", "version"}
+                }
+                for row in profile["facts"]
+            }
+            assert set(after_facts) == set(before_facts)
+            for fact_id, previous_fact in before_facts.items():
+                current_fact = after_facts[fact_id]
+                if fact_id == sql_fact_id:
+                    assert previous_fact["user_approved"] is True
+                    assert current_fact == {**previous_fact, "user_approved": False}
+                else:
+                    assert current_fact == previous_fact
             select_data_job()
             expect(page.locator(".big-score")).to_have_text("50% · Weak")
             prepare()
@@ -1374,6 +1414,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 assert first_application_readback["profile_id"] == profile_id
                 assert first_application_readback["job_id"] == application["job_id"]
                 assert first_application_readback["state"] == "PREPARED"
+                assert application_profile_version_matches(profile, first_application_readback)
                 assert first_application_readback["profile_version"] == profile["version"]
                 record_application_step(
                     36, "The selected B application was prepared and read back with its profile and job pins.",

@@ -242,6 +242,21 @@ def test_evidence_journal_records_actual_readback_lineage(tmp_path):
     assert payload["application_document_ids"] == ["doc-1", "doc-2"]
 
 
+@pytest.mark.parametrize("profile, application, matches", [
+    ({"id": "profile-1", "version": "version-1"},
+     {"profile_id": "profile-1", "profile_version": "version-2"}, False),
+    ({"id": "profile-1", "version": "version-1"},
+     {"profile_id": "profile-2", "profile_version": "version-1"}, False),
+    ({"id": "profile-1", "version": "version-1"},
+     {"profile_id": "profile-1", "profile_version": "version-1"}, True),
+])
+def test_application_profile_version_binding_rejects_stale_profile_snapshot(
+        profile, application, matches):
+    from cli.ui_e2e import application_profile_version_matches
+
+    assert application_profile_version_matches(profile, application) is matches
+
+
 def test_employer_discovery_lineage_is_persisted_only_for_observed_jobs(tmp_path):
     from cli.ui_e2e import EvidenceJournal
 
