@@ -19,6 +19,7 @@ from .observability import windows_process_snapshot, read_codex_rate_limits
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
 from .progress_history import ProgressHistory
+from .campaign_progress import campaign_progress
 from .delivery_ledger import DeliveryLedger
 from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
 from tools.feature_studio.validate import validate_spec
@@ -160,6 +161,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
             except (ValueError, OSError, KeyError):
                 response["history_capture"] = {"created": False, "error": "history capture unavailable"}
         return response
+
+    @app.get("/api/progress/campaigns")
+    def campaign_progress_endpoint():
+        """Read recorded campaign evidence without changing acceptance."""
+        return campaign_progress(repo)
 
     @app.get("/api/progress/history")
     def progress_timeline(limit: int = Query(default=120, ge=1, le=500)):
