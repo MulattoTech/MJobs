@@ -495,3 +495,10 @@ Root branch `codex/mj-req292-full-journey-20261106` in the journey worktree; sou
 Reviewed salary rendering, native canonical/apply proof and strict paused-run submit checks are integrated. Root latest domain suite43tests50subtests and UI suite44tests passed. Full connected acceptance is incomplete. Fresh f7d runtime18738 has valid startup evidence but the coordinator stopped beforeUI on a build-receipt timestamp key; the separately normalized receipt preserves the actual recorded timestamp and original failure. The f7d runner also has a known later UI assertion repaired in `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Build/run current reviewed source on continuation.
 
 Source-setup schema2 lane is preserved separately, not accepted or integrated; see per-agent exact refs in JSON. Next: reconcile live PR973 checks and ownership, build exact latest reviewed source, execute the connected public/native/restart/monitoring journey, independently review and verify protected merged-source evidence. Four-hour boundary is13:21:34Z; extension request is unanswered at this checkpoint. No automatic unattended continuation is created.
+
+
+## MJ-REQ-292 user pause — 2026-11-06T18:53:13.600752+00:00
+
+MJ-REQ-292: **0/60 VERIFIED PASS — 39 PARTIAL,21 NOT_RUN**. Durable ledger/checkpoint preserved. Root source HEAD `70595258e4cac188d641629298a5ee4e8131a45c`; PR973 published `c2bbf9e039d7b2f2556bf55a0b5704695706717c`, draft, last aggregate integration result unobserved. Latest source includes reviewed stale-fact reload and strict v4 inventory evidence. Root420tests42subtestsPASS; no new connected PASS.
+
+705 exact-source build failed post-build byte-manifest verification; no PASS receipt and no Compose startup. All eight older owned stacks are stopped with data/resources preserved. Ahsoka session35671 was already running at pause and was left untouched; no new work, tests, polling, provider requests or merges will start. Detailed isolated branches, dirty ownership, receipts and next actions are in `planning/agent_handoffs/MJ-REQ-292.json`. Await explicit resume; do not restart completed slices.

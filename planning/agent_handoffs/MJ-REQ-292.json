@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "fa76cab8ee9a24ed937b838f774ab6082687ec8f",
-  "routing_state": "EXECUTE",
-  "next_action": "Complete the strict v4 ledger join, explicit stale-fact UI recovery, and staged aggregator bootstrap workflow. Publish reviewed source through PR973 and require exact-head protected checks. Then build the next frozen source and run the full connected native/public/restart/monitor journey. Preserve all diagnostic failures and 0 PASS until independently qualified.",
+  "head_sha": "70595258e4cac188d641629298a5ee4e8131a45c",
+  "routing_state": "PAUSED",
+  "next_action": "Await explicit user resume. First inspect preserved705 build manifest mismatch without recreating successful prior work; then finish staged bootstrap dependencies/review and bounded child containment, integrate reviewed launcher, and execute fresh connected journey. Reconcile current protected checks only after resume.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -147,6 +147,12 @@
       "result": "PASS",
       "tested_commit": "fa76cab8ee9a24ed937b838f774ab6082687ec8f",
       "observed": "107 passed,5.29s; strict v3/v4 ledger contract. Local ledger/checkpoint structural validation passes at39PARTIAL/21NOT_RUN/0PASS; no runtime acceptance promotion."
+    },
+    {
+      "command": "pytest onboarding/UI observations/journey/ledger suites",
+      "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+      "result": "PASS",
+      "observed": "420 passed,42 subtests,10.57s. Root frontend command could not start because Vitest is not installed in root; exact frontend source/test blobs match author and AB-tested d2edf183 (5 Vitest tests, typecheck/build author PASS). No new runtime acceptance."
     }
   ],
   "blockers": [
@@ -222,7 +228,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T18:37:19.861237+00:00",
+  "updated_at_utc": "2026-11-06T18:53:13.600752+00:00",
   "acceptance_note": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -522,13 +528,14 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T18:37:19.861237+00:00",
+  "updated_at": "2026-11-06T18:53:13.600752+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
     "published_head": "c2bbf9e039d7b2f2556bf55a0b5704695706717c",
-    "required_checks": "On exactc2bbf9e0, fast Python/required, repo/docs, web, dependency, secrets and schema/Chromium smoke PASS; Compose and integration shards running at18:35Z. No current failure observed; prior33ad cancel-budget failure remains retained.",
-    "next_candidate_source": "58c0cc3bce1654aff6d03a208165ecebeb829fa2"
+    "required_checks": "Last observation only: all fast/static/Compose checks PASS; integration shards1 and2 PASS; shard0 IN_PROGRESS. Polling stopped at user pause. No final aggregate result inferred.",
+    "next_candidate_source": "58c0cc3bce1654aff6d03a208165ecebeb829fa2",
+    "local_unpublished_head": "70595258e4cac188d641629298a5ee4e8131a45c"
   },
   "runtime_history": [
     {
@@ -596,7 +603,10 @@
     "four_hour_limit_utc": "2026-11-06T21:22:28Z",
     "extension_request": "APPROVED_BY_USER",
     "goal_complete": false,
-    "no_new_unattended_work_authorized_by_this_checkpoint": true
+    "no_new_unattended_work_authorized_by_this_checkpoint": true,
+    "paused_by_user": true,
+    "paused_at_utc": "2026-11-06T18:53:13.600752+00:00",
+    "new_work_stopped": true
   },
   "pending_source_setup": {
     "containment": "a9faa0ebbb7986bb4046cd7b56e4704c11c1630b",
@@ -626,5 +636,55 @@
     "WWR feed100items contains no native links in descriptions; two allowed listingpages returned403 afterrobotsallow. No bypass/retry.",
     "RemoteOK feed100items contains at leastone ApryseLevercandidate; existingdomaincorroboration supportsGreenhouse only. Candidate is unverified; no acceptancecredit."
   ],
-  "other_active_work": "Separate user-authorized dashboard layout branch codex/dashboard-current-first-20261106 is owned by the forked chat. Campaign remains soleintegrationowner; no overlapping campaign/planning writes reported."
+  "other_active_work": "Separate user-authorized dashboard layout branch codex/dashboard-current-first-20261106 is owned by the forked chat. Campaign remains soleintegrationowner; no overlapping campaign/planning writes reported.",
+  "pause_checkpoint": {
+    "reason": "User set goal status paused",
+    "root": "C:\\Users\\Dylan\\.codex\\worktrees\\mjobs-292-journey\\MJobs",
+    "local_head": "70595258e4cac188d641629298a5ee4e8131a45c",
+    "published_head": "c2bbf9e039d7b2f2556bf55a0b5704695706717c",
+    "main_last_verified": "f7b7a2f621036f828e83e2cb9293e30eb82bac5f",
+    "integration_owner": "Root campaign; user transfer preserved",
+    "runtime": "All eight earlier owned diagnostic projects stopped with containers/volumes/networks retained. New705 Compose was never started. No public-source policy run occurred.",
+    "build_blocker": {
+      "source": "70595258e4cac188d641629298a5ee4e8131a45c",
+      "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-native-70595258-runtime\\MJobs",
+      "result": "FAIL",
+      "failure": "image changed-source byte manifest differs from frozen commit",
+      "artifacts": "C:\\Users\\Dylan\\AppData\\Local\\Temp\\mjreq292-runtime-70595258e4ca",
+      "pass_receipt_written": false,
+      "retry_or_diagnosis_after_pause": false
+    },
+    "existing_process": "Ahsoka domain regression test session35671 was already running at pause and left untouched; status not polled afterward. No new tests/CI polls/provider requests/builds/merges are authorized by this checkpoint.",
+    "unmerged_work": [
+      {
+        "owner": "Ahsoka",
+        "path": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-aggregator-bootstrap-auth\\MJobs",
+        "head": "b4210201",
+        "state": "Dirty requests.py/domain_acquisition.py/ats_enrollment.py plus new aggregator_workflow.py and test_aggregator_bootstrap_worker.py. Root workers/tasks.py patch is test-only and excluded. Last helper33/collection12/worker7 tests passed. Needs collector07d093e9, joined tests and independent CD review."
+      },
+      {
+        "owner": "Obiwan",
+        "head": "07d093e91932b674ab5eec81c1993f04f8adf1fc",
+        "parent_candidate": "543c7356b4b17415c46d6f01a3e5e681eaf58582",
+        "state": "Clean collector commits;25tests62subtestsPASS,3positive admissions dependency-pending. Do not integrate alone."
+      },
+      {
+        "owner": "Luke",
+        "path": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-public-child-wait\\MJobs",
+        "head": "244d7fc7e9e02248d55fef545cd1c9864b034613",
+        "state": "Dirty acceptance_public_source.py, its unit test, new collection_children.py and API test. Latestclient39PASS2symlinkSKIP22subtests; API must rerun after lineage hash addition. Needs requested-flag fix, final-release child context, parent lineage and containment join."
+      },
+      {
+        "owner": "Mace",
+        "path": "C:\\Users\\Dylan\\.codex\\worktrees\\mjobs-292-campaign-launcher\\MJobs",
+        "head": "57fe81f72c19941c7a00f9674075e0488773b985",
+        "state": "Clean new launcher and tests;15PASS,help/compile/provenancePASS; Yoda reviewed exact file hashes before commit. Not integrated; no live calls."
+      },
+      {
+        "owner": "Chewbacca",
+        "state": "Containment code not started.705 build failed source-manifest check; no Compose startup."
+      }
+    ],
+    "other_chat": "User-authorized dashboard hierarchy redesign remains owned by the separate fork under tools/agent_dashboard; no campaign/planning writes. Do not overwrite its work or claim it deployed."
+  }
 }
