@@ -185,9 +185,12 @@ class DockerCLI:
 class OwnedPublicContainment:
     """Callback and explicit cleanup guard for one isolated Compose project.
 
-    Pass ``instance`` as ``containment_preflight`` and ``instance.request`` as
-    ``request`` to ``cli.acceptance_public_source.run``. The claim is created
-    only with exclusive-create semantics under an ignored ``outputs`` run dir.
+    Pass ``instance`` as ``containment_preflight`` to
+    ``cli.acceptance_public_source.run``. LIVE mode keeps its own direct
+    loopback HTTPX transport; this callback receives source and collection
+    identities from the helper's returned API evidence and checks them against
+    an independent API read. The claim is created only with exclusive-create
+    semantics under an ignored ``outputs`` run dir.
     It contains an operator token and is intentionally retained after failures.
     A passing final baseline and source cleanup must be followed by an explicit
     call at the runner's explicit ``release`` stage. That stage is accepted only
@@ -318,6 +321,8 @@ class OwnedPublicContainment:
         self._own_request_id = None
         self._own_profile_id = None
         self._own_operation_id = None
+        self._own_source_id = None
+        self._context_operation_seen = False
         self._collection_attempted = False
         self._enable_attempted = False
         self._disable_attempted = False
@@ -739,6 +744,42 @@ class OwnedPublicContainment:
                 active.append(row)
         return active
 
+    def _capture_collection_identity(self, context):
+        operation_id = context.get("collection_operation_id")
+        request_id = context.get("collection_request_id")
+        if operation_id is None and request_id is None:
+            _require(
+                not self._context_operation_seen,
+                "COLLECTION_IDENTITY_CHANGED",
+            )
+            return
+        identity_pattern = r"[A-Za-z0-9][A-Za-z0-9._:-]{0,199}"
+        _require(
+            isinstance(operation_id, str)
+            and re.fullmatch(identity_pattern, operation_id) is not None
+            and isinstance(request_id, str)
+            and re.fullmatch(identity_pattern, request_id) is not None,
+            "COLLECTION_IDENTITY_INVALID",
+        )
+        source_id = context.get("source_id")
+        _require(
+            isinstance(source_id, str)
+            and source_id
+            and (self._source is None or source_id == self._source.get("id")),
+            "COLLECTION_SOURCE_IDENTITY_CHANGED",
+        )
+        _require(
+            self._own_operation_id in (None, operation_id)
+            and self._own_request_id in (None, request_id)
+            and self._own_source_id in (None, source_id),
+            "COLLECTION_IDENTITY_CHANGED",
+        )
+        self._own_operation_id = operation_id
+        self._own_request_id = request_id
+        self._own_profile_id = self.baseline["profile_id"]
+        self._own_source_id = source_id
+        self._context_operation_seen = True
+
     def _policy_digest(self, source):
         return _digest({key: source[key] for key in FINGERPRINT_FIELDS})
 
@@ -806,16 +847,17 @@ class OwnedPublicContainment:
             if self._source_preflight_present is False:
                 _require(
                     newly_created
-                    and self._enable_source_id is not None
-                    and source.get("id") == self._enable_source_id,
+                    and isinstance(source_id, str)
+                    and source.get("id") == source_id,
                     "UNOWNED_SOURCE_APPEARED",
                 )
             self._source = dict(source)
             self._source_created = newly_created
             if newly_created:
                 _require(
-                    self._enable_source_id is not None
-                    and source.get("id") == self._enable_source_id,
+                    self._source_preflight_present is False
+                    and isinstance(source_id, str)
+                    and source.get("id") == source_id,
                     "SOURCE_ENABLE_IDENTITY_CHANGED",
                 )
                 expected_policy = {
@@ -1022,6 +1064,7 @@ class OwnedPublicContainment:
             self._ensure_lease()
             self._verify_api()
             self._source_policy(context, stage)
+            self._capture_collection_identity(context)
             _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         if stage == "release":
             self._release_after_baseline(context.get("cleanup_status"))

@@ -498,6 +498,91 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.assertEqual(self.docker.unpause_calls, [])
         self.assertTrue(containment.claim_path.exists())
 
+    def test_collection_identity_from_post_context_is_sufficient_without_interception(
+        self,
+    ):
+        self.api.sources = [
+            {
+                "id": "public-source",
+                "provider": "wwr",
+                "tenant": "default",
+                "enabled": True,
+                "poll_interval": 604800,
+                "concurrency": 1,
+                "request_timeout": 10,
+                "rate_limit": 1,
+                "jitter_seconds": 0,
+                "strategy": "FEED",
+                "capabilities": {"direct_application": False},
+            }
+        ]
+        containment = self.containment()
+        containment("preflight", self.context())
+        self.api.operations = [
+            {
+                "id": "response-operation",
+                "kind": "DISCOVER",
+                "entity_id": "profile",
+                "state": "QUEUED",
+                "params": {
+                    "source_id": "public-source",
+                    "request_id": "public-observation-request",
+                },
+            }
+        ]
+
+        proof = containment(
+            "poll",
+            self.context(
+                source_id="public-source",
+                collection_operation_id="response-operation",
+                collection_request_id="public-observation-request",
+            ),
+        )
+
+        self.assertTrue(proof["source_collection_exclusive"])
+        self.assertEqual(containment._own_operation_id, "response-operation")
+        self.assertEqual(containment._own_request_id, "public-observation-request")
+        self.api.operations[0]["params"]["request_id"] = "another-request"
+        with self.assertRaisesRegex(ContainmentError, "ACTIVE_COLLECTION_EXISTS"):
+            containment(
+                "poll",
+                self.context(
+                    source_id="public-source",
+                    collection_operation_id="response-operation",
+                    collection_request_id="public-observation-request",
+                ),
+            )
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_new_source_identity_from_post_context_is_validated_against_inventory(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        self.api.sources = [
+            {
+                "id": "created-source",
+                "provider": "wwr",
+                "tenant": "default",
+                "enabled": True,
+                "poll_interval": 604800,
+                "concurrency": 1,
+                "request_timeout": 10,
+                "rate_limit": 1,
+                "jitter_seconds": 0,
+                "strategy": "FEED",
+                "capabilities": {"direct_application": False},
+            }
+        ]
+
+        proof = containment(
+            "read",
+            self.context(source_id="created-source", newly_created=True),
+        )
+
+        self.assertTrue(proof["source_policy_exclusive"])
+        self.assertEqual(containment._source["id"], "created-source")
+
     def test_callback_returns_stable_owner_token_for_each_supported_stage(self):
         containment = self.containment()
         initial = containment("preflight", self.context())
