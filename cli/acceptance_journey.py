@@ -1,7 +1,9 @@
 """Fail-closed coordinator for the connected MJ-REQ-292 acceptance journey.
 
 Run from a clean repository against an already provisioned, owned fixture stack.
-This does not provision a stack, enable a real provider, or edit acceptance ledgers.
+This does not provision a stack or edit acceptance ledgers. The default CLI never
+contacts providers; public collection requires explicit programmatic opt-in and
+a root-owned containment callback.
 Only explicit numbered observations emitted by the executed producers earn credit;
 legacy action strings and nearby test results remain supplemental evidence.
 """
@@ -22,6 +24,7 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from cli import compose_recovery as recovery
+from cli import local_persistence_acceptance as persistence
 from cli import ui_e2e
 from fixtures.company_monitoring_stack import source_files
 
@@ -52,6 +55,7 @@ REQUIRED_CHECKS = {
     8: {"remote_it_search_read_back", "remote_data_search_read_back"},
     9: {"source_rows_visible", "multiple_sources_enabled"},
     10: {"discovery_operation_completed", "search_scoped_job_readback"},
+    11: {"same_profile_public_readonly_jobs_observed"},
     12: {"matching_job_visible", "nonmatching_job_hidden"},
     13: {"filtered_job_visible", "other_title_hidden"},
     14: {"match_sort_order"},
@@ -171,7 +175,8 @@ def validate_frontend_build_receipt(receipt, source, runtime):
     The trust boundary is reviewed exact-source producers and owned local build
     artifacts. This is not a signature against a malicious local disk owner.
     """
-    if (not isinstance(receipt, dict) or receipt.get("schema_version") != 1
+    if (not isinstance(receipt, dict) or type(receipt.get("schema_version")) is not int
+            or receipt.get("schema_version") != 1
             or receipt.get("result") != "PASS"
             or receipt.get("source_commit") != source["commit"]
             or receipt.get("source_tree") != source["tree"]
@@ -289,13 +294,82 @@ def _identity(baseline):
     return {key: baseline[key] for key in IDENTIFIERS}
 
 
+def _public_source_module():
+    # Import only after explicit opt-in. No provider call occurs on default CLI.
+    from cli import acceptance_public_source
+    return acceptance_public_source
+
+
+def validate_public_artifact(artifact, baseline, provider, run_id):
+    if (artifact.get("result") != "PASS" or artifact.get("provider") != provider
+            or artifact.get("execution_scope") != "LIVE_PUBLIC_READ_ONLY"
+            or artifact.get("external_submission_enabled") is not False
+            or artifact.get("source") != baseline["source"]
+            or artifact.get("acceptance_run_id") != run_id
+            or any(artifact.get(key) != baseline[key] for key in IDENTIFIERS)
+            or artifact.get("cleanup", {}).get("status") not in {"RESTORED_DISABLED", "NOT_REQUIRED"}):
+        raise ValueError("Same-profile public observation or safe cleanup did not complete")
+    observed = artifact.get("observed_real_job_ids")
+    selected = artifact.get("selected_application_job_id")
+    if (not isinstance(observed, list) or not 1 <= len(observed) <= 5
+            or any(not isinstance(value, str) or not SAFE_ID.fullmatch(value) for value in observed)
+            or len(set(observed)) != len(observed)
+            or not isinstance(selected, str) or not SAFE_ID.fullmatch(selected) or selected in observed
+            or (baseline.get("selected_application_job_id") is not None
+                and selected != baseline["selected_application_job_id"])):
+        raise ValueError("Real public jobs must remain distinct from the selected mock application job")
+    rows = numbered_observations(artifact, segment="public", run_id=run_id,
+                                source=baseline["source"], identity=_identity(baseline))
+    if len(rows) != 1 or rows[0]["step"] != 11 or rows[0]["status"] != "PASS":
+        raise ValueError("Same-profile public collection lacks its exact positive observation")
+    return artifact
+
+
+def _validate_recaptured_baseline(original, updated):
+    _identity(updated)
+    mutable = {"job_inventory", "local_persistence", "selected_application_job_id",
+               "selected_application_route_id", "baseline_lineage", "baseline_recaptured_at_utc"}
+    if any(original.get(key) != updated.get(key) for key in set(original) | set(updated) if key not in mutable):
+        raise ValueError("Public collection changed a protected UI baseline field")
+    before = persistence.validate(original["local_persistence"])
+    after = persistence.validate(updated["local_persistence"])
+    for name in persistence.DOMAINS:
+        if name != "company_source_catalog" and before["domains"][name] != after["domains"][name]:
+            raise ValueError("Public collection changed protected persistence domain: " + name)
+    inventory = recovery.validate_public_job_inventory(updated["job_inventory"])
+    if inventory["profile_id"] != original["profile_id"]:
+        raise ValueError("Public collection inventory changed profile")
+    return updated
+
+
+def recapture_public_baseline(original, public, target):
+    """Extend jobs/catalog snapshots while proving profile, docs and app unchanged."""
+    with httpx.Client(base_url=target["base_url"], timeout=15, trust_env=False,
+                      follow_redirects=False) as client:
+        def get(path):
+            response = client.get(path)
+            response.raise_for_status()
+            return response.json()
+        application = get("/profiles/" + original["profile_id"] + "/applications/" + original["application_id"])
+        if (application.get("job_id") != public["selected_application_job_id"]
+                or application.get("route_id") != public["selected_application_route_id"]
+                or application.get("target") != "MOCK"):
+            raise ValueError("Public collection changed the selected mock application route")
+        updated = copy.deepcopy(original)
+        updated.update(job_inventory=recovery.collect_public_job_inventory(get, original["profile_id"]),
+                       local_persistence=persistence.observe_http(client, original),
+                       selected_application_job_id=public["selected_application_job_id"],
+                       selected_application_route_id=public["selected_application_route_id"],
+                       baseline_recaptured_at_utc=utc_now())
+    return _validate_recaptured_baseline(original, updated)
+
+
 def numbered_observations(artifact, *, segment, run_id, source, identity):
     """Validate explicit producer assertions, never infer numbered checks from prose.
 
     Artifact paths/hashes are added by the coordinator after producer completion,
-    avoiding a self-referential hash. PUBLIC_READ_ONLY observations are deliberately
-    not admitted by this fixture-only coordinator; a separate approved public
-    collection segment and provenance validator are required for criterion 11.
+    avoiding a self-referential hash. PUBLIC_READ_ONLY is admitted only for the
+    explicitly opted-in same-profile public segment; fixture UI cannot earn 11.
     """
     rows = artifact.get("acceptance_observations", [])
     if not isinstance(rows, list) or len(rows) > 60:
@@ -312,13 +386,15 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         step = row.get("step")
         if (type(step) is not int or not 1 <= step <= 60 or step in seen
                 or (segment == "ui" and step >= 54)
+                or (segment == "public" and step != 11)
                 or (segment == "recovery" and step < 54)):
             raise ValueError("Duplicate or out-of-segment numbered observation")
         seen.add(step)
         if row.get("run_id") != run_id or row.get("source_commit") != source["commit"]:
             raise ValueError("Numbered observation run or source mismatch")
         status = row.get("status")
-        if status not in STATUSES or row.get("evidence_kind") != "CONTROLLED_FIXTURE":
+        kind = "PUBLIC_READ_ONLY" if segment == "public" else "CONTROLLED_FIXTURE"
+        if status not in STATUSES or row.get("evidence_kind") != kind:
             raise ValueError("Unsupported observation status or source semantics")
         observable = row.get("observable_result")
         if not isinstance(observable, str) or not observable.strip() or len(observable) > 500:
@@ -331,12 +407,12 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                     or identity.get(key) != value):
                 raise ValueError("Numbered observation continuity identity mismatch")
         if status == "PASS":
-            required = set(IDENTIFIERS if step >= 54 else
+            required = set(IDENTIFIERS if step >= 54 or segment == "public" else
                            ("profile_id", "application_id") if step >= 36 else
                            ("profile_id",) if step >= 4 else ())
             if not required.issubset(continuity):
                 raise ValueError("PASS observation is missing continuity identity")
-            if step == 11:
+            if step == 11 and segment != "public":
                 raise ValueError("Criterion 11 cannot PASS from fixture evidence")
         checks = row.get("checks")
         if (not isinstance(checks, list) or len(checks) > 30
@@ -356,7 +432,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
                     or len(names) != len(set(names))):
                 raise ValueError("PASS requires exactly the registered step-specific checks")
         result.append({"step": step, "status": status, "observable_result": observable,
-                       "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": source["commit"],
+                       "evidence_kind": kind, "source_commit": source["commit"],
                        "run_id": run_id, "continuity": dict(continuity), "checks": copy.deepcopy(checks)})
     return result
 
@@ -365,7 +441,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
     """Reuse the existing fsync + replace journal for bounded resumable state."""
 
     @classmethod
-    def create(cls, path, run_id, source, target):
+    def create(cls, path, run_id, source, target, public_source_provider=None):
         if not isinstance(run_id, str) or not SAFE_ID.fullmatch(run_id):
             raise ValueError("Invalid journey run identity")
         return cls(path, {"schema_version": 1, "requirement_id": REQUIREMENT,
@@ -373,7 +449,9 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                          "target": target, "started_at_utc": utc_now(), "result": "PARTIAL",
                          "review_status": "NOT_RUN", "frontend_build": {"status": "NOT_RUN"},
                          "trust_boundary": "Reviewed exact-source producers and operator-owned local artifacts; observed PASS is not independent review or ledger acceptance.",
-                         "segments": {name: {"status": "NOT_RUN"} for name in ("ui", "recovery")},
+                         "public_source_provider": public_source_provider,
+                         "segments": {name: {"status": "NOT_RUN"} for name in (
+                             ("ui", "public", "recovery") if public_source_provider else ("ui", "recovery"))},
                          "steps": [{"number": number, "status": "NOT_RUN"} for number in range(1, 61)],
                          "limitations": [
                              "No public-source criterion 11 acceptance from controlled fixtures.",
@@ -381,24 +459,38 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                              "Frontend bundle build provenance requires a separate build receipt."]})
 
     @classmethod
-    def resume(cls, path, run_id, source, target):
+    def resume(cls, path, run_id, source, target, public_source_provider=None):
         saved, _ = _read_artifact(path)
-        if (saved.get("schema_version") != 1 or saved.get("requirement_id") != REQUIREMENT
+        if (type(saved.get("schema_version")) is not int or saved.get("schema_version") != 1
+                or saved.get("requirement_id") != REQUIREMENT
                 or saved.get("run_id") != run_id or saved.get("source") != validate_clean_source(source)
-                or saved.get("target") != target):
+                or saved.get("target") != target or saved.get("public_source_provider") != public_source_provider):
             raise ValueError("Checkpoint run, source or target identity mismatch")
         segments = saved.get("segments")
-        if not isinstance(segments, dict) or set(segments) != {"ui", "recovery"}:
+        names = ("ui", "public", "recovery") if public_source_provider else ("ui", "recovery")
+        if not isinstance(segments, dict) or set(segments) != set(names):
             raise ValueError("Invalid checkpoint segments")
         if any(segment.get("status") not in {"COMPLETE", "NOT_RUN"} for segment in segments.values()):
             raise ValueError("Cannot resume an interrupted or failed segment; reconcile and start a new run")
-        restored = cls.create(path, run_id, source, target)
+        restored = cls.create(path, run_id, source, target, public_source_provider)
         restored.binding["started_at_utc"] = saved["started_at_utc"]
         restored.binding["runtime"] = saved.get("runtime")
         restored.binding["runtime_checks"] = saved.get("runtime_checks", {})
         restored.binding["frontend_build"] = saved.get("frontend_build", {"status": "NOT_RUN"})
         restored.binding["resume_imported"] = True
-        for name in ("ui", "recovery"):
+        if "derived_baseline" in saved:
+            derived = saved["derived_baseline"]
+            if derived.get("artifact") != "recovery-baseline.json":
+                raise ValueError("Derived baseline path mismatch")
+            updated, sha = _read_artifact(Path(path).parent / "recovery-baseline.json")
+            original, ui_sha = _read_artifact(Path(path).parent / "ui.json")
+            _, public_sha = _read_artifact(Path(path).parent / "public.json")
+            if (sha != derived.get("sha256") or updated.get("baseline_lineage") != {
+                    "ui_sha256": ui_sha, "public_sha256": public_sha}):
+                raise ValueError("Derived baseline artifact lineage mismatch")
+            _validate_recaptured_baseline(original, updated)
+            restored.binding["derived_baseline"] = derived
+        for name in names:
             recorded = segments[name]
             if recorded["status"] == "COMPLETE":
                 artifact_path = Path(path).parent / f"{name}.json"
@@ -419,8 +511,12 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
     def begin(self, name):
         if name not in self.binding["segments"] or self.binding["segments"][name]["status"] != "NOT_RUN":
             raise ValueError("Segment cannot be replayed")
-        if name == "recovery" and self.binding["segments"]["ui"]["status"] != "COMPLETE":
+        if name != "ui" and self.binding["segments"]["ui"]["status"] != "COMPLETE":
             raise ValueError("Recovery requires a completed connected UI baseline")
+        if name == "recovery" and self.binding.get("public_source_provider") and (
+                self.binding["segments"]["public"]["status"] != "COMPLETE"
+                or "derived_baseline" not in self.binding):
+            raise ValueError("Recovery requires the completed public stage and derived baseline")
         self.binding["active_segment"] = name
         self.binding["segments"][name] = {"status": "IN_PROGRESS", "started_at_utc": utc_now()}
         self.persist()
@@ -443,6 +539,12 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 raise ValueError("Connected UI baseline is incomplete")
             identity = _identity(artifact)
             self.binding["continuity"] = identity
+        elif name == "public":
+            original, _ = _read_artifact(self.path.parent / "ui.json")
+            validate_public_artifact(artifact, original, self.binding["public_source_provider"], self.binding["run_id"])
+            identity = self.binding["continuity"]
+            self.binding["observed_real_job_ids"] = artifact["observed_real_job_ids"]
+            self.binding["selected_application_job_id"] = artifact["selected_application_job_id"]
         else:
             identity = self.binding.get("continuity")
             if not identity or artifact.get("application_id") != identity["application_id"]:
@@ -458,7 +560,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 raise ValueError("Recovery target identity mismatch")
             if any(row.get("step") == 55 and row.get("status") == "PASS"
                    for row in artifact.get("acceptance_observations", [])):
-                baseline, _ = _read_artifact(self.path.parent / "ui.json")
+                baseline_name = self.binding.get("derived_baseline", {}).get("artifact", "ui.json")
+                baseline, _ = _read_artifact(self.path.parent / baseline_name)
                 inventory = baseline.get("job_inventory")
                 recovery.validate_public_job_inventory(inventory)
                 if inventory.get("schema_version") != recovery.JOB_INVENTORY_VERSION:
@@ -475,8 +578,10 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                 "verification": {"tested_commit": self.binding["source"]["commit"],
                                  "evidence_artifact": f"{name}.json", "evidence_sha256": sha,
                                  "run_id": self.binding["run_id"], "evidence_kind": row["evidence_kind"],
-                                 "command": "python -m cli.ui_e2e --onboarding" if name == "ui" else
-                                            "python -m cli.compose_recovery --baseline ui.json",
+                                 "command": {"ui": "python -m cli.ui_e2e --onboarding",
+                                             "public": "cli.acceptance_public_source.run (explicit contained opt-in)",
+                                             "recovery": "python -m cli.compose_recovery --baseline " +
+                                                 self.binding.get("derived_baseline", {}).get("artifact", "ui.json")}[name],
                                  "observed_result": row["observable_result"],
                                  "executed_at_utc": artifact["timestamp"],
                                  "continuity": row["continuity"]}}
@@ -512,7 +617,18 @@ def _invoke(producer, args, run_id, **kwargs):
 
 
 def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, stop_after_ui=False,
-        build_receipt=None):
+        build_receipt=None, public_source_provider=None, public_source_preflight=None):
+    """Execute the fixture flow, optionally one explicit contained public segment.
+
+    Public opt-in is programmatic only. The root-owned callback enforces exclusive
+    scheduler, policy and collector ownership. On successful cleanup/recapture it
+    receives a final ``release`` stage to restore its own scheduler containment;
+    failures retain containment for the operator and never continue recovery.
+    """
+    if public_source_provider is not None and (
+            public_source_provider not in {"wwr", "remotive"} or not callable(public_source_preflight)):
+        raise ValueError("Public source opt-in requires an explicit supported provider and ownership containment callback")
+    public_module = _public_source_module() if public_source_provider else None
     target = validate_target(base_url, project_name, port)
     source = current_source()
     directory = Path(evidence_dir).resolve()
@@ -522,8 +638,8 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
     path = directory / "journey.json"
     if not resume and directory.exists() and any(directory.iterdir()):
         raise ValueError("New journey requires an empty evidence directory")
-    checkpoint = (JourneyCheckpoint.resume(path, run_id, source, target) if resume
-                  else JourneyCheckpoint.create(path, run_id, source, target))
+    checkpoint = (JourneyCheckpoint.resume(path, run_id, source, target, public_source_provider) if resume
+                  else JourneyCheckpoint.create(path, run_id, source, target, public_source_provider))
     runtime = preflight(target, source)
     previous = checkpoint.binding.get("runtime")
     if previous is not None and _runtime_identity(previous) != _runtime_identity(runtime):
@@ -536,8 +652,9 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
         validate_frontend_build_receipt(checkpoint.binding["frontend_build"]["receipt"], source, runtime)
     checkpoint.persist()
     try:
-        for name in ("ui", "recovery"):
-            if name == "recovery" and stop_after_ui:
+        names = ("ui", "public", "recovery") if public_source_provider else ("ui", "recovery")
+        for name in names:
+            if name != "ui" and stop_after_ui:
                 break
             if checkpoint.binding["segments"][name]["status"] == "COMPLETE":
                 continue
@@ -552,14 +669,40 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
             checkpoint.begin(name)
             if name == "ui":
                 _invoke(ui_e2e.run, (target["base_url"], artifact_path), run_id, onboarding=True)
+            elif name == "public":
+                baseline, ui_sha = _read_artifact(directory / "ui.json")
+                if ui_sha != checkpoint.binding["segments"]["ui"]["sha256"]:
+                    raise ValueError("UI baseline changed before public collection")
+                public_module.run(target["base_url"], baseline, artifact_path,
+                                  acceptance_run_id=run_id, provider=public_source_provider,
+                                  containment_preflight=public_source_preflight)
+                public, public_sha = _read_artifact(artifact_path)
+                validate_public_artifact(public, baseline, public_source_provider, run_id)
+                updated = recapture_public_baseline(baseline, public, target)
+                _validate_recaptured_baseline(baseline, updated)
+                inventory_ids = {row["job_id"] for row in updated["job_inventory"]["jobs"]}
+                if not set(public["observed_real_job_ids"]).issubset(inventory_ids):
+                    raise ValueError("Recaptured inventory is missing observed public jobs")
+                updated["baseline_lineage"] = {"ui_sha256": ui_sha, "public_sha256": public_sha}
+                derived_path = directory / "recovery-baseline.json"
+                if derived_path.exists():
+                    raise ValueError("Refusing to replace an existing derived recovery baseline")
+                JourneyCheckpoint(derived_path, updated).persist()
+                _, derived_sha = _read_artifact(derived_path)
+                checkpoint.binding["derived_baseline"] = {"artifact": derived_path.name, "sha256": derived_sha}
+                public_source_preflight("release", {"provider": public_source_provider,
+                    "base_url": target["base_url"], "acceptance_run_id": run_id,
+                    "cleanup_status": public["cleanup"]["status"]})
             else:
                 # This is exactly the checkpointed connected UI artifact, not a
                 # nearby test receipt or a baseline from another profile/run.
-                baseline, sha = _read_artifact(directory / "ui.json")
-                if sha != checkpoint.binding["segments"]["ui"]["sha256"]:
+                baseline_ref = checkpoint.binding.get("derived_baseline", checkpoint.binding["segments"]["ui"])
+                baseline_path = directory / baseline_ref["artifact"]
+                baseline, sha = _read_artifact(baseline_path)
+                if sha != baseline_ref["sha256"]:
                     raise ValueError("UI baseline changed before recovery")
                 _identity(baseline)
-                _invoke(recovery.run, (directory / "ui.json", artifact_path, project_name, port), run_id)
+                _invoke(recovery.run, (baseline_path, artifact_path, project_name, port), run_id)
             artifact, sha = _read_artifact(artifact_path)
             if current_source() != source:
                 raise ValueError("Source changed while producer was executing")

@@ -3,6 +3,7 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -44,11 +45,21 @@ def observation(step=4):
             "checks": [{"name": "resume_upload_and_extraction_visible", "passed": True}]}
 
 
+def inventory(ids=("mock-job-1",)):
+    jobs = [{"job_id": identifier, "canonical_sha256": "a" * 64, "source_copy_count": 1,
+             "source_copies_sha256": "b" * 64} for identifier in ids]
+    return {"schema_version": 3, "profile_id": IDENTITY["profile_id"], "job_count": len(jobs),
+            "source_copy_count": len(jobs), "jobs": jobs, "sha256": journey.recovery._inventory_digest(jobs)}
+
+
 def baseline():
     return {**IDENTITY, "source": SOURCE, "acceptance_run_id": RUN_ID,
             "timestamp": journey.utc_now(), "result": "PARTIAL", "mode": "ONBOARDING_FIXTURE",
             "target_origin": TARGET["base_url"],
             "external_submission_enabled": False,
+            "job_inventory": inventory(),
+            "local_persistence": {"schema_version": 1, "domains": {
+                name: {"count": 1, "sha256": "a" * 64} for name in journey.persistence.DOMAINS}},
             "confirmation": {"application_id": IDENTITY["application_id"],
                              "receipt": "synthetic-receipt", "submission_count": 1},
             "acceptance_observations": [observation()]}
@@ -334,11 +345,19 @@ def test_ui_observation_withholds_pass_without_exact_built_asset_receipt(tmp_pat
 def test_frontend_receipt_must_bind_source_tree_image_and_actual_assets():
     receipt = build_receipt()
     assert journey.validate_frontend_build_receipt(receipt, SOURCE, RUNTIME)["status"] == "PASS"
-    for key, value in (("source_commit", "c" * 40), ("source_tree", "c" * 40),
+    for key, value in (("schema_version", True), ("source_commit", "c" * 40), ("source_tree", "c" * 40),
                        ("image_id", "sha256:" + "c" * 64), ("frontend_assets", {"index.html": "c" * 64}),
                        ("source_archive_sha256", "c" * 64), ("dockerfile_sha256", "c" * 64)):
         with pytest.raises(ValueError, match="frontend"):
             journey.validate_frontend_build_receipt({**receipt, key: value}, SOURCE, RUNTIME)
+
+
+def test_checkpoint_schema_boolean_is_not_a_version_number(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    checkpoint.binding["schema_version"] = True
+    checkpoint.persist()
+    with pytest.raises(ValueError, match="identity mismatch"):
+        journey.JourneyCheckpoint.resume(checkpoint.path, RUN_ID, SOURCE, TARGET)
 
 
 def test_resume_retains_original_timestamp_and_marks_imported_observations(tmp_path):
@@ -383,3 +402,119 @@ def test_asset_manifest_paths_cannot_escape_the_owned_origin():
         with patch.object(journey.httpx, "Client") as client, pytest.raises(ValueError):
             journey.verify_served_assets(TARGET["base_url"], {"index.html": "f" * 64, name: "f" * 64})
         client.assert_not_called()
+
+
+def public_artifact():
+    row = observation(11)
+    row.update(evidence_kind="PUBLIC_READ_ONLY", checks=[
+        {"name": "same_profile_public_readonly_jobs_observed", "passed": True}])
+    return {**IDENTITY, "timestamp": journey.utc_now(), "source": SOURCE,
+            "acceptance_run_id": RUN_ID, "result": "PASS", "provider": "wwr",
+            "execution_scope": "LIVE_PUBLIC_READ_ONLY", "external_submission_enabled": False,
+            "observed_real_job_ids": ["real-job-1"], "selected_application_job_id": "mock-job-1",
+            "selected_application_route_id": "mock-route-1", "cleanup": {"status": "RESTORED_DISABLED"},
+            "acceptance_observations": [row]}
+
+
+def test_public_stage_requires_explicit_provider_and_containment_callback(tmp_path):
+    with patch.object(journey.ui_e2e, "run") as ui:
+        with pytest.raises(ValueError, match="containment"):
+            invoke(tmp_path, public_source_provider="wwr")
+    ui.assert_not_called()
+
+
+def test_public_provider_stage_rebases_only_inventory_and_keeps_mock_application(tmp_path):
+    events = []
+    def public_run(url, original, path, **kwargs):
+        assert kwargs["provider"] == "wwr" and kwargs["acceptance_run_id"] == RUN_ID
+        assert original["application_id"] == IDENTITY["application_id"]
+        events.append("public")
+        emit(path, public_artifact())
+
+    def recapture(original, public, target):
+        assert public["observed_real_job_ids"] == ["real-job-1"]
+        return {**original, "job_inventory": inventory(("mock-job-1", "real-job-1")),
+                "selected_application_job_id": "mock-job-1",
+                "selected_application_route_id": "mock-route-1"}
+
+    def recovery(path, output, *args):
+        events.append("recovery")
+        assert Path(path).name == "recovery-baseline.json"
+        value = json.loads(Path(path).read_text())
+        assert value["application_id"] == IDENTITY["application_id"]
+        assert value["baseline_lineage"]["ui_sha256"] == hashlib.sha256((tmp_path / "ui.json").read_bytes()).hexdigest()
+        emit(output, recovered())
+
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public_run)), \
+            patch.object(journey, "recapture_public_baseline", side_effect=recapture), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey.recovery, "run", side_effect=recovery):
+        report = invoke(tmp_path, public_source_provider="wwr",
+                        public_source_preflight=lambda stage, context: events.append(stage))
+    assert events == ["public", "release", "recovery"]
+    assert report["steps"][10]["status"] == "PASS"
+    assert report["steps"][10]["observation"]["evidence_kind"] == "PUBLIC_READ_ONLY"
+    assert report["selected_application_job_id"] == "mock-job-1"
+    assert report["observed_real_job_ids"] == ["real-job-1"]
+    assert report["result"] == "PARTIAL"
+    restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr").payload()
+    assert restored["steps"][10]["verification"]["resume_imported"] is True
+    assert restored["derived_baseline"] == report["derived_baseline"]
+    with (tmp_path / "recovery-baseline.json").open("ab") as stream:
+        stream.write(b" ")
+    with pytest.raises(ValueError, match="lineage"):
+        journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr")
+
+
+def test_public_failure_keeps_containment_and_never_restarts_or_recaptures(tmp_path):
+    def public_run(_, original, path, **kwargs):
+        value = public_artifact()
+        value.update(result="FAIL", cleanup={"status": "PRESERVED_POLICY_CHANGED"})
+        emit(path, value)
+
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=public_run)), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())), \
+            patch.object(journey, "recapture_public_baseline") as recapture, \
+            patch.object(journey.recovery, "run") as recovery:
+        releases = []
+        with pytest.raises(ValueError, match="public"):
+            invoke(tmp_path, public_source_provider="wwr",
+                   public_source_preflight=lambda stage, context: releases.append(stage))
+    assert releases == []
+    recapture.assert_not_called()
+    recovery.assert_not_called()
+    saved = json.loads((tmp_path / "journey.json").read_text())
+    assert saved["segments"]["public"]["status"] == "FAIL"
+
+
+def test_public_fixture_or_selected_mock_job_cannot_earn_real_source_credit():
+    for field, value in (("execution_scope", "CONTROLLED_TRANSPORT"),
+                         ("observed_real_job_ids", ["mock-job-1"]),
+                         ("profile_id", "other-profile")):
+        artifact = public_artifact()
+        artifact[field] = value
+        with pytest.raises(ValueError, match="public"):
+            journey.validate_public_artifact(artifact, baseline(), "wwr", RUN_ID)
+
+
+def test_recaptured_baseline_allows_only_catalog_and_inventory_changes():
+    original = baseline()
+    updated = copy.deepcopy(original)
+    updated["job_inventory"] = inventory(("mock-job-1", "real-job-1"))
+    updated["local_persistence"]["domains"]["company_source_catalog"] = {"count": 2, "sha256": "b" * 64}
+    assert journey._validate_recaptured_baseline(original, updated) == updated
+    for domain in journey.persistence.DOMAINS:
+        if domain == "company_source_catalog":
+            continue
+        changed = copy.deepcopy(updated)
+        changed["local_persistence"]["domains"][domain]["sha256"] = "c" * 64
+        with pytest.raises(ValueError, match="protected persistence"):
+            journey._validate_recaptured_baseline(original, changed)
+    changed = copy.deepcopy(updated)
+    changed["confirmation"]["receipt"] = "another-receipt"
+    with pytest.raises(ValueError, match="protected UI baseline"):
+        journey._validate_recaptured_baseline(original, changed)
