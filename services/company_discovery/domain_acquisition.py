@@ -260,7 +260,7 @@ def corroborated_job_page(proof, company_name, response, apply_response=None):
     return _apply_page_has_native_greenhouse_frame(proof, apply_response, str(response.url))
 
 
-def acquire_official_domain(store, authorization, client, check, enrollment_guard):
+def acquire_official_domain_with_native_proof(store, authorization, client, check, enrollment_guard):
     """Corroborate outside transactions, then atomically authorize live evidence."""
     from services.company_discovery.requests import _origin
 
@@ -274,7 +274,8 @@ def acquire_official_domain(store, authorization, client, check, enrollment_guar
     apply_response = None
     if not _job_page_identity_matches(proof, company_name, response):
         raise PublicFetchError('COMPANY_DOMAIN_CORROBORATION_REQUIRED')
-    if not _direct_native_job_link(proof, response):
+    direct_native_link = _direct_native_job_link(proof, response)
+    if not direct_native_link:
         try:
             if (greenhouse_board_tenants(str(response.url), response.text)
                     or lever_board_tenants(str(response.url), response.text)):
@@ -333,4 +334,35 @@ def acquire_official_domain(store, authorization, client, check, enrollment_guar
             request_id=authorization['request_id'], method='FIRST_PARTY_JOB_LINK',
             snapshot_sha256=proof['snapshot_sha256'], response_sha256=hashlib.sha256(response.content).hexdigest(),
             apply_response_sha256=apply_response_sha256))
+    # Carry only the identity and content digests needed by downstream
+    # enrollment. Raw employer HTML and the apply page are not persisted or
+    # handed to the collector.
+    native_apply_proof = dict(
+        request_id=authorization['request_id'],
+        company_id=authorization['company_id'],
+        profile_id=proof['profile_id'],
+        profile_version=proof['profile_version'],
+        source_id=proof['source_id'],
+        collector_source_id=proof['collector_source_id'],
+        candidate_id=proof['candidate_id'],
+        snapshot_id=proof['snapshot_id'],
+        snapshot_sha256=proof['snapshot_sha256'],
+        quality_observation_id=proof['quality_observation_id'],
+        provider='greenhouse',
+        tenant=proof['tenant'],
+        native_job_id=proof['native_job_id'],
+        title=proof['title'],
+        reciprocal_method=('DIRECT_NATIVE_JOB_LINK' if direct_native_link else 'SAME_ORIGIN_APPLY_PAGE'),
+        employer_url=str(response.url),
+        employer_response_sha256=hashlib.sha256(response.content).hexdigest(),
+        apply_url=str(apply_response.url) if apply_response is not None else None,
+        apply_response_sha256=apply_response_sha256,
+    )
+    return response, native_apply_proof
+
+
+def acquire_official_domain(store, authorization, client, check, enrollment_guard):
+    """Compatibility wrapper for callers that need only the fetched page."""
+    response, _proof = acquire_official_domain_with_native_proof(
+        store, authorization, client, check, enrollment_guard)
     return response

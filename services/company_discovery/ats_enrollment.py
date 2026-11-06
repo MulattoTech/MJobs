@@ -1,5 +1,7 @@
 """Bind supported public ATS inventories to verified official employer evidence."""
 from datetime import datetime, timezone
+import re
+from urllib.parse import urlsplit
 
 from sqlalchemy import or_, select, update
 
@@ -42,6 +44,60 @@ def _owner_clause(provider, tenant):
         clause = or_(clause, m.company_sources.c.tenant == tenant.split(':',1)[1],
                      m.company_sources.c.endpoint == _endpoint(tenant,provider))
     return (m.company_sources.c.provider == provider) & clause
+
+
+def _validate_native_apply_handoff(proof, authorization, career_url, profile_id, profile_version):
+    """Bind auto-enrollment to the exact native snapshot and reviewed apply page."""
+    if not isinstance(proof, dict) or not isinstance(authorization, dict):
+        raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    native = authorization.get('native_job_link')
+    if authorization.get('authorization') != 'ATS_JOB_LINK_VERIFIED' or not isinstance(native, dict):
+        raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    expected = {
+        'request_id': authorization.get('request_id'),
+        'company_id': authorization.get('company_id'),
+        'profile_id': native.get('profile_id'),
+        'profile_version': native.get('profile_version'),
+        'source_id': native.get('source_id'),
+        'collector_source_id': native.get('collector_source_id'),
+        'candidate_id': native.get('candidate_id'),
+        'snapshot_id': native.get('snapshot_id'),
+        'snapshot_sha256': native.get('snapshot_sha256'),
+        'quality_observation_id': native.get('quality_observation_id'),
+        'provider': native.get('provider'),
+        'tenant': native.get('tenant'),
+        'native_job_id': native.get('native_job_id'),
+        'title': native.get('title'),
+    }
+    reciprocal_method = proof.get('reciprocal_method')
+    apply_proof_valid = (reciprocal_method == 'SAME_ORIGIN_APPLY_PAGE'
+        and bool(proof.get('apply_url'))
+        and bool(re.fullmatch(r'[0-9a-f]{64}', str(proof.get('apply_response_sha256') or ''))))
+    direct_proof_valid = (reciprocal_method == 'DIRECT_NATIVE_JOB_LINK'
+        and proof.get('apply_url') is None and proof.get('apply_response_sha256') is None)
+    if (any(proof.get(key) != value for key, value in expected.items())
+            or proof.get('provider') != 'greenhouse'
+            or profile_id != native.get('profile_id')
+            or profile_version != native.get('profile_version')
+            or proof.get('employer_url') != career_url
+            or not (apply_proof_valid or direct_proof_valid)
+            or not re.fullmatch(r'[0-9a-f]{64}', str(proof.get('employer_response_sha256') or ''))
+            ):
+        raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    if apply_proof_valid:
+        try:
+            employer = urlsplit(proof['employer_url'])
+            apply = urlsplit(proof['apply_url'])
+            same_origin = (employer.scheme == apply.scheme == 'https'
+                and employer.hostname == apply.hostname
+                and employer.port in (None, 443) and apply.port in (None, 443)
+                and not employer.username and not employer.password
+                and not apply.username and not apply.password)
+        except (TypeError, ValueError):
+            same_origin = False
+        if not same_origin:
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    return native['tenant']
 
 
 def bound_company_source(store, connection, source, *, lock=False):
@@ -220,12 +276,29 @@ def _retained_native_inventory(store, collector_id, source_id, authorization, en
 
 def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_id,
                       profile_version=None, check, enrollment_guard=None, preserve_source_id=None,
-                      identity_confirmation=None, provider='greenhouse'):
+                      identity_confirmation=None, provider='greenhouse', native_apply_proof=None,
+                      native_apply_authorization=None):
     """Enroll once, then use the normal bounded collector, normalization and dedupe."""
     from services.discovery.sources.collect import configure_source, collect_source
 
+    native_apply_tenant = None
+    if native_apply_proof is not None:
+        if provider != 'greenhouse':
+            raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED')
+        native_apply_tenant = _validate_native_apply_handoff(
+            native_apply_proof, native_apply_authorization, career_url, profile_id, profile_version)
     if provider=='greenhouse':
-        tenant = greenhouse_tenant(career_url,html)
+        if native_apply_tenant:
+            try:
+                observed_tenants = greenhouse_board_tenants(career_url, html)
+                conflicting_lever = lever_board_tenants(career_url, html)
+            except ValueError:
+                raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED') from None
+            if conflicting_lever or (observed_tenants and observed_tenants != {native_apply_tenant}):
+                raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED')
+            tenant = native_apply_tenant
+        else:
+            tenant = greenhouse_tenant(career_url,html)
     elif provider=='lever':
         try:
             tenants=lever_board_tenants(career_url,html)
@@ -257,6 +330,8 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
         lock_company_source_hosts(connection, (endpoint, career_url))
         authorization = enrollment_guard(connection) if enrollment_guard else None
         if identity_confirmation and (not authorization or authorization != identity_confirmation):
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+        if native_apply_proof is not None and authorization != native_apply_authorization:
             raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         # Existing collector policy is immutable during automatic enrollment.
         collector_id = configure_source(store, tenant, provider=provider, connection=connection, preserve_existing=True)
