@@ -42,6 +42,7 @@ def ledger(*, statuses: list[str] | None = None) -> dict:
                                                    ("D", 32, 35), ("E", 36, 53), ("F", 54, 60))
                                                   if start <= number <= end),
              "original_requirement": titles[number - 1], "status": statuses[number - 1],
+             "missing_behavior": "Complete this numbered journey step with connected acceptance evidence.",
              "verification": {"tested_commit": None, "executed_at_utc": None,
                               "observed_result": None},
              "review": {"status": "NOT_RUN"}, "merge": {"status": "NOT_MERGED"}}
@@ -144,9 +145,36 @@ class CampaignProgressTests(unittest.TestCase):
         self.assertFalse(any("private" in blocker for blocker in campaign["blockers"]))
         value["acceptance_ledger_sha256"] = "0" * 64
         handoff.write_text(json.dumps(value), encoding="utf-8")
+        response = campaign_progress(ROOT, configured_root=str(self.campaign_root))
+        self.assertFalse(response["available"])
+        self.assertEqual(response["campaigns"], [])
+        self.assertIn("requirements", response)
+
+    def test_safe_long_prose_is_truncated_and_handoff_action_is_used(self):
+        import hashlib
+
+        path = self.campaign_root / "planning" / "acceptance" / "MJ-REQ-292.json"
+        value = ledger()
+        value["steps"][0]["missing_behavior"] = "Remaining gap " * 30
+        value["blockers"] = ["Ledger blocker " * 30]
+        path.write_text(json.dumps(value), encoding="utf-8")
+        handoff = self.campaign_root / "planning" / "agent_handoffs" / "MJ-REQ-292.json"
+        handoff.parent.mkdir(parents=True)
+        handoff.write_text(json.dumps({
+            "task_id": "MJ-REQ-292",
+            "acceptance_ledger_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "next_action": "Recorded next action " * 30,
+            "blockers": ["Handoff blocker " * 30],
+        }), encoding="utf-8")
         campaign = campaign_progress(ROOT, configured_root=str(self.campaign_root))["campaigns"][0]
-        self.assertFalse(campaign["ledger_hash_match"])
-        self.assertIn("Handoff ledger digest does not match the current ledger.", campaign["blockers"])
+        step = campaign["phases"][0]["steps"][0]
+        self.assertTrue(step["remaining_gap"].startswith("Remaining gap"))
+        self.assertEqual(len(step["remaining_gap"]), 240)
+        self.assertTrue(step["remaining_gap"].endswith("…"))
+        self.assertTrue(campaign["next_action"].startswith("Recorded next action"))
+        self.assertTrue(campaign["next_action"].endswith("…"))
+        self.assertTrue(any(blocker.startswith("Recorded handoff: Handoff blocker")
+                            and blocker.endswith("…") for blocker in campaign["blockers"]))
 
     def test_configured_source_precedence_and_invalid_local_config_fail_closed(self):
         local_app_data = self.campaign_root / "local"
@@ -170,11 +198,14 @@ class CampaignProgressTests(unittest.TestCase):
     def test_private_or_command_like_checkpoint_text_is_not_returned(self):
         path = self.campaign_root / "planning" / "acceptance" / "MJ-REQ-292.json"
         value = ledger()
-        value["steps"][0]["verification"]["observed_result"] = "powershell remove-item C:\\private\\profile"
+        value["steps"][0]["missing_behavior"] = "powershell remove-item C:\\private\\profile"
+        value["steps"][0]["verification"]["observed_result"] = "git status --short"
         path.write_text(json.dumps(value), encoding="utf-8")
         response = campaign_progress(ROOT, configured_root=str(self.campaign_root))
         self.assertTrue(response["available"])
-        self.assertNotIn("observed_result", response["campaigns"][0]["phases"][0]["steps"][0])
+        step = response["campaigns"][0]["phases"][0]["steps"][0]
+        self.assertNotIn("observed_result", step)
+        self.assertNotIn("remaining_gap", step)
         self.assertNotIn("private", json.dumps(response).lower())
 
 

@@ -18,6 +18,8 @@ MAX_HANDOFF_BYTES = 64_000
 MAX_STRING = 500
 STATUSES = {"PASS", "PARTIAL", "NOT_RUN", "FAIL", "BLOCKED"}
 SCORE_KEYS = ("verified_pass", "PARTIAL", "NOT_RUN", "FAIL", "BLOCKED")
+REVIEW_STATUSES = {"NOT_RUN", "PASS", "PARTIAL", "FAIL"}
+MERGE_STATUSES = {"NOT_MERGED", "MERGED"}
 PHASES = (("A", 1, 8), ("B", 9, 22), ("C", 23, 31),
           ("D", 32, 35), ("E", 36, 53), ("F", 54, 60))
 STEP_HEADING = re.compile(r"^\s*(\d{1,2})\.\s+(.+?)\s*$", re.MULTILINE)
@@ -25,6 +27,12 @@ CONTROL = re.compile(r"[\x00-\x1f\x7f]")
 PRIVATE_TEXT = re.compile(
     r"(?:[a-z]:\\|\\\\[^\\\s]+\\|/Users/|/home/|"
     r"-----BEGIN|\b(?:token|password|secret)\s*=)", re.IGNORECASE,
+)
+COMMAND_TEXT = re.compile(
+    r"\b(?:python(?:\.exe)?\s+(?:-m\b|-c\b|[\w./\\-]+\.py\b)|"
+    r"git\s+(?:-C\b|status\b|rev-parse\b|commit\b|push\b|checkout\b|worktree\b|diff\b|add\b)|"
+    r"powershell(?:\.exe)?\s+(?:-|[A-Za-z])|npm\s+(?:--|install\b|run\b|test\b))",
+    re.IGNORECASE,
 )
 
 
@@ -40,6 +48,16 @@ def _safe_string(value: Any, *, limit: int = MAX_STRING) -> str:
             or PRIVATE_TEXT.search(value)):
         raise CampaignDataError("invalid text")
     return value
+
+
+def _safe_optional_prose(value: Any, *, limit: int = 240) -> str | None:
+    """Validate bounded source prose before truncating its dashboard display."""
+    if not isinstance(value, str) or len(value) > 4000:
+        return None
+    value = CONTROL.sub(" ", value).strip()
+    if not value or PRIVATE_TEXT.search(value) or COMMAND_TEXT.search(value):
+        return None
+    return value if len(value) <= limit else value[:limit - 1].rstrip() + "…"
 
 
 def _json_file(path: Path, limit: int) -> tuple[dict[str, Any], bytes]:
@@ -163,7 +181,8 @@ def _load_handoff(path: Path) -> dict[str, Any] | None:
         handoff, _ = _json_file(path, MAX_HANDOFF_BYTES)
     except CampaignDataError:
         return None
-    if handoff.get("requirement_id", handoff.get("task")) not in (None, REQUIREMENT_ID):
+    identities = [handoff[key] for key in ("requirement_id", "task_id", "task") if key in handoff]
+    if any(identity != REQUIREMENT_ID for identity in identities):
         return None
     return handoff
 
@@ -242,16 +261,17 @@ def campaign_progress(repo: Path, *, configured_root: str | None = None,
                 "id": phase_id, "label": f"Phase {phase_id}", "steps": [],
             })
             step = {"number": number, "title": titles[number - 1], "status": status}
+            remaining_gap = _safe_optional_prose(item.get("missing_behavior"))
+            if remaining_gap:
+                step["remaining_gap"] = remaining_gap
             verification = item.get("verification")
             if verification is not None:
                 if not isinstance(verification, dict):
                     raise CampaignDataError("invalid verification")
                 if verification.get("observed_result") is not None:
-                    try:
-                        step["observed_result"] = _safe_string(verification["observed_result"], limit=240)
-                    except CampaignDataError:
-                        # Redact only this optional prose field; keep valid step/status data.
-                        pass
+                    observed = _safe_optional_prose(verification["observed_result"])
+                    if observed:
+                        step["observed_result"] = observed
                 tested = verification.get("tested_commit")
                 if tested is not None:
                     tested = _safe_string(tested, limit=64)
@@ -266,8 +286,9 @@ def campaign_progress(repo: Path, *, configured_root: str | None = None,
                     if not isinstance(state, dict):
                         raise CampaignDataError("invalid review or merge state")
                     status_value = state.get("status")
-                    if status_value is not None:
-                        step[field] = _safe_string(status_value, limit=80)
+                    allowed = REVIEW_STATUSES if source == "review" else MERGE_STATUSES
+                    if status_value in allowed:
+                        step[field] = status_value
             phase["steps"].append(step)
             steps.append(step)
         if seen != set(range(1, 61)):
@@ -300,27 +321,25 @@ def campaign_progress(repo: Path, *, configured_root: str | None = None,
             raise CampaignDataError("invalid blockers")
         blockers = []
         for item in blockers_raw:
-            try:
-                blockers.append(_safe_string(item, limit=240))
-            except CampaignDataError:
-                continue
+            text = _safe_optional_prose(item)
+            if text:
+                blockers.append(text)
         handoff_blockers = handoff.get("blockers", []) if handoff else []
         if isinstance(handoff_blockers, list):
             for blocker in handoff_blockers[:40]:
-                try:
-                    blockers.append("Recorded handoff: " + _safe_string(blocker, limit=240))
-                except CampaignDataError:
-                    continue
+                text = _safe_optional_prose(blocker)
+                if text:
+                    blockers.append("Recorded handoff: " + text)
         if handoff and handoff.get("acceptance_ledger_sha256") is not None and handoff_ledger_hash is None:
-            blockers.append("Handoff ledger digest is invalid.")
-        elif ledger_hash_match is False:
-            blockers.append("Handoff ledger digest does not match the current ledger.")
+            raise CampaignDataError("invalid handoff ledger digest")
+        if ledger_hash_match is False:
+            raise CampaignDataError("handoff ledger digest mismatch")
         if (isinstance(ledger_revision, str) and re.fullmatch(r"[0-9a-f]{7,64}", ledger_revision)
                 and source_revision and not source_revision.startswith(ledger_revision)):
             blockers.append("Ledger revision differs from the current checkout revision.")
         if handoff_revision and source_revision and not source_revision.startswith(handoff_revision):
             blockers.append("Handoff revision differs from the current checkout revision.")
-        next_action = "Continue the numbered journey with exact-source evidence and independent review."
+        next_action = _safe_optional_prose(handoff.get("next_action")) if handoff else None
         item = {
             "requirement_id": REQUIREMENT_ID,
             "title": _safe_string(ledger.get("title", "MJ-REQ-292: Complete connected user journey"), limit=180),
@@ -333,7 +352,7 @@ def campaign_progress(repo: Path, *, configured_root: str | None = None,
             "scoreboard": score,
             "phases": phases,
             "blockers": blockers,
-            "next_action": next_action,
+            "next_action": next_action or "No next action recorded.",
         }
         if handoff_revision:
             item["handoff_revision"] = handoff_revision
