@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EMPTY_HASH = hashlib.sha256(b"").hexdigest()
 STATUSES = {"PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED"}
 IDENTIFIERS = ("profile_id", "application_id", "operation_id", "request_id")
+CONTINUITY_KEYS = frozenset((*IDENTIFIERS, "job_id", "document_id", "document_ids"))
 SOURCE_ROOTS = ("apps", "cli", "fixtures", "infra", "migrations", "packages",
                 "planning", "services", "tests", "tools", "workers")
 SOURCE_FILES = ("requirements.txt", "requirements.lock", "pyproject.toml")
@@ -66,7 +67,7 @@ REQUIRED_CHECKS = {
     19: {"source_copy_ids_read_back", "source_copy_panels_visible"},
     20: {"verified_ats_authority_visible", "preferred_route_readback"},
     21: {"application_route_visible"},
-    22: {"match_score_explained"},
+    22: {"visible_numeric_match_score", "selected_job_requirement_explanation_visible"},
     32: {"strong_match_available", "saved_status_readback"},
     33: {"tailored_resume_uses_selected_approved_facts", "omitted_fact_visible_and_excluded"},
     34: {"generated_base_visible", "tailored_version_visible", "omission_and_change_summary_visible"},
@@ -291,7 +292,69 @@ def _read_artifact(path):
 
 def _identity(baseline):
     recovery.validate_baseline(baseline)
-    return {key: baseline[key] for key in IDENTIFIERS}
+    identity = {key: baseline[key] for key in IDENTIFIERS}
+    if ("selected_application_id" in baseline
+            and baseline["selected_application_id"] != identity["application_id"]):
+        raise ValueError("Selected application identity differs from the recovery baseline")
+    if "selected_application_job_id" in baseline:
+        value = baseline["selected_application_job_id"]
+        if not isinstance(value, str) or not SAFE_ID.fullmatch(value):
+            raise ValueError("Invalid selected application job identity")
+        identity["job_id"] = value
+    for field, key, maximum in (("observed_job_ids", "observed_job_ids", 200),
+                                 ("application_document_ids", "document_ids", 100)):
+        if field in baseline:
+            identity[key] = _bounded_identity_ids(baseline[field], maximum, "readback identity")
+    return identity
+
+
+def _bounded_identity_ids(value, maximum, context):
+    if (not isinstance(value, list) or not 1 <= len(value) <= maximum
+            or any(not isinstance(item, str) or not SAFE_ID.fullmatch(item) for item in value)
+            or len(set(value)) != len(value)):
+        raise ValueError("Invalid " + context + " collection")
+    return list(value)
+
+
+def _validate_continuity(continuity, identity, step, status, segment):
+    if not isinstance(continuity, dict) or not set(continuity).issubset(CONTINUITY_KEYS):
+        raise ValueError("Invalid continuity identifiers")
+    for key, value in continuity.items():
+        if key == "document_ids":
+            documents = _bounded_identity_ids(value, 10, "continuity document identity")
+            if not set(documents).issubset(identity.get("document_ids", [])):
+                raise ValueError("Numbered observation continuity document identity mismatch")
+        elif not isinstance(value, str) or not SAFE_ID.fullmatch(value):
+            raise ValueError("Invalid numbered observation continuity identity")
+        elif key == "document_id":
+            if value not in identity.get("document_ids", []):
+                raise ValueError("Numbered observation continuity document identity mismatch")
+        elif key == "job_id":
+            # Browsing may inspect A; saving/preparing B must stay tied to B.
+            # Including any application-scoped identifier also asserts that tie.
+            application_scope = step >= 32 or any(name in continuity for name in IDENTIFIERS[1:])
+            if ((application_scope and value != identity.get("job_id"))
+                    or (not application_scope and value not in identity.get("observed_job_ids", []))):
+                raise ValueError("Numbered observation continuity job identity mismatch")
+        elif identity.get(key) != value:
+            raise ValueError("Numbered observation continuity identity mismatch")
+    if ("document_id" in continuity and "document_ids" in continuity
+            and continuity["document_id"] not in continuity["document_ids"]):
+        raise ValueError("Numbered observation continuity document identities conflict")
+    if status == "PASS":
+        required = set(IDENTIFIERS if step >= 54 or segment == "public" else
+                       ("profile_id", "application_id") if step >= 33 else
+                       ("profile_id",) if step >= 4 else ())
+        if 17 <= step <= 22 or 32 <= step <= 53:
+            required.add("job_id")
+        if step in {33, 34}:
+            required.add("document_ids")
+        elif step == 35:
+            required.add("document_id")
+        if not required.issubset(continuity):
+            raise ValueError("PASS observation is missing continuity identity")
+        if step == 34 and len(continuity["document_ids"]) < 2:
+            raise ValueError("Comparison continuity requires distinct base and tailored document identities")
 
 
 def _public_source_module():
@@ -327,6 +390,9 @@ def validate_public_artifact(artifact, baseline, provider, run_id):
 
 def _validate_recaptured_baseline(original, updated):
     _identity(updated)
+    for key in ("selected_application_job_id", "selected_application_route_id"):
+        if key in original and updated.get(key) != original[key]:
+            raise ValueError("Public collection changed the selected application identity")
     mutable = {"job_inventory", "local_persistence", "selected_application_job_id",
                "selected_application_route_id", "baseline_lineage", "baseline_recaptured_at_utc"}
     if any(original.get(key) != updated.get(key) for key in set(original) | set(updated) if key not in mutable):
@@ -400,18 +466,8 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         if not isinstance(observable, str) or not observable.strip() or len(observable) > 500:
             raise ValueError("Numbered observation requires bounded sanitized observable result")
         continuity = row.get("continuity")
-        if not isinstance(continuity, dict) or not set(continuity).issubset(IDENTIFIERS):
-            raise ValueError("Invalid continuity identifiers")
-        for key, value in continuity.items():
-            if (not isinstance(value, str) or not SAFE_ID.fullmatch(value)
-                    or identity.get(key) != value):
-                raise ValueError("Numbered observation continuity identity mismatch")
+        _validate_continuity(continuity, identity, step, status, segment)
         if status == "PASS":
-            required = set(IDENTIFIERS if step >= 54 or segment == "public" else
-                           ("profile_id", "application_id") if step >= 36 else
-                           ("profile_id",) if step >= 4 else ())
-            if not required.issubset(continuity):
-                raise ValueError("PASS observation is missing continuity identity")
             if step == 11 and segment != "public":
                 raise ValueError("Criterion 11 cannot PASS from fixture evidence")
         checks = row.get("checks")
@@ -587,6 +643,9 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                                  "continuity": row["continuity"]}}
             if name == "ui" and row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
                 report_row.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
+            if "job_id" in row["continuity"]:
+                report_row["verification"]["job_scope"] = (
+                    "SELECTED_APPLICATION_JOB" if row["step"] >= 32 else "SAME_PROFILE_BROWSED_JOB")
             self.binding["steps"][row["step"] - 1] = report_row
         self.binding["segments"][name] = {"status": "COMPLETE", "artifact": f"{name}.json", "sha256": sha}
         self.binding.pop("active_segment", None)

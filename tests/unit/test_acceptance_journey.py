@@ -57,6 +57,9 @@ def baseline():
             "timestamp": journey.utc_now(), "result": "PARTIAL", "mode": "ONBOARDING_FIXTURE",
             "target_origin": TARGET["base_url"],
             "external_submission_enabled": False,
+            "observed_job_ids": ["browse-job-1", "mock-job-1"],
+            "selected_application_job_id": "mock-job-1",
+            "application_document_ids": ["resume-1", "base-1", "letter-1"],
             "job_inventory": inventory(),
             "local_persistence": {"schema_version": 1, "domains": {
                 name: {"count": 1, "sha256": "a" * 64} for name in journey.persistence.DOMAINS}},
@@ -326,9 +329,11 @@ def test_unregistered_step_or_wrong_check_cannot_earn_observed_pass():
                        (59, "scheduler_process_running"), (60, "stack_restarted")):
         artifact = baseline()
         artifact["acceptance_observations"][0].update(step=step, checks=[{"name": name, "passed": True}])
+        if step == 36:
+            artifact["acceptance_observations"][0]["continuity"]["job_id"] = "mock-job-1"
         with pytest.raises(ValueError, match="registered"):
             journey.numbered_observations(artifact, segment="recovery" if step >= 54 else "ui",
-                                          run_id=RUN_ID, source=SOURCE, identity=IDENTITY)
+                                          run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
 
 
 def test_ui_observation_withholds_pass_without_exact_built_asset_receipt(tmp_path):
@@ -518,3 +523,101 @@ def test_recaptured_baseline_allows_only_catalog_and_inventory_changes():
     changed["confirmation"]["receipt"] = "another-receipt"
     with pytest.raises(ValueError, match="protected UI baseline"):
         journey._validate_recaptured_baseline(original, changed)
+
+
+def scoped_observation(step):
+    row = observation(step)
+    row["checks"] = [{"name": name, "passed": True} for name in sorted(journey.REQUIRED_CHECKS[step])]
+    row["continuity"] = {"profile_id": IDENTITY["profile_id"],
+                         "job_id": "browse-job-1" if step < 32 else "mock-job-1"}
+    if step >= 33:
+        row["continuity"]["application_id"] = IDENTITY["application_id"]
+    if step == 33:
+        row["continuity"]["document_ids"] = ["resume-1", "letter-1"]
+    elif step == 34:
+        row["continuity"]["document_ids"] = ["base-1", "resume-1"]
+    elif step == 35:
+        row["continuity"]["document_id"] = "letter-1"
+    return row
+
+
+@pytest.mark.parametrize("step", [17, 18, 19, 20, 21, 22, 32, 33, 34, 35])
+def test_pass_requires_concrete_job_and_document_lineage(step):
+    artifact = baseline()
+    artifact["acceptance_observations"] = [scoped_observation(step)]
+    rows = journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
+                                        source=SOURCE, identity=journey._identity(artifact))
+    assert rows[0]["continuity"]["job_id"] == ("browse-job-1" if step < 32 else "mock-job-1")
+    for field in ("job_id", *( ["application_id"] if step >= 33 else []),
+                  *( ["document_ids"] if step in {33, 34} else []),
+                  *( ["document_id"] if step == 35 else [])):
+        missing = copy.deepcopy(artifact)
+        missing["acceptance_observations"][0]["continuity"].pop(field)
+        with pytest.raises(ValueError, match="continuity"):
+            journey.numbered_observations(missing, segment="ui", run_id=RUN_ID,
+                                          source=SOURCE, identity=journey._identity(missing))
+
+
+@pytest.mark.parametrize("step,changes", [
+    (18, {"job_id": "another-profile-job"}),
+    (18, {"application_id": IDENTITY["application_id"]}),
+    (32, {"job_id": "browse-job-1"}),
+    (33, {"job_id": "browse-job-1"}),
+    (33, {"application_id": "other-application"}),
+    (33, {"document_ids": ["other-application-document"]}),
+    (34, {"document_ids": ["resume-1"]}),
+    (34, {"document_ids": ["resume-1", "resume-1"]}),
+    (34, {"document_ids": "resume-1"}),
+    (35, {"document_id": "other-application-letter"}),
+])
+def test_mismatched_job_or_document_lineage_is_rejected(step, changes):
+    artifact = baseline()
+    artifact["acceptance_observations"] = [scoped_observation(step)]
+    artifact["acceptance_observations"][0]["continuity"].update(changes)
+    with pytest.raises(ValueError, match="continuity"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID,
+                                      source=SOURCE, identity=journey._identity(artifact))
+
+
+@pytest.mark.parametrize("field,value", [
+    ("observed_job_ids", ["https://example.com/private"]),
+    ("observed_job_ids", ["job-1", "job-1"]),
+    ("selected_application_job_id", "https://example.com/private"),
+    ("application_document_ids", []),
+    ("application_document_ids", ["document-1"] * 101),
+    ("selected_application_id", "another-application"),
+])
+def test_authoritative_lineage_readback_ids_are_bounded_and_consistent(field, value):
+    artifact = baseline()
+    artifact[field] = value
+    with pytest.raises(ValueError, match="identity"):
+        journey._identity(artifact)
+
+
+def test_lineage_authority_is_required_and_public_recapture_cannot_retarget_application():
+    artifact = baseline()
+    artifact["acceptance_observations"] = [scoped_observation(33)]
+    for field in ("selected_application_job_id", "application_document_ids"):
+        missing = copy.deepcopy(artifact)
+        missing.pop(field)
+        with pytest.raises(ValueError, match="continuity"):
+            journey.numbered_observations(missing, segment="ui", run_id=RUN_ID,
+                                          source=SOURCE, identity=journey._identity(missing))
+    updated = copy.deepcopy(artifact)
+    updated["selected_application_job_id"] = "different-job"
+    with pytest.raises(ValueError, match="selected application"):
+        journey._validate_recaptured_baseline(artifact, updated)
+
+
+def test_report_keeps_browsed_job_scope_separate_from_selected_application_scope(tmp_path):
+    checkpoint = journey.JourneyCheckpoint.create(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET)
+    checkpoint.binding["frontend_build"] = {"status": "PASS"}
+    artifact = baseline()
+    artifact["acceptance_observations"] = [scoped_observation(18), scoped_observation(33)]
+    checkpoint.complete_segment("ui", artifact, "a" * 64)
+    report = checkpoint.payload()
+    assert report["steps"][17]["verification"]["job_scope"] == "SAME_PROFILE_BROWSED_JOB"
+    assert report["steps"][32]["verification"]["job_scope"] == "SELECTED_APPLICATION_JOB"
+    assert report["steps"][17]["verification"]["continuity"]["job_id"] == "browse-job-1"
+    assert report["steps"][32]["verification"]["continuity"]["job_id"] == "mock-job-1"
+    assert report["steps"][32]["verification"]["continuity"]["document_ids"] == ["resume-1", "letter-1"]
