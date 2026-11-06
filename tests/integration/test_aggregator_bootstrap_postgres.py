@@ -72,6 +72,19 @@ class AggregatorBootstrapCollectionPostgresTests(collection.AggregatorBootstrapC
     setUp = _PostgresCollectionFixture.setUp
     _drop_owned_schema = _PostgresCollectionFixture._drop_owned_schema
 
+    def test_positive_native_hint_parsing_can_lock_source_before_staging(self):
+        from services.company_discovery.aggregator_bootstrap import extract_bootstrap_hint
+        self.rows[0]['description'] += '<a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a>'
+        def probe(raw, normalized):
+            with self.store.engine.begin() as connection:
+                self.assertEqual(connection.execute(select(m.job_sources.c.id).where(
+                    m.job_sources.c.id == self.source_id).with_for_update(nowait=True)).scalar_one(), self.source_id)
+            return extract_bootstrap_hint(raw, normalized)
+        with patch('services.company_discovery.aggregator_bootstrap.extract_bootstrap_hint', side_effect=probe) as extract:
+            self.assertEqual(self.collect()['jobs_seen'], 1)
+        extract.assert_called_once()
+        self.assertEqual(len(self.pending()), 1)
+
     def test_pure_hint_parsing_does_not_hold_the_database_write_lock(self):
         def probe(_raw, _normalized):
             # A distinct connection must be able to lock the exact source row
