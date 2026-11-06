@@ -4,29 +4,48 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+  "head_sha": "e61e5f16b1473bb862151517e2040b6182b28191",
   "routing_state": "EXECUTE",
-  "next_action": "Integrate reviewed runner and validator; implement owned domain acquisition, numbered UI observations, ATS fixture binding and direct fixture monitoring; execute isolated connected stack.",
+  "next_action": "Run isolated PostgreSQL/Redis/RQ browser baseline; integrate reviewed API/worker/runner changes; wire native ATS fixture workflow; rerun complete connected journey against final exact image.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
   ],
   "tests": [
     {
-      "command": "All 60 numbered current-campaign acceptance steps; existing historical evidence remains separately scoped.",
+      "command": "pytest ledger, official-domain sameAs, owned ATS fixture and document provenance tests",
+      "result": "PASS",
+      "tested_commit": "1c63324fd566244b2a7abc247973cf538c9d23b5",
+      "observed": "97 tests and 34 subtests passed; scoped tests only"
+    },
+    {
+      "command": "Dockerfile frontend build stage",
+      "result": "PASS",
+      "tested_commit": "1c63324fd566244b2a7abc247973cf538c9d23b5",
+      "observed": "158 files / 1129 frontend tests; exact image sha256:11082f2fec6dda6a9ac317dd5790a70bd98b1924aee43f7a88820f3e5e934808"
+    },
+    {
+      "command": "All 60 original connected acceptance steps",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "AO coordination send failed because daemon is down; existing mjobs-16 integration ownership retained and workers/tasks.py remains owned by frozen PR967."
+    "Full connected acceptance has not run; isolated baseline stack is being provisioned.",
+    "Public-source helper review fixes and UI identity/score observation fixes pending.",
+    "Controlled native ATS helper still requires durable application API/RQ integration.",
+    "Required protected GitHub CI and merge are NOT_RUN."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
+    "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
     "verified_pass": 0,
     "total": 60,
+    "PARTIAL": 0,
+    "FAIL": 0,
+    "NOT_RUN": 60,
+    "BLOCKED": 0,
     "umbrella_result": "PARTIAL",
-    "source_revision": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-    "note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved."
+    "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec"
   },
   "campaign_workers": [
     {
@@ -35,7 +54,7 @@
     },
     {
       "name": "leia_ownership",
-      "role": "AO scope and protected integration coordination"
+      "role": "protected CI and publication verification; transfer accepted"
     },
     {
       "name": "obiwan_employer",
@@ -59,11 +78,11 @@
     },
     {
       "name": "ahsoka_documents",
-      "role": "document-to-upload provenance proof"
+      "role": "document provenance complete; fixture-monitor API integration"
     },
     {
       "name": "chewbacca_runtime",
-      "role": "isolated runtime and exact source image"
+      "role": "exact source image complete; isolated connected runtime baseline"
     },
     {
       "name": "r2d2_ledger",
@@ -75,8 +94,67 @@
     "planning/agent_handoffs/MJ-REQ-292.json"
   ],
   "foreign_owned_paths_preserved": [
-    "workers/tasks.py",
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
-  ]
+  ],
+  "updated_at_utc": "2026-11-06T10:14:41Z",
+  "acceptance_note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved.",
+  "integration_authority": {
+    "owner": "Codex MJ-REQ-292 campaign",
+    "authorization": "Current user explicitly answered: Transfer integration to this campaign",
+    "previous_owner": "AO mjobs-16",
+    "previous_owner_daemon": "UNAVAILABLE_NOT_RESTARTED",
+    "preserved_dependency": {
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/967",
+      "head": "358ee29",
+      "integration_commit": "e1da21e0585cbd839d518c134949af9015067df3"
+    },
+    "protected_main_merge": "NOT_RUN"
+  },
+  "integrated_slices": [
+    {
+      "name": "official-domain sameAs",
+      "commit": "5cb1593c",
+      "review": "Yoda approved scoped source/tests"
+    },
+    {
+      "name": "document upload provenance",
+      "commits": [
+        "8cb7c433",
+        "254d1ab5"
+      ],
+      "review": "phase_ab approved scoped browser test"
+    },
+    {
+      "name": "owned ATS fixture binding",
+      "commit": "67a2b16c",
+      "review": "phase_ef approved isolated helper; API/RQ wiring pending"
+    },
+    {
+      "name": "direct fixture monitoring",
+      "commits": [
+        "fb0b6003",
+        "91710e36"
+      ],
+      "review": "phase_cd approved 12 tests and 9 subtests"
+    },
+    {
+      "name": "structural ledger and checkpoint projection",
+      "commits": [
+        "703cc8d1",
+        "d26f5b9d",
+        "6217d0f4",
+        "2f28b529",
+        "e61e5f16"
+      ],
+      "review": "Yoda approved; structural counts are not runtime certification"
+    }
+  ],
+  "active_path_owners": {
+    "workers/tasks.py": "han_recovery worker wiring preserving PR967",
+    "workers/operations.py": "han_recovery receipt recovery",
+    "apps/api/main.py": "ahsoka_documents narrow fixture monitor registration/readback",
+    "services/applications/owned_ats_fixture.py": "vader_ats_flow"
+  },
+  "acceptance_ledger_sha256": "8da5ae758bbcd1a942a5c51fd2c70d1b40ac9cffd57aa8a1287cffc2cf017416"
 }
