@@ -15,6 +15,8 @@ import { CompanyDiscoveryActivity } from './company-discovery-activity';
 import { CompanyDiscoveryQueue, type CompanyDiscoveryQueueItem, type CompanyDiscoveryQueueCounts } from './company-discovery-queue';
 import { createSearchHistoryClient } from './search-history-client';
 import { SearchHistoryPanel } from './search-history-panel';
+import { RecentlyViewedPanel } from './recently-viewed-panel';
+import { recentlyViewedClient } from './recently-viewed-client';
 import { SourceCandidateReviewPanel } from './source-candidate-review-panel';
 import { createSourceCandidateReviewClient, type SourceCandidateReview } from './source-candidate-review-client';
 import { discoveryActivity, type DiscoveryActivity } from './company-activity';
@@ -304,6 +306,7 @@ function App() {
   }), [profileId]);
   const [editor,setEditor] = useState<Profile>(newProfile);
   const [jobs,setJobs] = useState<Job[]>([]);
+  const [viewsRevision,setViewsRevision] = useState(0);
   const [showDismissed,setShowDismissed] = useState(false);
   const [showBlacklisted,setShowBlacklisted] = useState(false);
   const [jobNoteDraft,setJobNoteDraft] = useState('');
@@ -938,8 +941,22 @@ function App() {
   async function showJob(id:string) {
     const sequence=++detailSequence.current;const selected=profileRef.current;
     setDetail(null);
-    const result=await api<Job>('/jobs/'+id+(selected?'?profile_id='+encodeURIComponent(selected):''));
-    if(sequence===detailSequence.current&&selected===profileRef.current)setDetail(result);
+    const result=await api<Job>('/jobs/'+encodeURIComponent(id)+(selected?'?profile_id='+encodeURIComponent(selected):''));
+    if(sequence===detailSequence.current&&selected===profileRef.current) {
+      setDetail(result);
+      // Only explicit detail opens record a visit. This never touches saved,
+      // hidden, application or search-run tracking.
+      if(selected) {
+        try {
+          await recentlyViewedClient.record(selected,id);
+          if(sequence===detailSequence.current&&selected===profileRef.current)
+            setViewsRevision(value=>value+1);
+        } catch {
+          if(sequence===detailSequence.current&&selected===profileRef.current)
+            setNotice('Job opened, but its visit could not be recorded. Check Recently viewed before retrying.');
+        }
+      }
+    }
   }
   async function captureReviewedBrowserJob(payload:BrowserJobExtractionConfirmedPayload) {
     const selectedProfile=profileRef.current;
@@ -1621,6 +1638,7 @@ function App() {
             request.profile_id,request.search_profile_id,request.job_ids,
           )}
         />}
+        {profileId&&<RecentlyViewedPanel key={profileId} profileId={profileId} refreshToken={viewsRevision} onOpenJob={jobId=>{void showJob(jobId).catch(error=>setError(String(error)));}}/>}
         <div className="job-grid"><div className="job-list">{jobs.map(job=><SelectableCard company={job.company} title={job.title} badge={job.match_score===null?'Unscored':`${job.match_score}%${matchCategory(job.match_score)?` · ${matchCategory(job.match_score)}`:''}`} badgeClassName="score" summary={`${job.location} · ${job.remote_type}`} footerItems={[{text:job.attributes.fictional?'Fictional demo':job.provider==='manual'?'Manual capture':'Application provider route',className:'tag '+(job.attributes.fictional?'fictional':'')},...(job.application_priority_score!==undefined?[{text:`Application priority ${job.application_priority_score===null?'unknown':`${job.application_priority_score} · ${job.application_priority_band}`}`}]:[]),{text:`${job.posting_count} posting${job.posting_count===1?'':'s'}`}]} provenance={{postingSources:job.posting_sources,routeProvider:job.provider}} selected={detail?.id===job.id} key={job.id} onActivate={()=>void showJob(job.id).catch(e=>setError(String(e)))}/>)}{jobs.length===0&&<section className="empty"><h2>No matching jobs yet.</h2><p>{operationMode==='FIXTURE'?'Clear your filters, load a fictional demo, or configure a public job board in Sources.':'Clear your filters or configure a public job board in Sources.'}</p><button onClick={()=>setTab('Sources')}>Manage sources</button>{' '}<button onClick={()=>setManualCaptureOpen(true)}>Capture a job</button></section>}</div>
         <section className="job-detail" key={detail?.id||'empty'}>{detail?<><span className="eyebrow">{detail.company}</span><h2>{detail.title}</h2><p>{detail.location} · {detail.remote_type}</p>{profileId&&<section className="panel" aria-label="Job tracking"><h3>Track this job</h3><p>Current status: <strong>{detail.tracking?.disposition||'ACTIVE'}</strong></p><div className="toolbar"><button disabled={!!busy} onClick={()=>void updateJobDisposition(detail.tracking?.disposition==='SAVED'?'ACTIVE':'SAVED')}>{detail.tracking?.disposition==='SAVED'?'Unsave job':'Save job'}</button>{' '}<button disabled={!!busy} onClick={()=>void updateJobDisposition(detail.tracking?.disposition==='HIDDEN'?'ACTIVE':'HIDDEN')}>{detail.tracking?.disposition==='HIDDEN'?'Restore hidden job':'Hide job'}</button>{' '}<button disabled={!!busy} onClick={()=>void updateJobDisposition(detail.tracking?.disposition==='NOT_INTERESTED'?'ACTIVE':'NOT_INTERESTED')}>{detail.tracking?.disposition==='NOT_INTERESTED'?'Clear not interested':'Not interested'}</button></div><form onSubmit={event=>{event.preventDefault();void addJobNote();}}><label htmlFor="job-note">Private job note</label><textarea id="job-note" aria-label="Job note" maxLength={4000} value={jobNoteDraft} onChange={event=>{setJobNoteDraft(event.target.value);setJobNoteRequestId(crypto.randomUUID());}}/><button className="primary" disabled={!!busy||!jobNoteDraft.trim()}>Add note</button></form><h4>Tracking history</h4>{detail.tracking?.history?.length?<ol aria-label="Job tracking history">{detail.tracking.history.map((event,index)=><li key={event.id||`${event.type}-${event.timestamp}-${index}`}><strong>{event.type==='note'?'Note':'Status: '+event.disposition}</strong>{event.text&&<p>{event.text}</p>}<small>{stamp(event.timestamp)}</small></li>)}</ol>:<p className="muted">No status changes or notes yet.</p>}</section>}{profileId&&detail.company_id&&<CompanyPreferences key={`${profileId}:${detail.company_id}`} profileId={profileId} companyId={detail.company_id} companyName={detail.company} jobId={detail.id} client={companyPreferenceClient} onPreferenceSaved={()=>{void loadJobs(profileId).catch(error=>setError(String(error)));}}/>}<div className="divider"/><h3>Why this match?</h3>{detail.match?<><strong className="big-score">{detail.match.score}%{matchCategory(detail.match.score)&&` · ${matchCategory(detail.match.score)}`}</strong><p>Weighted coverage of detected skill evidence; this is not a qualification assessment.</p>{detail.match.components.skill_evidence_coverage&&<section className="panel" role="group" aria-label="Base skill evidence coverage"><h4>Base skill evidence coverage</h4>{detail.match.components.skill_evidence_coverage.possible_weight>0?<p><strong>{detail.match.components.skill_evidence_coverage.covered_weight.toFixed(2)} / {detail.match.components.skill_evidence_coverage.possible_weight.toFixed(2)} weighted skill evidence ({detail.match.components.skill_evidence_coverage.percentage}%)</strong></p>:<p>No detected skills are available to compare.</p>}<p className="muted">This is the base skill coverage score. A selected saved-search scoring profile may adjust the displayed match score.</p></section>}{detail.match.components.fit_factors?.length?<><h4>Other fit signals</h4><p className="muted">Informational comparisons from explicit profile preferences and known job attributes; these do not change the score.</p><ul aria-label="Additional fit signals">{detail.match.components.fit_factors.map(factor=><li key={factor.id}><strong>{factor.label} — {factor.status.replaceAll('_',' ')}</strong><span className="muted">. {factor.explanation} This does not change the score.</span></li>)}</ul></>:null}<p><strong>Supported by approved facts:</strong> {detail.match.components.matched?.join(', ')||'None'}</p><p><strong>Not found in approved profile facts:</strong> {detail.match.missing.join(', ')||'None detected'}</p>{detail.match.components.requirements?.length?<ul aria-label="Skill match explanation">{detail.match.components.requirements.map((row,index)=><li key={row.skill+index}><strong>{row.skill}</strong> — {row.strength.replaceAll('_',' ')}; {row.profile_evidence==='APPROVED'?'supported by an approved fact':'no approved profile evidence'}{row.weight!==undefined&&row.covered_weight!==undefined&&<span> — covered weight {row.covered_weight.toFixed(2)} / {row.weight.toFixed(2)}</span>}<span className="muted">. {row.explanation}</span></li>)}</ul>:null}{detail.match.components.limitation&&<p className="muted">{detail.match.components.limitation}</p>}</>:<p>Unscored — select a profile and refresh matches to calculate a score.</p>}
            {profileId&&selectedSearchProfileId&&<MatchingExplanationWorkflow key={`${profileId}:${selectedSearchProfileId}:${detail.id}`} profileId={profileId} searchProfileId={selectedSearchProfileId} jobId={detail.id} client={matchingExplanationClient} onRefresh={()=>refreshSelectedMatchData(profileId)}/>}
