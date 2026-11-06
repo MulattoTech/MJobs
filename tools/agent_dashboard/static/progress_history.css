@@ -31,12 +31,42 @@
 .progress-group-item>summary::before{flex:none}
 .progress-group-item .area-progress{flex:1;min-width:0;border:0;padding:.38rem 0}
 .progress-group-item .progress-drilldown{border-left:2px solid #315e63;margin:.3rem 0 .5rem .5rem;padding:4px 8px 10px;font-size:.73rem;color:#b1cdd8}
-.progress-item-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 12px;max-height:260px;overflow-y:auto;margin-top:.5rem;padding:.45rem;border:1px solid #314556;border-radius:6px;background:#0b1825}
+.progress-item-list{display:grid;grid-template-columns:1fr;gap:4px 12px;max-height:260px;overflow-y:auto;margin-top:.5rem;padding:.45rem;border:1px solid #314556;border-radius:6px;background:#0b1825}
 .progress-item{display:flex;gap:7px;justify-content:space-between;font-size:.68rem;color:#d6e4f1;border-bottom:1px solid #233445;padding:3px 0}
 .progress-item code{color:#a4d8f6;font-family:Consolas,monospace}
+.progress-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:5px 12px}
+.progress-item-identity{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
+.progress-item-identity strong{font-size:.72rem;font-weight:600;color:#e1edf2}
+.progress-item-identity code{font-size:.65rem;color:#9ab7c7}
+.campaign-details{grid-column:1/-1;margin:.25rem 0 .4rem;padding:.25rem .45rem;border-left:2px solid #55727e;background:#0b1b27;border-radius:3px}
+.campaign-details>summary,.campaign-phase>summary,.campaign-step>summary{cursor:pointer;list-style:none}
+.campaign-details>summary::-webkit-details-marker,.campaign-phase>summary::-webkit-details-marker,.campaign-step>summary::-webkit-details-marker{display:none}
+.campaign-details>summary:focus-visible,.campaign-phase>summary:focus-visible,.campaign-step>summary:focus-visible{outline:2px solid #42d1bc;outline-offset:2px}
+.campaign-details>summary::before,.campaign-phase>summary::before,.campaign-step>summary::before{content:"▸";display:inline-block;margin-right:6px;color:#85b7c2;font-size:.7rem}
+.campaign-details[open]>summary::before,.campaign-phase[open]>summary::before,.campaign-step[open]>summary::before{content:"▾"}
+.campaign-body{padding:.55rem .4rem .25rem;color:#c1d3dc;font-size:.7rem;line-height:1.55}
+.campaign-body p{margin:.35rem 0}
+.campaign-scoreboard{font-weight:700;color:#ecf6f8}
+.campaign-checkpoint,.campaign-scope{color:#a9c1cc}
+.campaign-body a{display:inline-block;margin:.15rem 0 .45rem;color:#9edbff}
+.campaign-phases{display:grid;gap:3px;margin:.4rem 0}
+.campaign-phase{border-top:1px solid #293e4b;padding:.3rem 0}
+.campaign-phase>summary{display:grid;grid-template-columns:minmax(80px,.5fr) minmax(64px,150px) minmax(200px,1fr);align-items:center;gap:8px;font-weight:650;color:#dce9ee}
+.campaign-phase-label{min-width:0}
+.campaign-phase-counts{font-weight:400;font-size:.65rem;color:#aabfc9}
+.campaign-status-bar{height:7px;display:flex;overflow:hidden;border-radius:5px;background:#263846}
+.campaign-segment{height:100%;min-width:1px}
+.campaign-segment.verified{background:#55b78d}.campaign-segment.partial{background:#c39a55}.campaign-segment.not-run{background:#718694}.campaign-segment.fail{background:#c56c68}.campaign-segment.blocked{background:#8c779f}
+.campaign-steps{margin:.2rem 0 .1rem .6rem;border-left:1px solid #314855;padding-left:.55rem}
+.campaign-step{border-bottom:1px solid #223744}
+.campaign-step>summary{display:flex;justify-content:space-between;gap:10px;padding:.3rem 0;color:#d3e1e7;font-size:.67rem}
+.campaign-step-evidence{padding:0 0 .4rem .6rem;color:#a9bfca;font-size:.65rem}
+.campaign-status{white-space:nowrap;font-size:.63rem;color:#bdcbd2}.campaign-status.verified{color:#80d6ad}.campaign-status.partial{color:#e0bd7a}.campaign-status.fail{color:#efa09b}.campaign-status.blocked{color:#c4a9dd}
+.campaign-next-action{padding:.4rem .5rem;background:#142735;border-left:2px solid #637f8a}
+.campaign-unavailable{margin:.4rem 0;color:#d2b886}
 .progress-transition{color:#fad08d;margin-left:6px;white-space:nowrap}
 .progress-compare-bar{position:relative;isolation:isolate;overflow:hidden}
 .progress-compare-bar .progress-historical-fill{position:absolute;left:0;top:0;height:100%;background:rgba(255,188,88,.55);z-index:1}
 .progress-compare-bar .progress-current-fill{position:relative;z-index:2;background:#31cd96;max-width:100%}
 .progress-card-summary .progress-compare-bar .progress-current-fill{background:linear-gradient(90deg,#1f9a69,#4bdc99)}
-@media(max-width:750px){.progress-time-controls{grid-template-columns:1fr}.progress-time-header{flex-direction:column}.progress-item-list{grid-template-columns:1fr}}
+@media(max-width:750px){.progress-time-controls{grid-template-columns:1fr}.progress-time-header{flex-direction:column}.progress-item-list{grid-template-columns:1fr}.campaign-phase>summary{grid-template-columns:1fr}.campaign-status-bar{max-width:180px}}
