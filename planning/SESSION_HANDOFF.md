@@ -1,5 +1,28 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Mission UI continuation — 2026-11-05
+
+User-authorized continuation of the unified Fleet workspace rollout, tracked in
+MJobs PR962 and Fleet-Control-Hub PR23. Native Mission Control now has a prominent
+Fleet Overview return link, a neutral shared-design theme covering runtime,
+ledger, historical comparison and token details, and guarded five-second
+acceptance polling. Launcher/process scans keep their existing slower interval.
+No launch, approval, quota, acceptance-matrix or real-application behavior changed.
+
+Six direct Mission UI source contracts, JavaScript syntax, catalogue, progress
+journal, dashboard-currentness and diff checks passed locally. The earlier
+PR962 integration shard failed its unchanged real-worker concurrency assertion;
+that assertion now emits only status/error-category diagnostics without weakening
+the required outcomes. Exact successor hosted checks, normal protected merge,
+Windows installation and signed-in browser validation remain separate gates.
+This checkpoint does not claim deployment, new requirement PASS or fleet launch.
+The containing PR records the exact source revision and subsequent gate results.
+Shared Fleet PR23 merged at e9982c1d084568643a4ad3e80b250bd52ef660b4
+after hosted controller checks; the application source pointer now names that
+revision. The Windows verification of source d9e064c2 passed 34 tests plus 31
+subtests, including the earlier failing fixture concurrency case. No production
+database, real application, or Fleet dispatch was used by those fixture tests.
+
 ## Current authorized-audit integration checkpoint - 2026-11-03T09:27:45.402Z
 
 Run webpro-20261103T073112Z-bbbb6d; [PR921](https://github.com/MulattoTech/MJobs/pull/921). The audit branch now incorporates independently merged main57e524ab through an ordinary merge. All latest canonical matrices, journal/queue and the full incoming handoff text are preserved; the audit adds no original or parity acceptance. Its containing PR records exact refreshed source/candidate checks and final merge/release.

@@ -1,0 +1,83 @@
+/* Flight Deck presentation contract: shared visual semantics with Fleet-Control-Hub.
+ * Mission Control owns acceptance, history and launch authority. This stylesheet
+ * changes presentation only; it never changes data, polling or action safeguards.
+ */
+:root{
+  color-scheme:dark;
+  --fd-ground:#171719;--fd-surface:#101012;--fd-raised:#222225;
+  --fd-line:#343438;--fd-control:#68686f;--fd-text:#f5f5f6;
+  --fd-muted:#b4b4bc;--fd-faint:#9c9ca6;--fd-accent:#8bbcff;
+  --fd-positive:#91d6b7;--fd-warning:#edc67a;--fd-danger:#ff9da9;
+  --fd-radius:6px;--fd-font:"Segoe UI",system-ui,-apple-system,sans-serif;
+  background:var(--fd-ground);color:var(--fd-text);font-family:var(--fd-font);
+}
+body{background:var(--fd-ground);color:var(--fd-text);font-family:var(--fd-font)}
+header{border-bottom:1px solid var(--fd-line);background:rgba(16,16,18,.96)}
+header p,#updatedAt,.mission-heading p{color:var(--fd-muted)}
+header .header-actions{justify-content:flex-end}
+.fleet-home{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+  padding:.6rem .9rem;border:1px solid var(--fd-control);border-radius:var(--fd-radius);
+  background:var(--fd-raised);color:var(--fd-text);text-decoration:none;
+  font-weight:750;font-size:.83rem;white-space:nowrap}
+.fleet-home:hover{border-color:var(--fd-accent);color:var(--fd-accent)}
+.fleet-skip{position:absolute;left:12px;top:-100px;z-index:10000;padding:12px;
+  background:var(--fd-text);color:var(--fd-surface)}
+.fleet-skip:focus{top:12px}
+.panel,.history-panel,.ledger-panel{border:1px solid var(--fd-line)!important;
+  border-radius:var(--fd-radius);background:var(--fd-surface)!important;box-shadow:none}
+.release-main-metric,.release-side-metric,.launch-card,.history-metrics>div,
+.metrics>div,.stats-section,.token-stat,.usage-panel,.history-timeline,
+.history-files pre,.launch-capacity-settings,.launch-review-dialog,
+.launch-dialog-top,.launch-review-foot,.ledger-summary>div,.ledger-highlights,
+.ledger-coverage details,.ledger-record,.progress-time-machine,.progress-item-list,
+.progress-history-delta span,.live-provider-card,.gpu-control,.repo-summary span{background:var(--fd-raised);border-color:var(--fd-line);border-radius:var(--fd-radius)}
+.fleet-runtime-panel{background:var(--fd-surface);border-color:var(--fd-line);border-radius:var(--fd-radius);color:var(--fd-text)}
+.release-main-metric .kicker,.release-side-metric .kicker,.history-metrics span,
+.history-metrics small,.history-eyebrow,.history-disclaimer,.release-meta,
+.release-explain,.progress-disclaimer,.launch-card .small-note,.ledger-summary small,
+.ledger-highlight-head small,.ledger-record time,.ledger-source,.ledger-proof,
+.progress-time-header p,.progress-time-status,.progress-history-tooltip,
+.progress-card-details>.progress-card-extra,.progress-group-item .progress-drilldown,
+.fleet-runtime-heading p,.live-provider-card p,#fleet-control-result,
+.stats-title,.token-stat span,.metrics span,.usage-meta,.terminal-run{color:var(--fd-muted)}
+.release-big strong,.history-metrics strong,.launch-name,.live-provider-card strong,
+.progress-time-header h3,.progress-time-controls label,.progress-history-delta,
+.progress-item{color:var(--fd-text)}
+.release-meter,.area-progress .bar,.history-meter{background:var(--fd-control)}
+.release-meter>span,.area-progress .fill{background:var(--fd-accent)}
+/* Match the comparison selectors' specificity; keep the amber historical overlay. */
+.progress-compare-bar .progress-current-fill,
+.progress-card-summary .progress-compare-bar .progress-current-fill{background:var(--fd-accent)}
+.progress-expandable>summary::before,.progress-item code,.ledger-kind{color:var(--fd-accent)}
+.progress-expandable>summary:focus-visible{outline-color:var(--fd-accent)}
+.progress-time-controls input[type=range]{accent-color:var(--fd-accent)}
+.progress-history-delta .up,.progress-delta.up,.ledger-highlight span,
+.ledger-transition{color:var(--fd-positive)}
+.progress-history-delta .down,.progress-delta.down{color:var(--fd-danger)}
+.ledger-record.pr,.ledger-record.branch{border-left-color:var(--fd-accent)}
+.ledger-record.acceptance,.ledger-record.capture,.ledger-record.accepted{border-left-color:var(--fd-positive)}
+.ledger-record.workspace{border-left-color:var(--fd-warning)}
+.ledger-highlight,.ledger-inventory,.ledger-workspace,.progress-group-item,
+.progress-item,.progress-card-details>.progress-card-extra,
+.progress-group-item .progress-drilldown{border-color:var(--fd-line)}
+.history-entry:after{box-shadow:0 0 0 1px var(--fd-line)}
+.pill,.sync-pill{border-color:var(--fd-line);background:var(--fd-raised);color:var(--fd-text)}
+.sync-pill.warn,.pill.waiting_approval,.pill.blocked_quota,.pill.blocked_environment{color:var(--fd-warning);border-color:#866b3e}
+.pill.running,.pill.adopted_running,.pill.active,.launch-card .status-line.success{color:var(--fd-positive);border-color:#496957}
+.pill.error,.pill.crash_loop_guard,.launch-card .status-line.error{color:var(--fd-danger);border-color:#8e3941}
+.history-category-pill,.history-category{color:var(--fd-accent);border-color:var(--fd-line);background:var(--fd-raised)}
+.launch-card input,.launch-card textarea,.launch-card select,.history-controls select,
+.launch-codex-capacity input[type="number"],.ledger-controls select,.ledger-controls input,
+.progress-time-controls select,.fleet-runtime-controls input,input,textarea{border-color:var(--fd-control);background:var(--fd-raised);color:var(--fd-text)}
+.launch-card .launch-actions .launch-preview,.launch-view-terminal,
+.progress-time-actions button,.fleet-runtime-controls button,
+button.primary{background:var(--fd-raised);border-color:var(--fd-control);color:var(--fd-text)}
+.progress-time-actions button:hover{border-color:var(--fd-accent)}
+.launch-review-text,.launch-card .launch-prompt-preview,.terminal,
+.codex-raw-stats,.antigravity-raw-stats,.ollama-raw-stats{background:var(--fd-surface);border-color:var(--fd-line);color:var(--fd-text)}
+.launch-dialog-top,.launch-review-foot{background:var(--fd-raised)}
+.preview-kicker,.launch-mode-hint,.launch-card .launch-preview-note{color:var(--fd-accent)}
+a,.ledger-panel a,.fleet-runtime-panel a{color:var(--fd-accent)}
+:where(a,button,input,select,summary):focus-visible{outline:2px solid var(--fd-accent);outline-offset:3px}
+@media(max-width:720px){header .header-actions{justify-content:flex-start}.fleet-home{width:100%}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
