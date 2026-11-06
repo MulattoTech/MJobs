@@ -706,7 +706,8 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
         raise ValueError("Source setup enabled policy projection is incomplete")
     for index, (row, expected) in enumerate(zip(policies, expected_policies)):
         projection = None if index < 2 else {**enabled_projection, "enabled": index < 4}
-        if (row != {**expected, "expected_policy": expected_policy, "policy": projection}
+        stage_policy = {**expected_policy, "enabled": index < 4}
+        if (row != {**expected, "expected_policy": stage_policy, "policy": projection}
                 or type(row.get("present", row.get("enabled"))) is not bool
                 or index >= 2 and digest(projection) != row["policy_sha256"]):
             raise ValueError("Source setup policy history does not prove absence and exact disable")

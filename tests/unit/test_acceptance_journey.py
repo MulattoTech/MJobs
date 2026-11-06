@@ -1252,7 +1252,7 @@ def source_setup_artifact(state, public):
                                  "expected_policy": policy, "policy": None}
             for stage in ("preflight_absent", "immediately_before_create")] + [
                 {"stage": stage, "source_id": extra["source_id"], "enabled": enabled,
-                 "expected_policy": policy, "policy": {**projection, "enabled": enabled},
+                 "expected_policy": {**policy, "enabled": enabled}, "policy": {**projection, "enabled": enabled},
                  "policy_sha256": extra["enabled_policy_sha256" if enabled else "disabled_policy_sha256"]}
                 for stage, enabled in (("created_enabled", True), ("before_disable", True),
                                        ("disabled_readback", False), ("release", False))],
