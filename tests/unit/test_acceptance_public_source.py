@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from cli.acceptance_public_source import run
+from cli.acceptance_public_source import run, _digest
 
 
 STAMP = '2026-11-06T12:00:00+00:00'
@@ -28,6 +28,10 @@ class ControlledAPI:
         self.source = None
         self.state = 'COMPLETED'
         self.after_collection = lambda: None
+        self.children = []
+        self.children_complete = True
+        self.child_polls = 0
+        self.after_child_poll = lambda: None
         self.profile = dict(id='profile', version=VERSION)
         self.app = dict(id='app', profile_id='profile', job_id='fixture-job', route_id='fixture-route',
             target='MOCK', state='CONFIRMED', confirmation={'receipt': 'mock-only'})
@@ -76,6 +80,18 @@ class ControlledAPI:
             return dict(id='public-operation', kind='DISCOVER', entity_id='profile', params=self.params,
                 state=self.state, error='SOURCE_UNAVAILABLE' if self.state == 'BLOCKED' else None,
                 attempt_count=1, retry_count=0, started_at=STAMP, completed_at=STAMP)
+        if (method, path) == ('GET', '/profiles/profile/sources/public-source/collections/public-operation/children'):
+            self.child_polls += 1
+            self.after_child_poll()
+            value = dict(schema_version=1, profile_id='profile', profile_version=VERSION,
+                source_id='public-source', parent_operation_id='public-operation', parent_operation_attempt=1,
+                parent_request_id=self.params['request_id'], complete=self.children_complete, limit=2,
+                children=deepcopy(self.children), enrolled_sources=[])
+            value['lineage_sha256'] = _digest([{key: val for key, val in row.items()
+                if key not in {'state', 'authorization', 'reason', 'operation_attempt', 'operation_sha256'}}
+                for row in sorted(value['children'], key=lambda item: item['request_id'])])
+            value['sha256'] = _digest(value)
+            return value
         if (method, path) == ('POST', '/operations/public-operation/cancel'):
             return {'cancel_requested': True}
         if (method, path) == ('GET', '/jobs'):
@@ -115,6 +131,82 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertFalse(self.api.source['enabled'])
         self.assertEqual(json.loads(self.path.read_text()), result)
         self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+
+    def child(self, state='RUNNING'):
+        return dict(request_id='child-request', revision=2, company_id='company', company_source_id='company-source',
+            profile_id='profile', profile_version=VERSION, source_id='public-source',
+            parent_operation_id='public-operation', parent_operation_attempt=1, trigger_job_id='real-job',
+            candidate_id='candidate', posting_id='public-posting', snapshot_id='snapshot',
+            snapshot_sha256=self.api.public['postings'][0]['snapshots'][0]['sha256'],
+            quality_observation_id='quality', operation_id='child-operation', state=state,
+            authorization='AGGREGATOR_BOOTSTRAP_PENDING', reason=None, operation_attempt=1,
+            operation_sha256='a' * 64, pending_sha256='b' * 64)
+
+    def test_exact_child_finishes_while_source_and_lease_remain_active(self):
+        self.api.children = [self.child()]
+        def advance():
+            self.assertTrue(self.api.source['enabled'])
+            if self.api.child_polls == 2:
+                self.api.children[0]['state'] = 'COMPLETED'
+        self.api.after_child_poll = advance
+        result = self.observe(sleep=lambda _: None)
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertEqual(result['child_discovery']['status'], 'COMPLETED')
+        self.assertEqual(self.api.child_polls, 2)
+        self.assertFalse(self.api.source['enabled'])
+        self.assertFalse(any(path == '/operations' for _, path, _ in self.api.calls))
+
+    def test_empty_complete_child_set_is_not_run(self):
+        contexts = []
+        def contain(stage, context):
+            contexts.append((stage, deepcopy(context)))
+            return deepcopy(PROOF)
+        result = self.observe(containment_preflight=contain)
+        self.assertEqual(result['child_discovery']['status'], 'NOT_RUN')
+        self.assertEqual(result['child_discovery']['children'], [])
+        final_contexts = [context for stage, context in contexts if stage in {'finalize', 'cleanup'}]
+        self.assertTrue(final_contexts)
+        self.assertTrue(all(context['child_discovery_requested'] is True for context in final_contexts))
+        self.assertTrue(all(context['owned_child_operation_ids'] == [] for context in final_contexts))
+        self.assertTrue(all(context['owned_child_lineage_sha256'] == _digest([]) for context in final_contexts))
+
+    def test_blocked_child_is_explicit_and_does_not_gain_acceptance_credit(self):
+        self.api.children = [self.child('BLOCKED')]
+        self.api.children[0]['reason'] = 'ROBOTS_DENIED'
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertEqual(result['child_discovery']['status'], 'BLOCKED')
+        self.assertEqual(result['child_discovery']['children'][0]['reason'], 'ROBOTS_DENIED')
+        self.assertEqual([row['step'] for row in result['acceptance_observations']], [11])
+
+    def test_child_timeout_is_bounded_and_cleanup_revokes_pending_source(self):
+        self.api.children = [self.child()]
+        ticks = iter(range(100))
+        result = self.observe(child_timeout_seconds=2, monotonic=lambda: next(ticks), sleep=lambda _: None)
+        self.assertEqual(result['child_discovery']['status'], 'BLOCKED')
+        self.assertEqual(result['child_discovery']['reason'], 'CHILD_DISCOVERY_TIMEOUT')
+        self.assertFalse(self.api.source['enabled'])
+
+    def test_child_lineage_or_incomplete_response_is_never_admitted(self):
+        for change in ('parent', 'profile', 'source', 'snapshot', 'incomplete', 'replacement'):
+            with self.subTest(change=change):
+                self.api = ControlledAPI()
+                self.api.children = [self.child()]
+                row = self.api.children[0]
+                if change == 'parent': row['parent_operation_id'] = 'other'
+                if change == 'profile': row['profile_version'] = 'c' * 64
+                if change == 'source': row['source_id'] = 'other'
+                if change == 'snapshot': row['snapshot_sha256'] = 'c' * 64
+                if change == 'incomplete': self.api.children_complete = False
+                if change == 'replacement':
+                    def replace():
+                        if self.api.child_polls == 2:
+                            self.api.children[0]['operation_id'] = 'unrelated'
+                    self.api.after_child_poll = replace
+                result = self.observe(sleep=lambda _: None)
+                self.assertEqual(result['result'], 'FAIL', result)
+                self.assertNotEqual(result['child_discovery']['status'], 'COMPLETED')
+                self.assertFalse(self.api.source['enabled'])
 
     def test_injected_request_cannot_claim_live_scope_even_by_default(self):
         for options in ({}, {'execution_scope': 'LIVE_PUBLIC_READ_ONLY'}):

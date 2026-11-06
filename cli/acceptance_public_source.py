@@ -7,6 +7,7 @@ a policy fingerprint is a change detector, never an atomic ownership claim.
 The caller must retain containment if cleanup cannot safely disable its source.
 """
 from contextlib import nullcontext
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -30,6 +31,14 @@ FINGERPRINT_FIELDS = ('id', *POLICY_FIELDS, 'strategy', 'capabilities')
 TERMINAL = {'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED', 'DEAD_LETTERED', 'DISCARDED'}
 CHECK = 'same_profile_public_readonly_jobs_observed'
 API_TIMEOUT_SECONDS = 15
+CHILD_FIELDS = ('request_id', 'revision', 'company_id', 'company_source_id', 'profile_id',
+    'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt',
+    'trigger_job_id', 'candidate_id', 'posting_id', 'snapshot_id', 'snapshot_sha256',
+    'quality_observation_id', 'operation_id', 'state', 'authorization', 'reason',
+    'operation_attempt', 'operation_sha256', 'pending_sha256')
+CHILD_DYNAMIC = {'state', 'authorization', 'reason', 'operation_attempt', 'operation_sha256'}
+CHILD_TERMINAL = TERMINAL | {'NEEDS_ORIGIN_REVIEW', 'DISMISSED'}
+SAFE_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z')
 
 
 class ObservationError(ValueError):
@@ -165,9 +174,141 @@ def _public_jobs(request, source, operation, selection, profile_id, endpoint):
     return observed
 
 
+def child_containment_context(evidence):
+    """Project already validated child evidence for callback/release continuity.
+
+    This does not grant source authority; containment independently verifies the
+    same read model. An empty completed query remains distinct from no query.
+    """
+    child = evidence.get('child_discovery') or {}
+    requested = child.get('parent_operation_id') is not None
+    rows = child.get('children') or []
+    if requested:
+        _require(child['parent_operation_id'] == evidence.get('collection_operation_id')
+            and type(child.get('parent_operation_attempt')) is int
+            and child['parent_operation_attempt'] == evidence.get('collection_operation_attempt'),
+            'CHILD_DISCOVERY_IDENTITY_CHANGED')
+        if child.get('lineage_sha256') is not None:
+            identity = [{key: row[key] for key in CHILD_FIELDS if key not in CHILD_DYNAMIC}
+                        for row in sorted(rows, key=lambda row: row['request_id'])]
+            _require(child['lineage_sha256'] == _digest(identity), 'CHILD_DISCOVERY_IDENTITY_CHANGED')
+    else:
+        _require(not rows and not child.get('enrolled_sources'), 'CHILD_DISCOVERY_IDENTITY_CHANGED')
+    return dict(collection_operation_attempt=evidence.get('collection_operation_attempt'),
+        child_discovery_requested=requested,
+        owned_child_operation_ids=sorted(row['operation_id'] for row in rows if row['operation_id']),
+        owned_child_request_ids=sorted(row['request_id'] for row in rows),
+        owned_child_lineage_sha256=child.get('lineage_sha256'),
+        owned_child_sources=deepcopy(child.get('enrolled_sources') or []))
+
+
+def _observe_children(read, evidence, selection, source, *, timeout_seconds, poll_interval, monotonic, sleep):
+    """Wait only for the complete, immutable child set of this collection attempt."""
+    progress = dict(status='WAITING', reason=None, children=[], enrolled_sources=[], readback_sha256=None, lineage_sha256=None, polls=0,
+        acceptance_run_id=evidence['acceptance_run_id'], profile_id=evidence['profile_id'],
+        profile_version=selection['profile_version'], source_id=source['id'],
+        parent_operation_id=evidence['collection_operation_id'],
+        parent_operation_attempt=evidence['collection_operation_attempt'])
+    evidence['child_discovery'] = progress
+    path = '/profiles/' + quote(evidence['profile_id'], safe='') + '/sources/' + quote(source['id'], safe='')
+    path += '/collections/' + quote(evidence['collection_operation_id'], safe='') + '/children'
+    deadline, identity, enrolled = monotonic() + timeout_seconds, None, {}
+    for _ in range(120):
+        result = read('GET', path, params={'attempt': evidence['collection_operation_attempt']})
+        _require(isinstance(result, dict) and type(result.get('schema_version')) is int
+            and result['schema_version'] == 1 and result.get('complete') is True
+            and type(result.get('limit')) is int and result['limit'] == 2
+            and result.get('parent_request_id') == evidence['collection_request_id']
+            and result.get('sha256') == _digest({key: value for key, value in result.items() if key != 'sha256'}),
+            'CHILD_DISCOVERY_LINEAGE_INCOMPLETE')
+        for key in ('profile_id', 'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt'):
+            _require(type(result.get(key)) is type(progress[key]) and result[key] == progress[key],
+                     'CHILD_DISCOVERY_IDENTITY_CHANGED')
+        rows = result.get('children')
+        _require(isinstance(rows, list) and len(rows) <= 2, 'CHILD_DISCOVERY_LINEAGE_INCOMPLETE')
+        for row in rows:
+            _require(isinstance(row, dict) and set(row) == set(CHILD_FIELDS), 'CHILD_DISCOVERY_RECORD_INVALID')
+            for key in ('profile_id', 'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt'):
+                _require(type(row[key]) is type(progress[key]) and row[key] == progress[key],
+                         'CHILD_DISCOVERY_IDENTITY_CHANGED')
+            for key in ('request_id', 'company_id', 'company_source_id', 'trigger_job_id', 'candidate_id',
+                        'posting_id', 'snapshot_id', 'quality_observation_id'):
+                _require(isinstance(row[key], str) and SAFE_ID.fullmatch(row[key]), 'CHILD_DISCOVERY_RECORD_INVALID')
+            _require(type(row['revision']) is int and row['revision'] >= 1
+                and type(row['operation_attempt']) is int and row['operation_attempt'] >= 0
+                and row['state'] in CHILD_TERMINAL | {'QUEUED', 'RUNNING', 'RETRY_WAIT'}, 'CHILD_DISCOVERY_RECORD_INVALID')
+            for key in ('snapshot_sha256', 'pending_sha256'):
+                _require(isinstance(row[key], str) and re.fullmatch(r'[a-f0-9]{64}', row[key]), 'CHILD_DISCOVERY_RECORD_INVALID')
+            if row['operation_id'] is not None:
+                _require(isinstance(row['operation_id'], str) and SAFE_ID.fullmatch(row['operation_id'])
+                    and isinstance(row['operation_sha256'], str) and re.fullmatch(r'[a-f0-9]{64}', row['operation_sha256']),
+                    'CHILD_DISCOVERY_RECORD_INVALID')
+            else:
+                _require(row['state'] in {'NEEDS_ORIGIN_REVIEW', 'DISMISSED'} and row['operation_sha256'] is None,
+                         'CHILD_DISCOVERY_RECORD_INVALID')
+            for key in ('authorization', 'reason'):
+                _require(row[key] is None or isinstance(row[key], str) and re.fullmatch(r'[A-Z][A-Z0-9_]{0,99}', row[key]),
+                         'CHILD_DISCOVERY_RECORD_INVALID')
+        ordered = sorted(rows, key=lambda row: row['request_id'])
+        _require(len({row['request_id'] for row in rows}) == len(rows)
+            and len({row['operation_id'] for row in rows if row['operation_id']}) == sum(bool(row['operation_id']) for row in rows),
+            'CHILD_DISCOVERY_RECORD_INVALID')
+        current = [{key: row[key] for key in CHILD_FIELDS if key not in CHILD_DYNAMIC} for row in ordered]
+        _require(identity is None or current == identity, 'CHILD_DISCOVERY_IDENTITY_CHANGED')
+        _require(result.get('lineage_sha256') == _digest(current), 'CHILD_DISCOVERY_IDENTITY_CHANGED')
+        source_rows = result.get('enrolled_sources')
+        _require(isinstance(source_rows, list) and len(source_rows) <= 2, 'CHILD_DISCOVERY_SOURCE_INVALID')
+        current_sources = {}
+        for item in source_rows:
+            _require(isinstance(item, dict) and set(item) == {'source_id', 'company_source_id', 'operation_id',
+                'request_id', 'policy', 'policy_sha256', 'audit_id', 'audit_sha256', 'pending_sha256',
+                'receipt_sha256', 'envelope_sha256'}, 'CHILD_DISCOVERY_SOURCE_INVALID')
+            matches = [row for row in rows if row['request_id'] == item['request_id']
+                and row['operation_id'] == item['operation_id'] and row['pending_sha256'] == item['pending_sha256']]
+            _require(len(matches) == 1 and item['source_id'] != source['id']
+                and item['source_id'] not in current_sources and isinstance(item['policy'], dict)
+                and item['policy'].get('id') == item['source_id'] and item['policy'].get('enabled') is True
+                and item['policy_sha256'] == _policy_fingerprint(item['policy']), 'CHILD_DISCOVERY_SOURCE_INVALID')
+            for key in ('source_id', 'company_source_id', 'audit_id'):
+                _require(isinstance(item[key], str) and SAFE_ID.fullmatch(item[key]), 'CHILD_DISCOVERY_SOURCE_INVALID')
+            for key in ('audit_sha256', 'receipt_sha256', 'envelope_sha256'):
+                _require(isinstance(item[key], str) and re.fullmatch(r'[a-f0-9]{64}', item[key]), 'CHILD_DISCOVERY_SOURCE_INVALID')
+            current_sources[item['source_id']] = item
+        _require(all(current_sources.get(key) == value for key, value in enrolled.items()), 'CHILD_DISCOVERY_SOURCE_CHANGED')
+        enrolled = current_sources
+        if identity is None:
+            # The child can come from any of this collection's jobs, not just
+            # the at-most-five public cards sampled earlier by this helper.
+            for row in ordered:
+                job = read('GET', '/jobs/' + quote(row['trigger_job_id'], safe=''),
+                           params={'profile_id': evidence['profile_id']})
+                _require(job.get('id') == row['trigger_job_id'] and job['id'] != selection['job_id'],
+                         'CHILD_DISCOVERY_JOB_CHANGED')
+                postings = [posting for posting in job.get('postings', []) if posting.get('id') == row['posting_id']
+                    and posting.get('source') == evidence['endpoint'] and posting.get('fetched_at') == source['last_attempt']
+                    and _digest(posting.get('raw')) == row['snapshot_sha256']
+                    and any(snapshot.get('id') == row['snapshot_id'] and snapshot.get('sha256') == row['snapshot_sha256']
+                            for snapshot in posting.get('snapshots', []))]
+                _require(len(postings) == 1, 'CHILD_DISCOVERY_SNAPSHOT_CHANGED')
+            identity = current
+        progress.update(children=ordered, enrolled_sources=source_rows,
+                        polls=progress['polls'] + 1, readback_sha256=result['sha256'], lineage_sha256=result['lineage_sha256'])
+        if not rows:
+            progress.update(status='NOT_RUN', reason='NO_CURRENT_COLLECTION_CHILDREN')
+            return
+        if all(row['state'] in CHILD_TERMINAL for row in rows):
+            progress['status'] = 'COMPLETED' if all(row['state'] == 'COMPLETED' for row in rows) else 'BLOCKED'
+            progress['reason'] = None if progress['status'] == 'COMPLETED' else 'CHILD_DISCOVERY_TERMINAL_BLOCK'
+            return
+        if monotonic() >= deadline:
+            break
+        sleep(min(poll_interval, max(0., deadline - monotonic())))
+    progress.update(status='BLOCKED', reason='CHILD_DISCOVERY_TIMEOUT')
+
+
 def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
         containment_preflight, request=None, execution_scope='LIVE_PUBLIC_READ_ONLY',
-        timeout_seconds=90, poll_interval=.25, monotonic=time.monotonic, sleep=time.sleep,
+        timeout_seconds=90, child_timeout_seconds=90, poll_interval=.25, monotonic=time.monotonic, sleep=time.sleep,
         utc_now=lambda: datetime.now(timezone.utc)):
     """Return and save a truthful receipt; never retry a collection or submit forms.
 
@@ -192,6 +333,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             or url.path not in ('', '/') or provider not in ENDPOINTS
             or execution_scope not in {'LIVE_PUBLIC_READ_ONLY', 'CONTROLLED_TRANSPORT'}
             or not callable(containment_preflight) or not 2 <= timeout_seconds <= 120
+            or type(child_timeout_seconds) not in (int, float) or not 2 <= child_timeout_seconds <= 120
             or not .05 <= poll_interval <= 2):
         raise ValueError('PUBLIC_OBSERVATION_CONFIGURATION_INVALID')
     if request is not None and execution_scope != 'CONTROLLED_TRANSPORT':
@@ -208,6 +350,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
         execution_scope=execution_scope, evidence_kind='PUBLIC_READ_ONLY', provider=provider,
         endpoint=ENDPOINTS[provider], external_submission_enabled=False,
         observed_real_job_ids=[], observations=[], cleanup={'status': 'NOT_REQUIRED'},
+        child_discovery={'status': 'NOT_RUN', 'reason': 'PARENT_COLLECTION_NOT_COMPLETED', 'children': [], 'enrolled_sources': []},
         inventory_scope='AT_MOST_FIVE_CURRENT_COLLECTION_JOBS',
         limitations=['Observed public jobs are distinct from the selected mock application.',
                     'No real application form or submission is exercised.',
@@ -235,6 +378,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                     acceptance_run_id=acceptance_run_id, source_id=evidence.get('source_id') or owned_source,
                     collection_operation_id=evidence.get('collection_operation_id'),
                     collection_request_id=evidence.get('collection_request_id'),
+                    **child_containment_context(evidence),
                     source_policy_sha256=evidence.get('source_policy_sha256'), newly_created=bool(owned_source),
                     lease_required_until=required_until.isoformat()))
                 _require(isinstance(proof, dict) and proof.get('scheduler_contained') is True
@@ -331,6 +475,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             _require(operation['state'] == 'COMPLETED', 'PUBLIC_COLLECTION_' + operation['state'])
             _require(operation.get('attempt_count') == 1 and operation.get('retry_count', 0) == 0,
                      'PUBLIC_COLLECTION_RETRIED')
+            evidence['collection_operation_attempt'] = operation['attempt_count']
             source = _source(read, provider)
             _require(source is not None and source['id'] == evidence['source_id']
                 and source.get('last_success') == source.get('last_attempt'), 'SOURCE_RECEIPT_CHANGED')
@@ -340,14 +485,20 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             evidence['observations'] = _public_jobs(read, source, operation, initial_selection,
                 baseline['profile_id'], ENDPOINTS[provider])
             evidence['observed_real_job_ids'] = sorted(row['job_id'] for row in evidence['observations'])
+            _observe_children(read, evidence, initial_selection, source, timeout_seconds=child_timeout_seconds,
+                              poll_interval=poll_interval, monotonic=monotonic, sleep=sleep)
             _require(read('GET', '/health').get('external_submission_enabled') is False,
                      'EXTERNAL_SUBMISSION_SETTING_CHANGED')
             contained('finalize')
             evidence['result'] = 'PASS'
         except ObservationError as error:
             evidence['error_code'] = str(error)
+            if evidence['child_discovery']['status'] == 'WAITING':
+                evidence['child_discovery'].update(status='FAIL', reason=str(error))
         except Exception:
             evidence['error_code'] = 'PUBLIC_OBSERVATION_API_OR_RECORD_INVALID'
+            if evidence['child_discovery']['status'] == 'WAITING':
+                evidence['child_discovery'].update(status='FAIL', reason='CHILD_DISCOVERY_RECORD_INVALID')
         finally:
             if operation_id and operation_state not in TERMINAL:
                 # Cancelling this helper's queued operation remains safe even
