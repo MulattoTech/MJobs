@@ -2348,15 +2348,15 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 )
                 audit_history = request(f"/profiles/{profile_id}/audit-history")
                 scoped_audit_events = [event for event in audit_history["events"]
-                                       if event.get("subject") == "Data Engineer"
-                                       and event.get("company") == "Example Systems Inc."]
+                                       if event.get("application_id") == identifier]
                 event_types = {event.get("type") for event in scoped_audit_events}
                 audit_ui = None
                 navigation("Activity")
                 audit_ui = page.get_by_role("region", name="Audit history", exact=True)
                 expect(audit_ui).to_contain_text("Data Engineer")
                 exact_public_event_shape = all(
-                    set(event) == {"id", "type", "summary", "subject", "company", "timestamp"}
+                    set(event) == {"id", "type", "summary", "subject", "company",
+                                   "timestamp", "application_id"}
                     for event in scoped_audit_events)
                 no_answer_values = all(
                     REVIEWED_FIXTURE_ANSWER not in value
@@ -2377,7 +2377,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                             "Data Engineer" in audit_ui.inner_text()
                             and "Example Systems Inc." in audit_ui.inner_text(),
                             len(scoped_audit_events) >= 3
-                            and all(event["subject"] == "Data Engineer"
+                            and all(event["application_id"] == identifier
+                                    and event["subject"] == "Data Engineer"
                                     and event["company"] == "Example Systems Inc."
                                     for event in scoped_audit_events)),
                         "audit_values_redacted": _paired_evidence(
