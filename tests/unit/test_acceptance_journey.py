@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+import httpx
 
 from cli import acceptance_journey as journey
 
@@ -20,14 +21,27 @@ TARGET = {"project_name": "mjobs-fixture-012345abcdef", "port": 18777,
 IDENTITY = {"profile_id": "profile-1", "application_id": "application-1",
             "operation_id": "operation-1", "request_id": "request-1"}
 RUNTIME = {"source_manifest_sha256": "d" * 64, "compose_files": ["compose.yml"],
-           "images": {"api": "sha256:" + "e" * 64}, "containers": {"api": "container-1"}}
+           "images": {"api": "sha256:" + "e" * 64}, "containers": {"api": "container-1"},
+           "frontend_assets": {"index.html": "f" * 64}, "dockerfile_sha256": "2" * 64}
+
+
+@pytest.fixture(autouse=True)
+def bound_archive(monkeypatch):
+    monkeypatch.setattr(journey, "source_archive_sha256", lambda _: "1" * 64)
+
+
+def build_receipt():
+    return {"schema_version": 1, "source_commit": SOURCE["commit"], "source_tree": SOURCE["tree"],
+            "image_id": RUNTIME["images"]["api"], "frontend_assets": RUNTIME["frontend_assets"],
+            "source_archive_sha256": "1" * 64, "dockerfile_sha256": "2" * 64,
+            "result": "PASS", "completed_at_utc": journey.utc_now(), "build_command": ["docker", "build"]}
 
 
 def observation(step=4):
     return {"step": step, "status": "PASS", "observable_result": "Synthetic resume upload visible",
             "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": SOURCE["commit"],
             "run_id": RUN_ID, "continuity": dict(IDENTITY),
-            "checks": [{"name": "resume_upload_visible", "passed": True}]}
+            "checks": [{"name": "resume_upload_and_extraction_visible", "passed": True}]}
 
 
 def baseline():
@@ -53,6 +67,10 @@ def emit(path, value):
 
 
 def invoke(tmp_path, **kwargs):
+    if "build_receipt" not in kwargs:
+        receipt_path = tmp_path.with_name(tmp_path.name + "-build.json")
+        emit(receipt_path, build_receipt())
+        kwargs["build_receipt"] = receipt_path
     return journey.run(base_url=TARGET["base_url"], evidence_dir=tmp_path,
                        project_name=TARGET["project_name"], port=TARGET["port"], run_id=RUN_ID, **kwargs)
 
@@ -167,7 +185,7 @@ def test_connected_run_uses_the_same_baseline_and_does_not_promote_legacy_recove
     assert report["steps"][3]["status"] == "PASS"
     assert report["steps"][10]["status"] == "NOT_RUN"
     assert report["steps"][53]["status"] == "NOT_RUN"
-    assert report["scoreboard"]["PASS"] == 1
+    assert report["scoreboard"]["observed_PASS"] == 1
     assert report["scoreboard"]["NOT_RUN"] == 59
     assert report["segments"]["recovery"]["status"] == "COMPLETE"
     assert report["steps"][3]["verification"]["evidence_sha256"] == hashlib.sha256((tmp_path / "ui.json").read_bytes()).hexdigest()
@@ -290,3 +308,78 @@ def test_ui_origin_mismatch_is_not_admitted(tmp_path):
         with pytest.raises(ValueError, match="origin"):
             invoke(tmp_path)
     recovery.assert_not_called()
+
+
+def test_unregistered_step_or_wrong_check_cannot_earn_observed_pass():
+    for step, name in ((4, "an_authored_true_boolean"), (36, "application_prepared"),
+                       (59, "scheduler_process_running"), (60, "stack_restarted")):
+        artifact = baseline()
+        artifact["acceptance_observations"][0].update(step=step, checks=[{"name": name, "passed": True}])
+        with pytest.raises(ValueError, match="registered"):
+            journey.numbered_observations(artifact, segment="recovery" if step >= 54 else "ui",
+                                          run_id=RUN_ID, source=SOURCE, identity=IDENTITY)
+
+
+def test_ui_observation_withholds_pass_without_exact_built_asset_receipt(tmp_path):
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())):
+        report = invoke(tmp_path, stop_after_ui=True, build_receipt=None)
+    assert report["steps"][3]["status"] == "PARTIAL"
+    assert report["steps"][3]["producer_status"] == "PASS"
+    assert report["steps"][3]["credit_withheld"] == "FRONTEND_BUILD_NOT_BOUND"
+    assert report["scoreboard"]["observed_PASS"] == 0
+
+
+def test_frontend_receipt_must_bind_source_tree_image_and_actual_assets():
+    receipt = build_receipt()
+    assert journey.validate_frontend_build_receipt(receipt, SOURCE, RUNTIME)["status"] == "PASS"
+    for key, value in (("source_commit", "c" * 40), ("source_tree", "c" * 40),
+                       ("image_id", "sha256:" + "c" * 64), ("frontend_assets", {"index.html": "c" * 64}),
+                       ("source_archive_sha256", "c" * 64), ("dockerfile_sha256", "c" * 64)):
+        with pytest.raises(ValueError, match="frontend"):
+            journey.validate_frontend_build_receipt({**receipt, key: value}, SOURCE, RUNTIME)
+
+
+def test_resume_retains_original_timestamp_and_marks_imported_observations(tmp_path):
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())):
+        first = invoke(tmp_path, stop_after_ui=True)
+    restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET).payload()
+    assert restored["started_at_utc"] == first["started_at_utc"]
+    assert restored["steps"][3]["verification"]["executed_at_utc"] == first["steps"][3]["verification"]["executed_at_utc"]
+    assert restored["steps"][3]["verification"]["resume_imported"] is True
+    assert restored["review_status"] == "NOT_RUN"
+
+
+def test_served_asset_hashes_are_actual_bounded_loopback_response_bytes():
+    assets = {"index.html": b"<html>synthetic</html>", "assets/main.js": b"synthetic js"}
+    expected = {name: hashlib.sha256(value).hexdigest() for name, value in assets.items()}
+    requested = []
+
+    def serve(request):
+        requested.append(str(request.url))
+        return httpx.Response(200, content=assets[request.url.path.lstrip("/") or "index.html"])
+
+    client = httpx.Client(transport=httpx.MockTransport(serve))
+    with patch.object(journey.httpx, "Client", return_value=client):
+        journey.verify_served_assets(TARGET["base_url"], expected)
+    assert len(requested) == 3
+    assert all(url.startswith(TARGET["base_url"] + "/") for url in requested)
+
+
+def test_stale_or_redirected_served_bundle_fails_closed():
+    expected = {"index.html": hashlib.sha256(b"expected").hexdigest()}
+    for status, data in ((200, b"old bundle"), (302, b"")):
+        client = httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(status, content=data)))
+        with patch.object(journey.httpx, "Client", return_value=client):
+            with pytest.raises(ValueError, match="frontend asset"):
+                journey.verify_served_assets(TARGET["base_url"], expected)
+
+
+def test_asset_manifest_paths_cannot_escape_the_owned_origin():
+    for name in ("../outside", "https://example.com", "//example.com", "assets/../secret", "assets\\secret"):
+        with patch.object(journey.httpx, "Client") as client, pytest.raises(ValueError):
+            journey.verify_served_assets(TARGET["base_url"], {"index.html": "f" * 64, name: "f" * 64})
+        client.assert_not_called()
