@@ -312,6 +312,25 @@ def test_mock_run_request_lineage_rejects_conflicting_param_or_scoped_readback()
             application_id=application_id, request_id=request_id)
 
 
+@pytest.mark.parametrize("count, disabled, expected", [
+    (0, False, True),
+    (1, True, True),
+    (1, False, False),
+    (2, True, False),
+])
+def test_submit_control_is_absent_or_a_single_disabled_control(count, disabled, expected):
+    from cli.ui_e2e import submit_control_is_absent_or_disabled
+
+    class Locator:
+        def count(self):
+            return count
+
+        def is_disabled(self):
+            return disabled
+
+    assert submit_control_is_absent_or_disabled(Locator()) is expected
+
+
 def test_employer_discovery_lineage_is_persisted_only_for_observed_jobs(tmp_path):
     from cli.ui_e2e import EvidenceJournal
 

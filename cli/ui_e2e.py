@@ -113,6 +113,16 @@ def assert_mock_run_request_lineage(operation, scoped_readback, *,
     assert scoped_readback.get("operation_id") == expected_operation_id
 
 
+def submit_control_is_absent_or_disabled(locator):
+    """Require no submit affordance, or exactly one disabled affordance.
+
+    Callers must first scope this check to the selected application's visible
+    mock-run panel and bind that panel to the current saved request.
+    """
+    count = locator.count()
+    return count == 0 or (count == 1 and locator.is_disabled())
+
+
 def _attempt_history_summary(history):
     """Project the public history DTO onto a bounded set of fixed safe fields."""
     if not isinstance(history, dict) or not isinstance(history.get("attempts"), list):
@@ -1846,6 +1856,14 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 assert paused_receipt["state"] == "BLOCKED"
                 assert paused_receipt["error_code"] == "REVIEW_REQUIRED"
                 assert "SUBMIT" not in paused_application.get("trace", [])
+                mock_run_controls = page.get_by_role(
+                    "region", name="Recoverable mock run", exact=True)
+                expect(mock_run_controls).to_be_visible()
+                expect(mock_run_controls).to_contain_text(paused_lineage["request_id"])
+                expect(mock_run_controls).to_contain_text(paused_lineage["operation_id"])
+                submit_control = mock_run_controls.get_by_role(
+                    "button", name="Submit to local mock", exact=True)
+                submit_control_gated = submit_control_is_absent_or_disabled(submit_control)
                 if acceptance_run_id is not None and route_adapter_evidence is not None:
                     record_application_step(
                         38, "The selected route and fixture-only adapter were rechecked during the local attempt.",
@@ -1861,9 +1879,13 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                             paused_application["question_preflight"]["is_current"] is True
                             and paused_receipt["error_code"] == "REVIEW_REQUIRED"),
                         "submit_not_attempted": _paired_evidence(
-                            page.get_by_role("button", name="Submit to local mock", exact=True).is_disabled(),
+                            page.get_by_role("heading", name="Application details", exact=True).is_visible()
+                            and page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "REVIEW_REQUIRED"
+                            and submit_control_gated,
                             "SUBMIT" not in paused_application.get("trace", [])
-                            and paused_receipt["state"] == "BLOCKED"),
+                            and paused_receipt["state"] == "BLOCKED"
+                            and paused_operation.get("params", {}).get("submit") is False),
                     },
                     stage_lineage=paused_lineage,
                 )
