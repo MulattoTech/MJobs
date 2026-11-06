@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-951-INTEGRATION",
+  "objective": "Integrate the independently reviewed Greenhouse and Remote OK optional-salary fixes in existing PR951 while preserving both histories",
+  "owner": "web-20261104T235920Z-58c1462f-0bb0-4832-8e5b-483e6eb9d1f1",
+  "branch": "web/web-20261104T235920Z-58c1462f/PR-951-integration",
+  "head_sha": "77a0404c65480ed74cc64cd91be16e2214090c82",
+  "routing_state": "VERIFY",
+  "next_action": "Verify fresh published-head protected gates and current main under new integration ownership; after protected merge verify both original heads are ancestors before closing included PR947.",
+  "created_at": "2026-11-05T02:26:02.203014+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "61 passed, 1 skipped, 75 subtests passed in 28.89s; six source/test blobs unchanged; catalogue/progress/dashboard pass",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh published-head hosted checks; protected merge/deployment; live providers",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Hosted exact-candidate verification must complete after publication"
+  ]
+}
