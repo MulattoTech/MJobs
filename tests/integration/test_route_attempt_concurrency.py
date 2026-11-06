@@ -138,11 +138,10 @@ print(json.dumps(execute_operation(sys.argv[1])))
             return json.loads(result.stdout.strip().splitlines()[-1])
         with ThreadPoolExecutor(max_workers=2) as pool:
             outcomes = list(pool.map(run_child, operations))
-        self.assertEqual(
-            sorted(r['status'] for r in outcomes), ['BLOCKED', 'COMPLETED'],
-            [{'status': result.get('status'),
-              'error_category': result.get('error_category')} for result in outcomes],
-        )
+        self.assertEqual(sorted(r['status'] for r in outcomes), ['BLOCKED', 'COMPLETED'],
+                         msg=[{'status': result.get('status'),
+                               'error_category': result.get('error_category')}
+                              for result in outcomes])
         with self.store.engine.connect() as connection:
             rows = list(connection.execute(select(m.operations).where(
                 m.operations.c.id.in_(operations))).mappings())
