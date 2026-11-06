@@ -2,8 +2,8 @@
   "schema_version": 1,
   "task_id": "MISSION-CONTROL-GRANULAR-PROGRESS",
   "owner": "Codex fork 01a1b1ef",
-  "updated_at_utc": "2026-11-06T18:47:36.276447+00:00",
-  "routing_state": "EXECUTE",
+  "updated_at_utc": "2026-11-06T19:31:55.621598+00:00",
+  "routing_state": "VERIFY",
   "objective": "Preserve overall acceptance; expand P0 to readable requirement rows, then MJ-REQ-292 to six phases and 60 evidence-backed steps on local and protected web Mission Control.",
   "approved_design": "User explicitly rejected campaign-first. Use progressive disclosure within existing priority hierarchy, compact verified/partial/not-run counts, evidence, blocker, source and freshness. Never fractional PASS.",
   "base_commit": "5af5edd2b7d585cbdab7f9089db099f88d684ff0",
@@ -14,7 +14,7 @@
     "leia_dashboard_truth": "remote publisher/UI path inspection",
     "yoda_layout_review": "source contract and independent review"
   },
-  "next_action": "Join API and local drilldown, implement allowlisted remote projection, test malformed/missing/stale states and actual browser P0 expansion/refresh, route reviewed commits to sole integration owner.",
+  "next_action": "Publish reviewed dashboard source via bounded PR and protected checks; finish remote publisher proof; install exact reviewed source preserving freshness work and live feeds, verify local and protected web origins.",
   "deployment": {
     "local": "http://127.0.0.1:18729/",
     "web": "https://m-techlabs.com/mission-control/",
@@ -33,5 +33,53 @@
     "No duplicate campaign runtime or integration ownership",
     "No private commands, paths, credentials or applicant data exported",
     "Live deployments and authenticated web verification remain unperformed"
-  ]
+  ],
+  "branch": "codex/dashboard-current-first-20261106",
+  "head_sha": "ae7268a0ebe9e8bf68fb4093550e5179eb9645d3",
+  "created_at": "2026-11-06T18:47:36.276447+00:00",
+  "updated_at": "2026-11-06T19:31:55.621598+00:00",
+  "requirements": [
+    "MJ-REQ-292"
+  ],
+  "blockers": [
+    "Protected publication, merge, and installed runtime activation are not yet complete",
+    "Final remote semantic-phase-label projection/readability followup pending"
+  ],
+  "tests": [
+    {
+      "command": "pytest campaign units/history units/campaign browser/history browser",
+      "result": "PASS",
+      "observed": "17 tests passed in44.29s",
+      "tested_commit": "9469336c86f046eff9c3b0ba31d4e9c106154272"
+    },
+    {
+      "command": "Real-ledger Chromium preview",
+      "result": "FAIL",
+      "observed": "API60rows counts and open-state assertions passed; screenshot found clipping/title discoverability defects",
+      "tested_commit": "9469336c86f046eff9c3b0ba31d4e9c106154272"
+    },
+    {
+      "command": "pytest campaign/history/freshness/fleet units and campaign/history browser tests",
+      "result": "PASS",
+      "observed": "24passed64.10s; joined freshness source and local readability",
+      "tested_commit": "ae7268a0ebe9e8bf68fb4093550e5179eb9645d3"
+    },
+    {
+      "command": "Actual-ledger Chromium preview",
+      "result": "PASS",
+      "observed": "60steps, canonical phase sizes, readable title, visible nested campaign afterrefresh, no browser errors; isolated temporary server only",
+      "tested_commit": "ae7268a0ebe9e8bf68fb4093550e5179eb9645d3"
+    },
+    {
+      "command": "pytest campaign browser tests after aligning canonical labels",
+      "result": "PASS",
+      "observed": "3passed46.33s; committed test inputs will match these bytes"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; git diff --check",
+      "result": "PASS",
+      "observed": "Catalogue and journal valid, dashboard CURRENT, diff clean"
+    }
+  ],
+  "preserved_freshness_source": "Existing ac52f19e,8d1ff2de,259bb96e,6ba37176 integrated preserving original authorship and installed behaviors; independent semantic comparison passed."
 }

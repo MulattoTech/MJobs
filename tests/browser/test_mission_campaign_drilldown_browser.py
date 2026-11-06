@@ -76,16 +76,16 @@ def _campaign_fixture():
                 "missing_behavior": "Independent qualification remains outstanding",
                 "tested_commit": "abc123def456",
                 "executed_at_utc": "2026-11-06T16:00:00Z",
-                "review_status": "COMMENTED",
+                "review_status": "NOT_RUN",
                 "merge_status": "NOT_MERGED",
             })
         label = chr(64 + phase_no)
         phase_name = [
-            "Intake and scope (Steps 1–8)", "Source coverage (Steps 9–22)",
-            "Collection (Steps 23–31)", "Normalization (Steps 32–35)",
-            "Qualification (Steps 36–53)", "Closeout (Steps 54–60)",
+            "Setup and résumé (1–8)", "Job sources and matching (9–22)",
+            "Employer discovery (23–31)", "Tailored documents (32–35)",
+            "Applications and tracking (36–53)", "Restart and recovery (54–60)",
         ][phase_no - 1]
-        phases.append({"id": f"phase-{label}", "label": phase_name, "steps": steps})
+        phases.append({"id": label, "label": phase_name, "steps": steps})
     return {
         "schema_version": 1,
         "available": True,
@@ -97,7 +97,7 @@ def _campaign_fixture():
             "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
             "updated_at_utc": "2026-11-06T16:00:00Z",
             "source_revision": "abc123def456",
-            "source_kind": "WORKING_CHECKPOINT",
+            "source_kind": "working_checkpoint",
             "handoff_revision": "70595258e4cac188d641629298a5ee4e8131a45c",
             "routing_state": "PAUSED",
             "routing_state_scope": "Campaign handoff state",
@@ -151,8 +151,8 @@ def test_p0_campaign_hierarchy_is_readable_compact_and_survives_refresh(tmp_path
         phases = campaign.locator("details.campaign-phase")
         assert phases.count() == 6
         assert [phases.nth(i).locator(":scope > summary .campaign-phase-label").inner_text() for i in range(6)] == [
-            "Intake and scope (Steps 1–8)", "Source coverage (Steps 9–22)", "Collection (Steps 23–31)",
-            "Normalization (Steps 32–35)", "Qualification (Steps 36–53)", "Closeout (Steps 54–60)",
+            "Setup and résumé (1–8)", "Job sources and matching (9–22)", "Employer discovery (23–31)",
+            "Tailored documents (32–35)", "Applications and tracking (36–53)", "Restart and recovery (54–60)",
         ]
         assert "0 fail" not in phases.first.locator(":scope > summary").inner_text()
         assert "0 blocked" not in phases.first.locator(":scope > summary").inner_text()
