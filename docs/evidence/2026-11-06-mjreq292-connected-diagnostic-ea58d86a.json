@@ -1,0 +1,1351 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "classification": "INCOMPLETE_CONNECTED_RUN_NOT_ACCEPTANCE",
+  "recorded_at_utc": "2026-11-06T20:43:10Z",
+  "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+  "source_tree": "f167a446980ad98b622aecb6f978b15a810a6a46",
+  "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+  "run_receipt_timestamp": "2026-11-06T14:39:48.477702-06:00",
+  "target": "http://127.0.0.1:18743",
+  "image_id": "sha256:31e8f3fdbb5ea364e0dabdbf9f0c4d5238dee0c8a284a007e7215a55157eaea6",
+  "original_ui_artifact_sha256": "ca595d3c4fff8a47bc165ce6f109a0eac25bedcc38fd179a80d6b007620e5739",
+  "original_journey_artifact_sha256": "bc4923a6bada17ac75434a89142f851f7247fcf22ce8aa10520b83aba55390b7",
+  "original_startup_receipt_sha256": "22955698625815656ffe250b53a35ba3d847c1e974f1877c26d083242e5cb640",
+  "original_startup_summary_sha256": "ee4aab5d77ff88c64f89fd0c12b6a855c6669963e91ebe646936c7429881087a",
+  "journey_run_log_sha256": "8a2830a6a488c0572a8b6ce6a0b304286c3c8d62d36f34726ebadcfa745e607a",
+  "frontend_build_receipt_sha256": "acd8664be0a02721cd6d61435ce9575122c7c2393daa7f0631f209181e3ab507",
+  "original_artifact_locations": {
+    "ui": "outputs/mjreq292-native-ea58d86af3f3/journey/ui.json",
+    "journey": "outputs/mjreq292-native-ea58d86af3f3/journey/journey.json",
+    "startup": "outputs/mjreq292-native-ea58d86af3f3/journey/startup-receipt.json",
+    "startup_summary": "outputs/mjreq292-native-ea58d86af3f3/journey/startup.json",
+    "journey_log": "outputs/mjreq292-native-ea58d86af3f3/journey-run.log",
+    "build_receipt": "outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json"
+  },
+  "source_manifest_review": {
+    "build_receipt_sha256": "acd8664be0a02721cd6d61435ce9575122c7c2393daa7f0631f209181e3ab507",
+    "contract": "fixtures.company_monitoring_stack.source_files Git archive byte manifest",
+    "source_archive_sha256": "837c20873ebe2415bad4500b5bb2a4c2eb0a525412d52ca15909b70d6969dfb0",
+    "runtime_source_manifest_sha256": "4e2e7a22cb961ed7b5a6f6b247fd502fe2f94ebc9371b7e9b071adaa6b07eb01",
+    "build_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+    "build_tree": "f167a446980ad98b622aecb6f978b15a810a6a46",
+    "build_image": "sha256:31e8f3fdbb5ea364e0dabdbf9f0c4d5238dee0c8a284a007e7215a55157eaea6",
+    "startup_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+    "startup_tree": "f167a446980ad98b622aecb6f978b15a810a6a46",
+    "result": "RECEIPT_BINDINGS_MATCH"
+  },
+  "startup_observation": "Startup receipt reports PASS: compose command exit 0, migration exit 0, ten services healthy, no preexisting project containers, networks, or volumes. This is startup evidence only.",
+  "failure": {
+    "stage": "Journey wrapper numbered observation continuity validation",
+    "type": "ValueError",
+    "message": "Numbered observation continuity identity mismatch",
+    "ui_producer_state": "PARTIAL",
+    "journey_result": "FAIL",
+    "journey_category": "SEGMENT_FAILED",
+    "log_sha256": "8a2830a6a488c0572a8b6ce6a0b304286c3c8d62d36f34726ebadcfa745e607a"
+  },
+  "failure_detail": "The UI producer completed with PARTIAL and serialized 52 observations through step 53 (48 PASS, 4 PARTIAL; no failed UI row). The journey wrapper then failed during complete_segment -> numbered_observations -> _validate_continuity at cli/acceptance_journey.py:496 with ValueError: Numbered observation continuity identity mismatch. The wrapper JSON marks the UI segment FAIL and its 59 later wrapper rows NOT_RUN. The trace does not identify the mismatching numbered row; no row or root cause is inferred.",
+  "observed_row_counts": {
+    "PARTIAL": 4,
+    "PASS": 48
+  },
+  "acceptance_observations": [
+    {
+      "step": 2,
+      "status": "PASS",
+      "observable_result": "Dashboard landing screen is visible in the browser.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "dashboard_heading_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {},
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 4,
+      "status": "PASS",
+      "observable_result": "Synthetic resume was uploaded and extracted through the UI.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "resume_upload_and_extraction_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 5,
+      "status": "PASS",
+      "observable_result": "Extracted suggestions remain pending until reviewed and approved.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "extracted_suggestions_remain_unapproved",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 6,
+      "status": "PASS",
+      "observable_result": "An extracted fact was corrected and saved as an unapproved pending fact.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "corrected_fact_read_back",
+          "passed": true
+        },
+        {
+          "name": "corrected_fact_remains_pending",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 7,
+      "status": "PASS",
+      "observable_result": "Only the explicitly reviewed synthetic Python and SQL facts are approved.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "approved_fact_set_matches_review",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 8,
+      "status": "PASS",
+      "observable_result": "Remote IT and Data Engineer searches were saved through the Sources UI.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "remote_it_search_read_back",
+          "passed": true
+        },
+        {
+          "name": "remote_data_search_read_back",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "operation_id": "operation-01",
+        "profile_id": "profile-01",
+        "request_id": "request-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 10,
+      "status": "PASS",
+      "observable_result": "Fixture discovery completed and search-scoped jobs were read back.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "discovery_operation_completed",
+          "passed": true
+        },
+        {
+          "name": "search_scoped_job_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "operation_id": "operation-01",
+        "profile_id": "profile-01",
+        "request_id": "request-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 11,
+      "status": "PARTIAL",
+      "observable_result": "Synthetic fixture discovery does not prove real-provider jobs.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "same_profile_public_readonly_jobs_observed",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "operation_id": "operation-01",
+        "profile_id": "profile-01",
+        "request_id": "request-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 9,
+      "status": "PARTIAL",
+      "observable_result": "The fixture does not expose multiple enabled job sources.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "source_rows_visible",
+          "passed": true
+        },
+        {
+          "name": "multiple_sources_enabled",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 12,
+      "status": "PASS",
+      "observable_result": "Text search narrowed the visible fixture job list.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "matching_job_visible",
+          "passed": true
+        },
+        {
+          "name": "nonmatching_job_hidden",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 13,
+      "status": "PASS",
+      "observable_result": "Job title filter retained only the requested fixture title.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "filtered_job_visible",
+          "passed": true
+        },
+        {
+          "name": "other_title_hidden",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 14,
+      "status": "PASS",
+      "observable_result": "Visible fixture jobs follow the match-score order from readback.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "match_sort_order",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 17,
+      "status": "PASS",
+      "observable_result": "The job card and readback expose the same duplicate posting count.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "canonical_duplicate_job_available",
+          "passed": true
+        },
+        {
+          "name": "duplicate_count_matches_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 18,
+      "status": "PASS",
+      "observable_result": "The canonical fixture job opened in the detail panel.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "canonical_job_detail_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 15,
+      "status": "PASS",
+      "observable_result": "Salary range is visible and the annual salary filter retains eligible jobs.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "salary_range_visible",
+          "passed": true
+        },
+        {
+          "name": "salary_filter_retains_jobs",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 16,
+      "status": "PARTIAL",
+      "observable_result": "Remote type and location are shown; fixture data does not state employer remote restrictions.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "remote_filter_returned_a_remote_job",
+          "passed": false
+        },
+        {
+          "name": "remote_job_type_visible",
+          "passed": false
+        },
+        {
+          "name": "employer_remote_restrictions_available",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 19,
+      "status": "PASS",
+      "observable_result": "Every known fixture source copy is listed in the job detail.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "source_copy_ids_read_back",
+          "passed": true
+        },
+        {
+          "name": "source_copy_panels_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 20,
+      "status": "PASS",
+      "observable_result": "The verified employer ATS route is visibly preferred and persists on readback.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "verified_ats_authority_visible",
+          "passed": true
+        },
+        {
+          "name": "preferred_route_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 21,
+      "status": "PASS",
+      "observable_result": "The selected verified employer route is visible as a saved application link.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "application_route_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 22,
+      "status": "PASS",
+      "observable_result": "The selected job score and requirement explanation are visible.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "visible_numeric_match_score",
+          "passed": true
+        },
+        {
+          "name": "selected_job_requirement_explanation_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 23,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "previously_unknown_employer_observed",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 24,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_discovery_ran_automatically",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 25,
+      "status": "PARTIAL",
+      "observable_result": "Official employer domain remains unverified in this fixture.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "official_employer_domain_verified",
+          "passed": false
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 26,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_careers_page_found",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 27,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_ats_tenant_identified",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 28,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_source_enrolled_automatically",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 29,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_openings_enumerated",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 30,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_only_opening_observed",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 31,
+      "status": "PASS",
+      "observable_result": "Connected fixture employer evidence verified.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "employer_duplicate_sources_collapsed",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-01",
+        "operation_id": "operation-02",
+        "profile_id": "profile-01",
+        "request_id": "request-02"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 32,
+      "status": "PASS",
+      "observable_result": "The selected Data Engineer job was saved and read back.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "strong_match_available",
+          "passed": true
+        },
+        {
+          "name": "saved_status_readback",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 36,
+      "status": "PASS",
+      "observable_result": "The selected B application was prepared and read back with its profile and job pins.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "application_prepared_readback",
+          "passed": true
+        },
+        {
+          "name": "profile_job_pins_match",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 37,
+      "status": "PASS",
+      "observable_result": "The displayed application route matched the selected route readback for B.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "route_bound_to_job",
+          "passed": true
+        },
+        {
+          "name": "selected_route_matches_application",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 34,
+      "status": "PASS",
+      "observable_result": "The UI compared immutable generated base and tailored resume versions.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "generated_base_visible",
+          "passed": true
+        },
+        {
+          "name": "tailored_version_visible",
+          "passed": true
+        },
+        {
+          "name": "omission_and_change_summary_visible",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "document_ids": [
+          "document-01",
+          "document-02"
+        ],
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 33,
+      "status": "PASS",
+      "observable_result": "Tailored resume contains only selected approved facts and preserves approved cover-letter facts.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "tailored_resume_uses_selected_approved_facts",
+          "passed": true
+        },
+        {
+          "name": "omitted_fact_visible_and_excluded",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "document_ids": [
+          "document-03",
+          "document-04"
+        ],
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 35,
+      "status": "PASS",
+      "observable_result": "Distinct job-specific cover letters match the persisted A and B application records.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "cover_letter_generated",
+          "passed": true
+        },
+        {
+          "name": "cross_job_uniqueness_compared",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "document_id": "document-05",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 38,
+      "status": "PASS",
+      "observable_result": "The selected route and fixture-only adapter were rechecked during the local attempt.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "provider_matches_route",
+          "passed": true
+        },
+        {
+          "name": "supported_adapter_matches_provider",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 44,
+      "status": "PASS",
+      "observable_result": "The uncertain required answer paused the local attempt before any submit step.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "submit_not_attempted",
+          "passed": true
+        },
+        {
+          "name": "uncertain_question_paused",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 45,
+      "status": "PASS",
+      "observable_result": "The user confirmed an answer for the paused required question and persisted it in the profile.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "approval_bound_to_question",
+          "passed": true
+        },
+        {
+          "name": "explicit_answer_approval_persisted",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 3,
+      "status": "PASS",
+      "observable_result": "First-run configuration, saved search, and current-version fact decisions were reloaded.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "first_run_wizard_completed_with_persisted_configuration",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 39,
+      "status": "PASS",
+      "observable_result": "The local browser attempt navigated to and detected the selected native fixture form.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "playwright_form_opened",
+          "passed": true
+        },
+        {
+          "name": "selected_application_loaded",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 40,
+      "status": "PASS",
+      "observable_result": "The native attempt filled and read back contact fields from the current profile.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "contact_fields_match_verified_profile",
+          "passed": true
+        },
+        {
+          "name": "contact_fields_readback_verified",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 41,
+      "status": "PASS",
+      "observable_result": "The verified browser resume bytes matched the selected persisted B resume document.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "resume_sha256_matches",
+          "passed": true
+        },
+        {
+          "name": "resume_upload_matches_document",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "document_id": "document-06",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 42,
+      "status": "PASS",
+      "observable_result": "The verified browser cover-letter bytes matched the selected persisted B cover letter.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "cover_letter_sha256_matches",
+          "passed": true
+        },
+        {
+          "name": "cover_letter_upload_matches_document",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "document_id": "document-07",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 43,
+      "status": "PASS",
+      "observable_result": "The native attempt filled and validated the exact reviewed answers; values stay hidden.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "approved_answers_match_questions",
+          "passed": true
+        },
+        {
+          "name": "approved_answers_readback_verified",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 46,
+      "status": "PASS",
+      "observable_result": "The reviewed application used a current reprepare after stale preflight evidence was rejected.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "reviewed_application_resumed",
+          "passed": true
+        },
+        {
+          "name": "stale_approval_rejected",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 47,
+      "status": "PASS",
+      "observable_result": "The current form preflight and generated documents were pinned to the selected B profile revision.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "current_form_validated",
+          "passed": true
+        },
+        {
+          "name": "profile_document_pins_match",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 48,
+      "status": "PASS",
+      "observable_result": "The dry-run receipt and attempt trace were persisted without an external post.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "dry_run_receipt_persisted",
+          "passed": true
+        },
+        {
+          "name": "no_external_post_recorded",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 49,
+      "status": "PASS",
+      "observable_result": "The owned local mock received one explicitly approved submission operation.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "external_submission_absent",
+          "passed": true
+        },
+        {
+          "name": "owned_mock_received_submit",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 50,
+      "status": "PASS",
+      "observable_result": "A scoped fixture confirmation was reconciled once to the selected B application.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "authoritative_confirmation_detected",
+          "passed": true
+        },
+        {
+          "name": "confirmation_count_one",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 51,
+      "status": "PASS",
+      "observable_result": "Repeating the same local request returned its completed receipt without a second submission.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "history_receipt_persisted",
+          "passed": true
+        },
+        {
+          "name": "repeated_readback_idempotent",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 52,
+      "status": "PASS",
+      "observable_result": "The selected B application tracking status persisted through a browser reload.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "tracker_matches_application",
+          "passed": true
+        },
+        {
+          "name": "tracker_survives_reload",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    },
+    {
+      "step": 53,
+      "status": "PASS",
+      "observable_result": "The B audit timeline shows submission, confirmation and reported tracking with redacted values.",
+      "evidence_kind": "CONTROLLED_FIXTURE",
+      "checks": [
+        {
+          "name": "audit_scope_matches_application",
+          "passed": true
+        },
+        {
+          "name": "audit_sequence_complete",
+          "passed": true
+        },
+        {
+          "name": "audit_values_redacted",
+          "passed": true
+        }
+      ],
+      "continuity": {
+        "application_id": "application-01",
+        "job_id": "job-02",
+        "profile_id": "profile-01"
+      },
+      "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+      "source_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae"
+    }
+  ],
+  "stage_lineage": [
+    {
+      "step": 36,
+      "operation_id": "operation-03",
+      "request_id": "request-03",
+      "operation_kind": "PREPARE",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 37,
+      "operation_id": "operation-03",
+      "request_id": "request-03",
+      "operation_kind": "PREPARE",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 38,
+      "operation_id": "operation-04",
+      "request_id": "request-04",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 44,
+      "operation_id": "operation-04",
+      "request_id": "request-04",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 45,
+      "operation_id": "operation-04",
+      "request_id": "request-04",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 39,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 40,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 41,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 42,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 43,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 46,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 47,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 48,
+      "operation_id": "operation-05",
+      "request_id": "request-05",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 49,
+      "operation_id": "operation-06",
+      "request_id": "request-06",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 50,
+      "operation_id": "operation-06",
+      "request_id": "request-06",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 51,
+      "operation_id": "operation-06",
+      "request_id": "request-06",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 52,
+      "operation_id": "operation-06",
+      "request_id": "request-06",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    },
+    {
+      "step": 53,
+      "operation_id": "operation-06",
+      "request_id": "request-06",
+      "operation_kind": "APPLY_MOCK",
+      "application_id": "application-01",
+      "profile_id": "profile-01",
+      "job_id": "job-02"
+    }
+  ],
+  "wrapper_step_summary": {
+    "result": "FAIL",
+    "active_segment": "ui",
+    "startup_pass": 1,
+    "not_run": 59,
+    "ui_producer_state": "PARTIAL",
+    "ui_producer_remaining_state": "NONE"
+  },
+  "boundary": "Sanitized projection of an incomplete controlled-fixture connected run. UI producer statuses are preserved as observed and do not constitute integrated acceptance: 48 PASS and 4 PARTIAL through step 53. Steps 52 and 53 are actual producer observations with profile/application/job continuity and same APPLY_MOCK operation/request lineage as steps 49-51. The campaign wrapper rejected numbered-observation continuity after the UI producer completed; wrapper result is FAIL, with startup step 1 PASS and 59 NOT_RUN. No ledger PASS or whole-journey acceptance is claimed. Fixture submission, confirmation and audit rows do not establish real-employer submission or public-provider behavior. Synthetic profile, application, job, document, operation and request identifiers are replaced with opaque labels. Raw diagnostics remain in the frozen runtime worktree."
+}

@@ -526,3 +526,64 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
+
+
+## 2026-11-06T13:21:14.905103+00:00 - MJ-REQ-292 campaign checkpoint
+
+MJ-REQ-292: **0/60 VERIFIED PASS**, 33 PARTIAL, 27 NOT_RUN. Canonical requirement stays PARTIAL and issue293 remains open. Durable authority: `planning/acceptance/MJ-REQ-292.json`; resumable detail/roster/candidate refs: `planning/agent_handoffs/MJ-REQ-292.json`.
+
+Root branch `codex/mj-req292-full-journey-20261106` in the journey worktree; source before this checkpoint `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Protected dependencies967/933 merged; main last verified `f7b7a2f621036f828e83e2cb9293e30eb82bac5f`. PR973 remains draft. Preserve all prior CI failures, exact-head receipts and owned fixture volumes. No integration lock is held.
+
+Reviewed salary rendering, native canonical/apply proof and strict paused-run submit checks are integrated. Root latest domain suite43tests50subtests and UI suite44tests passed. Full connected acceptance is incomplete. Fresh f7d runtime18738 has valid startup evidence but the coordinator stopped beforeUI on a build-receipt timestamp key; the separately normalized receipt preserves the actual recorded timestamp and original failure. The f7d runner also has a known later UI assertion repaired in `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Build/run current reviewed source on continuation.
+
+Source-setup schema2 lane is preserved separately, not accepted or integrated; see per-agent exact refs in JSON. Next: reconcile live PR973 checks and ownership, build exact latest reviewed source, execute the connected public/native/restart/monitoring journey, independently review and verify protected merged-source evidence. Four-hour boundary is13:21:34Z; extension request is unanswered at this checkpoint. No automatic unattended continuation is created.
+
+
+## MJ-REQ-292 user pause — 2026-11-06T18:53:13.600752+00:00
+
+MJ-REQ-292: **0/60 VERIFIED PASS — 39 PARTIAL,21 NOT_RUN**. Durable ledger/checkpoint preserved. Root source HEAD `70595258e4cac188d641629298a5ee4e8131a45c`; PR973 published `c2bbf9e039d7b2f2556bf55a0b5704695706717c`, draft, last aggregate integration result unobserved. Latest source includes reviewed stale-fact reload and strict v4 inventory evidence. Root420tests42subtestsPASS; no new connected PASS.
+
+705 exact-source build failed post-build byte-manifest verification; no PASS receipt and no Compose startup. All eight older owned stacks are stopped with data/resources preserved. Ahsoka session35671 was already running at pause and was left untouched; no new work, tests, polling, provider requests or merges will start. Detailed isolated branches, dirty ownership, receipts and next actions are in `planning/agent_handoffs/MJ-REQ-292.json`. Await explicit resume; do not restart completed slices.
+
+## MJ-REQ-292 explicit resume — 2026-11-06T19:05:39.349365+00:00
+
+Resumed checkpoint `1598b7f9`; deadline remains 2026-11-06T21:22:28Z. **0/60 VERIFIED PASS; 39 PARTIAL; 21 NOT_RUN.** Existing assignments and all preserved runtime data retained. Published PR973 c2bb checks now all PASS; later local source remains unpublished and unqualified by hosted checks. Reviewed campaign launcher integrated as `464f7bcf`. The 705 image manifest mismatch is isolated to Git export line endings; canonical byte verification and fresh startup are in progress. Bootstrap joined tests pass and exact independent review is pending. Dashboard fork retains tools/agent_dashboard ownership.
+
+## MJ-REQ-292 connected checkpoint — 2026-11-06T19:28:40.975394+00:00
+
+**0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** Exact705 diagnostic advanced through controlled mock confirmation/history, then failed tracking because the browser safety interceptor omitted its valid PUT route. New39–43 and46–51 are diagnostic PARTIAL only; original false UI checks remain preserved. The corrected Git-export image manifest is independently verified. Bootstrap consumer, parent cancellation/lease guards, real dispatcher7bb04e21 and production child route6d95a686 are integrated locally. Root323tests22subtestsPASS with2Windows skips; realPG31tests20subtestsPASS0skip; realRQ child1PASS pending scoped review. Published PR973 remains c2bb with all observed checksPASS; later source is unpublished. Pending: reviewed UI observer corrections, bounded child-source cleanup, final launcher substitution, fresh frozen full journey and protected integration. Separate dashboard ownership preserved; deadline21:22:28Z.
+
+## Reviewed campaign batch — 2026-11-06T19:49:34.425541+00:00
+
+**MJ-REQ-292: 0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN.** The bootstrap, child tracking/cleanup, UI observer repairs and committed launcher are integrated. Source candidate before this checkpoint: `455eb652f59983e684c5715a37b992378360d03c`. Independent reviews are recorded in the task checkpoint. The old705 run remains failed diagnostic evidence; no observations have been promoted to PASS. The d2 image is also preserved as diagnostic-only because it predates the final cleanup fix.
+
+Next: publish the reviewed PR973 batch, build the exact frozen checkpoint revision, run the connected journey, then qualify protected integration and repeat against the exact merged commit. The session deadline remains21:22:28Z. Dashboard PR974 retains its separate ownership. No real employer submission is enabled.
+
+## c1 diagnostic and CI repair checkpoint — 2026-11-06T20:06:09.464096+00:00
+
+PR973 is published at `c1b349810cefa260cbb5e064d0812a13cebe8c45`; main remains unchanged. **0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** The new exact stack passed startup and all emitted native form/submission observations through51, but tracker history did not update visibly after successful server readback. Rey is repairing product state handling, without a navigation workaround.
+
+CI unit failures traced to test environment leakage; independently reviewed test-only fix is integrated as `388a8884` with49 ordered tests passing. Full Windows unit collection was blocked by existing Linux-only fcntl; not a suite PASS. Hosted integration shard2 also exposed33 legacy discovery failures, now assigned to Ahsoka/Obiwan for reproduction and repair. No required check is waived. Compose E2E passed on c1; further CI results are tracked by Leia.
+
+
+## 2026-11-06T20:21:42.506480+00:00 - MJ-REQ-292 repair checkpoint
+
+MJ-REQ-292: **0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `6e254c54d6e61adccbd6159aa0b7337c11cb6fa7`; published PR973 head remains `c1b349810cefa260cbb5e064d0812a13cebe8c45`. Preserve failed c1 runtime and hosted results. Dashboard PR974 merged as971ba931 and was normally incorporated asb2cd8a31 with exact dashboard files retained.
+
+Tracker state/readback and retry-idempotency fixes71735a3a/36db9ac9 independently reviewed; three composed frontend tests and typecheck passed. Queued bootstrap versus explicit review fix6e254c54 independently reviewed, with remaining regression results recorded in the task checkpoint. Environment leak fixed388a8884. Remaining clock/capacity failures require causal repair and fresh CI. No public source/restart/monitoring or merged-source full journey has completed. Deadline remains21:22:28UTC.
+
+
+## 2026-11-06T20:33:32.079038+00:00 - MJ-REQ-292 candidate qualification
+
+**MJ-REQ-292: 0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `29509754248aff32803b90491d82f807e5eaa725`. Reviewed tracker, bootstrap-review compatibility, environment isolation and simulated-clock repairs are integrated. Root37 review/identity tests16subtests and18 clock tests17subtests passed; frontend3 tests/typecheck passed. Linux ordered subset39 passed,10 skipped,24subtests; full unit environment lacks test tools and is NOT_RUN. Initial PG supersession adapter accidentally ran nested SQLite tests; preserve that limitation and require corrected explicit dialect proof.
+
+Fresh current-head CI, candidate runtime, protected merge, and exact merged-source60-step verification remain separate gates. Preserve c1 failed runtime/CI and all historical source/evidence. Main971 dashboard source retained. Continue only within authorized window ending21:22:28UTC.
+
+Corrected PG adapter c1c993ab now explicitly binds the nested fixture and asserts PostgreSQL. Its exact mixed batch passed42 tests/10subtests with0skips; prior invalid adapter receipts remain preserved. Root Greenhouse priority-order suite12PASS. Unpublished trailer formatting was repaired with identical source trees, authorship and merge ancestry; original12-commit chain retained, mapping committed.
+
+
+## 2026-11-06T20:46:56.937091+00:00 - MJ-REQ-292 discovery identity repair
+
+**MJ-REQ-292: 0/60 VERIFIED PASS**, 53 PARTIAL,7 NOT_RUN. New diagnostic rows3/52/53 bind sanitized ea58 evidence. The actual browser producer completed52 observations, including tracker and audit; the wrapper failed because UI discovery steps8/10/11 were compared to final application operation IDs. Yoda reviewed narrow runner repair edbb823c, integrated `f183afdc5921710123f1f7df029fe9b7bcc9a59e`; root313 runner/UI tests passed. R2 owns synthetic ledger fixture alignment. Preserve failed ea58 checkpoint and all resources; do not resume it.
+
+Next: fresh candidate publication/build/run, complete UI then same-run public-source/recovery/monitoring, protected merge and exact merged-source verification. Current deadline21:22:28UTC remains unchanged.

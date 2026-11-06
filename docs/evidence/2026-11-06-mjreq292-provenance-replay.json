@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "classification": "COMMIT_METADATA_ONLY_NO_NEW_ACCEPTANCE",
+  "recorded_at_utc": "2026-11-06T19:33:03.595192+00:00",
+  "published_anchor": "c2bbf9e039d7b2f2556bf55a0b5704695706717c",
+  "preserved_local_branch": "codex/mj292-preserved-pre-provenance-20261106-1933",
+  "reason": "Only the final attribution trailer block of original60fc43f8 contained blank paragraph separators; replay corrects its machine-readable formatting. All25 source trees and original author identities/times were verified identical. The preservation branch retains the exact previously tested commits locally. The publication branch remains a descendant of the unchanged published anchor, so a normal non-force push is sufficient.",
+  "commits": [
+    {
+      "original": "60fc43f81c46bd7feda04efa212bcd8937844e82",
+      "corrected": "41d319a8a1e599ff162e4e2ce39ce7cae959dd25",
+      "tree": "9036186d43df4ed1ad4ae472273c21454f0344b9"
+    },
+    {
+      "original": "fa76cab8ee9a24ed937b838f774ab6082687ec8f",
+      "corrected": "b1e5d7ec1638454c58b39763fd5b2c65ccc2d522",
+      "tree": "6c13899a027d6d117420f21b45125ccf4cc7551b"
+    },
+    {
+      "original": "244d7fc7e9e02248d55fef545cd1c9864b034613",
+      "corrected": "75ffb68814578293bd4c56e73165455ed03e842b",
+      "tree": "d28163492f3c504beacfe0454c92fc454f6368a4"
+    },
+    {
+      "original": "70595258e4cac188d641629298a5ee4e8131a45c",
+      "corrected": "96e2f2f0cf7a045cf39eeafe3dc6b88905bc414e",
+      "tree": "cb7091f7b3820c80869bdb7a95b920efbaeedceb"
+    },
+    {
+      "original": "1598b7f93a3050e51a5e71717ea053cf853d13d6",
+      "corrected": "077625c88df1a1178d7154f4a6a346018c2be499",
+      "tree": "6ec1392c84857069d8f5d400c80d87270cbc4eb8"
+    },
+    {
+      "original": "464f7bcf40cfe35e3a5748a72f71b29938415255",
+      "corrected": "686b13d0b53b5c30cac806680d55040a565f87a5",
+      "tree": "9ea618aec7c5944af3daaa25d730a1d40e2498ec"
+    },
+    {
+      "original": "8f8d199d579cedbf0b41121b2ab0ee2e10487a8d",
+      "corrected": "01d0d1430e46219cf0aef6413f0c39abcf62faba",
+      "tree": "4945a0c7d1b265cede3319ac00054e266e6f7e81"
+    },
+    {
+      "original": "e91e9c82e5c927fda0783f511edf2b53688795b8",
+      "corrected": "5a04847b6f0820e310a58bc837feebe3b4fa7420",
+      "tree": "5ab05e1bd6dc6f789d19c68cf95269f9317a6cf0"
+    },
+    {
+      "original": "6312625f5aa2ae47f6a335075d3f132b2b2f2010",
+      "corrected": "f6e51c65a9ef28f5d903b597a9a79432c1f3c283",
+      "tree": "717a06ae614118a74517f920d286afa78d848032"
+    },
+    {
+      "original": "cd0b1bdcca21276e33ff0702c1762303793a7d6d",
+      "corrected": "d469829f5de9b314fcf9e1ede953dc41290e6a9e",
+      "tree": "a8cf7af9ab234b4778ad3552c64c5809faf5033b"
+    },
+    {
+      "original": "f23ea7f7b63570c5bd37e8ffe613c4a49f06a9d7",
+      "corrected": "184b384c33b3510bd3867a0b192a78ed9c718d0e",
+      "tree": "e4adc469d2b27c06e6cc166cfaa6af59dd63ceac"
+    },
+    {
+      "original": "b733d821445f51bc78f5b09b65e2eb4ec49b394e",
+      "corrected": "8418f6c8c52befd4a014e8a7541edaa88a48ee59",
+      "tree": "9d596d7f1d2eb84b2e8c44987054d772d91693d9"
+    },
+    {
+      "original": "8cd733c864a2f27883042bb2bccde5ec58f19c06",
+      "corrected": "d5e613244725e763daa4646a68f1ee3f33e648e1",
+      "tree": "3a5a3dede2f513d7e31cae78a5fd1a754ae2837f"
+    },
+    {
+      "original": "7bb04e217bc382550bd716385feac59f95da98dd",
+      "corrected": "8b06871f1ca42032dddf7b522ad8de56403ed62a",
+      "tree": "f79c6fa9e99619508d95f342173ad34c6d1eb519"
+    },
+    {
+      "original": "7b4f4c128edd156f19af2cd68580634b1c6bff37",
+      "corrected": "4f5162049e677bbfef9142c06ac004a88e4d53b1",
+      "tree": "43035c66d4f33720c684cbe88a2a28e227682570"
+    },
+    {
+      "original": "5b2693fb8514f8ca39171575302bdf93f22ccca5",
+      "corrected": "f1a6a6b309bf45eeed566c0ea7ad765b9b88513f",
+      "tree": "c7f3b5a7415a58007684ba197c7d74dcc5aa55de"
+    },
+    {
+      "original": "7a5133df4a6edadfa977158c210c18dc7b5ea6ad",
+      "corrected": "374518effefe5eed122e234b6c743bf4ef456fd1",
+      "tree": "43311a4f5bbbaa0bb6afcd6e43c14efbef6bf659"
+    },
+    {
+      "original": "502ddf31f991da953e5d91bd865df82154986235",
+      "corrected": "bbd1e6aeced72e21eb3013deee84d8c3d390b35a",
+      "tree": "176a4de264ae0f7e68ff17990b90a73897d14f76"
+    },
+    {
+      "original": "6d95a6863201378bd705cd515819509f935c2eba",
+      "corrected": "4b08830ad0c95202534471b77ceb7ee01e5b150e",
+      "tree": "a4899fbe7d65465329df43d997535314c2c27b4c"
+    },
+    {
+      "original": "68a467733447f7d8c6364f1ef8f006a79e0e731a",
+      "corrected": "eb0558ed4c9699c6c894b68b8ce15183faca66f9",
+      "tree": "6ae4cdb85eebbd44bb9bb1880495483fc83f24cd"
+    },
+    {
+      "original": "d17069267c19d4e23fce7d56a4fe9ebe5255e1f1",
+      "corrected": "cc9cd2fb35a43ad8b01263aeaca712f5b45845fc",
+      "tree": "43d33892ab833d5999883f6de251a074f21ec106"
+    },
+    {
+      "original": "3d5aa7c3175fd5a940d21862ba5dc3a93a641003",
+      "corrected": "b5b76372805021dcd2834cdf698e4a33fe940fdb",
+      "tree": "ebaa152b310284a93294e2fbef8bf84d00ea90be"
+    },
+    {
+      "original": "8a19ad63c05700c814f563da4f0891d232031dca",
+      "corrected": "0007854cf138dab8ace176634564c278ff2dcb82",
+      "tree": "4b8c0ca49c6eb2f136d0a6a84a9b06131cc3a20b"
+    },
+    {
+      "original": "3c99fc4e8517dff137185f0462e32f3765930ab9",
+      "corrected": "9f1040c19ce2443be48a63a7b6342d16650a2f82",
+      "tree": "9d25db5b9841891922a7c8de4119986893866425"
+    },
+    {
+      "original": "7d5f46f3f95469b3f47ae7537434282a53005c5a",
+      "corrected": "16015d354dc5f1f8126342389e8fce7afdd7118e",
+      "tree": "e7118b1bf02dce47695012d4dcc83238ae01a734"
+    }
+  ]
+}

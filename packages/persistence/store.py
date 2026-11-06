@@ -1247,6 +1247,10 @@ class Store:
                 break
         return selected
 
+    def job_inventory_page(self, profile_id, *, limit=200, cursor=None, snapshot_sha256=None):
+        from packages.persistence.job_inventory import inventory_page
+        return inventory_page(self, profile_id, limit=limit, cursor=cursor, snapshot_sha256=snapshot_sha256)
+
     def job(self, job_id, profile_id=None):
         profile = self.profile(profile_id) if profile_id else None
         with self.engine.connect() as connection:

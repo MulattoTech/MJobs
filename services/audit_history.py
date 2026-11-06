@@ -319,6 +319,9 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             application = _application_context(row, profile_id, applications, tracking_entities, owners)
             if application is None:
                 continue
+            # Expose only the identity already admitted by the ownership check.
+            # Legacy rows may use their current owned application, never labels.
+            application_id = application.get("application_id", application.get("id"))
             action = row["action"]
             subject, company = _historical_labels(row["payload"])
             mapped = _APPLICATION_EVENTS.get(action)
@@ -329,7 +332,8 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                         and all(isinstance(kind, str) and kind in _DOCUMENT_EVENTS for kind in kinds)):
                     for kind in sorted(set(kinds)):
                         event_type, summary, suffix = _DOCUMENT_EVENTS[kind]
-                        events.append(_event(row, event_type, summary, subject, company, suffix))
+                        events.append(_event(row, event_type, summary, subject, company, suffix,
+                                             application_id=application_id))
                 else:
                     # Older rows did not record kinds. Current artifacts cannot
                     # establish what was generated at a historical timestamp.
@@ -337,7 +341,7 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                               and "document_kinds" not in payload else "unavailable")
                     events.append(_event(row, "DOCUMENTS_PREPARED",
                                          f"Documents prepared (document types {detail})",
-                                         subject, company))
+                                         subject, company, application_id=application_id))
             elif mapped:
                 event_type, summary = mapped
                 if action == "CONFIRMED" and application["target"] == "MOCK":
@@ -351,15 +355,16 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                     status = result.get("status") if isinstance(result, dict) else None
                     if isinstance(status, str):
                         summary = _CONFIRMATION_CHECK_SUMMARIES.get(status, summary)
-                events.append(_event(row, event_type, summary, subject, company))
+                events.append(_event(row, event_type, summary, subject, company,
+                                     application_id=application_id))
 
     events.sort(key=lambda event: (event["timestamp"], event["id"]), reverse=True)
     return {"profile_id": profile_id, "events": events[:limit]}
 
 
 def _event(row, event_type: str, summary: str, subject: str, company: str,
-           event_suffix: str = "") -> dict:
-    return {
+           event_suffix: str = "", *, application_id: str | None = None) -> dict:
+    event = {
         "id": f"{row['id']}:{event_suffix}" if event_suffix else row["id"],
         "type": event_type,
         "summary": summary,
@@ -367,6 +372,11 @@ def _event(row, event_type: str, summary: str, subject: str, company: str,
         "company": _display_label(company, ""),
         "timestamp": row["timestamp"],
     }
+    if (isinstance(application_id, str)
+            and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", application_id)
+            and not _PRIVATE_LABEL.search(application_id)):
+        event["application_id"] = application_id
+    return event
 
 
 def _display_label(value, fallback: str) -> str:
