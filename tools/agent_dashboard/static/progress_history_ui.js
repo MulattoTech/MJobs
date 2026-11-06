@@ -143,6 +143,13 @@ function phaseCounts(phase) {
   }
   return counts;
 }
+function campaignCountText(counts,total=null) {
+  const values=[`${Number(counts.verified_pass||0)} verified`,`${Number(counts.PARTIAL||0)} partial`,`${Number(counts.NOT_RUN||0)} not run`];
+  if(Number(counts.FAIL||0)>0) values.push(`${Number(counts.FAIL)} fail`);
+  if(Number(counts.BLOCKED||0)>0) values.push(`${Number(counts.BLOCKED)} blocked`);
+  if(total!==null) values.push(`${Number(total)||0} total`);
+  return values.join(" · ");
+}
 function stepDetails(step,campaignId) {
   const number=Number(step?.number);
   const key=`campaign:${campaignId}:step:${Number.isFinite(number)?number:escape(step?.title||"unknown")}`;
@@ -194,27 +201,42 @@ function campaignDisclosure(campaign) {
   const score=campaign.scoreboard||{};
   const countline=document.createElement("p");
   countline.className="campaign-scoreboard";
-  countline.textContent=`${Number(score.verified_pass||0)} verified · ${Number(score.PARTIAL||0)} partial · ${Number(score.NOT_RUN||0)} not run · ${Number(score.FAIL||0)} fail · ${Number(score.BLOCKED||0)} blocked · ${Number(score.total||0)} total`;
+  countline.textContent=campaignCountText(score,score.total);
   body.append(countline);
   const meta=document.createElement("p");
   meta.className="campaign-checkpoint";
-  meta.textContent=`Working checkpoint (recorded snapshot, not live activity): ${campaign.source_revision||"unknown revision"} (${campaign.source_kind||"recorded snapshot"}) · handoff revision ${campaign.handoff_revision||"not recorded"} · ledger updated ${stamp(campaign.updated_at_utc)} · dashboard observed ${stamp(campaignData?.observed_at)}. Merged acceptance: each step's merge state is shown separately.`;
+  meta.textContent=`Recorded checkpoint · updated ${stamp(campaign.updated_at_utc)} · per-step merge state is shown below.`;
   body.append(meta);
-  if(campaign.routing_state) {
-    const state=document.createElement("p"); state.className="campaign-routing-state";
-    state.textContent=`Last recorded checkpoint state: ${String(campaign.routing_state)}`+
-      (campaign.routing_state_scope?` (${String(campaign.routing_state_scope)})`:"");
-    body.append(state);
-  }
-  if(campaign.acceptance_claim_scope) {
-    const scope=document.createElement("p"); scope.className="campaign-scope";
-    scope.textContent=String(campaign.acceptance_claim_scope); body.append(scope);
+  const sourceKey=`${key}:source`;
+  const source=document.createElement("details"); source.className="campaign-source";
+  source.dataset.key=sourceKey; source.open=openState.get(sourceKey)===true;
+  const sourceSummary=document.createElement("summary"); sourceSummary.textContent="Evidence and source"; source.append(sourceSummary);
+  const sourceBody=document.createElement("div"); sourceBody.className="campaign-source-details";
+  const sourceFields=[
+    ["Working checkpoint revision",campaign.source_revision],
+    ["Handoff revision",campaign.handoff_revision],
+    ["Source kind",campaign.source_kind],
+    ["Dashboard observed",campaignData?.observed_at?stamp(campaignData.observed_at):""],
+    ["Ledger digest",campaign.ledger_sha256],
+    ["Last recorded checkpoint state",campaign.routing_state],
+    ["State scope",campaign.routing_state_scope],
+    ["Acceptance claim scope",campaign.acceptance_claim_scope],
+  ];
+  for(const [label,value] of sourceFields) {
+    if(value==null || value==="") continue;
+    const line=document.createElement("p");
+    const name=document.createElement("strong"); name.textContent=label+": ";
+    const text=document.createElement("span"); text.textContent=String(value);
+    line.append(name,text); sourceBody.append(line);
   }
   const href=safeIssueUrl(campaign.issue_url);
   if(href) {
     const link=document.createElement("a"); link.href=href; link.target="_blank"; link.rel="noopener noreferrer";
-    link.textContent="Open linked issue"; body.append(link);
+    link.textContent="Open linked issue"; sourceBody.append(link);
   }
+  source.append(sourceBody);
+  source.addEventListener("toggle",()=>rememberOpen(sourceKey,source.open));
+  body.append(source);
   const phases=Array.isArray(campaign.phases)?campaign.phases:[];
   const list=document.createElement("div"); list.className="campaign-phases";
   for(const phase of phases) {
@@ -230,7 +252,7 @@ function campaignDisclosure(campaign) {
     const bar=document.createElement("span"); bar.innerHTML=statusBar(counts,total,label.textContent);
     phaseSummary.append(bar.firstElementChild);
     const countText=document.createElement("span"); countText.className="campaign-phase-counts";
-    countText.textContent=`${counts.verified_pass} verified · ${counts.PARTIAL} partial · ${counts.NOT_RUN} not run · ${counts.FAIL} fail · ${counts.BLOCKED} blocked`;
+    countText.textContent=campaignCountText(counts);
     phaseSummary.append(countText); phaseDetails.append(phaseSummary);
     const steps=document.createElement("div"); steps.className="campaign-steps";
     for(const step of (Array.isArray(phase?.steps)?phase.steps:[])) steps.append(stepDetails(step,id));
@@ -239,14 +261,22 @@ function campaignDisclosure(campaign) {
     list.append(phaseDetails);
   }
   body.append(list);
-  const notes=[];
-  for(const [label,value] of [["Blockers",campaign.blockers], ["Next action",campaign.next_action]]) {
-    if((Array.isArray(value)&&value.length) || (typeof value==="string"&&value)) {
-      const item=document.createElement("p"); item.className="campaign-next-action";
-      item.textContent=`${label}: ${Array.isArray(value)?value.join(" · "):value}`; notes.push(item);
-    }
+  const blockers=Array.isArray(campaign.blockers)?campaign.blockers.filter(value=>typeof value==="string"&&value.trim()):[];
+  if(blockers.length) {
+    const first=document.createElement("p"); first.className="campaign-blocker";
+    first.textContent=`Blocker: ${blockers[0]}`; body.append(first);
+    const blockerKey=`${key}:blockers`;
+    const all=document.createElement("details"); all.className="campaign-blockers";
+    all.dataset.key=blockerKey; all.open=openState.get(blockerKey)===true;
+    const summary=document.createElement("summary"); summary.textContent=`All recorded blockers (${blockers.length})`; all.append(summary);
+    const list=document.createElement("ul");
+    for(const blocker of blockers) {const item=document.createElement("li");item.textContent=blocker;list.append(item)}
+    all.append(list); all.addEventListener("toggle",()=>rememberOpen(blockerKey,all.open)); body.append(all);
   }
-  for(const note of notes) body.append(note);
+  if(typeof campaign.next_action==="string"&&campaign.next_action.trim()) {
+    const item=document.createElement("p"); item.className="campaign-next-action";
+    item.textContent=`Next action: ${campaign.next_action}`; body.append(item);
+  }
   details.append(body);
   details.addEventListener("toggle",()=>rememberOpen(key,details.open));
   return details.outerHTML;

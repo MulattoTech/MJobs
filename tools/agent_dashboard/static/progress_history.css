@@ -41,15 +41,22 @@
 .campaign-row-score{flex-basis:100%;font-size:.64rem;color:#d8bb82}
 .progress-item-list:has(.campaign-details[open]){max-height:none;overflow:visible}
 .campaign-details{grid-column:1/-1;margin:.25rem 0 .4rem;padding:.25rem .45rem;border-left:2px solid #55727e;background:#0b1b27;border-radius:3px}
-.campaign-details>summary,.campaign-phase>summary,.campaign-step>summary{cursor:pointer;list-style:none}
-.campaign-details>summary::-webkit-details-marker,.campaign-phase>summary::-webkit-details-marker,.campaign-step>summary::-webkit-details-marker{display:none}
-.campaign-details>summary:focus-visible,.campaign-phase>summary:focus-visible,.campaign-step>summary:focus-visible{outline:2px solid #42d1bc;outline-offset:2px}
-.campaign-details>summary::before,.campaign-phase>summary::before,.campaign-step>summary::before{content:"▸";display:inline-block;margin-right:6px;color:#85b7c2;font-size:.7rem}
-.campaign-details[open]>summary::before,.campaign-phase[open]>summary::before,.campaign-step[open]>summary::before{content:"▾"}
+.campaign-details>summary,.campaign-phase>summary,.campaign-step>summary,.campaign-source>summary,.campaign-blockers>summary{cursor:pointer;list-style:none}
+.campaign-details>summary::-webkit-details-marker,.campaign-phase>summary::-webkit-details-marker,.campaign-step>summary::-webkit-details-marker,.campaign-source>summary::-webkit-details-marker,.campaign-blockers>summary::-webkit-details-marker{display:none}
+.campaign-details>summary:focus-visible,.campaign-phase>summary:focus-visible,.campaign-step>summary:focus-visible,.campaign-source>summary:focus-visible,.campaign-blockers>summary:focus-visible{outline:2px solid #42d1bc;outline-offset:2px}
+.campaign-details>summary::before,.campaign-phase>summary::before,.campaign-step>summary::before,.campaign-source>summary::before,.campaign-blockers>summary::before{content:"▸";display:inline-block;margin-right:6px;color:#85b7c2;font-size:.7rem}
+.campaign-details[open]>summary::before,.campaign-phase[open]>summary::before,.campaign-step[open]>summary::before,.campaign-source[open]>summary::before,.campaign-blockers[open]>summary::before{content:"▾"}
 .campaign-body{padding:.55rem .4rem .25rem;color:#c1d3dc;font-size:.7rem;line-height:1.55}
 .campaign-body p{margin:.35rem 0}
 .campaign-scoreboard{font-weight:700;color:#ecf6f8}
-.campaign-checkpoint,.campaign-scope{color:#a9c1cc}
+.campaign-checkpoint{color:#a9c1cc}
+.campaign-source{margin:.35rem 0;padding:.25rem 0;border-top:1px solid #293e4b}
+.campaign-source>summary,.campaign-blockers>summary{color:#d0e0e6;font-weight:600}
+.campaign-source-details{padding:.3rem .5rem;color:#a9bfca;overflow-wrap:anywhere}
+.campaign-source-details p{margin:.3rem 0}
+.campaign-blockers{margin:.2rem 0;color:#a9bfca}
+.campaign-blockers ul{margin:.25rem 0;padding-left:1.4rem}
+.campaign-blocker{color:#e3c386}
 .campaign-body a{display:inline-block;margin:.15rem 0 .45rem;color:#9edbff}
 .campaign-phases{display:grid;gap:3px;margin:.4rem 0}
 .campaign-phase{border-top:1px solid #293e4b;padding:.3rem 0}

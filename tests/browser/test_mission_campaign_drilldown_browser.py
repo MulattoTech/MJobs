@@ -80,7 +80,12 @@ def _campaign_fixture():
                 "merge_status": "NOT_MERGED",
             })
         label = chr(64 + phase_no)
-        phases.append({"id": f"phase-{label}", "label": f"Phase {label}", "steps": steps})
+        phase_name = [
+            "Intake and scope (Steps 1–8)", "Source coverage (Steps 9–22)",
+            "Collection (Steps 23–31)", "Normalization (Steps 32–35)",
+            "Qualification (Steps 36–53)", "Closeout (Steps 54–60)",
+        ][phase_no - 1]
+        phases.append({"id": f"phase-{label}", "label": phase_name, "steps": steps})
     return {
         "schema_version": 1,
         "available": True,
@@ -99,7 +104,7 @@ def _campaign_fixture():
             "acceptance_claim_scope": "Recorded ledger claims; independent runtime and merge certification remain separate.",
             "scoreboard": {"total": 60, "verified_pass": 0, "PARTIAL": 39, "NOT_RUN": 21, "FAIL": 0, "BLOCKED": 0},
             "phases": phases,
-            "blockers": ["External validation remains pending"],
+            "blockers": ["External validation remains pending", "Independent merge certification remains pending"],
             "next_action": "Continue the local qualification campaign.",
         }],
     }
@@ -125,13 +130,32 @@ def test_p0_campaign_hierarchy_is_readable_compact_and_survives_refresh(tmp_path
         campaign.wait_for(state="attached")
         campaign.locator(":scope > summary").click()
         assert campaign.inner_text().find("0 verified · 39 partial · 21 not run") >= 0
-        assert campaign.inner_text().find("Working checkpoint") >= 0
-        assert campaign.inner_text().find("Merged acceptance") >= 0
-        assert campaign.inner_text().find("handoff revision 70595258e4cac188d641629298a5ee4e8131a45c") >= 0
-        assert campaign.inner_text().find("Last recorded checkpoint state: PAUSED") >= 0
+        assert campaign.inner_text().find("Recorded checkpoint · updated") >= 0
+        assert campaign.inner_text().find("abc123def456") == -1
+        assert campaign.inner_text().find("70595258e4cac188d641629298a5ee4e8131a45c") == -1
+        assert campaign.inner_text().find("per-step merge state is shown below") >= 0
+        assert campaign.get_by_text("Blocker: External validation remains pending", exact=True).is_visible()
+        assert campaign.get_by_text("Next action: Continue the local qualification campaign.", exact=True).is_visible()
+        page.locator("#releaseTracker").screenshot(path=str(tmp_path / "campaign-drilldown-preview.png"))
+        provenance = campaign.locator("details.campaign-source")
+        assert provenance.locator(":scope > summary").inner_text() == "Evidence and source"
+        provenance.locator(":scope > summary").click()
+        assert provenance.inner_text().find("abc123def456") >= 0
+        assert provenance.inner_text().find("70595258e4cac188d641629298a5ee4e8131a45c") >= 0
+        assert provenance.inner_text().find("Last recorded checkpoint state: PAUSED") >= 0
+        assert provenance.inner_text().find("Recorded ledger claims") >= 0
+        blockers = campaign.locator("details.campaign-blockers")
+        assert blockers.locator(":scope > summary").inner_text() == "All recorded blockers (2)"
+        blockers.locator(":scope > summary").click()
+        assert blockers.get_by_text("Independent merge certification remains pending", exact=True).is_visible()
         phases = campaign.locator("details.campaign-phase")
         assert phases.count() == 6
-        assert [phases.nth(i).locator(":scope > summary .campaign-phase-label").inner_text() for i in range(6)] == [f"Phase {letter}" for letter in "ABCDEF"]
+        assert [phases.nth(i).locator(":scope > summary .campaign-phase-label").inner_text() for i in range(6)] == [
+            "Intake and scope (Steps 1–8)", "Source coverage (Steps 9–22)", "Collection (Steps 23–31)",
+            "Normalization (Steps 32–35)", "Qualification (Steps 36–53)", "Closeout (Steps 54–60)",
+        ]
+        assert "0 fail" not in phases.first.locator(":scope > summary").inner_text()
+        assert "0 blocked" not in phases.first.locator(":scope > summary").inner_text()
         assert sum(phases.nth(i).locator("details.campaign-step").count() for i in range(6)) == 60
         assert phases.first.locator("details.campaign-step > summary").first.is_visible() is False
         phase = phases.first
@@ -141,13 +165,14 @@ def test_p0_campaign_hierarchy_is_readable_compact_and_survives_refresh(tmp_path
         assert step.inner_text().find("Tested commit") >= 0
         assert step.inner_text().find("Remaining evidence gap") >= 0
         assert step.inner_text().find("NOT_MERGED") >= 0
-        page.locator("#releaseTracker").screenshot(path=str(tmp_path / "campaign-drilldown-preview.png"))
         # The five-second live progress refresh fetches new campaign data without
         # losing the open requirement, campaign, phase, or step disclosures.
         page.wait_for_function("() => performance.getEntriesByType('resource').filter(x => x.name.includes('/api/progress/campaigns')).length >= 2", timeout=16000)
         page.wait_for_timeout(150)
         assert row.get_attribute("open") is not None
         assert campaign.get_attribute("open") is not None
+        assert provenance.get_attribute("open") is not None
+        assert blockers.get_attribute("open") is not None
         assert phase.get_attribute("open") is not None
         assert step.get_attribute("open") is not None
         assert requirement.inner_text().find("Catalog title for reliable application workflow") >= 0
