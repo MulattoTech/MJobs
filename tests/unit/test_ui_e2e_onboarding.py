@@ -660,6 +660,18 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                 ]},
             ], {"imported-summary"}, {"python-entry", "sql-entry"})
 
+    def test_only_exact_profile_version_conflict_allows_explicit_fact_reload(self):
+        conflict = {"detail": {"code": "FACT_REJECTION_VERSION_CHANGED"}}
+        self.assertTrue(ui_e2e.is_fact_rejection_version_conflict(409, conflict))
+        for status, body in (
+            (409, {"detail": {"code": "FACT_REJECTION_CONTENT_CHANGED"}}),
+            (409, {"detail": {"code": "FACT_REJECTION_REQUIRES_PENDING_FACT"}}),
+            (200, conflict),
+            (409, {"detail": "Conflict"}),
+        ):
+            with self.subTest(status=status, body=body):
+                self.assertFalse(ui_e2e.is_fact_rejection_version_conflict(status, body))
+
 
 if __name__ == "__main__":
     unittest.main()

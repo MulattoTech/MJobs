@@ -90,7 +90,13 @@ import { createCompanyPreferenceClient } from './company-preferences-client';
 import { CompanyDiscoveryPolicy, type CompanyDiscoveryPolicyValue } from './company-discovery-policy';
 import { ApplicationRoutePreference, type ApplicationRoutePreferenceValue } from './application-route-preference';
 import { FirstRunWizard, type FirstRunWizardStep } from './first-run-wizard';
-import { CareerFactRejection, type FactRejections } from './career-fact-rejection';
+import {
+  CareerFactRejection, CareerFactReviewReload,
+  FACT_REVIEW_VERSION_MISMATCH_MESSAGE, assertProfileDraftUnchanged, factReviewMatchesProfileVersion,
+  hasUnsavedProfileDraft, isFactReviewVersionConflict,
+  profileDraftFingerprint,
+  type FactRejections,
+} from './career-fact-rejection';
 import { ApplicationRouteDiscovery, type ApplicationRouteDiscoveryResult } from './application-route-discovery';
 import { ApplicationMultipageWorkspace, type ApplicationMultipagePage } from './application-multipage-workspace';
 import { DynamicApplicationFormConnected } from './dynamic-application-form-connected';
@@ -307,6 +313,8 @@ function App() {
     },
   }), [profileId]);
   const [editor,setEditor] = useState<Profile>(newProfile);
+  const editorRef = useRef(editor);
+  editorRef.current = editor;
   const [jobs,setJobs] = useState<Job[]>([]);
   const [viewsRevision,setViewsRevision] = useState(0);
   const [showDismissed,setShowDismissed] = useState(false);
@@ -473,6 +481,7 @@ function App() {
     setSearchScheduleDrafts(empty);
   }
   const profileBaselineRef = useRef<Profile|null>(null);
+  const factReviewReloadSequence = useRef(0);
   const [factRejections,setFactRejections]=useState<FactRejections|null>(null);
   const [factRejectionError,setFactRejectionError]=useState('');
   useEffect(()=>{
@@ -481,7 +490,7 @@ function App() {
     const version=editor.id===profileId?editor.version:undefined;
     if(profileId&&version)void api<FactRejections>(`/profiles/${encodeURIComponent(profileId)}/fact-rejections`).then(result=>{
       if(!current)return;
-      if(result.profile_id!==profileId||result.profile_version!==version||!Array.isArray(result.facts))throw new Error('Fact review belongs to a different profile version. Reload before reviewing.');
+      if(!factReviewMatchesProfileVersion(profileId,version,result)||!Array.isArray(result.facts))throw new Error(FACT_REVIEW_VERSION_MISMATCH_MESSAGE);
       setFactRejections(result);
     }).catch(error=>{if(current)setFactRejectionError(error instanceof Error?error.message:String(error));});
     return()=>{current=false;};
@@ -494,13 +503,43 @@ function App() {
     if(!saved||(['kind','text','source','confidence','verified','user_approved'] as const).some(key=>saved[key]!==fact[key]))return undefined;
     return factRejections.facts.find(item=>item.fact_id===id);
   }
+  async function reloadSavedFactReview(discardDraft:boolean) {
+    const id=profileId, baseline=profileBaselineRef.current;
+    if(!id||!baseline||baseline.id!==id)throw new Error('Select a saved profile before reloading its fact review.');
+    const draftAtStart=editorRef.current;
+    const draftChanged=hasUnsavedProfileDraft(draftAtStart,baseline);
+    if(draftChanged!==discardDraft)throw new Error('The profile draft changed. Review the reload choice before continuing.');
+    const draftFingerprint=profileDraftFingerprint(draftAtStart);
+    const sequence=++factReviewReloadSequence.current;
+    const saved=await api<Profile>(`/profiles/${encodeURIComponent(id)}`);
+    const loaded={...saved,contact:saved.contact||{},preferences:saved.preferences||{},facts:(saved.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};
+    const review=await api<FactRejections>(`/profiles/${encodeURIComponent(id)}/fact-rejections`);
+    if(profileRef.current!==id||sequence!==factReviewReloadSequence.current)return;
+    assertProfileDraftUnchanged(editorRef.current,draftFingerprint);
+    if(saved.id!==id||typeof saved.version!=='string'||!factReviewMatchesProfileVersion(id,saved.version,review)||!Array.isArray(review.facts))
+      throw new Error('The saved profile changed again. Reload its current facts before reviewing.');
+    profileBaselineRef.current=loaded;
+    setEditor(loaded);
+    setFactRejections(review);
+    setFactRejectionError('');
+    setNotice('Saved facts and their review status were reloaded for the current profile version.');
+  }
   async function rejectCareerFact(fact:Fact) {
     const review=currentFactReview(fact);
     const id=profileId,version=profileBaselineRef.current?.version;
     if(!id||!version||review?.review_status!=='PENDING'||fact.verified||fact.user_approved)throw new Error('Save and reload this pending fact before rejecting it.');
-    const result=await api<{profile_id:string;profile_version:string;fact_id:string;fact_sha256:string;decision:string;decision_id:string}>(
-      `/profiles/${encodeURIComponent(id)}/facts/${encodeURIComponent(review.fact_id)}/reject`,
-      {method:'POST',body:JSON.stringify({decision:'REJECT',confirmed:true,expected_profile_version:version,fact_sha256:review.fact_sha256})});
+    let result:{profile_id:string;profile_version:string;fact_id:string;fact_sha256:string;decision:string;decision_id:string};
+    try {
+      result=await api<{profile_id:string;profile_version:string;fact_id:string;fact_sha256:string;decision:string;decision_id:string}>(
+        `/profiles/${encodeURIComponent(id)}/facts/${encodeURIComponent(review.fact_id)}/reject`,
+        {method:'POST',body:JSON.stringify({decision:'REJECT',confirmed:true,expected_profile_version:version,fact_sha256:review.fact_sha256})});
+    } catch(error) {
+      if(isFactReviewVersionConflict(error)) {
+        setFactRejections(null);
+        setFactRejectionError(FACT_REVIEW_VERSION_MISMATCH_MESSAGE);
+      }
+      throw error;
+    }
     if(result.profile_id!==id||result.profile_version!==version||result.fact_id!==review.fact_id||result.fact_sha256!==review.fact_sha256||result.decision!=='REJECT')throw new Error('The server did not confirm this fact rejection.');
     const updated=await api<FactRejections>(`/profiles/${encodeURIComponent(id)}/fact-rejections`);
     if(updated.profile_id!==id||updated.profile_version!==version||!updated.facts.some(item=>item.fact_id===review.fact_id&&item.review_status==='REJECTED'&&item.decision_id===result.decision_id))throw new Error('The saved fact rejection could not be read back.');
@@ -1741,7 +1780,7 @@ function App() {
         <div data-first-run-anchor="configure-application-preferences"><ApplicationRoutePreference value={editor.preferences?.application_route_preference} onValueChange={preference=>setPreference('application_route_preference',preference)} disabled={!!busy}/></div>
         <SensitiveAnswerPolicy value={editor.preferences?.sensitive_answer_policies||{}} onValueChange={policies=>setPreference('sensitive_answer_policies',policies)} disabled={!!busy}/>
         <section className="panel"><h2>Work authorization</h2><p>Optional, in your own words. These details do not approve application answers or authorize submission.</p><div className="two-col"><label>Work authorization details<input maxLength={300} value={editor.preferences?.work_authorization||''} onChange={e=>setPreference('work_authorization',e.target.value)}/></label><label>Sponsorship needs<select value={editor.preferences?.sponsorship_needs||'NOT_SPECIFIED'} onChange={e=>setPreference('sponsorship_needs',e.target.value)}><option value="NOT_SPECIFIED">Not specified</option><option value="REQUIRED">Sponsorship required</option><option value="NOT_REQUIRED">Sponsorship not required</option></select></label></div></section>
-        <section className="panel" data-first-run-anchor="review-extracted-facts"><div className="toolbar"><div><h2>Career facts</h2><p>New or edited facts stay pending until you approve them or explicitly reject an incorrect extraction.</p></div><button type="button" onClick={()=>setEditor({...editor,facts:[...editor.facts,newFact()]})}>Add fact</button></div>{factRejectionError&&<p role="alert">{factRejectionError}</p>}{editor.facts.map((fact,i)=><fieldset className="fact" key={fact.id}><legend>Fact {i+1} <span className="tag">{eligible(fact)?'Eligible':currentFactReview(fact)?.review_status==='REJECTED'?'Rejected':'Pending'}</span></legend><div className="two-col"><label>Type<select value={fact.kind} onChange={e=>editFact(i,{kind:e.target.value})}>{['skill','summary','experience','responsibility','education','certification','project','accomplishment','technology_experience'].map(k=><option key={k}>{k}</option>)}</select></label><label>Confidence (0–100)<input type="number" min={0} max={100} required value={fact.confidence} onChange={e=>editFact(i,{confidence:Number(e.target.value)})}/></label></div><label>Fact text<textarea maxLength={10000} value={fact.text} onChange={e=>editFact(i,{text:e.target.value})}/></label><label>Evidence / source<input maxLength={1000} value={fact.source} onChange={e=>editFact(i,{source:e.target.value})}/></label><div className="approvals"><label><input type="checkbox" checked={fact.verified} onChange={e=>editFact(i,{verified:e.target.checked})}/> I verified this fact</label><label><input type="checkbox" checked={fact.user_approved} onChange={e=>editFact(i,{user_approved:e.target.checked})}/> I approve its use in documents</label><button type="button" className="quiet" onClick={()=>setEditor({...editor,facts:editor.facts.filter((_,index)=>index!==i)})}>Remove</button></div><CareerFactRejection review={currentFactReview(fact)} pending={!fact.verified&&!fact.user_approved} disabled={!!busy} onReject={()=>void action("Rejecting incorrect fact",()=>rejectCareerFact(fact))}/></fieldset>)}<p className="muted">Only sourced, verified, approved facts with confidence of at least 80 are included.</p><button className="primary" disabled={!!busy}>Save profile</button></section>
+        <section className="panel" data-first-run-anchor="review-extracted-facts"><div className="toolbar"><div><h2>Career facts</h2><p>New or edited facts stay pending until you approve them or explicitly reject an incorrect extraction.</p></div><button type="button" onClick={()=>setEditor({...editor,facts:[...editor.facts,newFact()]})}>Add fact</button></div><CareerFactReviewReload stale={factRejectionError===FACT_REVIEW_VERSION_MISMATCH_MESSAGE} hasUnsavedDraft={hasUnsavedProfileDraft(editor,profileBaselineRef.current)} disabled={!!busy} onReload={()=>{const discardDraft=hasUnsavedProfileDraft(editor,profileBaselineRef.current);void action(discardDraft?'Discarding draft and reloading facts':'Reloading saved facts',()=>reloadSavedFactReview(discardDraft));}}/>{factRejectionError&&factRejectionError!==FACT_REVIEW_VERSION_MISMATCH_MESSAGE&&<p role="alert">{factRejectionError}</p>}{editor.facts.map((fact,i)=><fieldset className="fact" key={fact.id}><legend>Fact {i+1} <span className="tag">{eligible(fact)?'Eligible':currentFactReview(fact)?.review_status==='REJECTED'?'Rejected':'Pending'}</span></legend><div className="two-col"><label>Type<select value={fact.kind} onChange={e=>editFact(i,{kind:e.target.value})}>{['skill','summary','experience','responsibility','education','certification','project','accomplishment','technology_experience'].map(k=><option key={k}>{k}</option>)}</select></label><label>Confidence (0–100)<input type="number" min={0} max={100} required value={fact.confidence} onChange={e=>editFact(i,{confidence:Number(e.target.value)})}/></label></div><label>Fact text<textarea maxLength={10000} value={fact.text} onChange={e=>editFact(i,{text:e.target.value})}/></label><label>Evidence / source<input maxLength={1000} value={fact.source} onChange={e=>editFact(i,{source:e.target.value})}/></label><div className="approvals"><label><input type="checkbox" checked={fact.verified} onChange={e=>editFact(i,{verified:e.target.checked})}/> I verified this fact</label><label><input type="checkbox" checked={fact.user_approved} onChange={e=>editFact(i,{user_approved:e.target.checked})}/> I approve its use in documents</label><button type="button" className="quiet" onClick={()=>setEditor({...editor,facts:editor.facts.filter((_,index)=>index!==i)})}>Remove</button></div><CareerFactRejection review={currentFactReview(fact)} pending={!fact.verified&&!fact.user_approved} disabled={!!busy} onReject={()=>void action("Rejecting incorrect fact",()=>rejectCareerFact(fact))}/></fieldset>)}<p className="muted">Only sourced, verified, approved facts with confidence of at least 80 are included.</p><button className="primary" disabled={!!busy}>Save profile</button></section>
         <section className="panel"><div className="toolbar"><div><h2>Reusable application answers</h2><p>Matching methods only suggest saved answers. Any substantive edit resets approval.</p></div><button type="button" onClick={()=>setEditor({...editor,answers:[...editor.answers,newAnswer()]})}>Add answer</button></div>{editor.answers.map((answer,i)=><fieldset className="fact" key={answer.id}><legend>Answer {i+1} <span className="tag">{answer.verified&&answer.user_approved&&answer.confidence>=80&&answer.question?'Approved':'Pending'}</span></legend><label>Question this answer addresses<input maxLength={2000} value={answer.question||''} onChange={e=>editAnswer(i,{question:e.target.value})} placeholder="Exact employer question"/></label><label>Answer text<textarea maxLength={10000} value={answer.text} onChange={e=>editAnswer(i,{text:e.target.value})}/></label><div className="two-col"><label>Provenance<input maxLength={1000} value={answer.source} onChange={e=>editAnswer(i,{source:e.target.value})}/></label><label>Confidence (0–100)<input type="number" min={0} max={100} value={answer.confidence} onChange={e=>editAnswer(i,{confidence:Number(e.target.value)})}/></label></div><div className="approvals"><label><input type="checkbox" checked={answer.verified} onChange={e=>editAnswer(i,{verified:e.target.checked})}/> I reviewed and verified this answer</label><label><input type="checkbox" checked={answer.user_approved} onChange={e=>editAnswer(i,{user_approved:e.target.checked})}/> I approve exact reuse for this question</label><button type="button" className="quiet" onClick={()=>setEditor({...editor,answers:editor.answers.filter((_,index)=>index!==i)})}>Remove</button></div>{!answer.question&&<p className="muted">Legacy answer: retained for its original fictional test path, and unavailable for question matching until you provide its source question.</p>}</fieldset>)}<button className="primary" disabled={!!busy}>Save profile and answers</button></section>
         <div data-first-run-anchor="upload-resume"><ResumeLibrary key={editor.id} profileId={editor.id} saved={profileId===editor.id&&profiles.some(p=>p.id===editor.id)} resumes={editor.id===profileId?resumes:[]} busy={!!busy} action={action} onStored={rows=>{setResumes(rows);setNotice('Resume stored locally. Use Extract and review to populate your profile.');}} onApply={addExtraction}/></div>
         <DocumentLibrary key={'library-'+editor.id} profileId={editor.id} saved={profileId===editor.id&&profiles.some(p=>p.id===editor.id)} baseResumes={resumes} busy={!!busy} action={action} onBaseStored={async()=>{const rows=await api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(editor.id)+'/resumes');if(editor.id===profileRef.current)setResumes(rows.resumes);}}/>

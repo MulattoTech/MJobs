@@ -677,6 +677,14 @@ def assert_onboarding_profile_facts(profile, pending_fact_ids, *,
     return {row["text"]: row["fact_id"] for row in approved}
 
 
+def is_fact_rejection_version_conflict(status_code, response_body):
+    """Allow the UI journey's explicit reload recovery only for a stale profile version."""
+    detail = response_body.get("detail") if isinstance(response_body, dict) else None
+    return (type(status_code) is int and status_code == 409
+            and isinstance(detail, dict)
+            and detail.get("code") == "FACT_REJECTION_VERSION_CHANGED")
+
+
 def assert_no_pending_facts_in_documents(documents, pending_fact_ids, approved_fact_ids):
     pending_fact_ids = set(pending_fact_ids)
     approved_fact_ids = set(approved_fact_ids)
@@ -2029,7 +2037,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     assert all(not row["verified"] and not row["user_approved"]
                                for row in latest_pending)
                     navigation("Profile")
-                    for fact in latest_pending:
+
+                    def reject_pending_fact_in_profile(fact):
                         editor = fact_editor(fact["text"])
                         editor.get_by_label(
                             "I reject this fact as incorrect", exact=True).check()
@@ -2040,9 +2049,50 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                                      f"{quote(fact['fact_id'], safe='')}/reject")
                         with page.expect_response(lambda response:
                                 response.request.method == "POST"
-                                and urlsplit(response.url).path == fact_path) as rejected_again:
+                                and urlsplit(response.url).path == fact_path) as rejected:
                             reject_button.click()
-                        assert rejected_again.value.status == 200
+                        return editor, rejected.value
+
+                    for fact in latest_pending:
+                        editor, rejected_again = reject_pending_fact_in_profile(fact)
+                        if rejected_again.status == 409:
+                            assert is_fact_rejection_version_conflict(
+                                rejected_again.status, rejected_again.json())
+                            stale_alert = page.get_by_role("alert").filter(
+                                has_text="Fact review belongs to a different profile version. Reload before reviewing.")
+                            expect(stale_alert).to_be_visible()
+                            reload_button = page.get_by_role(
+                                "button", name="Reload saved facts", exact=True)
+                            expect(reload_button).to_be_visible()
+                            profile_path = f"/profiles/{quote(profile_id, safe='')}"
+                            reviews_path = profile_path + "/fact-rejections"
+                            with page.expect_response(lambda response:
+                                    response.request.method == "GET"
+                                    and urlsplit(response.url).path == profile_path) as current_profile_response, \
+                                    page.expect_response(lambda response:
+                                        response.request.method == "GET"
+                                        and urlsplit(response.url).path == reviews_path) as current_reviews_response:
+                                reload_button.click()
+                            assert current_profile_response.value.status == 200
+                            assert current_reviews_response.value.status == 200
+                            current_profile = current_profile_response.value.json()
+                            current_reviews = current_reviews_response.value.json()
+                            assert current_profile["id"] == profile_id
+                            assert current_profile["version"] == latest_profile["version"]
+                            assert current_reviews["profile_id"] == profile_id
+                            assert current_reviews["profile_version"] == current_profile["version"]
+                            refreshed_pending = [row for row in current_profile["facts"]
+                                                 if row["fact_id"] in pending_fact_ids]
+                            assert {row["fact_id"] for row in refreshed_pending} == pending_fact_ids
+                            assert all(not row["verified"] and not row["user_approved"]
+                                       for row in refreshed_pending)
+                            refreshed_reviews = {row["fact_id"]: row
+                                                 for row in current_reviews["facts"]}
+                            assert all(refreshed_reviews.get(fact_id, {}).get("review_status")
+                                       == "PENDING" for fact_id in pending_fact_ids)
+                            expect(stale_alert).not_to_be_visible()
+                            editor, rejected_again = reject_pending_fact_in_profile(fact)
+                        assert rejected_again.status == 200, rejected_again.text()
                         expect(editor.get_by_text(
                             "Rejected — original fact retained and excluded from documents.",
                             exact=True)).to_be_visible()
