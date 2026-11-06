@@ -46,6 +46,33 @@ def post_form(client, *, provider="greenhouse", request_id=REQUEST_ID,
 
 
 class NativeMockATSFixtureTests(unittest.TestCase):
+    def test_native_personas_are_exact_pairs_and_change_the_contract_digest(self):
+        for provider in ("greenhouse", "lever"):
+            with self.subTest(provider=provider), TestClient(create_mock_app(scenario="native-" + provider)) as client:
+                metadata = client.get(f"/ats/native/{provider}/B/questions").json()
+                old_contract = {"provider": provider, "requisition": "B",
+                    "template_version": "native-form-v1", "questions": metadata["questions"],
+                    "fields": ["name", "email", "country", "remote", "resume", "cover_letter", "fixture_question"]}
+                old_hash = hashlib.sha256(json.dumps(old_contract, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                self.assertNotEqual(metadata["contract_sha256"], old_hash)
+                self.assertEqual(post_form(client, provider=provider, contract_sha=old_hash).status_code, 409)
+                rejected = (
+                    ("Alex Fixture", "onboarding@example.invalid"),
+                    ("Synthetic Onboarding Applicant", "alex@example.test"),
+                    ("Unrecognized Applicant", "applicant@example.com"),
+                    ("Synthetic Onboarding Applicant", "other@example.invalid"),
+                )
+                for name, email in rejected:
+                    response = post_form(client, provider=provider, name=name, email=email)
+                    self.assertEqual(response.status_code, 422, response.text)
+                self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), {"status": "not_found"})
+                for index, (name, email) in enumerate((
+                        ("Alex Fixture", "alex@example.test"),
+                        ("Synthetic Onboarding Applicant", "onboarding@example.invalid"))):
+                    response = post_form(client, provider=provider, name=name, email=email,
+                                         application_id=f"allowed-persona-{index}")
+                    self.assertEqual(response.status_code, 200, response.text)
+
     def test_native_scenario_exposes_one_accessible_form_and_question_contract(self):
         with TestClient(create_mock_app(scenario="native-greenhouse")) as client:
             page = client.get("/ats/native/greenhouse/B")

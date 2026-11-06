@@ -156,9 +156,15 @@ def test_public_mock_run_uses_real_native_adapter_and_server_receipt(native_appl
     assert next(row for row in ambiguous["attempts"] if row["mode"] == "MOCK_SUBMISSION")["native_fixture"] is None
 
 
-def save_answers_and_reprepare(case, answers):
+def save_answers_and_reprepare(case, answers, *, name=None, email=None):
     profile = deepcopy(PROFILE)
+    current_profile = case["store"].profile("fixture")
+    profile.update(name=current_profile["name"], email=current_profile["email"])
     profile["answers"] = answers
+    if name is not None:
+        profile["name"] = name
+    if email is not None:
+        profile["email"] = email
     profile["expected_version"] = case["store"].profile("fixture")["version"]
     saved = case["client"].put("/profiles", json=profile)
     assert saved.status_code == 200, saved.text
@@ -170,6 +176,36 @@ def save_answers_and_reprepare(case, answers):
         "expected_state": application["state"],
     })
     assert response.status_code == 200, response.text
+
+
+def test_onboarding_persona_completes_both_native_adapters_with_bound_profile_and_documents(native_application):
+    from services.applications.owned_ats_execution import _hash
+    case = native_application
+    save_answers_and_reprepare(case, case["store"].profile("fixture")["answers"],
+                               name="Synthetic Onboarding Applicant", email="onboarding@example.invalid")
+    resume_operation, resume_path = queue_reviewed_resume(case)
+    execute_native_operation(case, resume_operation)
+    resumed = case["client"].get(resume_path + "/reviewed-resume")
+    assert resumed.status_code == 200, resumed.text
+    current_profile = case["store"].profile("fixture")
+    current_application = case["store"].application(case["app_id"])
+    assert (current_profile["name"], current_profile["email"]) == (
+        "Synthetic Onboarding Applicant", "onboarding@example.invalid")
+    assert current_application["state"] == "DRY_RUN_COMPLETE"
+    assert case["faults"]["posts"] == 0
+    confirmed, operation_id = run_native(case, "onboarding-native-submit", submit=True)
+    assert confirmed["state"] == "CONFIRMED", confirmed["trace"]
+    receipt = confirmed["confirmation"]
+    assert receipt["native_provider"] == case["provider"]
+    assert receipt["request_id"] == operation_id
+    assert case["faults"]["posts"] == receipt["submission_count"] == 1
+    history = case["client"].get(f'/profiles/fixture/applications/{case["app_id"]}/attempt-history').json()
+    submitted = next(row for row in history["attempts"] if row["mode"] == "MOCK_SUBMISSION")
+    assert submitted["profile_version"] == current_profile["version"]
+    assert submitted["document_version"] == current_application["document_version"]
+    assert submitted["native_fixture"]["profile_sha256"] == _hash(current_profile)
+    assert submitted["native_fixture"]["review_sha256"] == receipt["review_sha256"]
+    assert {row["sha256"] for row in submitted["verified_uploads"]} == {receipt["resume_sha256"], receipt["cover_letter_sha256"]}
 
 
 def queue_reviewed_resume(case):

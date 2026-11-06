@@ -17,6 +17,15 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.datastructures import UploadFile
 
 
+# These are the two explicitly fictional personas used by the spine and public
+# first-run UI journeys. Keep each name/email paired; neither field is an open
+# allowlist. This accepted domain is part of the native contract digest below.
+_NATIVE_SYNTHETIC_PERSONAS = (
+    ("Alex Fixture", "alex@example.test"),
+    ("Synthetic Onboarding Applicant", "onboarding@example.invalid"),
+)
+
+
 def create_mock_app(receipt_file=None, *, scenario="baseline"):
     scenarios = {"baseline", "coverage", "native-greenhouse", "native-lever"}
     if not isinstance(scenario, str) or scenario not in scenarios:
@@ -308,6 +317,7 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
             "questions": questions,
             "fields": ["name", "email", "country", "remote", "resume",
                        "cover_letter", "fixture_question"],
+            "synthetic_personas": _NATIVE_SYNTHETIC_PERSONAS,
         }
         digest = hashlib.sha256(json.dumps(
             payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
@@ -351,8 +361,7 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
                         "application_id", "request_id", "contract_sha256", "review_sha256")
             values = {key: form.get(key) for key in required}
             if (not all(isinstance(value, str) and value for value in values.values())
-                    or values["name"] != "Alex Fixture"
-                    or values["email"] != "alex@example.test"
+                    or (values["name"], values["email"]) not in _NATIVE_SYNTHETIC_PERSONAS
                     or values["country"] != "United States"
                     or values["remote"] != "yes"
                     or values["fixture_question"] != "Controlled fictional test application."):
