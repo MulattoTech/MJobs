@@ -265,6 +265,8 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
             if existing is not None:
                 if not isinstance(existing, dict) or existing.get("requisition") != requisition:
                     return validation_error("Application identity belongs to another fictional requisition", status_code=409)
+                if existing.get("native_provider") and native_binding is None:
+                    return validation_error("Application identity is bound to a native fixture receipt", status_code=409)
                 if native_binding is not None and any(
                         existing.get(key) != value for key, value in native_binding.items()):
                     return validation_error("Application identity has conflicting native fixture bindings", status_code=409)
@@ -323,8 +325,8 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
         <form action="/ats/native/{escape(provider)}/{escape(requisition)}/submit" method="post" enctype="multipart/form-data">
           <input aria-label="Name" name="name" required>
           <input aria-label="Email" name="email" type="email" required>
-          <select aria-label="Country" name="country" required><option value="">Choose</option><option>United States</option></select>
-          <input aria-label="Remote role" name="remote" type="radio" value="yes" required>
+          <input aria-label="Country" name="country" type="text" required>
+          <input aria-label="Remote role" name="remote" type="text" required>
           <input aria-label="Resume" name="resume" type="file" accept=".pdf,application/pdf" required>
           <input aria-label="Cover letter" name="cover_letter" type="file" accept=".pdf,application/pdf" required>
           <textarea aria-label="Approved fixture answer" name="fixture_question" required></textarea>
@@ -346,7 +348,7 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
         form = await request.form()
         try:
             required = ("name", "email", "country", "remote", "fixture_question",
-                        "application_id", "request_id", "contract_sha256")
+                        "application_id", "request_id", "contract_sha256", "review_sha256")
             values = {key: form.get(key) for key in required}
             if (not all(isinstance(value, str) and value for value in values.values())
                     or values["name"] != "Alex Fixture"
@@ -358,6 +360,8 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
             if (not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", values["application_id"])
                     or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", values["request_id"])):
                 return validation_error("Invalid native fixture identity")
+            if not re.fullmatch(r"[0-9a-f]{64}", values["review_sha256"]):
+                return validation_error("Invalid reviewed fixture binding digest")
             _version, _questions, expected_contract = native_contract(provider, requisition)
             if values["contract_sha256"] != expected_contract:
                 return validation_error("Native fixture contract is stale", status_code=409)
@@ -376,6 +380,7 @@ def create_mock_app(receipt_file=None, *, scenario="baseline"):
                 "native_provider": provider,
                 "request_id": values["request_id"],
                 "contract_sha256": expected_contract,
+                "review_sha256": values["review_sha256"],
                 **file_hashes,
             }
             return publish_receipt(

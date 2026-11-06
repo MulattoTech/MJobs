@@ -23,7 +23,7 @@ def contract_hash(client, provider="greenhouse"):
 
 def post_form(client, *, provider="greenhouse", request_id=REQUEST_ID,
               application_id=APP_ID, contract_sha=None, resume=RESUME,
-              cover=COVER_LETTER, **changes):
+              cover=COVER_LETTER, review_sha="a" * 64, **changes):
     if contract_sha is None:
         contract_sha = contract_hash(client, provider)
     fields = {
@@ -35,6 +35,7 @@ def post_form(client, *, provider="greenhouse", request_id=REQUEST_ID,
         "application_id": application_id,
         "request_id": request_id,
         "contract_sha256": contract_sha,
+        "review_sha256": review_sha,
     }
     fields.update(changes)
     files = {
@@ -55,6 +56,8 @@ class NativeMockATSFixtureTests(unittest.TestCase):
             for label in ("Name", "Email", "Country", "Remote role", "Resume",
                           "Cover letter", "Approved fixture answer"):
                 self.assertIn(f'aria-label="{label}"', page.text)
+            self.assertIn('aria-label="Country" name="country" type="text" required', page.text)
+            self.assertIn('aria-label="Remote role" name="remote" type="text" required', page.text)
             self.assertIn('action="/ats/native/greenhouse/B/submit"', page.text)
             self.assertIn("Submit owned fixture", page.text)
 
@@ -90,6 +93,7 @@ class NativeMockATSFixtureTests(unittest.TestCase):
                 self.assertEqual(receipt["native_provider"], "greenhouse")
                 self.assertEqual(receipt["request_id"], REQUEST_ID)
                 self.assertEqual(receipt["contract_sha256"], contract_hash(client))
+                self.assertEqual(receipt["review_sha256"], "a" * 64)
                 self.assertEqual(receipt["resume_sha256"], hashlib.sha256(RESUME).hexdigest())
                 self.assertEqual(receipt["cover_letter_sha256"], hashlib.sha256(COVER_LETTER).hexdigest())
                 self.assertEqual(receipt["submission_count"], 1)
@@ -99,6 +103,15 @@ class NativeMockATSFixtureTests(unittest.TestCase):
                 self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), receipt)
                 changed_binding = post_form(client, request_id="another-request")
                 self.assertEqual(changed_binding.status_code, 409)
+                changed_review = post_form(client, review_sha="b" * 64)
+                self.assertEqual(changed_review.status_code, 409)
+                legacy_replay = client.post("/ats/submit/B", data={
+                    "application_id": APP_ID,
+                    "answer": "Controlled fictional test application.",
+                    "confirmed": "on",
+                })
+                self.assertEqual(legacy_replay.status_code, 409)
+                self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), receipt)
 
             with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as restarted:
                 self.assertEqual(restarted.get(f"/ats/receipts/{APP_ID}").json(), receipt)
@@ -116,6 +129,9 @@ class NativeMockATSFixtureTests(unittest.TestCase):
             self.assertEqual(post_form(client, email="other@example.test").status_code, 422)
             self.assertEqual(post_form(client, country="Canada").status_code, 422)
             self.assertEqual(post_form(client, fixture_question="unapproved answer").status_code, 422)
+            self.assertEqual(post_form(client, review_sha="").status_code, 422)
+            self.assertEqual(post_form(client, review_sha="A" * 64).status_code, 422)
+            self.assertEqual(post_form(client, review_sha="a" * 63).status_code, 422)
             self.assertEqual(post_form(client, resume=b"not a pdf").status_code, 422)
             self.assertEqual(post_form(client, cover=b"not a pdf").status_code, 422)
             self.assertEqual(post_form(client, contract_sha="0" * 64).status_code, 409)
@@ -131,6 +147,24 @@ class NativeMockATSFixtureTests(unittest.TestCase):
                 response = post_form(client)
                 self.assertEqual(response.status_code, 409)
                 self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json()["receipt"], "MOCK-existing")
+
+    def test_native_provider_binding_conflicts_in_both_directions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_path = Path(temp) / "receipts.json"
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as greenhouse:
+                self.assertEqual(post_form(greenhouse).status_code, 200)
+
+            with TestClient(create_mock_app(receipt_path, scenario="native-lever")) as lever:
+                self.assertEqual(post_form(lever, provider="lever").status_code, 409)
+                self.assertEqual(post_form(
+                    lever, provider="lever", application_id="fixture-native-application-0002",
+                    request_id="fixture-native-request-0002").status_code, 200)
+
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as greenhouse:
+                reverse = post_form(
+                    greenhouse, application_id="fixture-native-application-0002",
+                    request_id="fixture-native-request-0002")
+                self.assertEqual(reverse.status_code, 409)
 
 
 if __name__ == "__main__":
