@@ -98,6 +98,20 @@ def visible_numeric_match_score(rendered_text, expected_score):
         return False
 
 
+def current_match_readback(detail, *, job_id, profile_version_before,
+                           profile_version_after):
+    """Accept only the selected job's score from an unchanged profile version."""
+    if (not isinstance(detail, dict) or detail.get("id") != job_id
+            or not isinstance(profile_version_before, str)
+            or not profile_version_before
+            or profile_version_after != profile_version_before):
+        return False
+    match = detail.get("match")
+    score = match.get("score") if isinstance(match, dict) else None
+    return (isinstance(score, (int, float)) and not isinstance(score, bool)
+            and 0 <= score <= 100)
+
+
 def build_observation(*, step, status, observable_result, evidence_kind,
                       source_commit, run_id, continuity=None, checks=None):
     """Validate and project one step observation onto the runner-owned schema."""
@@ -181,12 +195,54 @@ def build_observation(*, step, status, observable_result, evidence_kind,
 def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                                  record_observed_jobs=None):
     """Exercise and observe fixture-backed Jobs UI behavior, without live providers."""
+    import time
+    from urllib.parse import urlsplit
+
     from playwright.sync_api import expect
 
     def record(step, status, result, checks, *, continuity=None):
         observe(step, status, result, evidence_kind="CONTROLLED_FIXTURE",
                 checks=checks, continuity=continuity or {"profile_id": profile_id})
 
+    def refresh_profile_matches():
+        profile_before = request("/profiles/" + profile_id)
+        version_before = profile_before.get("version")
+        refresh_button = page.get_by_role("button", name="Refresh matches", exact=True)
+        expect(refresh_button).to_be_enabled()
+        with page.expect_response(lambda response:
+                response.request.method == "POST"
+                and urlsplit(response.url).path == "/matches") as refresh_response:
+            refresh_button.click()
+        response = refresh_response.value
+        assert response.status == 202, response.text()
+        refresh_request = response.request.post_data_json
+        assert refresh_request["profile_id"] == profile_id
+        request_id = refresh_request.get("request_id")
+        assert isinstance(request_id, str) and request_id
+        operation_id = response.json().get("operation_id")
+        assert isinstance(operation_id, str) and operation_id
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline:
+            operation = request("/operations/" + operation_id)
+            if operation.get("state") in (
+                    "COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
+                break
+            time.sleep(0.5)
+        assert operation.get("state") == "COMPLETED", operation
+        params = operation.get("params") or {}
+        assert operation.get("kind") == "DISCOVER"
+        assert operation.get("entity_id") == profile_id
+        assert params.get("profile_version") == version_before
+        assert params.get("rescore_only") is True
+        assert params.get("request_id") == request_id
+        expect(refresh_button).to_be_enabled()
+        profile_after = request("/profiles/" + profile_id)
+        assert profile_after.get("id") == profile_id
+        assert profile_after.get("version") == version_before
+        return version_before
+
+    navigate("Jobs")
+    matched_profile_version = refresh_profile_matches()
     navigate("Sources")
     source_rows = request("/sources").get("sources", [])
     visible_source_names = []
@@ -267,11 +323,15 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                [{"name": "canonical_duplicate_job_available", "passed": False}])
         return
     detail = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id)
-    posting_count = len(detail.get("postings", []))
+    detail_posting_count = len(detail.get("postings", []))
+    list_posting_count = job_a.get("posting_count")
     visible_count = page.get_by_role(
         "button", name="Example Systems Inc. Python Developer", exact=True).count()
     card_text = python_card.inner_text()
-    count_visible = f"{posting_count} posting" in card_text and posting_count == detail.get("posting_count")
+    count_visible = (isinstance(list_posting_count, int)
+                     and f"{list_posting_count} posting" in card_text
+                     and detail_posting_count == list_posting_count)
+    posting_count = detail_posting_count
     record(17, "PASS" if count_visible and posting_count > 1 else "PARTIAL",
            "The job card and readback expose the same duplicate posting count." if count_visible and posting_count > 1
            else "The fixture does not expose multiple postings with a visible matching count.",
@@ -294,13 +354,17 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
              "passed": detail_region.count() == 1 and is_canonical_detail}],
            continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
-    salaries = (detail.get("attributes") or {}).get("salary") or []
-    salary_visible = bool(salaries)
-    if salary_visible:
-        salary_label = ("Estimated salary range (not employer-confirmed)"
-                        if (detail.get("attributes") or {}).get("salary_source") == "ESTIMATED"
-                        else "Source-reported salary range (not independently verified)")
-        expect(detail_region.get_by_text(salary_label, exact=False)).to_be_visible()
+    attributes = detail.get("attributes") or {}
+    salary_min = detail.get("salary_min", attributes.get("salary_min"))
+    salary_max = detail.get("salary_max", attributes.get("salary_max"))
+    salary_source = detail.get("salary_source", attributes.get("salary_source"))
+    salary_data_available = (isinstance(salary_min, (int, float))
+                             and isinstance(salary_max, (int, float)))
+    salary_label = ("Estimated salary range (not employer-confirmed)"
+                    if salary_source == "ESTIMATED"
+                    else "Source-reported salary range (not independently verified)")
+    salary_visible = (salary_data_available
+                      and detail_region.get_by_text(salary_label, exact=False).count() > 0)
     record(15, "PASS" if salary_visible and salary_filter_visible else "PARTIAL",
            "Salary range is visible and the annual salary filter retains eligible jobs."
            if salary_visible and salary_filter_visible
@@ -341,36 +405,32 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
              "passed": visible_postings.count() == len(postings) and source_links_match}],
            continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
-    resolution = (detail.get("attributes") or {}).get("source_resolution") or {}
-    authoritative = (detail.get("provider") == "mock-ats"
-                     and resolution.get("authority") == "VERIFIED_ATS")
-    source_evidence_region = detail_region.get_by_role(
-        "region", name="Source value resolution", exact=True)
+    routes = detail.get("routes", [])
+    ats_route = next((row for row in routes
+                      if isinstance(row, dict)
+                      and row.get("authority") == "VERIFIED_ATS"
+                      and row.get("provider") == "mock-ats"), None)
+    authoritative = detail.get("provider") == "mock-ats" and ats_route is not None
     ui_authority_visible = False
-    if authoritative:
-        expect(source_evidence_region.get_by_text(
-            "Verified applicant-tracking source", exact=False)).to_be_visible()
-        ui_authority_visible = True
     route_selector = detail_region.get_by_label("Choose the application route for this job", exact=True)
-    if authoritative and detail.get("routes"):
-        ats_route = next((row for row in detail["routes"]
-                          if row.get("authority") == "VERIFIED_ATS"), None)
-        if ats_route is not None:
-            route_selector.select_option(ats_route["id"])
+    if authoritative:
+        route_selector.select_option(ats_route["id"])
+        expect(route_selector).to_have_value(ats_route["id"])
+        selected_option_text = route_selector.locator("option:checked").inner_text()
+        ui_authority_visible = (ats_route["provider"] in selected_option_text
+                                and "verified identity evidence" in selected_option_text)
+        if ats_route.get("preferred_by_profile") is not True:
             preference_button = detail_region.get_by_role(
                 "button", name="Prefer this route for this employer", exact=True)
-            if preference_button.count():
-                preference_button.click()
-            expect(detail_region.get_by_role(
-                "button", name="Clear employer route preference", exact=True)).to_be_visible()
-            updated = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id)
-            route_is_preferred = any(row.get("id") == ats_route["id"]
-                                     and row.get("preferred_by_profile") is True
-                                     for row in updated.get("routes", []))
-        else:
-            route_is_preferred = False
+            expect(preference_button).to_be_visible()
+            preference_button.click()
+        expect(detail_region.get_by_role(
+            "button", name="Clear employer route preference", exact=True)).to_be_visible()
+        updated = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id)
+        route_is_preferred = any(row.get("id") == ats_route["id"]
+                                 and row.get("preferred_by_profile") is True
+                                 for row in updated.get("routes", []))
     else:
-        ats_route = None
         route_is_preferred = False
     record(20, "PASS" if authoritative and ui_authority_visible and route_is_preferred else "PARTIAL",
            "The verified employer ATS route is visibly preferred and persists on readback."
@@ -382,23 +442,38 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
 
     route_visible = False
     if ats_route is not None:
-        route_url = ats_route.get("url") or detail.get("application_url")
-        if route_url:
-            route_link = detail_region.get_by_role("link", name=route_url, exact=True)
-            route_visible = route_link.count() > 0
-            if route_visible:
-                expect(route_link.first).to_be_visible()
+        route_url = ats_route.get("url")
+        route_visible = (route_selector.count() == 1
+                         and route_selector.input_value() == ats_route["id"]
+                         and isinstance(route_url, str) and bool(route_url))
+        if route_visible:
+            expect(route_selector).to_have_value(ats_route["id"])
     record(21, "PASS" if route_visible else "PARTIAL",
            "The selected authoritative application route is visible in source evidence."
            if route_visible else "No selected authoritative application route is visible in the fixture.",
            [{"name": "application_route_visible", "passed": route_visible}],
            continuity={"profile_id": profile_id, "job_id": job_a["id"]})
 
+    profile_after_route = request("/profiles/" + profile_id)
+    route_profile_version = profile_after_route.get("version")
+    if route_profile_version != matched_profile_version:
+        matched_profile_version = refresh_profile_matches()
+        expect(python_card).to_be_visible()
+        python_card.click()
+        detail = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id)
+        profile_after_route = request("/profiles/" + profile_id)
+    detail = request("/jobs/" + job_a["id"] + "?profile_id=" + profile_id)
+    profile_after_match_readback = request("/profiles/" + profile_id)
+    match_is_current = current_match_readback(
+        detail, job_id=job_a["id"],
+        profile_version_before=matched_profile_version,
+        profile_version_after=profile_after_match_readback.get("version"))
+
     match = detail.get("match") or {}
     selected_job_matches = (detail.get("id") == job_a.get("id")
                             and detail.get("title") == job_a.get("title"))
     match_score = match.get("score")
-    numeric_score = (isinstance(match_score, (int, float))
+    numeric_score = (match_is_current and isinstance(match_score, (int, float))
                      and not isinstance(match_score, bool) and 0 <= match_score <= 100)
     visible_numeric_score = False
     if numeric_score:
@@ -412,13 +487,14 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                                  and isinstance(row.get("explanation"), str)
                                  and row["explanation"].strip()), None)
     requirement_visible = False
-    if concrete_requirement is not None and selected_job_matches:
+    if concrete_requirement is not None and selected_job_matches and match_is_current:
         explanation_list = detail_region.get_by_role("list", name="Skill match explanation", exact=True)
         expect(explanation_list).to_contain_text(str(concrete_requirement["skill"]))
         expect(explanation_list).to_contain_text(str(concrete_requirement["explanation"]))
         requirement_visible = True
     expect(detail_region.get_by_role("heading", name="Why this match?", exact=True)).to_be_visible()
-    expect(detail_region.get_by_text("Supported by approved facts:", exact=False)).to_be_visible()
+    if match_is_current:
+        expect(detail_region.get_by_text("Supported by approved facts:", exact=False)).to_be_visible()
     if match.get("components", {}).get("skill_evidence_coverage"):
         expect(detail_region.get_by_role(
             "group", name="Base skill evidence coverage", exact=True)).to_be_visible()

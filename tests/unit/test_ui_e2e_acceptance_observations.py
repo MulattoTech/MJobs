@@ -210,6 +210,21 @@ def test_visible_numeric_score_matches_react_format(rendered, expected, matches)
     assert visible_numeric_match_score(rendered, expected) is matches
 
 
+@pytest.mark.parametrize("detail, before, after, expected", [
+    ({"id": "job-A", "match": None}, "version-1", "version-1", False),
+    ({"id": "job-A", "match": {"score": 100}}, "version-1", "version-2", False),
+    ({"id": "job-other", "match": {"score": 100}}, "version-1", "version-1", False),
+    ({"id": "job-A", "match": {"score": 100}}, "version-1", "version-1", True),
+])
+def test_selected_job_match_readback_is_bound_to_stable_profile_version(
+        detail, before, after, expected):
+    from cli.ui_e2e_jobs_journey import current_match_readback
+
+    assert current_match_readback(
+        detail, job_id="job-A", profile_version_before=before,
+        profile_version_after=after) is expected
+
+
 def test_evidence_journal_records_actual_readback_lineage(tmp_path):
     from cli.ui_e2e import EvidenceJournal
 
