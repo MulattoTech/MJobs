@@ -238,12 +238,19 @@ def validate_outputs_journal(root: Path, outputs_path: Path | None = None) -> li
 
 def validate_journal(root: Path, journal_path: Path | None = None, *,
                      check_outputs: bool = True) -> list[str]:
-    """Validate canonical history and, by default, its derived output checkpoint."""
+    """Validate one stable publication under the cooperating journal lock."""
     root = root.resolve()
     target_state = (journal_path or (root / "planning/IMPLEMENTATION_STATE.json")).resolve()
     if not target_state.is_file():
         return [f"Implementation state file missing: {target_state}"]
-    state = json.loads(target_state.read_text(encoding="utf-8"))
+    with _journal_lock(target_state):
+        state = json.loads(target_state.read_text(encoding="utf-8"))
+        return _validate_journal_state(root, state, check_outputs=check_outputs)
+
+
+def _validate_journal_state(root: Path, state: dict, *,
+                           check_outputs: bool = True) -> list[str]:
+    """Validate the loaded snapshot while its caller holds the journal lock."""
     entries = state.get("milestone_journal")
     if not isinstance(entries, list) or not entries:
         return ["Implementation milestone journal is empty or missing"]
@@ -308,7 +315,7 @@ def sync_implementation_state(root: Path = ROOT, output_path: Path | None = None
             raise ValueError("Implementation milestone journal is empty or missing")
         # Explicit sync validates the authoritative source independently of a
         # stale/corrupt derivative. Keep that source snapshot stable until publish.
-        errors = validate_journal(root, check_outputs=False)
+        errors = _validate_journal_state(root, state, check_outputs=False)
         if errors:
             raise ValueError("Cannot sync from invalid journal: " + "; ".join(errors))
         latest = entries[-1]
@@ -367,69 +374,56 @@ def _resume_from_outputs_journal(root: Path, payload: dict) -> dict:
     }
 
 
+def _resume_from_canonical_journal(root: Path, state: dict) -> dict:
+    """Summarize the same canonical snapshot validated under the caller's lock."""
+    errors = _validate_journal_state(root, state)
+    if errors:
+        raise ValueError("Implementation journal cannot resume: " + "; ".join(errors))
+    latest = state["milestone_journal"][-1]
+    return {
+        "schema_version": state.get("schema_version"),
+        "current_milestone": state.get("current_milestone"),
+        "current_objective": state.get("current_objective"),
+        "status": state.get("status"),
+        "active_development_issue": state.get("active_development_issue"),
+        **{key: latest[key] for key in AUTHORITATIVE_FIELDS},
+        "latest_milestone": latest,
+    }
+
+
 def resume_snapshot(root: Path = ROOT, source_path: Path | None = None) -> dict:
-    """Return a validated, read-only summary for a fresh implementation session."""
+    """Return a validated snapshot without changing either journal's contents."""
     root = root.resolve()
+    state_file = root / "planning/IMPLEMENTATION_STATE.json"
+    outputs_file = root / DEFAULT_OUTPUT_JOURNAL
     if source_path is not None:
         source = source_path.resolve()
         if not source.is_file():
             raise FileNotFoundError(f"Source state file not found: {source}")
+        if source == state_file:
+            with _journal_lock(source):
+                payload = json.loads(source.read_text(encoding="utf-8"))
+                if "milestone_journal" in payload:
+                    return _resume_from_canonical_journal(root, payload)
+                return _resume_from_outputs_journal(root, payload)
         payload = json.loads(source.read_text(encoding="utf-8"))
         if "milestone_journal" in payload:
-            errors = validate_journal(root, journal_path=source)
-            if errors:
-                raise ValueError("Implementation journal cannot resume: " + "; ".join(errors))
-            latest = payload["milestone_journal"][-1]
-            return {
-                "schema_version": payload.get("schema_version"),
-                "current_milestone": payload.get("current_milestone"),
-                "current_objective": payload.get("current_objective"),
-                "status": payload.get("status"),
-                "active_development_issue": payload.get("active_development_issue"),
-                "current_phase": latest["current_phase"],
-                "completed_steps": latest["completed_steps"],
-                "files_added": latest["files_added"],
-                "files_modified": latest["files_modified"],
-                "tests_completed": latest["tests_completed"],
-                "tests_remaining": latest["tests_remaining"],
-                "migrations_applied": latest["migrations_applied"],
-                "live_integrations_tested": latest["live_integrations_tested"],
-                "known_errors": latest["known_errors"],
-                "known_limitations": latest["known_limitations"],
-                "last_safe_checkpoint": latest["last_safe_checkpoint"],
-                "latest_milestone": latest,
-            }
+            # The first read selects the coordination file only. Reload and
+            # validate the actual returned snapshot after acquiring ownership.
+            with _journal_lock(source):
+                payload = json.loads(source.read_text(encoding="utf-8"))
+                return _resume_from_canonical_journal(root, payload)
+        if state_file.is_file():
+            # Explicit output reads also wait for the canonical publisher.
+            with _journal_lock(state_file):
+                payload = json.loads(source.read_text(encoding="utf-8"))
+                return _resume_from_outputs_journal(root, payload)
         return _resume_from_outputs_journal(root, payload)
 
-    state_file = root / "planning/IMPLEMENTATION_STATE.json"
-    outputs_file = root / DEFAULT_OUTPUT_JOURNAL
-
     if state_file.is_file():
-        state = json.loads(state_file.read_text(encoding="utf-8"))
-        errors = validate_journal(root)
-        if errors:
-            raise ValueError("Implementation journal cannot resume: " + "; ".join(errors))
-        entries = state["milestone_journal"]
-        latest = entries[-1]
-        return {
-            "schema_version": state.get("schema_version"),
-            "current_milestone": state.get("current_milestone"),
-            "current_objective": state.get("current_objective"),
-            "status": state.get("status"),
-            "active_development_issue": state.get("active_development_issue"),
-            "current_phase": latest["current_phase"],
-            "completed_steps": latest["completed_steps"],
-            "files_added": latest["files_added"],
-            "files_modified": latest["files_modified"],
-            "tests_completed": latest["tests_completed"],
-            "tests_remaining": latest["tests_remaining"],
-            "migrations_applied": latest["migrations_applied"],
-            "live_integrations_tested": latest["live_integrations_tested"],
-            "known_errors": latest["known_errors"],
-            "known_limitations": latest["known_limitations"],
-            "last_safe_checkpoint": latest["last_safe_checkpoint"],
-            "latest_milestone": latest,
-        }
+        with _journal_lock(state_file):
+            state = json.loads(state_file.read_text(encoding="utf-8"))
+            return _resume_from_canonical_journal(root, state)
     elif outputs_file.is_file():
         payload = json.loads(outputs_file.read_text(encoding="utf-8"))
         return _resume_from_outputs_journal(root, payload)
@@ -450,7 +444,7 @@ def _append_milestone_locked(state_path: Path, entry: dict, *,
     if not isinstance(entries, list):
         raise ValueError("Implementation milestone journal is not a list")
     if entries:
-        prior_errors = validate_journal(root)
+        prior_errors = _validate_journal_state(root, state)
         if prior_errors:
             raise ValueError("Existing milestone journal is invalid: " + "; ".join(prior_errors))
     if any(item.get("milestone_id") == entry["milestone_id"] for item in entries):
@@ -496,7 +490,8 @@ def main() -> int:
         with _journal_lock(STATE_PATH):
             _append_milestone_locked(STATE_PATH, entry, output_state_path=args.output_path)
             # Validate this publication before another writer can begin its two-file update.
-            errors = validate_journal(ROOT)
+            state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+            errors = _validate_journal_state(ROOT, state)
     elif args.command == "sync":
         synced = sync_implementation_state(ROOT, output_path=args.output)
         print(f"Synchronized implementation state to {synced}")
