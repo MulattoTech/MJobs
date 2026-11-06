@@ -2281,13 +2281,16 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                             expect(attempt_row.get_by_text(step_name, exact=True)).to_be_visible()
                         expect(attempt_row.get_by_role(
                             "region", name="Controlled local fixture adapter", exact=True)).to_be_visible()
+                        verified_upload_list = attempt_row.get_by_role(
+                            "region", name="Verified browser file selection", exact=True).get_by_role(
+                                "list", exact=True)
                         for upload in selected_attempt_uploads:
-                            expect(attempt_row.get_by_text(
-                                upload["kind"], exact=True)).to_be_visible()
-                            expect(attempt_row.get_by_text(
-                                upload.get("sha256", ""), exact=True)).to_be_visible()
-                            expect(attempt_row.get_by_text(
-                                f"{upload.get('size_bytes')} bytes", exact=False)).to_be_visible()
+                            upload_row = verified_upload_list.get_by_role("listitem").filter(
+                                has_text=upload["kind"]).filter(
+                                    has_text=f"{upload.get('size_bytes')} bytes").filter(
+                                        has_text=upload.get("sha256", ""))
+                            expect(upload_row).to_have_count(1)
+                            expect(upload_row).to_be_visible()
                         history_ui_text = attempt_row.inner_text()
                         native_review_ui = attempt_row.get_by_role(
                             "region", name="Controlled local fixture adapter", exact=True)
@@ -2391,7 +2394,7 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     43, "The native attempt filled and validated the exact reviewed answers; values stay hidden.",
                     {
                         "approved_answers_match_questions": _paired_evidence(
-                            native_review_ui.is_visible()
+                            native_review_ui is not None and native_review_ui.is_visible()
                             and "Exact reviewed fields: 3" in native_review_ui.inner_text(),
                             reviewed_matches),
                         "approved_answers_readback_verified": _paired_evidence(
