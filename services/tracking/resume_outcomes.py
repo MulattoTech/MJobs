@@ -104,7 +104,7 @@ def record_observed_outcome(store, profile_id: str, application_id: str,
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         binding = connection.execute(select(bindings).where(
             bindings.c.id == binding_id,
-            bindings.c.profile_id == profile_id)).mappings().one_or_none()
+            bindings.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
         if binding is None:
             raise LookupError("Reported resume version is unavailable for this profile")
         existing = connection.execute(select(events).where(events.c.id == event_id)).mappings().one_or_none()
