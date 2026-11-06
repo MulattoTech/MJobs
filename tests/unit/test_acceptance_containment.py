@@ -18,6 +18,7 @@ from cli.acceptance_containment import (
     OwnedPublicContainment,
 )
 from cli.acceptance_public_source import run as run_public_source
+from services.discovery.sources.remotive import Remotive
 
 STAMP = datetime(2026, 11, 6, 12, 0, tzinfo=UTC)
 PROJECT = "mjobs-fixture-012345abcdef"
@@ -26,6 +27,41 @@ REVISION = "1" * 40
 TREE = "2" * 40
 OWNER = "mjreq292-test-operator"
 SOURCE_URL = "https://github.com/MulattoTech/MJobs"
+ADDITIONAL_POLICY = {
+    "provider": "remotive",
+    "tenant": "default",
+    "enabled": True,
+    "poll_interval": 604800,
+    "concurrency": 1,
+    "request_timeout": 10,
+    "rate_limit": 1,
+    "jitter_seconds": 0,
+}
+
+
+def additional_source_record(source_id, *, enabled=True):
+    return {
+        "id": source_id,
+        "provider": "remotive",
+        "tenant": "default",
+        "enabled": enabled,
+        "poll_interval": 604800,
+        "concurrency": 1,
+        "request_timeout": 10,
+        "rate_limit": 1,
+        "jitter_seconds": 0,
+        "strategy": Remotive(
+            request_timeout=10, rate_limit=1, concurrency=1
+        ).capabilities().strategy.value,
+        "capabilities": Remotive(
+            request_timeout=10, rate_limit=1, concurrency=1
+        ).capabilities().as_dict(),
+        "last_attempt": None,
+        "last_success": None,
+        "backoff_until": None,
+        "health_status": "NOT_CHECKED",
+        "jobs_seen": 0,
+    }
 
 
 class FakeDocker:
@@ -628,6 +664,174 @@ class OwnedPublicContainmentTests(unittest.TestCase):
 
         self.assertTrue(released["released"])
         self.assertEqual(self.docker.unpause_calls, ["b" * 64])
+
+    def test_additional_remotive_source_is_bound_created_disabled_and_released(self):
+        containment = self.containment()
+        primary = self.context()
+        containment("preflight", primary)
+
+        proof = containment.bind_additional_source(
+            policy=ADDITIONAL_POLICY, primary_context=primary
+        )
+
+        self.assertTrue(proof["additional_source_absent"])
+        self.assertEqual(proof["provider"], "remotive")
+        absent_context = {
+            **primary,
+            "additional_source": {
+                "provider": "remotive",
+                "tenant": "default",
+                "source_id": None,
+                "enabled_policy_sha256": None,
+                "disabled_policy_sha256": None,
+                "enabled": False,
+            },
+        }
+        containment("read", absent_context)
+        containment.additional_source("check", primary)
+        enabled_source = additional_source_record("remotive-source")
+        self.api.sources = [enabled_source]
+        enabled_hash = containment.policy_sha256(enabled_source)
+        enabled_context = {
+            **primary,
+            "additional_source_id": "remotive-source",
+            "additional_enabled_policy_sha256": enabled_hash,
+        }
+        created = containment.additional_source("created", enabled_context)
+        self.assertTrue(created["additional_source_policy_verified"])
+        self.assertEqual(created["additional_source_id"], "remotive-source")
+
+        containment.additional_source("before_disable", enabled_context)
+        self.api.sources[0]["enabled"] = False
+        disabled_hash = containment.policy_sha256(self.api.sources[0])
+        disabled_context = {
+            **enabled_context,
+            "additional_disabled_policy_sha256": disabled_hash,
+            "additional_enabled": False,
+        }
+        disabled = containment.additional_source("disabled", disabled_context)
+        self.assertFalse(disabled["additional_source_enabled"])
+
+        nested_context = {
+            "provider": "remotive",
+            "tenant": "default",
+            "source_id": "remotive-source",
+            "enabled_policy_sha256": enabled_hash,
+            "disabled_policy_sha256": disabled_hash,
+            "enabled": False,
+        }
+        callback_context = {**primary, "additional_source": nested_context}
+        containment("read", callback_context)
+        containment.additional_source("check", disabled_context)
+        containment.additional_source("release", disabled_context)
+        released = containment(
+            "release",
+            {
+                **callback_context,
+                "cleanup_status": "NOT_REQUIRED",
+            },
+        )
+
+        self.assertTrue(released["released"])
+        self.assertEqual(self.docker.unpause_calls, ["b" * 64])
+
+    def test_additional_source_race_is_not_adopted_or_disabled(self):
+        containment = self.containment()
+        primary = self.context()
+        containment("preflight", primary)
+        containment.bind_additional_source(
+            policy=ADDITIONAL_POLICY, primary_context=primary
+        )
+        self.api.sources = [additional_source_record("competing-source")]
+        competing_hash = containment._policy_digest(self.api.sources[0])
+
+        with self.assertRaisesRegex(
+            ContainmentError, "ADDITIONAL_SOURCE_IDENTITY_CHANGED"
+        ):
+            containment.additional_source(
+                "created",
+                {
+                    **primary,
+                    "additional_source_id": "ui-returned-source",
+                    "additional_enabled_policy_sha256": competing_hash,
+                },
+            )
+
+        self.assertEqual(self.api.sources[0]["id"], "competing-source")
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_additional_source_policy_mutation_keeps_containment(self):
+        containment = self.containment()
+        primary = self.context()
+        containment("preflight", primary)
+        containment.bind_additional_source(
+            policy=ADDITIONAL_POLICY, primary_context=primary
+        )
+        source = additional_source_record("remotive-source")
+        self.api.sources = [source]
+        context = {
+            **primary,
+            "additional_source_id": source["id"],
+            "additional_enabled_policy_sha256": containment._policy_digest(source),
+        }
+        containment.additional_source("created", context)
+        containment.additional_source("before_disable", context)
+        self.api.sources[0]["rate_limit"] = 7
+
+        with self.assertRaisesRegex(
+            ContainmentError, "ADDITIONAL_SOURCE_POLICY_CHANGED"
+        ):
+            containment.additional_source("before_disable", context)
+
+        self.assertEqual(self.api.sources[0]["rate_limit"], 7)
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_main_callbacks_require_bound_additional_source_context(self):
+        containment = self.containment()
+        primary = self.context()
+        containment("preflight", primary)
+        containment.bind_additional_source(
+            policy=ADDITIONAL_POLICY, primary_context=primary
+        )
+
+        with self.assertRaisesRegex(
+            ContainmentError, "ADDITIONAL_SOURCE_CONTEXT_REQUIRED"
+        ):
+            containment("read", primary)
+
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_source_appearing_before_latched_create_fails_closed(self):
+        containment = self.containment()
+        primary = self.context()
+        containment("preflight", primary)
+        containment.bind_additional_source(
+            policy=ADDITIONAL_POLICY, primary_context=primary
+        )
+        self.api.sources = [additional_source_record("unexpected-source")]
+        absent_context = {
+            **primary,
+            "additional_source": {
+                "provider": "remotive",
+                "tenant": "default",
+                "source_id": None,
+                "enabled_policy_sha256": None,
+                "disabled_policy_sha256": None,
+                "enabled": False,
+            },
+        }
+
+        with self.assertRaisesRegex(
+            ContainmentError, "ADDITIONAL_SOURCE_APPEARED_BEFORE_CREATE"
+        ):
+            containment("read", absent_context)
+
+        self.assertEqual(self.api.sources[0]["id"], "unexpected-source")
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
 
     def test_callback_returns_stable_owner_token_for_each_supported_stage(self):
         containment = self.containment()

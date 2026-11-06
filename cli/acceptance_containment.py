@@ -328,6 +328,14 @@ class OwnedPublicContainment:
         self._enable_attempted = False
         self._disable_attempted = False
         self._last_stage = None
+        # Optional second source is admitted independently from the primary
+        # provider. It is a cooperative operator fence, not a server-side lock.
+        self._additional_policy = None
+        self._additional_state = None
+        self._additional_source = None
+        self._additional_enabled_digest = None
+        self._additional_disabled_digest = None
+        self._additional_disable_preflight = False
 
     def _resolve_compose_files(self, values):
         if not isinstance(values, (tuple, list)) or not values:
@@ -784,6 +792,15 @@ class OwnedPublicContainment:
     def _policy_digest(self, source):
         return _digest({key: source[key] for key in FINGERPRINT_FIELDS})
 
+    def policy_sha256(self, source):
+        """Return the canonical fingerprint required by containment callbacks."""
+        _require(isinstance(source, dict), "SOURCE_RESPONSE_INVALID")
+        _require(
+            all(key in source for key in FINGERPRINT_FIELDS),
+            "SOURCE_RESPONSE_INVALID",
+        )
+        return self._policy_digest(source)
+
     def _source_rows(self):
         response = self._api_get("/sources")
         _require(
@@ -802,6 +819,237 @@ class OwnedPublicContainment:
         ]
         _require(len(rows) <= 1, "SOURCE_POLICY_AMBIGUOUS")
         return rows
+
+    def _provider_rows(self, provider, tenant="default"):
+        response = self._api_get("/sources")
+        _require(
+            isinstance(response, dict) and isinstance(response.get("sources"), list),
+            "SOURCE_RESPONSE_INVALID",
+        )
+        rows = [
+            row
+            for row in response["sources"]
+            if isinstance(row, dict)
+            and row.get("provider") == provider
+            and row.get("tenant") == tenant
+        ]
+        _require(len(rows) <= 1, "ADDITIONAL_SOURCE_AMBIGUOUS")
+        return rows
+
+    def _additional_source_operations(self, source_id):
+        response = self._api_get("/operations")
+        _require(
+            isinstance(response, dict) and isinstance(response.get("operations"), list),
+            "OPERATIONS_RESPONSE_INVALID",
+        )
+        rows = response["operations"]
+        _require(len(rows) < 100, "OPERATIONS_INVENTORY_INCOMPLETE")
+        matches = []
+        for row in rows:
+            _require(isinstance(row, dict), "OPERATIONS_RESPONSE_INVALID")
+            params = row.get("params") if isinstance(row.get("params"), dict) else {}
+            if row.get("source_id") == source_id or params.get("source_id") == source_id:
+                matches.append(row)
+        return matches
+
+    def _additional_source_readback(self, *, state):
+        _require(self._additional_policy is not None, "ADDITIONAL_SOURCE_NOT_BOUND")
+        rows = self._provider_rows("remotive", "default")
+        if state == "ABSENT":
+            _require(not rows, "ADDITIONAL_SOURCE_APPEARED_BEFORE_CREATE")
+            return None
+        _require(len(rows) == 1, "ADDITIONAL_SOURCE_DISAPPEARED")
+        source = rows[0]
+        expected_id = self._additional_source.get("id")
+        _require(source.get("id") == expected_id, "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
+        expected = dict(self._additional_source)
+        if state == "CREATED_ENABLED":
+            _require(source.get("enabled") is True, "ADDITIONAL_SOURCE_POLICY_CHANGED")
+        elif state == "DISABLED":
+            expected["enabled"] = False
+            _require(source.get("enabled") is False, "ADDITIONAL_SOURCE_POLICY_CHANGED")
+        else:
+            raise ContainmentError("ADDITIONAL_SOURCE_STATE_INVALID")
+        _require(
+            self._policy_digest(source) == self._policy_digest(expected),
+            "ADDITIONAL_SOURCE_POLICY_CHANGED",
+        )
+        _require(
+            source.get("last_attempt") is None
+            and source.get("last_success") is None
+            and source.get("jobs_seen") == 0,
+            "ADDITIONAL_SOURCE_WAS_USED",
+        )
+        _require(
+            not self._additional_source_operations(expected_id),
+            "ADDITIONAL_SOURCE_OPERATION_EXISTS",
+        )
+        return source
+
+    @staticmethod
+    def _expected_remotive_capabilities():
+        # Reuse the registered local adapter's deterministic metadata; never
+        # accept an unknown capability projection from the UI/API response.
+        from services.discovery.sources.remotive import Remotive
+
+        return Remotive(
+            request_timeout=10, rate_limit=1, concurrency=1
+        ).capabilities().as_dict()
+
+    def _validate_additional_callback_context(self, context):
+        if self._additional_policy is None:
+            return
+        value = context.get("additional_source")
+        _require(isinstance(value, dict), "ADDITIONAL_SOURCE_CONTEXT_REQUIRED")
+        common = value.get("provider") == "remotive" and value.get("tenant") == "default"
+        _require(common, "ADDITIONAL_SOURCE_CONTEXT_INVALID")
+        if self._additional_state == "ABSENT":
+            _require(
+                value.get("source_id") is None
+                and value.get("enabled_policy_sha256") is None
+                and value.get("disabled_policy_sha256") is None
+                and value.get("enabled") is False,
+                "ADDITIONAL_SOURCE_CONTEXT_INVALID",
+            )
+            self._additional_source_readback(state="ABSENT")
+            return
+        expected_enabled = self._additional_enabled_digest
+        expected_disabled = self._additional_disabled_digest
+        _require(
+            value.get("source_id") == self._additional_source["id"]
+            and value.get("enabled_policy_sha256") == expected_enabled
+            and value.get("disabled_policy_sha256") == expected_disabled
+            and value.get("enabled") is (self._additional_state == "CREATED_ENABLED"),
+            "ADDITIONAL_SOURCE_CONTEXT_CHANGED",
+        )
+        self._additional_source_readback(state=self._additional_state)
+
+    def bind_additional_source(self, *, policy, primary_context):
+        """Bind Remotive/default absence under the current local operator lease.
+
+        The API has no CAS. This method detects changes; safe use also requires
+        the operator lease to exclude concurrent source-policy writers.
+        """
+        _require(self._admitted and self._paused_by_us, "CONTAINMENT_PREFLIGHT_REQUIRED")
+        _require(self._additional_policy is None, "ADDITIONAL_SOURCE_ALREADY_BOUND")
+        _require(isinstance(primary_context, dict), "SOURCE_SCOPE_CHANGED")
+        _require(primary_context.get("provider") == "wwr", "SOURCE_SCOPE_CHANGED")
+        self._verify_targets()
+        self._ensure_lease()
+        self._verify_api()
+        self._source_policy(primary_context, "read")
+        self._capture_collection_identity(primary_context)
+        _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
+        expected = {
+            "provider": "remotive",
+            "tenant": "default",
+            "enabled": True,
+            "poll_interval": 604800,
+            "concurrency": 1,
+            "request_timeout": 10,
+            "rate_limit": 1,
+            "jitter_seconds": 0,
+        }
+        _require(policy == expected, "ADDITIONAL_SOURCE_POLICY_UNSAFE")
+        _require(not self._provider_rows("remotive", "default"), "ADDITIONAL_SOURCE_ALREADY_PRESENT")
+        self._additional_policy = dict(expected)
+        self._additional_state = "ABSENT"
+        return {
+            "additional_source_absent": True,
+            "provider": "remotive",
+            "tenant": "default",
+            "lease_expires_at": self._lease_expiry.isoformat(),
+            "lease_model": "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS",
+        }
+
+    def additional_source(self, stage, context):
+        """Validate and latch the UI-created Remotive row and its one-way disable."""
+        stages = {"created", "before_disable", "disabled", "check", "release"}
+        _require(stage in stages and isinstance(context, dict), "ADDITIONAL_SOURCE_STAGE_INVALID")
+        _require(self._additional_policy is not None, "ADDITIONAL_SOURCE_NOT_BOUND")
+        self._verify_targets()
+        self._ensure_lease()
+        self._verify_api()
+        primary = {key: context[key] for key in ("provider", "base_url", "acceptance_run_id", "source_id", "source_policy_sha256", "newly_created", "collection_operation_id", "collection_request_id", "lease_required_until") if key in context}
+        _require(primary.get("provider") == "wwr", "SOURCE_SCOPE_CHANGED")
+        self._source_policy(primary, "read")
+        self._capture_collection_identity(primary)
+        _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
+
+        if stage == "created":
+            _require(self._additional_state == "ABSENT", "ADDITIONAL_SOURCE_STATE_INVALID")
+            source_id = context.get("additional_source_id")
+            enabled_digest = context.get("additional_enabled_policy_sha256")
+            _require(isinstance(source_id, str) and source_id, "ADDITIONAL_SOURCE_IDENTITY_INVALID")
+            _require(isinstance(enabled_digest, str) and re.fullmatch(r"[a-f0-9]{64}", enabled_digest), "ADDITIONAL_SOURCE_FINGERPRINT_INVALID")
+            rows = self._provider_rows("remotive", "default")
+            _require(len(rows) == 1, "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
+            source = rows[0]
+            expected_capabilities = self._expected_remotive_capabilities()
+            _require(source.get("id") == source_id, "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
+            _require(
+                all(source.get(key) == value for key, value in self._additional_policy.items())
+                and source.get("strategy") == expected_capabilities["strategy"]
+                and source.get("capabilities") == expected_capabilities
+                and source.get("last_attempt") is None
+                and source.get("last_success") is None
+                and source.get("jobs_seen") == 0,
+                "ADDITIONAL_SOURCE_POLICY_UNSAFE",
+            )
+            _require(self._policy_digest(source) == enabled_digest, "ADDITIONAL_SOURCE_FINGERPRINT_CHANGED")
+            _require(not self._additional_source_operations(source_id), "ADDITIONAL_SOURCE_OPERATION_EXISTS")
+            self._additional_source = dict(source)
+            self._additional_enabled_digest = enabled_digest
+            self._additional_state = "CREATED_ENABLED"
+        elif stage == "before_disable":
+            _require(self._additional_state == "CREATED_ENABLED", "ADDITIONAL_SOURCE_STATE_INVALID")
+            self._validate_additional_flat_context(context, enabled=True)
+            self._additional_source_readback(state="CREATED_ENABLED")
+            self._additional_disable_preflight = True
+        elif stage == "disabled":
+            _require(self._additional_state == "CREATED_ENABLED" and self._additional_disable_preflight, "ADDITIONAL_SOURCE_DISABLE_NOT_PREPARED")
+            self._validate_additional_flat_context(context, enabled=False)
+            disabled_digest = context.get("additional_disabled_policy_sha256")
+            _require(isinstance(disabled_digest, str) and re.fullmatch(r"[a-f0-9]{64}", disabled_digest), "ADDITIONAL_SOURCE_FINGERPRINT_INVALID")
+            expected = dict(self._additional_source)
+            expected["enabled"] = False
+            rows = self._provider_rows("remotive", "default")
+            _require(len(rows) == 1 and rows[0].get("id") == self._additional_source["id"], "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
+            source = rows[0]
+            _require(self._policy_digest(source) == self._policy_digest(expected) == disabled_digest, "ADDITIONAL_SOURCE_POLICY_CHANGED")
+            _require(source.get("last_attempt") is None and source.get("last_success") is None and source.get("jobs_seen") == 0, "ADDITIONAL_SOURCE_WAS_USED")
+            _require(not self._additional_source_operations(source["id"]), "ADDITIONAL_SOURCE_OPERATION_EXISTS")
+            self._additional_disabled_digest = disabled_digest
+            self._additional_state = "DISABLED"
+            self._additional_source_readback(state="DISABLED")
+        else:
+            _require(self._additional_state in {"ABSENT", "CREATED_ENABLED", "DISABLED"}, "ADDITIONAL_SOURCE_STATE_INVALID")
+            if self._additional_state == "ABSENT":
+                _require(stage not in {"release"}, "ADDITIONAL_SOURCE_NOT_DISABLED")
+                self._additional_source_readback(state="ABSENT")
+            else:
+                self._validate_additional_flat_context(context, enabled=self._additional_state == "CREATED_ENABLED")
+                self._additional_source_readback(state=self._additional_state)
+                if stage == "release":
+                    _require(self._additional_state == "DISABLED", "ADDITIONAL_SOURCE_NOT_DISABLED")
+        return {
+            "additional_source_policy_verified": True,
+            "additional_source_id": None if self._additional_source is None else self._additional_source["id"],
+            "additional_source_enabled": self._additional_state == "CREATED_ENABLED",
+            "lease_expires_at": self._lease_expiry.isoformat(),
+        }
+
+    def _validate_additional_flat_context(self, context, *, enabled):
+        expected_disabled = self._additional_disabled_digest
+        if not enabled:
+            expected_disabled = context.get("additional_disabled_policy_sha256")
+        _require(
+            context.get("additional_source_id") == self._additional_source["id"]
+            and context.get("additional_enabled_policy_sha256") == self._additional_enabled_digest
+            and context.get("additional_disabled_policy_sha256") == expected_disabled
+            and context.get("additional_enabled", enabled) is enabled,
+            "ADDITIONAL_SOURCE_CONTEXT_CHANGED",
+        )
 
     def _source_policy(self, context, stage):
         provider = context.get("provider") if isinstance(context, dict) else None
@@ -1091,6 +1339,7 @@ class OwnedPublicContainment:
             self._verify_api()
             self._source_policy(context, stage)
             self._capture_collection_identity(context)
+            self._validate_additional_callback_context(context)
             _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         if stage == "release":
             self._release_after_baseline(context.get("cleanup_status"))
@@ -1099,6 +1348,7 @@ class OwnedPublicContainment:
                 "scheduler_contained": False,
                 "source_policy_exclusive": False,
                 "source_collection_exclusive": False,
+                "additional_source_exclusive": False,
                 "project": self.project_name,
                 "scheduler_container_id": self._scheduler_id,
                 "lease_expired_at": self._lease_expiry.isoformat(),
@@ -1185,6 +1435,15 @@ class OwnedPublicContainment:
         else:
             _require(not rows, "SOURCE_APPEARED_AFTER_PREFLIGHT")
 
+    def _verify_additional_source_cleanup(self):
+        if self._additional_policy is None:
+            return
+        if self._additional_state == "ABSENT":
+            self._additional_source_readback(state="ABSENT")
+            return
+        _require(self._additional_state == "DISABLED", "ADDITIONAL_SOURCE_NOT_DISABLED")
+        self._additional_source_readback(state="DISABLED")
+
     def _release_after_baseline(self, cleanup_status):
         """Explicitly release only after source cleanup and baseline proof.
 
@@ -1203,6 +1462,7 @@ class OwnedPublicContainment:
         self._verify_targets()
         self._ensure_lease()
         self._verify_source_cleanup()
+        self._verify_additional_source_cleanup()
         self._verify_baseline()
         _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         expiry = self._lease_expiry
@@ -1211,6 +1471,7 @@ class OwnedPublicContainment:
             self._check_claim_path()
             expiry = self._lease_expiry
             self._verify_source_cleanup()
+            self._verify_additional_source_cleanup()
             _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
             remaining = (expiry - self._now_utc()).total_seconds()
             if remaining <= 0:
@@ -1221,6 +1482,7 @@ class OwnedPublicContainment:
         self._verify_targets()
         self._check_claim_path()
         self._verify_source_cleanup()
+        self._verify_additional_source_cleanup()
         self._verify_baseline()
         _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         _require(
