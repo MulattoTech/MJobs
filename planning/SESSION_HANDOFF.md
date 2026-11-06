@@ -571,3 +571,12 @@ CI unit failures traced to test environment leakage; independently reviewed test
 MJ-REQ-292: **0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `6e254c54d6e61adccbd6159aa0b7337c11cb6fa7`; published PR973 head remains `c1b349810cefa260cbb5e064d0812a13cebe8c45`. Preserve failed c1 runtime and hosted results. Dashboard PR974 merged as971ba931 and was normally incorporated asb2cd8a31 with exact dashboard files retained.
 
 Tracker state/readback and retry-idempotency fixes71735a3a/36db9ac9 independently reviewed; three composed frontend tests and typecheck passed. Queued bootstrap versus explicit review fix6e254c54 independently reviewed, with remaining regression results recorded in the task checkpoint. Environment leak fixed388a8884. Remaining clock/capacity failures require causal repair and fresh CI. No public source/restart/monitoring or merged-source full journey has completed. Deadline remains21:22:28UTC.
+
+
+## 2026-11-06T20:33:32.079038+00:00 - MJ-REQ-292 candidate qualification
+
+**MJ-REQ-292: 0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `29509754248aff32803b90491d82f807e5eaa725`. Reviewed tracker, bootstrap-review compatibility, environment isolation and simulated-clock repairs are integrated. Root37 review/identity tests16subtests and18 clock tests17subtests passed; frontend3 tests/typecheck passed. Linux ordered subset39 passed,10 skipped,24subtests; full unit environment lacks test tools and is NOT_RUN. Initial PG supersession adapter accidentally ran nested SQLite tests; preserve that limitation and require corrected explicit dialect proof.
+
+Fresh current-head CI, candidate runtime, protected merge, and exact merged-source60-step verification remain separate gates. Preserve c1 failed runtime/CI and all historical source/evidence. Main971 dashboard source retained. Continue only within authorized window ending21:22:28UTC.
+
+Corrected PG adapter c1c993ab now explicitly binds the nested fixture and asserts PostgreSQL. Its exact mixed batch passed42 tests/10subtests with0skips; prior invalid adapter receipts remain preserved. Root Greenhouse priority-order suite12PASS. Unpublished trailer formatting was repaired with identical source trees, authorship and merge ancestry; original12-commit chain retained, mapping committed.

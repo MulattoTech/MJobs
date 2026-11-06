@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "6e254c54d6e61adccbd6159aa0b7337c11cb6fa7",
+  "head_sha": "29509754248aff32803b90491d82f807e5eaa725",
   "routing_state": "EXECUTE",
-  "next_action": "Complete remaining capacity/clock regressions and independent review, publish normal PR973 update, build exact frozen candidate and execute committed campaign launcher. Required checks and fresh protected-merged-source acceptance remain mandatory; no numbered PASS from candidate runs.",
+  "next_action": "Publish the qualified candidate normally to PR973 after live update-only preflight, then follow current-head required checks. Han builds exact frozen source; root runs committed acceptance_campaign with source-setup and monitoring. A failed UI cannot resume. After protected merge, fresh merged-source build/run and independent evidence review are still required.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -171,13 +171,50 @@
       "result": "PASS",
       "tested_commit": "455eb652f59983e684c5715a37b992378360d03c",
       "observed": "344 tests and44 subtests passed in23.32 seconds; two Windows symlink tests skipped. Includes empty-child NOT_RUN and policy drift during lease wait; no connected runtime acceptance."
+    },
+    {
+      "command": "pytest reviewed bootstrap precedence, Greenhouse, Lever and identity integration classes",
+      "tested_commit": "6e254c54d6e61adccbd6159aa0b7337c11cb6fa7",
+      "result": "PASS",
+      "observed": "37 tests and16 subtests passed; controlled HTTP and SQLite; CD independent source review."
+    },
+    {
+      "command": "pytest relative-posted and candidate-refresh integration classes",
+      "tested_commit": "3cc75c4b8159aa367d619ee0c2b9cfe9a19dfdd9",
+      "result": "PASS",
+      "observed": "18 tests and17 subtests passed; clocks aligned across admission, lease and collection. Production enforcement unchanged; CD independent review."
+    },
+    {
+      "command": "Linux disposable c1 image plus readonly pytest overlay: campaign/recovery/Compose/backup ordered subset",
+      "tested_commit": "b2cd8a316ea11c697241059a749c87cab89f7041",
+      "result": "PASS",
+      "observed": "39 passed,10 skipped,24 subtests. Skips require missing Docker CLI. Full unit NOT_RUN: runtime image lacks yaml/markdown/git; after PyYAML overlay and public-site omission first failure was missing git executable. No hosted equivalence claimed."
+    },
+    {
+      "command": "isolated PostgreSQL17.11 reviewed GH/Lever/candidate refresh/priority and corrected supersession batch",
+      "tested_commit": "c1c993ab95c669f14264958e8be48664a8fdb998",
+      "result": "PASS",
+      "observed": "42 tests and10subtests passed in69.08s,0skips; includes SQLite base tests separately from PostgreSQL subclasses. Exact owned container removed; no real RQ/provider or hosted claim."
+    },
+    {
+      "command": "pytest tests/integration/test_greenhouse_autodiscovery.py -q",
+      "tested_commit": "b0757149",
+      "result": "PASS",
+      "observed": "12 tests passed10.52s; actual HIGH bootstrap dispatch precedes normal retry; original dedupe assertions retained. CD independently reviewed."
+    },
+    {
+      "command": "pytest campaign launcher, pending review precedence and Greenhouse autodiscovery",
+      "tested_commit": "29509754248aff32803b90491d82f807e5eaa725",
+      "result": "PASS",
+      "observed": "31 tests,3subtests passed13.55s;4PGsubclasses skipped locally, independently executed in isolated PostgreSQL batch."
     }
   ],
   "blockers": [
-    "Published c1 Python unit/integrity failed53 tests because the new in-process campaign unit test leaked Compose environment variables. Fixed locally in388a8884 from independently reviewed1b73c55e;49 ordered tests passed. Fresh hosted validation not yet run. Root full Windows unit attempt stopped at collection on preexisting Linux-only fcntl import; it did not execute the suite.",
-    "Published c1 integration shard2 failed33 tests, including DISCOVERY_REQUEST_NOT_REVIEWABLE and native/domain acquisition DEAD_LETTERED. Ahsoka owns requests/domain/ATS diagnosis; Obiwan owns collector precedence diagnosis. Preserve legacy review/native acquisition and strict authorization guards; no workaround or test weakening authorized.",
-    "The c1 connected UI passed every emitted native form/application check through51 and historical setup proof, but failed immediate tracker history visibility after PUT200 and GET READY/history readback. Rey owns a reproduced product UI fix, preserving selection guards and immediate readback assertions.",
-    "No public-source setup, recovery, natural monitoring or exact protected-merged-source full journey has completed. Ledger remains0/60 PASS,50 PARTIAL,10 NOT_RUN."
+    "MJ-REQ-292 remains0/60 VERIFIED PASS,50 PARTIAL,10 NOT_RUN. No protected-merged-source full journey has completed.",
+    "Published c1 unit and integration checks failed; repaired candidate needs fresh hosted checks. Local Windows full unit stops on fcntl; Linux runtime image is not a complete test-tool image.",
+    "c1 connected run failed tracker history visibility after confirmed persisted READY. Reviewed frontend fix and3 composed regressions passed; fresh connected runtime still pending.",
+    "Public-source setup, recovery and natural monitoring remain unexecuted in a complete connected campaign.",
+    "Earlier PG supersession adapter42745 accidentally ran its nested fixture on SQLite; invalid receipts preserved. Corrected c1c993ab explicitly binds and asserts PostgreSQL; exact mixed PG/SQLite batch42 tests10subtests passed,0skips. Hosted and live journey remain separate gates."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -548,7 +585,7 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T20:21:42.506480+00:00",
+  "updated_at": "2026-11-06T20:33:32.079038+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -752,5 +789,26 @@
     "root_validation": "36db9ac9 campaign/containment/public-source/domain83 tests22 subtests passed;2 Windows symlink skips. b2cd8a31 dashboard31 tests passed.",
     "runtime": "c1 exact image/startup verified; connected UI failed at immediate Ready history after PUT200 and GET READY. All native form/submission checks emitted through51 passed, but UI segment overall FAIL. Public setup/restart/monitoring not executed. Original failed artifacts preserved.",
     "deadline_utc": "2026-11-06T21:22:28Z"
+  },
+  "final_repair_candidate": {
+    "source_before_checkpoint": "29509754248aff32803b90491d82f807e5eaa725",
+    "captured_at_utc": "2026-11-06T20:33:32.079038+00:00",
+    "main_merged": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "independent_composition_review": "Yoda approved6e254c54 static review, including exact dashboard-main equality and fail-closed supersession/containment interaction. AB reviewed frontend; CD reviewed requests and clock fixtures.",
+    "deadline_utc": "2026-11-06T21:22:28Z",
+    "trailer_repair": "Unpublished12-commit chain preserved on codex/mj292-preserved-c1-repair-trailers-20261106; only malformed388 trailer spacing repaired. Every source tree, author, committer timestamp and merge-parent edge preserved/mapped; strict provenance passed. No published history rewrite or force push. Map docs/evidence/2026-11-06-mjreq292-c1-trailer-repair.json.",
+    "independent_replay_review": "Leia verified all12 trees, author and committer identities/timestamps, every mapped parent edge and main971/publishedc1 ancestry at29509754; all strictprovenancePASS; remote remainsc1.",
+    "pg_receipt": {
+      "source_commit": "c1c993ab95c669f14264958e8be48664a8fdb998",
+      "result": "PASS",
+      "tests": 42,
+      "postgres_tests": 38,
+      "sqlite_tests": 4,
+      "subtests": 10,
+      "skips": 0,
+      "receipt_sha256": "7c33778b6462edb947e54cf0dab6737e922f8723ac2292a5212d038362a7d00c",
+      "log_sha256": "0d80f58f7e98f9d68c2021447bab28e0d7e562b6a2607e67198dbca87d5bbea0",
+      "scope": "Owned PostgreSQL17.11, controlled HTTP, explicit dialect assertion, exact container cleanup. No real RQ/provider or hosted acceptance."
+    }
   }
 }
