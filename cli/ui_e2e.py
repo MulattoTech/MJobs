@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 import httpx
 from docx import Document
@@ -222,9 +222,12 @@ class EvidenceJournal:
         self.acceptance_run_id = acceptance_run_id
         self.acceptance_observations = []
         self.observed_job_ids = []
+        self.selected_profile_id = None
         self.selected_application_id = None
         self.selected_application_job_id = None
         self.application_document_ids = []
+        self.stage_lineage = []
+        self.cover_letter_proof = None
         self.checks = []
         self.attempted = None
         self.failure = None
@@ -245,13 +248,17 @@ class EvidenceJournal:
         if len(self.observed_job_ids) > 100:
             raise ValueError("observed job readback exceeds limit")
 
-    def record_application_readback(self, *, application_id, job_id, documents):
-        if not self._lineage_id(application_id) or not self._lineage_id(job_id):
+    def record_application_readback(self, *, profile_id, application_id, job_id, documents):
+        if (not self._lineage_id(profile_id) or not self._lineage_id(application_id)
+                or not self._lineage_id(job_id)):
             raise ValueError("application readback contains an invalid identity")
+        if self.selected_profile_id not in {None, profile_id}:
+            raise ValueError("selected application profile identity changed during journey")
         if self.selected_application_id not in {None, application_id}:
             raise ValueError("selected application identity changed during journey")
         if self.selected_application_job_id not in {None, job_id}:
             raise ValueError("selected application job identity changed during journey")
+        self.selected_profile_id = profile_id
         self.selected_application_id = application_id
         self.selected_application_job_id = job_id
         if not isinstance(documents, list):
@@ -264,6 +271,77 @@ class EvidenceJournal:
                 self.application_document_ids.append(document_id)
         if len(self.application_document_ids) > 100:
             raise ValueError("application document readback exceeds limit")
+
+    def record_stage_lineage(self, row):
+        expected = {"step", "operation_id", "request_id", "operation_kind",
+                    "application_id", "profile_id", "job_id"}
+        if (not isinstance(row, dict) or set(row) != expected
+                or not isinstance(row["step"], int) or isinstance(row["step"], bool)
+                or row["step"] not in range(36, 54)
+                or not isinstance(row["operation_id"], str)
+                or re.fullmatch(r"[a-f0-9]{64}", row["operation_id"]) is None
+                or any(not self._lineage_id(row[key]) for key in (
+                    "request_id", "application_id", "profile_id", "job_id"))
+                or not isinstance(row["operation_kind"], str)
+                or row["operation_kind"] not in {"PREPARE", "APPLY_MOCK"}):
+            raise ValueError("application stage lineage is invalid")
+        if any(existing["step"] == row["step"] for existing in self.stage_lineage):
+            raise ValueError("application stage lineage step already recorded")
+        if (self.selected_profile_id != row["profile_id"]
+                or self.selected_application_id != row["application_id"]
+                or self.selected_application_job_id != row["job_id"]
+                or self.binding.get("profile_id", row["profile_id"]) != row["profile_id"]):
+            raise ValueError("application stage lineage differs from selected B identity")
+        if len(self.stage_lineage) >= 18:
+            raise ValueError("application stage lineage exceeds limit")
+        safe_row = {key: row[key] for key in (
+            "step", "operation_id", "request_id", "operation_kind",
+            "application_id", "profile_id", "job_id")}
+        self.stage_lineage.append(safe_row)
+        self.persist()
+
+    def record_cover_letter_proof(self, proof):
+        if (not isinstance(proof, dict) or set(proof) != {"A", "B", "base_upload"}
+                or set(proof["A"]) != {"application_id", "profile_id", "job_id",
+                    "profile_version", "document_id", "version", "sha256"}
+                or set(proof["B"]) != set(proof["A"])
+                or set(proof["base_upload"]) != {"revision_id", "sha256", "unchanged"}):
+            raise ValueError("cover-letter proof shape is invalid")
+        records = {}
+        for label in ("A", "B"):
+            row = proof[label]
+            if (any(not self._lineage_id(row[key]) for key in (
+                    "application_id", "profile_id", "job_id", "document_id"))
+                    or row["profile_id"] != self.selected_profile_id
+                    or not isinstance(row["profile_version"], str)
+                    or not self._lineage_id(row["profile_version"])
+                    or not isinstance(row["version"], int) or isinstance(row["version"], bool)
+                    or row["version"] < 1
+                    or not isinstance(row["sha256"], dict)
+                    or set(row["sha256"]) != {"txt", "pdf", "docx"}
+                    or any(not isinstance(value, str)
+                           or re.fullmatch(r"[a-f0-9]{64}", value) is None
+                           for value in row["sha256"].values())):
+                raise ValueError("cover-letter proof row is invalid")
+            records[label] = {key: row[key] for key in (
+                "application_id", "profile_id", "job_id", "profile_version",
+                "document_id", "version")}
+            records[label]["sha256"] = dict(row["sha256"])
+        if (records["A"]["application_id"] == records["B"]["application_id"]
+                or records["A"]["job_id"] == records["B"]["job_id"]
+                or records["A"]["document_id"] == records["B"]["document_id"]
+                or records["B"]["application_id"] != self.selected_application_id
+                or records["B"]["job_id"] != self.selected_application_job_id
+                or records["B"]["document_id"] not in self.application_document_ids):
+            raise ValueError("cover-letter proof differs from selected B identity")
+        base = proof["base_upload"]
+        if (not self._lineage_id(base["revision_id"])
+                or not isinstance(base["sha256"], str)
+                or re.fullmatch(r"[a-f0-9]{64}", base["sha256"]) is None
+                or base["unchanged"] is not True):
+            raise ValueError("cover-letter base upload proof is invalid")
+        self.cover_letter_proof = {**records, "base_upload": dict(base)}
+        self.persist()
 
     def record_observation(self, *, step, status, observable_result,
                            evidence_kind, checks, continuity=None):
@@ -288,9 +366,13 @@ class EvidenceJournal:
             "acceptance_run_id": self.acceptance_run_id,
             "acceptance_observations": list(self.acceptance_observations),
             "observed_job_ids": list(self.observed_job_ids),
+            "selected_profile_id": self.selected_profile_id,
             "selected_application_id": self.selected_application_id,
             "selected_application_job_id": self.selected_application_job_id,
             "application_document_ids": list(self.application_document_ids),
+            "stage_lineage": list(self.stage_lineage),
+            **({"cover_letter_proof": self.cover_letter_proof}
+               if self.cover_letter_proof is not None else {}),
         }
 
     def begin(self, name):
@@ -356,6 +438,30 @@ class EvidenceJournal:
         finally:
             if temporary is not None and temporary.exists():
                 temporary.unlink()
+
+
+def prepare_ui_artifact_directory(base_url, evidence_path, acceptance_run_id=None):
+    """Prepare a non-overwriting per-run artifact directory for the browser."""
+    parsed_target = urlsplit(base_url)
+    if acceptance_run_id is None:
+        artifacts = Path("outputs/ui-e2e") / str(parsed_target.port)
+        artifacts.mkdir(parents=True, exist_ok=True)
+        return artifacts
+
+    validate_run_id(acceptance_run_id)
+    evidence_path = Path(evidence_path)
+    run_suffix = hashlib.sha256(acceptance_run_id.encode("utf-8")).hexdigest()[:12]
+    artifacts = evidence_path.parent / (evidence_path.stem + "-" + run_suffix + "-artifacts")
+    if artifacts.is_symlink():
+        raise FileExistsError("run-scoped artifact directory must not be a symlink")
+    if artifacts.exists():
+        if (not artifacts.is_dir()
+                or any(artifacts.iterdir())):
+            raise FileExistsError(
+                "run-scoped artifact directory is not empty; refusing reuse")
+    else:
+        artifacts.mkdir(parents=True, exist_ok=False)
+    return artifacts
 
 
 def wait_for_mock_run(request, path, operation_id, *, failure_context=None,
@@ -665,12 +771,13 @@ def _source_binding():
         return {"commit": None, "tree": None, "state": "UNAVAILABLE"}
 
 
-def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
+def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
+        runtime_identity=None):
     if onboarding:
         # This read-only gate runs before output creation, Chromium launch, or any UI write.
         _onboarding_preflight(base_url)
-    artifacts = Path("outputs/ui-e2e") / str(urlsplit(base_url).port)
-    artifacts.mkdir(parents=True, exist_ok=True)
+    artifacts = prepare_ui_artifact_directory(
+        base_url, evidence_path, acceptance_run_id)
     parsed_target = urlsplit(base_url)
     journal = EvidenceJournal(evidence_path, {
         "schema_version": 1,
@@ -678,6 +785,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
         "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
         "target_origin": f"{parsed_target.scheme}://{parsed_target.netloc}",
         "source": _source_binding(),
+        **({"runtime_identity": runtime_identity}
+           if acceptance_run_id is not None and runtime_identity is not None else {}),
     }, acceptance_run_id=acceptance_run_id)
 
     def observe_acceptance_step(step, status, observable_result, *,
@@ -686,6 +795,57 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             step=step, status=status, observable_result=observable_result,
             evidence_kind=evidence_kind, checks=checks, continuity=continuity,
         )
+
+    def record_application_step(step, observable_result, assertions, *,
+                                stage_lineage=None, document_id=None):
+        if acceptance_run_id is None:
+            return None
+        from cli.acceptance_applications import record_application_step as record
+
+        return record(
+            journal, step, observable_result=observable_result,
+            assertions=assertions, runtime_identity=runtime_identity,
+            stage_lineage=stage_lineage, document_id=document_id,
+        )
+
+    def _paired_evidence(ui, readback):
+        from cli.acceptance_applications import AssertionEvidence
+
+        return AssertionEvidence(ui=bool(ui), readback=bool(readback))
+
+    def operation_lineage(response, step, *, operation_kind):
+        assert response.status == 202, response.text()
+        payload = response.json()
+        operation_id = payload.get("operation_id")
+        post_data = response.request.post_data_json or {}
+        request_id = post_data.get("request_id")
+        if operation_kind == "PREPARE":
+            scoped_profile_id = post_data.get("profile_id")
+            scoped_job_id = post_data.get("job_id")
+            scoped_application_id = payload.get("application_id")
+            expected_entity_id = scoped_profile_id
+        else:
+            scoped_profile_id = profile_id
+            scoped_job_id = application["job_id"]
+            scoped_application_id = identifier
+            expected_path = (
+                f"/profiles/{scoped_profile_id}/applications/{scoped_application_id}/mock-run")
+            assert urlsplit(response.request.url).path == expected_path
+            expected_entity_id = scoped_application_id
+        operation = request("/operations/" + str(operation_id))
+        params = operation.get("params") or {}
+        assert operation.get("id") == operation_id
+        assert params.get("request_id") == request_id and request_id
+        assert operation.get("kind") == operation_kind
+        assert operation.get("entity_id") == expected_entity_id
+        assert scoped_profile_id == profile_id
+        assert scoped_application_id and scoped_job_id
+        return {
+            "step": step, "operation_id": operation_id,
+            "request_id": request_id, "operation_kind": operation_kind,
+            "application_id": scoped_application_id, "profile_id": scoped_profile_id,
+            "job_id": scoped_job_id,
+        }, operation
 
     class CheckpointActions(list):
         def append(self, value):
@@ -745,12 +905,25 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                     return fieldset
             raise AssertionError("Expected exact profile fact text was not found: " + text)
 
+        first_prepare = {"lineage": None, "operation": None}
+        route_adapter_evidence = None
+
         def prepare():
             if page.get_by_label("Order approved skills for this job", exact=True).is_checked():
                 preview = page.get_by_role("region", name="Resume keyword alignment preview", exact=True)
                 preview.get_by_role("button", name="Preview keyword alignment", exact=True).click()
                 expect(preview.get_by_role("status")).to_contain_text("Read-only preview")
-            page.get_by_role("button", name="Prepare documents", exact=True).click()
+            prepare_button = page.get_by_role("button", name="Prepare documents", exact=True)
+            if (acceptance_run_id is not None and onboarding
+                    and first_prepare["lineage"] is None):
+                with page.expect_response(lambda response:
+                        response.request.method == "POST"
+                        and urlsplit(response.url).path == "/applications") as prepared:
+                    prepare_button.click()
+                first_prepare["lineage"], first_prepare["operation"] = operation_lineage(
+                    prepared.value, 36, operation_kind="PREPARE")
+            else:
+                prepare_button.click()
             expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="Run dry-run", exact=True)).to_be_enabled()
 
@@ -775,26 +948,42 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             )
             pending_fact_ids = set()
             discovery_search_proofs = []
+            first_run_initial = None
+            base_resume_bytes = None
+            base_resume_revision_id = None
+            base_resume_sha256 = None
             if onboarding:
-                page.get_by_role("button", name="New profile", exact=True).click()
-                page.get_by_label("Full name", exact=True).fill("Synthetic Onboarding Applicant")
-                page.get_by_label("Email", exact=True).fill("onboarding@example.invalid")
-                with page.expect_response(lambda response:
-                        response.request.method == "PUT"
-                        and urlsplit(response.url).path == "/profiles") as profile_saved:
-                    save_profile()
-                assert profile_saved.value.status == 200, profile_saved.value.text()
-                profile_id = profile_saved.value.json()["id"]
-                expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
-                assert profile_id and not profile_id.startswith("demo-")
-                profile = request("/profiles/" + profile_id)
-                assert profile["facts"] == []
-                observe_acceptance_step(
-                    3, "PARTIAL", "Profile created through the profile form; first-run wizard not exercised.",
-                    evidence_kind="CONTROLLED_FIXTURE",
-                    checks=[{"name": "new_profile_saved_and_selected", "passed": True}],
-                    continuity={"profile_id": profile_id},
-                )
+                if acceptance_run_id is not None:
+                    from cli.acceptance_onboarding import begin_first_run
+
+                    first_run_initial = begin_first_run(
+                        page, base_url, acceptance_run_id=acceptance_run_id)
+                    if not first_run_initial.get("first_run_started"):
+                        raise AssertionError("Fresh first-run profile creation was not observed.")
+                    profile_id = first_run_initial["profile_id"]
+                    assert page.get_by_label("Active profile", exact=True).input_value() == profile_id
+                    profile = request("/profiles/" + profile_id)
+                    assert profile["facts"] == []
+                else:
+                    page.get_by_role("button", name="New profile", exact=True).click()
+                    page.get_by_label("Full name", exact=True).fill("Synthetic Onboarding Applicant")
+                    page.get_by_label("Email", exact=True).fill("onboarding@example.invalid")
+                    with page.expect_response(lambda response:
+                            response.request.method == "PUT"
+                            and urlsplit(response.url).path == "/profiles") as profile_saved:
+                        save_profile()
+                    assert profile_saved.value.status == 200, profile_saved.value.text()
+                    profile_id = profile_saved.value.json()["id"]
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
+                    assert profile_id and not profile_id.startswith("demo-")
+                    profile = request("/profiles/" + profile_id)
+                    assert profile["facts"] == []
+                    observe_acceptance_step(
+                        3, "PARTIAL", "Profile created through the profile form; first-run wizard not exercised.",
+                        evidence_kind="CONTROLLED_FIXTURE",
+                        checks=[{"name": "new_profile_saved_and_selected", "passed": True}],
+                        continuity={"profile_id": profile_id},
+                    )
                 actions.append({"action": "UI created a new synthetic profile without replacing existing profiles", "result": "PASS"})
 
                 page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({
@@ -910,6 +1099,27 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                     checks=[{"name": "approved_fact_set_matches_review", "passed": True}],
                     continuity={"profile_id": profile_id},
                 )
+                if acceptance_run_id is not None:
+                    base_resume_bytes = b"MJ-REQ-292 synthetic base resume; these original bytes must stay unchanged.\n"
+                    page.get_by_label("Document type", exact=True).select_option("BASE_RESUME")
+                    page.get_by_label("Document label", exact=True).fill("MJ-REQ-292 synthetic comparison base")
+                    page.get_by_label("Choose a document (PDF, DOCX or TXT; up to 10 MiB)", exact=True).set_input_files({
+                        "name": "mj-req-292-base.txt", "mimeType": "text/plain",
+                        "buffer": base_resume_bytes,
+                    })
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == f"/profiles/{profile_id}/document-library") as base_stored:
+                        page.get_by_role("button", name="Store document", exact=True).click()
+                    assert base_stored.value.status == 201, base_stored.value.text()
+                    base_library = request(f"/profiles/{profile_id}/document-library")
+                    base_row = next(row for row in base_library["uploaded"]
+                                    if row.get("document_kind") == "BASE_RESUME"
+                                    and row.get("label") == "MJ-REQ-292 synthetic comparison base")
+                    base_resume_revision_id = base_row["revision_id"]
+                    base_resume_sha256 = hashlib.sha256(base_resume_bytes).hexdigest()
+                    assert base_row["sha256"] == base_resume_sha256
+                    expect(page.get_by_role("region", name="MJ-REQ-292 synthetic comparison base collection", exact=True)).to_be_visible()
 
                 def save_sources_fixture_search(name, title):
                     navigation("Sources")
@@ -1104,7 +1314,78 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             assert application["fact_ids"] == [python_fact_id]
             first_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
             journal.record_application_readback(
-                application_id=identifier, job_id=application["job_id"], documents=first_documents)
+                profile_id=application["profile_id"], application_id=identifier,
+                job_id=application["job_id"], documents=first_documents)
+            if acceptance_run_id is not None and onboarding:
+                assert first_prepare["lineage"] is not None
+                assert first_prepare["lineage"]["application_id"] == identifier
+                first_application_readback = request(
+                    f"/profiles/{profile_id}/applications/{identifier}")
+                assert first_application_readback["profile_id"] == profile_id
+                assert first_application_readback["job_id"] == application["job_id"]
+                assert first_application_readback["state"] == "PREPARED"
+                assert first_application_readback["profile_version"] == profile["version"]
+                record_application_step(
+                    36, "The selected B application was prepared and read back with its profile and job pins.",
+                    {
+                        "application_prepared_readback": _paired_evidence(
+                            page.get_by_role("heading", name="Application details", exact=True).is_visible(),
+                            first_application_readback["state"] == "PREPARED"),
+                        "profile_job_pins_match": _paired_evidence(
+                            page.get_by_label("Active profile", exact=True).input_value() == profile_id,
+                            first_application_readback["profile_id"] == profile_id
+                            and first_application_readback["job_id"] == application["job_id"]),
+                    },
+                    stage_lineage=first_prepare["lineage"],
+                )
+
+                navigation("Applications")
+                page.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True).click()
+                expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
+                application_review = page.get_by_role("region", name="Application review", exact=True)
+                selected_job_id = application["job_id"]
+                route_readback = request(
+                    f"/jobs/{selected_job_id}/routes?profile_id={profile_id}")
+                route_choice = next(row for row in first_application_readback["route_choices"]
+                                    if row["route_id"] == first_application_readback["route_id"])
+                adapter = first_application_readback.get("adapter_knowledge") or {}
+                route_inventory = [
+                    route for option in route_readback.get("all_options", [])
+                    for route in option.get("aliases", [])
+                    if route.get("id") == route_choice["route_id"]]
+                route_ui_text = application_review.locator("dd").nth(2).inner_text()
+                route_ui_matches = all(value in route_ui_text for value in (
+                    adapter.get("provider", ""), route_choice.get("requested_mode", ""),
+                    route_choice.get("state", "")))
+                record_application_step(
+                    37, "The displayed application route matched the selected route readback for B.",
+                    {
+                        "selected_route_matches_application": _paired_evidence(
+                            route_ui_matches,
+                            route_choice["route_id"] == first_application_readback["route_id"]),
+                        "route_bound_to_job": _paired_evidence(
+                            route_ui_matches,
+                            bool(route_inventory) and route_readback.get("selected")
+                            and route_choice["route_id"] == first_application_readback["route_id"]),
+                    },
+                    stage_lineage={**first_prepare["lineage"], "step": 37},
+                )
+                adapter_panel = page.get_by_role(
+                    "region", name="ATS application adapter knowledge", exact=True)
+                route_provider = route_inventory[0].get("provider") if route_inventory else None
+                adapter_matches = (adapter.get("provider") == route_provider
+                                   and adapter.get("adapter_status") == "FIXTURE_ONLY")
+                route_adapter_evidence = {
+                    "supported_adapter_matches_provider": _paired_evidence(
+                        adapter_panel.is_visible()
+                        and "Fictional local mock adapter is available" in adapter_panel.inner_text(),
+                        adapter_matches),
+                    "provider_matches_route": _paired_evidence(
+                        adapter.get("provider", "") in adapter_panel.inner_text(),
+                        adapter_matches),
+                }
+                navigation("Jobs")
+                select_data_job()
             first_resume = next(row for row in first_documents if row["kind"] == "resume")
             assert first_resume['created_at'] and first_resume['generation_model'] == 'deterministic-fact-copy-v2'
             assert [fact['text'] for fact in first_resume['facts_used']] == ['Python']
@@ -1121,16 +1402,51 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             assert first_resume['template']=='verified-headings-v1'
             assert [p.text for p in Document(io.BytesIO(original)).paragraphs if p.style.name=='Heading 1']==['Skills']
             first_cover = next(row for row in first_documents if row["kind"] == "cover-letter")
-            if acceptance_run_id is not None:
-                observe_acceptance_step(
-                    35, "PARTIAL", "A factual cover letter was generated; cross-job uniqueness was not compared.",
-                    evidence_kind="CONTROLLED_FIXTURE",
-                    checks=[{"name": "cover_letter_generated",
-                             "passed": first_cover.get("kind") == "cover-letter"},
-                            {"name": "cross_job_uniqueness_compared", "passed": False}],
-                    continuity={"profile_id": profile_id, "application_id": identifier,
-                                "job_id": application["job_id"], "document_id": first_cover["id"]},
-                )
+            if first_run_initial is not None:
+                assert_no_pending_facts_in_documents(
+                    first_documents, pending_fact_ids, {python_fact_id})
+                pending_rows = [row for row in request("/profiles/" + profile_id)["facts"]
+                                if row["fact_id"] in pending_fact_ids]
+                assert len(pending_rows) == len(pending_fact_ids)
+                rejection_before = request(f"/profiles/{profile_id}/fact-rejections")
+                rejection_states = {row["fact_id"]: row
+                                    for row in rejection_before.get("facts", [])}
+                assert all(rejection_states.get(row["fact_id"], {}).get("review_status") == "PENDING"
+                           for row in pending_rows)
+                navigation("Profile")
+                for fact in pending_rows:
+                    editor = fact_editor(fact["text"])
+                    editor.get_by_label("I reject this fact as incorrect", exact=True).check()
+                    rejection_button = editor.get_by_role(
+                        "button", name="Reject this fact", exact=True)
+                    expect(rejection_button).to_be_enabled()
+                    fact_path = (f"/profiles/{quote(profile_id, safe='')}/facts/"
+                                 f"{quote(fact['fact_id'], safe='')}/reject")
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == fact_path) as rejected:
+                        rejection_button.click()
+                    assert rejected.value.status == 200, rejected.value.text()
+                    receipt = rejected.value.json()
+                    assert receipt["profile_id"] == profile_id
+                    assert receipt["fact_id"] == fact["fact_id"]
+                    assert receipt["decision"] == "REJECT"
+                    expect(editor.get_by_text(
+                        "Rejected — original fact retained and excluded from documents.",
+                        exact=True)).to_be_visible()
+                rejection_after = request(f"/profiles/{profile_id}/fact-rejections")
+                rejected_rows = {row["fact_id"]: row
+                                 for row in rejection_after.get("facts", [])}
+                assert all(rejected_rows.get(fact_id, {}).get("review_status") == "REJECTED"
+                           for fact_id in pending_fact_ids)
+                profile_after_rejection = request("/profiles/" + profile_id)
+                assert_onboarding_profile_facts(profile_after_rejection, pending_fact_ids)
+                assert {row["fact_id"] for row in profile_after_rejection["facts"]
+                        if not row["verified"] and not row["user_approved"]} == pending_fact_ids
+                actions.append({
+                    "action": "Imported pending facts were read back as excluded from generated documents, then explicitly rejected per fact in the UI",
+                    "result": "PASS",
+                })
             actions.append({'action':'ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording','result':'PASS'})
             assert text_bytes.decode('utf-8').strip() == text
             actions.append({'action':'Original approved facts, generation metadata and checksum-verified TXT download visible through the browser', 'result':'PASS'})
@@ -1146,7 +1462,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             assert revised["document_version"] == 2 and set(revised["fact_ids"]) == {python_fact_id, sql_fact_id}
             documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
             journal.record_application_readback(
-                application_id=identifier, job_id=application["job_id"], documents=documents)
+                profile_id=application["profile_id"], application_id=identifier,
+                job_id=application["job_id"], documents=documents)
             assert len(documents) == 4
             old = download_document(first_resume["id"], "docx")
             assert old == original
@@ -1180,7 +1497,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
             comparison_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
             journal.record_application_readback(
-                application_id=identifier, job_id=application['job_id'], documents=comparison_documents)
+                profile_id=application['profile_id'], application_id=identifier,
+                job_id=application['job_id'], documents=comparison_documents)
             base_document=next(row for row in comparison_documents
                                if row['version']==2 and row['kind']=='resume')
             tailored_document=next(row for row in comparison_documents
@@ -1229,7 +1547,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             prepare()
             selected_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
             journal.record_application_readback(
-                application_id=identifier, job_id=application['job_id'], documents=selected_documents)
+                profile_id=application['profile_id'], application_id=identifier,
+                job_id=application['job_id'], documents=selected_documents)
             selected_resume=next(row for row in selected_documents if row['version']==4 and row['kind']=='resume')
             selected_cover=next(row for row in selected_documents if row['version']==4 and row['kind']=='cover-letter')
             assert selected_resume['generation_model']=='deterministic-fact-selection-and-bullet-emphasis-v1'
@@ -1267,7 +1586,11 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             contact_option=page.get_by_label('Include saved resume contact details',exact=True)
             expect(contact_option).not_to_be_checked();contact_option.check()
             prepare()
-            contact_resume=next(row for row in request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents'] if row['version']==5 and row['kind']=='resume')
+            latest_b_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
+            journal.record_application_readback(
+                profile_id=application['profile_id'], application_id=identifier,
+                job_id=application['job_id'], documents=latest_b_documents)
+            contact_resume=next(row for row in latest_b_documents if row['version']==5 and row['kind']=='resume')
             assert contact_resume['template']=='approved-contact-base-v1'
             assert 'Location: Tulsa' in contact_resume['generation_context']['contact_header']
             contact_history=page.get_by_role('region',name='resume version 5',exact=True)
@@ -1280,18 +1603,128 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             assert request('/profiles/'+profile_id)==saved_contact_profile
             actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
 
+            if acceptance_run_id is not None and onboarding:
+                assert base_resume_bytes and base_resume_revision_id and base_resume_sha256
+                a_job=next(row for row in request('/jobs?profile_id='+profile_id)['jobs']
+                           if row.get('title')=='Python Developer')
+                b_job=request('/jobs/'+application['job_id']+'?profile_id='+profile_id)
+                a_job_detail=request('/jobs/'+a_job['id']+'?profile_id='+profile_id)
+                navigation('Jobs')
+                page.get_by_label('Search jobs').fill('python')
+                page.get_by_label('Job title',exact=True).fill('')
+                page.get_by_label('Work location',exact=True).select_option('')
+                a_card=page.get_by_role('button',name='Example Systems Inc. Python Developer',exact=True)
+                expect(a_card).to_be_visible()
+                a_card.click()
+                expect(page.locator('section.job-detail').get_by_role(
+                    'heading',name='Python Developer',exact=True)).to_be_visible()
+                prepare()
+                a_application=next(row for row in request('/applications?profile_id='+profile_id)['applications']
+                                   if row.get('job_id')==a_job['id'])
+                a_documents=request('/profiles/'+profile_id+'/applications/'+a_application['id']+'/documents')['documents']
+                a_cover=next(row for row in a_documents if row['kind']=='cover-letter')
+                b_cover=next(row for row in latest_b_documents
+                             if row['kind']=='cover-letter' and row['version']==5)
+                assert a_application['id']!=identifier and a_job['id']!=application['job_id']
+                cases={
+                    'A': {'application_id':a_application['id'],'job_id':a_job['id'],
+                          'title':a_job_detail['title'],'company':a_job_detail['company'],
+                          'document_id':a_cover['id'],'version':a_cover['version'],
+                          'fact_ids':a_cover['fact_ids']},
+                    'B': {'application_id':identifier,'job_id':application['job_id'],
+                          'title':b_job['title'],'company':b_job['company'],
+                          'document_id':b_cover['id'],'version':b_cover['version'],
+                          'fact_ids':b_cover['fact_ids']},
+                }
+                current_profile=request('/profiles/'+profile_id)
+                approved_text={row['fact_id']:row['text'] for row in current_profile['facts']
+                               if row.get('verified') and row.get('user_approved')}
+                approved_by_case={label:tuple(approved_text[fact_id]
+                    for fact_id in case['fact_ids']) for label,case in cases.items()}
+                pending_sentinels=tuple(row['text'] for row in current_profile['facts']
+                                        if row['fact_id'] in pending_fact_ids)
+
+                def get_artifact_bytes(path):
+                    response=context.request.get(base_url+path)
+                    assert response.ok,(path,response.status)
+                    return response.body()
+
+                from cli.acceptance_documents import prove_unique_cover_letter_artifacts
+
+                document_proof=prove_unique_cover_letter_artifacts(
+                    request,get_artifact_bytes,profile_id=profile_id,cases=cases,
+                    base_revision_id=base_resume_revision_id,
+                    base_sha256=base_resume_sha256,base_bytes=base_resume_bytes,
+                    approved_by_case=approved_by_case,pending_sentinels=pending_sentinels,
+                )
+                journal.record_cover_letter_proof(document_proof)
+                navigation('Applications')
+                page.get_by_role('button',name='Example Systems Inc. Data Engineer',exact=True).click()
+                expect(page.get_by_role('heading',name='Application details',exact=True)).to_be_visible()
+                restored_b=request('/profiles/'+profile_id+'/applications/'+identifier)
+                assert restored_b['job_id']==application['job_id']
+                assert page.get_by_label('Active profile',exact=True).input_value()==profile_id
+                assert document_proof['B']['document_id']==b_cover['id']
+                observe_acceptance_step(
+                    35,'PASS','Distinct job-specific cover letters match the persisted A and B application records.',
+                    evidence_kind='CONTROLLED_FIXTURE',
+                    checks=[{'name':'cover_letter_generated','passed':True},
+                            {'name':'cross_job_uniqueness_compared','passed':
+                             document_proof['A']['sha256']['txt']!=document_proof['B']['sha256']['txt']}],
+                    continuity={'profile_id':profile_id,'application_id':identifier,
+                                'job_id':application['job_id'],'document_id':b_cover['id']},
+                )
+                actions.append({'action':'Real UI/API-generated Python Developer A and Data Engineer B cover letters were compared by persisted IDs and checked file hashes; the selected B application was restored','result':'PASS'})
+
             if onboarding:
                 # Keep the uncertain-answer recovery journey specific to the onboarding fixture.
                 previous_operation_id = None
-                page.get_by_role("button", name="Run dry-run", exact=True).click()
+                initial_mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
+                with page.expect_response(lambda response:
+                        response.request.method == "POST"
+                        and response.url == base_url + initial_mock_run_path) as paused_attempt:
+                    page.get_by_role("button", name="Run dry-run", exact=True).click()
+                paused_lineage, paused_operation = operation_lineage(
+                    paused_attempt.value, 44, operation_kind="APPLY_MOCK")
                 expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
                     "REVIEW_REQUIRED", timeout=30000)
                 preflight = page.get_by_role("region", name="ATS question preflight", exact=True)
                 expect(preflight.get_by_role("list", name="Unresolved required questions")).to_contain_text(
                     "Approved fixture answer")
                 previous_profile = request("/profiles/" + profile_id)
+                paused_application = request(
+                    f"/profiles/{profile_id}/applications/{identifier}")
+                paused_receipt = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + paused_lineage["request_id"])
+                assert paused_receipt["operation_id"] == paused_lineage["operation_id"]
+                assert paused_receipt["state"] == "BLOCKED"
+                assert paused_receipt["error_code"] == "REVIEW_REQUIRED"
+                assert "SUBMIT" not in paused_application.get("trace", [])
+                if acceptance_run_id is not None and route_adapter_evidence is not None:
+                    record_application_step(
+                        38, "The selected route and fixture-only adapter were rechecked during the local attempt.",
+                        route_adapter_evidence,
+                        stage_lineage={**paused_lineage, "step": 38},
+                    )
+                record_application_step(
+                    44, "The uncertain required answer paused the local attempt before any submit step.",
+                    {
+                        "uncertain_question_paused": _paired_evidence(
+                            page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "REVIEW_REQUIRED",
+                            paused_application["question_preflight"]["is_current"] is True
+                            and paused_receipt["error_code"] == "REVIEW_REQUIRED"),
+                        "submit_not_attempted": _paired_evidence(
+                            page.get_by_role("button", name="Submit to local mock", exact=True).is_disabled(),
+                            "SUBMIT" not in paused_application.get("trace", [])
+                            and paused_receipt["state"] == "BLOCKED"),
+                    },
+                    stage_lineage=paused_lineage,
+                )
                 review_row = preflight.get_by_role("list", name="Unresolved required questions").locator(
                     "li").filter(has_text="Approved fixture answer")
+                unresolved_prompt = review_row.locator("strong").inner_text()
                 review_row.get_by_role("button", name="Review this question", exact=True).click()
                 answer_group = page.get_by_role("region", name="Application answers", exact=True).get_by_role(
                     "group", name="Question 1")
@@ -1302,6 +1735,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 answer_confirmation = answer_bank_confirmation_locator(answer_group, 1)
                 answer_confirmation.get_by_label(
                     "I confirm this answer is accurate and may be reused", exact=True).check()
+                approval_checked_in_ui = answer_confirmation.get_by_label(
+                    "I confirm this answer is accurate and may be reused", exact=True).is_checked()
                 with page.expect_response(lambda response:
                         response.request.method == "PUT"
                         and urlsplit(response.url).path == "/profiles") as reviewed_answer_save:
@@ -1313,6 +1748,21 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                                        if row["question"] == "Approved fixture answer")
                 assert reviewed_answer["text"] == REVIEWED_FIXTURE_ANSWER
                 assert reviewed_answer["verified"] and reviewed_answer["user_approved"]
+                record_application_step(
+                    45, "The user confirmed an answer for the paused required question and persisted it in the profile.",
+                    {
+                        "explicit_answer_approval_persisted": _paired_evidence(
+                            approval_checked_in_ui and reviewed_answer_save.value.status == 200,
+                            reviewed_answer["verified"] is True
+                            and reviewed_answer["user_approved"] is True
+                            and reviewed_answer["text"] == REVIEWED_FIXTURE_ANSWER),
+                        "approval_bound_to_question": _paired_evidence(
+                            unresolved_prompt == reviewed_answer["question"],
+                            paused_operation.get("entity_id") == identifier
+                            and reviewed_answer["question"] == unresolved_prompt),
+                    },
+                    stage_lineage={**paused_lineage, "step": 45},
+                )
                 old_pins = request("/profiles/" + profile_id + "/applications/" + identifier)
                 assert old_pins["profile_version"] == previous_profile["version"]
                 old_document_version = old_pins["document_version"]
@@ -1340,6 +1790,67 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 assert resumed.get("question_preflight") is not None
                 assert resumed["question_preflight"]["is_current"] is False
                 actions.append({"action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history", "result": "PASS", "boundary": "Connected React UI → public profile/reprepare APIs → actual document worker"})
+
+                if first_run_initial is not None:
+                    latest_profile = request("/profiles/" + profile_id)
+                    assert latest_profile["version"] == updated_profile["version"]
+                    assert_no_pending_facts_in_documents(
+                        revised_documents, pending_fact_ids, {python_fact_id, sql_fact_id})
+                    latest_pending = [row for row in latest_profile["facts"]
+                                      if row["fact_id"] in pending_fact_ids]
+                    assert len(latest_pending) == len(pending_fact_ids)
+                    assert all(not row["verified"] and not row["user_approved"]
+                               for row in latest_pending)
+                    navigation("Profile")
+                    for fact in latest_pending:
+                        editor = fact_editor(fact["text"])
+                        editor.get_by_label(
+                            "I reject this fact as incorrect", exact=True).check()
+                        reject_button = editor.get_by_role(
+                            "button", name="Reject this fact", exact=True)
+                        expect(reject_button).to_be_enabled()
+                        fact_path = (f"/profiles/{quote(profile_id, safe='')}/facts/"
+                                     f"{quote(fact['fact_id'], safe='')}/reject")
+                        with page.expect_response(lambda response:
+                                response.request.method == "POST"
+                                and urlsplit(response.url).path == fact_path) as rejected_again:
+                            reject_button.click()
+                        assert rejected_again.value.status == 200
+                        expect(editor.get_by_text(
+                            "Rejected — original fact retained and excluded from documents.",
+                            exact=True)).to_be_visible()
+                    latest_reviews = request(f"/profiles/{profile_id}/fact-rejections")
+                    latest_review_rows = {row["fact_id"]: row
+                                          for row in latest_reviews.get("facts", [])}
+                    assert all(latest_review_rows.get(fact_id, {}).get("review_status")
+                               == "REJECTED" for fact_id in pending_fact_ids)
+                    after_latest_rejections = request("/profiles/" + profile_id)
+                    assert after_latest_rejections["version"] == latest_profile["version"]
+                    assert_onboarding_profile_facts(after_latest_rejections, pending_fact_ids)
+                    from cli.acceptance_onboarding import observe_first_run
+
+                    first_run_report = observe_first_run(
+                        page, base_url, first_run_initial,
+                        search_profile_id=matching_search["id"],
+                        operation_id=discovery_operation_id,
+                        request_id=discovery_request_id,
+                    )
+                    observe_acceptance_step(
+                        3, first_run_report["result"],
+                        "First-run configuration, saved search, and current-version fact decisions were reloaded.",
+                        evidence_kind="CONTROLLED_FIXTURE",
+                        checks=first_run_report["checks"],
+                        continuity={"profile_id": profile_id},
+                    )
+                    actions.append({
+                        "action": "At the current profile version, each pending extracted fact was explicitly rejected and the first-run wizard was reloaded",
+                        "result": "PASS" if first_run_report["result"] == "PASS" else "PARTIAL",
+                    })
+                    navigation("Applications")
+                    page.get_by_role(
+                        "button", name="Example Systems Inc. Data Engineer", exact=True).click()
+                    expect(page.get_by_role(
+                        "heading", name="Application details", exact=True)).to_be_visible()
 
             if onboarding:
                 mock_controls = page.get_by_role("region", name="Recoverable mock run", exact=True)
@@ -1376,13 +1887,208 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 expect(mock_controls.get_by_role("button", name="Submit to local mock", exact=True)).to_be_disabled()
                 actions.append({"action": "Explicit new reviewed run clears only the prior terminal browser intent; blocked operation and stale preflight remain readable", "result": "PASS", "boundary": "Connected React UI → public run receipt/operation APIs"})
 
-            page.get_by_role("button", name="Run dry-run", exact=True).click()
+            dry_run_lineage = None
+            if acceptance_run_id is not None and onboarding:
+                with page.expect_response(lambda response:
+                        response.request.method == "POST"
+                        and response.url == base_url +
+                        f"/profiles/{profile_id}/applications/{identifier}/mock-run") as dry_run_admission:
+                    page.get_by_role("button", name="Run dry-run", exact=True).click()
+                dry_run_lineage, dry_run_operation = operation_lineage(
+                    dry_run_admission.value, 46, operation_kind="APPLY_MOCK")
+            else:
+                page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
                 "DRY_RUN_COMPLETE", timeout=30000)
             dry = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
             assert dry["question_preflight"]["result"] == "PASS"
             assert dry["question_preflight"]["is_current"] is True
+            if dry_run_lineage is not None:
+                dry_receipt = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + dry_run_lineage["request_id"])
+                assert dry_receipt["operation_id"] == dry_run_lineage["operation_id"]
+                assert dry_receipt["state"] == "COMPLETED"
+                dry_documents = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/documents")["documents"]
+                journal.record_application_readback(
+                    profile_id=profile_id, application_id=identifier,
+                    job_id=application["job_id"], documents=dry_documents)
+                history_path = (
+                    f"/profiles/{profile_id}/applications/{identifier}/attempt-history")
+                history = request(history_path)
+                expected_attempts = [
+                    row for row in history["attempts"]
+                    if isinstance(row.get("native_fixture"), dict)
+                    and row["native_fixture"].get("request_id")
+                    == dry_run_lineage["operation_id"]]
+                native_attempt = expected_attempts[0] if len(expected_attempts) == 1 else {}
+                native_proof = native_attempt.get("native_fixture") or {}
+                verified_uploads = native_attempt.get("verified_uploads") or []
+                current_profile = request("/profiles/" + profile_id)
+                profile_answers = {row["id"]: row for row in current_profile["answers"]}
+                reviewed_fields = native_proof.get("reviewed_fields") or []
+                reviewed_matches = (
+                    len(reviewed_fields) == 3
+                    and {row.get("field_key") for row in reviewed_fields}
+                    == {"country", "remote", "fixture_question"}
+                    and all(
+                        row.get("answer_id") in profile_answers
+                        and profile_answers[row["answer_id"]].get("question")
+                        == {"country": "Country", "remote": "Remote role",
+                            "fixture_question": "Approved fixture answer"}[row["field_key"]]
+                        and profile_answers[row["answer_id"]].get("verified") is True
+                        and profile_answers[row["answer_id"]].get("user_approved") is True
+                        for row in reviewed_fields))
+                history_ui = page.get_by_role(
+                    "region", name="Durable attempt history", exact=True)
+                expect(history_ui).to_be_visible()
+                refresh_history = history_ui.get_by_role(
+                    "button", name="Refresh attempt history", exact=True)
+                if refresh_history.is_enabled():
+                    refresh_history.click()
+                history_ui_text = history_ui.inner_text()
+                native_steps = set(native_attempt.get("steps", []))
+                native_scope_ok = (
+                    native_attempt.get("application_id") == identifier
+                    and native_attempt.get("profile_version") == current_profile["version"]
+                    and native_proof.get("job_id") == application["job_id"]
+                    and native_proof.get("request_id") == dry_run_lineage["operation_id"])
+                record_application_step(
+                    39, "The local browser attempt navigated to and detected the selected native fixture form.",
+                    {
+                        "playwright_form_opened": _paired_evidence(
+                            "NAVIGATE:COMPLETED" in history_ui_text
+                            and "DETECT_FORM:COMPLETED" in history_ui_text,
+                            native_scope_ok and "NAVIGATE:COMPLETED" in native_steps
+                            and "DETECT_FORM:COMPLETED" in native_steps),
+                        "selected_application_loaded": _paired_evidence(
+                            page.get_by_role("heading", name="Application details", exact=True).is_visible(),
+                            native_attempt.get("application_id") == identifier
+                            and native_proof.get("job_id") == application["job_id"]),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 39},
+                )
+                record_application_step(
+                    40, "The native attempt used the current profile for its contact-fill phase.",
+                    {
+                        "contact_fields_match_verified_profile": _paired_evidence(
+                            "FILL_CONTACT:COMPLETED" in history_ui_text,
+                            native_scope_ok and "FILL_CONTACT:COMPLETED" in native_steps),
+                        "contact_values_visible": _paired_evidence(
+                            False, False),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 40},
+                )
+
+                def upload_matches_document(kind):
+                    selected_doc = next((row for row in dry_documents
+                                         if row.get("kind") == kind
+                                         and row.get("version") == dry["document_version"]), None)
+                    upload = next((row for row in verified_uploads
+                                   if row.get("kind") == kind), None)
+                    if selected_doc is None or upload is None:
+                        return selected_doc, upload, False
+                    if upload.get("document_id") != selected_doc.get("id"):
+                        return selected_doc, upload, False
+                    for file_format, expected_sha in selected_doc.get("sha256", {}).items():
+                        try:
+                            content = download_document(selected_doc["id"], file_format)
+                        except (AssertionError, KeyError, ValueError):
+                            continue
+                        if (hashlib.sha256(content).hexdigest() == upload.get("sha256")
+                                and len(content) == upload.get("size_bytes")):
+                            return selected_doc, upload, True
+                    return selected_doc, upload, False
+
+                resume_doc, resume_upload, resume_upload_ok = upload_matches_document("resume")
+                cover_doc, cover_upload, cover_upload_ok = upload_matches_document("cover-letter")
+                record_application_step(
+                    41, "The verified browser resume bytes matched the selected persisted B resume document.",
+                    {
+                        "resume_upload_matches_document": _paired_evidence(
+                            resume_upload_ok and resume_upload["sha256"] in history_ui_text,
+                            resume_upload_ok),
+                        "resume_sha256_matches": _paired_evidence(
+                            resume_upload_ok and resume_upload["sha256"] in history_ui_text,
+                            resume_upload_ok),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 41},
+                    document_id=resume_doc.get("id") if resume_doc else None,
+                )
+                record_application_step(
+                    42, "The verified browser cover-letter bytes matched the selected persisted B cover letter.",
+                    {
+                        "cover_letter_upload_matches_document": _paired_evidence(
+                            cover_upload_ok and cover_upload["sha256"] in history_ui_text,
+                            cover_upload_ok),
+                        "cover_letter_sha256_matches": _paired_evidence(
+                            cover_upload_ok and cover_upload["sha256"] in history_ui_text,
+                            cover_upload_ok),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 42},
+                    document_id=cover_doc.get("id") if cover_doc else None,
+                )
+                record_application_step(
+                    43, "Persisted native field bindings matched the reviewed answer questions; answer values stay hidden.",
+                    {
+                        "approved_answers_match_questions": _paired_evidence(
+                            "Dynamic application form review" in page.locator("body").inner_text(),
+                            reviewed_matches),
+                        "approved_values_visible": _paired_evidence(
+                            False, False),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 43},
+                )
+                record_application_step(
+                    46, "The reviewed application used a current reprepare after stale preflight evidence was rejected.",
+                    {
+                        "reviewed_application_resumed": _paired_evidence(
+                            page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "DRY_RUN_COMPLETE",
+                            resumed["id"] == identifier
+                            and resumed["profile_id"] == profile_id
+                            and dry["profile_version"] == current_profile["version"]),
+                        "stale_approval_rejected": _paired_evidence(
+                            resumed["question_preflight"]["is_current"] is False,
+                            resumed["question_preflight"]["is_current"] is False
+                            and dry["question_preflight"]["is_current"] is True),
+                    },
+                    stage_lineage=dry_run_lineage,
+                )
+                record_application_step(
+                    47, "The current form preflight and generated documents were pinned to the selected B profile revision.",
+                    {
+                        "current_form_validated": _paired_evidence(
+                            page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "DRY_RUN_COMPLETE",
+                            dry["question_preflight"]["result"] == "PASS"
+                            and dry["question_preflight"]["is_current"] is True),
+                        "profile_document_pins_match": _paired_evidence(
+                            page.get_by_text(f"Document revision {dry['document_version']}", exact=False).is_visible(),
+                            dry["profile_version"] == current_profile["version"]
+                            and all(row.get("profile_version") == current_profile["version"]
+                                    for row in dry_documents
+                                    if row.get("version") == dry["document_version"])),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 47},
+                )
+                record_application_step(
+                    48, "The dry-run receipt and attempt trace were persisted without an external post.",
+                    {
+                        "dry_run_receipt_persisted": _paired_evidence(
+                            page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "DRY_RUN_COMPLETE",
+                            dry_receipt["state"] == "COMPLETED"
+                            and dry_receipt["operation_id"] == dry_run_lineage["operation_id"]),
+                        "no_external_post_recorded": _paired_evidence(
+                            "SUBMIT" not in history_ui_text,
+                            "SUBMIT" not in dry.get("trace", [])
+                            and request("/health")["external_submission_enabled"] is False),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 48},
+                )
             assert_previous_review_operation(
                 request, onboarding=onboarding,
                 operation_id=previous_operation_id if onboarding else None,
@@ -1396,6 +2102,9 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
                 page.get_by_role("button", name="Submit to local mock", exact=True).click()
             assert admission.value.status == 202
             admitted = admission.value.json()
+            if acceptance_run_id is not None and onboarding:
+                final_lineage, admitted_operation = operation_lineage(
+                    admission.value, 49, operation_kind="APPLY_MOCK")
             admitted_intent = page.evaluate("([profile, application]) => JSON.parse(localStorage.getItem('mjobs-mock-run-v1:' + encodeURIComponent(profile) + ':' + encodeURIComponent(application)))", [profile_id, identifier])
             assert admitted_intent["submit"] is True
             failure_context = {
@@ -1429,6 +2138,61 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             assert request("/health")["external_submission_enabled"] is False
             controls = page.get_by_role('region', name='Recoverable mock run', exact=True)
             expect(controls.get_by_role('status').filter(has_text='Operation')).to_contain_text('COMPLETED')
+            if acceptance_run_id is not None and onboarding:
+                final_operation_readback = request(
+                    "/operations/" + final_lineage["operation_id"])
+                final_history = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/attempt-history")
+                final_attempts = [row for row in final_history["attempts"]
+                                  if isinstance(row.get("native_fixture"), dict)
+                                  and row["native_fixture"].get("request_id")
+                                  == final_lineage["operation_id"]]
+                final_native_attempt = final_attempts[0] if len(final_attempts) == 1 else {}
+                confirmation = confirmed.get("confirmation") or {}
+                local_owned_run = (
+                    confirmed["target"] == "MOCK"
+                    and final_operation_readback.get("kind") == "APPLY_MOCK"
+                    and final_operation_readback.get("state") == "COMPLETED"
+                    and final_operation_readback.get("entity_id") == identifier
+                    and request("/health")["external_submission_enabled"] is False)
+                record_application_step(
+                    49, "The owned local mock received one explicitly approved submission operation.",
+                    {
+                        "owned_mock_received_submit": _paired_evidence(
+                            controls.get_by_role("status").filter(has_text="Operation").is_visible()
+                            and page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "CONFIRMED",
+                            local_owned_run and admitted_intent["submit"] is True),
+                        "external_submission_absent": _paired_evidence(
+                            "Submit to local mock" in controls.inner_text(),
+                            request("/health")["external_submission_enabled"] is False
+                            and confirmed["target"] == "MOCK"),
+                    },
+                    stage_lineage=final_lineage,
+                )
+                native_confirmation_valid = (
+                    confirmation.get("native_provider") in {"greenhouse", "lever"}
+                    and confirmation.get("request_id") == final_lineage["operation_id"]
+                    and confirmation.get("submission_count") == 1
+                    and all(isinstance(confirmation.get(key), str)
+                            and re.fullmatch(r"[a-f0-9]{64}", confirmation[key])
+                            for key in ("contract_sha256", "review_sha256",
+                                        "resume_sha256", "cover_letter_sha256")))
+                record_application_step(
+                    50, "A scoped fixture confirmation was reconciled once to the selected B application.",
+                    {
+                        "authoritative_confirmation_detected": _paired_evidence(
+                            page.get_by_role("status", name="Application state", exact=True).inner_text()
+                            == "CONFIRMED",
+                            native_confirmation_valid and final_native_attempt.get("state") == "CONFIRMED"),
+                        "confirmation_count_one": _paired_evidence(
+                            page.locator("pre").filter(
+                                has_text='"submission_count": 1').is_visible(),
+                            confirmation.get("submission_count") == 1
+                            and confirmed.get("confirmation", {}).get("submission_count") == 1),
+                    },
+                    stage_lineage={**final_lineage, "step": 50},
+                )
             intent = page.evaluate("([profile, application]) => JSON.parse(localStorage.getItem('mjobs-mock-run-v1:'+encodeURIComponent(profile)+':'+encodeURIComponent(application)))", [profile_id, identifier])
             assert intent['submit'] is True
             repeated_response = context.request.post(base_url + "/profiles/" + profile_id + "/applications/" + identifier + "/mock-run", data={"submit": True, "request_id": intent['requestId']})
@@ -1437,6 +2201,26 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             assert repeated["state"] == "COMPLETED"
             assert repeated['replayed'] is True
             assert request("/profiles/" + profile_id + "/applications/" + identifier)["confirmation"] == confirmed["confirmation"]
+            if acceptance_run_id is not None and onboarding:
+                repeated_receipt = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + intent["requestId"])
+                record_application_step(
+                    51, "Repeating the same local request returned its completed receipt without a second submission.",
+                    {
+                        "history_receipt_persisted": _paired_evidence(
+                            repeated["state"] == "COMPLETED",
+                            repeated_receipt["state"] == "COMPLETED"
+                            and repeated_receipt["operation_id"] == final_lineage["operation_id"]),
+                        "repeated_readback_idempotent": _paired_evidence(
+                            repeated["replayed"] is True,
+                            repeated["operation_id"] == final_lineage["operation_id"]
+                            and repeated_receipt.get("replayed") is True
+                            and request("/profiles/" + profile_id + "/applications/" + identifier)
+                            ["confirmation"] == confirmed["confirmation"]),
+                    },
+                    stage_lineage={**final_lineage, "step": 51},
+                )
             capture_redacted_screenshot(page, artifacts / "application-confirmed.png")
             actions.append({"action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat", "result": "PASS"})
 
@@ -1445,6 +2229,97 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None):
             navigation("Applications")
             page.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True).click()
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
+            if acceptance_run_id is not None and onboarding:
+                tracking_ui = page.get_by_role(
+                    "region", name="Application tracking", exact=True)
+                tracking_ui.get_by_label("Manual application status", exact=True).select_option("READY")
+                tracking_path = (
+                    f"/profiles/{profile_id}/applications/{identifier}/tracking/status")
+                with page.expect_response(lambda response:
+                        response.request.method == "PUT"
+                        and urlsplit(response.url).path == tracking_path) as tracking_saved:
+                    tracking_ui.get_by_role("button", name="Update status", exact=True).click()
+                assert tracking_saved.value.status == 200
+                tracking_before_reload = tracking_saved.value.json()
+                tracking_readback = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/tracking")
+                assert tracking_readback["status"] == "READY"
+                assert tracking_readback["history"]
+                assert tracking_readback["history"][-1]["status"] == "READY"
+                expect(tracking_ui.get_by_role(
+                    "list", name="Application history", exact=True)).to_contain_text("Ready")
+                page.reload(wait_until="domcontentloaded")
+                expect(page.get_by_label("Active profile")).to_have_value(profile_id)
+                navigation("Applications")
+                page.get_by_role(
+                    "button", name="Example Systems Inc. Data Engineer", exact=True).click()
+                expect(page.get_by_role(
+                    "status", name="Application state", exact=True)).to_have_text("CONFIRMED")
+                tracking_ui = page.get_by_role(
+                    "region", name="Application tracking", exact=True)
+                expect(tracking_ui.get_by_label(
+                    "Manual application status", exact=True)).to_have_value("READY")
+                tracking_after_reload = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/tracking")
+                assert tracking_after_reload == tracking_readback
+                expect(tracking_ui.get_by_role(
+                    "list", name="Application history", exact=True)).to_contain_text("Ready")
+                record_application_step(
+                    52, "The selected B application tracking status persisted through a browser reload.",
+                    {
+                        "tracker_matches_application": _paired_evidence(
+                            tracking_ui.get_by_label(
+                                "Manual application status", exact=True).input_value() == "READY",
+                            tracking_readback["status"] == "READY"
+                            and tracking_after_reload["status"] == "READY"),
+                        "tracker_survives_reload": _paired_evidence(
+                            "Ready" in tracking_ui.get_by_role(
+                                "list", name="Application history", exact=True).inner_text(),
+                            tracking_after_reload == tracking_before_reload),
+                    },
+                    stage_lineage={**final_lineage, "step": 52},
+                )
+                audit_history = request(f"/profiles/{profile_id}/audit-history")
+                scoped_audit_events = [event for event in audit_history["events"]
+                                       if event.get("subject") == "Data Engineer"
+                                       and event.get("company") == "Example Systems Inc."]
+                event_types = {event.get("type") for event in scoped_audit_events}
+                audit_ui = None
+                navigation("Activity")
+                audit_ui = page.get_by_role("region", name="Audit history", exact=True)
+                expect(audit_ui).to_contain_text("Data Engineer")
+                exact_public_event_shape = all(
+                    set(event) == {"id", "type", "summary", "subject", "company", "timestamp"}
+                    for event in scoped_audit_events)
+                no_answer_values = all(
+                    REVIEWED_FIXTURE_ANSWER not in value
+                    and "onboarding@example.invalid" not in value
+                    for event in scoped_audit_events for value in event.values()
+                    if isinstance(value, str))
+                sequence_complete = {
+                    "APPLICATION_SUBMITTED", "APPLICATION_CONFIRMED",
+                    "APPLICATION_STATUS_REPORTED"} <= event_types
+                record_application_step(
+                    53, "The B audit timeline shows submission, confirmation and reported tracking with redacted values.",
+                    {
+                        "audit_sequence_complete": _paired_evidence(
+                            all(value in audit_ui.inner_text() for value in (
+                                "Application submitted", "confirmed", "status reported")),
+                            sequence_complete),
+                        "audit_scope_matches_application": _paired_evidence(
+                            "Data Engineer" in audit_ui.inner_text()
+                            and "Example Systems Inc." in audit_ui.inner_text(),
+                            len(scoped_audit_events) >= 3
+                            and all(event["subject"] == "Data Engineer"
+                                    and event["company"] == "Example Systems Inc."
+                                    for event in scoped_audit_events)),
+                        "audit_values_redacted": _paired_evidence(
+                            REVIEWED_FIXTURE_ANSWER not in audit_ui.inner_text()
+                            and "onboarding@example.invalid" not in audit_ui.inner_text(),
+                            exact_public_event_shape and no_answer_values),
+                    },
+                    stage_lineage={**final_lineage, "step": 53},
+                )
             navigation('Profile')
             base_resumes_before_library=request('/profiles/'+profile_id+'/resumes')['resumes']
             library=page.get_by_role('region', name='Document library', exact=True)

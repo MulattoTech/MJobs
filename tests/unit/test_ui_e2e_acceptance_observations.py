@@ -1,5 +1,8 @@
 """Safety and lineage checks for numbered UI acceptance observations."""
 
+from pathlib import Path
+import hashlib
+
 import pytest
 
 from cli.ui_e2e_jobs_journey import build_observation
@@ -139,6 +142,66 @@ def test_step_22_requires_visible_numeric_score_and_selected_job_explanation():
     assert observation["status"] == "PASS"
 
 
+def test_step_3_requires_first_run_wizard_readback_check():
+    observation = build_observation(
+        step=3, status="PASS", observable_result="Wizard configuration and search were reloaded.",
+        evidence_kind="CONTROLLED_FIXTURE", source_commit=SOURCE_COMMIT, run_id=RUN_ID,
+        continuity={"profile_id": "profile-123"},
+        checks=[{"name": "first_run_wizard_completed_with_persisted_configuration",
+                 "passed": True}],
+    )
+    assert observation["checks"][0]["passed"] is True
+
+
+def test_steps_36_to_53_have_fixed_matching_journal_check_registry():
+    from cli.acceptance_applications import APPLICATION_CHECKS
+    from cli.ui_e2e_jobs_journey import REQUIRED_CHECKS_BY_STEP, _SUPPORTED_STEP_IDS
+
+    assert set(range(36, 54)) <= _SUPPORTED_STEP_IDS
+    assert {step: REQUIRED_CHECKS_BY_STEP[step] for step in range(36, 54)} == APPLICATION_CHECKS
+
+
+def test_application_helper_records_through_real_evidence_journal(tmp_path):
+    from cli.acceptance_applications import AssertionEvidence, record_application_step
+    from cli.ui_e2e import EvidenceJournal
+    from cli.ui_e2e_jobs_journey import REQUIRED_CHECKS_BY_STEP
+
+    journal = EvidenceJournal(
+        tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT}},
+        acceptance_run_id=RUN_ID)
+    journal.record_application_readback(
+        profile_id="profile-B", application_id="app-B", job_id="job-B",
+        documents=[{"id": "doc-B"}])
+    lineage = {"step": 36, "operation_id": "a" * 64,
+               "request_id": "prepare-36", "operation_kind": "PREPARE",
+               "application_id": "app-B", "profile_id": "profile-B",
+               "job_id": "job-B"}
+    result = record_application_step(
+        journal, 36, observable_result="B application preparation was read back.",
+        assertions={name: AssertionEvidence(ui=True, readback=True)
+                    for name in REQUIRED_CHECKS_BY_STEP[36]},
+        runtime_identity={"source_manifest_sha256": "b" * 64,
+                          "images": {"api": "sha256:" + "c" * 64}},
+        stage_lineage=lineage)
+
+    assert result["status"] == "PASS"
+    assert journal.payload()["stage_lineage"] == [lineage]
+    assert journal.payload()["acceptance_observations"][0]["continuity"] == {
+        "profile_id": "profile-B", "application_id": "app-B", "job_id": "job-B"}
+
+
+@pytest.mark.parametrize("rendered, expected, matches", [
+    ("100% · Exceptional", 100.0, True),
+    ("83.5% · Excellent", 83.5, True),
+    ("99% · Exceptional", 100.0, False),
+    ("Unscored", 0, False),
+])
+def test_visible_numeric_score_matches_react_format(rendered, expected, matches):
+    from cli.ui_e2e_jobs_journey import visible_numeric_match_score
+
+    assert visible_numeric_match_score(rendered, expected) is matches
+
+
 def test_evidence_journal_records_actual_readback_lineage(tmp_path):
     from cli.ui_e2e import EvidenceJournal
 
@@ -146,13 +209,91 @@ def test_evidence_journal_records_actual_readback_lineage(tmp_path):
         tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT}}, acceptance_run_id=RUN_ID)
     journal.record_observed_jobs(["job-A"])
     journal.record_application_readback(
-        application_id="app-B", job_id="job-B",
+        profile_id="profile-B", application_id="app-B", job_id="job-B",
         documents=[{"id": "doc-1"}, {"id": "doc-2"}])
     payload = journal.payload()
     assert payload["observed_job_ids"] == ["job-A"]
+    assert payload["selected_profile_id"] == "profile-B"
     assert payload["selected_application_job_id"] == "job-B"
     assert payload["selected_application_id"] == "app-B"
     assert payload["application_document_ids"] == ["doc-1", "doc-2"]
+
+
+def test_acceptance_artifacts_use_run_evidence_directory_and_refuse_overwrite(tmp_path):
+    from cli.ui_e2e import prepare_ui_artifact_directory
+
+    first_evidence = tmp_path / "run-one" / "ui.json"
+    second_evidence = tmp_path / "run-two" / "ui.json"
+    first = prepare_ui_artifact_directory(
+        "http://127.0.0.1:4321", first_evidence, RUN_ID)
+    second = prepare_ui_artifact_directory(
+        "http://127.0.0.1:4321", second_evidence, "run-two-id")
+    first_suffix = hashlib.sha256(RUN_ID.encode()).hexdigest()[:12]
+    second_suffix = hashlib.sha256("run-two-id".encode()).hexdigest()[:12]
+    assert first == first_evidence.parent / f"ui-{first_suffix}-artifacts"
+    assert second == second_evidence.parent / f"ui-{second_suffix}-artifacts"
+    (first / "failure.png").write_bytes(b"existing evidence")
+    with pytest.raises(FileExistsError, match="artifact directory is not empty"):
+        prepare_ui_artifact_directory(
+            "http://127.0.0.1:4321", first_evidence, RUN_ID)
+
+
+def test_legacy_ui_artifacts_keep_port_scoped_directory(tmp_path, monkeypatch):
+    from cli.ui_e2e import prepare_ui_artifact_directory
+
+    monkeypatch.chdir(tmp_path)
+    result = prepare_ui_artifact_directory(
+        "http://127.0.0.1:4321", tmp_path / "unused.json", None)
+    assert result == Path("outputs") / "ui-e2e" / "4321"
+
+
+def test_stage_lineage_is_bounded_and_stays_on_selected_application(tmp_path):
+    from cli.ui_e2e import EvidenceJournal
+
+    journal = EvidenceJournal(
+        tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT},
+                                     "profile_id": "profile-B"},
+        acceptance_run_id=RUN_ID)
+    journal.record_application_readback(
+        profile_id="profile-B", application_id="application-B", job_id="job-B",
+        documents=[{"id": "doc-B"}])
+    row = {"step": 36, "operation_id": "a" * 64, "request_id": "request-36",
+           "operation_kind": "APPLY_MOCK", "application_id": "application-B",
+           "profile_id": "profile-B", "job_id": "job-B"}
+    journal.record_stage_lineage(row)
+    assert journal.payload()["stage_lineage"] == [row]
+
+    with pytest.raises(ValueError, match="selected B identity"):
+        journal.record_stage_lineage({**row, "step": 37, "job_id": "job-A"})
+
+
+def test_cover_letter_proof_is_sanitized_and_pinned_to_selected_b(tmp_path):
+    from cli.ui_e2e import EvidenceJournal
+
+    journal = EvidenceJournal(
+        tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT}},
+        acceptance_run_id=RUN_ID)
+    journal.record_application_readback(
+        profile_id="profile-B", application_id="application-B", job_id="job-B",
+        documents=[{"id": "document-B"}])
+    digest = "a" * 64
+    row = {"application_id": "application-A", "profile_id": "profile-B",
+           "job_id": "job-A", "profile_version": "version-A",
+           "document_id": "document-A", "version": 1,
+           "sha256": {"txt": digest, "pdf": digest, "docx": digest}}
+    proof = {
+        "A": row,
+        "B": {**row, "application_id": "application-B", "job_id": "job-B",
+              "profile_version": "version-B", "document_id": "document-B"},
+        "base_upload": {"revision_id": "base-revision", "sha256": digest,
+                        "unchanged": True},
+    }
+    journal.record_cover_letter_proof(proof)
+    assert journal.payload()["cover_letter_proof"]["B"]["document_id"] == "document-B"
+
+    with pytest.raises(ValueError, match="selected B identity"):
+        journal.record_cover_letter_proof({
+            **proof, "B": {**proof["B"], "document_id": "document-unread"}})
 
 
 def test_journal_persists_run_identity_and_acceptance_rows(tmp_path):

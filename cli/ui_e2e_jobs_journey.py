@@ -16,10 +16,10 @@ _SAFE_CHECK_NAME = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
 _SAFE_OBSERVABLE_RESULT = re.compile(r"[A-Za-z0-9][A-Za-z0-9 .,:;()/_-]*\Z")
 _SAFE_CONTINUITY_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 _SAFE_SHA = re.compile(r"[a-f0-9]{40}\Z")
-_SUPPORTED_STEP_IDS = frozenset((*range(2, 23), *range(32, 36)))
+_SUPPORTED_STEP_IDS = frozenset((*range(2, 23), *range(32, 36), *range(36, 54)))
 REQUIRED_CHECKS_BY_STEP = {
     2: frozenset({"dashboard_heading_visible"}),
-    3: frozenset({"new_profile_saved_and_selected"}),
+    3: frozenset({"first_run_wizard_completed_with_persisted_configuration"}),
     4: frozenset({"resume_upload_and_extraction_visible"}),
     5: frozenset({"extracted_suggestions_remain_unapproved"}),
     6: frozenset({"corrected_fact_read_back", "corrected_fact_remains_pending"}),
@@ -46,6 +46,25 @@ REQUIRED_CHECKS_BY_STEP = {
     34: frozenset({"generated_base_visible", "tailored_version_visible",
                    "omission_and_change_summary_visible"}),
     35: frozenset({"cover_letter_generated", "cross_job_uniqueness_compared"}),
+    36: frozenset({"application_prepared_readback", "profile_job_pins_match"}),
+    37: frozenset({"selected_route_matches_application", "route_bound_to_job"}),
+    38: frozenset({"supported_adapter_matches_provider", "provider_matches_route"}),
+    39: frozenset({"playwright_form_opened", "selected_application_loaded"}),
+    40: frozenset({"contact_fields_match_verified_profile", "contact_values_visible"}),
+    41: frozenset({"resume_upload_matches_document", "resume_sha256_matches"}),
+    42: frozenset({"cover_letter_upload_matches_document", "cover_letter_sha256_matches"}),
+    43: frozenset({"approved_answers_match_questions", "approved_values_visible"}),
+    44: frozenset({"uncertain_question_paused", "submit_not_attempted"}),
+    45: frozenset({"explicit_answer_approval_persisted", "approval_bound_to_question"}),
+    46: frozenset({"reviewed_application_resumed", "stale_approval_rejected"}),
+    47: frozenset({"current_form_validated", "profile_document_pins_match"}),
+    48: frozenset({"dry_run_receipt_persisted", "no_external_post_recorded"}),
+    49: frozenset({"owned_mock_received_submit", "external_submission_absent"}),
+    50: frozenset({"authoritative_confirmation_detected", "confirmation_count_one"}),
+    51: frozenset({"history_receipt_persisted", "repeated_readback_idempotent"}),
+    52: frozenset({"tracker_matches_application", "tracker_survives_reload"}),
+    53: frozenset({"audit_sequence_complete", "audit_scope_matches_application",
+                   "audit_values_redacted"}),
 }
 
 
@@ -53,6 +72,21 @@ def validate_run_id(run_id):
     if not isinstance(run_id, str) or not _SAFE_RUN_ID.fullmatch(run_id):
         raise ValueError("run_id must be a bounded identifier")
     return run_id
+
+
+def visible_numeric_match_score(rendered_text, expected_score):
+    """Compare the visible percent number with API data despite integer formatting."""
+    if (not isinstance(rendered_text, str)
+            or not isinstance(expected_score, (int, float))
+            or isinstance(expected_score, bool)):
+        return False
+    match = re.match(r"\s*(\d+(?:\.\d+)?)%", rendered_text)
+    if match is None:
+        return False
+    try:
+        return abs(float(match.group(1)) - float(expected_score)) < 1e-9
+    except (OverflowError, ValueError):
+        return False
 
 
 def build_observation(*, step, status, observable_result, evidence_kind,
@@ -359,8 +393,10 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
                      and not isinstance(match_score, bool) and 0 <= match_score <= 100)
     visible_numeric_score = False
     if numeric_score:
-        expect(detail_region.locator(".big-score")).to_contain_text(f"{match_score}%")
-        visible_numeric_score = True
+        score_badge = detail_region.locator(".big-score")
+        expect(score_badge).to_be_visible()
+        visible_numeric_score = visible_numeric_match_score(
+            score_badge.inner_text(), match_score)
     requirements = (match.get("components") or {}).get("requirements") or []
     concrete_requirement = next((row for row in requirements
                                  if isinstance(row, dict) and row.get("skill")
