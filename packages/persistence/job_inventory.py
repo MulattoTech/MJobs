@@ -14,6 +14,10 @@ source-resolution evaluation/candidate observation IDs/time/count. Resolution
 candidate semantic values are deduplicated; authority, quality, conflicts,
 selected posting and route decisions remain significant. Provider raw payloads
 are NEVER projected or normalized.
+
+Rows are streamed in batches of 20 under the read snapshot. The serialized
+payload budgets bound accepted inventory work, not total process RSS: a driver
+must decode an individual stored value before its row-size check can run.
 """
 import base64
 from collections import defaultdict
@@ -31,6 +35,7 @@ MAX_COPIES = 100_000
 MAX_PER_JOB = 1_000
 MAX_SNAPSHOTS = 100_000
 MAX_BYTES = 128 * 1024 * 1024
+MAX_ROW_BYTES = 8 * 1024 * 1024
 HEX = re.compile(r'[a-f0-9]{64}\Z')
 
 
@@ -81,13 +86,16 @@ def _manifest(connection, profile_id):
 
     def bounded(statement, cap):
         nonlocal byte_count
-        with connection.execute(statement.limit(cap + 1)) as result:
+        # PostgreSQL needs a server-side cursor: a default client cursor could
+        # buffer the entire raw catalogue before the byte-budget check below.
+        with connection.execute(statement.limit(cap + 1).execution_options(yield_per=20)) as result:
             for index, mapping in enumerate(result.mappings()):
                 if index >= cap:
                     _fail()
                 row = dict(mapping)
-                byte_count += len(encoded(row))
-                if byte_count > MAX_BYTES:
+                row_bytes = len(encoded(row))
+                byte_count += row_bytes
+                if row_bytes > MAX_ROW_BYTES or byte_count > MAX_BYTES:
                     _fail()
                 yield row
 

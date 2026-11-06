@@ -11,7 +11,7 @@ from uuid import uuid4
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select, text
+from sqlalchemy import create_engine, event, select, text
 from sqlalchemy.engine import make_url
 
 from apps.api.main import create_app
@@ -128,6 +128,17 @@ class PersistedJobInventoryTests(unittest.TestCase):
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()['detail'], 'JOB_INVENTORY_BUDGET_EXCEEDED')
 
+    def test_payload_budget_refusal_releases_read_snapshot(self):
+        for setting in ('MAX_BYTES', 'MAX_ROW_BYTES'):
+            with self.subTest(setting=setting):
+                with patch('packages.persistence.job_inventory.' + setting, 64):
+                    response = self.client.get('/profiles/fixture/job-inventory')
+                self.assertEqual(response.status_code, 409, response.text)
+                self.assertEqual(response.json()['detail'], 'JOB_INVENTORY_BUDGET_EXCEEDED')
+                # The failed scan must not strand a read transaction/cursor.
+                page = self.get_json('/profiles/fixture/job-inventory')
+                self.assertEqual(page['total'], 601)
+
     def test_immutable_snapshot_payload_change_is_detected(self):
         posting = 'inventory-posting-600'
         with self.store.engine.begin() as connection:
@@ -166,6 +177,22 @@ class PersistedJobInventoryTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('MJOBS_TEST_POSTGRES_URL'), 'disposable PostgreSQL not configured')
 class PersistedJobInventoryPostgresTests(PersistedJobInventoryTests):
+    def test_manifest_uses_named_server_cursors_and_closes_them_on_budget_failure(self):
+        cursors = []
+        def observe(connection, cursor, statement, parameters, context, executemany):
+            if context.execution_options.get('yield_per'):
+                cursors.append((cursor, getattr(cursor, 'name', None)))
+        event.listen(self.store.engine, 'after_cursor_execute', observe)
+        try:
+            self.get_json('/profiles/fixture/job-inventory')
+            with patch('packages.persistence.job_inventory.MAX_BYTES', 64):
+                self.assertEqual(self.client.get('/profiles/fixture/job-inventory').status_code, 409)
+        finally:
+            event.remove(self.store.engine, 'after_cursor_execute', observe)
+        self.assertTrue(cursors)
+        self.assertTrue(all(name and cursor.closed for cursor, name in cursors),
+                        'Every PostgreSQL scan must use and close an actual named server cursor')
+
     def restart_storage(self):
         """Opt-in actual restart, restricted to this run's disposable loopback PG."""
         container = os.environ.get('MJOBS_TEST_POSTGRES_RESTART_CONTAINER')
