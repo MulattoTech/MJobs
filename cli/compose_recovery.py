@@ -645,6 +645,8 @@ def compare_public_job_inventory(baseline, before_restart, after_restart):
     return {"result": "PASS", "profile_id": before["profile_id"],
             "job_count": before["job_count"], "source_copy_count": before["source_copy_count"],
             "sha256": before["sha256"],
+            **({key: before[key] for key in ('schema_version', 'profile_version', 'snapshot_sha256')}
+               if before['schema_version'] == 4 else {}),
             "scope": ("ALL_PERSISTED_JOBS: complete catalogue, routes, every posting/source-copy and immutable raw snapshot; includes hidden, not-interested and blacklisted jobs"
                       if before['schema_version'] == 4 else "Same-profile public job view, application routes, posting source identities and source-copy payload hashes via bounded GET /jobs readback; hidden, not-interested and blacklisted jobs are excluded")}
 

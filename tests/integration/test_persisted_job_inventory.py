@@ -86,6 +86,8 @@ class PersistedJobInventoryTests(unittest.TestCase):
         result = recovery.compare_public_job_inventory({'job_inventory': before}, before, after)
         self.assertEqual(result['result'], 'PASS')
         self.assertIn('ALL_PERSISTED_JOBS', result['scope'])
+        for key in ('schema_version', 'profile_version', 'snapshot_sha256'):
+            self.assertEqual(result[key], before[key])
 
     def test_changes_between_pages_refuse_insert_delete_and_same_id_content_changes(self):
         for change in ('insert', 'delete', 'canonical', 'copy', 'route'):

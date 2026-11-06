@@ -82,3 +82,9 @@ class PersistedInventoryRecoveryTests(unittest.TestCase):
                 patch.object(recovery, 'collect_public_job_inventory', side_effect=AssertionError('No fallback')):
             self.assertEqual(recovery.collect_baseline_job_inventory(None, baseline), inventory)
             current.assert_called_once_with(None, 'fixture')
+
+    def test_recovery_summary_preserves_v4_snapshot_identity(self):
+        inventory, _ = self.collect(transcript())
+        result = recovery.compare_public_job_inventory({'job_inventory': inventory}, inventory, inventory)
+        for key in ('schema_version', 'profile_version', 'snapshot_sha256'):
+            self.assertEqual(result[key], inventory[key])
