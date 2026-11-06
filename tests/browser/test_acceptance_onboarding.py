@@ -109,7 +109,7 @@ class FirstRunAcceptanceTests(unittest.TestCase):
         initial = self.begin()
         self.page.get_by_role('button', name='Add fact', exact=True).click()
         fact = self.page.locator('fieldset.fact').last
-        fact.get_by_label('Fact text', exact=True).fill('Incorrect synthetic extraction pending a decision')
+        fact.get_by_role('textbox', name='Fact text', exact=True).fill('Incorrect synthetic extraction pending a decision')
         fact.get_by_label('Evidence / source', exact=True).fill('Synthetic local browser fixture')
         self.page.get_by_role('button', name='Save profile', exact=True).click()
         expect(self.page.get_by_role('button', name='Save profile', exact=True)).to_be_enabled()
@@ -119,6 +119,46 @@ class FirstRunAcceptanceTests(unittest.TestCase):
         saved = self.store.profile(initial['profile_id'])['facts'][0]
         self.assertFalse(saved['verified'])
         self.assertFalse(saved['user_approved'])
+
+    def test_explicit_reject_keeps_original_fact_and_completes_only_current_review(self):
+        initial = self.begin()
+        self.page.get_by_role('button', name='Add fact', exact=True).click()
+        fact = self.page.locator('fieldset.fact').last
+        fact.get_by_role('textbox', name='Fact text', exact=True).fill('Incorrect synthetic extraction')
+        fact.get_by_label('Evidence / source', exact=True).fill('Original synthetic resume')
+        self.page.get_by_role('button', name='Save profile', exact=True).click()
+        expect(self.page.get_by_role('button', name='Save profile', exact=True)).to_be_enabled()
+        before = self.store.profile(initial['profile_id'])
+        reject = fact.get_by_role('button', name='Reject this fact', exact=True)
+        expect(reject).to_be_disabled()
+        confirmation = fact.get_by_label('I reject this fact as incorrect', exact=True)
+        confirmation.check()
+        expect(reject).to_be_enabled()
+        # Unsaved content cannot reuse a confirmation for the persisted fact.
+        fact.get_by_role('textbox', name='Fact text', exact=True).fill('Changed unsaved extraction')
+        expect(reject).to_be_disabled()
+        fact.get_by_role('textbox', name='Fact text', exact=True).fill('Incorrect synthetic extraction')
+        confirmation.check()
+        with self.page.expect_response(lambda response: response.request.method == 'POST'
+                and urlsplit(response.url).path.endswith('/reject')) as response:
+            reject.click()
+        self.assertEqual(response.value.status, 200)
+        expect(fact.get_by_text('Rejected — original fact retained and excluded from documents.', exact=True)).to_be_visible()
+        self.assertEqual(self.store.profile(initial['profile_id']), before)
+        observed = observe_first_run(self.page, self.origin, initial)
+        self.assertEqual(observed['result'], 'PARTIAL')
+        self.assertNotIn('review-extracted-facts', observed['pending_steps'])
+        self.assertEqual(observed['configuration']['rejected_fact_ids'], [before['facts'][0]['fact_id']])
+        wizard = self.page.get_by_role('region', name='First-run setup', exact=True)
+        expect(wizard.get_by_role('listitem').nth(2).get_by_text('Complete', exact=True)).to_be_visible()
+        wizard.get_by_role('button', name='Review facts', exact=True).click()
+        fact = self.page.locator('fieldset.fact').last
+        fact.get_by_role('textbox', name='Fact text', exact=True).fill('New saved version needs a new review')
+        self.page.get_by_role('button', name='Save profile', exact=True).click()
+        expect(self.page.get_by_role('button', name='Save profile', exact=True)).to_be_enabled()
+        expect(wizard.get_by_role('listitem').nth(2).get_by_text('Needs attention', exact=True)).to_be_visible()
+        self.assertFalse(self.store.profile(initial['profile_id'])['facts'][0]['user_approved'])
+        self.assertEqual(self.blocked, [])
 
     def test_complete_wizard_binds_persisted_fixture_search_and_rejects_wrong_lineage(self):
         initial = self.begin()

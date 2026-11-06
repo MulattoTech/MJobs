@@ -821,6 +821,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         CREDENTIAL_PROBE_MAX_IN_FLIGHT)
     from apps.api.search_history import create_search_history_router
     app.include_router(create_search_history_router(store))
+    from apps.api.fact_rejections import create_fact_rejections_router
+    app.include_router(create_fact_rejections_router(store))
     from apps.api.recently_viewed import create_recently_viewed_router
     app.include_router(create_recently_viewed_router(store))
     from apps.api.resume_workspace_editor import create_resume_workspace_editor_router

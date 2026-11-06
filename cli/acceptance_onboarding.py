@@ -90,8 +90,12 @@ def _configuration(page, origin, profile_id):
     encoded = quote(profile_id, safe='')
     profile = _read(page, origin, '/profiles/' + encoded)
     ai = _read(page, origin, '/profiles/' + encoded + '/ai-task-settings')
+    review = _read(page, origin, '/profiles/' + encoded + '/fact-rejections')
     _require(profile['id'] == profile_id and ai['profile_id'] == profile_id,
              'FIRST_RUN_PROFILE_CHANGED')
+    _require(review.get('profile_id') == profile_id and review.get('profile_version') == profile['version']
+        and {row['fact_id'] for row in review['facts']} == {row['fact_id'] for row in profile['facts']},
+        'FIRST_RUN_FACT_REVIEW_CHANGED')
     preferences = profile.get('preferences') or {}
     acknowledgements = _acknowledgements(page, profile_id)
     _require(set(CHOICES).issubset(acknowledgements), 'FIRST_RUN_SETUP_CHOICES_CHANGED')
@@ -103,6 +107,9 @@ def _configuration(page, origin, profile_id):
         profile_sha256=_digest(profile), ai_settings_sha256=_digest(ai),
         work_arrangements=preferences['work_arrangements'], application_route_preference='PREFER_VERIFIED',
         ai_providers_disabled=True, external_submission_enabled=False,
+        fact_review_sha256=_digest(review), fact_reviews=review['facts'],
+        pending_fact_ids=sorted(row['fact_id'] for row in review['facts'] if row['review_status'] == 'PENDING'),
+        rejected_fact_ids=sorted(row['fact_id'] for row in review['facts'] if row['review_status'] == 'REJECTED'),
         browser_acknowledgements=acknowledgements,
         acknowledgement_persistence='CURRENT_BROWSER_LOCAL_STORAGE')
 
@@ -186,6 +193,8 @@ def observe_first_run(page, base_url, initial, *, search_profile_id=None, operat
             expect(wizard.get_by_role('listitem').nth(9).get_by_text('Complete', exact=True)).to_be_visible()
         steps = _wizard_steps(page)
         pending = [row['id'] for row in steps if not row['complete']]
+        _require('review-extracted-facts' in pending or not configuration['pending_fact_ids'],
+                 'FIRST_RUN_FACT_REVIEW_CHANGED')
         receipt.update(configuration=configuration, steps=steps, completed_steps=len(STEPS) - len(pending),
             pending_steps=pending, reloaded=True, initial_steps=initial['initial_steps'])
         if not all((search_profile_id, operation_id, request_id)):
