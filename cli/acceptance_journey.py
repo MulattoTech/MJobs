@@ -46,6 +46,8 @@ MAX_ARTIFACT_BYTES = 2 * 1024 * 1024
 # reviewed-code test contract, not an independent verification certification.
 # Running scheduler processes cannot stand in for naturally due observations.
 REQUIRED_CHECKS = {
+    1: {"fresh_owned_stack_created", "startup_source_run_target_bound", "startup_images_and_containers_bound",
+        "startup_all_services_ready", "startup_migration_completed"},
     2: {"dashboard_heading_visible"},
     3: {"first_run_wizard_completed_with_persisted_configuration"},
     4: {"resume_upload_and_extraction_visible"},
@@ -322,6 +324,88 @@ def _runtime_identity(binding):
     # must remain the same, while container IDs are recorded per phase.
     return {key: binding[key] for key in (
         "source_manifest_sha256", "images", "compose_files", "frontend_assets", "dockerfile_sha256")}
+
+
+def observe_startup_runtime(target, runtime):
+    """Read only the initially admitted project, including its exited migration."""
+    observed = copy.deepcopy(runtime)
+    observed["container_created_at"] = {}
+    for service, container_id in runtime["containers"].items():
+        values = recovery._run_bounded(
+            ["docker", "inspect", "--format", "{{.Created}}|{{.State.StartedAt}}", container_id],
+            timeout=10, action="Inspect initial journey container creation").strip().split("|")
+        if len(values) != 2:
+            raise ValueError("Startup creation inspection malformed")
+        observed["container_created_at"][service], observed["service_started_at"][service] = values
+    configs = tuple(Path(value) for value in runtime["compose_files"])
+    candidates = recovery.compose(target["project_name"], target["port"], "ps", "--all", "-q", "migrate", config_files=configs).split()
+    if len(candidates) != 1:
+        raise ValueError("Startup migration target is missing or ambiguous")
+    migration_id = candidates[0]
+    recovery.inspect_container(target["project_name"], "migrate", migration_id, config_files=configs, require_running=False)
+    data = recovery._run_bounded(["docker", "inspect", "--format",
+        "{{.State.Status}}|{{.State.ExitCode}}|{{.State.FinishedAt}}|{{.Created}}|{{.Image}}", migration_id],
+        timeout=10, action="Inspect initial journey migration").strip().split("|")
+    if len(data) != 5:
+        raise ValueError("Startup migration inspection malformed")
+    observed["migration"] = {"container_id": migration_id, "status": data[0], "exit_code": int(data[1]),
+        "finished_at_utc": data[2], "created_at": data[3], "image_id": data[4]}
+    observed["health"] = recovery.healthy_containers({name: {"container_id": value} for name, value in runtime["containers"].items()})
+    return observed
+
+
+def validate_startup_receipt(receipt, source, run_id, target, runtime):
+    """Admit the operator's initial command receipt against fresh owned readbacks.
+
+    Empty preexisting-container evidence is an operator-observed historical fact;
+    this does not claim authentication against a malicious local administrator.
+    """
+    if (type(receipt.get("schema_version")) is not int or receipt["schema_version"] != 1
+            or receipt.get("result") != "PASS" or receipt.get("source") != source
+            or receipt.get("acceptance_run_id") != run_id or receipt.get("target") != target
+            or receipt.get("preexisting_container_ids") != []
+            or receipt.get("preexisting_volume_ids") != []
+            or type(receipt.get("command_exit_code")) is not int or receipt["command_exit_code"] != 0):
+        raise ValueError("Startup receipt source, run, target or initial ownership mismatch")
+    command = receipt.get("command")
+    if (not isinstance(command, list) or not 6 <= len(command) <= 80
+            or any(not isinstance(value, str) or not value or len(value) > 512 for value in command)
+            or command[:2] != ["docker", "compose"] or "up" not in command
+            or not any(flag in command[command.index("up") + 1:] for flag in ("-d", "--detach"))
+            or not any(command[index:index + 2] == [flag, target["project_name"]]
+                       for index in range(len(command) - 1) for flag in ("-p", "--project-name"))):
+        raise ValueError("Startup receipt requires the actual owned detached Compose up command")
+    files = [str((ROOT / command[index + 1]).resolve()) for index, value in enumerate(command[:-1]) if value in {"-f", "--file"}]
+    if files != [str(Path(value).resolve()) for value in runtime["compose_files"]]:
+        raise ValueError("Startup command Compose files differ from the admitted project")
+    started, completed = _instant(receipt.get("started_at_utc")), _instant(receipt.get("completed_at_utc"))
+    if not started < completed <= datetime.now(timezone.utc) + timedelta(seconds=5):
+        raise ValueError("Startup receipt time window is invalid")
+    services = set(recovery.RECOVERY_RESTART_SERVICES)
+    for key in ("containers", "images", "container_created_at", "service_started_at", "health"):
+        if (not isinstance(runtime.get(key), dict) or set(runtime[key]) != services
+                or receipt.get(key) != runtime[key]):
+            raise ValueError("Startup receipt differs from initial runtime " + key)
+    if len(set(runtime["containers"].values())) != len(services):
+        raise ValueError("Startup container identities must be distinct")
+    for service in services:
+        if (not isinstance(runtime["containers"][service], str) or not SAFE_ID.fullmatch(runtime["containers"][service])
+                or not isinstance(runtime["images"][service], str)
+                or re.fullmatch(r"sha256:[a-f0-9]{64}", runtime["images"][service]) is None
+                or runtime["health"][service] != {"status": "running", "health": "healthy"}
+                or not started <= _instant(runtime["container_created_at"][service]) <= _instant(runtime["service_started_at"][service]) <= completed):
+            raise ValueError("Startup requires freshly created, running and healthy owned services")
+    migration = runtime.get("migration", {})
+    if (receipt.get("migration") != migration or migration.get("status") != "exited"
+            or type(migration.get("exit_code")) is not int or migration["exit_code"] != 0
+            or not isinstance(migration.get("container_id"), str) or not SAFE_ID.fullmatch(migration["container_id"])
+            or migration["container_id"] in runtime["containers"].values()
+            or migration.get("image_id") != runtime["images"]["api"]
+            or not started <= _instant(migration.get("created_at")) <= _instant(migration.get("finished_at_utc")) <= completed):
+        raise ValueError("Startup requires the same-build owned migration to exit zero")
+    return {"step": 1, "status": "PASS", "observable_result": "Recorded initial Compose command created the owned fixture stack; migration exited zero and all ten services are ready",
+        "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": source["commit"], "run_id": run_id,
+        "continuity": {}, "checks": [{"name": name, "passed": True} for name in sorted(REQUIRED_CHECKS[1])]}
 
 
 def _read_artifact(path):
@@ -711,7 +795,8 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
             raise ValueError("Invalid numbered observation")
         step = row.get("step")
         if (type(step) is not int or not 1 <= step <= 60 or step in seen
-                or (segment == "ui" and step >= 54)
+                or (segment == "ui" and (step == 1 or step >= 54))
+                or (segment == "startup" and step != 1)
                 or (segment == "public" and step != 11)
                 or (segment == "recovery" and not 54 <= step <= 58)
                 or (segment == "monitor_after" and step not in {59, 60})
@@ -801,6 +886,11 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         restored.binding["runtime_checks"] = saved.get("runtime_checks", {})
         restored.binding["frontend_build"] = saved.get("frontend_build", {"status": "NOT_RUN"})
         restored.binding["resume_imported"] = True
+        if "startup" in saved:
+            startup, startup_sha = _read_artifact(Path(path).parent / "startup.json")
+            if saved["startup"] != {"artifact": "startup.json", "sha256": startup_sha}:
+                raise ValueError("Startup evidence hash mismatch")
+            restored.record_startup(startup, startup_sha, imported=True)
         if "derived_baseline" in saved:
             derived = saved["derived_baseline"]
             if derived.get("artifact") != "recovery-baseline.json":
@@ -840,6 +930,22 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
 
     def payload(self):
         return copy.deepcopy(self.binding)
+
+    def record_startup(self, artifact, sha, *, imported=False):
+        receipt, receipt_sha = _read_artifact(self.path.parent / "startup-receipt.json")
+        if (artifact.get("receipt_artifact") != "startup-receipt.json" or artifact.get("receipt_sha256") != receipt_sha
+                or artifact.get("source") != self.binding["source"] or artifact.get("acceptance_run_id") != self.binding["run_id"]
+                or artifact.get("timestamp") != receipt.get("completed_at_utc")):
+            raise ValueError("Startup evidence lineage mismatch")
+        row = validate_startup_receipt(receipt, self.binding["source"], self.binding["run_id"], self.binding["target"], artifact["runtime"])
+        if artifact.get("acceptance_observations") != [row]:
+            raise ValueError("Startup numbered observation mismatch")
+        self.binding["startup"] = {"artifact": "startup.json", "sha256": sha}
+        self.binding["steps"][0] = {"number": 1, "status": "PASS", "observation": row, "verification": {
+            "tested_commit": self.binding["source"]["commit"], "evidence_artifact": "startup.json", "evidence_sha256": sha,
+            "run_id": self.binding["run_id"], "evidence_kind": "CONTROLLED_FIXTURE", "continuity": {},
+            "command": receipt["command"], "observed_result": row["observable_result"],
+            "executed_at_utc": artifact["timestamp"], "resume_imported": imported}}
 
     def begin(self, name):
         if name not in self.binding["segments"] or self.binding["segments"][name]["status"] != "NOT_RUN":
@@ -985,7 +1091,8 @@ def _invoke(producer, args, run_id, *, runtime_identity=None, **kwargs):
 
 
 def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, stop_after_ui=False,
-        build_receipt=None, public_source_provider=None, public_source_preflight=None, monitoring=False):
+        build_receipt=None, public_source_provider=None, public_source_preflight=None, monitoring=False,
+        startup_receipt=None):
     """Execute the fixture flow, optionally one explicit contained public segment.
 
     Public opt-in is programmatic only. The root-owned callback enforces exclusive
@@ -1016,6 +1123,27 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
     if previous is not None and _runtime_identity(previous) != _runtime_identity(runtime):
         raise ValueError("Runtime source or image identity changed since checkpoint")
     checkpoint.binding["runtime"] = runtime
+    if startup_receipt is not None:
+        receipt, receipt_sha = _read_artifact(startup_receipt)
+        if "startup" in checkpoint.binding:
+            _, saved_sha = _read_artifact(directory / "startup-receipt.json")
+            if receipt_sha != saved_sha:
+                raise ValueError("Cannot replace the imported initial startup receipt")
+        else:
+            if resume:
+                raise ValueError("Resume cannot add new historical startup credit")
+            observed = observe_startup_runtime(target, runtime)
+            row = validate_startup_receipt(receipt, source, run_id, target, observed)
+            directory.mkdir(parents=True, exist_ok=True)
+            with (directory / "startup-receipt.json").open("xb") as stream:
+                stream.write(Path(startup_receipt).read_bytes())
+            startup = {"schema_version": 1, "result": "PASS", "scope": "OWNED_FIXTURE_STARTUP",
+                "source": source, "acceptance_run_id": run_id, "timestamp": receipt["completed_at_utc"],
+                "receipt_artifact": "startup-receipt.json", "receipt_sha256": receipt_sha,
+                "runtime": observed, "acceptance_observations": [row]}
+            JourneyCheckpoint(directory / "startup.json", startup).persist()
+            _, startup_sha = _read_artifact(directory / "startup.json")
+            checkpoint.record_startup(startup, startup_sha)
     if build_receipt is not None:
         receipt, _ = _read_artifact(build_receipt)
         checkpoint.binding["frontend_build"] = validate_frontend_build_receipt(receipt, source, runtime)
@@ -1137,6 +1265,7 @@ def main(argv=None):
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--stop-after-ui", action="store_true")
     parser.add_argument("--monitoring", action="store_true", help="Explicitly prepare and observe same-profile natural fixture monitoring")
+    parser.add_argument("--startup-receipt", help="Actual fresh owned stack startup receipt; absent receipt leaves step 1 NOT_RUN")
     parser.add_argument("--build-receipt", help="Owned actual-build receipt; absent receipt withholds UI observed PASS")
     args = parser.parse_args(argv)
     report = run(**vars(args))

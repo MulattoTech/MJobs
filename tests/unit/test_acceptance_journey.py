@@ -924,3 +924,79 @@ def test_default_run_never_loads_monitoring_and_requires_explicit_boolean(tmp_pa
         assert set(report["segments"]) == {"ui", "recovery"}
         with pytest.raises(ValueError, match="boolean"):
             invoke(tmp_path, monitoring="true")
+
+
+def startup_receipt_and_runtime():
+    services = journey.recovery.RECOVERY_RESTART_SERVICES
+    created = "2026-11-06T00:00:01+00:00"
+    started = "2026-11-06T00:00:02+00:00"
+    runtime = {**RUNTIME, "images": {name: "sha256:" + "e" * 64 for name in services},
+        "containers": {name: name + "-container" for name in services},
+        "service_started_at": {name: started for name in services},
+        "container_created_at": {name: created for name in services},
+        "health": {name: {"status": "running", "health": "healthy"} for name in services},
+        "migration": {"container_id": "migrate-container", "status": "exited", "exit_code": 0,
+            "created_at": created, "finished_at_utc": started, "image_id": "sha256:" + "e" * 64}}
+    receipt = {"schema_version": 1, "result": "PASS", "source": SOURCE, "acceptance_run_id": RUN_ID,
+        "target": TARGET, "started_at_utc": "2026-11-06T00:00:00+00:00",
+        "completed_at_utc": "2026-11-06T00:00:03+00:00", "preexisting_container_ids": [], "preexisting_volume_ids": [],
+        "command": ["docker", "compose", "--project-name", TARGET["project_name"], "-f", "compose.yml", "up", "-d", "--no-build"],
+        "command_exit_code": 0, **{key: copy.deepcopy(runtime[key]) for key in
+            ("images", "containers", "service_started_at", "container_created_at", "health", "migration")}}
+    return receipt, runtime
+
+
+def test_startup_requires_actual_initial_creation_migration_and_ready_stack():
+    receipt, runtime = startup_receipt_and_runtime()
+    row = journey.validate_startup_receipt(receipt, SOURCE, RUN_ID, TARGET, runtime)
+    assert row["step"] == 1 and row["status"] == "PASS"
+    assert {check["name"] for check in row["checks"]} == journey.REQUIRED_CHECKS[1]
+
+
+@pytest.mark.parametrize("change", ["prior-container", "prior-volume", "old-created", "restarted", "migration", "image", "run", "target", "source", "command", "compose-files", "schema"])
+def test_startup_rejects_reused_or_unready_runtime(change):
+    receipt, runtime = startup_receipt_and_runtime()
+    if change == "prior-container": receipt["preexisting_container_ids"] = ["already-there"]
+    if change == "prior-volume": receipt["preexisting_volume_ids"] = ["already-there"]
+    if change == "old-created": runtime["container_created_at"]["api"] = "2026-11-05T00:00:00+00:00"
+    if change == "restarted": runtime["service_started_at"]["api"] = journey.utc_now()
+    if change == "migration": runtime["migration"]["exit_code"] = 1
+    if change == "image": runtime["images"]["api"] = "sha256:" + "0" * 64
+    if change == "run": receipt["acceptance_run_id"] = "old-run"
+    if change == "target": receipt["target"] = {**TARGET, "port": 18888}
+    if change == "source": receipt["source"] = {**SOURCE, "commit": "f" * 40}
+    if change == "command": receipt["command"] = ["docker", "compose", "restart"]
+    if change == "compose-files": receipt["command"][6] = "other.yml"
+    if change == "schema": receipt["schema_version"] = True
+    with pytest.raises(ValueError):
+        journey.validate_startup_receipt(receipt, SOURCE, RUN_ID, TARGET, runtime)
+
+
+def test_startup_receipt_is_optional_and_preserved_as_historical_proof_on_resume(tmp_path):
+    receipt, runtime = startup_receipt_and_runtime()
+    input_path = tmp_path / "actual-startup.json"
+    emit(input_path, receipt)
+    directory = tmp_path / "evidence"
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=runtime), \
+            patch.object(journey, "observe_startup_runtime", return_value=runtime) as observe, \
+            patch.object(journey.ui_e2e, "run", side_effect=lambda _, path, **kw: emit(path, baseline())):
+        report = invoke(directory, startup_receipt=input_path, stop_after_ui=True)
+        assert report["steps"][0]["status"] == "PASS"
+        assert report["steps"][0]["verification"]["executed_at_utc"] == receipt["completed_at_utc"]
+        resumed = invoke(directory, resume=True, stop_after_ui=True)
+        assert observe.call_count == 1
+        assert resumed["steps"][0]["verification"]["resume_imported"] is True
+        assert (directory / "startup-receipt.json").read_bytes() == input_path.read_bytes()
+        with (directory / "startup-receipt.json").open("ab") as stream:
+            stream.write(b" ")
+        with pytest.raises(ValueError, match="Startup evidence lineage"):
+            invoke(directory, resume=True, stop_after_ui=True)
+
+
+def test_ui_cannot_claim_startup_from_its_numbered_boolean():
+    artifact = baseline()
+    receipt, runtime = startup_receipt_and_runtime()
+    artifact["acceptance_observations"] = [journey.validate_startup_receipt(receipt, SOURCE, RUN_ID, TARGET, runtime)]
+    with pytest.raises(ValueError, match="out-of-segment"):
+        journey.numbered_observations(artifact, segment="ui", run_id=RUN_ID, source=SOURCE, identity=journey._identity(artifact))
