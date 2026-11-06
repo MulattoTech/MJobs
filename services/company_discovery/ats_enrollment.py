@@ -100,6 +100,35 @@ def _validate_native_apply_handoff(proof, authorization, career_url, profile_id,
     return native['tenant']
 
 
+def _validate_aggregator_bootstrap_enrollment(authorization, career_url, profile_id, profile_version):
+    """Accept only the already-persisted, DB-revalidated bootstrap receipt."""
+    if not isinstance(authorization, dict) or authorization.get('authorization') != (
+            'AGGREGATOR_BOOTSTRAP_VERIFIED'):
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
+    receipt = authorization.get('aggregator_bootstrap_receipt')
+    domain = authorization.get('aggregator_bootstrap_domain')
+    domain_url = domain.get('website') if isinstance(domain, dict) else ''
+    try:
+        same_domain = (urlsplit(str(domain_url or '')).hostname
+            == urlsplit(str(career_url or '')).hostname)
+    except ValueError:
+        same_domain = False
+    if (not isinstance(receipt, dict) or not isinstance(domain, dict)
+            or not isinstance(domain.get('evidence'), list) or not domain['evidence']
+            or not same_domain
+            or receipt.get('schema') != 'AGGREGATOR_NATIVE_BOOTSTRAP_V1'
+            or receipt.get('version') != 1
+            or receipt.get('employer_url') != career_url
+            or receipt.get('profile_id') != profile_id
+            or receipt.get('profile_version') != profile_version
+            or not isinstance(receipt.get('native'), dict)
+            or receipt['native'].get('provider') != 'greenhouse'
+            or not receipt['native'].get('tenant')
+            or not receipt.get('sha256')):
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
+    return receipt['native']['tenant']
+
+
 def bound_company_source(store, connection, source, *, lock=False):
     """Use ingestion -> domain -> source-host -> source-row -> collector ordering."""
     query = select(m.company_sources).where(or_(m.company_sources.c.collector_source_id == source['id'],
@@ -277,18 +306,26 @@ def _retained_native_inventory(store, collector_id, source_id, authorization, en
 def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_id,
                       profile_version=None, check, enrollment_guard=None, preserve_source_id=None,
                       identity_confirmation=None, provider='greenhouse', native_apply_proof=None,
-                      native_apply_authorization=None):
+                      native_apply_authorization=None, aggregator_bootstrap_authorization=None):
     """Enroll once, then use the normal bounded collector, normalization and dedupe."""
     from services.discovery.sources.collect import configure_source, collect_source
 
     native_apply_tenant = None
+    aggregator_bootstrap_tenant = None
+    if aggregator_bootstrap_authorization is not None:
+        if provider != 'greenhouse':
+            raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED')
+        aggregator_bootstrap_tenant = _validate_aggregator_bootstrap_enrollment(
+            aggregator_bootstrap_authorization, career_url, profile_id, profile_version)
     if native_apply_proof is not None:
         if provider != 'greenhouse':
             raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED')
         native_apply_tenant = _validate_native_apply_handoff(
             native_apply_proof, native_apply_authorization, career_url, profile_id, profile_version)
     if provider=='greenhouse':
-        if native_apply_tenant:
+        if aggregator_bootstrap_tenant:
+            tenant = aggregator_bootstrap_tenant
+        elif native_apply_tenant:
             try:
                 observed_tenants = greenhouse_board_tenants(career_url, html)
                 conflicting_lever = lever_board_tenants(career_url, html)
@@ -333,6 +370,8 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
             raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         if native_apply_proof is not None and authorization != native_apply_authorization:
             raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+        if aggregator_bootstrap_authorization is not None and authorization != aggregator_bootstrap_authorization:
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         # Existing collector policy is immutable during automatic enrollment.
         collector_id = configure_source(store, tenant, provider=provider, connection=connection, preserve_existing=True)
         collector = connection.execute(select(m.job_sources).where(
@@ -353,7 +392,9 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
             **({'organization_identifier': tenant.split(':')[0],
                 'board_identifier': tenant.split(':')[1]} if provider == 'lever' else {}),
             evidence=[('User-confirmed employer career page: ' if identity_confirmation else
-                'Verified official career page: ') + career_url, 'Public '+provider+' board: ' + tenant])
+                'Verified official career page: ') + career_url,
+                ('Persisted aggregator-native bootstrap proof: ' + authorization['aggregator_bootstrap_envelope']['sha256']
+                 if aggregator_bootstrap_authorization else 'Public '+provider+' board: ' + tenant)])
         source = upsert_company_job_source(connection, company_id=fresh['company_id'],
             provider=provider, tenant_identifier=tenant, career_url=career_url,
             public_api_url=endpoint, collection_strategy='API', confidence=0.99,
@@ -369,11 +410,20 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
                 binding_sha256=source_binding_digest(dict(source, collector_source_id=collector_id)))
         connection.execute(update(m.company_sources).where(m.company_sources.c.id == source['id']).values(**values))
         bound_company_source(store, connection, collector, lock=True)
-        store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', {
+        source_audit = {
             'company_source_id': source['id'], 'provider': provider, 'tenant': tenant,
             'careers_url': career_url, 'endpoint': endpoint,
             'discovery_method': 'USER_CONFIRMED_ATS_BOARD' if identity_confirmation else 'VERIFIED_OFFICIAL_ATS_BOARD',
-            'independent_verification': not bool(identity_confirmation), 'collection_strategy': 'API'})
+            'independent_verification': not bool(identity_confirmation), 'collection_strategy': 'API'}
+        if aggregator_bootstrap_authorization is not None:
+            envelope = aggregator_bootstrap_authorization['aggregator_bootstrap_envelope']
+            source_audit.update(
+                discovery_request_id=aggregator_bootstrap_authorization['request_id'],
+                discovery_operation_id=aggregator_bootstrap_authorization['operation_id'],
+                aggregator_pending_sha256=envelope['pending_sha256'],
+                aggregator_receipt_sha256=envelope['receipt']['sha256'],
+                aggregator_envelope_sha256=envelope['sha256'])
+        store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', source_audit)
     check()
     # Recurrence uses this same persisted binding; no parallel importer or job schema.
     retained = _retained_native_inventory(store, collector_id, source['id'], authorization, enrollment_guard)

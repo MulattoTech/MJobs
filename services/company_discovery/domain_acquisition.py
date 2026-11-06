@@ -366,3 +366,87 @@ def acquire_official_domain(store, authorization, client, check, enrollment_guar
     response, _proof = acquire_official_domain_with_native_proof(
         store, authorization, client, check, enrollment_guard)
     return response
+
+
+def acquire_official_domain_from_aggregator_bootstrap(store, authorization, check, enrollment_guard):
+    """Promote an internally persisted aggregator/native receipt without egress."""
+    if (not isinstance(authorization, dict)
+            or authorization.get('authorization') != 'AGGREGATOR_BOOTSTRAP_VERIFIED'
+            or not isinstance(authorization.get('aggregator_bootstrap_receipt'), dict)
+            or not isinstance(authorization.get('aggregator_bootstrap_envelope'), dict)
+            or enrollment_guard is None):
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_REQUIRED')
+    check()
+    from services.company_discovery.requests import _origin, _website
+    receipt = authorization['aggregator_bootstrap_receipt']
+    envelope = authorization['aggregator_bootstrap_envelope']
+    website = _website(receipt.get('employer_url'))
+    domain = normalize_domain(website)
+    if not domain:
+        raise PublicFetchError('COMPANY_DOMAIN_CORROBORATION_REQUIRED')
+    request_id = authorization.get('request_id')
+    company_id = authorization.get('company_id')
+    if not request_id or not company_id:
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
+    with store.engine.begin() as connection:
+        if connection.dialect.name == 'sqlite':
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+        from services.dedupe.ingestion_identity import lock_company_ingestion
+        lock_company_ingestion(connection, [company_id])
+        rows = lock_domain_evidence(connection, domain)
+        if any(row['company_id'] != company_id for row in rows):
+            raise PublicFetchError('COMPANY_IDENTITY_REVIEW_REQUIRED')
+        other_domains = connection.execute(select(m.company_domains.c.domain).where(
+            m.company_domains.c.company_id == company_id,
+            m.company_domains.c.verified.is_(True), m.company_domains.c.domain != domain)).scalars().all()
+        if other_domains:
+            raise PublicFetchError('COMPANY_IDENTITY_REVIEW_REQUIRED')
+        current = enrollment_guard(connection)
+        if current != authorization:
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+        record_id = identity(company_id, domain)
+        old = next((row for row in rows if row['id'] == record_id), None)
+        proof_record = dict(
+            method='AGGREGATOR_NATIVE_BOOTSTRAP_V1',
+            request_id=request_id,
+            pending_sha256=envelope['pending_sha256'],
+            receipt_sha256=receipt['sha256'],
+            raw_sha256=receipt['raw_sha256'],
+            normalized_sha256=receipt['normalized_sha256'],
+            source_snapshot_sha256=receipt['source_snapshot_sha256'],
+            source_policy_sha256=receipt['source_policy_sha256'],
+            employer_url=receipt['employer_url'],
+            job_response_sha256=receipt['job_response_sha256'],
+            apply_url=receipt['apply_url'],
+            apply_response_sha256=receipt['apply_response_sha256'],
+            provider=receipt['native']['provider'],
+            tenant=receipt['native']['tenant'],
+            native_job_id=receipt['native']['job_id'],
+            native_response_sha256=receipt['native']['native_response_sha256'],
+        )
+        evidence = ['Public aggregator posting identity reciprocally corroborated by an exact native ATS job and employer page.',
+            json.dumps(proof_record, sort_keys=True)]
+        if not old or not old['verified']:
+            upsert(connection, m.company_domains, dict(id=record_id, company_id=company_id,
+                domain=domain, confidence=0.99, verified=True, verification_method='FIRST_PARTY_JOB_LINK',
+                first_seen_at=old['first_seen_at'] if old else now(),
+                last_verified_at=now(), evidence=evidence), replace=True)
+        _, domain_proof = _origin(connection, company_id)
+        if len(domain_proof) != 1 or domain_proof[0]['domain_id'] != record_id:
+            raise PublicFetchError('COMPANY_IDENTITY_REVIEW_REQUIRED')
+        connection.execute(update(m.companies).where(
+            m.companies.c.id == company_id).values(domain=domain))
+        connection.execute(update(m.company_discovery_requests).where(
+            m.company_discovery_requests.c.id == request_id).values(
+                domain_evidence=[authorization['aggregator_bootstrap_pending'],
+                    envelope, *domain_proof]))
+        store._audit(connection, company_id, 'COMPANY_DOMAIN_ACQUIRED', dict(
+            request_id=request_id, method='AGGREGATOR_NATIVE_BOOTSTRAP_V1',
+            pending_sha256=envelope['pending_sha256'], receipt_sha256=receipt['sha256'],
+            source_snapshot_sha256=receipt['source_snapshot_sha256'],
+            employer_response_sha256=receipt['job_response_sha256'],
+            apply_response_sha256=receipt['apply_response_sha256']))
+    check()
+    return {'company_id': company_id, 'domain': domain,
+        'request_id': request_id, 'pending_sha256': envelope['pending_sha256'],
+        'receipt_sha256': receipt['sha256'], 'domain_evidence': domain_proof}
