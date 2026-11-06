@@ -9,12 +9,16 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from tools.agent_context import validate_checkpoint
 
 REQUIREMENT_ID = "MJ-REQ-292"
 STEP_COUNT = 60
@@ -22,6 +26,7 @@ STATUSES = ("PASS", "PARTIAL", "FAIL", "NOT_RUN", "BLOCKED")
 REQUIREMENT_SOURCE = "docs/spec/source/MJobs_Startup_Prompt.original.md"
 AREA_SOURCE = "docs/spec/areas/delivery_control.md"
 LEDGER_PATH = "planning/acceptance/MJ-REQ-292.json"
+DEFAULT_CHECKPOINT_PATH = "planning/agent_handoffs/MJ-REQ-292.json"
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 PR_URL_RE = re.compile(r"^https://github\.com/MulattoTech/MJobs/pull/[1-9][0-9]*$")
@@ -351,17 +356,138 @@ def render_report(report: ValidationReport) -> str:
             f"{counts['NOT_RUN']} NOT_RUN, {counts['BLOCKED']} BLOCKED")
 
 
+def _safe_repository_path(root: Path, relative: str, label: str) -> Path:
+    if not isinstance(relative, str) or not relative or "\\" in relative:
+        raise ValueError(f"{label} must be a repository-relative POSIX path")
+    candidate = Path(relative)
+    if candidate.is_absolute() or any(part in ("", ".", "..") for part in candidate.parts):
+        raise ValueError(f"{label} must not be absolute or traverse directories")
+    target = (root / candidate).resolve()
+    if not target.is_relative_to(root.resolve()):
+        raise ValueError(f"{label} escapes the repository")
+    if not target.is_file():
+        raise ValueError(f"{label} does not name an existing file")
+    return target
+
+
+def checkpoint_scoreboard(report: ValidationReport, data: dict) -> dict[str, Any]:
+    """Build a clearly non-authoritative handoff projection from ledger claims."""
+    return {
+        "verified_pass": report.counts["PASS"],
+        "total": report.total,
+        "PARTIAL": report.counts["PARTIAL"],
+        "FAIL": report.counts["FAIL"],
+        "NOT_RUN": report.counts["NOT_RUN"],
+        "BLOCKED": report.counts["BLOCKED"],
+        "umbrella_result": data["umbrella_result"],
+        "source_revision": data["baseline_commit"],
+    }
+
+
+def _ledger_projection_inputs(root: Path, ledger_relative: str
+                              ) -> tuple[dict, ValidationReport, str]:
+    ledger_path = _safe_repository_path(root, ledger_relative, "ledger path")
+    raw = ledger_path.read_bytes()
+    data = load_ledger(ledger_path)
+    report = validate_ledger(data, root)
+    if not report.structurally_valid:
+        raise ValueError("ledger structurally invalid: " + "; ".join(report.errors))
+    return data, report, hashlib.sha256(raw).hexdigest()
+
+
+def _checkpoint_projection_errors(checkpoint: Any, ledger_relative: str,
+                                  expected_scoreboard: dict, ledger_digest: str) -> list[str]:
+    if not isinstance(checkpoint, dict):
+        return ["checkpoint must be an object"]
+    errors = validate_checkpoint(checkpoint)
+    if checkpoint.get("task_id") != REQUIREMENT_ID:
+        errors.append(f"checkpoint task_id must be {REQUIREMENT_ID}")
+    if checkpoint.get("acceptance_ledger") != ledger_relative:
+        errors.append("checkpoint acceptance_ledger path differs from the selected ledger")
+    if checkpoint.get("scoreboard") != expected_scoreboard:
+        errors.append("checkpoint scoreboard differs from the current ledger projection")
+    if checkpoint.get("acceptance_ledger_sha256") != ledger_digest:
+        errors.append("checkpoint acceptance_ledger_sha256 differs from current ledger bytes")
+    return errors
+
+
+def check_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
+                                checkpoint_relative: str = DEFAULT_CHECKPOINT_PATH) -> list[str]:
+    """Return drift findings without changing the handoff or acceptance ledger."""
+    root = Path(root).resolve()
+    try:
+        data, report, ledger_digest = _ledger_projection_inputs(root, ledger_relative)
+        checkpoint_path = _safe_repository_path(root, checkpoint_relative, "checkpoint path")
+        checkpoint = load_ledger(checkpoint_path)
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        return [str(exc)]
+    return _checkpoint_projection_errors(
+        checkpoint, ledger_relative, checkpoint_scoreboard(report, data), ledger_digest
+    )
+
+
+def write_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
+                                checkpoint_relative: str = DEFAULT_CHECKPOINT_PATH) -> Path:
+    """Atomically replace only the existing handoff scoreboard and ledger hash."""
+    root = Path(root).resolve()
+    data, report, ledger_digest = _ledger_projection_inputs(root, ledger_relative)
+    checkpoint_path = _safe_repository_path(root, checkpoint_relative, "checkpoint path")
+    checkpoint = load_ledger(checkpoint_path)
+    if not isinstance(checkpoint, dict):
+        raise TypeError("checkpoint must be an object")
+    errors = validate_checkpoint(checkpoint)
+    if checkpoint.get("task_id") != REQUIREMENT_ID:
+        errors.append(f"checkpoint task_id must be {REQUIREMENT_ID}")
+    if checkpoint.get("acceptance_ledger") != ledger_relative:
+        errors.append("checkpoint acceptance_ledger path differs from the selected ledger")
+    if errors:
+        raise ValueError("checkpoint invalid: " + "; ".join(errors))
+
+    scoreboard = checkpoint_scoreboard(report, data)
+    if (checkpoint.get("scoreboard") == scoreboard
+            and checkpoint.get("acceptance_ledger_sha256") == ledger_digest):
+        return checkpoint_path
+    updated = dict(checkpoint)
+    updated["scoreboard"] = scoreboard
+    updated["acceptance_ledger_sha256"] = ledger_digest
+    errors = validate_checkpoint(updated)
+    if errors:
+        raise ValueError("checkpoint invalid after projection: " + "; ".join(errors))
+
+    temporary_path: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                "w", encoding="utf-8", dir=checkpoint_path.parent,
+                prefix=".acceptance-ledger-", suffix=".tmp", delete=False) as handle:
+            temporary_path = handle.name
+            json.dump(updated, handle, indent=2, ensure_ascii=False)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, checkpoint_path)
+        temporary_path = None
+    finally:
+        if temporary_path and os.path.exists(temporary_path):
+            os.unlink(temporary_path)
+    return checkpoint_path
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ledger", default=LEDGER_PATH, help="repository-relative ledger JSON")
+    parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT_PATH,
+                        help="repository-relative MJ-REQ-292 checkpoint JSON")
     parser.add_argument("--check", action="store_true",
                         help="exit nonzero if ledger structure is invalid")
+    projection = parser.add_mutually_exclusive_group()
+    projection.add_argument("--check-checkpoint", action="store_true",
+                            help="check checkpoint scoreboard against the current ledger")
+    projection.add_argument("--write-checkpoint-scoreboard", action="store_true",
+                            help="atomically refresh only checkpoint scoreboard and ledger hash")
     args = parser.parse_args(argv)
     root = Path.cwd().resolve()
     try:
-        ledger_path = (root / args.ledger).resolve()
-        if not ledger_path.is_relative_to(root):
-            raise ValueError("ledger path escapes repository")
+        ledger_path = _safe_repository_path(root, args.ledger, "ledger path")
         report = validate_ledger(load_ledger(ledger_path), root)
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
         print(f"{REQUIREMENT_ID}: 0/{STEP_COUNT} recorded PASS claims; ledger structure invalid: {exc}")
@@ -371,6 +497,20 @@ def main(argv: list[str] | None = None) -> int:
         for error in report.errors:
             print(f"ERROR: {error}")
         return 1
+    if args.check_checkpoint:
+        errors = check_checkpoint_scoreboard(root, args.ledger, args.checkpoint)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print("Checkpoint scoreboard matches ledger bytes; acceptance remains structural only.")
+    elif args.write_checkpoint_scoreboard:
+        try:
+            write_checkpoint_scoreboard(root, args.ledger, args.checkpoint)
+        except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print("Checkpoint scoreboard and ledger hash updated from structural ledger projection.")
     return 0
 
 

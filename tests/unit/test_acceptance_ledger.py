@@ -95,6 +95,40 @@ def prepare_root(destination: Path) -> Path:
     return destination
 
 
+def make_checkpoint() -> dict:
+    return {
+        "schema_version": 1,
+        "task_id": "MJ-REQ-292",
+        "objective": "Track the connected acceptance campaign",
+        "owner": "campaign-owner",
+        "branch": "codex/mj-req292-full-journey-20261106",
+        "head_sha": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+        "routing_state": "EXECUTE",
+        "next_action": "Continue the authorized journey",
+        "created_at": "2026-11-06T09:36:42.894560+00:00",
+        "requirements": ["MJ-REQ-292"],
+        "tests": [{"command": "whole journey", "result": "NOT_RUN"}],
+        "blockers": [],
+        "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
+        "scoreboard": {"verified_pass": 99, "total": 999, "note": "old snapshot"},
+        "preserve_me": {"history": [1, 2, 3]},
+    }
+
+
+def write_fixture_ledger(root: Path, data: dict | None = None) -> Path:
+    path = root / ledger.LEDGER_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data if data is not None else make_ledger(root)), encoding="utf-8")
+    return path
+
+
+def write_fixture_checkpoint(root: Path, data: dict | None = None) -> Path:
+    path = root / ledger.DEFAULT_CHECKPOINT_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data if data is not None else make_checkpoint()), encoding="utf-8")
+    return path
+
+
 def test_initial_ledger_validates_and_reports_recomputed_x_of_60():
     report = ledger.validate_ledger(make_ledger(), ROOT)
     assert report.errors == []
@@ -188,7 +222,7 @@ def passing_step(data: dict, number: int, root: Path, *, evidence_kind="CONTROLL
     return step
 
 
-def test_pass_requires_current_artifact_hash_source_sha_and_continuity(tmp_path):
+def test_pass_claim_requires_current_artifact_hash_source_sha_and_continuity(tmp_path):
     root = prepare_root(tmp_path)
     data = make_ledger(root)
     passing_step(data, 1, root)
@@ -247,6 +281,72 @@ def test_json_loader_rejects_duplicate_keys(tmp_path):
         ledger.load_ledger(path)
 
 
+def test_checkpoint_scoreboard_is_derived_and_only_projection_fields_change(tmp_path):
+    root = prepare_root(tmp_path)
+    write_fixture_ledger(root)
+    checkpoint_path = write_fixture_checkpoint(root)
+    before = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+
+    ledger.write_checkpoint_scoreboard(root)
+
+    after = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    assert after["scoreboard"] == {
+        "verified_pass": 0, "total": 60, "PARTIAL": 0, "FAIL": 0,
+        "NOT_RUN": 60, "BLOCKED": 0, "umbrella_result": "PARTIAL",
+        "source_revision": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+    }
+    assert after["acceptance_ledger_sha256"] == hashlib.sha256(
+        (root / ledger.LEDGER_PATH).read_bytes()
+    ).hexdigest()
+    assert {k: v for k, v in after.items() if k not in {"scoreboard", "acceptance_ledger_sha256"}} == {
+        k: v for k, v in before.items() if k not in {"scoreboard", "acceptance_ledger_sha256"}
+    }
+    assert ledger.check_checkpoint_scoreboard(root) == []
+
+
+def test_checkpoint_projection_check_detects_ledger_and_snapshot_drift(tmp_path):
+    root = prepare_root(tmp_path)
+    write_fixture_ledger(root)
+    checkpoint_path = write_fixture_checkpoint(root)
+    ledger.write_checkpoint_scoreboard(root)
+    ledger_path = root / ledger.LEDGER_PATH
+    ledger_data = json.loads(ledger_path.read_text(encoding="utf-8"))
+    ledger_data["updated_at_utc"] = "2026-11-06T13:00:00Z"
+    ledger_path.write_text(json.dumps(ledger_data), encoding="utf-8")
+    checkpoint_bytes = checkpoint_path.read_bytes()
+    errors = ledger.check_checkpoint_scoreboard(root)
+    assert any("acceptance_ledger_sha256 differs" in error for error in errors)
+    assert checkpoint_path.read_bytes() == checkpoint_bytes
+
+    ledger.write_checkpoint_scoreboard(root)
+    checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    checkpoint["scoreboard"]["verified_pass"] = 1
+    checkpoint_path.write_text(json.dumps(checkpoint), encoding="utf-8")
+    checkpoint_bytes = checkpoint_path.read_bytes()
+    errors = ledger.check_checkpoint_scoreboard(root)
+    assert any("scoreboard differs" in error for error in errors)
+    assert checkpoint_path.read_bytes() == checkpoint_bytes
+
+    ledger.write_checkpoint_scoreboard(root)
+    checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    checkpoint["acceptance_ledger_sha256"] = "0" * 64
+    checkpoint_path.write_text(json.dumps(checkpoint), encoding="utf-8")
+    errors = ledger.check_checkpoint_scoreboard(root)
+    assert any("acceptance_ledger_sha256 differs" in error for error in errors)
+
+
+def test_checkpoint_projection_refuses_invalid_ledger_without_mutating_handoff(tmp_path):
+    root = prepare_root(tmp_path)
+    bad = make_ledger(root)
+    bad["umbrella_result"] = "PASS"
+    write_fixture_ledger(root, bad)
+    checkpoint_path = write_fixture_checkpoint(root)
+    before = checkpoint_path.read_bytes()
+    with pytest.raises(ValueError, match="structurally invalid"):
+        ledger.write_checkpoint_scoreboard(root)
+    assert checkpoint_path.read_bytes() == before
+
+
 def test_validation_never_executes_evidence_commands(tmp_path, monkeypatch):
     root = prepare_root(tmp_path)
     data = make_ledger(root)
@@ -278,4 +378,12 @@ def test_module_cli_prints_compact_report_and_check_returns_failure(tmp_path, mo
     path.write_text(json.dumps(data), encoding="utf-8")
     assert ledger.main(["--check"]) == 1
     assert "ERROR: scoreboard.NOT_RUN" in capsys.readouterr().out
+
+    data["scoreboard"]["NOT_RUN"] = 60
+    path.write_text(json.dumps(data), encoding="utf-8")
+    write_fixture_checkpoint(root)
+    assert ledger.main(["--write-checkpoint-scoreboard"]) == 0
+    assert "updated from structural ledger projection" in capsys.readouterr().out
+    assert ledger.main(["--check-checkpoint"]) == 0
+    assert "matches ledger bytes" in capsys.readouterr().out
 
