@@ -18,6 +18,14 @@ MAX_HANDOFF_BYTES = 64_000
 MAX_STRING = 500
 STATUSES = {"PASS", "PARTIAL", "NOT_RUN", "FAIL", "BLOCKED"}
 SCORE_KEYS = ("verified_pass", "PARTIAL", "NOT_RUN", "FAIL", "BLOCKED")
+PHASE_LABELS = {
+    "A": "Setup and résumé (1–8)",
+    "B": "Job sources and matching (9–22)",
+    "C": "Employer discovery (23–31)",
+    "D": "Tailored documents (32–35)",
+    "E": "Applications and tracking (36–53)",
+    "F": "Restart and recovery (54–60)",
+}
 REVIEW_STATUSES = {"NOT_RUN", "PASS", "PARTIAL", "FAIL"}
 MERGE_STATUSES = {"NOT_MERGED", "MERGED"}
 PHASES = (("A", 1, 8), ("B", 9, 22), ("C", 23, 31),
@@ -258,7 +266,7 @@ def campaign_progress(repo: Path, *, configured_root: str | None = None,
             if phase_id != expected_phase:
                 raise CampaignDataError("invalid phase membership")
             phase = phase_map.setdefault(phase_id, {
-                "id": phase_id, "label": f"Phase {phase_id}", "steps": [],
+                "id": phase_id, "label": PHASE_LABELS[phase_id], "steps": [],
             })
             step = {"number": number, "title": titles[number - 1], "status": status}
             remaining_gap = _safe_optional_prose(item.get("missing_behavior"))
