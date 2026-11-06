@@ -2,19 +2,19 @@
   "schema_version": 1,
   "task_id": "MISSION-CONTROL-GRANULAR-PROGRESS",
   "owner": "Codex fork 01a1b1ef",
-  "updated_at_utc": "2026-11-06T19:45:41.171047+00:00",
-  "routing_state": "VERIFY",
+  "updated_at_utc": "2026-11-06T20:30:56.777334+00:00",
+  "routing_state": "COMPLETE",
   "objective": "Preserve overall acceptance; expand P0 to readable requirement rows, then MJ-REQ-292 to six phases and 60 evidence-backed steps on local and protected web Mission Control.",
   "approved_design": "User explicitly rejected campaign-first. Use progressive disclosure within existing priority hierarchy, compact verified/partial/not-run counts, evidence, blocker, source and freshness. Never fractional PASS.",
   "base_commit": "5af5edd2b7d585cbdab7f9089db099f88d684ff0",
-  "integration_owner": "Original campaign thread 01a1b028; this fork owns dashboard feature only",
+  "integration_owner": "This fork completed user-authorized dashboard974integration under existing lock; original campaign retains application973ownership",
   "workers": {
     "obiwan_campaign_data": "read-only API and canonical requirement titles; isolated branch",
     "rey_campaign_drilldown": "local static UI and focused browser tests; isolated branch",
     "leia_dashboard_truth": "remote publisher/UI path inspection",
     "yoda_layout_review": "source contract and independent review"
   },
-  "next_action": "Publish deterministic test-clock correction to PR974; integrate under campaign owner after exact protected checks; deploy narrow preserved local/web assets and verify installed hierarchy.",
+  "next_action": "Dashboard deployment complete. Campaign owner continues original60-step acceptance; dashboard reads designated durableledger live. Authenticated public-browser rendering may be checked after normal sign-in.",
   "deployment": {
     "local": "http://127.0.0.1:18729/",
     "web": "https://m-techlabs.com/mission-control/",
@@ -29,22 +29,18 @@
     "source": "campaign ledger read 2026-11-06; display must read live data, never this copied checkpoint count"
   },
   "limits": [
-    "No canonical acceptance mutations in this lane",
-    "No duplicate campaign runtime or integration ownership",
-    "No private commands, paths, credentials or applicant data exported",
-    "Live deployments and authenticated web verification remain unperformed"
+    "No canonical acceptance mutations; campaign remainsPARTIAL",
+    "Authenticated public browser checkNOT_RUN; actual served origin verified",
+    "Private rollback locations retained in ignored outputs/dashboard-publication/private-deployment-recovery.json"
   ],
-  "branch": "codex/dashboard-current-first-20261106",
-  "head_sha": "7656b89be082d786e2569fbe6443922fd59c5655",
+  "branch": "codex/dashboard-activation-receipt-20261106",
+  "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
   "created_at": "2026-11-06T18:47:36.276447+00:00",
-  "updated_at": "2026-11-06T19:45:41.171047+00:00",
+  "updated_at": "2026-11-06T20:30:56.777334+00:00",
   "requirements": [
     "MJ-REQ-292"
   ],
-  "blockers": [
-    "MJobs protected checks on fixture correction and serialized integration pending",
-    "Installed local and web activation pending"
-  ],
+  "blockers": [],
   "tests": [
     {
       "command": "pytest campaign units/history units/campaign browser/history browser",
@@ -87,7 +83,62 @@
     "fleet_pr": "https://github.com/MulattoTech/Fleet-Control-Hub/pull/30",
     "fleet_merged_revision": "3a7c9316e842e0cacd87d6083afc4295f19e949e",
     "local_review": "Local Luna approval7656b89b; remote2d3a661 scoped approval",
-    "ci": "MJobs7656:4freshness fixture failures;3919passed54skipped4578subtests. Reproduced locally4failed16passed; fixed fixture mtimes and added300/301second future guard boundary;22passed11.86s. Production observer unchanged. Fleetcontrollers CI PASS1m37s."
+    "ci": "MJobs7656:4freshness fixture failures;3919passed54skipped4578subtests. Reproduced locally4failed16passed; fixed fixture mtimes and added300/301second future guard boundary;22passed11.86s. Production observer unchanged. Fleetcontrollers CI PASS1m37s.",
+    "mjobs_head": "f49b090fcba4e8e1fe706f4ca6899bb00abf4952",
+    "mjobs_required_checks": "All5PASS: CI/required; PostgreSQLandRedis; DisposableCompose/mockE2E; introducedvulnerabilities; secretscan. All other listed checks alsoPASS. CLEAN/MERGEABLE verified2026-11-06T20:06Z.",
+    "mjobs_merge": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "latest_result": "MJobs974merged971ba931andFleet30/31merged10c73a4afterrequiredCI; bothruntimeversionsactivatedandliveoriginsverified"
   },
-  "head_sha_scope": "Reviewed production source before this fixture-and-checkpoint-only commit"
+  "head_sha_scope": "Protected integrated production source; final commit adds recovery/evidence documents only",
+  "deployment_result": {
+    "schema_version": 1,
+    "requirement": "MJ-REQ-292 progress visibility",
+    "observed_at_utc": "2026-11-06T20:30:56.777334+00:00",
+    "result": "PASS for deployed local and served web-origin progress UI; no campaign acceptance promotion",
+    "mjobs_pr": 974,
+    "mjobs_merge": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "installed_local_source": "f49b090fcba4e8e1fe706f4ca6899bb00abf4952",
+    "fleet_prs": [
+      30,
+      31
+    ],
+    "fleet_merge": "10c73a4e3d4619af220b55a12ebbaf1854907baa",
+    "installed_exporter_sha256": "e560a772c44e47b7a9de234710f53799afa5dd75424a8a34c625655892d19215",
+    "campaign_scoreboard": {
+      "total": 60,
+      "verified_pass": 0,
+      "PARTIAL": 50,
+      "NOT_RUN": 10,
+      "FAIL": 0,
+      "BLOCKED": 0
+    },
+    "campaign_source_revision": "b07571494d800606ac39f85e0ad27377fdb20c08",
+    "ledger_sha256": "148f1de69281883580cdb7e86374568e38d78f7ddd8f02c5e65dfb0c38cc0e5f",
+    "web_snapshot_generated_at": "2026-11-06T20:30:54.878Z",
+    "web_cache_control": "private, no-store, max-age=0",
+    "served_asset_hashes": {
+      "index.html": "c7b1ec8a9f169d6c13eaffdf2596cc7c7d60a9df174f3c7d8a87c2dc9d196367",
+      "app.js": "8dbd3c9103dc716b2c816920e8518c708a9119b229b10a0fa8f82a1cd14eae77",
+      "style.css": "c1c2715a69bca6f7cba7e76429467d6ddb20a577ae141e2b43b2f346ac927574"
+    },
+    "checks": [
+      "Protected MJobs5required gates PASS before merge",
+      "Fleet30and31controllersCI PASS before merges",
+      "Local installed manifest33of33hashes verified",
+      "Actual local API and web status agree on all campaign counts;366requirements projected",
+      "CUA live local P0 requirement phases and60step rows verified; disclosures retained after refresh; no JS errors",
+      "CUA live served web origin same hierarchy and60step rows; refresh retains disclosures; current feed and no JS errors",
+      "Served web assets match installed files byte-for-byte",
+      "Existing analytics port18729override preserved; generated feeds not overwritten"
+    ],
+    "limitations": [
+      "Public HTTPS normal authentication reaches Cloudflare login; this browser has no signed-in account, so authenticated public rendering is NOT_RUN",
+      "Campaign remains0of60VERIFIED;50PARTIAL10NOT_RUN; no acceptance matrix changes"
+    ],
+    "reproduction": [
+      "GET http://127.0.0.1:18729/api/progress/campaigns",
+      "GET http://127.0.0.1:20800/mission-control/status.json",
+      "Open either served page, expand P0 thenMJ-REQ-292 thena phase/step, Refresh, inspect preserved expansion and current counts"
+    ]
+  }
 }

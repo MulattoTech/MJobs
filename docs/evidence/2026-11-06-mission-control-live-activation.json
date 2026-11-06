@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-292 progress visibility",
+  "observed_at_utc": "2026-11-06T20:30:56.777334+00:00",
+  "result": "PASS for deployed local and served web-origin progress UI; no campaign acceptance promotion",
+  "mjobs_pr": 974,
+  "mjobs_merge": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "installed_local_source": "f49b090fcba4e8e1fe706f4ca6899bb00abf4952",
+  "fleet_prs": [
+    30,
+    31
+  ],
+  "fleet_merge": "10c73a4e3d4619af220b55a12ebbaf1854907baa",
+  "installed_exporter_sha256": "e560a772c44e47b7a9de234710f53799afa5dd75424a8a34c625655892d19215",
+  "campaign_scoreboard": {
+    "total": 60,
+    "verified_pass": 0,
+    "PARTIAL": 50,
+    "NOT_RUN": 10,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "campaign_source_revision": "b07571494d800606ac39f85e0ad27377fdb20c08",
+  "ledger_sha256": "148f1de69281883580cdb7e86374568e38d78f7ddd8f02c5e65dfb0c38cc0e5f",
+  "web_snapshot_generated_at": "2026-11-06T20:30:54.878Z",
+  "web_cache_control": "private, no-store, max-age=0",
+  "served_asset_hashes": {
+    "index.html": "c7b1ec8a9f169d6c13eaffdf2596cc7c7d60a9df174f3c7d8a87c2dc9d196367",
+    "app.js": "8dbd3c9103dc716b2c816920e8518c708a9119b229b10a0fa8f82a1cd14eae77",
+    "style.css": "c1c2715a69bca6f7cba7e76429467d6ddb20a577ae141e2b43b2f346ac927574"
+  },
+  "checks": [
+    "Protected MJobs5required gates PASS before merge",
+    "Fleet30and31controllersCI PASS before merges",
+    "Local installed manifest33of33hashes verified",
+    "Actual local API and web status agree on all campaign counts;366requirements projected",
+    "CUA live local P0 requirement phases and60step rows verified; disclosures retained after refresh; no JS errors",
+    "CUA live served web origin same hierarchy and60step rows; refresh retains disclosures; current feed and no JS errors",
+    "Served web assets match installed files byte-for-byte",
+    "Existing analytics port18729override preserved; generated feeds not overwritten"
+  ],
+  "limitations": [
+    "Public HTTPS normal authentication reaches Cloudflare login; this browser has no signed-in account, so authenticated public rendering is NOT_RUN",
+    "Campaign remains0of60VERIFIED;50PARTIAL10NOT_RUN; no acceptance matrix changes"
+  ],
+  "reproduction": [
+    "GET http://127.0.0.1:18729/api/progress/campaigns",
+    "GET http://127.0.0.1:20800/mission-control/status.json",
+    "Open either served page, expand P0 thenMJ-REQ-292 thena phase/step, Refresh, inspect preserved expansion and current counts"
+  ]
+}
