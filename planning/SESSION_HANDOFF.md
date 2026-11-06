@@ -564,3 +564,10 @@ Next: publish the reviewed PR973 batch, build the exact frozen checkpoint revisi
 PR973 is published at `c1b349810cefa260cbb5e064d0812a13cebe8c45`; main remains unchanged. **0/60 VERIFIED PASS;50 PARTIAL;10 NOT_RUN.** The new exact stack passed startup and all emitted native form/submission observations through51, but tracker history did not update visibly after successful server readback. Rey is repairing product state handling, without a navigation workaround.
 
 CI unit failures traced to test environment leakage; independently reviewed test-only fix is integrated as `388a8884` with49 ordered tests passing. Full Windows unit collection was blocked by existing Linux-only fcntl; not a suite PASS. Hosted integration shard2 also exposed33 legacy discovery failures, now assigned to Ahsoka/Obiwan for reproduction and repair. No required check is waived. Compose E2E passed on c1; further CI results are tracked by Leia.
+
+
+## 2026-11-06T20:21:42.506480+00:00 - MJ-REQ-292 repair checkpoint
+
+MJ-REQ-292: **0/60 VERIFIED PASS**, 50 PARTIAL, 10 NOT_RUN. Source before checkpoint `6e254c54d6e61adccbd6159aa0b7337c11cb6fa7`; published PR973 head remains `c1b349810cefa260cbb5e064d0812a13cebe8c45`. Preserve failed c1 runtime and hosted results. Dashboard PR974 merged as971ba931 and was normally incorporated asb2cd8a31 with exact dashboard files retained.
+
+Tracker state/readback and retry-idempotency fixes71735a3a/36db9ac9 independently reviewed; three composed frontend tests and typecheck passed. Queued bootstrap versus explicit review fix6e254c54 independently reviewed, with remaining regression results recorded in the task checkpoint. Environment leak fixed388a8884. Remaining clock/capacity failures require causal repair and fresh CI. No public source/restart/monitoring or merged-source full journey has completed. Deadline remains21:22:28UTC.

@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "388a8884eb00b01fb755ced5f66735a2d6eb9564",
+  "head_sha": "6e254c54d6e61adccbd6159aa0b7337c11cb6fa7",
   "routing_state": "EXECUTE",
-  "next_action": "Finish and independently review the CI environment isolation, legacy discovery integration and tracker product fixes; run affected regressions; normally update PR973. Build/run a fresh exact candidate, then qualify protected integration and repeat the complete campaign on the exact merged source. Deadline21:22:28Z remains active.",
+  "next_action": "Complete remaining capacity/clock regressions and independent review, publish normal PR973 update, build exact frozen candidate and execute committed campaign launcher. Required checks and fresh protected-merged-source acceptance remain mandatory; no numbered PASS from candidate runs.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -548,7 +548,7 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T20:06:09.464096+00:00",
+  "updated_at": "2026-11-06T20:21:42.506480+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -669,7 +669,7 @@
     "WWR feed100items contains no native links in descriptions; two allowed listingpages returned403 afterrobotsallow. No bypass/retry.",
     "RemoteOK feed100items contains at leastone ApryseLevercandidate; existingdomaincorroboration supportsGreenhouse only. Candidate is unverified; no acceptancecredit."
   ],
-  "other_active_work": "Dashboard PR974, branch codex/dashboard-current-first-20261106, preserves its separate tools/agent_dashboard ownership. It reads this ledger live. Its owner reported a test-only timestamp correction in progress; this campaign has not merged or activated that dashboard PR.",
+  "other_active_work": "Dashboard owner merged PR974 at971ba931418fc271e7a652e27c288e1776448b6d. Campaign normally merged main asb2cd8a31, preserving exact dashboard source;31 dashboard unit tests passed. Dashboard activation belongs to its separate owner; campaign does not mutate its services.",
   "pause_checkpoint": {
     "reason": "User set goal status paused",
     "root": "C:\\Users\\Dylan\\.codex\\worktrees\\mjobs-292-journey\\MJobs",
@@ -740,5 +740,17 @@
     },
     "published_head": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
     "published_issue_comment": "https://github.com/MulattoTech/MJobs/issues/293#issuecomment-6694012914"
+  },
+  "repair_checkpoint": {
+    "at_utc": "2026-11-06T20:21:42.506480+00:00",
+    "source_commit": "6e254c54d6e61adccbd6159aa0b7337c11cb6fa7",
+    "scoreboard": "0/60 VERIFIED PASS; 50 PARTIAL; 10 NOT_RUN",
+    "published_head": "c1b349810cefa260cbb5e064d0812a13cebe8c45",
+    "unit_failure": "c1 hosted unit53 failures traced to test environment leak; reviewed fix388a8884. Ordered49 local tests passed. Windows full suite stopped during collection on Linux-only fcntl; Linux verification owned by Mace.",
+    "integration_failure": "All c1 integration shards failed:69 unique nodeids/71 failure rows. Explicit review of a still-queued typed bootstrap repaired6e254c54 after CD exact review; lease-clock fixtures and Greenhouse capacity compatibility remain under active diagnosis until separately recorded.",
+    "tracker_fix": "71735a3a plus36db9ac9: separate tracking-read sequence, scoped post-write readback, preserved idempotency key on readback failure. AB independent review approved. Composed frontend3 regression tests and typecheck passed; exact reviewed blobs retained. Connected rerun NOT_RUN.",
+    "root_validation": "36db9ac9 campaign/containment/public-source/domain83 tests22 subtests passed;2 Windows symlink skips. b2cd8a31 dashboard31 tests passed.",
+    "runtime": "c1 exact image/startup verified; connected UI failed at immediate Ready history after PUT200 and GET READY. All native form/submission checks emitted through51 passed, but UI segment overall FAIL. Public setup/restart/monitoring not executed. Original failed artifacts preserved.",
+    "deadline_utc": "2026-11-06T21:22:28Z"
   }
 }
