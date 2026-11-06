@@ -557,6 +557,11 @@ def company_refresh_saved(connection, operation):
     a later refresh, so only the immutable, exactly bound audit is authoritative.
     """
     if operation['kind'] == 'COMPANY_DISCOVER':
+        # Ordinary public-company work has no fixture receipt. Avoid loading
+        # that bridge on its cancellation path; present malformed markers must
+        # still reach the helper's exact receipt validation.
+        if 'fixture_monitoring' not in (operation.get('params') or {}):
+            return False
         from services.company_discovery.fixture_monitoring import fixture_refresh_saved
         return fixture_refresh_saved(connection, operation)
     if operation['kind'] != 'COMPANY_SOURCE_REFRESH':
