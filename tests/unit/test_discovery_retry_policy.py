@@ -6,9 +6,19 @@ import httpx
 
 from services.discovery.sources import greenhouse, remotive, remoteok, wwr
 from workers.retries import discovery_retry_plan
+from services.company_discovery.public_client import PublicFetchError
 
 
 class DiscoveryRetryPolicyTests(unittest.TestCase):
+    def test_public_transport_retry_is_explicit_and_bounded(self):
+        for code in ("TRANSPORT_TRANSIENT", "NETWORK_FAILED", "ROBOTS_DENIED", "DNS_PRIVATE",
+                     "URL_NOT_ALLOWED", "REQUEST_BUDGET", "RESPONSE_LENGTH_INVALID"):
+            for attempt in (1, 3):
+                with self.subTest(code=code, attempt=attempt):
+                    plan = discovery_retry_plan(Mock(), self.operation(kind="COMPANY_DISCOVER",
+                        attempt_count=attempt), PublicFetchError(code), "2026-10-11T00:00:00+00:00")
+                    self.assertEqual(plan is not None, code == "TRANSPORT_TRANSIENT" and attempt == 1)
+
     def operation(self, **changes):
         return {"kind": "DISCOVER", "params": {}, "attempt_count": 1, **changes}
 
