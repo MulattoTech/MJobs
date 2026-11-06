@@ -1,4 +1,5 @@
 """Connected synthetic recent-history journey; no live browser profile or external requests."""
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
 import threading
@@ -125,9 +126,28 @@ class RecentlyViewedBrowserTests(unittest.TestCase):
                         panel.get_by_role("button", name="Clear visit history", exact=True).click()
                         expect(panel.get_by_role("listitem")).to_have_count(2)
                         self.assertEqual(len(list_recent_job_views(store, "fixture")["items"]), 2)
-                        page.once("dialog", lambda dialog: dialog.accept())
-                        panel.get_by_role("button", name="Clear visit history", exact=True).click()
+                        with store.engine.begin() as connection:
+                            connection.execute(update(m.profile_job_views).where(
+                                m.profile_job_views.c.profile_id == "fixture").values(
+                                    viewed_at=(datetime.now(timezone.utc) - timedelta(days=91)).isoformat()))
+                        panel.get_by_role("button", name="Refresh visits", exact=True).click()
                         expect(panel).to_contain_text("No jobs viewed in this profile yet.")
+                        expect(panel.get_by_role("button", name="Clear visit history", exact=True)).to_be_enabled()
+                        with store.engine.connect() as connection:
+                            self.assertEqual(connection.execute(select(func.count()).select_from(
+                                m.profile_job_views).where(
+                                    m.profile_job_views.c.profile_id == "fixture")).scalar_one(), 2)
+                        page.once("dialog", lambda dialog: dialog.accept())
+                        with page.expect_response(lambda response: response.request.method == "DELETE" and
+                                                  response.url.endswith("/recently-viewed")) as cleared:
+                            panel.get_by_role("button", name="Clear visit history", exact=True).click()
+                        self.assertEqual(cleared.value.status, 200)
+                        self.assertEqual(cleared.value.json()["cleared"], 2)
+                        expect(panel).to_contain_text("No jobs viewed in this profile yet.")
+                        with store.engine.connect() as connection:
+                            self.assertEqual(connection.execute(select(func.count()).select_from(
+                                m.profile_job_views).where(
+                                    m.profile_job_views.c.profile_id == "fixture")).scalar_one(), 0)
                         page.get_by_label("Active profile", exact=True).select_option("other")
                         expect(panel.get_by_role("listitem")).to_have_count(1)
                         page.get_by_label("Active profile", exact=True).select_option("fixture")

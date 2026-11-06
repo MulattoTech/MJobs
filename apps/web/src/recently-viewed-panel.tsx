@@ -33,8 +33,7 @@ export function RecentlyViewedPanelView({
       </div>
       <div>
         <button type="button" disabled={!profileId || clearing} onClick={onRefresh}>Refresh visits</button>{' '}
-        <button type="button" disabled={!scopeReady ||
-          (state.kind === 'ready' && state.response.items.length === 0) || clearing} onClick={onClear}>
+        <button type="button" disabled={!scopeReady || clearing} onClick={onClear}>
           {clearing ? 'Clearing…' : 'Clear visit history'}
         </button>
       </div>

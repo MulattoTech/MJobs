@@ -17,6 +17,35 @@ const response: RecentlyViewedResponse = {
 const callbacks = {onRefresh: () => {}, onClear: () => {}, onOpenJob: () => {}};
 
 describe('recently viewed panel', () => {
+  it('allows clearing loaded empty history because expired rows may remain', () => {
+    const html = renderToStaticMarkup(<RecentlyViewedPanelView
+      profileId="profile-1" state={{kind: 'ready', response: {...response, items: []}}}
+      clearing={false} clearError={false} {...callbacks}/>);
+    expect(html).toContain('<button type="button">Clear visit history</button>');
+  });
+
+  it('keeps clear disabled while pending, loading, failed, or scoped to another profile', () => {
+    for (const state of [
+      {kind: 'loading'} as const,
+      {kind: 'error'} as const,
+      {kind: 'ready', response: {...response, profile_id: 'other'}} as const,
+    ]) {
+      const html = renderToStaticMarkup(<RecentlyViewedPanelView
+        profileId="profile-1" state={state}
+        clearing={false} clearError={false} {...callbacks}/>);
+      expect(html).toContain('<button type="button" disabled="">Clear visit history</button>');
+    }
+    const pending = renderToStaticMarkup(<RecentlyViewedPanelView
+      profileId="profile-1" state={{kind: 'ready', response: {...response, items: []}}}
+      clearing clearError={false} {...callbacks}/>);
+    expect(pending).toContain('<button type="button" disabled="">Clearing…</button>');
+    const failed = renderToStaticMarkup(<RecentlyViewedPanelView
+      profileId="profile-1" state={{kind: 'ready', response: {...response, items: []}}}
+      clearing={false} clearError {...callbacks}/>);
+    expect(failed).toContain('Could not clear visit history');
+    expect(failed).toContain('<button type="button">Clear visit history</button>');
+  });
+
   it('shows visits separately from saves and applications, with clear/refresh controls', () => {
     const html = renderToStaticMarkup(<RecentlyViewedPanelView
       profileId="profile-1" state={{kind:'ready',response}}

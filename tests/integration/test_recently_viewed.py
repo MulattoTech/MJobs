@@ -149,6 +149,26 @@ class RecentlyViewedTests(unittest.TestCase):
         self.assertEqual(self.client.get(self.path("other")).json()["items"], other_rows)
         self.assertEqual(self.client.delete(self.path()).json()["cleared"], 0)
 
+    def test_clear_expired_only_history_preserves_other_profile(self):
+        self.assertEqual(self.visit().status_code, 201)
+        self.assertEqual(self.visit(profile="other").status_code, 201)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.profile_job_views).values(
+                viewed_at=(datetime.now(timezone.utc) - timedelta(days=MAX_AGE_DAYS + 1)).isoformat()))
+            other_before = connection.execute(select(m.profile_job_views).where(
+                m.profile_job_views.c.profile_id == "other")).mappings().all()
+        self.assertEqual(self.client.get(self.path()).json()["items"], [])
+        self.assertEqual(self.client.get(self.path("other")).json()["items"], [])
+        self.assertEqual(self.client.delete(self.path()).json(),
+                         {"profile_id": "fixture", "cleared": 1})
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(func.count()).select_from(
+                m.profile_job_views).where(
+                    m.profile_job_views.c.profile_id == "fixture")).scalar_one(), 0)
+            self.assertEqual(connection.execute(select(m.profile_job_views).where(
+                m.profile_job_views.c.profile_id == "other")).mappings().all(), other_before)
+        self.assertEqual(self.client.delete(self.path()).json()["cleared"], 0)
+
     def test_bounded_order_dedup_and_retention(self):
         with self.store.engine.begin() as connection:
             company_id = connection.execute(select(m.jobs.c.company_id).where(
