@@ -1,16 +1,15 @@
 """Fail-closed structural checks for the MJ-REQ-292 durable scoreboard."""
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 import json
-from pathlib import Path
 import shutil
+from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
 from tools.verification import acceptance_ledger as ledger
-
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -36,14 +35,19 @@ def make_ledger(root: Path = ROOT) -> dict:
     for number, original in enumerate(requirements, start=1):
         steps.append({
             "number": number,
+            "phase": "A",
             "original_requirement": original,
             "expected_observable_result": f"Observable result for step {number}",
             "implementation_references": [],
             "status": "NOT_RUN",
-            "evidence_of_existing_behavior": [],
+            "evidence_of_existing_behavior": ([{
+                "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+                "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE",
+            }] if number == 1 else []),
             "missing_behavior": "",
             "responsible_agent": "",
             "exclusive_source_ownership": [],
+            "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
             "required_automated_test": "",
             "required_integration_validation": "",
             "verification": {
@@ -64,6 +68,13 @@ def make_ledger(root: Path = ROOT) -> dict:
     return {
         "schema_version": 1,
         "requirement_id": "MJ-REQ-292",
+        "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
+        "acceptance_policy": "PASS rows are claims; this tool checks structure only.",
+        "specification": {
+            "working": "docs/spec/areas/delivery_control.md",
+            "original": "docs/spec/source/MJobs_Startup_Prompt.original.md",
+            "original_lines": [7659, 7725],
+        },
         "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
         "updated_at_utc": "2026-11-06T12:00:00Z",
         "umbrella_result": "PARTIAL",
@@ -75,7 +86,8 @@ def make_ledger(root: Path = ROOT) -> dict:
 
 def prepare_root(destination: Path) -> Path:
     for relative in ("docs/spec/source/MJobs_Startup_Prompt.original.md",
-                     "docs/spec/areas/delivery_control.md"):
+                     "docs/spec/areas/delivery_control.md",
+                     "docs/evidence/2026-10-11-durable-onboarding.json"):
         source = ROOT / relative
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -88,7 +100,42 @@ def test_initial_ledger_validates_and_reports_recomputed_x_of_60():
     assert report.errors == []
     assert report.counts == {"PASS": 0, "PARTIAL": 0, "FAIL": 0,
                              "NOT_RUN": 60, "BLOCKED": 0}
-    assert ledger.render_report(report) == "MJ-REQ-292: 0/60 PASS (0 PARTIAL, 0 FAIL, 60 NOT_RUN, 0 BLOCKED)"
+    assert ledger.render_report(report) == (
+        "MJ-REQ-292: 0/60 recorded PASS claims; structural validation only "
+        "(runtime/review/integration not certified); 0 PARTIAL, 0 FAIL, 60 NOT_RUN, 0 BLOCKED"
+    )
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda data: data.__setitem__("issue_url", "https://example.invalid/293"),
+    lambda data: data["specification"].__setitem__("original_lines", [1, 2]),
+    lambda data: data["steps"][0].__setitem__("phase", "G"),
+    lambda data: data["steps"][0].__setitem__("ownership_status", ""),
+    lambda data: data["steps"][0]["evidence_of_existing_behavior"][0].__setitem__(
+        "classification", "CURRENT_PASS"
+    ),
+])
+def test_known_metadata_is_validated_and_historical_pointers_do_not_promote(mutation):
+    data = make_ledger()
+    mutation(data)
+    assert ledger.validate_ledger(data, ROOT).errors
+    clean = make_ledger()
+    assert clean["steps"][0]["status"] == "NOT_RUN"
+    assert clean["scoreboard"]["verified_pass"] == 0
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda data: data["steps"][0].__setitem__("phase", []),
+    lambda data: data["steps"][0]["review"].__setitem__("status", []),
+    lambda data: data["steps"][0]["merge"].__setitem__("status", []),
+    lambda data: data["steps"][0]["verification"].__setitem__("evidence_kind", []),
+    lambda data: data.__setitem__("acceptance_policy", []),
+])
+def test_malformed_optional_types_are_rejected_without_crashing(mutation):
+    data = make_ledger()
+    mutation(data)
+    report = ledger.validate_ledger(data, ROOT)
+    assert report.errors
 
 
 @pytest.mark.parametrize("mutation", [
@@ -117,11 +164,11 @@ def test_delivery_control_section_must_match_original_source_exactly(tmp_path):
     assert ledger.validate_ledger(data, tmp_path).errors
 
 
-def passing_step(data: dict, number: int, root: Path, *, evidence_kind="PUBLIC_READ_ONLY"):
+def passing_step(data: dict, number: int, root: Path, *, evidence_kind="CONTROLLED_FIXTURE"):
     relative = f"docs/evidence/ledger-fixture-{number}.json"
     path = root / relative
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps({"result": "PASS", "step": number}).encode()
+    payload = json.dumps({"fixture_kind": "unit-only", "purpose": "artifact hash validation"}).encode()
     path.write_bytes(payload)
     step = data["steps"][number - 1]
     step["status"] = "PASS"
@@ -149,7 +196,7 @@ def test_pass_requires_current_artifact_hash_source_sha_and_continuity(tmp_path)
     report = ledger.validate_ledger(data, root)
     assert report.errors == []
     assert report.counts["PASS"] == 1
-    assert "1/60 PASS" in ledger.render_report(report)
+    assert "1/60 recorded PASS claims" in ledger.render_report(report)
 
     data["steps"][0]["verification"]["evidence_sha256"] = "0" * 64
     report = ledger.validate_ledger(data, root)
@@ -174,21 +221,30 @@ def test_controlled_fixture_does_not_satisfy_public_step_11(tmp_path):
     assert report.errors
 
 
-def test_full_umbrella_pass_requires_every_step_and_review_and_merge(tmp_path):
+def test_umbrella_pass_claim_fails_without_all_steps_and_separate_review_merge(tmp_path):
     root = prepare_root(tmp_path)
     data = make_ledger(root)
-    for number in range(1, 61):
-        step = passing_step(data, number, root)
-        step["review"] = {"status": "PASS",
-                           "evidence_artifact": f"docs/evidence/ledger-fixture-{number}.json"}
-        step["merge"] = {"status": "MERGED", "pr_url": "https://github.com/MulattoTech/MJobs/pull/999",
-                          "integrated_commit": "2" * 40}
-    data["scoreboard"].update({"verified_pass": 60, "NOT_RUN": 0})
+    passing_step(data, 1, root)
+    data["scoreboard"].update({"verified_pass": 1, "NOT_RUN": 59})
     data["umbrella_result"] = "PASS"
     report = ledger.validate_ledger(data, root)
-    assert report.errors == []
-    data["steps"][59]["merge"]["status"] = "NOT_MERGED"
-    assert ledger.validate_ledger(data, root).errors
+    assert any("cannot be certified by structural validation" in error for error in report.errors)
+
+
+def test_source_section_rejects_nonsequential_number_labels(tmp_path):
+    root = prepare_root(tmp_path)
+    source = root / "docs/spec/source/MJobs_Startup_Prompt.original.md"
+    source.write_text(source.read_text(encoding="utf-8-sig").replace(
+        "\n2. Open the dashboard.", "\n3. Open the dashboard.", 1), encoding="utf-8")
+    report = ledger.validate_ledger(make_ledger(root), root)
+    assert any("labels must be exactly 1 through 60" in error for error in report.errors)
+
+
+def test_json_loader_rejects_duplicate_keys(tmp_path):
+    path = tmp_path / "duplicate.json"
+    path.write_text('{"status":"NOT_RUN","status":"PASS"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="duplicate JSON key: status"):
+        ledger.load_ledger(path)
 
 
 def test_validation_never_executes_evidence_commands(tmp_path, monkeypatch):
@@ -216,7 +272,7 @@ def test_module_cli_prints_compact_report_and_check_returns_failure(tmp_path, mo
     path.write_text(json.dumps(data), encoding="utf-8")
     monkeypatch.chdir(root)
     assert ledger.main(["--check"]) == 0
-    assert capsys.readouterr().out.startswith("MJ-REQ-292: 0/60 PASS")
+    assert capsys.readouterr().out.startswith("MJ-REQ-292: 0/60 recorded PASS claims; structural validation only")
 
     data["scoreboard"]["NOT_RUN"] = 59
     path.write_text(json.dumps(data), encoding="utf-8")
