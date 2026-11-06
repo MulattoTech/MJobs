@@ -137,7 +137,10 @@ def _write_json_lf(path: Path, value: dict) -> tuple[str, bytes]:
 
 
 def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeypatch,
-                        *, producer_recovery_path: str | None = None) -> None:
+                        *, producer_recovery_path: str | None = None,
+                        source_setup_result: str | None = None,
+                        include_source_setup_reference: bool = True,
+                        include_public_segment_reference: bool = True) -> None:
     """Create typed local fixture evidence; this does not claim real execution."""
     from copy import deepcopy
 
@@ -385,12 +388,14 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                    else "monitor_after" if number in {59, 60} else "ui")
         segments[segment].append(observation)
 
+    source_setup_needed = 9 in step_numbers or source_setup_result is not None
     public_artifact = None
-    if segments["public"]:
+    if segments["public"] or source_setup_needed:
         public_artifact = {
             **{key: ui_baseline[key] for key in journey.IDENTIFIERS},
             "timestamp": timestamp, "source": source, "acceptance_run_id": run_id,
             "result": "PASS", "provider": "wwr", "execution_scope": "LIVE_PUBLIC_READ_ONLY",
+            "source_id": "primary-source-1", "source_policy_sha256": "a" * 64,
             "external_submission_enabled": False, "observed_real_job_ids": ["real-job-1"],
             "selected_application_job_id": "mock-job-1",
             "selected_application_route_id": "mock-route-1",
@@ -407,6 +412,37 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                "frontend_assets": {"index.html": "c" * 64}}
     target = {"project_name": "mjobs-fixture-123456789abc", "port": 18777,
               "base_url": "http://127.0.0.1:18777"}
+    source_setup_ref = None
+    source_setup_observation = None
+    if source_setup_needed:
+        setup_result = source_setup_result or "PASS"
+        source_setup_observation = {
+            "step": 9, "status": setup_result,
+            "observable_result": ("Two distinct public provider sources were visible and enabled before the primary collection."
+                                  if setup_result == "PASS" else
+                                  "Controlled browser and API fixture did not establish live source configuration."),
+            "evidence_kind": "PUBLIC_READ_ONLY", "source_commit": source["commit"],
+            "run_id": run_id, "continuity": {"profile_id": "profile-1"},
+            "checks": [{"name": name, "passed": setup_result == "PASS"}
+                       for name in sorted(checks[9])],
+        }
+        source_setup = {
+            "schema_version": 1, "result": setup_result, "acceptance_run_id": run_id,
+            "timestamp": timestamp, "source": source, "target_origin": target["base_url"],
+            "runtime_identity": runtime_identity, "profile_id": "profile-1",
+            "application_id": "application-1", "job_id": "mock-job-1",
+            "primary": {"provider": "wwr", "source_id": "primary-source-1",
+                        "policy_sha256": "a" * 64},
+            "owned_extra": {"provider": "remotive", "source_id": "extra-source-1",
+                            "enabled_policy_sha256": "b" * 64,
+                            "disabled_policy_sha256": "c" * 64, "disabled": True},
+            "extra_collection_operation_ids": [],
+            "extra_operation_readback_sha256": journey.digest([]),
+            "acceptance_observations": [source_setup_observation],
+        }
+        source_setup_path = run_root / "public-source-setup.json"
+        source_setup_sha, _ = _write_json_lf(source_setup_path, source_setup)
+        source_setup_ref = {"artifact": source_setup_path.name, "sha256": source_setup_sha}
     startup_observation = {
         "step": 1, "status": "PASS", "observable_result": "Owned startup receipt validated.",
         "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": source["commit"],
@@ -478,12 +514,15 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
         public_observations_ref = {"artifact": joined_path.name, "sha256": joined_sha}
 
     segment_refs = {}
-    ui_payload = {**deepcopy(ui_baseline), "acceptance_observations": segments["ui"],
+    ui_observations = ([row for row in segments["ui"] if row["step"] != 9]
+                       if source_setup_needed and source_setup_observation["status"] != "NOT_RUN"
+                       else segments["ui"])
+    ui_payload = {**deepcopy(ui_baseline), "acceptance_observations": ui_observations,
                   "stage_lineage": stage_lineage}
     ui_path = run_root / "ui.json"
     ui_sha, _ = _write_json_lf(ui_path, ui_payload)
     segment_refs["ui"] = {"status": "COMPLETE", "artifact": ui_path.name, "sha256": ui_sha}
-    if public_artifact is not None:
+    if public_artifact is not None and include_public_segment_reference:
         segment_refs["public"] = {"status": "COMPLETE", "artifact": "public.json",
                                    "sha256": public_sha}
     derived_ref = None
@@ -539,12 +578,14 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
                                    "sha256": monitoring_baseline_sha}
 
     for name in ("ui", "public", "monitor_prepare", "recovery", "monitor_after"):
+        if name == "public" and not include_public_segment_reference:
+            continue
         if not segments[name] and not (name == "ui" and step_numbers):
             if name == "monitor_prepare" and monitoring_enabled:
                 segment_refs[name] = preparation_ref
             continue
         if name == "ui":
-            payload = {**deepcopy(ui_baseline), "acceptance_observations": segments[name],
+            payload = {**deepcopy(ui_baseline), "acceptance_observations": ui_observations,
                        "stage_lineage": stage_lineage}
         elif name == "public":
             payload = public_artifact
@@ -605,11 +646,15 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     observation_by_step = {row["step"]: row for rows in segments.values() for row in rows}
     observation_by_step.update({row["step"]: row for row in joined_public_rows})
     for number in step_numbers:
-        segment = ("startup" if number == 1 else "public_browser" if number in {11, 16}
+        segment = ("startup" if number == 1 else "source_setup" if number == 9 and source_setup_ref
+                   else "public_browser" if number in {11, 16}
                    else "recovery" if 54 <= number <= 58
                    else "monitor_after" if number in {59, 60} else "ui")
-        observation = startup_observation if number == 1 else observation_by_step[number]
+        observation = (startup_observation if number == 1 else
+                      source_setup_observation if segment == "source_setup" else
+                      observation_by_step[number])
         evidence_ref = (startup_ref if segment == "startup" else
+                        source_setup_ref if segment == "source_setup" else
                         public_observations_ref if segment == "public_browser" else
                         segment_refs[segment])
         verification = {
@@ -672,15 +717,19 @@ def build_runtime_proof(root: Path, data: dict, step_numbers: list[int], monkeyp
     if public_browser_ref is not None and public_observations_ref is not None:
         report["public_browser"] = public_browser_ref
         report["public_observations"] = public_observations_ref
+    if source_setup_ref is not None and include_source_setup_reference:
+        report["source_setup"] = source_setup_ref
     report_sha, _ = _write_json_lf(report_path, report)
     report_relative = report_path.relative_to(root).as_posix()
     data["journey_report"] = {"artifact": report_relative, "sha256": report_sha}
     for number in step_numbers:
         step = data["steps"][number - 1]
-        segment = ("startup" if number == 1 else "public_browser" if number in {11, 16}
+        segment = ("startup" if number == 1 else "source_setup" if number == 9 and source_setup_ref
+                   else "public_browser" if number in {11, 16}
                    else "recovery" if 54 <= number <= 58
                    else "monitor_after" if number in {59, 60} else "ui")
         evidence_ref = (startup_ref if segment == "startup" else
+                        source_setup_ref if segment == "source_setup" else
                         public_observations_ref if segment == "public_browser" else
                         segment_refs[segment])
         step["status"] = "PASS"
@@ -753,7 +802,7 @@ def test_latest_journey_steps_join_their_producer_segment(step, segment):
     "ui.json", "public.json", "monitor_prepare.json", "recovery.json",
     "monitor_after.json", "recovery-baseline.json", "monitoring-baseline.json",
     "startup.json", "startup-receipt.json", "public-browser.json", "public-observations.json",
-    "compose-recovery.json",
+    "public-source-setup.json", "compose-recovery.json",
 ])
 def test_latest_journey_bundle_accepts_only_known_sibling_artifact_names(name):
     assert ledger._is_known_bundle_artifact(name)
@@ -932,6 +981,51 @@ def test_runtime_evidence_mode_can_validate_all_60_and_remove_permanent_pass_blo
     assert verified.errors == []
     assert verified.runtime_evidence_validated is True
     assert verified.counts["PASS"] == 60
+
+
+def test_runtime_evidence_requires_source_setup_reference_for_credited_step_9(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, list(range(1, 61)), monkeypatch,
+                        include_source_setup_reference=False)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert any("step 9" in error and "source setup" in error.lower()
+               for error in verified.errors), verified.errors
+
+
+def test_runtime_evidence_does_not_credit_controlled_not_run_source_setup(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    steps = [number for number in range(1, 61) if number != 9]
+    build_runtime_proof(root, data, steps, monkeypatch, source_setup_result="NOT_RUN")
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert verified.errors == []
+    assert verified.runtime_evidence_validated is True
+    assert data["steps"][8]["status"] == "NOT_RUN"
+    assert verified.counts["PASS"] == 59
+
+
+def test_runtime_evidence_requires_complete_public_segment_for_step_9(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, list(range(1, 61)), monkeypatch,
+                        include_public_segment_reference=False)
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert any("public producer evidence" in error for error in verified.errors), verified.errors
+
+
+def test_runtime_evidence_rejects_source_setup_byte_hash_drift(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    build_runtime_proof(root, data, list(range(1, 61)), monkeypatch)
+    source_setup_path = root / "docs/evidence/runtime-proof/public-source-setup.json"
+    source_setup_path.write_bytes(source_setup_path.read_bytes() + b" ")
+
+    verified = ledger.validate_ledger(data, root, require_runtime_evidence=True)
+    assert any("sha-256" in error.lower() for error in verified.errors), verified.errors
 
 
 def test_runtime_evidence_uses_bundled_recovery_bytes_never_producer_host_path(tmp_path, monkeypatch):

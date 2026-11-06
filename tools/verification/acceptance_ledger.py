@@ -72,6 +72,7 @@ JOURNEY_BUNDLE_ARTIFACTS = frozenset({
     "monitor_after.json", "recovery-baseline.json", "monitoring-baseline.json",
     "compose-recovery.json", "startup.json", "startup-receipt.json",
     "public-browser.json", "public-observations.json",
+    "public-source-setup.json",
 })
 JOURNEY_SEGMENT_ARTIFACTS = {
     "ui": "ui.json", "public": "public.json",
@@ -530,6 +531,10 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
             "_identity", "_validate_recaptured_baseline", "digest")):
         errors.append("strict proof mode requires the current startup, public-browser, runtime, lineage and monitoring validators")
         return False
+    if ((any(step["number"] == 9 for step in pass_steps) or report.get("source_setup") is not None)
+            and not callable(getattr(journey, "validate_source_setup_artifact", None))):
+        errors.append("step 9 source setup requires the current producer join validator")
+        return False
     runtime = report.get("runtime")
     if (not isinstance(runtime, dict)
             or not isinstance(runtime.get("source_manifest_sha256"), str)
@@ -624,6 +629,8 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
                         if segment in JOURNEY_SEGMENT_ARTIFACTS}
     if "public_browser" in relevant_segments:
         segments_to_load.add("public")
+    if any(step["number"] == 9 for step in pass_steps):
+        segments_to_load.add("public")
     if "monitor_after" in relevant_segments:
         segments_to_load.add("monitor_prepare")
     for segment in sorted(segments_to_load):
@@ -683,6 +690,9 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
         normalized_by_number = {row["step"]: row for row in normalized}
         for number, observation in normalized_by_number.items():
             if segment == "public" and "public_browser" in relevant_segments:
+                continue
+            if segment == "ui" and number == 9 and any(
+                    step["number"] == 9 for step in pass_steps):
                 continue
             result_row = by_number[number]
             if result_row.get("observation") != observation:
@@ -856,6 +866,34 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
             except (AttributeError, KeyError, TypeError, ValueError) as exc:
                 errors.append(f"journey public read-only artifact is invalid: {exc}")
 
+    step9_claimed = any(step["number"] == 9 for step in pass_steps)
+    source_setup_reference = report.get("source_setup")
+    if step9_claimed or source_setup_reference is not None:
+        source_setup_loaded = _load_bundle_reference(
+            root, report_path, source_setup_reference,
+            "step 9 source setup reference" if step9_claimed else "journey_report.source_setup",
+            errors, allowed_names={"public-source-setup.json"})
+        if source_setup_loaded is not None:
+            setup, setup_path, setup_sha = source_setup_loaded
+            public_data = loaded_segments.get("public")
+            if step9_claimed and public_data is None:
+                errors.append("step 9 source setup requires the completed same-run public source segment")
+            elif public_data is not None:
+                try:
+                    setup_observation = journey.validate_source_setup_artifact(
+                        setup, ui_baseline, public_data[0], target, runtime)
+                    if step9_claimed:
+                        report_row = by_number[9]
+                        if (setup_observation.get("step") != 9
+                                or setup_observation.get("status") != "PASS"
+                                or report_row.get("status") != "PASS"
+                                or report_row.get("observation") != setup_observation):
+                            errors.append("step 9 source setup differs from its positive numbered observation")
+                        loaded_segments["source_setup"] = (
+                            setup, setup_path, setup_sha, {9: setup_observation})
+                except (AttributeError, KeyError, TypeError, ValueError) as exc:
+                    errors.append(f"step 9 source setup evidence is invalid: {exc}")
+
     if "public_browser" in relevant_segments:
         public_data = loaded_segments.get("public")
         browser_loaded = _load_bundle_reference(
@@ -899,7 +937,7 @@ def _validate_runtime_evidence(data: dict, root: Path, errors: list[str]) -> boo
     for step in pass_steps:
         number = step["number"]
         label = f"step {number}"
-        segment = _segment_for_step(number)
+        segment = "source_setup" if number == 9 else _segment_for_step(number)
         segment_data = loaded_segments.get(segment)
         report_row = by_number[number]
         observation = report_row.get("observation")
