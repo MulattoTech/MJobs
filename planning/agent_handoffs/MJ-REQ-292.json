@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "0a38856ad141a82bbf8267a79b29241880d941af",
+  "head_sha": "58c0cc3bce1654aff6d03a208165ecebeb829fa2",
   "routing_state": "EXECUTE",
-  "next_action": "Repair native onboarding readback and exact-head hosted cancellation failure; integrate independently reviewed Greenhouse inventory and official-domain proof handoff; add complete paginated persisted inventory/recovery v4. Then rebuild frozen source and execute fresh connected journey. Keep original 60-step scoreboard unchanged until exact-source independent acceptance qualifies.",
+  "next_action": "Complete the strict v4 ledger join, explicit stale-fact UI recovery, and staged aggregator bootstrap workflow. Publish reviewed source through PR973 and require exact-head protected checks. Then build the next frozen source and run the full connected native/public/restart/monitor journey. Preserve all diagnostic failures and 0 PASS until independently qualified.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -135,14 +135,20 @@
       "tested_commit": "2313c41c045fa94f4487e3399165b6f6fe10d070",
       "result": "PASS",
       "observed": "472passed,2Windows symlink skips,49subtests21.17s. Controlled helper tests do not certify live/public/60-step acceptance."
+    },
+    {
+      "command": "pytest acceptance_journey acceptance_monitoring persisted_job_inventory_recovery ui_e2e_onboarding acceptance_ledger unit suites",
+      "tested_commit": "58c0cc3bce1654aff6d03a208165ecebeb829fa2",
+      "result": "PASS",
+      "observed": "384 passed,69 subtests,8.96s; no connected acceptance credit."
     }
   ],
   "blockers": [
-    "Native33ad onboarding failure explained by SQL approval deliberately revoked earlier. Reviewed phase-aware fix integrated62c85c9d; fresh exact62c85 runtime being prepared; no new connected PASS.",
-    "Hosted33ad integration shard2 failed public cancellation response budget: store1.015s, service1.016s versus0.35s. Mace diagnoses; threshold unchanged.",
-    "Greenhouse metadata fallback and native apply proof handoff now integrated and scoped-tested. Aggregator bootstrap remains missing; Luke/Ahsoka/Obiwan implementing bounded company-worker resolution and durable source/profile/candidate-bound staged authorization.",
-    "Complete persisted inventory beyond200 visible jobs requires new bounded paginated API and strict recovery v4; Han implementation with Yoda review.",
-    "Complete connected native/public/restart/natural-monitoring and exact merged-source verification remain outstanding."
+    "Native62c advanced through document generation/comparison and uncertain-answer approval, then rejected a repeated fact review with HTTP409. Profile editor retains an older version after answer approval and has no reload control; Rey implements explicit draft-safe recovery.",
+    "Hosted33ad integration shard2 failed cancellation service budget1.016s versus0.35s. One unchanged instrumented local cancellation passed47ms; hosted cause remains unproven. No production fix or threshold change inferred.",
+    "Bounded Greenhouse inventory and native apply proof handoff are integrated. Pure aggregator resolver is reviewed; collection pending-intent, durable authorization, and company-worker workflow wiring remain in progress.",
+    "Inventory v4 API/recovery/UI/journey/monitoring are integrated and scoped-tested. Strict ledger join is pending; no v4 acceptance credit.",
+    "Complete connected public/native/restart/natural-monitoring, protected merged-source verification and independent whole-journey evidence remain outstanding."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -210,7 +216,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T18:10:47.173006+00:00",
+  "updated_at_utc": "2026-11-06T18:29:31.383534+00:00",
   "acceptance_note": "Current incomplete connected runs are retained as diagnostic evidence. 0/60 VERIFIED PASS; 33 PARTIAL and 27 NOT_RUN remain authoritative.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -410,6 +416,30 @@
       "name": "bounded complete Greenhouse metadata inventory and truthful title skill evidence",
       "commit": "0a38856ad141a82bbf8267a79b29241880d941af",
       "review_and_validation": "EF exact2407e2a7 approved; root12tests33subtestsPASS7.13s. Author broader batch had one unchanged concurrency timing failure; separate instrumented rerunPASS does not establish cause."
+    },
+    {
+      "name": "Complete inventory v4, strict source/profile/snapshot-bound recovery and consumers",
+      "commits": [
+        "5e4179da",
+        "535b61a4",
+        "48ae8bec",
+        "363ecc49",
+        "e6b60b8a",
+        "e766a8fc",
+        "7b1f3f1c",
+        "58c0cc3b"
+      ],
+      "review": "Yoda reviewed exact Han/Luke/Rey source. Author PG17.11 final8tests9subtests PASS,0skips,601jobs1202copies across actual owned restart; root384test69subtest joined scope PASS. Strict ledger integration pending."
+    },
+    {
+      "name": "Bounded aggregator bootstrap resolver, not yet wired",
+      "commit": "14def7c4",
+      "review": "AB exact973a2939 reviewed; independent33unit tests PASS. No DB writes or live provider credit. Explicit staged authorization and worker wiring still pending."
+    },
+    {
+      "name": "Mission Control current totals before historical gains",
+      "commit": "ac4c9c22",
+      "review": "User authorization verified in forked chat; exact5af5edd2 inherited independent local review. Root7focused unit/browser tests PASS15.44s, provenancePASS. Protected integration and local running dashboard refresh pending; no public deployment claim."
     }
   ],
   "active_path_owners": {
@@ -422,7 +452,7 @@
     "cli/acceptance_monitoring.py": "han_recovery version-aware capture",
     "cli/acceptance_onboarding.py": "obiwan_employer actual first-run wizard",
     "cli/acceptance_documents.py": "ahsoka_documents unique-letter proof",
-    "tools/verification/acceptance_ledger.py": "r2d2_ledger strict exact-source proof validation",
+    "tools/verification/acceptance_ledger.py": "r2d2_ledger strict v4 receipt join",
     "cli/acceptance_public_browser.py": "ahsoka_documents live provenance and visible job join",
     "cli/acceptance_containment.py": "chewbacca_runtime owned scheduler containment",
     "cli/acceptance_applications.py": "mace_applications_acceptance numbered application proof producer",
@@ -432,7 +462,13 @@
     "services/company_discovery/ats_enrollment.py": "ahsoka_documents guarded native proof handoff",
     "packages/persistence/store.py": "han_recovery inventory method only",
     "apps/api/main.py": "han_recovery inventory router registration only",
-    "cli/compose_recovery.py": "han_recovery strict v4 inventory"
+    "cli/compose_recovery.py": "han_recovery strict v4 inventory",
+    "apps/web/src/main.tsx": "rey_ui_observations explicit stale-fact reload and unsaved draft protection",
+    "services/discovery/sources/collect.py": "obiwan_employer bounded network-free pending hint admission",
+    "services/company_discovery/aggregator_bootstrap.py": "luke_journey_runner reviewed standalone helper",
+    "services/company_discovery/aggregator_workflow.py": "ahsoka_documents staged company-worker workflow",
+    "services/company_discovery/requests.py": "ahsoka_documents staged bootstrap authorization while preserving PR933 guards",
+    "workers/tasks.py": "root explicit presence-based bootstrap dispatch; patch preserved ignored, not yet integrated"
   },
   "acceptance_ledger_sha256": "e474533180451d5a085331bd0c0da3b7944731dea1dcf1c09f6631d015aa4036",
   "runtime": {
@@ -480,13 +516,13 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T18:10:47.173006+00:00",
+  "updated_at": "2026-11-06T18:29:31.383534+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
     "published_head": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
     "required_checks": "Exact33ad Compose and allfast/static checksPASS; integration shards0/1PASS; shard2 andaggregateFAIL on cancellation service budget. Mace instrumenting persistence path; no threshold changes/manualreruns.",
-    "next_candidate_source": "0a38856ad141a82bbf8267a79b29241880d941af"
+    "next_candidate_source": "58c0cc3bce1654aff6d03a208165ecebeb829fa2"
   },
   "runtime_history": [
     {
@@ -535,6 +571,17 @@
       "observed_status": "Fresh startup PASS:10healthy long-running services,migrate exit0. Native UI FAIL: unexpected approved facts in onboarding profile, cli/ui_e2e.py1622. Public source setup, restart and natural monitoring not executed. No acceptance promotion.",
       "startup_receipt": "outputs/mjreq292-native-33ad4e4b3446/startup-receipt.json",
       "diagnostic_evidence": "outputs/mjreq292-native-33ad4e4b3446-journey/ui.json"
+    },
+    {
+      "project": "mjobs-fixture-62c85c9d4adc",
+      "source_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+      "source_tree": "1b1f205dbed635fa32b52ca9368f0f65dc2e4843",
+      "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+      "image_id": "sha256:6afc7056a1e12aa99e9919794c4b5aded3ace7fd688737db614cee380be460e0",
+      "source_archive_sha256": "1b5de11903cbeba8089adc3e6fdc8919e838f843a036f7cce79e4399efffd184",
+      "startup_receipt": "outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json",
+      "diagnostic_evidence": "outputs/mjreq292-native-62c85c9d4adc-journey/ui.json",
+      "observed_status": "StartupPASS10healthyservices+migrateexit0. UI FAIL at2033 repeated fact-rejection HTTP409; new producer observations33,34,35,38,44,45 await independent diagnostic review. No publicsource setup/restart/monitoring executed, no acceptance promotion."
     }
   ],
   "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
