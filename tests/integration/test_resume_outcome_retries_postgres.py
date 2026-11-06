@@ -9,7 +9,8 @@ from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import event, select, text
+from alembic.script import ScriptDirectory
+from sqlalchemy import event, inspect, select, text
 
 from packages.persistence.resume_outcomes import bindings, events
 from packages.persistence.store import Store, identity
@@ -139,6 +140,16 @@ class ResumeOutcomeRetryPostgresTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(first["document_id"], self.binding["document_id"])
         self._assert_durable_history()
+
+    def test_combined_migration_has_one_head_and_preserves_recent_views_table(self):
+        script = ScriptDirectory.from_config(Config("alembic.ini"))
+        self.assertEqual(script.get_heads(), ["20261106ro01"])
+        self.assertEqual(script.get_revision("20261106ro01").down_revision, "20261104rv01")
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(text("SELECT version_num FROM alembic_version"))
+                             .scalars().all(), ["20261106ro01"])
+            self.assertTrue({"profile_job_views", "resume_outcome_bindings", "resume_outcome_events"}
+                            .issubset(inspect(connection).get_table_names()))
 
     def test_concurrent_changed_kind_returns_documented_conflict(self):
         _, second = self._race(retry_kind="REJECTED")

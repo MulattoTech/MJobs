@@ -239,8 +239,9 @@ class ResumeOutcomeMigrationTests(unittest.TestCase):
                     inspector = inspect(store.engine)
                     self.assertTrue(inspector.has_table("resume_outcome_bindings"))
                     self.assertTrue(inspector.has_table("resume_outcome_events"))
-                    command.downgrade(config, "20261025di01")
+                    command.downgrade(config, "20261104rv01")
                     self.assertFalse(inspect(store.engine).has_table("resume_outcome_bindings"))
+                    self.assertTrue(inspect(store.engine).has_table("profile_job_views"))
                     command.upgrade(config, "head")
                     with store.engine.begin() as connection:
                         connection.execute(text("INSERT INTO career_profiles (id, name, email, version) "
@@ -251,7 +252,7 @@ class ResumeOutcomeMigrationTests(unittest.TestCase):
                             "('binding-1', 'synthetic', 'application-1', 'document-1', 1, "
                             "'{}', '2026-11-01T00:00:00+00:00', 'report-1', '2026-11-01T00:00:00+00:00')"))
                     with self.assertRaisesRegex(RuntimeError, "Refusing to discard resume outcome history"):
-                        command.downgrade(config, "20261025di01")
+                        command.downgrade(config, "20261104rv01")
                     self.assertTrue(inspect(store.engine).has_table("resume_outcome_bindings"))
                 finally:
                     store.engine.dispose()
