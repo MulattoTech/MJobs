@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -121,7 +121,7 @@ def test_active_external_codex_discovered_without_ownership(fixture):
                                 "output_tokens": 60}
     assert result["goal"] == "Finish P0/P1 requirements"
     assert "stop" in result["note"].lower()  # Observation must never imply ownership.
-    assert not (clone / "new-source.py").read_text() == ""
+    assert (clone / "new-source.py").read_text() != ""
 
 
 def test_stopped_process_is_not_misrepresented_as_running(fixture):
@@ -172,7 +172,7 @@ def test_observer_does_not_change_checkout_or_checkpoint(fixture):
 
 def test_recent_linked_worktree_activity_supersedes_historical_checkpoint(activity_fixture):
     repo, linked, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "new", "cwd": str(repo), "source": "cli"}),
         rollout_event("turn_context", {"cwd": str(linked), "model": "gpt-6-luna",
@@ -196,7 +196,7 @@ def test_recent_linked_worktree_activity_supersedes_historical_checkpoint(activi
 
 def test_recent_log_activity_does_not_claim_running_without_process_evidence(activity_fixture):
     repo, linked, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "new", "cwd": str(linked)}),
         rollout_event("turn_context", {"cwd": str(linked)}, "2026-11-06T17:59:00Z"),
@@ -207,7 +207,7 @@ def test_recent_log_activity_does_not_claim_running_without_process_evidence(act
 
 def test_stale_logs_are_not_selected_as_recent_activity(activity_fixture):
     repo, _, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     stale_day = now.date() - timedelta(days=2)
     write_rollout(sessions, stale_day, "rollout-stale.jsonl", [
         rollout_event("session_meta", {"id": "old", "cwd": str(repo)}),
@@ -221,7 +221,7 @@ def test_stale_logs_are_not_selected_as_recent_activity(activity_fixture):
 
 def test_large_rollout_uses_header_and_recent_metadata_without_exposing_output(activity_fixture):
     repo, linked, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     directory = sessions / now.strftime("%Y/%m/%d")
     directory.mkdir(parents=True)
     path = directory / "rollout-large.jsonl"
@@ -243,7 +243,7 @@ def test_large_rollout_uses_header_and_recent_metadata_without_exposing_output(a
 
 def test_recent_session_file_limit_marks_coverage_partial(activity_fixture):
     repo, _, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     directory = sessions / now.strftime("%Y/%m/%d")
     directory.mkdir(parents=True)
     import os
@@ -261,7 +261,7 @@ def test_unrelated_recent_repository_session_is_excluded(activity_fixture, tmp_p
     unrelated = tmp_path / "OtherRepo"
     unrelated.mkdir()
     git(unrelated, "init", "-q")
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     write_rollout(sessions, now.date(), "rollout-other.jsonl", [
         rollout_event("session_meta", {"id": "other", "cwd": str(unrelated)}),
         rollout_event("turn_context", {"cwd": str(unrelated)}, "2026-11-06T17:59:00Z"),
@@ -274,7 +274,7 @@ def test_unrelated_recent_repository_session_is_excluded(activity_fixture, tmp_p
 
 def test_status_count_is_not_limited_by_changed_files_preview(activity_fixture):
     repo, linked, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "active", "cwd": str(linked)}),
         rollout_event("turn_context", {"cwd": str(linked)}, "2026-11-06T17:59:00Z"),
@@ -289,7 +289,7 @@ def test_status_count_is_not_limited_by_changed_files_preview(activity_fixture):
 
 
 def test_porcelain_v2_rename_origin_is_not_counted_as_a_second_change(activity_fixture):
-    repo, linked, _ = activity_fixture
+    _repo, linked, _ = activity_fixture
     (linked / "1 old.txt").rename(linked / "2 new.txt")
     git(linked, "add", "-A")
     from tools.agent_dashboard.external_sprints import _workspace_observation
@@ -318,7 +318,7 @@ def test_porcelain_v2_unmerged_record_path_parses_after_all_fields(activity_fixt
 
 def test_git_status_failure_makes_changed_count_unknown(activity_fixture, monkeypatch):
     repo, linked, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     write_rollout(sessions, now.date(), "rollout-current.jsonl", [
         rollout_event("session_meta", {"id": "active", "cwd": str(linked)}),
     ])
@@ -342,7 +342,7 @@ def test_running_requires_matching_verified_codex_process(activity_fixture):
     process = {"Name": "codex.exe", "ProcessId": 98,
                "CommandLine": f'codex.exe --cwd "\\\\?\\{linked}"'}
     result = current_activity(repo, session_root=repo / "no-sessions", processes=[process],
-                              now=datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc))
+                              now=datetime(2026, 11, 6, 18, 0, tzinfo=UTC))
     assert result["observation"] == "RUNNING"
     assert result["pids"] == [98]
 
@@ -352,14 +352,14 @@ def test_process_path_text_without_explicit_exact_cwd_is_not_running(activity_fi
     process = {"Name": "codex.exe", "ProcessId": 99,
                "CommandLine": f'codex.exe --profile {linked}-neighbor'}
     result = current_activity(repo, session_root=repo / "no-sessions", processes=[process],
-                              now=datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc))
+                              now=datetime(2026, 11, 6, 18, 0, tzinfo=UTC))
     assert result["observation"] == "NO_RECENT_ACTIVITY"
     assert result["pids"] == []
 
 
 def test_observer_does_not_write_to_repo_or_session_logs(activity_fixture):
     repo, linked, sessions = activity_fixture
-    now = datetime(2026, 11, 6, 18, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 6, 18, 0, tzinfo=UTC)
     rollout = write_rollout(sessions, now.date(), "rollout-readonly.jsonl", [
         rollout_event("session_meta", {"id": "new", "cwd": str(linked)}),
     ])
@@ -369,6 +369,7 @@ def test_observer_does_not_write_to_repo_or_session_logs(activity_fixture):
 
 def test_mission_control_endpoint_reports_only_readonly_observer(fixture, monkeypatch):
     from fastapi.testclient import TestClient
+
     from tools.agent_dashboard import server as dashboard_server
 
     repo, _, _, _ = fixture
@@ -380,7 +381,7 @@ def test_mission_control_endpoint_reports_only_readonly_observer(fixture, monkey
         }
     monkeypatch.setattr(dashboard_server, "current_activity", readonly_observer, raising=False)
     monkeypatch.setattr(dashboard_server, "current_round3", readonly_observer)
-    monkeypatch.setattr(dashboard_server, "windows_process_snapshot", lambda: [])
+    monkeypatch.setattr(dashboard_server, "windows_process_snapshot", list)
     quota_preferences = []
 
     def quota_reader(*, prefer_fleet: bool):

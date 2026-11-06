@@ -11,7 +11,7 @@ import re
 import shlex
 import subprocess
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -20,8 +20,7 @@ from .observability import windows_process_snapshot
 
 def _normalized(path: str | Path) -> str:
     value = str(path).replace("\\", "/")
-    if value.startswith("//?/"):
-        value = value[4:]
+    value = value.removeprefix("//?/")
     return value.rstrip("/").casefold()
 
 
@@ -86,7 +85,7 @@ def _session_details(path: Path, workspace: Path) -> dict[str, Any] | None:
         "cached_tokens": int(usage.get("cached_input_tokens") or 0),
         "output_tokens": int(usage.get("output_tokens") or 0),
         "log_modified_utc": datetime.fromtimestamp(
-            path.stat().st_mtime, tz=timezone.utc
+            path.stat().st_mtime, tz=UTC
         ).isoformat(),
     }
 
@@ -220,10 +219,10 @@ def _metadata_session(path: Path, registered: dict[str, Path], now: datetime) ->
                 timestamp = event.get("timestamp")
                 if isinstance(timestamp, str):
                     try:
-                        parsed_timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                        parsed_timestamp = datetime.fromisoformat(timestamp)
                         if parsed_timestamp.tzinfo is None:
-                            parsed_timestamp = parsed_timestamp.replace(tzinfo=timezone.utc)
-                        parsed_timestamp = parsed_timestamp.astimezone(timezone.utc)
+                            parsed_timestamp = parsed_timestamp.replace(tzinfo=UTC)
+                        parsed_timestamp = parsed_timestamp.astimezone(UTC)
                         latest_activity = max(latest_activity, parsed_timestamp) if latest_activity else parsed_timestamp
                     except ValueError:
                         pass
@@ -232,7 +231,7 @@ def _metadata_session(path: Path, registered: dict[str, Path], now: datetime) ->
     if not identity or workspace is None:
         return None
     try:
-        modified = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+        modified = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
     except OSError:
         return None
     if modified < now - timedelta(hours=24):
@@ -354,10 +353,10 @@ def current_activity(
 ) -> dict[str, Any]:
     """Observe current Codex activity in the canonical repo and registered worktrees."""
     repo = repo.resolve()
-    now = now or datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
     if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
-    now = now.astimezone(timezone.utc)
+        now = now.replace(tzinfo=UTC)
+    now = now.astimezone(UTC)
     if session_root is None:
         session_root = Path.home() / ".codex" / "sessions"
 
@@ -396,7 +395,7 @@ def current_activity(
     return {
         "available": True,
         "read_only": True,
-        "observed_at": now.astimezone(timezone.utc).isoformat(),
+        "observed_at": now.astimezone(UTC).isoformat(),
         "observation": observation,
         "pids": sorted(pids),
         "workspaces": workspaces,
