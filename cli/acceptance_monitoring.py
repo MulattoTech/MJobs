@@ -396,6 +396,10 @@ def _validate_recovery_artifact(receipt, baseline, base_url):
         _require(domains.get('result') == 'PASS' and sorted(domains.get('domains', [])) == sorted(persistence.DOMAINS)
             and inventory.get('result') == 'PASS' and inventory.get('sha256') == baseline['job_inventory']['sha256'],
             'MONITOR_RECOVERY_ARTIFACT_PERSISTENCE_INVALID')
+        if baseline['job_inventory']['schema_version'] == 4:
+            expected = compare_public_job_inventory(baseline, baseline['job_inventory'], baseline['job_inventory'])
+            _require(all(type(inventory.get(key)) is type(value) and inventory[key] == value
+                         for key, value in expected.items()), 'MONITOR_RECOVERY_ARTIFACT_PERSISTENCE_INVALID')
         return raw
     except MonitoringAcceptanceError:
         raise

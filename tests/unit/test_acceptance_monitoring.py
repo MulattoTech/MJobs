@@ -119,6 +119,9 @@ class AcceptanceMonitoringTests(unittest.TestCase):
             container_health=dict(before=health, after=health),
             local_persistence=dict(result='PASS', domains=list(persistence.DOMAINS)),
             public_job_inventory_recovery=dict(result='PASS', sha256=self.world.inventory['sha256']))
+        if self.world.inventory['schema_version'] == 4:
+            raw['public_job_inventory_recovery'] = acceptance.compare_public_job_inventory(
+                self.world.baseline, self.world.inventory, self.world.inventory)
         path = self.root/'compose-recovery.json'
         path.write_bytes(json.dumps(raw).encode())
         return dict(scope='CONTROLLED_RECOVERY_SEGMENT', result='PASS', source=self.world.binding, acceptance_run_id='run1',
@@ -155,7 +158,7 @@ class AcceptanceMonitoringTests(unittest.TestCase):
                     acceptance.prepare('http://127.0.0.1:18700', world.baseline, self.root/(field+'.json'), acceptance_run_id='run1', **world.options())
                 self.assertFalse(any(method=='PUT' for method, _, _ in world.calls))
 
-    def test_v4_complete_inventory_is_preserved_through_natural_monitor_recovery(self):
+    def use_v4_inventory(self):
         from packages.persistence.job_inventory import digest, snapshot_digest
         self.world.profile_version = 'f' * 64
         rows = [dict(job_id='job1', canonical_sha256='a' * 64, route_count=1,
@@ -164,10 +167,28 @@ class AcceptanceMonitoringTests(unittest.TestCase):
             profile_version=self.world.profile_version, job_count=1, source_copy_count=0,
             jobs=rows, sha256=digest(rows), snapshot_sha256=snapshot_digest('profile1', self.world.profile_version, rows))
         self.world.baseline['job_inventory'] = copy.deepcopy(self.world.inventory)
+
+    def test_v4_complete_inventory_is_preserved_through_natural_monitor_recovery(self):
+        self.use_v4_inventory()
         prepared = self.prepare()
         after = self.restart(prepared)
         self.assertEqual([row['status'] for row in after['observations']], ['PASS', 'PASS'])
         self.assertEqual(after['job_inventory']['schema_version'], 4)
+
+    def test_v4_recovery_summary_drift_is_rejected_even_with_matching_raw_byte_hash(self):
+        self.use_v4_inventory()
+        for key, value in (('schema_version', 3), ('profile_id', 'other'), ('profile_version', 'b' * 64),
+                ('snapshot_sha256', 'c' * 64), ('job_count', True), ('source_copy_count', False),
+                ('scope', 'VISIBLE_JOBS')):
+            with self.subTest(key=key):
+                receipt = self.recovery()
+                path = Path(receipt['recovery_artifact_path'])
+                raw = json.loads(path.read_bytes())
+                raw['public_job_inventory_recovery'][key] = value
+                path.write_bytes(json.dumps(raw).encode())
+                receipt['recovery_artifact_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+                with self.assertRaisesRegex(acceptance.MonitoringAcceptanceError, 'PERSISTENCE_INVALID'):
+                    acceptance._validate_recovery_artifact(receipt, self.world.baseline, 'http://127.0.0.1:18700')
 
     def test_stalled_scheduler_times_out_without_any_manual_enqueue(self):
         self.world.stall = True
