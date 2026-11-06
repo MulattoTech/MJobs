@@ -260,6 +260,11 @@ class DurableTLSRecoveryTests(unittest.TestCase):
     def test_tls_cancellation_and_deadline_persist_without_uncertain_replay(self):
         for provider_type in HTTPS_PROVIDERS:
             for cancel in (False, True):
+                # Isolate prior fixture cycles before creating any operation or
+                # deadline. Automatic GC stays enabled throughout the operation.
+                gc_setup_started = time.monotonic()
+                gc_setup_collected = gc.collect()
+                gc_setup_ms = (time.monotonic() - gc_setup_started) * 1000
                 with self.subTest(provider=provider_type.name, cancel=cancel), stalled_tls_peer() as (
                         origin, started, closed), recorded_duplicates() as duplicates, ExitStack() as clients:
                     client = httpx.Client(trust_env=False, timeout=1.5)
@@ -376,6 +381,8 @@ class DurableTLSRecoveryTests(unittest.TestCase):
                                            f'{(response_closed_at - before) * 1000:.1f}ms')
                             phase_details = (f'provider={provider_type.name} cancel={cancel}; '
                                              f'client_setup={setup_phase}; ack={ack_phase}; '
+                                             f'gc_setup={gc_setup_ms:.3f}ms (before operation); '
+                                             f'gc_setup_collected={gc_setup_collected}; '
                                              f'socket_close={close_phase}; '
                                              f'worker_terminal={elapsed * 1000:.1f}ms; '
                                              f'worker_exit={(worker_finished[0] - before) * 1000:.1f}ms; '

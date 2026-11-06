@@ -6,6 +6,7 @@ from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 import hashlib
 import json
+import sys
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -38,6 +39,20 @@ def now():
 
 def identity(*parts):
     return hashlib.sha256(json.dumps(parts, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+
+
+def _finite_salary_amount(attributes, key, is_number, dialect):
+    """Guard JSON type and backend float conversion before evaluating the cast."""
+    amount = attributes[key].as_float()
+    if dialect == "postgresql":
+        # A JSON number can exceed DOUBLE PRECISION's range. PostgreSQL 17's
+        # soft input validation must run inside the CASE condition, before CAST.
+        convertible = func.pg_input_is_valid(attributes[key].as_string(), "double precision")
+    else:
+        # SQLite exposes an overflowing JSON number as infinity instead of an
+        # error. Keep such values outside disclosed, comparable salary bands.
+        convertible = amount.between(-sys.float_info.max, sys.float_info.max)
+    return case((is_number & convertible, amount), else_=None)
 
 
 def upsert(connection, table, data, replace=False):
@@ -734,12 +749,19 @@ class Store:
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,
+             salary_period="YEAR", salary_known_only=False, salary_unknown_allowed=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
              job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
              application_capability=None, exclude_company_ids=None, job_ids=None, search_criteria=None,
              row_filter=None):
+        if salary_period not in {"HOUR", "YEAR"}:
+            raise ValueError("Salary period must be HOUR or YEAR")
+        if type(salary_known_only) is not bool or (salary_unknown_allowed is not None and type(salary_unknown_allowed) is not bool):
+            raise ValueError("Salary availability policy must be boolean")
+        if salary_known_only and salary_unknown_allowed:
+            raise ValueError("Salary cannot require known pay and allow unknown pay simultaneously")
         if application_capability == "":
             application_capability = None
         if application_capability is not None:
@@ -957,23 +979,59 @@ class Store:
                 statement = statement.where(m.companies.c.name.icontains(company, autoescape=True))
             if location:
                 statement = statement.where(m.jobs.c.location.icontains(location, autoescape=True))
-            if salary_min is not None or salary_max is not None:
+            salary_filter_active = (
+                salary_min is not None or salary_max is not None
+                or salary_known_only or salary_unknown_allowed is not None
+            )
+            if salary_filter_active:
                 attributes = m.jobs.c.attributes
-                salary_currency = attributes["salary_currency"].as_string()
-                salary_period = attributes["salary_period"].as_string()
+                currency = attributes["salary_currency"].as_string()
+                period = attributes["salary_period"].as_string()
+                source = attributes["salary_source"].as_string()
                 if self.engine.dialect.name == "postgresql":
-                    low_is_number = func.json_typeof(attributes["salary_min"]) == "number"
-                    high_is_number = func.json_typeof(attributes["salary_max"]) == "number"
+                    low_type = func.json_typeof(attributes["salary_min"])
+                    high_type = func.json_typeof(attributes["salary_max"])
+                    low_is_number = low_type == "number"
+                    high_is_number = high_type == "number"
                 else:
-                    low_is_number = func.json_type(attributes, "$.salary_min").in_(("integer", "real"))
-                    high_is_number = func.json_type(attributes, "$.salary_max").in_(("integer", "real"))
-                offer_min = case((low_is_number, attributes["salary_min"].as_float()), else_=None)
-                offer_max = case((high_is_number, attributes["salary_max"].as_float()), else_=None)
-                statement = statement.where(salary_currency == "USD", salary_period == "YEAR")
+                    low_type = func.json_type(attributes, "$.salary_min")
+                    high_type = func.json_type(attributes, "$.salary_max")
+                    low_is_number = low_type.in_(("integer", "real"))
+                    high_is_number = high_type.in_(("integer", "real"))
+                # SQL may reorder boolean predicates. Guard the cast itself so
+                # malformed JSON cannot raise before the type predicate is tested.
+                low = _finite_salary_amount(attributes, "salary_min", low_is_number, self.engine.dialect.name)
+                high = _finite_salary_amount(attributes, "salary_max", high_is_number, self.engine.dialect.name)
+                low_present = low_type.is_not(None) & (low_type != "null")
+                high_present = high_type.is_not(None) & (high_type != "null")
+                low_valid = case((low_is_number & (low >= 0), True), else_=False)
+                high_valid = case((high_is_number & (high >= 0), True), else_=False)
+                endpoints_valid = ~(low_present & ~low_valid) & ~(high_present & ~high_valid)
+                ordered_band = ~(low_valid & high_valid) | (low <= high)
+                # An estimate, foreign currency, malformed amount or different
+                # pay period cannot be treated as a disclosed USD offer.
+                not_estimated = func.coalesce(source, "") != "ESTIMATED"
+                comparable = (
+                    (currency == "USD") & (period == salary_period) & not_estimated
+                    & endpoints_valid & (low_valid | high_valid) & ordered_band
+                )
+                matches = comparable
                 if salary_min is not None:
-                    statement = statement.where(high_is_number, offer_max >= salary_min)
+                    # An absent maximum cannot prove a requested minimum.
+                    matches = matches & high_valid & (high >= salary_min)
                 if salary_max is not None:
-                    statement = statement.where(low_is_number, offer_min <= salary_max)
+                    # An absent minimum cannot prove a requested maximum.
+                    matches = matches & low_valid & (low <= salary_max)
+                if salary_unknown_allowed and not salary_known_only:
+                    # Include genuinely undisclosed compensation when opted in,
+                    # never a known incompatible unit, currency or estimate.
+                    unknown = (
+                        ~low_present & ~high_present & not_estimated
+                        & (currency.is_(None) | currency.in_(("", "USD", "UNKNOWN")))
+                        & (period.is_(None) | period.in_(("", "UNKNOWN", salary_period)))
+                    )
+                    matches = or_(matches, unknown)
+                statement = statement.where(matches)
             if min_match_score is not None:
                 # The outer join is restricted to the active profile version above;
                 # this predicate also fails closed for unscored jobs and runs before LIMIT.
@@ -1117,8 +1175,10 @@ class Store:
                     high_type = func.json_type(attributes, "$.salary_max")
                     low_is_number = low_type.in_(("integer", "real"))
                     high_is_number = high_type.in_(("integer", "real"))
-                low_amount = attributes["salary_min"].as_float()
-                high_amount = attributes["salary_max"].as_float()
+                # Keep casts inside type-checked CASE arms here as in filtering;
+                # boolean comparison order is not a safe JSON conversion guard.
+                low_amount = _finite_salary_amount(attributes, "salary_min", low_is_number, self.engine.dialect.name)
+                high_amount = _finite_salary_amount(attributes, "salary_max", high_is_number, self.engine.dialect.name)
                 # Missing and explicit JSON null are valid one-sided endpoints.
                 # Any supplied non-number or negative endpoint invalidates the
                 # entire record, even if the opposite endpoint looks comparable.
@@ -1133,10 +1193,15 @@ class Store:
                 comparable = currency_is_usd & period_is_year & endpoints_valid & (low_valid | high_valid) & valid_band
                 disclosed = case((high_valid, high_amount), (low_valid, low_amount), else_=None)
                 sortable_salary = case((comparable, disclosed), else_=None)
+                # Identifier ties must stay deterministic across database locales,
+                # including the unknown-salary tail used by bounded queries.
+                id_tie_breaker = m.jobs.c.id
+                if self.engine.dialect.name == "postgresql":
+                    id_tie_breaker = id_tie_breaker.collate("C")
                 statement = statement.order_by(
                     case((comparable, 0), else_=1),
                     sortable_salary.desc().nulls_last() if sort == "salary_high" else sortable_salary.asc().nulls_last(),
-                    m.jobs.c.id,
+                    id_tie_breaker,
                 )
             if application_capability is not None or search_criteria is not None or row_filter is not None:
                 # The filter can stop before exhausting the SQL iterator. Close

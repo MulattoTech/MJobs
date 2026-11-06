@@ -112,3 +112,52 @@ a late worker is the next falsifiable observation, not proof by itself. If the
 next hosted measurement gives no discrimination, stop rather than loop. No
 workflow rerun/dispatch, requirement promotion, merge or deployment is authorized
 by this receipt.
+
+## Fixture setup isolation after discriminating hosted evidence — 2026-11-06
+
+The next hosted measurement did discriminate the delay. At head
+`98d37f6b0109ec3fd1aed31d4ae8eae8e856cc70`,
+[shard0/job127730469141](https://github.com/MulattoTech/MJobs/actions/runs/42168483477/job/127730469141)
+failed Azure deadline completion at1042.8ms (worker exit1042.7ms), after peer
+closure at297ms. The owned worker's generation2 collection started at298.092ms
+and stopped at1037.243ms:739.151ms, with no dropped events. The934.043ms sample
+was in `_collection_gced` during compilation at `tasks.py:639`. The measured
+collection interval accounts for nearly all post-peer delay. The origin and
+ownership of the collected objects remain unproved. Result:1 failed,938 passed,
+17 skipped,649 passing subtests,921.72s. This failure is not relabeled PASS.
+The same run's separate Greenhouse connect-engagement failure is routed to its
+source-transport owner and is not repaired by this change.
+
+The primary authorized a fixture-only correction: collect at the beginning of
+each provider/cancellation subcase, **before peer/client, operation or deadline
+creation and before worker submission**. Setup duration and collected count are
+reported separately. No actual operation work is excluded from the existing
+clock; no collection is forced during the measured operation. Automatic GC,
+thresholds, phase observer,900ms assertion, cleanup, committed cancellation,
+database reopen and redelivery checks remain unchanged. This is fixture
+isolation, not a production-latency fix or a claim about object provenance.
+
+Refreshed main: `6a47f56204462da1aea5ba59ff8a5f88346d05cd`.
+Tested test blob: `8f1240ffb3b325d38db89fad59970a0e48e88041`.
+Tested pre-evidence tree: `b9824672816a210657d4e2f89516d56e28adeeea`.
+The authored test delta from the diagnostic is seven added lines; shared and
+canonical files inherit main unchanged.
+
+One authorized batch reused the preceding normal/observer/privacy/delayed-worker
+verification harness and pinned Windows dependencies. UTC2026-11-06T05:56:13Z
+to05:56:33Z; CPU19%→33%. The process snapshot counted109 node and6 python
+processes; these counts do not attribute concurrent workload or imply an idle host.
+
+- Normal module:3 tests with all6 provider/cancellation subcases PASS,11.019s,
+  zero failures/errors/skips. Setup collection78–203ms and853–2685 objects,
+  before operation creation. Azure deadline313ms and cancellation234ms.
+- Bounded observer, privacy and exceptional-exit controls PASS; callback list,
+  enabled GC state and `(700, 10, 10)` thresholds unchanged afterward.
+- Exactly one expected900ms assertion failure from the700ms delayed-worker
+  control; delay stack and GC fields remain visible, private local/path absent
+  from diagnostic lines. The negative control remains a failure, not a normal
+  test pass or a weakened acceptance criterion.
+
+No broad rerun or workflow retry was requested. New-head hosted validation and
+native review remain required. Local success does not prove the hosted failure
+is resolved, and full MJ-REQ-004/MJ-REQ-008 acceptance remains PARTIAL.
