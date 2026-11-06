@@ -138,6 +138,12 @@ class ChildReadbackTests(unittest.TestCase):
         self.assertTrue(OwnedPublicSourceContainment._children_terminal(checked["children"]))
         self.assertFalse(checked["acceptance_success"])
 
+    def test_complete_empty_family_is_not_run_not_successful_and_remains_safe_to_cleanup(self):
+        checked = self.validate(response(children=[], enrolled=[]))
+        self.assertEqual("NOT_RUN", checked["acceptance_result"])
+        self.assertFalse(checked["acceptance_success"])
+        self.assertTrue(OwnedPublicSourceContainment._children_terminal(checked["children"]))
+
     def test_running_parent_is_readable_but_not_a_frozen_cleanup_lineage(self):
         value = response(children=[child_row(state="RUNNING")], complete=False)
         checked = self.validate(value, require_complete=False)

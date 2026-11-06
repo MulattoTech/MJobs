@@ -219,7 +219,12 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
             "request_ids": sorted(row["request_id"] for row in ordered),
             "lineage_sha256": response["lineage_sha256"],
             "complete": complete,
-            "acceptance_success": bool(complete and all(row["state"] == "COMPLETED" for row in ordered)),
+            "acceptance_result": (
+                "NOT_RUN" if complete and not ordered else
+                "PASS" if complete and all(row["state"] == "COMPLETED" for row in ordered) else
+                "PARTIAL" if complete else "IN_PROGRESS"
+            ),
+            "acceptance_success": bool(complete and ordered and all(row["state"] == "COMPLETED" for row in ordered)),
         }
 
     @staticmethod
@@ -441,6 +446,7 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
             "parent_operation_id": self._own_operation_id,
             "parent_request_id": self._own_request_id,
             "lineage_sha256": None if self._child_frozen is None else self._child_frozen["lineage_sha256"],
+            "acceptance_result": "NOT_RUN" if self._child_frozen is None else self._child_frozen["acceptance_result"],
             "acceptance_success": False if self._child_frozen is None else self._child_frozen["acceptance_success"],
             "owned_child_sources": [
                 {key: value for key, value in row.items() if key not in {"policy"}}
@@ -654,6 +660,7 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
         self._write_child_cleanup_receipt()
         return {
             "lineage_sha256": checked["lineage_sha256"],
+            "acceptance_result": checked["acceptance_result"],
             "acceptance_success": checked["acceptance_success"],
             "company_sources_disabled": sorted(
                 key for key, value in self._child_cleanup_rows.items()
@@ -670,6 +677,9 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
 
     def _active_discoveries_frozen(self):
         self._assert_frozen_operations()
+        # The base release loop calls this repeatedly, including immediately
+        # before unpause. Revalidate exact child policy rows at that boundary.
+        self._validate_child_resources(self._child_frozen, after_cleanup=True)
         return super()._active_discoveries()
 
     def __call__(self, stage, context):
@@ -686,8 +696,7 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
         if stage in {"finalize", "cleanup"}:
             result["child_source_cleanup"] = self.cleanup_owned_child_sources(context)
         elif stage == "release" and self._child_frozen is not None:
-            self._assert_frozen_operations()
-            self._validate_child_resources(self._child_frozen, after_cleanup=True)
             result["child_lineage_sha256"] = self._child_frozen["lineage_sha256"]
+            result["child_acceptance_result"] = self._child_frozen["acceptance_result"]
             result["child_acceptance_success"] = self._child_frozen["acceptance_success"]
         return result
