@@ -671,6 +671,41 @@ def join_public_browser(baseline, public, browser, public_sha, browser_sha, runt
         "runtime_identity": projection, "acceptance_observations": rows}
 
 
+def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
+    """Join optional source configuration proof after successful containment release."""
+    if (type(artifact.get("schema_version")) is not int or artifact["schema_version"] != 1
+            or artifact.get("result") not in {"PASS", "PARTIAL"}
+            or artifact.get("source") != baseline["source"]
+            or artifact.get("acceptance_run_id") != public["acceptance_run_id"]
+            or artifact.get("target_origin") != target["base_url"]
+            or artifact.get("profile_id") != baseline["profile_id"]
+            or artifact.get("application_id") != baseline["application_id"]
+            or artifact.get("job_id") != baseline.get("selected_application_job_id")
+            or validate_runtime_identity(artifact.get("runtime_identity")) != {
+                key: runtime[key] for key in ("source_manifest_sha256", "images")}
+            or artifact.get("primary") != {"provider": "wwr", "source_id": public["source_id"],
+                                            "policy_sha256": public["source_policy_sha256"]}
+            or public.get("provider") != "wwr" or artifact.get("extra_collection_operation_ids") != []):
+        raise ValueError("Source setup identity differs from its connected public run")
+    extra = artifact.get("owned_extra", {})
+    if (extra.get("provider") != "remotive" or extra.get("disabled") is not True
+            or not isinstance(extra.get("source_id"), str) or not SAFE_ID.fullmatch(extra["source_id"])
+            or extra["source_id"] == public["source_id"]
+            or any(not isinstance(extra.get(key), str) or re.fullmatch(r"[a-f0-9]{64}", extra[key]) is None
+                   for key in ("enabled_policy_sha256", "disabled_policy_sha256"))
+            or extra["enabled_policy_sha256"] == extra["disabled_policy_sha256"]):
+        raise ValueError("Owned extra source cleanup proof is incomplete")
+    if not _instant(public["timestamp"]) <= _instant(artifact.get("timestamp")) <= datetime.now(timezone.utc) + timedelta(seconds=5):
+        raise ValueError("Source setup publication must follow its public collection")
+    rows = numbered_observations(artifact, segment="source_setup", run_id=public["acceptance_run_id"],
+                                 source=baseline["source"], identity=_identity(baseline))
+    if (len(rows) != 1 or rows[0]["step"] != 9
+            or rows[0]["continuity"] != {"profile_id": baseline["profile_id"]}
+            or rows[0]["status"] == "PASS" and artifact["result"] != "PASS"):
+        raise ValueError("Source setup requires its exact same-profile numbered observation")
+    return rows[0]
+
+
 def _validate_recaptured_baseline(original, updated):
     _identity(updated)
     for key in ("selected_application_job_id", "selected_application_route_id"):
@@ -895,6 +930,7 @@ def numbered_observations(artifact, *, segment, run_id, source, identity):
         if (type(step) is not int or not 1 <= step <= 60 or step in seen
                 or (segment == "ui" and (step == 1 or step >= 54))
                 or (segment == "startup" and step != 1)
+                or (segment == "source_setup" and step != 9)
                 or (segment in {"public", "public_source"} and step != 11)
                 or (segment == "public_browser" and step not in {11, 16})
                 or (segment == "recovery" and not 54 <= step <= 58)
@@ -987,7 +1023,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
         restored.binding["runtime_checks"] = saved.get("runtime_checks", {})
         restored.binding["frontend_build"] = saved.get("frontend_build", {"status": "NOT_RUN"})
         restored.binding["resume_imported"] = True
-        for key in ("public_browser", "public_observations"):
+        for key in ("public_browser", "public_observations", "source_setup"):
             if key in saved:
                 restored.binding[key] = saved[key]
         if "startup" in saved:
@@ -1028,7 +1064,7 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
                     raise ValueError("Checkpoint artifact hash mismatch")
                 restored.complete_segment(name, artifact, sha, persist=False)
                 for row in restored.binding["steps"]:
-                    if row.get("verification", {}).get("evidence_artifact") in ({f"{name}.json", "public-observations.json"} if name == "public" else {f"{name}.json"}):
+                    if row.get("verification", {}).get("evidence_artifact") in ({f"{name}.json", "public-observations.json", "public-source-setup.json"} if name == "public" else {f"{name}.json"}):
                         row["verification"]["resume_imported"] = True
         return restored
 
@@ -1050,6 +1086,20 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
             "run_id": self.binding["run_id"], "evidence_kind": "CONTROLLED_FIXTURE", "continuity": {},
             "command": receipt["command"], "observed_result": row["observable_result"],
             "executed_at_utc": artifact["timestamp"], "resume_imported": imported}}
+
+    def record_source_setup(self, baseline, public):
+        artifact, sha = _read_artifact(self.path.parent / "public-source-setup.json")
+        if self.binding["source_setup"] != {"artifact": "public-source-setup.json", "sha256": sha}:
+            raise ValueError("Source setup evidence reference hash mismatch")
+        row = validate_source_setup_artifact(artifact, baseline, public, self.binding["target"], self.binding["runtime"])
+        report = {"number": 9, "status": row["status"], "observation": row, "verification": {
+            "tested_commit": self.binding["source"]["commit"], "evidence_artifact": "public-source-setup.json",
+            "evidence_sha256": sha, "run_id": self.binding["run_id"], "evidence_kind": row["evidence_kind"],
+            "continuity": row["continuity"], "command": "cli.acceptance_source_setup (owned contained UI configuration)",
+            "observed_result": row["observable_result"], "executed_at_utc": artifact["timestamp"]}}
+        if row["status"] == "PASS" and self.binding["frontend_build"]["status"] != "PASS":
+            report.update(status="PARTIAL", producer_status="PASS", credit_withheld="FRONTEND_BUILD_NOT_BOUND")
+        self.binding["steps"][8] = report
 
     def begin(self, name):
         if name not in self.binding["segments"] or self.binding["segments"][name]["status"] != "NOT_RUN":
@@ -1103,6 +1153,8 @@ class JourneyCheckpoint(ui_e2e.EvidenceJournal):
             identity = self.binding["continuity"]
             self.binding["observed_real_job_ids"] = artifact["observed_real_job_ids"]
             self.binding["selected_application_job_id"] = artifact["selected_application_job_id"]
+            if "source_setup" in self.binding:
+                self.record_source_setup(original, artifact)
             if "public_browser" in self.binding:
                 browser, browser_sha = _read_artifact(self.path.parent / "public-browser.json")
                 joined, joined_sha = _read_artifact(self.path.parent / "public-observations.json")
@@ -1342,6 +1394,11 @@ def run(*, base_url, evidence_dir, project_name, port, run_id, resume=False, sto
                     "newly_created": public["cleanup"]["status"] == "RESTORED_DISABLED",
                     **{key: public[key] for key in ("collection_operation_id", "collection_request_id",
                                                    "source_id", "source_policy_sha256")}})
+                setup_path = directory / "public-source-setup.json"
+                if setup_path.exists():
+                    setup, setup_sha = _read_artifact(setup_path)
+                    validate_source_setup_artifact(setup, baseline, public, target, latest)
+                    checkpoint.binding["source_setup"] = {"artifact": setup_path.name, "sha256": setup_sha}
             elif name == "monitor_prepare":
                 reference = copy.deepcopy(_baseline_reference(checkpoint.binding))
                 baseline = _read_reference(directory, reference)

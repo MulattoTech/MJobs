@@ -1189,3 +1189,94 @@ def test_public_release_cannot_use_missing_or_malformed_policy_identity(policy_h
     artifact["source_policy_sha256"] = policy_hash
     with pytest.raises(ValueError, match="policy identity"):
         journey.validate_public_artifact(artifact, baseline(), "wwr", RUN_ID)
+
+
+def source_setup_artifact(state, public):
+    return {"schema_version": 1, "result": "PASS", "timestamp": journey.utc_now(), "source": SOURCE,
+        "acceptance_run_id": RUN_ID, "target_origin": TARGET["base_url"], "profile_id": state["profile_id"],
+        "application_id": state["application_id"], "job_id": state["selected_application_job_id"],
+        "runtime_identity": {key: RUNTIME[key] for key in ("source_manifest_sha256", "images")},
+        "primary": {"provider": "wwr", "source_id": public["source_id"], "policy_sha256": public["source_policy_sha256"]},
+        "owned_extra": {"provider": "remotive", "source_id": "extra-remotive", "enabled_policy_sha256": "8" * 64,
+                        "disabled_policy_sha256": "9" * 64, "disabled": True},
+        "extra_collection_operation_ids": [],
+        "acceptance_observations": [{"step": 9, "status": "PASS", "observable_result": "Both configured sources visible and enabled before owned extra was disabled",
+            "evidence_kind": "CONTROLLED_FIXTURE", "run_id": RUN_ID, "source_commit": SOURCE["commit"],
+            "continuity": {"profile_id": state["profile_id"]},
+            "checks": [{"name": name, "passed": True} for name in sorted(journey.REQUIRED_CHECKS[9])]}]}
+
+
+def test_source_setup_requires_same_run_ui_source_policy_and_cleanup():
+    state, public = baseline(), public_artifact()
+    artifact = source_setup_artifact(state, public)
+    row = journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+    assert row["step"] == 9 and row["status"] == "PASS"
+
+
+@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "job", "runtime", "primary", "policy", "enabled-extra", "same-source", "missing-cleanup", "extra-operation", "stale", "checks"])
+def test_source_setup_rejects_unbound_or_unclean_evidence(change):
+    state, public = baseline(), public_artifact()
+    artifact = source_setup_artifact(state, public)
+    if change == "run": artifact["acceptance_run_id"] = "other-run"
+    if change == "source": artifact["source"] = {**SOURCE, "commit": "b" * 40}
+    if change == "profile": artifact["profile_id"] = "other-profile"
+    if change == "application": artifact["application_id"] = "other-app"
+    if change == "job": artifact["job_id"] = "other-job"
+    if change == "runtime": artifact["runtime_identity"]["images"] = {"api": "sha256:" + "b" * 64}
+    if change == "primary": artifact["primary"]["source_id"] = "other-source"
+    if change == "policy": artifact["primary"]["policy_sha256"] = "6" * 64
+    if change == "enabled-extra": artifact["owned_extra"]["disabled"] = False
+    if change == "same-source": artifact["owned_extra"]["source_id"] = public["source_id"]
+    if change == "missing-cleanup": artifact["owned_extra"].pop("disabled_policy_sha256")
+    if change == "extra-operation": artifact["extra_collection_operation_ids"] = ["unapproved-collect"]
+    if change == "stale": artifact["timestamp"] = "2000-01-01T00:00:00Z"
+    if change == "checks": artifact["acceptance_observations"][0]["checks"][0]["passed"] = False
+    with pytest.raises(ValueError):
+        journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
+
+
+@pytest.mark.parametrize("setup_present,release_fails", [(False, False), (True, False), (True, True)])
+def test_optional_source_setup_joins_only_after_successful_release(tmp_path, setup_present, release_fails):
+    def ui_run(url, path, **kwargs):
+        value = baseline()
+        value["acceptance_observations"].append({"step": 9, "status": "PARTIAL", "observable_result": "Additional source configuration not observed",
+            "evidence_kind": "CONTROLLED_FIXTURE", "source_commit": SOURCE["commit"], "run_id": RUN_ID,
+            "continuity": {"profile_id": IDENTITY["profile_id"]},
+            "checks": [{"name": name, "passed": False} for name in sorted(journey.REQUIRED_CHECKS[9])]})
+        emit(path, value)
+    def release(stage, context):
+        assert stage == "release"
+        if setup_present:
+            ui = json.loads((tmp_path / "ui.json").read_text())
+            public = json.loads((tmp_path / "public.json").read_text())
+            emit(tmp_path / "public-source-setup.json", source_setup_artifact(ui, public))
+        if release_fails:
+            raise RuntimeError("controlled release failure")
+    with patch.object(journey, "current_source", return_value=SOURCE), \
+            patch.object(journey, "preflight", return_value=RUNTIME), \
+            patch.object(journey, "_public_source_module", return_value=SimpleNamespace(run=lambda _, state, path, **kwargs: emit(path, public_artifact()))), \
+            patch.object(journey, "recapture_public_baseline", side_effect=lambda original, *_: {
+                **original, "job_inventory": inventory(("mock-job-1", "real-job-1"))}), \
+            patch.object(journey.ui_e2e, "run", side_effect=ui_run), \
+            patch.object(journey.recovery, "run", side_effect=lambda _, path, *args: emit(path, recovered())) as recovery_run:
+        if release_fails:
+            with pytest.raises(RuntimeError, match="release failure"):
+                invoke(tmp_path, public_source_provider="wwr", public_source_preflight=release)
+            recovery_run.assert_not_called()
+            report = json.loads((tmp_path / "journey.json").read_text())
+            assert report["steps"][8]["status"] == "PARTIAL"
+            assert "source_setup" not in report
+            return
+        report = invoke(tmp_path, public_source_provider="wwr", public_source_preflight=release)
+    assert report["steps"][8]["status"] == ("PASS" if setup_present else "PARTIAL")
+    if setup_present:
+        verification = report["steps"][8]["verification"]
+        assert verification["evidence_artifact"] == "public-source-setup.json"
+        assert verification["evidence_sha256"] == hashlib.sha256((tmp_path / "public-source-setup.json").read_bytes()).hexdigest()
+        restored = journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr").payload()
+        assert restored["steps"][8]["verification"]["resume_imported"] is True
+        assert restored["steps"][8]["verification"]["executed_at_utc"] == verification["executed_at_utc"]
+        with (tmp_path / "public-source-setup.json").open("ab") as stream:
+            stream.write(b" ")
+        with pytest.raises(ValueError, match="Source setup evidence reference hash mismatch"):
+            journey.JourneyCheckpoint.resume(tmp_path / "journey.json", RUN_ID, SOURCE, TARGET, "wwr")
