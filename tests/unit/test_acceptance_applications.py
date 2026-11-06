@@ -106,6 +106,7 @@ def test_real_evidence_journal_persists_step_and_exact_stage_lineage(tmp_path):
     assert result["status"] == "PASS"
     payload = json.loads(artifact_path.read_text(encoding="utf-8"))
     assert payload["acceptance_run_id"] == RUN_ID
+    assert payload["runtime_identity"] == RUNTIME
     assert payload["selected_profile_id"] == "profile-B"
     assert payload["selected_application_id"] == "app-B"
     assert payload["selected_application_job_id"] == "job-B"
