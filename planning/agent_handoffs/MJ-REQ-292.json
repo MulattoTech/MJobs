@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "2313c41c045fa94f4487e3399165b6f6fe10d070",
+  "head_sha": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
   "routing_state": "EXECUTE",
-  "next_action": "Build the frozen integrated source; execute one fresh native Greenhouse UI journey with owned source-setup, public WWR, restart and natural monitoring. Reconcile fresh PR973 protected checks and merge only qualified source; verify acceptance against exact merged source. Keep0PASS until complete evidence qualifies.",
+  "next_action": "Repair native onboarding readback and exact-head hosted cancellation failure; integrate independently reviewed Greenhouse inventory and official-domain proof handoff; add complete paginated persisted inventory/recovery v4. Then rebuild frozen source and execute fresh connected journey. Keep original 60-step scoreboard unchanged until exact-source independent acceptance qualifies.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -138,10 +138,11 @@
     }
   ],
   "blockers": [
-    "Full connected native/public/restart/monitoring journey remains incomplete; no independently verified PASS rows.",
-    "Publishedfa4 CI failed question prompt strict locator; reviewed6aff correction is integrated and tested; newprotectedchecks pending.",
-    "Positive live Stripe parser/network path observed with productionguards, but native company DB promotion/RQ/enrollment end-to-end remains NOT_RUN.",
-    "Exact merged-source run, independent whole-journey review and typed integration receipts are still required."
+    "Native33ad connected UI failed onboarding profile fact readback; Rey diagnosis with AB independent review.",
+    "Hosted33ad integration shard2 failed public cancellation response budget: store1.015s, service1.016s versus0.35s. Mace diagnoses; threshold unchanged.",
+    "Public native employer path needs complete Greenhouse metadata inventory fallback and preservation of validated apply-page proof through guarded enrollment.",
+    "Complete persisted inventory beyond200 visible jobs requires new bounded paginated API and strict recovery v4; Han implementation with Yoda review.",
+    "Complete connected native/public/restart/natural-monitoring and exact merged-source verification remain outstanding."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -209,8 +210,8 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T12:04:20.729132+00:00",
-  "acceptance_note": "No numbered acceptance execution in this campaign yet; historical partial receipts preserved.",
+  "updated_at_utc": "2026-11-06T17:55:43.818068+00:00",
+  "acceptance_note": "Current incomplete connected runs are retained as diagnostic evidence. 0/60 VERIFIED PASS; 33 PARTIAL and 27 NOT_RUN remain authoritative.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
     "authorization": "Current user explicitly answered: Transfer integration to this campaign",
@@ -403,13 +404,20 @@
     "fixtures/mock_server.py": "vader_ats_flow paired synthetic persona correction under phase CD review",
     "cli/ui_e2e.py": "rey_ui_observations",
     "cli/acceptance_journey.py": "luke_journey_runner",
-    "cli/acceptance_monitoring.py": "han_recovery natural post-restart monitoring proof",
+    "cli/acceptance_monitoring.py": "han_recovery version-aware capture",
     "cli/acceptance_onboarding.py": "obiwan_employer actual first-run wizard",
     "cli/acceptance_documents.py": "ahsoka_documents unique-letter proof",
     "tools/verification/acceptance_ledger.py": "r2d2_ledger strict exact-source proof validation",
     "cli/acceptance_public_browser.py": "ahsoka_documents live provenance and visible job join",
     "cli/acceptance_containment.py": "chewbacca_runtime owned scheduler containment",
-    "cli/acceptance_applications.py": "mace_applications_acceptance numbered application proof producer"
+    "cli/acceptance_applications.py": "mace_applications_acceptance numbered application proof producer",
+    "services/discovery/sources/greenhouse.py": "obiwan_employer bounded complete metadata fallback",
+    "services/company_discovery/domain_acquisition.py": "ahsoka_documents native proof handoff",
+    "services/company_discovery/flywheel.py": "ahsoka_documents native proof handoff",
+    "services/company_discovery/ats_enrollment.py": "ahsoka_documents guarded native proof handoff",
+    "packages/persistence/store.py": "han_recovery inventory method only",
+    "apps/api/main.py": "han_recovery inventory router registration only",
+    "cli/compose_recovery.py": "han_recovery strict v4 inventory"
   },
   "acceptance_ledger_sha256": "e474533180451d5a085331bd0c0da3b7944731dea1dcf1c09f6631d015aa4036",
   "runtime": {
@@ -457,13 +465,12 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T17:36:46.295931+00:00",
+  "updated_at": "2026-11-06T17:55:43.818068+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
-    "published_head": "fa4e626027704ca2fe8c6e9f7998a3ce83dbd0e8",
-    "required_checks": "Current live reconciliation: all required checks PASS except Compose, strict two-strong-elements question locator at ui_e2e.py1894. Repair in progress; no rerun/bypass.",
-    "next_candidate_source": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92"
+    "published_head": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
+    "required_checks": "Compose PASS at17:50:52Z; fast Python/required, repository, web, dependencies, secrets PASS. Integration shard2 FAIL at17:54:38Z, run42263696521/job128049947737; other integration results pending at checkpoint."
   },
   "runtime_history": [
     {
@@ -501,6 +508,17 @@
       "observed_status": "Startup/runtimepreflightPASS; incompleteUIrun stopped atdocumentprovenance locator. Original32UIobservations andstartup nowretained as33PARTIAL rows; nofinalacceptancecredit. Frozenstatepreserved. Fresh7a934sourcebuildrequested.",
       "diagnostic_evidence": "outputs/mjreq292-native-ff5ecfc200de-journey/ui.json",
       "startup_receipt": "outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json"
+    },
+    {
+      "project": "mjobs-fixture-33ad4e4b3446",
+      "source_commit": "33ad4e4b344617d1cc939d78fd83fcebe89d3475",
+      "source_tree": "afe0d1c5cb889402c76dac885b6d6f272664c0dd",
+      "image_id": "sha256:2fda5aea4e0cb8c853ced021cdb4bcbc17f3fbaaf03fba3318e57928b99de1a6",
+      "source_archive_sha256": "067beab38f448e0e98e3c1ddee02a3e08b92b0861519bd2001d592f36fbb3f51",
+      "run_id": "mjreq292-33ad4e4b3446-native-greenhouse-01",
+      "observed_status": "Fresh startup PASS:10healthy long-running services,migrate exit0. Native UI FAIL: unexpected approved facts in onboarding profile, cli/ui_e2e.py1622. Public source setup, restart and natural monitoring not executed. No acceptance promotion.",
+      "startup_receipt": "outputs/mjreq292-native-33ad4e4b3446/startup-receipt.json",
+      "diagnostic_evidence": "outputs/mjreq292-native-33ad4e4b3446-journey/ui.json"
     }
   ],
   "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
@@ -520,7 +538,7 @@
     "validation": "Independent Yoda composed review approved; root combined472tests49subtestsPASS,2Windows-symlinkskips21.17s. Includes actual controlledbrowser producer artifact+strictv2join. Live source9 NOT_RUN.",
     "integrated_source": "2313c41c045fa94f4487e3399165b6f6fe10d070"
   },
-  "ownership_state": "User-transferred root integration retained; global integration lock verified released. Child branches/worktrees preserved; no production changes or real submissions. No new test or polling loop launched by this checkpoint.",
+  "ownership_state": "User-transferred root integration retained. Legacy Antigravity Dice wildcard preserved unchanged: Oct7 claim has absent target worktree/ref and null PID; issue302 Dice-only/open/unassigned, all15 open PR paths clear. Root assigns greenhouse.py only to Obiwan after current writer reconciliation. No Dice ownership transfer or foreign registry deletion.",
   "session_extensions": [
     {
       "authorized_by": "user",
