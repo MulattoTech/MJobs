@@ -408,7 +408,10 @@ def _checkpoint_projection_errors(checkpoint: Any, ledger_relative: str,
                                   expected_scoreboard: dict, ledger_digest: str) -> list[str]:
     if not isinstance(checkpoint, dict):
         return ["checkpoint must be an object"]
-    errors = validate_checkpoint(checkpoint)
+    try:
+        errors = validate_checkpoint(checkpoint)
+    except TypeError:
+        return ["checkpoint has malformed value types"]
     if checkpoint.get("task_id") != REQUIREMENT_ID:
         errors.append(f"checkpoint task_id must be {REQUIREMENT_ID}")
     if checkpoint.get("acceptance_ledger") != ledger_relative:
@@ -430,9 +433,12 @@ def check_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
         checkpoint = load_ledger(checkpoint_path)
     except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
         return [str(exc)]
-    return _checkpoint_projection_errors(
-        checkpoint, ledger_relative, checkpoint_scoreboard(report, data), ledger_digest
-    )
+    try:
+        return _checkpoint_projection_errors(
+            checkpoint, ledger_relative, checkpoint_scoreboard(report, data), ledger_digest
+        )
+    except TypeError:
+        return ["checkpoint has malformed value types"]
 
 
 def write_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
@@ -473,6 +479,9 @@ def write_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
             handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
+        current_ledger = _safe_repository_path(root, ledger_relative, "ledger path").read_bytes()
+        if hashlib.sha256(current_ledger).hexdigest() != ledger_digest:
+            raise ValueError("ledger changed during scoreboard projection; retry from current bytes")
         os.replace(temporary_path, checkpoint_path)
         temporary_path = None
     finally:

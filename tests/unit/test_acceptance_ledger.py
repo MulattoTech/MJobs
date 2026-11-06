@@ -371,12 +371,38 @@ def test_checkpoint_projection_hashes_the_same_ledger_bytes_it_parses(tmp_path, 
         return raw
 
     monkeypatch.setattr(Path, "read_bytes", read_then_change)
-    ledger.write_checkpoint_scoreboard(root)
+    checkpoint_before = checkpoint_path.read_bytes()
+    with pytest.raises(ValueError, match="ledger changed during scoreboard projection"):
+        ledger.write_checkpoint_scoreboard(root)
     monkeypatch.setattr(Path, "read_bytes", real_read_bytes)
-    checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
-    assert checkpoint["scoreboard"]["PARTIAL"] == 0
-    assert checkpoint["scoreboard"]["NOT_RUN"] == 60
-    assert checkpoint["acceptance_ledger_sha256"] == hashlib.sha256(original_bytes).hexdigest()
+    assert checkpoint_path.read_bytes() == checkpoint_before
+    assert ledger_path.read_bytes() == replacement
+    assert not list(checkpoint_path.parent.glob(".acceptance-ledger-*.tmp"))
+
+
+def test_checkpoint_checker_reports_nested_malformed_fields_without_crashing(tmp_path):
+    root = prepare_root(tmp_path)
+    write_fixture_ledger(root)
+    checkpoint = make_checkpoint()
+    checkpoint["routing_state"] = []
+    checkpoint["tests"][0]["result"] = {"unexpected": "object"}
+    write_fixture_checkpoint(root, checkpoint)
+    errors = ledger.check_checkpoint_scoreboard(root)
+    assert errors
+    assert any("malformed value types" in error for error in errors)
+
+
+def test_cli_checkpoint_check_reports_nested_malformed_fields_without_traceback(tmp_path, monkeypatch, capsys):
+    root = prepare_root(tmp_path)
+    write_fixture_ledger(root)
+    checkpoint = make_checkpoint()
+    checkpoint["routing_state"] = {"unexpected": "object"}
+    write_fixture_checkpoint(root, checkpoint)
+    monkeypatch.chdir(root)
+    assert ledger.main(["--check-checkpoint"]) == 1
+    output = capsys.readouterr().out
+    assert "malformed value types" in output
+    assert "Traceback" not in output
 
 
 def test_validation_never_executes_evidence_commands(tmp_path, monkeypatch):
