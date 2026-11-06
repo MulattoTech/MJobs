@@ -76,6 +76,16 @@ _ATTEMPT_HISTORY_MAX_ENTRIES = 5
 _ATTEMPT_HISTORY_MAX_STEPS = 20
 _ATTEMPT_HISTORY_MAX_BYTES = 8 * 1024
 _APPLICATION_READ_STATES = {"CURRENT", "UNAVAILABLE", "MISMATCH"}
+_APPLICATION_PROVIDER_LABELS = {
+    "greenhouse": "Greenhouse",
+    "lever": "Lever",
+    "mock-ats": "Fictional mock ATS",
+}
+
+
+def application_provider_label(provider):
+    """Return only a reviewed UI label for known canonical provider IDs."""
+    return _APPLICATION_PROVIDER_LABELS.get(provider) if isinstance(provider, str) else None
 
 
 def assert_mock_run_request_lineage(operation, scoped_readback, *,
@@ -1499,13 +1509,19 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 route_provider = route_inventory[0].get("provider") if route_inventory else None
                 adapter_matches = (adapter.get("provider") == route_provider
                                    and adapter.get("adapter_status") == "FIXTURE_ONLY")
+                expected_provider_label = application_provider_label(adapter.get("provider"))
+                known_provider_values = adapter_panel.locator("dl dd")
+                provider_label_visible = (
+                    expected_provider_label is not None
+                    and known_provider_values.count() > 0
+                    and known_provider_values.first.inner_text().strip() == expected_provider_label)
                 route_adapter_evidence = {
                     "supported_adapter_matches_provider": _paired_evidence(
                         adapter_panel.is_visible()
                         and "Fictional local mock adapter is available" in adapter_panel.inner_text(),
                         adapter_matches),
                     "provider_matches_route": _paired_evidence(
-                        adapter.get("provider", "") in adapter_panel.inner_text(),
+                        provider_label_visible,
                         adapter_matches),
                 }
                 navigation("Jobs")
@@ -1513,7 +1529,12 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
             first_resume = next(row for row in first_documents if row["kind"] == "resume")
             assert first_resume['created_at'] and first_resume['generation_model'] == 'deterministic-fact-copy-v2'
             assert [fact['text'] for fact in first_resume['facts_used']] == ['Python']
+            navigation("Applications")
+            page.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True).click()
+            expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
             provenance = page.get_by_role('region', name='resume version 1', exact=True)
+            expect(provenance).to_be_visible()
+            expect(provenance.get_by_text('Generation details and facts', exact=True)).to_be_visible()
             provenance.get_by_text('Generation details and facts', exact=True).click()
             expect(provenance.get_by_text('Generation method: deterministic-fact-copy-v2', exact=True)).to_be_visible()
             with page.expect_download() as text_download:

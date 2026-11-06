@@ -257,6 +257,19 @@ def test_application_profile_version_binding_rejects_stale_profile_snapshot(
     assert application_profile_version_matches(profile, application) is matches
 
 
+@pytest.mark.parametrize("provider, label", [
+    ("mock-ats", "Fictional mock ATS"),
+    ("greenhouse", "Greenhouse"),
+    ("lever", "Lever"),
+    ("unknown-provider", None),
+    (None, None),
+])
+def test_application_provider_label_uses_only_explicit_known_mapping(provider, label):
+    from cli.ui_e2e import application_provider_label
+
+    assert application_provider_label(provider) == label
+
+
 def test_mock_run_request_identity_is_bound_when_operation_params_omit_request_id():
     from cli.ui_e2e import assert_mock_run_request_lineage
     from packages.persistence.store import identity
