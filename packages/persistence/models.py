@@ -281,6 +281,21 @@ jobs = table("canonical_jobs", Column("company_id", ForeignKey("companies.id"), 
              Column("location", String(1000), nullable=False), Column("remote_type", String(32), nullable=False),
              Column("attributes", JSON, nullable=False, server_default="{}"))
 Index("ix_canonical_jobs_company_id_id", jobs.c.company_id, jobs.c.id)
+# A bounded, mutable visit index, deliberately separate from append-only
+# disposition/application audit events. Keep the original ID if a job is removed.
+profile_job_views = table(
+    "profile_job_views",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("job_id", String(128), nullable=False),
+    Column("viewed_at", String(64), nullable=False),
+    Column("visit_order", Integer, nullable=False),
+    constraints=(
+        UniqueConstraint("profile_id", "job_id", name="uq_profile_job_views_scope_job"),
+        CheckConstraint("visit_order >= 1", name="ck_profile_job_views_visit_order"),
+    ),
+)
+Index("ix_profile_job_views_scope_order", profile_job_views.c.profile_id,
+      profile_job_views.c.visit_order, profile_job_views.c.id)
 routes = table("application_routes", Column("job_id", ForeignKey("canonical_jobs.id"), nullable=False),
                Column("company_id", ForeignKey("companies.id"), nullable=False), Column("provider", String(32), nullable=False),
                Column("tenant", String(128), nullable=False), Column("requisition", String(128), nullable=False),
