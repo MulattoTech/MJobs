@@ -300,7 +300,7 @@ def preflight(target, source):
                 '{{range .Config.Env}}{{if or (eq . "MJOBS_OPERATION_MODE=FIXTURE") '
                 '(eq . "MJOBS_COMPOSE_MOCK=1")}}{{println .}}{{end}}{{end}}', container_id],
                 timeout=10, action="Inspect journey fixture mode")
-            if set(mode.splitlines()) != {"MJOBS_OPERATION_MODE=FIXTURE", "MJOBS_COMPOSE_MOCK=1"}:
+            if {line for line in mode.splitlines() if line != ""} != {"MJOBS_OPERATION_MODE=FIXTURE", "MJOBS_COMPOSE_MOCK=1"}:
                 raise ValueError("Every journey runtime worker must remain in fixture mode")
         if service not in {"postgres", "redis"}:
             actual = json.loads(recovery._run_bounded(

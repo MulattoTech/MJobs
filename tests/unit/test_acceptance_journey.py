@@ -315,6 +315,46 @@ def test_preflight_refuses_personal_worker_even_with_matching_source():
             journey.preflight(TARGET, SOURCE)
 
 
+@pytest.mark.parametrize("mode_output,accepted", [
+    ("MJOBS_OPERATION_MODE=FIXTURE\nMJOBS_COMPOSE_MOCK=1\n\n", True),
+    ("MJOBS_OPERATION_MODE=FIXTURE\nMJOBS_COMPOSE_MOCK=1\nUNEXPECTED_SAFE_VALUE\n", False),
+    ("MJOBS_OPERATION_MODE=FIXTURE\n\n", False),
+    ("MJOBS_OPERATION_MODE=FIXTURE\nMJOBS_COMPOSE_MOCK=1\n \n", False),
+])
+def test_fixture_mode_projection_ignores_only_docker_empty_lines(mode_output, accepted):
+    source_hashes = {"cli/ui_e2e.py": "a" * 64, "infra/docker/Dockerfile": "b" * 64}
+    targets = {name: {"container_id": name} for name in journey.recovery.RECOVERY_RESTART_SERVICES}
+    assets = {"index.html": "c" * 64}
+    def command(args, **kwargs):
+        action = kwargs["action"]
+        if action == "Inspect journey service start":
+            return "2000-01-01T00:00:00+00:00"
+        if action == "Inspect journey fixture mode":
+            return mode_output
+        if action == "Inspect journey image":
+            return json.dumps("sha256:" + "e" * 64)
+        if action == "Hash journey frontend assets":
+            return json.dumps(assets)
+        assert action == "Verify committed journey runtime source"
+        return json.dumps(source_hashes)
+    with patch.object(journey.recovery, "resolve_compose_files", return_value=(Path("compose.yml"),)), \
+            patch.object(journey.recovery, "preflight_recovery_targets", return_value=targets), \
+            patch.object(journey, "source_files", return_value=source_hashes), \
+            patch.object(journey.recovery, "_run_bounded", side_effect=command), \
+            patch.object(journey.ui_e2e, "_onboarding_preflight") as api, \
+            patch.object(journey, "verify_served_assets") as frontend:
+        if accepted:
+            runtime = journey.preflight(TARGET, SOURCE)
+            assert set(runtime["images"]) == set(journey.recovery.RECOVERY_RESTART_SERVICES)
+            api.assert_called_once_with(TARGET["base_url"])
+            frontend.assert_called_once_with(TARGET["base_url"], assets)
+        else:
+            with pytest.raises(ValueError, match="fixture mode"):
+                journey.preflight(TARGET, SOURCE)
+            api.assert_not_called()
+            frontend.assert_not_called()
+
+
 def test_ui_origin_mismatch_is_not_admitted(tmp_path):
     def ui(_, path, **kw):
         value = baseline()
