@@ -18,7 +18,9 @@ function panel() {
   el.id="progressTimeTravel";
   el.className="progress-time-machine";
   const release = $("releaseContent");
-  release.insertBefore(el, release.firstChild);
+  const summary = release.querySelector(".release-summary");
+  if (summary) summary.after(el);
+  else release.appendChild(el);
   return el;
 }
 async function request(url,opts) {
@@ -32,7 +34,7 @@ function selectedPoint() {
 }
 function barDetail(now,prev,label) {
   if(!prev)return label+": "+now.pass+"/"+now.total+" PASS; no older capture selected";
-  return label+" | selected "+stamp(selectedPoint()?.at)+": "+prev.pass+"/"+prev.total+
+  return label+" | selected checkpoint "+stamp(selectedPoint()?.at)+": "+prev.pass+"/"+prev.total+
     " PASS, "+prev.partial+" PARTIAL, "+prev.not_run+" NOT_RUN → now "+
     now.pass+"/"+now.total+" PASS, "+now.partial+" PARTIAL, "+now.not_run+
     " NOT_RUN | Δ accepted "+sign(now.pass-prev.pass);
@@ -177,7 +179,7 @@ function controls() {
   const first=timeline[0];
   const pos=Math.max(0,timeline.findIndex(p=>p.id===Number(chosenId)));
   const max=Math.max(0,timeline.length-1);
-  el.innerHTML=`<div class="progress-time-header"><div><h3>Acceptance history & time travel</h3><p>Compare verified captures—not commit counts. Hover any bar for then/now values; click cards and categories to expand.</p></div>
+  el.innerHTML=`<div class="progress-time-header"><div><h3>Acceptance history & time travel</h3><p>Historical gains are included in the current totals above. Select a checkpoint to compare verified acceptance.</p><p>Compare verified captures—not commit counts. Hover any bar for then/now values; click cards and categories to expand.</p></div>
      <div class="progress-time-actions"><button id="progressCaptureNow" type="button">Capture now</button><button id="progressExpandAll" type="button">Expand all</button><button id="progressCollapseAll" type="button">Collapse all</button></div></div>
      <div class="progress-time-controls"><label>Historical checkpoint<select id="progressHistorySelect">
      ${timeline.map((p,i)=>`<option value="${p.id}" ${p.id===Number(chosenId)?"selected":""}>${escape(stamp(p.at))} · ${p.original.pass}/${p.original.total} · ${escape(p.reason)}</option>`).join("")}
@@ -202,8 +204,8 @@ function controls() {
     document.querySelectorAll("#releaseContent details.progress-expandable").forEach(x=>x.open=false);
   });
   const diffs=compare && live ? [
-    ["Original requirements",live.original.pass,compare.original.pass],
-    ["Additional references",live.reference.pass,compare.reference.pass],
+    ["Original requirements since selected checkpoint",live.original.pass,compare.original.pass],
+    ["Additional references since selected checkpoint",live.reference.pass,compare.reference.pass],
   ]:[];
   const delta=$("progressHistoryDelta");
   delta.innerHTML=diffs.map(([name,now,old])=>`<span>${escape(name)}: <strong class="${now-old<0?"down":"up"}">${sign(now-old)} accepted</strong> (${old} → ${now})</span>`).join("");
