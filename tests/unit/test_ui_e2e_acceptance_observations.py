@@ -161,6 +161,14 @@ def test_steps_36_to_53_have_fixed_matching_journal_check_registry():
     assert {step: REQUIRED_CHECKS_BY_STEP[step] for step in range(36, 54)} == APPLICATION_CHECKS
 
 
+def test_steps_23_to_31_match_employer_producer_registry():
+    from cli.acceptance_employer import REQUIRED_CHECKS_BY_STEP as EMPLOYER_CHECKS
+    from cli.ui_e2e_jobs_journey import REQUIRED_CHECKS_BY_STEP, _SUPPORTED_STEP_IDS
+
+    assert set(range(23, 32)) <= _SUPPORTED_STEP_IDS
+    assert {step: REQUIRED_CHECKS_BY_STEP[step] for step in range(23, 32)} == EMPLOYER_CHECKS
+
+
 def test_application_helper_records_through_real_evidence_journal(tmp_path):
     from cli.acceptance_applications import AssertionEvidence, record_application_step
     from cli.ui_e2e import EvidenceJournal
@@ -217,6 +225,45 @@ def test_evidence_journal_records_actual_readback_lineage(tmp_path):
     assert payload["selected_application_job_id"] == "job-B"
     assert payload["selected_application_id"] == "app-B"
     assert payload["application_document_ids"] == ["doc-1", "doc-2"]
+
+
+def test_employer_discovery_lineage_is_persisted_only_for_observed_jobs(tmp_path):
+    from cli.ui_e2e import EvidenceJournal
+
+    journal = EvidenceJournal(
+        tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT}},
+        acceptance_run_id=RUN_ID)
+    journal.record_observed_jobs(["job-A", "job-B"])
+    lineage = {"profile_id": "profile-1", "operation_id": "d" * 64,
+               "request_id": "request-discovery", "job_ids": ["job-A", "job-B"]}
+
+    journal.record_employer_discovery_lineage(lineage)
+
+    assert journal.payload()["employer_discovery_lineage"] == lineage
+    with pytest.raises(ValueError, match="same-profile readback"):
+        journal.record_employer_discovery_lineage({
+            **lineage, "job_ids": ["job-A", "job-unobserved"]})
+    with pytest.raises(ValueError, match="changed during journey"):
+        journal.record_employer_discovery_lineage({
+            **lineage, "request_id": "different-request"})
+
+
+@pytest.mark.parametrize("lineage", [
+    {"profile_id": "profile-1", "operation_id": "D" * 64,
+     "request_id": "request-1", "job_ids": ["job-1"]},
+    {"profile_id": "profile-1", "operation_id": "d" * 64,
+     "request_id": "request-1", "job_ids": ["job-1", "job-1"]},
+    {"profile_id": "profile-1", "operation_id": "d" * 64,
+     "request_id": "request-1", "job_ids": []},
+])
+def test_employer_discovery_lineage_rejects_malformed_identity(tmp_path, lineage):
+    from cli.ui_e2e import EvidenceJournal
+
+    journal = EvidenceJournal(
+        tmp_path / "evidence.json", {"source": {"commit": SOURCE_COMMIT}},
+        acceptance_run_id=RUN_ID)
+    with pytest.raises(ValueError, match="invalid"):
+        journal.record_employer_discovery_lineage(lineage)
 
 
 def test_acceptance_artifacts_use_run_evidence_directory_and_refuse_overwrite(tmp_path):

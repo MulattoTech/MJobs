@@ -226,6 +226,7 @@ class EvidenceJournal:
         self.selected_application_id = None
         self.selected_application_job_id = None
         self.application_document_ids = []
+        self.employer_discovery_lineage = None
         self.stage_lineage = []
         self.cover_letter_proof = None
         self.checks = []
@@ -247,6 +248,29 @@ class EvidenceJournal:
                 self.observed_job_ids.append(job_id)
         if len(self.observed_job_ids) > 100:
             raise ValueError("observed job readback exceeds limit")
+
+    def record_employer_discovery_lineage(self, row):
+        expected = {"profile_id", "operation_id", "request_id", "job_ids"}
+        if (not isinstance(row, dict) or set(row) != expected
+                or not self._lineage_id(row["profile_id"])
+                or not isinstance(row["operation_id"], str)
+                or re.fullmatch(r"[a-f0-9]{64}", row["operation_id"]) is None
+                or not self._lineage_id(row["request_id"])
+                or not isinstance(row["job_ids"], list)
+                or not 1 <= len(row["job_ids"]) <= 100
+                or any(not self._lineage_id(job_id) for job_id in row["job_ids"])
+                or len(set(row["job_ids"])) != len(row["job_ids"])):
+            raise ValueError("employer discovery lineage is invalid")
+        if not set(row["job_ids"]) <= set(self.observed_job_ids):
+            raise ValueError("employer discovery jobs lack same-profile readback")
+        if (self.employer_discovery_lineage is not None
+                and self.employer_discovery_lineage != row):
+            raise ValueError("employer discovery lineage changed during journey")
+        self.employer_discovery_lineage = {
+            "profile_id": row["profile_id"], "operation_id": row["operation_id"],
+            "request_id": row["request_id"], "job_ids": list(row["job_ids"]),
+        }
+        self.persist()
 
     def record_application_readback(self, *, profile_id, application_id, job_id, documents):
         if (not self._lineage_id(profile_id) or not self._lineage_id(application_id)
@@ -371,6 +395,8 @@ class EvidenceJournal:
             "selected_application_job_id": self.selected_application_job_id,
             "application_document_ids": list(self.application_document_ids),
             "stage_lineage": list(self.stage_lineage),
+            **({"employer_discovery_lineage": self.employer_discovery_lineage}
+               if self.employer_discovery_lineage is not None else {}),
             **({"cover_letter_proof": self.cover_letter_proof}
                if self.cover_letter_proof is not None else {}),
         }
@@ -952,6 +978,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
             base_resume_bytes = None
             base_resume_revision_id = None
             base_resume_sha256 = None
+            employer_initial = None
+            employer_first_receipt = None
             if onboarding:
                 if acceptance_run_id is not None:
                     from cli.acceptance_onboarding import begin_first_run
@@ -1191,8 +1219,20 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 # and cannot be resumed as provider discovery criteria.
                 nonmatching_search = save_sources_fixture_search(
                     "Synthetic remote IT onboarding search", "IT Support Specialist")
+                if acceptance_run_id is not None:
+                    from cli.acceptance_employer import begin_employer_observation
+
+                    employer_initial = begin_employer_observation(
+                        page, request, profile_id)
                 discovery_operation_id, discovery_request_id, nonmatching_jobs = (
                     collect_sources_fixture_search(nonmatching_search, set()))
+                if acceptance_run_id is not None:
+                    employer_first_receipt = {
+                        "profile_id": profile_id,
+                        "search_profile_id": nonmatching_search["id"],
+                        "operation_id": discovery_operation_id,
+                        "request_id": discovery_request_id,
+                    }
                 assert {row["title"] for row in request(
                     "/jobs?profile_id=" + profile_id)["jobs"]} >= {"Python Developer", "Data Engineer"}
                 actions.append({"action": "Created a remote IT title search in the Sources UI; actual fixture discovery completed and the selected same-profile filter returned no matching jobs", "result": "PASS", "boundary": "Sources search form → Jobs saved-search selection → queued /discovery → Compose source worker → selected-search jobs API"})
@@ -1263,6 +1303,16 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     run_fixture_job_observations(
                         page, request, profile_id, navigation, observe_acceptance_step,
                         record_observed_jobs=journal.record_observed_jobs)
+                    from cli.acceptance_employer import observe_employer_journey
+
+                    employer_evidence = observe_employer_journey(
+                        page, request, profile_id, navigation,
+                        observe_acceptance_step, employer_initial,
+                        employer_first_receipt,
+                        record_observed_jobs=journal.record_observed_jobs,
+                    )
+                    journal.record_employer_discovery_lineage(
+                        employer_evidence["employer_discovery_lineage"])
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
                 expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()

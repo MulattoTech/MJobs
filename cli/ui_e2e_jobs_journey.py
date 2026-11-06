@@ -16,7 +16,7 @@ _SAFE_CHECK_NAME = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
 _SAFE_OBSERVABLE_RESULT = re.compile(r"[A-Za-z0-9][A-Za-z0-9 .,:;()/_-]*\Z")
 _SAFE_CONTINUITY_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 _SAFE_SHA = re.compile(r"[a-f0-9]{40}\Z")
-_SUPPORTED_STEP_IDS = frozenset((*range(2, 23), *range(32, 36), *range(36, 54)))
+_SUPPORTED_STEP_IDS = frozenset((*range(2, 32), *range(32, 36), *range(36, 54)))
 REQUIRED_CHECKS_BY_STEP = {
     2: frozenset({"dashboard_heading_visible"}),
     3: frozenset({"first_run_wizard_completed_with_persisted_configuration"}),
@@ -41,6 +41,15 @@ REQUIRED_CHECKS_BY_STEP = {
     21: frozenset({"application_route_visible"}),
     22: frozenset({"visible_numeric_match_score",
                    "selected_job_requirement_explanation_visible"}),
+    23: frozenset({"previously_unknown_employer_observed"}),
+    24: frozenset({"employer_discovery_ran_automatically"}),
+    25: frozenset({"official_employer_domain_verified"}),
+    26: frozenset({"employer_careers_page_found"}),
+    27: frozenset({"employer_ats_tenant_identified"}),
+    28: frozenset({"employer_source_enrolled_automatically"}),
+    29: frozenset({"employer_openings_enumerated"}),
+    30: frozenset({"employer_only_opening_observed"}),
+    31: frozenset({"employer_duplicate_sources_collapsed"}),
     32: frozenset({"strong_match_available", "saved_status_readback"}),
     33: frozenset({"tailored_resume_uses_selected_approved_facts", "omitted_fact_visible_and_excluded"}),
     34: frozenset({"generated_base_visible", "tailored_version_visible",
