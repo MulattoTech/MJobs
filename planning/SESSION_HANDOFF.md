@@ -484,3 +484,14 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
+
+
+## 2026-11-06T13:21:14.905103+00:00 - MJ-REQ-292 campaign checkpoint
+
+MJ-REQ-292: **0/60 VERIFIED PASS**, 33 PARTIAL, 27 NOT_RUN. Canonical requirement stays PARTIAL and issue293 remains open. Durable authority: `planning/acceptance/MJ-REQ-292.json`; resumable detail/roster/candidate refs: `planning/agent_handoffs/MJ-REQ-292.json`.
+
+Root branch `codex/mj-req292-full-journey-20261106` in the journey worktree; source before this checkpoint `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Protected dependencies967/933 merged; main last verified `f7b7a2f621036f828e83e2cb9293e30eb82bac5f`. PR973 remains draft. Preserve all prior CI failures, exact-head receipts and owned fixture volumes. No integration lock is held.
+
+Reviewed salary rendering, native canonical/apply proof and strict paused-run submit checks are integrated. Root latest domain suite43tests50subtests and UI suite44tests passed. Full connected acceptance is incomplete. Fresh f7d runtime18738 has valid startup evidence but the coordinator stopped beforeUI on a build-receipt timestamp key; the separately normalized receipt preserves the actual recorded timestamp and original failure. The f7d runner also has a known later UI assertion repaired in `6dc9039c3f0758f3a97d02db7ad7038aa91c9c92`. Build/run current reviewed source on continuation.
+
+Source-setup schema2 lane is preserved separately, not accepted or integrated; see per-agent exact refs in JSON. Next: reconcile live PR973 checks and ownership, build exact latest reviewed source, execute the connected public/native/restart/monitoring journey, independently review and verify protected merged-source evidence. Four-hour boundary is13:21:34Z; extension request is unanswered at this checkpoint. No automatic unattended continuation is created.

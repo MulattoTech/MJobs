@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "f7d784fe988fa0e2c388f375c63898fee8580e83",
+  "head_sha": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92",
   "routing_state": "EXECUTE",
-  "next_action": "Run exact f7d784fe fresh native runtime on18737 through UI, public read-only WWR collection, restart, and natural monitoring. Publish reviewed core repairs through PR973 update-only preflight. Optional two-source setup and bounded official-domain enhancement remain isolated until independent review.",
+  "next_action": "On authorized continuation, verify current PR973 head/checks and source ownership. Build exact6dc9039c or the final reviewed source, using durable build/start markers and normalized completed_at_utc. Run one connected native UI/public/recovery/monitoring journey; do not reuse known-bad f7d runner or promote existing partial observations. Finish independent schema2 source-setup join review before integrating that lane.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -117,15 +117,27 @@
       "tested_commit": "f5d6c0e53cf8da36ba4c6d2a86ea5ccff8ef1580",
       "result": "PASS",
       "observed": "31frontend tests plus buildPASS; actualbrowser syntheticjobs salary visible/reload authorPASS; independentAB reran31PASS and approved source; integratedf7d784fe. Connected step15 recheck pending."
+    },
+    {
+      "command": "pytest official-domain canonical/apply, acquisition and sameAs suites",
+      "tested_commit": "5cbe50f15b814005c5983457668356356adbc6c6",
+      "result": "PASS",
+      "observed": "Root43tests50subtests105.99s; controlledHTTP only; independentCD exactsource/blob review."
+    },
+    {
+      "command": "pytest tests/unit/test_ui_e2e_acceptance_observations.py -q",
+      "tested_commit": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92",
+      "result": "PASS",
+      "observed": "Root44tests3.66s; independentAB exactreview; pausedrun identity and noSUBMIT oracle retained."
     }
   ],
   "blockers": [
-    "Full 60-step connected run remains incomplete. The 90681f28 run passed runtime preflight and reached application preparation, then failed a stale local profile snapshot assertion; reviewed c8513dc9 is integrated as ff5ecfc2 for a fresh run.",
-    "PR973 old head 9667cbb9 failed the unchanged cancellation latency threshold (DISCOVER 1.040s) and Compose paused-operation request lineage assertion. Local company-cancellation cold import is fixed separately; the hosted DISCOVER cause remains unproven.",
-    "Step9 requires actual two-source browser/API setup evidence and public read-only collection. Optional producer/join candidates are under independent review.",
-    "Step25 needs actual official-domain corroboration on a qualifying native job. Protected policy-preserving admission is implemented, but no actual connected official-domain PASS is claimed.",
-    "Native ATS final browser/RQ completion, public visibility, full restart and natural monitoring remain NOT_RUN in a completed final journey.",
-    "PR973 is draft. Exact merged-source acceptance, independent whole-journey review and all 60-step evidence remain incomplete."
+    "0/60 independently verified acceptance; 33 rows preserve actual incomplete ff5 observations as PARTIAL and27 remain NOT_RUN.",
+    "PR973 at97085b75 passed fast required/unit/web checks but Compose failed on a hidden submit-control assumption. Exact reviewed repair6dc9039c passed44 root unit tests; new protected checks pending publication.",
+    "Official-domain canonical/apply-page enhancement59b8511 integrated5cbe50f1 passed43tests50subtests atroot; actual publicprovider/DNS/RQ/browser proof remains NOT_RUN.",
+    "Optional two-source schema2 producer, containment, runner and ledger candidates remain outside integration pending final joined review/retest. No source9 promotion.",
+    "Fresh f7d runtime on18738 has a valid one-command startup receipt. Coordinator failed beforeUI because build receipt used build_completed_at_utc instead of completed_at_utc. A separate normalized receipt copies the actual recorded timestamp; original failure retained. No UI/public/recovery/monitoring ran on that attempt.",
+    "Full native controlled submission, public read-only visibility, restart, natural monitoring, protected merged-source run and independent whole-journey acceptance remain incomplete."
   ],
   "acceptance_ledger": "planning/acceptance/MJ-REQ-292.json",
   "scoreboard": {
@@ -397,15 +409,16 @@
   },
   "acceptance_ledger_sha256": "e474533180451d5a085331bd0c0da3b7944731dea1dcf1c09f6631d015aa4036",
   "runtime": {
-    "project": "mjobs-fixture-ff5ecfc200de",
-    "api_url": "http://127.0.0.1:18736",
-    "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
-    "source_tree": "ff1e271d42461718c06cc4cd0dbbd2418643140f",
-    "image_id": "sha256:645d7e75bc40438c4da88437391556c46bf15d2beb92b15839c33e0e010b1634",
-    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-ff5ecfc2/MJobs",
-    "observed_status": "Startup/runtimepreflightPASS; incompleteUIrun stopped atdocumentprovenance locator. Original32UIobservations andstartup nowretained as33PARTIAL rows; nofinalacceptancecredit. Frozenstatepreserved. Fresh7a934sourcebuildrequested.",
-    "diagnostic_evidence": "outputs/mjreq292-native-ff5ecfc200de-journey/ui.json",
-    "startup_receipt": "outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json"
+    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-f7d784fe-run2/MJobs",
+    "project": "mjobs-fixture-fdd3503dc2ab",
+    "api_url": "http://127.0.0.1:18738",
+    "source_commit": "f7d784fe988fa0e2c388f375c63898fee8580e83",
+    "source_tree": "fdd3503dc2abd34ca47b178bef35cfc71279e0e4",
+    "image_id": "sha256:0bea89a6fbca99c79c6bf43f1242ae97181c65cebfb1516941966041bdd6f57d",
+    "startup_receipt": "outputs/mjreq292-native-fdd3503dc2ab/startup-receipt.json",
+    "prelaunch_marker": "outputs/mjreq292-native-fdd3503dc2ab/prelaunch-marker.json",
+    "command_result": "outputs/mjreq292-native-fdd3503dc2ab/compose-result.json",
+    "observed_status": "10 running healthy services plus migration exited0. Coordinator exited1 beforeUI on build receipt timestamp key; no acceptance credit. Original and normalized build receipts preserved in TEMP/mjreq292-runtime-f7d784fe988f. Earlier f7d project18737 has no startup receipt and remains ineligible; all volumes preserved."
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
   "current_evidence_boundary": "0/60 VERIFIED PASS. 33 ledger rows now retain current incomplete-run observations as PARTIAL, with exact source and a public diagnostic projection. No raw producer PASS is promoted to independent acceptance.",
@@ -440,12 +453,13 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T12:55:50.761044+00:00",
+  "updated_at": "2026-11-06T13:21:14.905103+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
-    "published_head": "9667cbb9cff7290f2c10799c890cefc6e0047520",
-    "required_checks": "FAIL on published old head: Python cancellation timing and Compose paused request lineage; no rerun/bypass; fresh source publication pending"
+    "published_head": "97085b7527d267e36a1c32d4ae3e6fed309de052",
+    "required_checks": "97085b75 fast required/unit/web/dependency/security PASS; ComposeFAIL hidden submit assumption; integration incomplete atlatestobservation. Newhead checks NOT_RUN at checkpoint.",
+    "next_candidate_source": "6dc9039c3f0758f3a97d02db7ad7038aa91c9c92"
   },
   "runtime_history": [
     {
@@ -472,8 +486,34 @@
       "diagnostic_evidence": "outputs/mjreq292-native-90681f28f539-journey",
       "run_log": "outputs/mjreq292-native-90681f28f539/journey-run.log",
       "preservation": "All earlier owned stacks and volumes preserved; fresh ff5ecfc2 runtime starting separately."
+    },
+    {
+      "project": "mjobs-fixture-ff5ecfc200de",
+      "api_url": "http://127.0.0.1:18736",
+      "source_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+      "source_tree": "ff1e271d42461718c06cc4cd0dbbd2418643140f",
+      "image_id": "sha256:645d7e75bc40438c4da88437391556c46bf15d2beb92b15839c33e0e010b1634",
+      "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-ff5ecfc2/MJobs",
+      "observed_status": "Startup/runtimepreflightPASS; incompleteUIrun stopped atdocumentprovenance locator. Original32UIobservations andstartup nowretained as33PARTIAL rows; nofinalacceptancecredit. Frozenstatepreserved. Fresh7a934sourcebuildrequested.",
+      "diagnostic_evidence": "outputs/mjreq292-native-ff5ecfc200de-journey/ui.json",
+      "startup_receipt": "outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json"
     }
   ],
   "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
-  "latest_diagnostic_review": "Independent EF static review verified33PARTIAL/27NOT_RUN/0PASS mapping, rawsource/run/image hashes, public projection SHA and sanitized content. No runtime or acceptance promotion."
+  "latest_diagnostic_review": "Independent EF static review verified33PARTIAL/27NOT_RUN/0PASS mapping, rawsource/run/image hashes, public projection SHA and sanitized content. No runtime or acceptance promotion.",
+  "session_boundary": {
+    "four_hour_limit_utc": "2026-11-06T13:21:34Z",
+    "extension_request": "PENDING_USER_REPLY",
+    "goal_complete": false,
+    "no_new_unattended_work_authorized_by_this_checkpoint": true
+  },
+  "pending_source_setup": {
+    "containment": "a9faa0ebbb7986bb4046cd7b56e4704c11c1630b",
+    "producer": "bfb28d1c8114c274b040f3b769d69996aa4b14c7",
+    "runner": "11b26157ff2f5ea50684984264dcc51c2aaf1b35",
+    "ledger": "248dfd1e4859fa5822a50f42bf75adc9d803ba87",
+    "integration": "HELD_PENDING_FINAL_JOINED_REVIEW",
+    "validation": "Runner254tests39subtests; exactproducer cross-contract59testsPASS withHTTPblocked. Producer2controlledbrowser testsPASS. Ledger prior87testsPASS againstolderproducer; finalv2 retest/review pending. No live source setup."
+  },
+  "ownership_state": "User-transferred root integration retained; global integration lock verified released. Child branches/worktrees preserved; no production changes or real submissions. No new test or polling loop launched by this checkpoint."
 }
