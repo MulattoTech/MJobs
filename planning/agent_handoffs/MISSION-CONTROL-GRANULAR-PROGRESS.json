@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "task_id": "MISSION-CONTROL-GRANULAR-PROGRESS",
+  "owner": "Codex fork 01a1b1ef",
+  "updated_at_utc": "2026-11-06T18:47:36.276447+00:00",
+  "routing_state": "EXECUTE",
+  "objective": "Preserve overall acceptance; expand P0 to readable requirement rows, then MJ-REQ-292 to six phases and 60 evidence-backed steps on local and protected web Mission Control.",
+  "approved_design": "User explicitly rejected campaign-first. Use progressive disclosure within existing priority hierarchy, compact verified/partial/not-run counts, evidence, blocker, source and freshness. Never fractional PASS.",
+  "base_commit": "5af5edd2b7d585cbdab7f9089db099f88d684ff0",
+  "integration_owner": "Original campaign thread 01a1b028; this fork owns dashboard feature only",
+  "workers": {
+    "obiwan_campaign_data": "read-only API and canonical requirement titles; isolated branch",
+    "rey_campaign_drilldown": "local static UI and focused browser tests; isolated branch",
+    "leia_dashboard_truth": "remote publisher/UI path inspection",
+    "yoda_layout_review": "source contract and independent review"
+  },
+  "next_action": "Join API and local drilldown, implement allowlisted remote projection, test malformed/missing/stale states and actual browser P0 expansion/refresh, route reviewed commits to sole integration owner.",
+  "deployment": {
+    "local": "http://127.0.0.1:18729/",
+    "web": "https://m-techlabs.com/mission-control/",
+    "web_origin": "existing MTechLabs-Hub site/mission-control under owner-only Access",
+    "cloudflare_route": "Read-only verified healthy service-hub tunnel; no DNS/Access/tunnel changes required"
+  },
+  "observed_campaign_scoreboard": {
+    "verified_pass": 0,
+    "partial": 39,
+    "not_run": 21,
+    "total": 60,
+    "source": "campaign ledger read 2026-11-06; display must read live data, never this copied checkpoint count"
+  },
+  "limits": [
+    "No canonical acceptance mutations in this lane",
+    "No duplicate campaign runtime or integration ownership",
+    "No private commands, paths, credentials or applicant data exported",
+    "Live deployments and authenticated web verification remain unperformed"
+  ]
+}
