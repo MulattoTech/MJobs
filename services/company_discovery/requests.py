@@ -26,6 +26,7 @@ SHARED_ATS_HOSTS = {'boards.greenhouse.io', 'boards-api.greenhouse.io', 'job-boa
 SHARED_ATS_SUFFIXES = {'myworkdayjobs.com', 'icims.com', 'smartrecruiters.com', 'applytojob.com'}
 SOURCE_FIELDS = ('company_id', 'provider', 'tenant', 'endpoint', 'collector_source_id')
 REVIEWABLE = {'NEEDS_ORIGIN_REVIEW', 'FAILED', 'BLOCKED', 'CANCELLED'}
+FIXTURE_NATIVE_ACQUISITION = 'native-ats-job-link-v1'
 
 
 def _audit(connection, request, action, **payload):
@@ -48,6 +49,27 @@ def _website(value):
 def _personal(connection):
     return connection.execute(select(m.workspace_identity.c.operation_mode).where(
         m.workspace_identity.c.id == 'workspace')).scalar_one_or_none() == 'PERSONAL'
+
+
+def _fixture(connection):
+    return connection.execute(select(m.workspace_identity.c.operation_mode).where(
+        m.workspace_identity.c.id == 'workspace')).scalar_one_or_none() == 'FIXTURE'
+
+
+def _fixture_native_proof(connection, request):
+    """Configured public intake can authorize only its exact native job candidate.
+
+    The workspace stays FIXTURE; this is neither a manual domain review nor
+    recurring employer monitoring. No marker or raw provider label is proof.
+    """
+    if not _fixture(connection) or not request['profile_id'] or not request['profile_version']:
+        return None
+    attributes = connection.execute(select(m.jobs.c.attributes).where(
+        m.jobs.c.id == request['trigger_job_id'])).scalar_one()
+    if attributes.get('fictional'):
+        return None
+    from services.company_discovery.domain_acquisition import native_job_link
+    return native_job_link(connection, request)
 
 
 def _origin(connection, company_id):
@@ -290,6 +312,11 @@ def _queue(connection, request, website, authorization, evidence, *, audit_detai
         discovery_request_id=request['id'], discovery_request_revision=revision)
     if authorization == 'ATS_JOB_LINK_CANDIDATE':
         params['native_job_link'] = evidence[0]
+    if _fixture(connection):
+        if (authorization != 'ATS_JOB_LINK_CANDIDATE' or not evidence
+                or _fixture_native_proof(connection, request) != evidence[0]):
+            raise ValueError('DISCOVERY_AUTHORIZATION_REQUIRED')
+        params['fixture_native_acquisition'] = FIXTURE_NATIVE_ACQUISITION
     operation_id = enqueue_operation(None, 'COMPANY_DISCOVER', resolved['company_id'], params, connection=connection)
     connection.execute(update(m.company_discovery_requests).where(m.company_discovery_requests.c.id == request['id'])
         .values(revision=revision, selected_website=website, authorization=authorization,
@@ -356,7 +383,8 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     """No network or separate transaction: callers commit jobs, matches and intent together."""
     if explicit_reason not in {None, 'USER_PREFERRED_COMPANY'}:
         raise ValueError('DISCOVERY_TRIGGER_INVALID')
-    if not _personal(connection):
+    fixture = _fixture(connection)
+    if not _personal(connection) and not fixture:
         return None
     job = connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one()
     if job['attributes'].get('fictional'):
@@ -398,6 +426,11 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     if score is not None and score >= priority_match:
         reasons.append('HIGH_MATCH_JOB')
     if not reasons:
+        return None
+    if fixture and not _fixture_native_proof(connection, dict(company_id=job['company_id'],
+            company_source_id=source['id'], candidate_id=selected, trigger_job_id=job_id,
+            profile_id=profile['id'] if profile else None,
+            profile_version=profile['version'] if profile else None)):
         return None
     request_id = identity('company-discovery-request', job['company_id'], source['id'])
     timestamp = now()
@@ -445,6 +478,10 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     if request['state'] == 'NEEDS_ORIGIN_REVIEW':
         website, evidence = _origin(connection, request['company_id'])
         if website:
+            if fixture:
+                # This scope acquires a native candidate only; verified-domain
+                # rediscovery retains its existing PERSONAL authorization path.
+                return request_id
             try:
                 _source(connection, request)
             except ValueError:
@@ -620,7 +657,15 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
         if lock:
             request_query = request_query.with_for_update()
         row = connection.execute(request_query).mappings().one_or_none()
-        if (not _personal(connection) or row is None
+        fixture_native = (row is not None and _fixture(connection)
+            and params.get('fixture_native_acquisition') == FIXTURE_NATIVE_ACQUISITION
+            and operation['kind'] == 'COMPANY_DISCOVER' and params.get('fetch_mode') == 'PUBLIC_HTTPS'
+            and not params.get('monitoring_source_id')
+            and row['authorization'] in {'ATS_JOB_LINK_CANDIDATE', 'ATS_JOB_LINK_VERIFIED'}
+            and row['profile_id'] == params.get('profile_id')
+            and row['profile_version'] == params.get('profile_version'))
+        mode_authorized = ((_personal(connection) and 'fixture_native_acquisition' not in params) or fixture_native)
+        if (not mode_authorized or row is None
                 or row['company_id'] != initial['company_id']
                 or row['company_source_id'] != initial['company_source_id']
                 or row['state'] != 'QUEUED'
@@ -633,7 +678,7 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
         native_proof = None
         if native_authorization:
             from services.company_discovery.domain_acquisition import native_job_link
-            native_proof = native_job_link(connection, row)
+            native_proof = (_fixture_native_proof(connection, row) if fixture_native else native_job_link(connection, row))
             if (not native_proof or native_proof != params.get('native_job_link')
                     or not row['domain_evidence'] or native_proof != row['domain_evidence'][0]
                     or native_proof['website'] != row['selected_website']):

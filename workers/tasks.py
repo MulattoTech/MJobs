@@ -399,6 +399,9 @@ def execute_operation(operation_id, *, registry_module=None,
                 result = refresh_fixture_source(store, origin, operation, check=check)
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
+                fixture_native = "fixture_native_acquisition" in params
+                if fixture_native and (operation_mode != "FIXTURE" or not params.get("discovery_request_id")):
+                    raise FixtureOperationDisabled()
                 if params.get("monitoring_source_id") or params.get("discovery_request_id"):
                     cancellation_check = check
                     def check():
@@ -409,7 +412,9 @@ def execute_operation(operation_id, *, registry_module=None,
                         if params.get("discovery_request_id"):
                             return authorize_discovery_request(store, operation)
                     check()
-                if operation_mode == "PERSONAL":
+                if operation_mode == "PERSONAL" or fixture_native:
+                    # The existing request guard above revalidates native proof
+                    # before client creation, on every read and at enrollment.
                     client = PublicCompanyClient(params["candidate"].get("company_website"), check=check, total_timeout=min(90, timeout()-5))
                 else:
                     if params.get("fetch_mode") == "PUBLIC_HTTPS":
