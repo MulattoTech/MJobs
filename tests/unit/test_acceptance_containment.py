@@ -17,7 +17,7 @@ from cli.acceptance_containment import (
     DockerCLI,
     OwnedPublicContainment,
 )
-from cli.acceptance_public_source import run as run_public_source
+from cli.acceptance_public_source import run as run_public_source, child_containment_context, _digest
 from services.discovery.sources.remotive import Remotive
 
 STAMP = datetime(2026, 11, 6, 12, 0, tzinfo=UTC)
@@ -251,6 +251,18 @@ class FakeAPI:
                 "retry_count": 0,
                 "started_at": "2026-11-06T12:00:00+00:00",
             }
+        if path == "/profiles/profile/sources/public-source/collections/own-operation/children" and method == "GET":
+            assert kwargs.get("params") == {"attempt": 1}
+            parent = next(row for row in self.operations if row["id"] == "own-operation")
+            assert parent["params"]["source_id"] == "public-source"
+            result = dict(schema_version=1, profile_id=parent["entity_id"],
+                profile_version=parent["params"]["profile_version"], source_id="public-source",
+                parent_operation_id=parent["id"], parent_operation_attempt=1,
+                parent_request_id=parent["params"]["request_id"],
+                complete=parent["state"] == "COMPLETED", limit=2,
+                children=[], enrolled_sources=[], lineage_sha256=_digest([]))
+            result["sha256"] = _digest(result)
+            return result
         raise AssertionError((method, path, kwargs))
 
 
@@ -936,6 +948,10 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.assertEqual(evidence["result"], "PASS", evidence)
         self.assertEqual(evidence["cleanup"]["status"], "RESTORED_DISABLED")
         self.assertEqual(evidence["observed_real_job_ids"], ["real-job"])
+        self.assertEqual(evidence["child_discovery"]["status"], "NOT_RUN")
+        self.assertEqual(evidence["child_discovery"]["children"], [])
+        self.assertEqual(evidence["child_discovery"]["lineage_sha256"], _digest([]))
+        self.assertEqual(len(self.api.operations), 1)
         self.assertEqual(
             sum(path.endswith("/collect") for _, path, _ in self.api.calls), 1
         )
@@ -947,6 +963,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             newly_created=True,
             collection_operation_id=evidence["collection_operation_id"],
             collection_request_id=evidence["collection_request_id"],
+            **child_containment_context(evidence),
         )
         containment("finalize", joined_context)
         released = containment(
