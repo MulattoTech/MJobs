@@ -237,8 +237,25 @@ class Greenhouse:
             try:
                 payload = jobs_request.result()
             except Exception as failure:
-                failures.append(failure)
-                payload = None
+                if (not failures and isinstance(board, dict)
+                        and isinstance(failure, SourceError)
+                        and failure.code == "SOURCE_PAYLOAD_LIMIT"):
+                    # Both original GETs have settled. A complete metadata-only
+                    # listing uses the same byte/job/time/rate/network limits;
+                    # it is not a sample or a fan-out to individual job pages.
+                    self.check()
+                    self._reset_request_status()
+                    payload = self._get("/jobs")
+                    try:
+                        self._validate_metadata_inventory(payload)
+                    except SourceError as invalid:
+                        with self._status_lock:
+                            self.status = invalid.code
+                            self._request_failed = True
+                        raise
+                else:
+                    failures.append(failure)
+                    payload = None
             if failures:
                 # Both requests have now settled. Recheck cancellation/deadline
                 # so a concurrent provider error cannot turn a local stop into
@@ -268,6 +285,48 @@ class Greenhouse:
         complete = 'meta' not in payload or (type(total) is int and total == len(payload['jobs']))
         return SearchBatch(HOST + "/v1/boards/" + self.tenant + "/jobs",
                            tuple(SourceItem(raw, company) for raw in payload["jobs"]), company, complete_inventory=complete)
+
+    def _validate_metadata_inventory(self, payload):
+        """Require an exact inventory before metadata can replace a large body.
+
+        Keep provider rows untouched for posting snapshots and reciprocal native
+        proof. Missing description text is not missing inventory membership.
+        """
+        if not isinstance(payload, dict) or not isinstance(payload.get("jobs"), list):
+            raise SourceError("SOURCE_INVALID_FORMAT")
+        rows = payload["jobs"]
+        if len(rows) > 1000:
+            raise SourceError("SOURCE_JOB_LIMIT")
+        meta = payload.get("meta")
+        total = meta.get("total") if isinstance(meta, dict) else None
+        if type(total) is not int or total != len(rows):
+            raise SourceError("SOURCE_INVALID_FORMAT")
+        identifiers = set()
+        for raw in rows:
+            self.check()
+            parsed = self.normalize(raw)
+            if raw["id"] in identifiers:
+                raise SourceError("SOURCE_DUPLICATE_JOB_ID")
+            identifiers.add(raw["id"])
+            if not parsed["title"]:
+                raise SourceError("SOURCE_INVALID_JOB")
+            url = raw.get("absolute_url")
+            try:
+                if not isinstance(url, str) or not url or any(
+                        character.isspace() or ord(character) < 32 or ord(character) == 127
+                        for character in unquote(url)):
+                    raise ValueError()
+                target = urlsplit(url)
+                path = unquote(target.path)
+                if (target.scheme != "https" or not target.hostname or target.username or target.password
+                        or target.port not in (None, 443) or "\\" in url
+                        or any(part in (".", "..") for part in path.split("/"))):
+                    raise ValueError()
+                if target.hostname in ("boards.greenhouse.io", "job-boards.greenhouse.io"):
+                    if path.rstrip("/") != f"/{self.tenant}/jobs/{raw['id']}":
+                        raise ValueError()
+            except ValueError:
+                raise SourceError("SOURCE_INVALID_JOB") from None
 
     def collect(self):
         """Compatibility for callers of the original bounded board collection API."""
@@ -365,6 +424,7 @@ class Greenhouse:
         return {"requisition": str(raw["id"]), "title": title, "description": description,
                 "skills": skill_data["labels"], "location": location, "remote_type": location_facts["remote_type"], "application_url": url,
                 "attributes": {"provider": "greenhouse", "tenant": self.tenant, "native_job_id": raw.get("internal_job_id"),
+                    "description_status": "SOURCE_PROVIDED" if description else "UNAVAILABLE",
                     "lifecycle_claim": "ACTIVE",
                     "native_posting_id": raw["id"], "updated_at": raw.get("updated_at"), "salary": ranges or None,
                     "employment_type": employment_type, "experience_level": experience["level"],
