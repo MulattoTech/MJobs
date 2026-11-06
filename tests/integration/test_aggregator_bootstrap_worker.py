@@ -37,7 +37,8 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             '<p><a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply to this job</a></p>'
         )
         self.raw_before = deepcopy(raw)
-        self.collection = self.case.collect()
+        self.parent_lineage = self.case.parent_operation()
+        self.collection = self.case.collect(**self.parent_lineage)
         with self.case.store.engine.connect() as connection:
             self.request = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
             self.operation = dict(connection.execute(select(m.operations).where(
@@ -341,6 +342,28 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
         self.assertEqual(self.network, [])
         self.assertEqual(self.case.store.count('company_domains'), 0)
         self.assertEqual(self.case.store.count('company_job_sources'), 1)
+
+    def test_cancelled_running_parent_blocks_before_employer_egress(self):
+        def cancel_parent():
+            with self.case.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == self.parent_lineage['parent_operation_id']).values(
+                        cancel_requested=True))
+        outcome = self._execute(mutate=cancel_parent)
+        self.assertEqual(outcome['status'], 'BLOCKED', outcome)
+        self.assertEqual(outcome['error_category'], 'DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
+        self.assertEqual(self.network, [])
+
+    def test_expired_running_parent_blocks_before_employer_egress(self):
+        def expire_parent():
+            with self.case.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == self.parent_lineage['parent_operation_id']).values(
+                        lease_expires_at='2000-01-01T00:00:00+00:00'))
+        outcome = self._execute(mutate=expire_parent)
+        self.assertEqual(outcome['status'], 'BLOCKED', outcome)
+        self.assertEqual(outcome['error_category'], 'DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
+        self.assertEqual(self.network, [])
 
     def test_modified_candidate_snapshot_blocks_all_employer_egress(self):
         with self.case.store.engine.begin() as connection:
