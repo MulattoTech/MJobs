@@ -823,6 +823,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_search_history_router(store))
     from apps.api.job_inventory import create_job_inventory_router
     app.include_router(create_job_inventory_router(store))
+    from apps.api.collection_children import create_collection_children_router
+    app.include_router(create_collection_children_router(store))
     from apps.api.fact_rejections import create_fact_rejections_router
     app.include_router(create_fact_rejections_router(store))
     from apps.api.recently_viewed import create_recently_viewed_router

@@ -151,27 +151,18 @@ def test_actual_pending_verified_enrollment_audit_joins_exact_parent():
     from services.company_discovery.aggregator_workflow import execute_aggregator_bootstrap
     from services.company_discovery.public_client import PublicCompanyClient
     from services.discovery.sources.greenhouse import Greenhouse
-    from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
     from tests.integration.test_aggregator_bootstrap_worker import AggregatorBootstrapWorkerTests
     from workers.operations import claim
 
-    original_collect = AggregatorBootstrapCollectionTests.collect
-
-    def parented_collect(case, *args, **kwargs):
-        case.child_read_model_parent = case.parent_operation()
-        result = original_collect(case, *args, **kwargs, **case.child_read_model_parent)
-        with case.store.engine.begin() as connection:
-            connection.execute(update(m.operations).where(
-                m.operations.c.id == case.child_read_model_parent['parent_operation_id']).values(
-                    state='COMPLETED', completed_at=now()))
-        return result
-
     fixture = AggregatorBootstrapWorkerTests()
     try:
-        with patch.object(AggregatorBootstrapCollectionTests, 'collect', parented_collect):
-            fixture.setUp()
+        fixture.setUp()
         store = fixture.case.store
-        parent = fixture.case.child_read_model_parent
+        parent = fixture.parent_lineage
+        with store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == parent['parent_operation_id']).values(
+                    state='COMPLETED', completed_at=now()))
         args = (store, 'fixture', fixture.case.source_id,
                 parent['parent_operation_id'], parent['parent_operation_attempt'])
         before = collection_children(*args)
@@ -233,3 +224,18 @@ def test_actual_pending_verified_enrollment_audit_joins_exact_parent():
             collection_children(*args)
     finally:
         fixture.doCleanups()
+
+
+def test_production_application_registers_collection_children(family, tmp_path):
+    from apps.api.main import create_app
+
+    app = create_app(family['store'], 'http://127.0.0.1:8081',
+                     tmp_path / 'outputs', operation_mode='FIXTURE')
+    with TestClient(app) as client:
+        response = client.get(family['path'])
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result['parent_operation_id'] == family['parent']
+    assert result['parent_operation_attempt'] == 1
+    assert result['complete'] is True
+    assert result['children'] == []
