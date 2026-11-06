@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-952-RECOVERY",
+  "objective": "Refresh unchanged PR952 components onto current main for strict required checks",
+  "owner": "mjobs-2",
+  "branch": "ao/pr949-recovery/pr952",
+  "head_sha": "09b38d656acf00a51790eb2ab55ed343b166204d",
+  "routing_state": "VERIFY",
+  "next_action": "Active coordinator mjobs-15 serial publication authorization; ordinary existingPR952 push and native exact-head review; no heavy tests without slot",
+  "created_at": "2026-11-06T06:20:11.685391+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source09b38d656acf00a51790eb2ab55ed343b166204d treef27b09fa2de1f4212411acc1fa6fdd9ee133611e parents e2ed54068dff41e434eed73a3a5f51b1c6038f79 and main19dd2cdb92b71f531f35a07f68aff339b8fcd69a. Pinned Python3.12.10 pytest tests/unit/test_company_job_endpoints.py tests/unit/test_company_feed_xml_safety.py:15passed43subtests0.43s. All19 prior PR-owned blobs unchanged before checkpoint update;catalogue/progress/dashboard/whitespace/provenance PASS.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical predecessor df015358/tree7ef5b6a9 focused8modules62passed1existing live-WWRskip108subtests34.88s;not rerun on new head. Frozen929/957 ancestry preserved,no new source/test behavior.",
+      "result": "PASS"
+    },
+    {
+      "command": "New-head broader integration/hosted checks and native review;no heavy slot available. Live-provider/browser/full MJ-REQ-018 acceptance;merge/deploy unauthorized.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Old e2ed5406 green but BEHIND under strict checks; refreshed successor must earn new gates. PR949 unchanged/unpolled; former primary1 terminated,active coordinator15 notified."
+  ]
+}

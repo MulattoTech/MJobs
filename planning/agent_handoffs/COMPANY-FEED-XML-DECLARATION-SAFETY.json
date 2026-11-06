@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "task_id": "COMPANY-FEED-XML-DECLARATION-SAFETY",
+  "objective": "Enforce company-feed no-DTD parsing after encoding detection and preserve stored jobs/recovery",
+  "owner": "web-20261105T024458Z-1b12b8fc-3b08-4780-ba5c-488849ee318d",
+  "branch": "web/web-20261105T024458Z-1b12b8fc-3b08-4780-ba5c-488849ee318d/company-feed-xml",
+  "head_sha": "b864f641cb17bd5b93de4bae24a59c2691f4b3b3",
+  "routing_state": "RESUME",
+  "next_action": "Publish through existing PR952 after current-main integration; obtain new independent guard review and protected CI; keep MJ-REQ-018/004 PARTIAL",
+  "created_at": "2026-11-05T03:46:42.101505+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source b864f641: 5 tests +24 subtests PASS, zero skips; baseline14 expected failures; new-test Ruff/provenance/catalogue/journal/dashboard/whitespace PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "New-guard independent review, protected combined-candidate CI, browser and production remain separate gates",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": []
+}
