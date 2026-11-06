@@ -84,6 +84,9 @@ class CampaignProgressTests(unittest.TestCase):
             (self.campaign_root / "planning" / "acceptance" / "MJ-REQ-292.json").read_bytes()).hexdigest())
         self.assertEqual(len(body["requirements"]), body["overview"]["original"]["total"])
         self.assertTrue(all("title" in item for item in body["requirements"]))
+        campaign_requirement = next(item for item in body["requirements"] if item["id"] == "MJ-REQ-292")
+        self.assertEqual(campaign_requirement["issue"], 293)
+        self.assertEqual(campaign_requirement["priority"], "P0")
 
     def test_malformed_missing_and_scoreboard_mismatch_are_unavailable_not_zero(self):
         path = self.campaign_root / "planning" / "acceptance" / "MJ-REQ-292.json"

@@ -126,7 +126,7 @@ def _requirement_catalog(repo: Path) -> tuple[dict[str, Any], list[dict[str, Any
             "title": title_by_id.get(rid, rid),
             "status": row["status"],
             "priority": row["priority"],
-            "issue": row.get("issue"),
+            "issue": ISSUE_NUMBER if rid == REQUIREMENT_ID else row.get("issue"),
         })
     items.sort(key=lambda item: item["id"])
     overview = {
