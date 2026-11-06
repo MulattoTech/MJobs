@@ -337,6 +337,10 @@ def validate_ledger(data: Any, root: Path) -> ValidationReport:
 
 
 def load_ledger(path: Path) -> Any:
+    return load_ledger_bytes(Path(path).read_bytes())
+
+
+def load_ledger_bytes(raw: bytes) -> Any:
     def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
         for key, value in pairs:
@@ -344,7 +348,7 @@ def load_ledger(path: Path) -> Any:
                 raise ValueError(f"duplicate JSON key: {key}")
             result[key] = value
         return result
-    return json.loads(Path(path).read_text(encoding="utf-8-sig"),
+    return json.loads(raw.decode("utf-8-sig"),
                       object_pairs_hook=reject_duplicate_keys)
 
 
@@ -371,8 +375,13 @@ def _safe_repository_path(root: Path, relative: str, label: str) -> Path:
 
 
 def checkpoint_scoreboard(report: ValidationReport, data: dict) -> dict[str, Any]:
-    """Build a clearly non-authoritative handoff projection from ledger claims."""
+    """Build the projection-owned, clearly non-authoritative handoff scoreboard.
+
+    Any narrative note formerly nested in this object belongs outside it; every
+    member here is generated from the ledger or labels what those counts mean.
+    """
     return {
+        "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
         "verified_pass": report.counts["PASS"],
         "total": report.total,
         "PARTIAL": report.counts["PARTIAL"],
@@ -380,7 +389,7 @@ def checkpoint_scoreboard(report: ValidationReport, data: dict) -> dict[str, Any
         "NOT_RUN": report.counts["NOT_RUN"],
         "BLOCKED": report.counts["BLOCKED"],
         "umbrella_result": data["umbrella_result"],
-        "source_revision": data["baseline_commit"],
+        "baseline_commit": data["baseline_commit"],
     }
 
 
@@ -388,7 +397,7 @@ def _ledger_projection_inputs(root: Path, ledger_relative: str
                               ) -> tuple[dict, ValidationReport, str]:
     ledger_path = _safe_repository_path(root, ledger_relative, "ledger path")
     raw = ledger_path.read_bytes()
-    data = load_ledger(ledger_path)
+    data = load_ledger_bytes(raw)
     report = validate_ledger(data, root)
     if not report.structurally_valid:
         raise ValueError("ledger structurally invalid: " + "; ".join(report.errors))
@@ -419,7 +428,7 @@ def check_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
         data, report, ledger_digest = _ledger_projection_inputs(root, ledger_relative)
         checkpoint_path = _safe_repository_path(root, checkpoint_relative, "checkpoint path")
         checkpoint = load_ledger(checkpoint_path)
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
         return [str(exc)]
     return _checkpoint_projection_errors(
         checkpoint, ledger_relative, checkpoint_scoreboard(report, data), ledger_digest
@@ -428,7 +437,7 @@ def check_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
 
 def write_checkpoint_scoreboard(root: Path, ledger_relative: str = LEDGER_PATH,
                                 checkpoint_relative: str = DEFAULT_CHECKPOINT_PATH) -> Path:
-    """Atomically replace only the existing handoff scoreboard and ledger hash."""
+    """Atomically replace only the projection-owned scoreboard and ledger hash."""
     root = Path(root).resolve()
     data, report, ledger_digest = _ledger_projection_inputs(root, ledger_relative)
     checkpoint_path = _safe_repository_path(root, checkpoint_relative, "checkpoint path")
@@ -507,7 +516,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.write_checkpoint_scoreboard:
         try:
             write_checkpoint_scoreboard(root, args.ledger, args.checkpoint)
-        except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
             print(f"ERROR: {exc}")
             return 1
         print("Checkpoint scoreboard and ledger hash updated from structural ledger projection.")

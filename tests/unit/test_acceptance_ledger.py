@@ -291,9 +291,10 @@ def test_checkpoint_scoreboard_is_derived_and_only_projection_fields_change(tmp_
 
     after = json.loads(checkpoint_path.read_text(encoding="utf-8"))
     assert after["scoreboard"] == {
+        "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
         "verified_pass": 0, "total": 60, "PARTIAL": 0, "FAIL": 0,
         "NOT_RUN": 60, "BLOCKED": 0, "umbrella_result": "PARTIAL",
-        "source_revision": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+        "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
     }
     assert after["acceptance_ledger_sha256"] == hashlib.sha256(
         (root / ledger.LEDGER_PATH).read_bytes()
@@ -347,6 +348,37 @@ def test_checkpoint_projection_refuses_invalid_ledger_without_mutating_handoff(t
     assert checkpoint_path.read_bytes() == before
 
 
+def test_checkpoint_projection_hashes_the_same_ledger_bytes_it_parses(tmp_path, monkeypatch):
+    root = prepare_root(tmp_path)
+    data = make_ledger(root)
+    ledger_path = write_fixture_ledger(root, data)
+    checkpoint_path = write_fixture_checkpoint(root)
+    original_bytes = ledger_path.read_bytes()
+    changed = json.loads(original_bytes)
+    changed["steps"][0]["status"] = "PARTIAL"
+    changed["scoreboard"].update({"PARTIAL": 1, "NOT_RUN": 59})
+    changed["updated_at_utc"] = "2026-11-06T14:00:00Z"
+    replacement = json.dumps(changed).encode()
+    real_read_bytes = Path.read_bytes
+    changed_once = False
+
+    def read_then_change(path):
+        nonlocal changed_once
+        raw = real_read_bytes(path)
+        if path == ledger_path and not changed_once:
+            changed_once = True
+            ledger_path.write_bytes(replacement)
+        return raw
+
+    monkeypatch.setattr(Path, "read_bytes", read_then_change)
+    ledger.write_checkpoint_scoreboard(root)
+    monkeypatch.setattr(Path, "read_bytes", real_read_bytes)
+    checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+    assert checkpoint["scoreboard"]["PARTIAL"] == 0
+    assert checkpoint["scoreboard"]["NOT_RUN"] == 60
+    assert checkpoint["acceptance_ledger_sha256"] == hashlib.sha256(original_bytes).hexdigest()
+
+
 def test_validation_never_executes_evidence_commands(tmp_path, monkeypatch):
     root = prepare_root(tmp_path)
     data = make_ledger(root)
@@ -386,4 +418,18 @@ def test_module_cli_prints_compact_report_and_check_returns_failure(tmp_path, mo
     assert "updated from structural ledger projection" in capsys.readouterr().out
     assert ledger.main(["--check-checkpoint"]) == 0
     assert "matches ledger bytes" in capsys.readouterr().out
+
+
+def test_cli_reports_malformed_checkpoint_type_without_traceback(tmp_path, monkeypatch, capsys):
+    root = prepare_root(tmp_path)
+    path = root / ledger.LEDGER_PATH
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(make_ledger(root)), encoding="utf-8")
+    checkpoint_path = write_fixture_checkpoint(root)
+    checkpoint_path.write_text("[]", encoding="utf-8")
+    monkeypatch.chdir(root)
+    assert ledger.main(["--write-checkpoint-scoreboard"]) == 1
+    output = capsys.readouterr().out
+    assert "ERROR: checkpoint must be an object" in output
+    assert "Traceback" not in output
 
