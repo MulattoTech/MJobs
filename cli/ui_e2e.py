@@ -1927,6 +1927,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                 native_proof = native_attempt.get("native_fixture") or {}
                 verified_uploads = native_attempt.get("verified_uploads") or []
                 current_profile = request("/profiles/" + profile_id)
+                from services.applications.owned_ats_fixture import _digest as native_digest
+
                 profile_answers = {row["id"]: row for row in current_profile["answers"]}
                 reviewed_fields = native_proof.get("reviewed_fields") or []
                 reviewed_matches = (
@@ -1940,10 +1942,14 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                             "fixture_question": "Approved fixture answer"}[row["field_key"]]
                         and profile_answers[row["answer_id"]].get("verified") is True
                         and profile_answers[row["answer_id"]].get("user_approved") is True
+                        and row.get("answer_sha256")
+                        == native_digest(profile_answers[row["answer_id"]])
                         for row in reviewed_fields))
                 history_ui = page.get_by_role(
                     "region", name="Durable attempt history", exact=True)
                 expect(history_ui).to_be_visible()
+                native_review_ui = history_ui.get_by_role(
+                    "region", name="Controlled local fixture adapter", exact=True)
                 refresh_history = history_ui.get_by_role(
                     "button", name="Refresh attempt history", exact=True)
                 if refresh_history.is_enabled():
@@ -1955,6 +1961,8 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     and native_attempt.get("profile_version") == current_profile["version"]
                     and native_proof.get("job_id") == application["job_id"]
                     and native_proof.get("request_id") == dry_run_lineage["operation_id"])
+                profile_digest_matches = (
+                    native_proof.get("profile_sha256") == native_digest(current_profile))
                 record_application_step(
                     39, "The local browser attempt navigated to and detected the selected native fixture form.",
                     {
@@ -1970,18 +1978,6 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     },
                     stage_lineage={**dry_run_lineage, "step": 39},
                 )
-                record_application_step(
-                    40, "The native attempt used the current profile for its contact-fill phase.",
-                    {
-                        "contact_fields_match_verified_profile": _paired_evidence(
-                            "FILL_CONTACT:COMPLETED" in history_ui_text,
-                            native_scope_ok and "FILL_CONTACT:COMPLETED" in native_steps),
-                        "contact_values_visible": _paired_evidence(
-                            False, False),
-                    },
-                    stage_lineage={**dry_run_lineage, "step": 40},
-                )
-
                 def upload_matches_document(kind):
                     selected_doc = next((row for row in dry_documents
                                          if row.get("kind") == kind
@@ -2004,6 +2000,25 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
 
                 resume_doc, resume_upload, resume_upload_ok = upload_matches_document("resume")
                 cover_doc, cover_upload, cover_upload_ok = upload_matches_document("cover-letter")
+                terminal_native_validation = (
+                    native_scope_ok and dry.get("state") in {"DRY_RUN_COMPLETE", "CONFIRMED"}
+                    and "VALIDATE:COMPLETED" in native_steps
+                    and resume_upload_ok and cover_upload_ok)
+                record_application_step(
+                    40, "The native attempt filled and read back contact fields from the current profile.",
+                    {
+                        "contact_fields_match_verified_profile": _paired_evidence(
+                            "FILL_CONTACT:COMPLETED" in history_ui_text,
+                            native_scope_ok and profile_digest_matches
+                            and "FILL_CONTACT:COMPLETED" in native_steps),
+                        "contact_fields_readback_verified": _paired_evidence(
+                            "FILL_CONTACT:COMPLETED" in history_ui_text,
+                            native_scope_ok and profile_digest_matches
+                            and "FILL_CONTACT:COMPLETED" in native_steps
+                            and terminal_native_validation),
+                    },
+                    stage_lineage={**dry_run_lineage, "step": 40},
+                )
                 record_application_step(
                     41, "The verified browser resume bytes matched the selected persisted B resume document.",
                     {
@@ -2031,13 +2046,15 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
                     document_id=cover_doc.get("id") if cover_doc else None,
                 )
                 record_application_step(
-                    43, "Persisted native field bindings matched the reviewed answer questions; answer values stay hidden.",
+                    43, "The native attempt filled and validated the exact reviewed answers; values stay hidden.",
                     {
                         "approved_answers_match_questions": _paired_evidence(
-                            "Dynamic application form review" in page.locator("body").inner_text(),
+                            native_review_ui.is_visible()
+                            and "Exact reviewed fields: 3" in native_review_ui.inner_text(),
                             reviewed_matches),
-                        "approved_values_visible": _paired_evidence(
-                            False, False),
+                        "approved_answers_readback_verified": _paired_evidence(
+                            "VALIDATE:COMPLETED" in history_ui_text,
+                            reviewed_matches and terminal_native_validation),
                     },
                     stage_lineage={**dry_run_lineage, "step": 43},
                 )
