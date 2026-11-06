@@ -1,0 +1,294 @@
+"""No-network contracts for the same-profile public observation helper."""
+from copy import deepcopy
+from datetime import datetime
+import hashlib
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from cli.acceptance_public_source import run
+
+
+STAMP = '2026-11-06T12:00:00+00:00'
+VERSION = '1' * 64
+BASELINE = dict(source={'commit': 'a' * 40}, profile_id='profile', application_id='app',
+    operation_id='original-operation', request_id='original-request', external_submission_enabled=False,
+    selected_application_job_id='fixture-job', selected_application_route_id='fixture-route')
+PROOF = dict(scheduler_contained=True, source_policy_exclusive=True, source_collection_exclusive=True,
+    owner='test-operator', token='test-lease')
+
+
+class ControlledAPI:
+    def __init__(self):
+        self.calls = []
+        self.source = None
+        self.state = 'COMPLETED'
+        self.after_collection = lambda: None
+        self.profile = dict(id='profile', version=VERSION)
+        self.app = dict(id='app', profile_id='profile', job_id='fixture-job', route_id='fixture-route',
+            target='MOCK', state='CONFIRMED', confirmation={'receipt': 'mock-only'})
+        self.fixture = dict(id='fixture-job', attributes={'fictional': True}, routes=[
+            dict(id='fixture-route', job_id='fixture-job', provider='mock-ats', url='http://127.0.0.1:1/apply')])
+        raw = {'id': 'provider-job', 'title': 'Public Python role'}
+        checksum = hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False,
+            separators=(',', ':')).encode()).hexdigest()
+        self.public = dict(id='real-job', attributes=dict(fictional=False, provider='wwr',
+            source_id='public-source', source_endpoint='https://weworkremotely.com/remote-jobs.rss',
+            native_posting_id='provider-job', submission_capability='MANUAL_ONLY'),
+            match=dict(profile_id='profile', profile_version=VERSION), postings=[dict(
+                id='public-posting', source='https://weworkremotely.com/remote-jobs.rss',
+                fetched_at=STAMP, raw=raw, snapshots=[dict(id='snapshot', sha256=checksum, retrieved_at=STAMP)])])
+
+    def configured(self, enabled=True):
+        self.source = dict(id='public-source', provider='wwr', tenant='default', enabled=enabled,
+            poll_interval=604800, concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0,
+            strategy='FEED', capabilities={'direct_application': False}, last_attempt=None,
+            last_success=None, backoff_until=None, health_status='NOT_CHECKED', jobs_seen=0)
+        return self.source
+
+    def request(self, method, path, **kwargs):
+        self.calls.append((method, path, deepcopy(kwargs)))
+        if (method, path) in [('GET', '/settings'), ('GET', '/health')]:
+            return dict(operation_mode='FIXTURE', external_submission_enabled=False)
+        if (method, path) == ('GET', '/profiles/profile'):
+            return deepcopy(self.profile)
+        if (method, path) == ('GET', '/profiles/profile/applications/app'):
+            return deepcopy(self.app)
+        if (method, path) == ('GET', '/jobs/fixture-job'):
+            return deepcopy(self.fixture)
+        if (method, path) == ('GET', '/sources'):
+            return {'sources': [deepcopy(self.source)] if self.source else []}
+        if (method, path) == ('PUT', '/sources'):
+            if self.source is None:
+                self.configured()
+            self.source.update(kwargs['json'])
+            return {'id': 'public-source'}
+        if (method, path) == ('POST', '/sources/public-source/collect'):
+            self.params = dict(kwargs['json'], source_id='public-source', profile_version=VERSION)
+            self.source.update(last_attempt=STAMP, last_success=STAMP, jobs_seen=1, health_status='HEALTHY')
+            self.after_collection()
+            return {'operation_id': 'public-operation'}
+        if (method, path) == ('GET', '/operations/public-operation'):
+            return dict(id='public-operation', kind='DISCOVER', entity_id='profile', params=self.params,
+                state=self.state, error='SOURCE_UNAVAILABLE' if self.state == 'BLOCKED' else None,
+                attempt_count=1, retry_count=0, started_at=STAMP, completed_at=STAMP)
+        if (method, path) == ('POST', '/operations/public-operation/cancel'):
+            return {'cancel_requested': True}
+        if (method, path) == ('GET', '/jobs'):
+            return {'jobs': [deepcopy(self.public)]}
+        if (method, path) == ('GET', '/jobs/real-job'):
+            return deepcopy(self.public)
+        raise AssertionError((method, path, kwargs))
+
+
+class PublicSourceObservationTests(unittest.TestCase):
+    def setUp(self):
+        self.api = ControlledAPI()
+        self.directory = self.enterContext(tempfile.TemporaryDirectory())
+        self.path = Path(self.directory) / 'public.json'
+
+    def observe(self, **kwargs):
+        return run('http://127.0.0.1:18700', BASELINE, self.path,
+            acceptance_run_id='campaign', request=self.api.request, execution_scope='CONTROLLED_TRANSPORT',
+            containment_preflight=kwargs.pop('containment_preflight', lambda *_: deepcopy(PROOF)),
+            utc_now=lambda: datetime.fromisoformat(STAMP), **kwargs)
+
+    def test_one_collection_records_distinct_ids_and_restores_new_source(self):
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertEqual(result['observed_real_job_ids'], ['real-job'])
+        self.assertEqual(result['selected_application_job_id'], 'fixture-job')
+        self.assertEqual(result['operation_id'], 'original-operation')
+        self.assertEqual(result['collection_operation_id'], 'public-operation')
+        self.assertEqual(len(result['collection_operation_sha256']), 64)
+        self.assertEqual(len(result['source_record_sha256']), 64)
+        self.assertEqual(result['acceptance_observations'][0]['status'], 'NOT_RUN')
+        self.assertEqual(result['cleanup']['status'], 'RESTORED_DISABLED')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(json.loads(self.path.read_text()), result)
+        self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+
+    def test_missing_containment_blocks_before_any_write(self):
+        result = self.observe(containment_preflight=lambda *_: {'scheduler_contained': False})
+        self.assertEqual(result['error_code'], 'SCHEDULER_CONTAINMENT_REQUIRED')
+        self.assertTrue(all(method == 'GET' for method, _, _ in self.api.calls))
+
+    def test_scheduler_pause_without_exclusive_collection_owner_is_insufficient(self):
+        result = self.observe(containment_preflight=lambda *_: dict(PROOF, source_collection_exclusive=False))
+        self.assertEqual(result['error_code'], 'SCHEDULER_CONTAINMENT_REQUIRED')
+        self.assertTrue(all(method == 'GET' for method, _, _ in self.api.calls))
+
+    def test_policy_change_at_dispatch_cannot_start_collection(self):
+        self.api.configured()
+        def containment(stage, _context):
+            if stage == 'dispatch':
+                self.api.source['request_timeout'] = 12
+            return deepcopy(PROOF)
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['error_code'], 'SOURCE_CONFIGURATION_CHANGED')
+        self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
+
+    def test_ambiguous_enable_response_requires_containment_to_remain_held(self):
+        original = self.api.request
+        def ambiguous(method, path, **kwargs):
+            value = original(method, path, **kwargs)
+            if method == 'PUT':
+                raise RuntimeError('Connection ended after remote configuration committed')
+            return value
+        self.api.request = ambiguous
+        result = self.observe()
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['cleanup']['status'], 'ENABLE_UNCONFIRMED_PRESERVE_CONTAINMENT')
+        self.assertTrue(self.api.source['enabled'])
+        self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
+
+    def test_disabled_source_is_not_reenabled_or_reconfigured(self):
+        self.api.configured(enabled=False)
+        original = deepcopy(self.api.source)
+        result = self.observe()
+        self.assertEqual(result['error_code'], 'SOURCE_DISABLED')
+        self.assertEqual(self.api.source, original)
+        self.assertTrue(all(method == 'GET' for method, _, _ in self.api.calls))
+
+    def test_existing_enabled_policy_is_used_without_configuration_writes(self):
+        self.api.configured()
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        self.assertTrue(self.api.source['enabled'])
+        self.assertFalse(any(method == 'PUT' for method, _, _ in self.api.calls))
+
+    def test_dispatch_preflight_receives_exact_existing_source_identity_and_policy(self):
+        self.api.configured()
+        def containment(stage, context):
+            if stage == 'dispatch':
+                self.assertEqual(context['source_id'], 'public-source')
+                self.assertEqual(len(context['source_policy_sha256']), 64)
+            return deepcopy(PROOF)
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['result'], 'PASS', result)
+
+    def test_cooldown_or_backoff_prevents_collection(self):
+        for field in ('last_attempt', 'backoff_until'):
+            with self.subTest(field=field):
+                self.api = ControlledAPI()
+                self.api.configured()[field] = ('2026-11-07T12:00:00+00:00'
+                    if field == 'backoff_until' else STAMP)
+                result = self.observe()
+                self.assertIn(result['error_code'], {'SOURCE_COOLDOWN', 'SOURCE_BACKOFF'})
+                self.assertFalse(any(method != 'GET' for method, _, _ in self.api.calls))
+
+    def test_terminal_provider_failure_is_recorded_without_retry(self):
+        self.api.state = 'BLOCKED'
+        result = self.observe()
+        self.assertEqual(result['error_code'], 'PUBLIC_COLLECTION_BLOCKED')
+        self.assertEqual(result['collection_error'], 'SOURCE_UNAVAILABLE')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+
+    def test_cancelled_operation_remains_cancelled_without_retry(self):
+        self.api.state = 'CANCELLED'
+        result = self.observe()
+        self.assertEqual(result['error_code'], 'PUBLIC_COLLECTION_CANCELLED')
+        self.assertEqual(result['collection_state'], 'CANCELLED')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+
+    def test_foreign_operation_and_retried_result_cannot_pass(self):
+        for change in ('params', 'attempts'):
+            with self.subTest(change=change):
+                self.api = ControlledAPI()
+                original = self.api.request
+                def changed(method, path, **kwargs):
+                    value = original(method, path, **kwargs)
+                    if method == 'GET' and path == '/operations/public-operation':
+                        if change == 'params':
+                            value['params'] = dict(value['params'], source_id='foreign-source')
+                        else:
+                            value['attempt_count'] = 2
+                    return value
+                self.api.request = changed
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertIn(result['error_code'], {'COLLECTION_IDENTITY_CHANGED', 'PUBLIC_COLLECTION_RETRIED'})
+
+    def test_timeout_requests_cancellation_and_disables_owned_source(self):
+        self.api.state = 'RUNNING'
+        clock = [0.0]
+        def sleep(seconds):
+            clock[0] += seconds
+        result = self.observe(timeout_seconds=2, monotonic=lambda: clock[0], sleep=sleep)
+        self.assertEqual(result['error_code'], 'PUBLIC_COLLECTION_TIMEOUT')
+        self.assertTrue(result['cancellation_requested'])
+        self.assertFalse(self.api.source['enabled'])
+
+    def test_changed_source_policy_is_preserved_during_cleanup(self):
+        self.api.after_collection = lambda: self.api.source.update(rate_limit=7)
+        result = self.observe()
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_POLICY_CHANGED')
+        self.assertEqual(self.api.source['rate_limit'], 7)
+        self.assertTrue(self.api.source['enabled'])
+
+    def test_existing_source_disablement_during_observation_is_preserved_and_rejected(self):
+        self.api.configured()
+        self.api.after_collection = lambda: self.api.source.update(enabled=False)
+        result = self.observe()
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['error_code'], 'SOURCE_CONFIGURATION_CHANGED')
+        self.assertFalse(self.api.source['enabled'])
+        self.assertFalse(any(method == 'PUT' for method, _, _ in self.api.calls))
+
+    def test_lost_ownership_preserves_source_and_fails_cleanup(self):
+        def containment(stage, _context):
+            return dict(PROOF, token='other-owner' if stage == 'cleanup' else PROOF['token'])
+        result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+        self.assertTrue(self.api.source['enabled'])
+
+    def test_selected_job_or_profile_changes_cannot_pass(self):
+        for change in ('job', 'profile'):
+            with self.subTest(change=change):
+                self.api = ControlledAPI()
+                self.api.after_collection = (lambda: self.api.app.update(job_id='real-job')) if change == 'job' else (
+                    lambda: self.api.profile.update(version='2' * 64))
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'BASELINE_SELECTION_CHANGED')
+
+    def test_snapshot_corruption_and_fictional_jobs_cannot_prove_real_collection(self):
+        for field in ('snapshot', 'fictional', 'stale-fetch'):
+            with self.subTest(field=field):
+                self.api = ControlledAPI()
+                if field == 'snapshot':
+                    self.api.public['postings'][0]['snapshots'][0]['sha256'] = '0' * 64
+                elif field == 'fictional':
+                    self.api.public['attributes']['fictional'] = True
+                else:
+                    self.api.public['postings'][0]['fetched_at'] = '2026-11-05T12:00:00+00:00'
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'PUBLIC_JOB_PROVENANCE_INVALID')
+
+    def test_helper_does_not_publish_unstructured_provider_diagnostics(self):
+        self.api.state = 'BLOCKED'
+        original = self.api.request
+        def private_failure(method, path, **kwargs):
+            value = original(method, path, **kwargs)
+            if method == 'GET' and path == '/operations/public-operation':
+                value['error'] = 'PRIVATE_SENTINEL token=value applicant@example.test'
+            return value
+        self.api.request = private_failure
+        result = self.observe()
+        self.assertEqual(result['collection_error'], 'UNCLASSIFIED_PROVIDER_FAILURE')
+        self.assertNotIn('PRIVATE_SENTINEL', self.path.read_text())
+
+    def test_unsupported_provider_and_nonloopback_api_are_rejected_before_requests(self):
+        with self.assertRaises(ValueError):
+            self.observe(provider='remoteok')
+        self.assertEqual(self.api.calls, [])
+        with self.assertRaises(ValueError):
+            run('https://external.example', BASELINE, self.path, acceptance_run_id='campaign',
+                containment_preflight=lambda *_: deepcopy(PROOF), request=self.api.request)
+        self.assertEqual(self.api.calls, [])
