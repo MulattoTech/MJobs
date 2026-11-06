@@ -1,11 +1,13 @@
 """Cross-phase document identity, upload, and restart provenance acceptance."""
 import hashlib
 from contextlib import ExitStack
+from io import BytesIO
 from pathlib import Path
 import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
+from pypdf import PdfReader
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -157,6 +159,16 @@ class JourneyDocumentProvenanceTests(unittest.TestCase):
                             self.assertEqual(downloaded.status_code, 200, downloaded.text)
                             self.assertEqual(hashlib.sha256(downloaded.content).hexdigest(),
                                              before["sha256"][extension])
+                            if extension == "pdf":
+                                pdf_text = " ".join(
+                                    page.extract_text() or ""
+                                    for page in PdfReader(BytesIO(downloaded.content)).pages
+                                )
+                                normalized_pdf_text = " ".join(pdf_text.split())
+                                self.assertNotIn(pending_text, normalized_pdf_text)
+                                for fact in after["facts_used"]:
+                                    normalized_fact_text = " ".join(fact["text"].split())
+                                    self.assertIn(normalized_fact_text, normalized_pdf_text)
                             if extension == "txt":
                                 self.assertNotIn(pending_text.encode(), downloaded.content)
                                 for fact in after["facts_used"]:
