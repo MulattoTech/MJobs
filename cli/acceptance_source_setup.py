@@ -46,6 +46,13 @@ def _policy_sha(source):
         raise SourceSetupError("SOURCE_POLICY_INVALID") from None
 
 
+def _policy_projection(source):
+    try:
+        return {key: source[key] for key in FINGERPRINT_FIELDS}
+    except (KeyError, TypeError):
+        raise SourceSetupError("SOURCE_POLICY_INVALID") from None
+
+
 def _loopback_origin(value):
     parsed = urlsplit(value)
     if (parsed.scheme != "http" or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}
@@ -109,6 +116,9 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.policy_checks = []
             self.operation_checks = []
             self.additional_owner_checks = []
+            self.primary_containment_checks = []
+            self.release_receipt = None
+            self.additional_release_receipt = None
             self.extra_enabled = False
             self.extra_bound = False
             self.additional_declared = False
@@ -144,6 +154,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             if not isinstance(proof, dict):
                 raise SourceSetupError("SOURCE_CONTAINMENT_PROOF_INVALID")
             if stage == "release" and proof.get("released") is not True:
+                self.primary_containment_checks.append(self._containment_check(stage, context, proof))
                 raise SourceSetupError("SOURCE_CONTAINMENT_RELEASE_UNCONFIRMED")
             if stage != "release" and not (
                     proof.get("scheduler_contained") is True
@@ -152,7 +163,87 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     and isinstance(proof.get("owner"), str) and proof["owner"]
                     and isinstance(proof.get("token"), str) and proof["token"]):
                 raise SourceSetupError("SOURCE_CONTAINMENT_REQUIRED")
+            self.primary_containment_checks.append(self._containment_check(stage, context, proof))
+            if stage == "release":
+                self.release_receipt = {
+                    "released": proof.get("released"),
+                    "receipt": {key: proof.get(key) for key in (
+                        "released", "scheduler_contained", "source_policy_exclusive",
+                        "source_collection_exclusive", "additional_source_exclusive",
+                        "project", "scheduler_container_id", "lease_expired_at",
+                    ) if key in proof},
+                    "binding": {
+                        **self._release_binding(context, proof),
+                    },
+                    "additional_owner_release": self.additional_release_receipt,
+                }
             return proof
+
+        def _containment_check(self, stage, context, proof):
+            """Retain the owner receipt without serializing its bearer token."""
+            token = proof.get("token")
+            return {
+                "stage": stage,
+                "verified": (execution_scope == "LIVE_PUBLIC_READ_ONLY" and
+                    (proof.get("released") is True if stage == "release" else
+                    proof.get("scheduler_contained") is True
+                    and proof.get("source_policy_exclusive") is True
+                    and proof.get("source_collection_exclusive") is True
+                    and isinstance(proof.get("owner"), str) and bool(proof["owner"])
+                    and isinstance(token, str) and bool(token))),
+                "owner": proof.get("owner") if isinstance(proof.get("owner"), str) else None,
+                "token_sha256": hashlib.sha256(token.encode("utf-8")).hexdigest()
+                    if isinstance(token, str) else None,
+                "scheduler_contained": proof.get("scheduler_contained"),
+                "source_policy_exclusive": proof.get("source_policy_exclusive"),
+                "source_collection_exclusive": proof.get("source_collection_exclusive"),
+                "lease_expires_at": proof.get("lease_expires_at"),
+                "checked_at": utc_now().astimezone(timezone.utc).isoformat(),
+                "acceptance_run_id": acceptance_run_id,
+                "target_origin": origin,
+                "profile_id": baseline["profile_id"],
+                "application_id": baseline["application_id"],
+                "job_id": baseline["selected_application_job_id"],
+                "primary_provider": context.get("provider"),
+                "primary_source_id": context.get("source_id") or (self.primary or {}).get("source_id"),
+                "primary_policy_sha256": context.get("source_policy_sha256") or
+                    (self.primary or {}).get("policy_sha256"),
+                "extra_source_id": self.extra_id,
+                "extra_enabled_policy_sha256": self.enabled_policy_sha,
+                "extra_disabled_policy_sha256": self.disabled_policy_sha,
+                "extra_enabled": self.extra_enabled if self.extra_id is not None else False,
+                "receipt": {key: proof.get(key) for key in (
+                    "released", "scheduler_contained", "source_policy_exclusive",
+                    "source_collection_exclusive", "additional_source_exclusive",
+                    "project", "scheduler_container_id", "lease_expired_at",
+                    "lease_expires_at",
+                ) if key in proof},
+            }
+
+        def _release_binding(self, context, proof=None):
+            prior = next((row for row in reversed(self.primary_containment_checks)
+                          if row.get("stage") != "release"), {})
+            return {
+                "acceptance_run_id": acceptance_run_id,
+                "target_origin": origin,
+                "profile_id": baseline["profile_id"],
+                "application_id": baseline["application_id"],
+                "job_id": baseline["selected_application_job_id"],
+                "primary_provider": PRIMARY_PROVIDER,
+                "primary_source_id": self.primary["source_id"],
+                "primary_policy_sha256": self.primary["policy_sha256"],
+                "extra_provider": EXTRA_PROVIDER,
+                "extra_source_id": self.extra_id,
+                "extra_enabled_policy_sha256": self.enabled_policy_sha,
+                "extra_disabled_policy_sha256": self.disabled_policy_sha,
+                "extra_enabled": False,
+                "owner": prior.get("owner"),
+                "token_sha256": prior.get("token_sha256"),
+                "lease_expires_at": prior.get("lease_expires_at"),
+                "project": proof.get("project") if isinstance(proof, dict) else None,
+                "scheduler_container_id": (proof.get("scheduler_container_id")
+                    if isinstance(proof, dict) else None),
+            }
 
         def _additional_event(self, event, context, *, enabled):
             callback = getattr(owned_containment, "additional_source", None)
@@ -172,10 +263,21 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                          or proof.get("additional_source_id") != self.extra_id
                          or proof.get("additional_source_enabled") is not enabled)):
                 raise SourceSetupError("ADDITIONAL_SOURCE_OWNERSHIP_NOT_CONFIRMED")
-            if execution_scope == "LIVE_PUBLIC_READ_ONLY":
-                self.additional_owner_checks.append({"stage": event, "verified": True,
-                    "source_id": self.extra_id, "enabled": enabled,
-                    "lease_expires_at": proof.get("lease_expires_at")})
+            check = {"stage": event,
+                "verification_scope": ("LIVE_OWNER_API" if execution_scope == "LIVE_PUBLIC_READ_ONLY"
+                                       else "CONTROLLED_TRANSPORT"),
+                "verified": execution_scope == "LIVE_PUBLIC_READ_ONLY",
+                "source_id": self.extra_id, "enabled": enabled,
+                "enabled_policy_sha256": self.enabled_policy_sha,
+                "disabled_policy_sha256": self.disabled_policy_sha,
+                "lease_expires_at": proof.get("lease_expires_at") if isinstance(proof, dict) else None,
+                "receipt": ({key: proof.get(key) for key in (
+                    "additional_source_policy_verified", "additional_source_id",
+                    "additional_source_enabled", "lease_expires_at",
+                ) if key in proof} if isinstance(proof, dict) else None)}
+            self.additional_owner_checks.append(check)
+            if event == "release":
+                self.additional_release_receipt = dict(check)
             return proof
 
         def _source_policy_sha(self, source):
@@ -196,12 +298,23 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     and (not isinstance(proof, dict)
                          or proof.get("additional_source_absent") is not True
                          or proof.get("provider") != EXTRA_PROVIDER
-                         or proof.get("tenant") != "default")):
+                         or proof.get("tenant") != "default"
+                         or proof.get("lease_model") != "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS")):
                 raise SourceSetupError("ADDITIONAL_SOURCE_ABSENCE_NOT_CONFIRMED")
-            if execution_scope == "LIVE_PUBLIC_READ_ONLY":
-                self.additional_owner_checks.append({"stage": "bind_absent", "verified": True,
-                    "provider": EXTRA_PROVIDER, "tenant": "default",
-                    "lease_expires_at": proof.get("lease_expires_at")})
+            self.additional_owner_checks.append({
+                "stage": "bind_absent",
+                "verification_scope": ("LIVE_OWNER_API" if execution_scope == "LIVE_PUBLIC_READ_ONLY"
+                                       else "CONTROLLED_TRANSPORT"),
+                "verified": execution_scope == "LIVE_PUBLIC_READ_ONLY",
+                "provider": EXTRA_PROVIDER, "tenant": "default",
+                "source_id": None, "enabled_policy_sha256": None,
+                "disabled_policy_sha256": None, "enabled": False,
+                "lease_model": proof.get("lease_model") if isinstance(proof, dict) else None,
+                "lease_expires_at": proof.get("lease_expires_at") if isinstance(proof, dict) else None,
+                "receipt": ({key: proof.get(key) for key in (
+                    "additional_source_absent", "provider", "tenant", "lease_expires_at", "lease_model",
+                    "lease_model",
+                ) if key in proof} if isinstance(proof, dict) else None)})
             self.additional_declared = True
 
         def _page(self):
@@ -264,7 +377,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                    for row in before):
                 raise SourceSetupError("EXTRA_SOURCE_MUST_BE_ABSENT")
             self.policy_checks.append({"stage": "preflight_absent", "provider": EXTRA_PROVIDER,
-                "tenant": "default", "present": False})
+                "tenant": "default", "present": False, "expected_policy": dict(POLICY),
+                "policy": None})
             page_obj = self._open_sources(context)
             self._with_lease(context, lambda: page_obj.get_by_label("Source provider", exact=True)
                              .select_option(EXTRA_PROVIDER))
@@ -282,7 +396,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                    for row in still_absent):
                 raise SourceSetupError("EXTRA_SOURCE_APPEARED_BEFORE_CREATE")
             self.policy_checks.append({"stage": "immediately_before_create", "provider": EXTRA_PROVIDER,
-                "tenant": "default", "present": False})
+                "tenant": "default", "present": False, "expected_policy": dict(POLICY),
+                "policy": None})
             self._call_owned("read", context)
             page_obj.get_by_role("button", name="Add source", exact=True).click()
             page_obj.get_by_text("Source saved. Create a search profile below to enable scheduled discovery.",
@@ -301,7 +416,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 raise SourceSetupError("EXTRA_SOURCE_ID_INVALID")
             self.enabled_policy_sha = self._source_policy_sha(source)
             self.policy_checks.append({"stage": "created_enabled", "source_id": self.extra_id,
-                "policy_sha256": self.enabled_policy_sha, "enabled": True})
+                "policy_sha256": self.enabled_policy_sha, "enabled": True,
+                "expected_policy": dict(POLICY), "policy": _policy_projection(source)})
             self.extra_enabled = True
             if callable(getattr(owned_containment, "additional_source", None)):
                 self._additional_event("created", context, enabled=True)
@@ -328,6 +444,9 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.extra_operation_ids = sorted(set(matches))
             self.extra_operation_readback_sha = _sha(matches)
             self.operation_checks.append({"stage": stage, "inventory_count": len(operations),
+                "source_id": self.extra_id,
+                "source_policy_sha256": (self.disabled_policy_sha if not self.extra_enabled
+                    else self.enabled_policy_sha),
                 "matching_operation_ids": list(self.extra_operation_ids),
                 "matching_ids_sha256": self.extra_operation_readback_sha})
             if self.extra_operation_ids:
@@ -345,7 +464,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     or current.get("jobs_seen") != 0):
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_CHANGED")
             self.policy_checks.append({"stage": "before_disable", "source_id": self.extra_id,
-                "policy_sha256": self.enabled_policy_sha, "enabled": True})
+                "policy_sha256": self.enabled_policy_sha, "enabled": True,
+                "expected_policy": dict(POLICY), "policy": _policy_projection(current)})
             page_obj = self._page()
             card_text = f"{current.get('provider')} / {current.get('tenant')}"
             section = page_obj.locator("section.panel").filter(has_text=card_text)
@@ -371,7 +491,9 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 raise SourceSetupError("EXTRA_SOURCE_DISABLE_UNCONFIRMED")
             self.disabled_policy_sha = self._source_policy_sha(disabled)
             self.policy_checks.append({"stage": "disabled_readback", "source_id": self.extra_id,
-                "policy_sha256": self.disabled_policy_sha, "enabled": False})
+                "policy_sha256": self.disabled_policy_sha, "enabled": False,
+                "expected_policy": {**POLICY, "enabled": False},
+                "policy": _policy_projection(disabled)})
             if self.disabled_policy_sha == self.enabled_policy_sha:
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_TRANSITION_INVALID")
             self.extra_disabled = True
@@ -440,14 +562,19 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self._close_browser()
 
         def _publish_after_release(self):
+            release_details = self.release_receipt.get("receipt", {}) if self.release_receipt else {}
             if (self.observation is None or not self.extra_disabled or not self.primary
-                    or self.disabled_policy_sha is None):
+                    or self.disabled_policy_sha is None or self.release_receipt is None
+                    or self.release_receipt.get("released") is not True
+                    or self.release_receipt.get("binding") != self._release_binding({}, release_details)
+                    or self.extra_operation_ids != []
+                    or self.extra_operation_readback_sha != _sha([])):
                 raise SourceSetupError("SOURCE_SETUP_INCOMPLETE")
             now = utc_now()
             if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() != timezone.utc.utcoffset(now):
                 raise SourceSetupError("SOURCE_SETUP_CLOCK_INVALID")
             artifact = {
-                "schema_version": 1,
+                "schema_version": 2,
                 "result": (self.observation["status"] if execution_scope == "LIVE_PUBLIC_READ_ONLY"
                            else "NOT_RUN"),
                 "acceptance_run_id": acceptance_run_id,
@@ -475,6 +602,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 "extra_policy_readbacks": self.policy_checks,
                 "extra_operation_readbacks": self.operation_checks,
                 "additional_owner_checks": self.additional_owner_checks,
+                "primary_containment_checks": self.primary_containment_checks,
+                "release_receipt": self.release_receipt,
                 "extra_collection_operation_ids": self.extra_operation_ids,
                 "extra_operation_readback_sha256": self.extra_operation_readback_sha,
                 "acceptance_observations": [dict(self.observation,
@@ -515,7 +644,9 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                         or matches[0].get("last_success") is not None or matches[0].get("jobs_seen") != 0):
                     raise SourceSetupError("EXTRA_SOURCE_RELEASE_GUARD_FAILED")
                 self.policy_checks.append({"stage": "release", "source_id": self.extra_id,
-                    "policy_sha256": self.disabled_policy_sha, "enabled": False})
+                    "policy_sha256": self.disabled_policy_sha, "enabled": False,
+                    "expected_policy": {**POLICY, "enabled": False},
+                    "policy": _policy_projection(matches[0])})
                 try:
                     if self.extra_bound:
                         self._additional_event("release", context, enabled=False)

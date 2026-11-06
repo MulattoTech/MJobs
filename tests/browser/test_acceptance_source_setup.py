@@ -1,7 +1,7 @@
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -11,7 +11,8 @@ from packages.persistence.store import identity
 from services.discovery.sources.registry import source_adapter
 
 
-STAMP = "2026-11-06T18:00:00+00:00"
+_TEST_NOW = datetime.now(timezone.utc)
+STAMP = (_TEST_NOW - timedelta(seconds=2)).isoformat()
 SOURCE = {
     "commit": "a" * 40,
     "tree": "b" * 40,
@@ -32,7 +33,7 @@ PROOF = {
     "source_collection_exclusive": True,
     "owner": "browser-test-owner",
     "token": "private-token",
-    "lease_expires_at": "2026-11-06T18:05:00+00:00",
+    "lease_expires_at": (_TEST_NOW + timedelta(minutes=5)).isoformat(),
 }
 
 
@@ -102,16 +103,17 @@ class SourceSetupBrowserTests(unittest.TestCase):
                     artifact_path = Path(directory) / "public-source-setup.json"
                     stages = []
                     source_events = []
-                    release_receipts = [dict(PROOF, released=False), dict(PROOF),
-                                        dict(PROOF, released=True)]
-
                     class Containment:
                         def __call__(self, stage, context):
                             stages.append(stage)
                             if source_events and "additional_source" in context:
                                 self.assert_binding(context["additional_source"])
                             if stage == "release":
-                                return release_receipts.pop(0)
+                                return {"released": True, "scheduler_contained": False,
+                                    "source_policy_exclusive": False, "source_collection_exclusive": False,
+                                    "additional_source_exclusive": False, "project": "fixture-project",
+                                    "scheduler_container_id": "fixture-scheduler",
+                                    "lease_expired_at": STAMP}
                             return dict(PROOF)
 
                         def assert_binding(self, binding):
@@ -133,9 +135,16 @@ class SourceSetupBrowserTests(unittest.TestCase):
                             if policy["provider"] != "remotive" or policy["tenant"] != "default":
                                 raise AssertionError(policy)
                             source_events.append(("bind", dict(policy)))
+                            return {"additional_source_absent": True, "provider": "remotive",
+                                "tenant": "default", "lease_expires_at": PROOF["lease_expires_at"],
+                                "lease_model": "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS"}
 
                         def additional_source(self, event, context):
                             source_events.append((event, dict(context)))
+                            return {"additional_source_policy_verified": True,
+                                "additional_source_id": context["additional_source_id"],
+                                "additional_source_enabled": context["additional_enabled"],
+                                "lease_expires_at": PROOF["lease_expires_at"]}
 
                         @staticmethod
                         def policy_sha256(source):
@@ -173,18 +182,37 @@ class SourceSetupBrowserTests(unittest.TestCase):
 
                     release_context = {"provider": "wwr", "base_url": "http://127.0.0.1:18700",
                         "cleanup_status": "RESTORED_DISABLED"}
-                    for _ in range(2):
-                        with self.assertRaisesRegex(ValueError, "SOURCE_CONTAINMENT_RELEASE_UNCONFIRMED"):
-                            wrapped("release", release_context)
-                        self.assertFalse(artifact_path.exists())
                     wrapped("release", release_context)
                     artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+                    self.assertEqual(artifact["schema_version"], 2)
                     self.assertEqual(artifact["acceptance_observations"][0]["step"], 9)
                     self.assertEqual(artifact["acceptance_observations"][0]["evidence_kind"], "PUBLIC_READ_ONLY")
                     self.assertEqual(artifact["acceptance_observations"][0]["status"], "NOT_RUN")
                     self.assertEqual(artifact["owned_extra"]["source_id"], extra["id"])
                     self.assertEqual(artifact["owned_extra"]["disabled"], True)
                     self.assertEqual(artifact["extra_collection_operation_ids"], [])
+                    self.assertEqual(artifact["extra_operation_readback_sha256"],
+                                     __import__("hashlib").sha256(b"[]").hexdigest())
+                    policy_stages = [row["stage"] for row in artifact["extra_policy_readbacks"]]
+                    self.assertEqual(policy_stages[:5], [
+                        "preflight_absent", "immediately_before_create", "created_enabled",
+                        "before_disable", "disabled_readback",
+                    ])
+                    self.assertEqual(policy_stages[5:], ["release"])
+                    operation_stages = [row["stage"] for row in artifact["extra_operation_readbacks"]]
+                    self.assertEqual(operation_stages[:2], [
+                        "created_before_primary_collection", "disabled_before_primary_collection",
+                    ])
+                    self.assertEqual(operation_stages[2:], ["release"])
+                    self.assertIn("release", [row["stage"] for row in artifact["primary_containment_checks"]])
+                    self.assertEqual([row["receipt"].get("released") for row in artifact["primary_containment_checks"]
+                                      if row["stage"] == "release"], [True])
+                    self.assertTrue(artifact["release_receipt"]["released"])
+                    self.assertEqual(artifact["release_receipt"]["receipt"]["project"], "fixture-project")
+                    self.assertEqual(artifact["release_receipt"]["binding"]["extra_source_id"], extra["id"])
+                    self.assertNotIn('"token":', json.dumps(artifact))
+                    self.assertTrue(all(row["verified"] is False
+                                        for row in artifact["primary_containment_checks"]))
                     self.assertNotIn("/collect", [path for _, path, _ in calls])
                     self.assertLess(stages.index("finalize"), stages.index("release"))
                     self.assertEqual(source_events[0][0], "bind")
