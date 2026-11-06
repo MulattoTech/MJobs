@@ -427,6 +427,11 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
         reasons.append('HIGH_MATCH_JOB')
     if not reasons:
         return None
+    if profile and connection.execute(select(m.profiles.c.version).where(
+            m.profiles.c.id == profile['id'])).scalar_one_or_none() != profile['version']:
+        # Reject stale caller snapshots before an upsert can create a stale
+        # company-discovery intent. Recheck after the request lock as well.
+        return None
     if fixture and not _fixture_native_proof(connection, dict(company_id=job['company_id'],
             company_source_id=source['id'], candidate_id=selected, trigger_job_id=job_id,
             profile_id=profile['id'] if profile else None,
@@ -453,6 +458,22 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     request = dict(connection.execute(select(m.company_discovery_requests).where(
         m.company_discovery_requests.c.id == request_id).with_for_update()).mappings().one())
     snapshot = {key: source[key] for key in SOURCE_FIELDS}
+    incoming_profile_id = profile['id'] if profile else None
+    incoming_profile_version = profile['version'] if profile else None
+    # A company/source request is coalesced across intakes, not transferable
+    # between applicant profiles. In particular, never merge another user's
+    # preferences or high-score reasons into its existing authority.
+    if request['profile_id'] != incoming_profile_id:
+        return None
+    if profile and connection.execute(select(m.profiles.c.version).where(
+            m.profiles.c.id == incoming_profile_id).with_for_update(
+                read=True, skip_locked=True)).scalar_one_or_none() != incoming_profile_version:
+        # If the profile changed between preflight and the request lock, roll
+        # back this intake transaction (including any newly inserted intent).
+        # PostgreSQL SHARE also prevents a later profile UPDATE until commit.
+        # A writer already holding the row fails closed without waiting while
+        # this intake owns request/job locks (KEY SHARE would not block UPDATE).
+        raise ValueError('DISCOVERY_PROFILE_CHANGED')
     if (request['source_snapshot'] != snapshot and request['state'] != 'DISMISSED'
             and _status(connection, request) not in {'QUEUED', 'RUNNING'}):
         fresh = dict(request, candidate_id=selected, trigger_job_id=job_id, source_snapshot=snapshot)
@@ -468,6 +489,44 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
             profile_id=profile['id'] if profile else None, profile_version=profile['version'] if profile else None,
             revision=request['revision'] + 1, selected_website=None, authorization=None,
             domain_evidence=[], operation_id=None, state='NEEDS_ORIGIN_REVIEW')
+        connection.execute(update(m.company_discovery_requests).where(
+            m.company_discovery_requests.c.id == request_id).values(**renewed))
+        request.update(renewed)
+    if request['profile_version'] != incoming_profile_version:
+        if (not profile or request['source_snapshot'] != snapshot
+                or request['state'] != 'NEEDS_ORIGIN_REVIEW'
+                or request['operation_id'] is not None or request['selected_website'] is not None
+                or request['authorization'] is not None or request['domain_evidence'] != []):
+            # Reviewed, dismissed, active and terminal intents keep their original
+            # profile authority. A new profile revision cannot replay them.
+            return request_id
+        # The trigger-job foreign key requires a KEY SHARE lock. Do not wait
+        # for a collector's competing job lock while holding this request lock.
+        job_query = select(m.jobs.c.company_id, m.jobs.c.attributes).where(m.jobs.c.id == job_id)
+        if connection.dialect.name == 'postgresql':
+            job_query = job_query.with_for_update(read=True, key_share=True, skip_locked=True)
+        current_job = connection.execute(job_query).mappings().one_or_none()
+        current_selected = ((current_job['attributes'].get('source_resolution') or {}).get(
+            'selected_candidate_id') if current_job else None)
+        if (not current_job or current_job['company_id'] != request['company_id']
+                or current_selected != selected):
+            return request_id
+        proposed = dict(request, candidate_id=selected, trigger_job_id=job_id,
+                        profile_version=incoming_profile_version)
+        try:
+            _source(connection, proposed)
+        except ValueError:
+            return request_id
+        next_revision = request['revision'] + 1
+        _audit(connection, request, 'COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED',
+               previous_profile_version=request['profile_version'],
+               profile_version=incoming_profile_version,
+               previous_candidate_id=request['candidate_id'], candidate_id=selected,
+               previous_trigger_job_id=request['trigger_job_id'], trigger_job_id=job_id,
+               new_revision=next_revision)
+        renewed = dict(candidate_id=selected, trigger_job_id=job_id,
+                       profile_version=incoming_profile_version, revision=next_revision,
+                       reasons=list(reasons), highest_match_score=score)
         connection.execute(update(m.company_discovery_requests).where(
             m.company_discovery_requests.c.id == request_id).values(**renewed))
         request.update(renewed)
