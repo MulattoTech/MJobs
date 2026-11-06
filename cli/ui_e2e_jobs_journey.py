@@ -442,14 +442,20 @@ def run_fixture_job_observations(page, request, profile_id, navigate, observe,
 
     route_visible = False
     if ats_route is not None:
-        route_url = ats_route.get("url")
+        route_link_visible = False
+        application_links = detail_region.get_by_role(
+            "link", name="Open saved application link ↗", exact=True)
+        for link in application_links.all():
+            if link.get_attribute("href") == ats_route.get("url"):
+                expect(link).to_be_visible()
+                route_link_visible = True
         route_visible = (route_selector.count() == 1
                          and route_selector.input_value() == ats_route["id"]
-                         and isinstance(route_url, str) and bool(route_url))
+                         and route_link_visible)
         if route_visible:
             expect(route_selector).to_have_value(ats_route["id"])
     record(21, "PASS" if route_visible else "PARTIAL",
-           "The selected authoritative application route is visible in source evidence."
+           "The selected verified employer route is visible as a saved application link."
            if route_visible else "No selected authoritative application route is visible in the fixture.",
            [{"name": "application_route_visible", "passed": route_visible}],
            continuity={"profile_id": profile_id, "job_id": job_a["id"]})
