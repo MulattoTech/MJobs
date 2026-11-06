@@ -257,6 +257,48 @@ def test_application_profile_version_binding_rejects_stale_profile_snapshot(
     assert application_profile_version_matches(profile, application) is matches
 
 
+def test_mock_run_request_identity_is_bound_when_operation_params_omit_request_id():
+    from cli.ui_e2e import assert_mock_run_request_lineage
+    from packages.persistence.store import identity
+
+    profile_id = "profile-1"
+    application_id = "application-1"
+    request_id = "reviewed-run-1"
+    operation_id = identity(
+        "application-run-request-v1", profile_id, application_id, request_id)
+    operation = {"id": operation_id, "kind": "APPLY_MOCK",
+                 "entity_id": application_id, "params": {"submit": False}}
+    readback = {"operation_id": operation_id, "state": "QUEUED"}
+
+    assert_mock_run_request_lineage(
+        operation, readback, profile_id=profile_id,
+        application_id=application_id, request_id=request_id)
+
+
+def test_mock_run_request_lineage_rejects_conflicting_param_or_scoped_readback():
+    from cli.ui_e2e import assert_mock_run_request_lineage
+    from packages.persistence.store import identity
+
+    profile_id = "profile-1"
+    application_id = "application-1"
+    request_id = "reviewed-run-1"
+    operation_id = identity(
+        "application-run-request-v1", profile_id, application_id, request_id)
+    operation = {"id": operation_id, "kind": "APPLY_MOCK",
+                 "entity_id": application_id,
+                 "params": {"request_id": "different-run"}}
+    with pytest.raises(AssertionError):
+        assert_mock_run_request_lineage(
+            operation, {"operation_id": operation_id}, profile_id=profile_id,
+            application_id=application_id, request_id=request_id)
+
+    operation["params"] = {"submit": False}
+    with pytest.raises(AssertionError):
+        assert_mock_run_request_lineage(
+            operation, {"operation_id": "b" * 64}, profile_id=profile_id,
+            application_id=application_id, request_id=request_id)
+
+
 def test_employer_discovery_lineage_is_persisted_only_for_observed_jobs(tmp_path):
     from cli.ui_e2e import EvidenceJournal
 

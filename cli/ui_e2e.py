@@ -78,6 +78,31 @@ _ATTEMPT_HISTORY_MAX_BYTES = 8 * 1024
 _APPLICATION_READ_STATES = {"CURRENT", "UNAVAILABLE", "MISMATCH"}
 
 
+def assert_mock_run_request_lineage(operation, scoped_readback, *,
+                                    profile_id, application_id, request_id):
+    """Bind an APPLY_MOCK operation to its request through the scoped identity.
+
+    Ordinary durable run rows intentionally omit params.request_id. Their operation
+    ID is derived from profile, application, and request ID, and the scoped request
+    readback resolves that same tuple back to the admitted operation.
+    """
+    assert isinstance(request_id, str) and _SAFE_REQUEST_ID.fullmatch(request_id)
+    from packages.persistence.store import identity
+
+    expected_operation_id = identity(
+        "application-run-request-v1", profile_id, application_id, request_id)
+    assert isinstance(operation, dict)
+    assert operation.get("id") == expected_operation_id
+    assert operation.get("kind") == "APPLY_MOCK"
+    assert operation.get("entity_id") == application_id
+    params = operation.get("params")
+    assert isinstance(params, dict)
+    if "request_id" in params:
+        assert params["request_id"] == request_id
+    assert isinstance(scoped_readback, dict)
+    assert scoped_readback.get("operation_id") == expected_operation_id
+
+
 def _attempt_history_summary(history):
     """Project the public history DTO onto a bounded set of fixed safe fields."""
     if not isinstance(history, dict) or not isinstance(history.get("attempts"), list):
@@ -871,7 +896,15 @@ def run(base_url, evidence_path, onboarding=False, acceptance_run_id=None,
         operation = request("/operations/" + str(operation_id))
         params = operation.get("params") or {}
         assert operation.get("id") == operation_id
-        assert params.get("request_id") == request_id and request_id
+        if operation_kind == "APPLY_MOCK":
+            scoped_readback = request(
+                f"/profiles/{scoped_profile_id}/applications/{scoped_application_id}/mock-runs/"
+                + str(request_id))
+            assert_mock_run_request_lineage(
+                operation, scoped_readback, profile_id=scoped_profile_id,
+                application_id=scoped_application_id, request_id=request_id)
+        else:
+            assert params.get("request_id") == request_id and request_id
         assert operation.get("kind") == operation_kind
         assert operation.get("entity_id") == expected_entity_id
         assert scoped_profile_id == profile_id
