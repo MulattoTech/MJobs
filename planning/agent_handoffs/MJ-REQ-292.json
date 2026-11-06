@@ -4,9 +4,9 @@
   "objective": "Complete original connected 60-step acceptance with exact evidence; scoreboard in planning/acceptance/MJ-REQ-292.json",
   "owner": "Codex 01a1b028 campaign",
   "branch": "codex/mj-req292-full-journey-20261106",
-  "head_sha": "464f7bcf40cfe35e3a5748a72f71b29938415255",
+  "head_sha": "8a19ad63c05700c814f563da4f0891d232031dca",
   "routing_state": "EXECUTE",
-  "next_action": "Qualify the preserved 705 image against canonical Git-export source manifest and run fresh connected journey. Integrate independently reviewed bootstrap, parent lineage and child containment; retain 0/60 until exact complete evidence passes.",
+  "next_action": "Integrate reviewed Rey UI observer fixes and Chew/Luke child containment, final launcher class handoff, publish PR973 exact candidate through live preflight, build new frozen source and rerun connected journey. Continue protected checks and independent evidence review; deadline21:22:28Z.",
   "created_at": "2026-11-06T09:36:42.894560+00:00",
   "requirements": [
     "MJ-REQ-292"
@@ -167,9 +167,9 @@
     "acceptance_semantics": "LEDGER_COUNTS_NOT_RUNTIME_CERTIFICATION",
     "verified_pass": 0,
     "total": 60,
-    "PARTIAL": 39,
+    "PARTIAL": 50,
     "FAIL": 0,
-    "NOT_RUN": 21,
+    "NOT_RUN": 10,
     "BLOCKED": 0,
     "umbrella_result": "PARTIAL",
     "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec"
@@ -228,7 +228,7 @@
     "services/company_discovery/requests.py",
     "services/documents/generate.py"
   ],
-  "updated_at_utc": "2026-11-06T18:53:13.600752+00:00",
+  "updated_at_utc": "2026-11-06T19:28:40.975394+00:00",
   "acceptance_note": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
   "integration_authority": {
     "owner": "Codex MJ-REQ-292 campaign",
@@ -482,21 +482,21 @@
     "services/company_discovery/requests.py": "ahsoka_documents staged bootstrap authorization while preserving PR933 guards",
     "workers/tasks.py": "root explicit presence-based bootstrap dispatch; patch preserved ignored, not yet integrated"
   },
-  "acceptance_ledger_sha256": "f7ae17090be6a6c3460ff8a4cd182e1a2aeed6b1c805815270681ee18b25ad0f",
+  "acceptance_ledger_sha256": "148f1de69281883580cdb7e86374568e38d78f7ddd8f02c5e65dfb0c38cc0e5f",
   "runtime": {
-    "worktree": "C:/Users/Dylan/.codex/worktrees/mj292-native-f7d784fe-run2/MJobs",
-    "project": "mjobs-fixture-fdd3503dc2ab",
-    "api_url": "http://127.0.0.1:18738",
-    "source_commit": "f7d784fe988fa0e2c388f375c63898fee8580e83",
-    "source_tree": "fdd3503dc2abd34ca47b178bef35cfc71279e0e4",
-    "image_id": "sha256:0bea89a6fbca99c79c6bf43f1242ae97181c65cebfb1516941966041bdd6f57d",
-    "startup_receipt": "outputs/mjreq292-native-fdd3503dc2ab/startup-receipt.json",
-    "prelaunch_marker": "outputs/mjreq292-native-fdd3503dc2ab/prelaunch-marker.json",
-    "command_result": "outputs/mjreq292-native-fdd3503dc2ab/compose-result.json",
-    "observed_status": "10 running healthy services plus migration exited0. Coordinator exited1 beforeUI on build receipt timestamp key; no acceptance credit. Original and normalized build receipts preserved in TEMP/mjreq292-runtime-f7d784fe988f. Earlier f7d project18737 has no startup receipt and remains ineligible; all volumes preserved."
+    "project": "mjobs-fixture-70595258e4ca",
+    "source_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+    "source_tree": "cb7091f7b3820c80869bdb7a95b920efbaeedceb",
+    "image_id": "sha256:84d1f58019edc6c3eb511b46de9a575295641f0ce7589dc950f4882f1d5fa564",
+    "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+    "worktree": "C:\\Users\\Dylan\\.codex\\worktrees\\mj292-native-70595258-runtime\\MJobs",
+    "status": "UI_FAILED_TRACKER_INTERCEPTOR; resources retained",
+    "startup_receipt": "outputs/mjreq292-native-70595258e4ca/startup-receipt.json",
+    "diagnostic_evidence": "outputs/mjreq292-native-70595258e4ca-journey/ui.json",
+    "journey_session": "90540 completed exit1"
   },
   "published_baseline_evidence": "docs/evidence/2026-11-06-mjreq292-campaign-checkpoint.json",
-  "current_evidence_boundary": "0/60 VERIFIED PASS;39 PARTIAL,21 NOT_RUN. Latest62c incomplete-run projection is source-bound diagnostic evidence only.",
+  "current_evidence_boundary": "0/60 VERIFIED PASS;50PARTIAL10NOT_RUN.705 startup PASS; UI FAIL at tracking PUT blocked by browser safety interceptor. Step3 historical-profile-version mismatch and native history render/confirmed-submit-button observation defects being fixed by Rey. No public setup/restart/monitoring run. All code after c2bb remains unpublished and has no hosted current-head qualification.",
   "provenance_corrections": [
     {
       "authored_commit": "fc6993d1108f18ba2ac330717af6a8181a2ae2d8",
@@ -528,7 +528,7 @@
     "Owned ignored .env was created in the journey worktree by an initializer --help invocation; preserved, never published.",
     "Existing published commits442e478,790290a,925503d have noncontiguous AI trailer blocks rejected by the strict per-commit parser. Their original source/authorship/history remain preserved; no force rewrite or false parser-PASS claim."
   ],
-  "updated_at": "2026-11-06T19:05:39.349365+00:00",
+  "updated_at": "2026-11-06T19:28:40.975394+00:00",
   "campaign_pr": {
     "url": "https://github.com/MulattoTech/MJobs/pull/973",
     "state": "DRAFT",
@@ -597,8 +597,8 @@
       "observed_status": "StartupPASS10healthyservices+migrateexit0. UI FAIL at2033 repeated fact-rejection HTTP409; new producer observations33,34,35,38,44,45 await independent diagnostic review. No publicsource setup/restart/monitoring executed, no acceptance promotion."
     }
   ],
-  "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
-  "latest_diagnostic_review": "Independent EF checked38 UI observations and four raw artifact hashes, source/tree/run/image and privacy. Root independently rehashed all four originals and matched exact six new rows/checks. Six rows33,34,35,38,44,45 are PARTIAL only; no acceptance PASS.",
+  "latest_diagnostic_projection": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+  "latest_diagnostic_review": "EF sanitized exact705 projection; root independently rehashed all four raw artifacts; R2 reconciled prior incomplete-run partial policy. New39-43 and46-51 PARTIAL only. Mace traced false form/history and submission-button UI checks to observer binding; original failed checks retained.",
   "session_boundary": {
     "four_hour_limit_utc": "2026-11-06T21:22:28Z",
     "extension_request": "APPROVED_BY_USER",
@@ -696,6 +696,14 @@
     "deadline_utc": "2026-11-06T21:22:28Z",
     "published_ci": "Leia observed all listed PR973 checks PASS on c2bbf9e039d7b2f2556bf55a0b5704695706717c; aggregate completed 2026-11-06T19:01:16Z. This does not certify later local commits.",
     "launcher": "Reviewed 57fe81f72c19941c7a00f9674075e0488773b985 integrated as 464f7bcf40cfe35e3a5748a72f71b29938415255.",
-    "image_diagnosis": "705 image matches Git-export context. Three TSX manifest differences arise from LF Git blobs versus canonical CRLF archive bytes. Runtime owner qualifying corrected manifest; no fresh journey PASS yet."
+    "image_diagnosis": "705 image matches Git-export context. Three TSX manifest differences arise from LF Git blobs versus canonical CRLF archive bytes. Runtime owner qualifying corrected manifest; no fresh journey PASS yet.",
+    "integrated_milestone": {
+      "bootstrap_dispatch": "7bb04e217bc382550bd716385feac59f95da98dd",
+      "api_child_registration": "6d95a686",
+      "root_tests": "62tests20subtestsPASS bootstrap/dispatch;323tests22subtestsPASS2Windows symlinkSKIP childAPI/journey/launcher;29tests32subtestsPASS23optionalPGSKIP scheduler/policy",
+      "postgresql": "31tests20subtestsPASS0SKIP at8939b752d0aa4aa47c38882ca1d79e127329a6ec, PG17.11 controlledHTTP and actual worker claims/dispatch; authored test commits8cfb9c82+aa42c3c8 integrated68a46773+d1706926,CD staticapproved",
+      "redis_rq": "Lando1controlled realRQ child testPASS at7bb mountedsource;98f1f5c0a56683ffb21452b7e30f4b970a42b367 testcommit pendingCD review/integration; parent admitted via helper,notparentRQ or publicAPI",
+      "pending": "Rey owns ui_e2e+acceptance_onboarding and tests;AB/Mace review. Chew new source containment module+unit tests, Luke separate actualAPI join tests,Yoda review. Root sole main.py/workers/tasks.py/launcher/canonical writer. Han next frozen build owner awaiting root SHA. Dashboard tools/agent_dashboard owned by separate chat."
+    }
   }
 }

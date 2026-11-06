@@ -3,14 +3,14 @@
   "requirement_id": "MJ-REQ-292",
   "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
   "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
-  "updated_at_utc": "2026-11-06T18:35:34.990189+00:00",
+  "updated_at_utc": "2026-11-06T19:28:40.975394+00:00",
   "umbrella_result": "PARTIAL",
   "scoreboard": {
     "total": 60,
     "verified_pass": 0,
-    "PARTIAL": 39,
+    "PARTIAL": 50,
     "FAIL": 0,
-    "NOT_RUN": 21,
+    "NOT_RUN": 10,
     "BLOCKED": 0
   },
   "specification": {
@@ -1970,14 +1970,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -1988,15 +1988,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Playwright opens the controlled application form with the selected adapter. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The local browser attempt navigated to and detected the selected native fixture form. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: playwright_form_opened.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2004,7 +2008,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2019,14 +2023,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2037,15 +2041,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Contact fields contain the intended verified applicant values. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The native attempt filled and read back contact fields from the current profile. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: contact_fields_match_verified_profile, contact_fields_readback_verified.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2053,7 +2061,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2068,14 +2076,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2086,15 +2094,20 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "The intended resume artifact is uploaded and its digest matches the selected version. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The verified browser resume bytes matched the selected persisted B resume document. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: resume_sha256_matches, resume_upload_matches_document.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "document_id": "document-02",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2102,7 +2115,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2117,14 +2130,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2135,15 +2148,20 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Applicable cover-letter upload matches the intended document version and digest. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The verified browser cover-letter bytes matched the selected persisted B cover letter. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: cover_letter_sha256_matches, cover_letter_upload_matches_document.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "document_id": "document-03",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2151,7 +2169,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2166,14 +2184,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2184,15 +2202,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Previously approved exact-question answers populate appropriate fields. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The native attempt filled and validated the exact reviewed answers; values stay hidden. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: approved_answers_readback_verified.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2200,7 +2222,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2321,14 +2343,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2339,15 +2361,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Application resumes using the reviewed state and rejects stale approvals. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The reviewed application used a current reprepare after stale preflight evidence was rejected. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2355,7 +2381,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2370,14 +2396,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2388,15 +2414,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "All current form fields, uploads and applicant pins are validated together. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The current form preflight and generated documents were pinned to the selected B profile revision. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2404,7 +2434,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2419,14 +2449,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2437,15 +2467,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "DRY_RUN produces zero external submission requests and stops safely. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The dry-run receipt and attempt trace were persisted without an external post. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2453,7 +2487,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2468,14 +2502,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2486,15 +2520,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Only the owned local mock receives the deliberate submission. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The owned local mock received one explicitly approved submission operation. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: external_submission_absent. Original external_submission_absent UI check is false and remains preserved: it expected a submit button that is hidden after confirmation. Independent Mace readback found target MOCK, external submission disabled, exact fixture confirmation and one receipt; repaired safety-copy observer still requires a fresh connected run.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2502,7 +2540,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2517,14 +2555,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2535,15 +2573,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "A bounded authoritative mock confirmation is detected exactly once. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: A scoped fixture confirmation was reconciled once to the selected B application. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2551,7 +2593,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
@@ -2566,14 +2608,14 @@
         "tests/browser/test_full_application_e2e_213.py",
         "tests/browser/test_application_upload_integrity.py"
       ],
-      "status": "NOT_RUN",
+      "status": "PARTIAL",
       "evidence_of_existing_behavior": [
         {
           "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
           "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
         }
       ],
-      "missing_behavior": "Prove numbered form/review/upload/submission outcomes through current real services. Existing connected submission uses mock-ats; Greenhouse/Lever adapters do not expose live form interaction/submission.",
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
       "responsible_agent": "vader_ats_flow",
       "exclusive_source_ownership": [
         "services/applications/owned_ats_fixture.py",
@@ -2584,15 +2626,19 @@
       "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
       "required_integration_validation": "Application history and confirmed receipt persist and remain idempotent. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
       "verification": {
-        "tested_commit": null,
-        "evidence_artifact": null,
-        "evidence_sha256": null,
-        "command": null,
-        "observed_result": null,
-        "executed_at_utc": null,
-        "run_id": null,
-        "evidence_kind": null,
-        "continuity": {}
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Repeating the same local request returned its completed receipt without a second submission. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
       },
       "review": {
         "status": "NOT_RUN",
@@ -2600,7 +2646,7 @@
       },
       "merge": {
         "status": "NOT_MERGED",
-        "pr_url": null,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
         "integrated_commit": null
       }
     },
