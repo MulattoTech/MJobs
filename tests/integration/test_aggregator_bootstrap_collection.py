@@ -6,6 +6,7 @@ import sqlite3
 import tempfile
 import unittest
 from unittest.mock import patch
+from uuid import uuid4
 
 import httpx
 from sqlalchemy import select, update
@@ -17,7 +18,8 @@ from services.discovery.sources.collect import collect_source, configure_source
 from services.discovery.sources.errors import SourceError
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_spine import PROFILE
-from workers.operations import OperationCancelled
+from workers.operations import OperationCancelled, claim
+from workers.dispatch import enqueue_operation
 
 
 class AggregatorBootstrapCollectionTests(unittest.TestCase):
@@ -35,7 +37,7 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.http_requests = []
         self.after_feed_read = None
 
-    def collect(self, profile_id="fixture", check=None):
+    def collect(self, profile_id="fixture", check=None, **lineage):
         def feed(request):
             self.http_requests.append(str(request.url))
             self.assertEqual((request.method, request.url.host, request.url.path),
@@ -46,7 +48,19 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         with patch.object(PublicCompanyClient, "_request_once",
                           side_effect=AssertionError("No employer network in collection")):
             return collect_source(self.store, self.source_id, profile_id,
-                                  transport=httpx.MockTransport(feed), check=check)
+                                  transport=httpx.MockTransport(feed), check=check, **lineage)
+
+    def parent_operation(self, *, scheduled=False):
+        params = {"source_id": self.source_id, "request_id": "lineage-" + uuid4().hex}
+        if scheduled:
+            params["profile_ids"] = ["fixture"]
+        else:
+            params["profile_version"] = self.store.profile("fixture")["version"]
+        identifier = enqueue_operation(self.store, "DISCOVER", "fixture", params)
+        operation = claim(self.store, identifier)
+        self.assertIsNotNone(operation)
+        return {"parent_operation_id": identifier,
+                "parent_operation_attempt": operation["attempt_count"]}
 
     def pending(self, store=None):
         with (store or self.store).engine.connect() as connection:
@@ -64,6 +78,8 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(request["profile_id"], "fixture")
         self.assertEqual(request["profile_version"], self.store.profile("fixture")["version"])
         self.assertEqual(request["state"], "QUEUED")
+        self.assertNotIn("parent_operation_id", json.dumps(request["domain_evidence"]))
+        self.assertNotIn("parent_operation_attempt", json.dumps(request["domain_evidence"]))
         reopened = Store(self.url)
         self.addCleanup(reopened.engine.dispose)
         self.assertEqual(self.pending(reopened), pending)
@@ -227,3 +243,95 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
         self.assertEqual(admit.call_args.kwargs.get("aggregator_bootstrap_candidates", {}), {})
         self.assertEqual(self.pending(), [])
         self.assertEqual(self.store.count("posting_snapshots"), 2)
+
+    def test_current_parent_identity_and_attempt_are_forwarded_without_changing_operation(self):
+        for scheduled in (False, True):
+            with self.subTest(scheduled=scheduled):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.job_sources).where(m.job_sources.c.id == self.source_id).values(last_attempt=None))
+                lineage = self.parent_operation(scheduled=scheduled)
+                with patch("services.discovery.sources.collect.record_discovery_requests") as admit:
+                    self.assertEqual(self.collect(**lineage)["jobs_seen"], 1)
+                self.assertEqual(admit.call_args.kwargs["parent_operation_id"], lineage["parent_operation_id"])
+                self.assertEqual(admit.call_args.kwargs["parent_operation_attempt"], lineage["parent_operation_attempt"])
+                self.assertTrue(admit.call_args.kwargs["aggregator_bootstrap_candidates"])
+                with self.store.engine.begin() as connection:
+                    row = connection.execute(select(m.operations).where(
+                        m.operations.c.id == lineage["parent_operation_id"])).mappings().one()
+                    self.assertEqual((row["state"], row["attempt_count"]), ("RUNNING", lineage["parent_operation_attempt"]))
+                    # End this fixture's parent so the next subcase can claim its own slot.
+                    connection.execute(update(m.operations).where(m.operations.c.id == row["id"]).values(state="COMPLETED"))
+
+    def test_direct_collection_does_not_claim_parent_lineage(self):
+        with patch("services.discovery.sources.collect.record_discovery_requests") as admit:
+            self.assertEqual(self.collect()["jobs_seen"], 1)
+        self.assertTrue(admit.call_args.kwargs["aggregator_bootstrap_candidates"])
+        self.assertNotIn("parent_operation_id", admit.call_args.kwargs)
+        self.assertNotIn("parent_operation_attempt", admit.call_args.kwargs)
+
+    def test_missing_or_malformed_parent_pair_is_rejected_before_feed_read(self):
+        cases = [{"parent_operation_id": "missing"}, {"parent_operation_attempt": 1},
+                 {"parent_operation_id": "missing", "parent_operation_attempt": True},
+                 {"parent_operation_id": "missing", "parent_operation_attempt": 0},
+                 {"parent_operation_id": "missing", "parent_operation_attempt": 1}]
+        for lineage in cases:
+            with self.subTest(lineage=lineage), self.assertRaisesRegex(SourceError, "SOURCE_CHANGED"):
+                self.collect(**lineage)
+        self.assertEqual(self.http_requests, [])
+        self.assertEqual(self.store.count("posting_snapshots"), 0)
+
+    def test_foreign_stale_or_cancelled_parent_is_rejected_before_feed_read(self):
+        lineage = self.parent_operation()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == lineage["parent_operation_id"])).mappings().one())
+        cases = [{"kind": "COMPANY_DISCOVER"}, {"entity_id": "other-profile"},
+                 {"state": "COMPLETED"}, {"cancel_requested": True},
+                 {"attempt_count": lineage["parent_operation_attempt"] + 1},
+                 {"lease_expires_at": None}, {"lease_expires_at": "2000-01-01T00:00:00+00:00"},
+                 {"lease_expires_at": "not-a-date"}, {"lease_expires_at": "2999-01-01T00:00:00"},
+                 {"params": dict(original["params"], source_id="other-source")},
+                 {"params": dict(original["params"], profile_version="old-version")},
+                 {"params": dict(original["params"], profile_ids=["other-profile"])},
+                 {"params": dict(original["params"], rescore_only=True)}]
+        for changed in cases:
+            with self.subTest(changed=changed):
+                values = {key: value for key, value in original.items() if key != "id"}
+                values.update(changed)
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == original["id"]).values(**values))
+                with self.assertRaisesRegex(SourceError, "SOURCE_CHANGED"):
+                    self.collect(**lineage)
+        self.assertEqual(self.http_requests, [])
+        self.assertEqual(self.store.count("posting_snapshots"), 0)
+
+    def test_parent_attempt_change_during_feed_rolls_back_intake(self):
+        lineage = self.parent_operation()
+        def change_attempt():
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(m.operations.c.id == lineage["parent_operation_id"])
+                    .values(attempt_count=lineage["parent_operation_attempt"] + 1))
+        self.after_feed_read = change_attempt
+        with self.assertRaisesRegex(SourceError, "SOURCE_CHANGED"):
+            self.collect(**lineage)
+        self.assertEqual(len(self.http_requests), 1)
+        self.assertEqual(self.store.count("posting_snapshots"), 0)
+        self.assertEqual(self.pending(), [])
+        with self.store.engine.connect() as connection:
+            source = connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == self.source_id)).mappings().one()
+        self.assertEqual(source["consecutive_failures"], 0)
+        self.assertNotEqual(source["health_status"], "COLLECTING")
+
+    def test_scheduled_parent_profile_change_during_feed_rolls_back_intake(self):
+        lineage = self.parent_operation(scheduled=True)
+        def change_profile():
+            updated = deepcopy(PROFILE)
+            updated["name"] = "Changed during intake"
+            self.store.save_profile(updated)
+        self.after_feed_read = change_profile
+        with self.assertRaisesRegex(SourceError, "SOURCE_CHANGED"):
+            self.collect(**lineage)
+        self.assertEqual(len(self.http_requests), 1)
+        self.assertEqual(self.store.count("posting_snapshots"), 0)
+        self.assertEqual(self.pending(), [])

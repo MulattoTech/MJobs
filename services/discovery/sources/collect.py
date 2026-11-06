@@ -443,13 +443,46 @@ def _aggregator_bootstrap_candidates(connection, profile, candidate_ids, new_com
     return hints
 
 
+def _collection_parent_lineage(connection, source_id, profile, operation_id, attempt):
+    """Bind a staged child to the currently running source-collection attempt."""
+    if operation_id is None and attempt is None:
+        return {}
+    if (not isinstance(operation_id, str) or not operation_id or len(operation_id) > 128
+            or type(attempt) is not int or attempt < 1 or profile is None):
+        raise SourceError('SOURCE_CHANGED')
+    operation = connection.execute(select(m.operations).where(
+        m.operations.c.id == operation_id)).mappings().one_or_none()
+    if (operation is None or operation['kind'] != 'DISCOVER'
+            or operation['state'] != 'RUNNING' or operation['cancel_requested']
+            or operation['attempt_count'] != attempt or operation['entity_id'] != profile['id']):
+        raise SourceError('SOURCE_CHANGED')
+    try:
+        lease = datetime.fromisoformat(operation['lease_expires_at'])
+        live = lease.tzinfo is not None and lease > datetime.now(timezone.utc)
+    except (TypeError, ValueError):
+        live = False
+    params = operation['params']
+    if (not live or not isinstance(params, dict) or params.get('source_id') != source_id
+            or params.get('rescore_only')
+            or ('profile_version' in params and params['profile_version'] != profile['version'])
+            or ('profile_ids' in params and (
+                not isinstance(params['profile_ids'], list) or not params['profile_ids']
+                or any(not isinstance(value, str) or not value for value in params['profile_ids'])
+                or params['profile_ids'][0] != profile['id']))
+            or connection.execute(select(m.profiles.c.version).where(
+                m.profiles.c.id == profile['id'])).scalar_one_or_none() != profile['version']):
+        raise SourceError('SOURCE_CHANGED')
+    return {'parent_operation_id': operation_id, 'parent_operation_attempt': attempt}
+
+
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
                    *, refresh_matches=True, import_guard=None, registry=None,
-                   collection_contract=None):
+                   collection_contract=None, parent_operation_id=None, parent_operation_attempt=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
     The profile still supplies discovery-request ownership during capture.
+    A supplied parent pair identifies only that live source-collection attempt.
     """
     check = check or (lambda: None)
     profile = store.profile(profile_id, profile_version) if profile_id is not None else None
@@ -458,6 +491,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
+        _collection_parent_lineage(connection, source_id, profile,
+                                   parent_operation_id, parent_operation_attempt)
         source = dict(connection.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one())
         from services.company_discovery.ats_enrollment import bound_company_source
         bound = bound_company_source(store, connection, source, lock=True)
@@ -563,6 +598,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                     raise SourceError('SOURCE_CHANGED')
                 if (fresh_bound or {}).get('id') != (bound or {}).get('id'):
                     raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
+                _collection_parent_lineage(connection, source_id, profile,
+                                           parent_operation_id, parent_operation_attempt)
             except Exception:
                 authority_rejected = True
                 raise
@@ -720,9 +757,15 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             if profile is not None:
                 bootstrap = _aggregator_bootstrap_candidates(connection, profile,
                     generated_candidate_ids, new_companies, prepared_bootstrap, check)
+                try:
+                    parent_lineage = _collection_parent_lineage(connection, source_id, profile,
+                        parent_operation_id, parent_operation_attempt)
+                except SourceError:
+                    authority_rejected = True
+                    raise
                 record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
                     new_company_ids=new_companies,
-                    **({'aggregator_bootstrap_candidates': bootstrap} if bootstrap else {}))
+                    **({'aggregator_bootstrap_candidates': bootstrap, **parent_lineage} if bootstrap else {}))
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application,
                 "collection_result": ({
