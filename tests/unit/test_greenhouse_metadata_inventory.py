@@ -6,6 +6,7 @@ import httpx
 
 from services.discovery.sources.errors import SourceError
 from services.discovery.sources.greenhouse import Greenhouse
+from services.discovery.matching import build_explanation
 
 
 def posting(identifier=1):
@@ -86,6 +87,23 @@ class GreenhouseMetadataInventoryTests(unittest.TestCase):
         self.assertEqual([item.raw for item in batch.items], payload["jobs"])
         self.assertEqual(adapter.normalize(batch.items[0].raw)["description"], "Build services")
         self.assertEqual(len(self.requests), 2)
+
+    def test_title_only_skills_keep_truthful_evidence_and_unknown_requirement_strength(self):
+        adapter = self.adapter()
+        row = dict(posting(), title="Python Developer")
+        parsed = adapter.normalize(row)
+        self.assertEqual(parsed["skills"], ["Python"])
+        self.assertEqual(parsed["description"], "")
+        self.assertEqual(parsed["attributes"]["skill_evidence"], "title_mentions")
+        profile = {"facts": [], "preferences": {}}
+        explanation = build_explanation(parsed, profile)
+        self.assertEqual(explanation["score"], 0)
+        self.assertEqual(explanation["components"]["method"], "weighted_skill_evidence_coverage")
+        self.assertEqual(explanation["components"]["requirements"][0]["strength"], "UNKNOWN")
+        self.assertEqual(explanation["components"]["requirements"][0]["profile_evidence"], "NO_APPROVED_EVIDENCE")
+        described = adapter.normalize(dict(row, content="<p>Python development</p>"))
+        self.assertEqual(described["attributes"]["skill_evidence"], "description_mentions")
+        self.assertEqual(build_explanation(described, profile)["components"]["method"], "description_skill_mentions")
 
     def test_other_initial_failures_never_trigger_metadata(self):
         def network():

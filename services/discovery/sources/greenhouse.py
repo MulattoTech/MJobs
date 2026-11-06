@@ -445,5 +445,6 @@ class Greenhouse:
                     "remote_regions": location_facts["remote_regions"],
                     "remote_indicated": location_facts["remote_indicated"], "country": location_facts["country"],
                     "state": location_facts["state"], "city": location_facts["city"],
-                    "skill_evidence": "description_mentions", "submission_capability": "MANUAL_ONLY", "fictional": False,
+                    "skill_evidence": "description_mentions" if description else "title_mentions",
+                    "submission_capability": "MANUAL_ONLY", "fictional": False,
                     "application_url_status": "PROVIDER_SUPPLIED" if url else "UNAVAILABLE"}}
