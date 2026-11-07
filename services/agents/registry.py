@@ -77,7 +77,8 @@ class AgentToolContext:
             raise AgentToolError("TIME_BUDGET_EXHAUSTED")
 
     def consume_page(self) -> int:
-        """Reserve a page-fetch permit before starting its external work."""
+        """Check the host deadline and reserve a permit before a page fetch."""
+        self.check_budget()
         if self.page_budget is None:
             raise AgentToolError("PAGE_BUDGET_REQUIRED")
         return self.page_budget.consume()
