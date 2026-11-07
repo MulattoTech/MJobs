@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-033",
+  "objective": "Persist terminal review outcomes and deny page admission after elapsed budget",
+  "owner": "ChatGPT-Web/web-20261107T192718Z-9a399d59d3db",
+  "branch": "web/web-20261107T192718Z-9a399d59d3db/ref033-stop-contract",
+  "head_sha": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+  "routing_state": "VERIFY",
+  "next_action": "Publish reviewed isolated PR, inspect exact-head hosted Linux CI, and retain full requirement PARTIAL pending remaining browser/entrypoint acceptance",
+  "created_at": "2026-11-07T19:49:06.057087+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee: 51 focused agent tests; independent narrow diff review; catalogue/progress/dashboard/reference provenance/diff checks",
+      "result": "PASS"
+    },
+    {
+      "command": "Full unit assertions after Windows collection failure; web build and controlled browser acceptance; hosted Linux CI",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full pytest collection FAIL: existing Linux fcntl import unavailable on Windows"
+  ]
+}

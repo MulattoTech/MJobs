@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-033-TERMINAL-PAGE-CONTRACT-20261107",
+  "issue": 403,
+  "requirement_id": "MJ-REF-033",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-11-07T19:49:05.624082+00:00",
+  "run_id": "web-20261107T192718Z-9a399d59d3db",
+  "branch": "web/web-20261107T192718Z-9a399d59d3db/ref033-stop-contract",
+  "implementation_commit": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+  "implementation_tree": "0264718087f0c3112eac1aeb6181b2cda92644a8",
+  "input_sha256_domain": "Git blob bytes at implementation_commit",
+  "input_sha256": {
+    "services/agents/runtime.py": "0db09c15c946e092295d60ca05a9993df9690ea026b96a3dca844c58e85ea4c5",
+    "services/agents/registry.py": "f73feb5de254f9c378d2418357b1f46210df83ed59903a4a494a423f20be4d4e",
+    "services/agents/traces.py": "bf6add7a41e09d2c5b795ceef6c97723cb18f46003fb80e11da539e862f89cc0",
+    "services/agents/AREA.md": "1a278478281ed541872054ae403ceb0a75210b27ba5e59006bf2295153b04960",
+    "tests/integration/test_agent_tools.py": "4726f09c89a33a9fd8fe8b688ee0c700ca4551e49ea0ddf7c8d173d72c4eac9e",
+    "tests/integration/test_agent_diagnostic_reruns.py": "64b945dcc12e2f6bcb1a6b0d5d0237c2fe3161417188f6d64a942125d48babfb"
+  },
+  "acceptance": {
+    "review_proposal_terminal_dispatch": "PASS - a review proposal stops dispatch immediately; 21 queued reads do not run and cannot replace the review outcome with a step-limit result. Saved disposition still requires explicit approval of that proposal.",
+    "explicit_review_escape": "PASS - explicit REVIEW_REQUIRED is persisted as a terminal trace result and stops diagnostic reruns and later tool dispatch.",
+    "elapsed_page_admission": "PASS - a page permit checks the host elapsed deadline before admission; a handler that exhausts time on its first fetch cannot admit a second fetch.",
+    "durable_sanitized_evidence": "PASS - regression tests close/reopen the trace repository and assert terminal reason, budgets, and absence of private provider/tool material.",
+    "full_requirement": "PARTIAL - this slice fixes dispatch and page-admission defects; it does not freshly verify every long-running source/browser entrypoint or the full product browser journey."
+  },
+  "validation": [
+    {
+      "revision": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_agent_acceptance tests.integration.test_agent_tools tests.integration.test_agent_diagnostic_reruns tests.integration.test_agent_task_prompts tests.integration.test_agent_browser_budget_entrypoint_sustain_403 -v",
+      "result": "PASS - 51 tests, 0 failures, 0 errors, 0 skips; 28.466 seconds."
+    },
+    {
+      "revision": "971ba931418fc271e7a652e27c288e1776448b6d with only new regression tests applied",
+      "command": "python -m unittest tests.integration.test_agent_tools.AgentToolBoundaryTests.test_review_proposal_stops_before_any_later_tool_dispatch tests.integration.test_agent_tools.AgentToolBoundaryTests.test_page_permit_checks_deadline_before_starting_another_fetch tests.integration.test_agent_tools.AgentToolBoundaryTests.test_explicit_escape_outcomes_are_terminal_results -v",
+      "result": "FAIL - baseline reproduction: 2 failures and 1 error; retained in owned run log ref033-red.log. The log preserves the three test identities and original assertion/trace failures."
+    },
+    {
+      "revision": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q tests/unit",
+      "result": "FAIL - collection stopped, exit 2: tests/unit/test_host_release_deploy.py imports infra/deploy/host_update.py, which imports Linux fcntl unavailable on Windows. Full unit assertions did not run."
+    },
+    {
+      "revision": "source-equivalent working tree immediately before implementation commit",
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS - all five checks in fresh isolated worktree."
+    },
+    {
+      "revision": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS - 5 AI-authored source files attributed."
+    },
+    {
+      "revision": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+      "command": "Independent source/test diff review against 971ba931418fc271e7a652e27c288e1776448b6d",
+      "result": "PASS - separate evidence_audit reviewer found no blocking findings in scoped stop/deadline/privacy/approval behavior; reviewer did not execute tests."
+    },
+    {
+      "revision": "81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee",
+      "command": "npm --prefix apps/web run build; controlled browser journey",
+      "result": "NOT_RUN - this slice changes no frontend code; browser/full release acceptance remains pending."
+    }
+  ],
+  "environment": {
+    "os": "Windows 11",
+    "database": "temporary SQLite fixtures",
+    "browser": "NOT_RUN",
+    "external_network": "synthetic fixtures; no real job application",
+    "application_submission": "OFF",
+    "production_credentials": "NOT_USED"
+  },
+  "limitations": [
+    "Elapsed budgets are cooperative: a tool handler already running is not preempted; it must check budget or request its next page permit.",
+    "Full unit collection is blocked by the existing Linux-only fcntl import on Windows; required hosted Linux CI remains separate evidence.",
+    "No canonical acceptance matrices changed; no requirement PASS promotion, merge, deployment, or real application submission.",
+    "Hosted checks have not yet run on the publication head."
+  ],
+  "next_gap": "Review hosted Linux results and verify the remaining full MJ-REF-033 entrypoint/browser acceptance before any matrix promotion.",
+  "hosted_checks": "NOT_RUN - PR not yet published at evidence creation"
+}
