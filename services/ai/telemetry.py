@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from math import isfinite
 import threading
 import time
-from typing import Any, Generator, Literal, TypedDict
+from typing import Any, Generator, Literal, Mapping, TypedDict
 
 
 MODEL_PRICING_PER_MILLION: dict[str, tuple[float, float]] = {
@@ -29,34 +29,32 @@ MODEL_PRICING_PER_MILLION: dict[str, tuple[float, float]] = {
     "claude-3-opus": (15.00, 75.00),
     "gemini-1.5-pro": (1.25, 5.00),
     "gemini-1.5-flash": (0.075, 0.30),
-    # Local & self-hosted execution has zero incremental API cost
-    "ollama": (0.00, 0.00),
-    "local": (0.00, 0.00),
 }
-
-DEFAULT_PRICING: tuple[float, float] = (1.00, 3.00)
-
 
 def calculate_token_cost(
     model: str | None,
-    prompt_tokens: int,
-    completion_tokens: int,
-) -> float:
-    """Calculate estimated cost in USD with model price tables."""
+    prompt_tokens: int | None,
+    completion_tokens: int | None,
+    *,
+    provider: str | None = None,
+) -> float | None:
+    """Estimate only when both token counts and a matching price are known."""
+    if prompt_tokens is None or completion_tokens is None:
+        return None
     clean_model = (model or "").casefold().strip()
-
-    pricing = DEFAULT_PRICING
-    if clean_model.startswith("ollama") or "local" in clean_model:
+    clean_provider = (provider or "").casefold().strip()
+    if clean_provider in {"ollama", "local"} or (not clean_provider and clean_model.startswith("ollama/")):
         pricing = (0.0, 0.0)
     else:
-        for known_model, price in MODEL_PRICING_PER_MILLION.items():
-            if known_model in clean_model:
-                pricing = price
-                break
-
-    prompt_cost = (max(0, prompt_tokens) / 1_000_000.0) * pricing[0]
-    completion_cost = (max(0, completion_tokens) / 1_000_000.0) * pricing[1]
-    return round(prompt_cost + completion_cost, 6)
+        # Deployment aliases and dated variants may have different prices.
+        pricing = MODEL_PRICING_PER_MILLION.get(clean_model)
+    if pricing is None:
+        return None
+    return round(
+        max(0, prompt_tokens) * pricing[0] / 1_000_000
+        + max(0, completion_tokens) * pricing[1] / 1_000_000,
+        6,
+    )
 
 
 class AIBudgetExceededError(RuntimeError):
@@ -66,6 +64,10 @@ class AIBudgetExceededError(RuntimeError):
         super().__init__(message)
         self.current_cost = current_cost
         self.budget_limit = budget_limit
+
+
+class AIAdmissionCancelledError(RuntimeError):
+    """Raised when a queued request is cancelled before admission."""
 
 
 class AIConcurrencyLimitError(RuntimeError):
@@ -85,10 +87,13 @@ class AttemptRecord(TypedDict):
     model: str
     latency_ms: float
     status: Literal["SUCCESS", "FAILED", "RATE_LIMITED", "FALLBACK", "BUDGET_STOP"]
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-    estimated_cost: float
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    estimated_cost: float | None
+    usage_provenance: Literal["PROVIDER_REPORTED", "PARTIAL", "UNAVAILABLE", "NOT_SENT"]
+    cost_provenance: Literal["PRICE_TABLE_ESTIMATE", "LOCAL_ZERO", "UNAVAILABLE", "NOT_SENT"]
+    request_sent: bool
     fallback_reason: str | None
     error_code: str | None
     timestamp_utc: str
@@ -102,6 +107,8 @@ class TaskUsageSummary(TypedDict):
     total_completion_tokens: int
     total_tokens: int
     total_cost_usd: float
+    unknown_usage_calls: int
+    unknown_cost_calls: int
     avg_latency_ms: float
 
 
@@ -112,6 +119,8 @@ class ProviderTelemetryReport(TypedDict):
     total_calls: int
     total_tokens: int
     total_cost_usd: float
+    unknown_usage_calls: int
+    unknown_cost_calls: int
     error_rate: float
 
 
@@ -125,6 +134,8 @@ class AggregateTelemetryReport(TypedDict):
     total_completion_tokens: int
     total_tokens: int
     total_cost_usd: float
+    unknown_usage_calls: int
+    unknown_cost_calls: int
     budget_ceiling_usd: float | None
     budget_remaining_usd: float | None
     budget_warning_triggered: bool
@@ -164,10 +175,13 @@ class LLMTelemetryEngine:
         task: str = "general",
         *,
         timeout_seconds: float = 5.0,
+        cancellation_event: threading.Event | None = None,
     ) -> Generator[None, None, None]:
-        """Acquire a concurrency slot subject to global and per-provider rate ceilings."""
+        """Acquire a process-local slot subject to global and per-provider concurrency caps."""
         p_norm = provider.casefold().strip()
         deadline = time.monotonic() + timeout_seconds
+        if cancellation_event is not None and cancellation_event.is_set():
+            raise AIAdmissionCancelledError()
 
         with self._lock:
             # Check budget stop before admitting request
@@ -181,6 +195,14 @@ class LLMTelemetryEngine:
         acquired = False
         while time.monotonic() < deadline:
             with self._lock:
+                if cancellation_event is not None and cancellation_event.is_set():
+                    raise AIAdmissionCancelledError()
+                if self.budget_ceiling_usd is not None and self._total_cost_usd >= self.budget_ceiling_usd:
+                    raise AIBudgetExceededError(
+                        f"AI budget ceiling (${self.budget_ceiling_usd:.2f}) reached. Task '{task}' halted.",
+                        current_cost=self._total_cost_usd,
+                        budget_limit=self.budget_ceiling_usd,
+                    )
                 provider_limit = self.provider_concurrency_limits.get(p_norm, self.global_concurrency_limit)
                 provider_active = self._active_by_provider.get(p_norm, 0)
 
@@ -192,10 +214,14 @@ class LLMTelemetryEngine:
 
             time.sleep(0.01)
 
+        if cancellation_event is not None and cancellation_event.is_set() and not acquired:
+            raise AIAdmissionCancelledError()
         if not acquired:
             with self._lock:
                 cur_act = self._active_by_provider.get(p_norm, 0)
                 lim = self.provider_concurrency_limits.get(p_norm, self.global_concurrency_limit)
+                if self._active_global >= self.global_concurrency_limit:
+                    cur_act, lim = self._active_global, self.global_concurrency_limit
             raise AIConcurrencyLimitError(
                 f"Concurrency limit saturated for provider '{provider}' ({cur_act}/{lim}).",
                 provider=provider,
@@ -204,6 +230,8 @@ class LLMTelemetryEngine:
             )
 
         try:
+            if cancellation_event is not None and cancellation_event.is_set():
+                raise AIAdmissionCancelledError()
             yield
         finally:
             with self._lock:
@@ -218,19 +246,29 @@ class LLMTelemetryEngine:
         model: str,
         latency_ms: float,
         status: Literal["SUCCESS", "FAILED", "RATE_LIMITED", "FALLBACK", "BUDGET_STOP"],
-        prompt_tokens: int = 0,
-        completion_tokens: int = 0,
+        prompt_tokens: int | None = None,
+        completion_tokens: int | None = None,
+        request_sent: bool = True,
         fallback_reason: str | None = None,
         error_code: str | None = None,
     ) -> AttemptRecord:
         """Record an attempt with token, cost, and latency metrics without storing prompt PII."""
-        p_tokens = max(0, int(prompt_tokens))
-        c_tokens = max(0, int(completion_tokens))
-        tot_tokens = p_tokens + c_tokens
-        cost = calculate_token_cost(model, p_tokens, c_tokens)
+        p_tokens = (max(0, int(prompt_tokens)) if prompt_tokens is not None else None) if request_sent else 0
+        c_tokens = (max(0, int(completion_tokens)) if completion_tokens is not None else None) if request_sent else 0
+        tot_tokens = p_tokens + c_tokens if p_tokens is not None and c_tokens is not None else None
+        cost = calculate_token_cost(model, p_tokens, c_tokens, provider=provider) if request_sent else 0.0
+        usage_provenance = (
+            "NOT_SENT" if not request_sent else "PROVIDER_REPORTED" if p_tokens is not None and c_tokens is not None
+            else "UNAVAILABLE" if p_tokens is None and c_tokens is None else "PARTIAL"
+        )
+        cost_provenance = (
+            "NOT_SENT" if not request_sent else "UNAVAILABLE" if cost is None else
+            "LOCAL_ZERO" if provider.casefold().strip() in {"ollama", "local"}
+            else "PRICE_TABLE_ESTIMATE"
+        )
 
         record: AttemptRecord = {
-            "attempt_id": f"att-{len(self._attempts) + 1}-{int(time.time() * 1000)}",
+            "attempt_id": "",
             "task": str(task),
             "provider": str(provider),
             "model": str(model),
@@ -240,14 +278,18 @@ class LLMTelemetryEngine:
             "completion_tokens": c_tokens,
             "total_tokens": tot_tokens,
             "estimated_cost": cost,
+            "usage_provenance": usage_provenance,
+            "cost_provenance": cost_provenance,
+            "request_sent": request_sent,
             "fallback_reason": fallback_reason,
             "error_code": error_code,
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         }
 
         with self._lock:
+            record["attempt_id"] = f"att-{len(self._attempts) + 1}-{int(time.time() * 1000)}"
             self._attempts.append(record)
-            self._total_cost_usd = round(self._total_cost_usd + cost, 6)
+            self._total_cost_usd = round(self._total_cost_usd + (cost or 0.0), 6)
 
         return record
 
@@ -262,8 +304,10 @@ class LLMTelemetryEngine:
         total_calls = len(attempts)
         successful = sum(1 for a in attempts if a["status"] == "SUCCESS")
         failed = sum(1 for a in attempts if a["status"] in ("FAILED", "RATE_LIMITED", "BUDGET_STOP"))
-        tot_prompt = sum(a["prompt_tokens"] for a in attempts)
-        tot_comp = sum(a["completion_tokens"] for a in attempts)
+        tot_prompt = sum(a["prompt_tokens"] or 0 for a in attempts)
+        tot_comp = sum(a["completion_tokens"] or 0 for a in attempts)
+        unknown_usage = sum(a["usage_provenance"] not in ("PROVIDER_REPORTED", "NOT_SENT") for a in attempts)
+        unknown_cost = sum(a["estimated_cost"] is None for a in attempts)
         tot_tokens = tot_prompt + tot_comp
 
         warning_triggered = False
@@ -286,12 +330,16 @@ class LLMTelemetryEngine:
                     "total_calls": 0,
                     "total_tokens": 0,
                     "total_cost_usd": 0.0,
+                    "unknown_usage_calls": 0,
+                    "unknown_cost_calls": 0,
                     "error_rate": 0.0,
                 }
             rep = by_provider[p]
             rep["total_calls"] += 1
-            rep["total_tokens"] += a["total_tokens"]
-            rep["total_cost_usd"] = round(rep["total_cost_usd"] + a["estimated_cost"], 6)
+            rep["total_tokens"] += (a["prompt_tokens"] or 0) + (a["completion_tokens"] or 0)
+            rep["total_cost_usd"] = round(rep["total_cost_usd"] + (a["estimated_cost"] or 0.0), 6)
+            rep["unknown_usage_calls"] += a["usage_provenance"] not in ("PROVIDER_REPORTED", "NOT_SENT")
+            rep["unknown_cost_calls"] += a["estimated_cost"] is None
 
         for p, rep in by_provider.items():
             p_attempts = [a for a in attempts if a["provider"] == p]
@@ -311,6 +359,8 @@ class LLMTelemetryEngine:
                     "total_completion_tokens": 0,
                     "total_tokens": 0,
                     "total_cost_usd": 0.0,
+                    "unknown_usage_calls": 0,
+                    "unknown_cost_calls": 0,
                     "avg_latency_ms": 0.0,
                 }
             ts = by_task[t]
@@ -319,10 +369,12 @@ class LLMTelemetryEngine:
                 ts["successful_calls"] += 1
             else:
                 ts["failed_calls"] += 1
-            ts["total_prompt_tokens"] += a["prompt_tokens"]
-            ts["total_completion_tokens"] += a["completion_tokens"]
-            ts["total_tokens"] += a["total_tokens"]
-            ts["total_cost_usd"] = round(ts["total_cost_usd"] + a["estimated_cost"], 6)
+            ts["total_prompt_tokens"] += a["prompt_tokens"] or 0
+            ts["total_completion_tokens"] += a["completion_tokens"] or 0
+            ts["total_tokens"] += (a["prompt_tokens"] or 0) + (a["completion_tokens"] or 0)
+            ts["total_cost_usd"] = round(ts["total_cost_usd"] + (a["estimated_cost"] or 0.0), 6)
+            ts["unknown_usage_calls"] += a["usage_provenance"] not in ("PROVIDER_REPORTED", "NOT_SENT")
+            ts["unknown_cost_calls"] += a["estimated_cost"] is None
 
         for t, ts in by_task.items():
             t_attempts = [a for a in attempts if a["task"] == t]
@@ -342,6 +394,8 @@ class LLMTelemetryEngine:
             "total_completion_tokens": tot_comp,
             "total_tokens": tot_tokens,
             "total_cost_usd": round(total_cost, 6),
+            "unknown_usage_calls": unknown_usage,
+            "unknown_cost_calls": unknown_cost,
             "budget_ceiling_usd": self.budget_ceiling_usd,
             "budget_remaining_usd": round(remaining_budget, 4) if remaining_budget is not None else None,
             "budget_warning_triggered": warning_triggered,
@@ -352,7 +406,7 @@ class LLMTelemetryEngine:
 
 
 # Global default telemetry engine instance
-_DEFAULT_ENGINE = LLMTelemetryEngine()
+_DEFAULT_ENGINE = LLMTelemetryEngine(budget_ceiling_usd=None)
 
 
 def get_default_telemetry_engine() -> LLMTelemetryEngine:

@@ -1,4 +1,5 @@
 """Unit tests for LLM Telemetry, Cost & Concurrency (MJ-REF-015)."""
+import threading
 import unittest
 
 from services.ai.telemetry import (
@@ -6,6 +7,7 @@ from services.ai.telemetry import (
     AIConcurrencyLimitError,
     LLMTelemetryEngine,
     calculate_token_cost,
+    get_default_telemetry_engine,
 )
 
 
@@ -24,10 +26,13 @@ class LLMTelemetryUnitTests(unittest.TestCase):
         # 3. Ollama / Local: $0.00 always
         cost_ollama = calculate_token_cost("ollama/llama3", 50_000, 20_000)
         self.assertEqual(cost_ollama, 0.0)
+        self.assertEqual(calculate_token_cost("custom-model", 50_000, 20_000, provider="local"), 0.0)
+        self.assertIsNone(calculate_token_cost("ollama/llama3", 50_000, 20_000, provider="openai-compatible"))
 
-        # 4. Unknown/Fallback model
-        cost_fallback = calculate_token_cost("custom-model", 10_000, 1_000)
-        self.assertGreater(cost_fallback, 0.0)
+        # Unknown pricing cannot support a cost estimate.
+        self.assertIsNone(calculate_token_cost("custom-model", 10_000, 1_000))
+        self.assertAlmostEqual(calculate_token_cost("gpt-4o-mini", 10_000, 1_000), 0.0021)
+        self.assertIsNone(calculate_token_cost("gpt-4o", None, 1_000))
 
     def test_record_attempt_and_fallback_chain(self):
         engine = LLMTelemetryEngine(budget_ceiling_usd=10.0)
@@ -93,6 +98,79 @@ class LLMTelemetryUnitTests(unittest.TestCase):
         with engine.acquire_slot("ollama", "task3"):
             summary = engine.get_summary()
             self.assertEqual(summary["active_concurrency"], 1)
+
+    def test_global_cap_blocks_another_provider_while_active(self):
+        engine = LLMTelemetryEngine(global_concurrency_limit=1, budget_ceiling_usd=None)
+        entered = threading.Event()
+        release = threading.Event()
+
+        def hold_slot():
+            with engine.acquire_slot("openai", timeout_seconds=1):
+                entered.set()
+                release.wait(1)
+
+        worker = threading.Thread(target=hold_slot)
+        worker.start()
+        try:
+            self.assertTrue(entered.wait(1))
+            with self.assertRaises(AIConcurrencyLimitError) as error:
+                with engine.acquire_slot("azure-openai", timeout_seconds=0.03):
+                    pass
+            self.assertEqual(error.exception.current_active, 1)
+            self.assertEqual(error.exception.limit, 1)
+        finally:
+            release.set()
+            worker.join(timeout=1)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(engine.get_summary()["active_concurrency"], 0)
+
+    def test_missing_usage_and_unknown_price_are_explicit(self):
+        engine = LLMTelemetryEngine(budget_ceiling_usd=None)
+        missing = engine.record_attempt(
+            task="scoring", provider="openai", model="gpt-4o",
+            latency_ms=2, status="SUCCESS",
+        )
+        self.assertIsNone(missing["prompt_tokens"])
+        self.assertIsNone(missing["estimated_cost"])
+        self.assertEqual(missing["usage_provenance"], "UNAVAILABLE")
+        partial = engine.record_attempt(
+            task="scoring", provider="openai", model="gpt-4o",
+            latency_ms=2, status="SUCCESS", prompt_tokens=10,
+        )
+        self.assertEqual(partial["usage_provenance"], "PARTIAL")
+        self.assertIsNone(partial["total_tokens"])
+        unknown_model = engine.record_attempt(
+            task="scoring", provider="openai", model="deployment-alias",
+            latency_ms=2, status="SUCCESS", prompt_tokens=10, completion_tokens=5,
+        )
+        self.assertEqual(unknown_model["usage_provenance"], "PROVIDER_REPORTED")
+        self.assertEqual(unknown_model["cost_provenance"], "UNAVAILABLE")
+        self.assertIsNone(unknown_model["estimated_cost"])
+        summary = engine.get_summary()
+        self.assertEqual(summary["unknown_usage_calls"], 2)
+        self.assertEqual(summary["unknown_cost_calls"], 3)
+        self.assertEqual(summary["total_prompt_tokens"], 20)
+        self.assertEqual(summary["total_tokens"], 25)  # Known lower bound includes partial prompt usage.
+        self.assertEqual(summary["by_provider"]["openai"]["total_tokens"], 25)
+        self.assertEqual(summary["by_task"]["scoring"]["total_tokens"], 25)
+
+    def test_default_engine_has_no_implicit_budget_stop(self):
+        self.assertIsNone(get_default_telemetry_engine().get_summary()["budget_ceiling_usd"])
+
+    def test_not_sent_attempt_has_known_zero_usage_and_cost(self):
+        engine = LLMTelemetryEngine(budget_ceiling_usd=None)
+        attempt = engine.record_attempt(
+            task="scoring", provider="openai", model="unknown-deployment",
+            latency_ms=1, status="BUDGET_STOP", request_sent=False,
+        )
+        self.assertFalse(attempt["request_sent"])
+        self.assertEqual(attempt["usage_provenance"], "NOT_SENT")
+        self.assertEqual(attempt["cost_provenance"], "NOT_SENT")
+        self.assertEqual(attempt["total_tokens"], 0)
+        self.assertEqual(attempt["estimated_cost"], 0.0)
+        summary = engine.get_summary()
+        self.assertEqual(summary["unknown_usage_calls"], 0)
+        self.assertEqual(summary["unknown_cost_calls"], 0)
 
     def test_budget_ceiling_and_warning_trigger(self):
         # Set a low budget of $0.05

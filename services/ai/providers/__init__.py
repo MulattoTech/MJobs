@@ -50,6 +50,8 @@ class AIProviderError(RuntimeError):
         "AI_PROVIDER_TIMEOUT",
         "AI_PROVIDER_UNAVAILABLE",
         "AI_PROVIDER_HTTP_ERROR",
+        "AI_PROVIDER_BUDGET_EXCEEDED",
+        "AI_PROVIDER_CONCURRENCY_LIMIT",
     }
 
     def __init__(self, code: str) -> None:
