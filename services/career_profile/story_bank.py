@@ -18,6 +18,7 @@ ALLOWED_USES = frozenset({"RESUME", "COVER_LETTER", "APPLICATION_ANSWER", "INTER
 MAX_FACTS = 50
 MAX_TAGS = 20
 _TAG = re.compile(r"^\S.{0,78}\S$|^\S$", re.DOTALL)
+_IMPORT_KEY = re.compile(r"^import-v1-([0-9a-f]{64})-(0[0-9]|1[0-9])$")
 
 
 class StoryBankError(ValueError):
@@ -207,6 +208,9 @@ def _present(row: dict, profile: dict, latest_revision: int) -> dict:
     reusable = (is_latest and row["review_status"] == "APPROVED"
                 and row["profile_version"] == profile["version"]
                 and not stale_ids and bool(row["allowed_uses"]))
+    import_match = _IMPORT_KEY.fullmatch(row["story_key"])
+    origin = ({"schema_version": 1, "canonical_sha256": import_match.group(1),
+               "record_index": int(import_match.group(2))} if import_match else None)
     return {
         "story_id": row["id"],
         "profile_id": row["profile_id"],
@@ -227,6 +231,7 @@ def _present(row: dict, profile: dict, latest_revision: int) -> dict:
         "is_latest": is_latest,
         "reusable": reusable,
         "stale_fact_ids": stale_ids,
+        **({"import_origin": origin} if origin else {}),
     }
 
 

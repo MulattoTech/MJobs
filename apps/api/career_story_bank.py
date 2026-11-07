@@ -1,8 +1,10 @@
 """Profile-scoped API routes for reviewed, versioned career stories."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 
+from services.career_profile.story_import import MAX_IMPORT_BYTES, import_stories
 from services.career_profile.story_bank import (
     StoryBankError,
     create_story,
@@ -40,6 +42,18 @@ def create_career_story_bank_router(store) -> APIRouter:
     def career_stories(profile_id: str):
         stories = _invoke(list_stories, store, profile_id)
         return {"profile_id": profile_id, "stories": stories}
+
+    @router.post("/profiles/{profile_id}/career-stories/import")
+    async def import_career_stories(profile_id: str, request: Request):
+        media_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        if media_type != "application/json":
+            raise HTTPException(415, {"code": "IMPORT_MEDIA_TYPE_UNSUPPORTED"})
+        body = bytearray()
+        async for chunk in request.stream():
+            if len(body) + len(chunk) > MAX_IMPORT_BYTES:
+                raise HTTPException(413, {"code": "IMPORT_TOO_LARGE"})
+            body.extend(chunk)
+        return await run_in_threadpool(_invoke, import_stories, store, profile_id, bytes(body))
 
     @router.post("/profiles/{profile_id}/career-stories", status_code=201)
     def create_career_story(profile_id: str, payload: object = Body(...)):
