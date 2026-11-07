@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-002",
+  "objective": "Import bounded fact-linked story batches atomically as pending revisions",
+  "owner": "ChatGPT-Web/web-20261107T192718Z-9a399d59d3db",
+  "branch": "web/web-20261107T192718Z-9a399d59d3db/ref002-story-import",
+  "head_sha": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+  "routing_state": "VERIFY",
+  "next_action": "Publish reviewed PR and inspect exact-head hosted CI; full requirement remains PARTIAL and integration is separately owned",
+  "created_at": "2026-11-07T20:28:30.789260+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3:26tests26subtests; independent review and validators",
+      "result": "PASS"
+    },
+    {
+      "command": "Connected browser, local PostgreSQL, full unit suite and web build; hosted CI before publication",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "RAM below16GiB blocks heavy local acceptance; full Windows pytest also has fcntl collection blocker"
+  ]
+}

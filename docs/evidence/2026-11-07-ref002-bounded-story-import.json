@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-002-BOUNDED-STORY-IMPORT-20261107",
+  "issue": 372,
+  "requirement_id": "MJ-REF-002",
+  "result": "PARTIAL",
+  "run_id": "web-20261107T192718Z-9a399d59d3db",
+  "input_sha256_domain": "Git blob bytes at implementation_commit",
+  "acceptance": {
+    "mounted_import": "PASS - existing mounted story-bank router accepts POST /profiles/{profile_id}/career-stories/import; baseline router at main returned404 for this path.",
+    "bounded_untrusted_input": "PASS - 256 KiB streaming limit and 20-story cap; strict version1 JSON rejects duplicate keys, non-finite constants, unsupported fields, NUL/lone-surrogate text and oversized decoder integers with sanitized errors.",
+    "atomic_pending_revisions": "PASS - complete batch validates current approved fact links and commits PENDING revision1 rows or rolls back entirely; canonical career facts are unchanged.",
+    "durable_provenance_and_replay": "PASS - canonical normalized batch hash and record index persist in the story key and readback; replay creates no duplicate revisions and does not reset approval or overwrite edits.",
+    "existing_review_and_reuse": "PASS - imported pending stories use existing review/edit/selection gates; approval is explicit and editing appends a new PENDING revision with historical content retained.",
+    "full_requirement": "PARTIAL - JSON API import is implemented; no new browser file picker, connected browser acceptance, full story-bank requirement acceptance, or matrix promotion is claimed."
+  },
+  "environment": {
+    "os": "Windows 11",
+    "database": "temporary SQLite fixtures",
+    "browser": "NOT_RUN",
+    "external_network": "Not used; in-process API fixtures",
+    "application_submission": "OFF",
+    "production_credentials": "NOT_USED"
+  },
+  "limitations": [
+    "PostgreSQL-specific import execution and concurrent import stress were not run locally; transaction/profile-lock strategy was reviewed statically.",
+    "Connected browser import/review journey and a file-picker UI were not implemented or verified by this slice. Existing story listing/review APIs consume imported rows.",
+    "Provenance hashes normalized canonical JSON content, not original input bytes. Input record order participates in batch identity.",
+    "Reimport with changed linked fact fingerprints fails closed; it does not replace the original revision.",
+    "Local RAM fell below16GiB (14.51GiB observed), so no new heavy local browser/full-suite/build job was admitted.",
+    "Full unit collection is independently known blocked on Windows by the same-base Linux fcntl import; hosted Linux CI is separate.",
+    "Canonical matrices unchanged; full MJ-REF-002 remains PARTIAL; no merge or deployment."
+  ],
+  "next_gap": "Verify exact-head hosted CI and remaining full story-bank/browser acceptance before any integration-owner matrix promotion.",
+  "hosted_checks": "NOT_RUN - PR not yet published at evidence creation",
+  "recorded_at_utc": "2026-11-07T20:28:30.311539+00:00",
+  "branch": "web/web-20261107T192718Z-9a399d59d3db/ref002-story-import",
+  "implementation_commit": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+  "implementation_tree": "1c04065aa3052ce671d4935589dec2bf2bfc041a",
+  "input_sha256": {
+    "apps/api/career_story_bank.py": "f3245cbd5ed0a5346a3d19f26da35a0cbfbea477d439e596509ce0aa3d8fd57f",
+    "services/career_profile/story_bank.py": "81caae1ebf4fdb6f5f1efb99de267c347540fe1babbaf3088a81053d3bd9a832",
+    "services/career_profile/story_import.py": "46b6313cb2a84a4eff417be970f6dfe40b37090c80be1cbfe72c4ce08ca46a48",
+    "tests/unit/test_career_story_import.py": "1d8f895cf0595533e92dcf965508e8c7d123f7ecf84e9209386fb45f0bb3ad56",
+    "tests/integration/test_career_story_import_api.py": "bcdb8e13663f81eaad52cfdbefe40ae3a3a3ac7476307219c58e90e72a6af2c3",
+    "docs/career-story-import.md": "1ee1131b0bab1403591027f0a7c657881d254fc8382b43ccdfde5e6eafe0c007"
+  },
+  "validation": [
+    {
+      "revision": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_career_story_bank.py",
+        "tests/unit/test_career_story_import.py",
+        "tests/integration/test_career_story_bank.py",
+        "tests/integration/test_career_story_bank_durable_readback.py",
+        "tests/integration/test_career_story_selection_api.py",
+        "tests/integration/test_career_story_import_api.py"
+      ],
+      "result": "PASS - 26 tests and26subtests;16.11seconds,0skips"
+    },
+    {
+      "revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "command": "FastAPI TestClient POST /profiles/fixture/career-stories/import against baseline mounted router",
+      "result": "PASS baseline reproduction - HTTP404; import route missing before this slice"
+    },
+    {
+      "revision": "source-equivalent working tree before commit",
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "revision": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS -5sourcefiles"
+    },
+    {
+      "revision": "source-equivalent final frozen diff before commit",
+      "command": "Independent story_import_review source/test review",
+      "result": "PASS - malformed integer finding fixed; reviewer inspected regression assertions but did not rerun final suite"
+    },
+    {
+      "revision": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+      "command": "Connected browser, local PostgreSQL, full unit suite, npm --prefix apps/web run build",
+      "result": "NOT_RUN - heavy resource gate below16GiB; no web source changed; known same-base Windows full-unit fcntl collection blocker retained"
+    }
+  ]
+}
