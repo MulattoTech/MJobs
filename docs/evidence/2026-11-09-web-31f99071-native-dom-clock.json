@@ -174,5 +174,89 @@
     "exact_head_hosted_scan": "PENDING",
     "local_pinned_linux_scan": "NOT_RUN on Windows; hosted verification required"
   },
-  "updated_at_utc": "2026-11-09T03:52:37.987088+00:00"
+  "updated_at_utc": "2026-11-09T04:20:26Z",
+  "cancellation_ci_followup": {
+    "requirement_ids": [
+      "MJ-REQ-004",
+      "MJ-REQ-179"
+    ],
+    "related_issues": [
+      5,
+      770,
+      180
+    ],
+    "implementation_sha": "bfc63d3ea9073981edf64c5ee85449495ec6ce5b",
+    "test_blob": "7258e821c41d632adcb2036d41b08fadc01f369d",
+    "prior_head": "6dc0ae73803f763d3019da9d330c6f328519250e",
+    "prior_tested_merge": "9a37cc92b856dd8813b4c3c76b5d8a19822fa2c2",
+    "failed_job": "https://github.com/MulattoTech/MJobs/actions/runs/42558913902/job/128970767036",
+    "original_test_blob": "d61335b53abd9f9f1f26e9bc9ccc44ec7f11289a",
+    "unchanged_production_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+    "observed_failure": {
+      "test": "OperationCancellationCommitTests.test_source_watchers_do_not_delay_their_cancellation_commit",
+      "kind": "DISCOVER",
+      "watcher": "mjobs-wwr-cancellation",
+      "elapsed_seconds": 0.9118490599999802,
+      "required_less_than_seconds": 0.35,
+      "suite": "1 failed,3926 passed,54 skipped,4579 subtests passed",
+      "premature_read_assertion": "PASSED before timing failure",
+      "root_cause": "UNDETERMINED; original fixture thread startup is inside timing, but no phase timestamps establish the precise delay"
+    },
+    "prior_correlated_failure": {
+      "pr": 964,
+      "head": "6106aca53ec3599b37f47c17e83108626827d2fb",
+      "tested_merge": "04f00b92d16fb52f83583a39b195f2033797c3e6",
+      "elapsed_seconds": 0.9346276620000253,
+      "watcher": "mjobs-greenhouse-cancellation",
+      "job": "https://github.com/MulattoTech/MJobs/actions/runs/42170776172/job/127737825928",
+      "same_test_and_production_blobs": true
+    },
+    "inherited_native_slice": {
+      "artifact_id": 13648787058,
+      "head": "6dc0ae73803f763d3019da9d330c6f328519250e",
+      "browser_debug_capture_tests": 20,
+      "fleet_capture_budget_tests": 16,
+      "failures": 0,
+      "skipped": 0
+    },
+    "change": "Prestart and acknowledge the owned watcher before the entire real request_cancel timer, then release it from staged audit. Add bounded phase diagnostics and one real SQLite execution-thread negative control.",
+    "preserved": [
+      "Real monotonic clock",
+      "Strict elapsed <0.35s across full request_cancel",
+      "0.5s premature SQLite reader trap",
+      "Commit/rollback and process-control exceptions",
+      "Durable state and audit assertions",
+      "Thread/registration cleanup and zero checked-out connections",
+      "All runtime source, scanner rules and CI workflows"
+    ],
+    "negative_control": "Unrecognized synthetic execution-thread name takes the real SQL path; only the exact premature-read assertion satisfies it, followed by zero checked-out connections.",
+    "static_validation": {
+      "git_blob": "7258e821c41d632adcb2036d41b08fadc01f369d",
+      "bytes": 13565,
+      "python": "3.12.14",
+      "AST_compile": "PASS",
+      "whitespace_diagnostics": "",
+      "diff_check_exit": 1,
+      "runtime_tests": "NOT_RUN; missing pytest/SQLAlchemy in cloud; PC resource gate failed",
+      "uploaded_git_bytes_match": true,
+      "other_existing_methods": "AST-identical; only fixture helper changed and one test added"
+    },
+    "independent_review": {
+      "reviewer": "pr_inventory",
+      "result": "No blocking static findings",
+      "runtime_executed": false
+    },
+    "resource_gate": {
+      "observed_utc": "2026-11-09T04:06:55.7338152Z",
+      "available_ram_gib": 9.736846923828125,
+      "instant_cpu_percent": 70,
+      "light_admitted": false,
+      "heavy_admitted": false
+    },
+    "runtime_validation": "NOT_RUN locally; PC below10GiB light gate and cloud lacks pytest/SQLAlchemy. Fresh hosted runtime/negative control required.",
+    "result": "PENDING_HOSTED_VERIFICATION",
+    "production_changed": false,
+    "fresh_full_requirement_PASS": false,
+    "recorded_utc": "2026-11-09T04:20:26Z"
+  }
 }

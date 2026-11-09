@@ -65,3 +65,35 @@ workflow or directory-wide exclusion changed. Source and test blobs remain ident
 to the locally tested implementation. Fresh hosted scanning on the final head is pending.
 The companion JSON records exact provenance and the comparison result without
 repeating the flagged digest.
+
+## Follow-up: inherited cancellation fixture timing
+
+At prior head 6dc0ae73803f763d3019da9d330c6f328519250e, the hosted artifact confirmed
+all 20 DOM-capture tests and 16 capture-budget tests passed without skips.
+The full unit job failed an unchanged cancellation fixture: DISCOVER /
+mjobs-wwr-cancellation took 0.911849 seconds against the strict 0.35-second bound.
+Durable cancellation and the no-premature-read assertion had already passed.
+
+The same source/test blobs had a similar failure on PR964. Neither observation
+establishes a production polling defect or the precise delay cause. The original
+fixture created its synthetic observer inside the timed operation.
+
+Source commit bfc63d3ea9073981edf64c5ee85449495ec6ce5b prestarts and acknowledges the observer before
+timing, then releases it from staged audit. The real clock, entire request_cancel
+operation and 0.35-second bound remain. Fixed-size phase diagnostics identify
+future slow phases; startup, rollback and cleanup remain guarded.
+
+One negative control uses a synthetic execution-thread name following the real
+SQLite read path. Only the exact premature-read assertion satisfies the control,
+and the connection pool must then have zero checked-out connections.
+
+Static AST/compile and whitespace checks passed. Independent exact-blob review
+found no blocker. New runtime and negative-control execution are **NOT_RUN locally**:
+available PC RAM was 9.736 GiB, below the 10 GiB light gate, and cloud pytest/
+SQLAlchemy are unavailable. Fresh hosted CI must validate the correction.
+The previous timing failure is not claimed fixed before that proof.
+
+Related: [MJ-REQ-004](https://github.com/MulattoTech/MJobs/issues/5),
+[issue770](https://github.com/MulattoTech/MJobs/issues/770), and the
+[failed job](https://github.com/MulattoTech/MJobs/actions/runs/42558913902/job/128970767036).
+Production, CI workflows and canonical acceptance matrices remain unchanged.

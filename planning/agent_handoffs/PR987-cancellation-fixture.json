@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "task_id": "PR987-cancellation-fixture",
+  "objective": "Remove synthetic watcher thread startup from the unchanged350ms production cancellation measurement",
+  "owner": "ChatGPT-Web/web-20261109T031106Z-31f99071bbd9",
+  "branch": "web/web-20261109T031106Z-31f99071bbd9/MJ-REQ-179-malformed-deadline",
+  "head_sha": "bfc63d3ea9073981edf64c5ee85449495ec6ce5b",
+  "routing_state": "VERIFY",
+  "next_action": "Publish reviewed fixture correction under owned-PR admission; inspect fresh hosted unit and negative-control results. Retain any remaining0.35s failure and use phase diagnostics; no threshold relaxation or acceptance promotion.",
+  "created_at": "2026-11-09T04:11:44.261793+00:00",
+  "requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-179"
+  ],
+  "tests": [
+    {
+      "command": "Python AST parse/compile PASS; whitespace diagnostics empty (no-index diff exit1 denotes changed files); uploaded Git blob7258e821c41d632adcb2036d41b08fadc01f369d matches reviewed bytes; independent review no blockers",
+      "result": "PASS"
+    },
+    {
+      "command": "Prior head6dc0ae7 artifact13648787058 confirms20DOM+16budget tests PASS; inherited cancellation timing failure separately retained",
+      "result": "PASS"
+    },
+    {
+      "command": "New cancellation runtime and negative control NOT_RUN locally (9.736GiB RAM below10GiB; cloud pytest/SQLAlchemy absent); fresh hosted checks required",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "New fixture awaits hosted runtime proof; precise cause of previous0.911/0.934s delays remains undetermined",
+    "Full requirement/browser/deployed acceptance not established; PR_ONLY"
+  ]
+}
