@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-186",
+  "reviewer": "Primary independent artifact and criterion review",
+  "recorded_utc": "2026-11-09T16:04:52.827132+00:00",
+  "tested_sha": "c675e2f5c01e2d76e5ec404b980e2912d3cf5864",
+  "runtime_equivalent_to": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "proposal_sha256": "450185571fee6dc6635d2da6be33e90efbe8fc18e923d1cbad0a07884c1e7ea1",
+  "verified_against_fresh_github_artifact_metadata": [
+    {
+      "id": 13689795376,
+      "sha256": "83669d9a8607ee08daa3a3131f2d697bb0495721aeb0a6c69b6573267a650fe3",
+      "bytes": 14748
+    },
+    {
+      "id": 13689177324,
+      "sha256": "7ff6c99c1385330b9899ebaec8764cbf09520b7f5fa87b0713ff9dc6bdbcc0a3",
+      "bytes": 14330
+    },
+    {
+      "id": 13688658681,
+      "sha256": "6b18350c465dc703de3623c208a7137816b1b0315fcfb283f60e53d1088c44a3",
+      "bytes": 8732
+    },
+    {
+      "id": 13688573268,
+      "sha256": "e6a16378d229c2f5ec85c10275974d9ab841daafb0d9c8c1013bbe4bc84bd789",
+      "bytes": 31448
+    }
+  ],
+  "passing_cases": [
+    {
+      "classname": "tests.browser.test_application_link_filter.ApplicationLinkFilterBrowserTests",
+      "name": "test_accessible_filter_connects_and_saved_value_survives_reload",
+      "artifact": 13689177324,
+      "result": "PASS"
+    },
+    {
+      "classname": "tests.browser.test_job_full_text_search.JobFullTextSearchBrowserTests",
+      "name": "test_jobs_ui_searches_skill_and_location_after_database_reopen",
+      "artifact": 13688658681,
+      "result": "PASS"
+    },
+    {
+      "classname": "tests.browser.test_job_sorting.JobSortingBrowserTests",
+      "name": "test_newest_selection_orders_connected_jobs_after_profile_reload",
+      "artifact": 13689177324,
+      "result": "PASS"
+    },
+    {
+      "classname": "tests.browser.test_job_source_ats_separation.JobSourceAtsSeparationBrowserTests",
+      "name": "test_source_and_route_provider_stay_distinct_after_reload",
+      "artifact": 13688573268,
+      "result": "PASS"
+    },
+    {
+      "classname": "tests.browser.test_job_tracking.JobTrackingBrowserTests",
+      "name": "test_save_hide_notes_and_history_survive_reload",
+      "artifact": 13688658681,
+      "result": "PASS"
+    },
+    {
+      "classname": "tests.browser.test_manual_job_capture.ManualJobCaptureBrowserTests",
+      "name": "test_manual_capture_persists_distinct_jobs_and_prepares_without_fetching",
+      "artifact": 13689177324,
+      "result": "PASS"
+    },
+    {
+      "classname": "tests.browser.test_saved_search_filters.SavedSearchFiltersBrowserTests",
+      "name": "test_saved_filters_restore_controls_results_and_clear_with_profile_isolation",
+      "artifact": 13689177324,
+      "result": "PASS"
+    }
+  ],
+  "five_criteria_result": "PASS",
+  "recommendation": "PARTIAL_TO_PASS_SUBJECT_TO_SINGLE_INTEGRATOR_RECONCILING_LATEST_MAIN",
+  "overall_workflow": "FAIL",
+  "overall_counts": {
+    "passed": 272,
+    "failed": 25,
+    "skipped": 5,
+    "subtests_passed": 46,
+    "junit_tests_total_including_subtests": 348
+  },
+  "canonical_changed": false,
+  "limits": [
+    "All25 remaining browser failures remain actionable; no broad suite/release claim.",
+    "Main advanced to f3db88aa97ef73a01ab9a1381d156213f7864fdc after test dispatch. Source metadata/export changes require integration reconciliation; c675 browser result is not a newly executed test at f3db.",
+    "Only six obsolete test selectors changed; every expected order/priority assertion remained."
+  ]
+}

@@ -1,0 +1,41 @@
+diff --git a/tests/browser/test_job_sorting.py b/tests/browser/test_job_sorting.py
+index 147283a..f0a5116 100644
+--- a/tests/browser/test_job_sorting.py
++++ b/tests/browser/test_job_sorting.py
+@@ -104,12 +104,12 @@ class JobSortingBrowserTests(unittest.TestCase):
+                     page.reload(wait_until="domcontentloaded")
+                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+                     sort = page.get_by_label("Sort", exact=True)
+-                    expect(page.locator(".job-card h2").first).to_have_text("Alpha Older Role")
++                    expect(page.locator(".job-card .job-card-title").first).to_have_text("Alpha Older Role")
+ 
+                     expect(page.get_by_text("Salary sorting compares explicit annual USD only.", exact=False)).to_be_visible()
+                     page.get_by_label("Saved search profile", exact=True).select_option("salary-saved")
+                     expect(sort).to_have_value("salary_high")
+-                    expect(page.locator(".job-card h2").first).to_have_text("Zulu Newest Role")
++                    expect(page.locator(".job-card .job-card-title").first).to_have_text("Zulu Newest Role")
+                     with page.expect_response(lambda response:
+                             response.url.startswith(origin + "/jobs?")
+                             and "sort=salary_low" in response.url) as salary_response:
+@@ -123,8 +123,8 @@ class JobSortingBrowserTests(unittest.TestCase):
+                         sort.select_option("newest")
+                     self.assertEqual([row["title"] for row in sorted_response.value.json()["jobs"]],
+                                      ["Zulu Newest Role", "Alpha Older Role"])
+-                    expect(page.locator(".job-card h2").first).to_have_text("Zulu Newest Role")
+-                    expect(page.locator(".job-card h2").nth(1)).to_have_text("Alpha Older Role")
++                    expect(page.locator(".job-card .job-card-title").first).to_have_text("Zulu Newest Role")
++                    expect(page.locator(".job-card .job-card-title").nth(1)).to_have_text("Alpha Older Role")
+ 
+                     with page.expect_response(lambda response:
+                             response.url.startswith(origin + "/jobs?")
+@@ -132,8 +132,8 @@ class JobSortingBrowserTests(unittest.TestCase):
+                         sort.select_option("company")
+                     self.assertEqual([row["title"] for row in company_response.value.json()["jobs"]],
+                                      ["Alpha Older Role", "Zulu Newest Role"])
+-                    expect(page.locator(".job-card h2").first).to_have_text("Alpha Older Role")
+-                    expect(page.locator(".job-card h2").nth(1)).to_have_text("Zulu Newest Role")
++                    expect(page.locator(".job-card .job-card-title").first).to_have_text("Alpha Older Role")
++                    expect(page.locator(".job-card .job-card-title").nth(1)).to_have_text("Zulu Newest Role")
+ 
+                     # Build two explicit, conflicting ranking signals. The newer
+                     # job has a stronger skill match but salary mismatch; reviewed
