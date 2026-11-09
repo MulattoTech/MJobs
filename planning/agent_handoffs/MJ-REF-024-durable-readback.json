@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-024-durable-readback",
+  "objective": "MJ-REF-024 #394: invalidate follow-up drafts after durable application readback changes",
+  "owner": "web-20261109T031419Z-b56246f255d3",
+  "branch": "web/web-20261109T031419Z-b56246f255d3/MJ-REF-024-durable-readback",
+  "head_sha": "abfa2f9d6a9ee1eb35110519c4b52e9d3de32127",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the owned coherent slice through serialized PR admission, then inspect exact-head hosted checks and execute the existing browser workflow when CI capacity permits.",
+  "created_at": "2026-11-09T03:42:54.773464+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "14 targeted Vitest tests; 14 backend checks plus 8 subtests with one browser-dependent case explicitly deselected; production build/typecheck; targeted ESLint; catalogue/progress/dashboard/reference provenance/commit provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Connected browser regression and one existing mock-submission integration case: browser availability/runtime socket restrictions; hosted proof pending",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Whole MJ-REF-024 acceptance is not established; other source/component slices remain separately owned; PR_ONLY integration authority"
+  ]
+}
