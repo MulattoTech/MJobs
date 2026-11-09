@@ -63,6 +63,8 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
 
         now = datetime(2026, 10, 8, 12, 0, tzinfo=timezone.utc)
         quiet_app = self._prepare("fixture", self.jobs[0])
+        # Build both documents before injecting contact text into job metadata.
+        other_app = self._prepare("other", self.jobs[0])
         applied = self._set_status("fixture", quiet_app, "APPLIED", "follow-up-applied")
         self.assertEqual(applied.status_code, 200, applied.text)
         self._backdate_status("fixture", quiet_app, "APPLIED", "follow-up-applied",
@@ -147,7 +149,6 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
             external_candidate["reported_at"].replace("Z", "+00:00")),
             now - timedelta(days=90))
         self.assertEqual(external_candidate["days_quiet"], 90)
-        other_app = self._prepare("other", self.jobs[0])
         self.assertEqual(self._set_status("other", other_app, "APPLIED", "other-applied").status_code, 200)
         self._backdate_status("other", other_app, "APPLIED", "other-applied",
                               now - timedelta(days=30))
