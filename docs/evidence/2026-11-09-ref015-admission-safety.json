@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T132005Z-8aaf6dc551da",
+  "requirement": "MJ-REF-015",
+  "issue": 385,
+  "created_utc": "2026-11-09T13:34:33.886868+00:00",
+  "integration_authority": "PR_ONLY",
+  "source_commit": "9f1a3a98641d5299a3138418ab085c0441cf86dd",
+  "implementation_tree": "c0adc631216d17918b99e252f79473db6cecd31a",
+  "base_pr": 976,
+  "base_pr_head": "5a9766efd31ac528c4fce0498aa57169bece7c68",
+  "origin_main": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "branch": "web/web-20261109T132005Z-8aaf6dc551da/MJ-REF-015-admission-safety",
+  "delivery": "Separate additive follow-up to PR976; original author branch is not modified. Standard required workflows are configured for PRs targeting main; non-main-base checks must not be inferred. Retarget/integrate only after authorized parent integration and fresh gates.",
+  "full_requirement": "PARTIAL",
+  "canonical_reference_status": "NOT_RUN (unchanged)",
+  "fresh_full_requirement_pass": 0,
+  "criteria": [
+    {
+      "id": "C1",
+      "repair_scope": "PASS",
+      "full_criterion": "PARTIAL",
+      "detail": "Known-unsent failures and validated available usage on invalid-content responses are preserved without duplicate attempt recording; fallback correlation and actual billing are not established."
+    },
+    {
+      "id": "C2",
+      "repair_scope": "PASS",
+      "full_criterion": "PARTIAL",
+      "detail": "Observer failure cleanup, lock independence/reentry, cancellation and admission expiry pass; no rate-window or cross-process claim."
+    },
+    {
+      "id": "C3",
+      "repair_scope": "PASS",
+      "full_criterion": "PARTIAL",
+      "detail": "Stable sanitized errors and token lower bounds pass; mounted analytics UI remains unverified."
+    },
+    {
+      "id": "C4",
+      "repair_scope": "PASS",
+      "full_criterion": "PARTIAL",
+      "detail": "Configured known-estimate ceiling is settled before queued readmission for invalid-content failure; task/provider policies and in-flight reservations are outside scope."
+    },
+    {
+      "id": "C5",
+      "repair_scope": "PASS",
+      "full_criterion": "PARTIAL",
+      "detail": "Fault, expiry, cancellation truth, failed-response cost and affected transport regressions pass; real fallback-chain acceptance remains outstanding."
+    }
+  ],
+  "source_and_test_blobs": {
+    "services/ai/providers/__init__.py": {
+      "git_blob": "e649bb3a5d8f0236628e8589fe6c8cde24191cb8",
+      "sha256": "14d25b50f6d2b4bcf565f3cbdb1260f7d6414e5e6ce4fdf6a14326840e8a25c8"
+    },
+    "services/ai/providers/openai_compatible.py": {
+      "git_blob": "18caa8398118f1fe985eed9ddc9bfb36f8d205d0",
+      "sha256": "19113abd542e3c6f5de2010bce239b3b756d0c3010a6dc964e9eafc3606dc8e2"
+    },
+    "services/ai/providers/azure_openai.py": {
+      "git_blob": "1f2c1095295e993d0fc63fdd119de140fbd25baf",
+      "sha256": "e2bb241e546d68c922cc9ddd754219a85fd20b36dab20bb4f4c643fd916c97a1"
+    },
+    "services/ai/telemetry.py": {
+      "git_blob": "027eed442a444ff5d12c68a5e0bfa0584192e9ec",
+      "sha256": "83e2aa87bf6efdae7dd4330ce49ccc90dcea9c0302dfe1d739872fa551627a2b"
+    },
+    "tests/unit/test_llm_provider_usage_failures.py": {
+      "git_blob": "4bcbb4985669eea09b855b5c9a3d36bb2e81f1f7",
+      "sha256": "ac89da0a8060597d7d895b03f25dc89bcd82af585e934b1c5880a4e2a35946dc"
+    },
+    "tests/unit/test_llm_telemetry_admission_safety.py": {
+      "git_blob": "d07233785465954fb1498337b6c041519be1f707",
+      "sha256": "77169666dc219c21166cdec01cd9a651a8f3f845978ca71f3fa9a51ed33a0d2c"
+    }
+  },
+  "validation": {
+    "source_commit": "9f1a3a98641d5299a3138418ab085c0441cf86dd",
+    "timestamp_utc": "2026-11-09T13:38:10.203822+00:00",
+    "commands": [
+      {
+        "name": "focused",
+        "command": [
+          "../.venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/unit/test_llm_telemetry.py",
+          "tests/unit/test_llm_telemetry_provider_admission.py",
+          "tests/unit/test_llm_telemetry_admission_safety.py",
+          "tests/unit/test_llm_provider_usage_failures.py",
+          "tests/unit/test_ai_providers.py",
+          "tests/unit/test_azure_openai_provider.py",
+          "tests/unit/test_ai_provider_transport.py",
+          "tests/unit/test_ai_response_deadline.py",
+          "tests/unit/test_ai_header_deadline.py",
+          "tests/unit/test_ai_connection_establishment.py",
+          "tests/unit/test_remote_provider_cancellation.py",
+          "tests/unit/test_provider_socket_cancellation.py",
+          "tests/unit/test_ai_tls_handshake.py",
+          "--junitxml=../evidence/ref015-api-source-exact.xml"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 12.79,
+        "result": "................................................................................. [100%]\n- generated xml file: /workspace/scratch/9cf4231d81ef/evidence/ref015-api-source-exact.xml -\n81 passed, 210 subtests passed in 12.29s\n"
+      },
+      {
+        "name": "catalogue",
+        "command": [
+          "../.venv/bin/python",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.052,
+        "result": "Catalogue validation: PASS\n"
+      },
+      {
+        "name": "progress",
+        "command": [
+          "../.venv/bin/python",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.049,
+        "result": "Progress journal validation: PASS\n"
+      },
+      {
+        "name": "dashboard",
+        "command": [
+          "../.venv/bin/python",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.066,
+        "result": "Progress dashboard: CURRENT\n"
+      },
+      {
+        "name": "reference",
+        "command": [
+          "../.venv/bin/python",
+          "-m",
+          "tools.verification.reference_provenance"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.031,
+        "result": "Reference provenance validation: PASS\n"
+      },
+      {
+        "name": "provenance",
+        "command": [
+          "../.venv/bin/python",
+          "-m",
+          "tools.verification.commit_provenance",
+          "--commit",
+          "HEAD",
+          "--strict"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.05,
+        "result": "PASS: provenance complete for 6 source files\n"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "../.venv/bin/ruff",
+          "check",
+          "services/ai/telemetry.py",
+          "services/ai/providers/openai_compatible.py",
+          "services/ai/providers/azure_openai.py",
+          "tests/unit/test_llm_telemetry_admission_safety.py",
+          "tests/unit/test_llm_provider_usage_failures.py"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.019,
+        "result": "All checks passed!\n"
+      },
+      {
+        "name": "diff",
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.006,
+        "result": ""
+      }
+    ]
+  },
+  "independent_review": {
+    "reviewer": "/root/pr_reconciliation",
+    "state": "NO_SCOPED_BLOCKING_FINDINGS",
+    "commit": "9f1a3a98641d5299a3138418ab085c0441cf86dd",
+    "reviewed_blobs_match_commit": true,
+    "command": [
+      "../.venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--noconftest",
+      "/workspace/scratch/9cf4231d81ef/evidence/ref015_independent_probes.py",
+      "tests/unit/test_llm_telemetry_admission_safety.py",
+      "tests/unit/test_llm_provider_usage_failures.py",
+      "tests/unit/test_ai_provider_transport.py",
+      "tests/unit/test_ai_header_deadline.py",
+      "tests/unit/test_ai_response_deadline.py",
+      "tests/unit/test_remote_provider_cancellation.py",
+      "--junitxml=/workspace/scratch/9cf4231d81ef/evidence/ref015-independent-final.xml",
+      "--tb=short"
+    ],
+    "exit_code": 0,
+    "summary": "36 passed, 162 subtests passed in 7.64s",
+    "overlaps_author_suite": true,
+    "initial_findings": [
+      {
+        "id": "REF015-R1",
+        "state": "RESOLVED_IN_REVIEWED_WORKTREE",
+        "blocking_scoped_review": false,
+        "title": "Slow initial provider observer restarts the admission timeout",
+        "source": [
+          "services/ai/providers/openai_compatible.py:generate",
+          "services/ai/providers/azure_openai.py:generate"
+        ],
+        "observed": "Advancing the clock from 0 to 2 in the first provider observer for timeout=1 still caused an admission reservation and one client_factory call. Original request_guard prevented actual transport and returned AI_PROVIDER_TIMEOUT.",
+        "expected": "Preserve the original provider deadline through initial observation and acquisition; never reserve or construct a transport after that budget has elapsed.",
+        "reproduction": "test_initial_provider_observer_cannot_restart_elapsed_budget; failed for OpenAICompatibleProvider and AzureOpenAIProvider",
+        "suggested_scope": "Use remaining time and an original-deadline recheck before entering admission/client creation. Preserve known-unsent provenance.",
+        "resolution": "Original provider deadline is checked after initial observer and before construction; only remaining budget enters admission.",
+        "verified_by": "Both independent provider subcases and permanent author regressions pass in final execution."
+      },
+      {
+        "id": "REF015-R2",
+        "state": "RESOLVED_IN_REVIEWED_WORKTREE",
+        "blocking_scoped_review": false,
+        "title": "Later cancellation replaces the first unavailable-observer failure",
+        "source": [
+          "services/ai/providers/openai_compatible.py:generate",
+          "services/ai/providers/azure_openai.py:generate",
+          "services/ai/providers/transport.py:request_guard/check interaction"
+        ],
+        "observed": "After response ownership, a main-thread observer exception was sanitized by the new helper, then request_guard exit repolled the observer and a later true result replaced AI_PROVIDER_UNAVAILABLE with AI_PROVIDER_CANCELLED in public output and telemetry.",
+        "expected": "Latch the first interruption while a guard is active, preserving unavailable authority versus genuine cancellation and protecting its stable error code.",
+        "reproduction": "test_first_observer_failure_is_not_reclassified_by_later_cancellation; failed for both providers with actual AI_PROVIDER_CANCELLED",
+        "suggested_scope": "Use the existing guard.check while guard ownership is active or latch the first helper failure into that guard before unwind.",
+        "resolution": "Active-guard cancellation observations now use guard.check, preserving the first unavailable-control interruption through cleanup.",
+        "verified_by": "Both independent provider subcases and permanent author regressions pass in final execution."
+      }
+    ],
+    "binding_note": "The same reviewed source/test blobs are preserved in GitHub-created commit; exact-head focused and policy checks rerun after fetch."
+  },
+  "baseline_failures": {
+    "base": "5a9766efd31ac528c4fce0498aa57169bece7c68",
+    "admission": "Exact original source isolated with git archive: 10 failed (4 methods and 6 subtests), 2 parent wrappers passed; exit1.",
+    "provider_usage": "20 failed subtests, 6 parent methods passed and 6 subtests passed; exit1.",
+    "independent_review_of_first_candidate": "4 provider subcases failed; retained original-budget expiry and first-interruption regressions.",
+    "red_green_counts_not_additive": true
+  },
+  "changes": [
+    "Guaranteed reservation cleanup covers cancellation observer errors, cancellation, late deadlines and caller failures.",
+    "Caller cancellation observers execute outside the telemetry accounting lock.",
+    "One original provider deadline spans initial observation, admission and client construction.",
+    "Provider failures distinguish known-unsent setup from attempted dispatch with uncertain remote outcome.",
+    "Strictly parsed nonnegative integer usage survives invalid generated content and settles before slot release.",
+    "Exactly one attempt is recorded; active guards retain the first interruption and private observer errors remain sanitized."
+  ],
+  "limitations": [
+    "Full MJ-REF-015 remains PARTIAL; no acceptance promotion.",
+    "Accounting/caps remain process-local and reset on restart.",
+    "Rate windows, cross-process persistence, task/provider budget controls and production fallback correlation remain outside this repair.",
+    "Configured budgets use known estimates; unknown-priced usage and in-flight overshoot are not actual-spend guarantees.",
+    "Dashboard remains unmounted; no connected browser journey or actual billing evidence.",
+    "Synchronous cancellation observers and injected custom I/O are not hard-preempted.",
+    "request_sent tracks dispatch initiation, not proof of remote receipt; ambiguous transport outcomes retain unknown usage/cost."
+  ],
+  "not_run": [
+    "Full local unit suite",
+    "Browser/connected telemetry UI",
+    "New PostgreSQL/Redis acceptance fixtures",
+    "Production/deployment",
+    "Paid or real provider inference",
+    "Full MJ-REF-015 acceptance",
+    "Candidate hosted checks at evidence creation"
+  ],
+  "environment": {
+    "execution": "ChatGPT isolated Linux cloud workspace; no user-PC builds or Codex CLI",
+    "python": "Python 3.12.14",
+    "pytest": "8.4.2 with pytest-subtests0.14.2",
+    "httpx": "0.28.1",
+    "ruff": "0.11.13",
+    "fixture_scope": "Synthetic HTTPX transports and loopback sockets only; no personal prompts or real provider destinations"
+  },
+  "resource_gate": {
+    "user_pc_free_ram_gib_at_start": 12.32,
+    "user_pc_c_free_gib_at_start": 249.85,
+    "user_pc_5_min_cpu": "NOT_RUN; no LIGHT_LOCAL or HEAVY_LOCAL admission requested",
+    "heavy_local_slot_acquired": false,
+    "coordination": "C:/Tools/Dev/MJobs/.git/mjobs-coordination using verified atomic claims_lock and owner tokens"
+  },
+  "rollback": "Revert the follow-up commits through the protected review workflow; no schema, runtime or saved-data migration.",
+  "canonical_counts_at_main": {
+    "MJ_REF": {
+      "total": 59,
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "MJ_REQ": {
+      "total": 366,
+      "PASS": 183,
+      "PARTIAL": 82,
+      "NOT_RUN": 101
+    }
+  }
+}
