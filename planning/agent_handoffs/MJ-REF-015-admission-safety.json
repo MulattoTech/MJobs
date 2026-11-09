@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-015-admission-safety",
+  "objective": "Repair provider admission observer safety and invalid-response usage accounting",
+  "owner": "ChatGPT-Web/web-20261109T132005Z-8aaf6dc551da",
+  "branch": "web/web-20261109T132005Z-8aaf6dc551da/MJ-REF-015-admission-safety",
+  "head_sha": "9f1a3a98641d5299a3138418ab085c0441cf86dd",
+  "routing_state": "VERIFY",
+  "next_action": "Publish one independently reviewed follow-up against PR976 under shared admission lock; obtain exact-head hosted validation when CI capacity permits. Do not update original PR976 branch without verified transfer.",
+  "created_at": "2026-11-09T13:38:49.685776+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "9f1a3a98641d5299a3138418ab085c0441cf86dd: 81 tests and 210 subtests; independent reviewed blobs match; catalogue/progress/dashboard/reference/provenance/Ruff/diff PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Full unit suite, browser, PostgreSQL-specific acceptance, real providers, deployment, candidate hosted checks and full REF015",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Parent976 unmerged; full REF015 lacks rate windows, cross-process persistence, per-task/provider budgets, fallback correlation and mounted analytics UI"
+  ]
+}
