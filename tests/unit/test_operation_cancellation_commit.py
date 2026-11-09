@@ -47,8 +47,12 @@ class OperationCancellationCommitTests(unittest.TestCase):
                                 prior_rollback=False, rollback_error=RuntimeError):
         identifier = self.seed(kind)
         local = operations.register_operation_cancellation(identifier)
+        watcher_ready = threading.Event()
+        watcher_release = threading.Event()
+        abort_watcher = threading.Event()
         poll_entered = threading.Event()
         writer_finished = threading.Event()
+        phase_times = {}
         reads_before_resolution = []
         watcher_results = []
         watcher_errors = []
@@ -58,20 +62,19 @@ class OperationCancellationCommitTests(unittest.TestCase):
         original_wait = local.wait_for_commit
         original_audit = self.store._audit
         rollback_failure = rollback_error("SYNTHETIC_AUDIT_FAILURE")
-        if prior_rollback:
-            with patch.object(self.store, "_audit", side_effect=RuntimeError("SYNTHETIC_AUDIT_FAILURE")):
-                with self.assertRaisesRegex(RuntimeError, "^SYNTHETIC_AUDIT_FAILURE$"):
-                    operations.request_cancel(self.store, identifier)
 
         def observe_stage():
             attempt = original_stage()
             active_attempts.append(attempt)
+            phase_times["staged"] = time.monotonic()
             return attempt
 
         def observe_wait(*args, **kwargs):
+            phase_times["poll_entered"] = time.monotonic()
             poll_entered.set()
             committed = original_wait(*args, **kwargs)
             wait_results.append(committed)
+            phase_times["wait_finished"] = time.monotonic()
             return committed
 
         def observe_read(_connection, _cursor, statement, *_args):
@@ -83,11 +86,19 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 # tries to commit. This models a descheduled polling reader.
                 # The coordinator has a finite release even on old code.
                 reads_before_resolution.append(True)
+                phase_times["premature_read"] = time.monotonic()
                 poll_entered.set()
                 writer_finished.wait(.5)
 
         def check():
             try:
+                phase_times["watcher_ready"] = time.monotonic()
+                watcher_ready.set()
+                if not watcher_release.wait(2):
+                    raise AssertionError("Owned watcher was never released")
+                if abort_watcher.is_set():
+                    return
+                phase_times["watcher_check"] = time.monotonic()
                 operations.check_cancelled(self.store, identifier, 1, local)
                 watcher_results.append("RUNNING")
             except operations.OperationCancelled:
@@ -98,20 +109,34 @@ class OperationCancellationCommitTests(unittest.TestCase):
         watcher = threading.Thread(target=check, name=watcher_name, daemon=True)
 
         def gated_audit(connection, entity_id, action, payload):
-            if action == "CANCELLATION_REQUESTED":
-                watcher.start()
-                if not poll_entered.wait(2):
-                    raise AssertionError(f"Owned watcher never entered its control check; errors={watcher_errors}")
-                if rollback:
-                    raise rollback_failure
-            return original_audit(connection, entity_id, action, payload)
+            try:
+                if action == "CANCELLATION_REQUESTED":
+                    phase_times["audit_entered"] = time.monotonic()
+                    watcher_release.set()
+                    if not poll_entered.wait(2):
+                        raise AssertionError(f"Owned watcher never entered its control check; errors={watcher_errors}")
+                    phase_times["poll_acknowledged"] = time.monotonic()
+                    if rollback:
+                        raise rollback_failure
+                return original_audit(connection, entity_id, action, payload)
+            finally:
+                if action == "CANCELLATION_REQUESTED":
+                    phase_times["audit_finished"] = time.monotonic()
 
         event.listen(self.store.engine, "after_cursor_execute", observe_read)
-        started = time.monotonic()
         try:
+            if prior_rollback:
+                with patch.object(self.store, "_audit", side_effect=RuntimeError("SYNTHETIC_AUDIT_FAILURE")):
+                    with self.assertRaisesRegex(RuntimeError, "^SYNTHETIC_AUDIT_FAILURE$"):
+                        operations.request_cancel(self.store, identifier)
             with patch.object(local, "wait_for_commit", side_effect=observe_wait), \
                     patch.object(local, "stage", side_effect=observe_stage), \
                     patch.object(self.store, "_audit", side_effect=gated_audit):
+                # Thread creation belongs to the fixture. The staged audit
+                # releases this ready observer during the real transaction.
+                watcher.start()
+                self.assertTrue(watcher_ready.wait(2), "Owned watcher did not become ready")
+                started = time.monotonic()
                 if rollback:
                     with self.assertRaisesRegex(
                             rollback_error, "^SYNTHETIC_AUDIT_FAILURE$") as raised:
@@ -119,6 +144,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     self.assertIs(raised.exception, rollback_failure)
                 else:
                     operations.request_cancel(self.store, identifier)
+                phase_times["request_finished"] = time.monotonic()
                 self.assertTrue(
                     active_attempts[-1].resolved.is_set(),
                     "Local cancellation outcome was not resolved after transaction exit",
@@ -128,6 +154,8 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 writer_finished.set()
                 watcher.join(2)
         finally:
+            abort_watcher.set()
+            watcher_release.set()
             writer_finished.set()
             if watcher.ident is not None:
                 watcher.join(2)
@@ -145,12 +173,23 @@ class OperationCancellationCommitTests(unittest.TestCase):
         self.assertEqual(row["cancel_requested"], not rollback)
         self.assertEqual(row["state"], "RUNNING")
         self.assertEqual(len(audits), 0 if rollback else 1)
+        phase_details = ", ".join(
+            f"{phase}={phase_times[phase] - started:.3f}s"
+            for phase in (
+                "watcher_ready", "staged", "audit_entered", "watcher_check",
+                "poll_entered", "premature_read", "poll_acknowledged",
+                "audit_finished", "request_finished", "wait_finished",
+            )
+            if phase in phase_times
+        )
         print(f"cancel-commit {kind}/{watcher_name}: rollback={rollback} "
-              f"store={elapsed:.3f}s premature_reads={len(reads_before_resolution)}")
+              f"store={elapsed:.3f}s premature_reads={len(reads_before_resolution)} "
+              f"phases=[{phase_details}]")
         self.assertEqual(reads_before_resolution, [],
                          "Local polling acquired a read lock during its cancellation transaction")
         if not rollback:
-            self.assertLess(elapsed, .35, "Local polling delayed durable cancellation")
+            self.assertLess(elapsed, .35,
+                            f"Local polling delayed durable cancellation; phases=[{phase_details}]")
         self.assertEqual(wait_results, [not rollback],
                          "Watcher did not await this cancellation attempt's outcome")
         self.assertEqual(watcher_results, ["RUNNING" if rollback else "CANCELLED"])
@@ -161,6 +200,15 @@ class OperationCancellationCommitTests(unittest.TestCase):
             for watcher in SOURCE_WATCHERS:
                 with self.subTest(kind=kind, watcher=watcher):
                     self.exercise_pending_commit(kind, watcher)
+
+    def test_execution_thread_negative_control_detects_a_premature_sqlite_read(self):
+        # This name takes the real execution-thread SQL path, so the fixture
+        # must detect its reader holding up the staged cancellation writer.
+        with self.assertRaisesRegex(
+                AssertionError,
+                "Local polling acquired a read lock during its cancellation transaction$"):
+            self.exercise_pending_commit("DISCOVER", "mjobs-synthetic-execution")
+        self.assertEqual(self.store.engine.pool.checkedout(), 0)
 
     def test_source_watchers_observe_rollback_without_false_cancellation(self):
         for watcher in SOURCE_WATCHERS:
