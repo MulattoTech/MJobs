@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T153331Z-c5c6d43141a0",
+  "requirement_id": "MJ-REQ-191",
+  "issue": 192,
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_tested_sha": "53f1eff2c7cf4b443b0b7163df1c9c755923bbaa",
+  "canonical_status": "PARTIAL",
+  "canonical_changed": false,
+  "scope": "Save and restore current Jobs controls, including application-priority sort and explicit hidden/blacklisted viewing preferences.",
+  "source_blobs": {
+    "apps/web/src/main.tsx": "783a9599acd7e17c23b7cc6bab268bd244c83603",
+    "services/discovery/search_profiles.py": "e42215ce85a0513ce7474087049f2eafd97b1cb8",
+    "tests/integration/test_saved_search_filters.py": "ded9e0713e68173df39d02cf00b043ed23ad6873",
+    "tests/browser/test_saved_search_filters.py": "54aff9156d22a9fb6bdd25d4d11af09d3369deac",
+    "tests/unit/test_search_profile_validation.py": "4860ec7d440441945fd011cc57080c0ea4b94f95"
+  },
+  "criteria": [
+    {
+      "criterion": "Users can save current filters",
+      "result": "PARTIAL",
+      "verified": [
+        "Priority sort and both strictly typed visibility preferences persist through real API and Store reopen.",
+        "Legacy absence defaults false in mounted UI; All jobs, semantic/legacy selection and career profile switches reset opt-ins.",
+        "Invalid update is atomic; saved selection remains profile scoped; actual disposition and company preferences remain unchanged.",
+        "Selected-search AI admission excludes hidden/blacklisted independently of viewing choices."
+      ],
+      "not_run": [
+        "New connected browser regression for this source commit."
+      ]
+    },
+    {
+      "criterion": "Each saved search may have its own scheduler",
+      "result": "PARTIAL",
+      "verified": [
+        "Existing semantic-search cadence tests pass for isolation, idempotency, restart and policy bounds."
+      ],
+      "remaining": [
+        "Saved Jobs filter snapshots remain top-level disabled for provider scheduling. This change does not claim scheduling these rows."
+      ]
+    }
+  ],
+  "executed": [
+    {
+      "head": "53f1eff2c7cf4b443b0b7163df1c9c755923bbaa",
+      "cwd": "/workspace/scratch/ebe0fd8c651c/mjobs-req191",
+      "command": [
+        "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--tb=short",
+        "--show-capture=no",
+        "tests/unit/test_search_profile_validation.py",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/integration/test_saved_search_schedule.py",
+        "tests/integration/test_saved_search_schedule_api.py",
+        "tests/integration/test_saved_search_schedule_disable_api.py",
+        "tests/integration/test_saved_search_schedule_validation_api.py",
+        "tests/unit/test_saved_search_scheduler.py",
+        "tests/unit/test_saved_search_scheduler_validation.py",
+        "tests/integration/test_selected_search_ai.py",
+        "tests/integration/test_fleet_t19_search_settings.py",
+        "--junitxml=/workspace/scratch/ebe0fd8c651c/runc5c6/req191-exact-source.xml"
+      ],
+      "started_utc": "2026-11-09T15:47:01.137107+00:00",
+      "exit_code": 0,
+      "finished_utc": "2026-11-09T15:47:52.164581+00:00",
+      "tests_passed": 73,
+      "subtests_passed": 102,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "pytest_elapsed_seconds": 45.94
+    },
+    {
+      "head": "53f1eff2c7cf4b443b0b7163df1c9c755923bbaa",
+      "command": "npm run build",
+      "cwd": "apps/web",
+      "exit_code": 0,
+      "result": "PASS",
+      "detail": "TypeScript noEmit and Vite8.3.3;142modules;index-Cb2K4Zzo.js991.77kB. Executed after source commit. Existing http-proxy deprecation and >500kB bundle warning."
+    },
+    {
+      "head": "53f1eff2c7cf4b443b0b7163df1c9c755923bbaa",
+      "commands": [
+        "python -m tools.verification.catalogue",
+        "python -m tools.verification.progress validate",
+        "python -m tools.verification.progress_dashboard --check",
+        "python -m tools.verification.commit_provenance --commit HEAD",
+        "git diff --check"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "independent_review": {
+    "reviewer": "Separate pr995_followup agent, not patch author; primary also read production diff",
+    "result": "NO_INTRODUCED_BLOCKER",
+    "scope": "Five changed files; Jobs query, AI candidate filtering, settings transfer, comparison and scheduler consumers",
+    "reviewed_blobs_match": true
+  },
+  "negative_baseline": {
+    "result": "Valid priority/boolean save payload returned422 before production fix",
+    "note": "Initial test import typo corrected before confirming the product422; not counted as product failure."
+  },
+  "environment": {
+    "recorded_utc": "2026-11-09T15:38:00.873252+00:00",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "executable": "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "sqlite": "3.53.1",
+    "dependencies": {
+      "pytest": "9.1.1",
+      "pydantic": "2.13.5",
+      "SQLAlchemy": "2.1.1",
+      "alembic": "1.20.0",
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "httpx": "0.28.1",
+      "cryptography": "50.0.0",
+      "python-docx": "1.2.0",
+      "reportlab": "4.4.9"
+    },
+    "environment_limit": "Private venv uses system-site-packages; selected dependencies were installed in prior run. Not a fully locked environment."
+  },
+  "artifacts": {
+    "req191-exact-source.xml": {
+      "bytes": 13531,
+      "sha256": "22fb163e185b81bb51f67e3fa2b7ef370ff299c83863b96a23f38a3aeac69b54"
+    },
+    "req191-exact-source.log": {
+      "bytes": 770,
+      "sha256": "5fa4112c6a2164834429fdf0cb30d44fe51180d98a69317d991c2b3c1151a181"
+    },
+    "req191-exact-source.execution.json": {
+      "bytes": 1059,
+      "sha256": "2e25715e507bba3dd77e6f55feca3cf91b4b20bd33c0be3a91faccbd1a709069"
+    }
+  },
+  "safety": [
+    "No application, worker, AI or provider work triggered by save/readback.",
+    "Default Jobs view and all eligibility/discovery gates retain their separate authority."
+  ],
+  "not_run": [
+    "New connected browser regression; Chromium socket policy blocks launch and PC11.21GiB below16GiB gate",
+    "PostgreSQL/Redis variant",
+    "Required hosted PR checks",
+    "Live provider integration",
+    "Merge/deployment/full MJ-REQ-191 acceptance"
+  ],
+  "next_action": "Admit prepared branch through current queue policy and required checks; execute new connected browser case; separately implement safe scheduling for Jobs-view snapshots after shared contract claims."
+}
