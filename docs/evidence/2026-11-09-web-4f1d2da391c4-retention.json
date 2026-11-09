@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-170-PARTIAL-RECEIPT-4F1D",
+  "run_id": "web-20261109T131824Z-4f1d2da391c4",
+  "created_utc": "2026-11-09T13:30:27.019432+00:00",
+  "requirement_id": "MJ-REQ-170",
+  "issue": 171,
+  "related_requirement": "MJ-REF-042",
+  "scope_result": "PASS",
+  "full_MJ_REF_042": "NOT_RUN",
+  "canonical_acceptance_modified": false,
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_commit": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+  "problem": "The real cleanup engine can delete files and return PARTIAL after another deletion fails. The worker previously returned those counts without publishing them, leaving durable last_sweep readback missing or stale.",
+  "change": "Completed OK and PARTIAL results use the existing safe atomic receipt writer. No new deletion target, permission, scheduling behavior or API schema is introduced.",
+  "criteria": [
+    {
+      "criterion": "Persist first completed partial deletion result and actual counts",
+      "result": "PASS",
+      "test": "test_first_partial_receipt_survives_reopen_readback_and_retry"
+    },
+    {
+      "criterion": "Replace stale success receipt with newest partial result",
+      "result": "PASS",
+      "test": "test_partial_receipt_replaces_stale_success_receipt"
+    },
+    {
+      "criterion": "Fresh database/API context reads persisted partial result; preview is read-only; retry handles only remaining file",
+      "result": "PASS",
+      "test": "test_first_partial_receipt_survives_reopen_readback_and_retry"
+    },
+    {
+      "criterion": "Receipt failure preserves actual removal counts and prior receipt; private diagnostics stay redacted",
+      "result": "PASS",
+      "test": "test_partial_receipt_write_failure_keeps_counts_and_previous_receipt"
+    },
+    {
+      "criterion": "Unexpected unrelated destination remains untouched after partial cleanup",
+      "result": "PASS",
+      "test": "test_partial_sweep_preserves_unknown_destination_created_during_cleanup"
+    },
+    {
+      "criterion": "Existing consent, core history, path, blocked, dry-run and interruption guards remain intact",
+      "result": "PASS",
+      "test": "affected retention integration, policy, safety, unit and scheduler suites"
+    }
+  ],
+  "validation": [
+    {
+      "revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "test_overlay": "new partial receipt module before source change",
+      "command": "python -m pytest -q tests/integration/test_transient_retention_partial_receipts.py --tb=short",
+      "result": "FAIL_EXPECTED",
+      "failed": 4,
+      "duration_seconds": 0.71,
+      "note": "Real deletion exercised; initial/stale receipt and failure-code regressions reproduced."
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "python -m pytest -q tests/integration/test_transient_retention_partial_receipts.py tests/integration/test_transient_retention_receipt_safety.py tests/integration/test_transient_retention.py tests/integration/test_retention_policy.py tests/unit/test_transient_retention.py tests/unit/test_transient_retention_scheduler.py tests/unit/test_retention_policy.py tests/unit/test_generated_temporary_retention_171.py --tb=short",
+      "result": "PASS",
+      "tests_passed": 39,
+      "subtests_passed": 21,
+      "skipped": 0,
+      "exit_code": 0,
+      "duration_seconds": 3.19,
+      "executor": "independent_review"
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "CURRENT",
+      "exit_code": 0
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+      "command": "git diff --check HEAD^ HEAD",
+      "result": "PASS",
+      "exit_code": 0
+    }
+  ],
+  "environment": {
+    "platform": "isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "dependencies": "repository requirements.txt installed without modifying pins",
+    "sqlalchemy": "2.1.1",
+    "pytest": "9.2.0",
+    "database": "isolated temporary SQLite",
+    "external_submission": "OFF"
+  },
+  "review": {
+    "reviewer": "independent_review (separate ChatGPT-Web agent)",
+    "revision": "8fa64bffd1611be7dc0877a266ff88a5abcad87b",
+    "result": "No blocking findings",
+    "executed_tests": true,
+    "human_approval": false,
+    "privacy": "Two-file source/test diff contains only synthetic fixture data; no credentials, applicant PII or private workstation paths; no new external transmission."
+  },
+  "not_run": [
+    "Full unit suite",
+    "Connected browser acceptance",
+    "Production or Cloudflare deployment",
+    "Full MJ-REF-042 privacy/data-flow acceptance",
+    "Ruff: not installed in isolated venv; no lint claim"
+  ],
+  "coordination": {
+    "backend": "existing canonical MJobs local atomic claims registry",
+    "integration_authority": "PR_ONLY",
+    "adjacent_owner": "web-20261109T131754Z-a09f7fd22182 owns retention API/UI disclosure; this change keeps response shape unchanged",
+    "no_shared_fixtures_or_acceptance_matrix_changes": true
+  },
+  "rollback": "Normal revert of this isolated commit restores previous receipt publishing behavior; deletion eligibility and core records are unchanged.",
+  "shared_scanner_repair": {
+    "recorded_at_utc": "2026-11-09T16:12:17.692791+00:00",
+    "reviewed_source_commit": "4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
+    "reviewed_proof_url": "https://github.com/MulattoTech/MJobs/blob/4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a/docs/evidence/2026-11-09-web-f390-ai-data-flow.json",
+    "observed_failure": "PR1001 scanner reported two public Git object identifiers in another worker's source-evidence maps; imported exact immutable fingerprints after original scanner owner released its atomic claim.",
+    "verification": "Original reported values were independently fetched at their exact historical commit and matched Git object identity on the exact public source file. Root independently reran the Git-object lookup. Artifact digest matches hosted metadata.",
+    "scope": "No scanner rule, workflow, directory, path or secret-type exemption. Only the two reviewed commit/path/rule/line fingerprints; pre-existing approved exceptions retained.",
+    "hosted_after_repair": "NOT_RUN; must inspect exact published repaired head.",
+    "later_historical_finding": {
+      "failed_shared_run": 42651609957,
+      "source_commit": "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45",
+      "source_evidence_url": "https://github.com/MulattoTech/MJobs/blob/aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45/docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json",
+      "line": 20,
+      "rule": "generic-api-key",
+      "classification": "Same public Git object identifier as the two previously reviewed findings; exact committed line independently fetched and matched to the recorded public source Git object. One immutable fingerprint added.",
+      "reviewers": [
+        "Root ChatGPT-Web",
+        "Independent agent reviewing redacted artifact and exact Git source"
+      ],
+      "recorded_at_utc": "2026-11-09T16:21:42.373277+00:00"
+    },
+    "api_acceptance_historical_finding": {
+      "source_commit": "cc1e5083ce1a94b20a424e09a038c0f72972ab10",
+      "source_evidence_url": "https://github.com/MulattoTech/MJobs/blob/cc1e5083ce1a94b20a424e09a038c0f72972ab10/docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json",
+      "line": 520,
+      "rule": "generic-api-key",
+      "failed_run": 42652619306,
+      "classification": "Public source Git object identity, not a credential. Root and independent reviewer fetched the exact evidence/source, recomputed the object, and confirmed identical current-main source bytes. One immutable fingerprint added.",
+      "hosted_repaired_head": "NOT_RUN"
+    },
+    "own_immutable_commit_reference": {
+      "failed_run": 42655696078,
+      "historical_evidence_commit": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e",
+      "historical_line": 41,
+      "classification": "Public commit reference independently recomputed from its exact Git commit bytes; not a credential. Only this immutable finding is excepted. The current metadata field is renamed to avoid a misleading API-key heuristic.",
+      "reviewers": [
+        "Root ChatGPT-Web",
+        "Independent evidence reviewer"
+      ],
+      "source_or_tests_changed": false,
+      "new_head_scan": "PENDING"
+    }
+  }
+}
