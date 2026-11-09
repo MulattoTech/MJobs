@@ -4,10 +4,10 @@
   "objective": "Repair archive authority, historical retries and supporting-document eligibility beyond bounded history",
   "owner": "ChatGPT-Web web-20261109T131741Z-76b8f732f1a7",
   "branch": "web/web-20261109T131741Z-76b8f732f1a7/MJ-REQ-198-archive-history",
-  "head_sha": "6009ceb3ec0ec229f7be0639d7ff31d78bb961c9",
+  "head_sha": "405465cec0a189193ef164160b6aa700501a090a",
   "routing_state": "VERIFY",
-  "next_action": "Publish the reviewed archive branch under shared admission lock; check fresh exact-head hosted CI, then hand off to authorized serialized integration.",
-  "created_at": "2026-11-09T13:46:08.061004+00:00",
+  "next_action": "Run fresh candidate preflight under native admission, publish the approved owned branch, verify exact-head CI, then resume independent original-requirement work.",
+  "created_at": "2026-11-09T16:20:24.581408+00:00",
   "requirements": [
     "MJ-REQ-198-archive-history-76b8"
   ],
@@ -27,6 +27,10 @@
     {
       "command": "Chromium dry-run executable missing; PostgreSQL, full Python/web/browser/deployment and full requirement acceptance",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "23 focused methods PASS at 405465cec0a189193ef164160b6aa700501a090a after current protected-main synchronization",
+      "result": "PASS"
     }
   ],
   "blockers": [
