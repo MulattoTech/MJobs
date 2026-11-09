@@ -13,10 +13,9 @@
   },
   "publication_scope": "One coherent matching-acceptance PR; no production behavior changes.",
   "canonical_acceptance": "UNCHANGED; proposed full-criterion evidence requires the integration steward review.",
-  "exact_head_browser": "NOT_RUN locally; the new five-node hosted workflow must pass at its published SHA.",
+  "exact_head_browser": "PASS on exact 8ef47ddf3c7d3000aa62330931450a48f748f9cb: all five expected hosted nodes executed once in run 42654303758. Local Chromium remains NOT_RUN; later revisions receive no PASS credit from this run.",
   "local_browser_limit": "Chromium process_singleton socket creation is denied in the cloud workspace; the failed baseline launch is not a product/browser PASS.",
   "not_run": [
-    "New exact-head hosted browser acceptance (pending publication)",
     "Independent local PostgreSQL execution",
     "Full local repository suite",
     "Live providers",
@@ -425,12 +424,212 @@
     "services/matching/requirement_strength.py and QualificationStrengthBreakdown standalone component evidence; no production caller of analyze_qualification_strengths was found."
   ],
   "independent_backend_review_receipt_sha256": "5ab8b3726ef5cac1e70c39ef32442e317b1a729c6733fd91407dd758e102e308",
-  "acceptance_recommendation": "The original behavioral criteria are supported; obtain the new exact-head fifth browser node and integration-owner review before canonical promotion.",
+  "acceptance_recommendation": "PROPOSAL_ONLY: both original MJ-REQ-115 behavioral criteria and the recorded safety checks are supported by the exact-8ef backend replay plus the completed requirement-specific hosted browser node. Propose PASS for integration-steward review; no canonical status or counter is changed. Required checks on later configuration/evidence revisions remain separately pending.",
   "scope_limits": [
     "Deterministic extraction uses the supported skill/certification taxonomy; ambiguous or unclassified recognized mentions remain UNKNOWN. Unsupported qualifications are not inferred from arbitrary prose.",
     "Scores describe approved evidence coverage, not proof that the applicant possesses or lacks a qualification.",
-    "SQLite fixtures were verified; PostgreSQL, full suite and a new current-head browser run were not executed.",
+    "Local SQLite fixtures were verified; independent local PostgreSQL and the full repository suite were not executed. The focused hosted browser node subsequently passed at exact-8ef and is recorded separately.",
     "This acceptance does not imply completion of broader original matching requirements 112-114 or 117-120."
   ],
-  "command_path_note": "Private log/JUnit output directory is redacted; input test paths and executed arguments are preserved."
+  "command_path_note": "Private log/JUnit output directory is redacted; input test paths and executed arguments are preserved.",
+  "updated_at_utc": "2026-11-09T17:17:46.276071+00:00",
+  "hosted_acceptance_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "verified_at_utc": "2026-11-09T16:26:42Z",
+    "status": "PASS",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "workflow": {
+      "name": "Scoring acceptance - synthetic",
+      "path": ".github/workflows/scoring-acceptance.yml",
+      "source_url": "https://github.com/MulattoTech/MJobs/blob/8ef47ddf3c7d3000aa62330931450a48f748f9cb/.github/workflows/scoring-acceptance.yml",
+      "sha256": "24a0a3cd67afa47d3bb75436d28e7475ae46d3deecfb37148fd1dcabe9378bef"
+    },
+    "pull_request_url": "https://github.com/MulattoTech/MJobs/pull/1003",
+    "run": {
+      "id": 42654303758,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758",
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T16:23:40Z",
+      "updated_at": "2026-11-09T16:24:40Z"
+    },
+    "job": {
+      "id": 129288566438,
+      "name": "Scoring / browser acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/job/129288566438"
+    },
+    "artifact": {
+      "id": 13690529027,
+      "name": "scoring-browser-8ef47ddf3c7d3000aa62330931450a48f748f9cb-1",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/artifacts/13690529027",
+      "primary_api_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/13690529027",
+      "digest": "sha256:e62710b637969583b668ba0d3bd182a60092643649f52eb89cd940c7f18a581f",
+      "size_in_bytes": 1596,
+      "created_at": "2026-11-09T16:24:35Z",
+      "expires_at": "2026-11-16T16:24:34Z",
+      "run_id": 42654303758,
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "archive_digest_independently_verified": true
+    },
+    "checkout_provenance": {
+      "checkout_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "expected_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "github_sha": "4c5f2c6933bdefe66e4da3e306953f17802d12a2",
+      "node": "v24.22.2",
+      "operation_mode": "FIXTURE",
+      "python": "3.12.16",
+      "recorded_at": "2026-11-09T16:23:49.145405+00:00",
+      "run_attempt": "1",
+      "run_id": "42654303758"
+    },
+    "selected_test_summary": {
+      "expected": 5,
+      "observed_unique": 5,
+      "PASS": 5,
+      "FAIL": 0,
+      "ERROR": 0,
+      "SKIP": 0,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0
+    },
+    "cases": [
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": 1.984,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "PASS",
+        "time_seconds": 2.443,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-115",
+        "node": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::test_manual_capture_displays_required_and_preferred_section_strengths",
+        "result": "PASS",
+        "time_seconds": 4.157,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "PASS",
+        "time_seconds": 3.136,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "PASS",
+        "time_seconds": 2.503,
+        "xml_file": "scoring-browser.xml"
+      }
+    ],
+    "independent_verification": {
+      "reviewer": "/root/publication_scout",
+      "private_receipt_filename": "matching-hosted-acceptance.json",
+      "receipt_sha256": "572340734e841f6293275d52537510359ce2c70a74314ad7ce5f289e075877ed",
+      "archive_digest_verified": true,
+      "artifact_file_sha256": {
+        "scoring-browser-validation.json": "c477dd5c05d4f2afd16bc67d5e52ff636d889ca0f81bcb29c5cb673f8e559c40",
+        "scoring-browser.xml": "de095239e9b3a3eb298afed3e25d5a9843f608e0cc989aa05290fbc70f58af55",
+        "scoring-checkout.json": "57f999da411eb92a3566f7ed95cb45c93cf97ceff4c4c4b1c233b21e5d64b5f8"
+      },
+      "checkout_matches_published_pr_head": true,
+      "source_matches_independent_review": true
+    },
+    "attribution": "The actual checkout and EXPECTED_SHA receipts both name 8ef47ddf3c7d3000aa62330931450a48f748f9cb; the separately recorded PR-event GITHUB_SHA is not the tested checkout. This five-node PASS does not change the historical exact-971 failures or turn the local socket-EPERM attempt into a PASS.",
+    "shared_execution": "The same five-node run is cited by MJ-REQ-115 and MJ-REQ-117. It is one execution, with one requirement-strength node and four scoring nodes; neither document claims five requirement-specific browser nodes.",
+    "later_revision_credit": "NONE; these results apply only to the exact tested revision, not to any subsequent configuration or evidence commit.",
+    "credited_requirement_nodes": [
+      {
+        "node": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::test_manual_capture_displays_required_and_preferred_section_strengths",
+        "result": "PASS",
+        "time_seconds": 4.157
+      }
+    ]
+  },
+  "local_exact_head_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "execution_started_at_utc": "2026-11-09T16:19:00.680510+00:00",
+    "execution_finished_at_utc": "2026-11-09T16:19:17.938842+00:00",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "result": "PASS",
+    "environment": {
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "python": "Python 3.12.14",
+      "mode": "Cloud workspace; synthetic temporary SQLite stores; locked existing dependencies"
+    },
+    "private_receipt_filename": "matching-final-verification.json",
+    "receipt_sha256": "107cd6e308490edb855c34228837809e79a7835e477408c2136876cec79a7445",
+    "clean_tree_before_and_after_execution": true,
+    "commands": [
+      {
+        "name": "strength-backend",
+        "command": [
+          "python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/unit/test_requirement_parsers.py",
+          "tests/unit/test_negative_filters.py",
+          "tests/integration/test_explainable_matching.py",
+          "tests/integration/test_manual_capture_extraction_provenance.py",
+          "--junitxml",
+          "<private-run-dir>/matching-final-strength.xml"
+        ],
+        "working_directory": "repository root",
+        "result": "PASS",
+        "exit_code": 0,
+        "started_at_utc": "2026-11-09T16:19:11.238902+00:00",
+        "finished_at_utc": "2026-11-09T16:19:16.846832+00:00",
+        "log_filename": "matching-final-strength-backend.log",
+        "log_sha256": "ef9c4c433e5cf230f7688d951ed1b43b28a39395ebe5203245c6451d5fd4d88e",
+        "summary": {
+          "test_cases_passed": 63,
+          "subtests_passed": 55,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "junit": {
+          "filename": "matching-final-strength.xml",
+          "sha256": "f6d5670a7d49a8b42fffe0b5e3f54dcd20623c62dedddce3eab18882acc764e8",
+          "testcase_elements": 63,
+          "subtest_count_source": "Executed pytest summary in the bound log; subtests are not additional testcase elements."
+        }
+      }
+    ],
+    "attribution": "These previously completed local executions are attributed to exact 8ef47dd. The original 1e800 command records and counts above remain unchanged. No new tests were run to prepare this completion update.",
+    "local_browser": "NOT_RUN; the existing socket-EPERM restriction remains. Hosted browser completion is recorded separately."
+  },
+  "later_revision_publication_checks": {
+    "status": "PENDING",
+    "scope": "Required checks and any applicable focused acceptance replay on a subsequent configuration or evidence commit.",
+    "exact_revision": "No later revision is tested or credited by this record.",
+    "attribution_rule": "Keep the completed exact-8ef result and inspect any later published SHA independently; missing or unexecuted checks remain NOT_RUN.",
+    "canonical_acceptance": "PROPOSAL_ONLY; the integration steward owns any canonical transition."
+  },
+  "criterion_completion": {
+    "status": "PASS_PROPOSED",
+    "scope": "Both original behavioral criteria (115-A and 115-B) and the two recorded safety checks (115-S1 and 115-S2).",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "backend": "The same criterion-bearing strength suites were re-executed at exact-8ef: 63 cases plus 55 subtests, with no failures, errors or skips.",
+    "browser": "The requirement-specific manual-capture required/preferred display node passed once at exact-8ef; its exact identity and result are in hosted_acceptance_completion.credited_requirement_nodes.",
+    "historical_attribution": "The original 1e800 criterion_ledger and criterion_results remain unchanged. The historical exact-971 browser PASS remains separately attributed and does not relabel its failed overall workflow."
+  }
 }

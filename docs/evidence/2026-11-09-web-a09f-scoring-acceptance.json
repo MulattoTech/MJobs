@@ -13,10 +13,9 @@
   },
   "publication_scope": "One coherent matching-acceptance PR; no production behavior changes.",
   "canonical_acceptance": "UNCHANGED; proposed full-criterion evidence requires the integration steward review.",
-  "exact_head_browser": "NOT_RUN locally; the new five-node hosted workflow must pass at its published SHA.",
+  "exact_head_browser": "PASS on exact 8ef47ddf3c7d3000aa62330931450a48f748f9cb: all five expected hosted nodes executed once in run 42654303758. Local Chromium remains NOT_RUN; later revisions receive no PASS credit from this run.",
   "local_browser_limit": "Chromium process_singleton socket creation is denied in the cloud workspace; the failed baseline launch is not a product/browser PASS.",
   "not_run": [
-    "New exact-head hosted browser acceptance (pending publication)",
     "Independent local PostgreSQL execution",
     "Full local repository suite",
     "Live providers",
@@ -270,7 +269,7 @@
         "xml_file": "browser-0.xml"
       }
     ],
-    "interpretation": "One editor node passed. Three integration journeys reached their final boundary assertion and failed because ordinary explicit detail opens generated one/two same-origin POST /profiles/fixture/jobs/<job>/view requests that the old guard blocked. These are real hosted failures; source review supports a narrowly scoped test-boundary repair, pending a new hosted pass."
+    "interpretation": "One editor node passed at historical exact-971. Three integration journeys reached their final boundary assertion and failed because ordinary explicit detail opens generated one/two same-origin POST /profiles/fixture/jobs/<job>/view requests that the old guard blocked. These remain real historical failures. The narrowly scoped test-boundary repair subsequently passed all four scoring nodes in the separately recorded exact-8ef hosted completion."
   },
   "browser_repair": {
     "problem": "Three existing journeys blocked the current bodyless job-view POST caused by an explicit detail click, then failed their final request-boundary assertions.",
@@ -303,10 +302,258 @@
     "missing_or_duplicate_or_skipped_nodes": "FAIL",
     "receipt_sha256": "aaf3c9c64dd1ebad076317ce1a1cbdf700a2fc9b4b280f87703729fc6fe1b4e9"
   },
-  "acceptance_recommendation": "PENDING exact-head hosted browser PASS and independent integration-owner review; backend criteria PASS is not a canonical transition.",
+  "acceptance_recommendation": "PROPOSAL_ONLY: all original MJ-REQ-117 criteria are supported by the recorded exact-8ef backend/UI execution and all four requirement-specific hosted browser passes. Propose PASS for integration-steward review; no canonical status or counter is changed. Required checks on later configuration/evidence revisions remain separately pending.",
   "scope_limits": [
     "The illustrative weight table is not the only allowed model.",
     "This does not certify every optional factor from adjacent requirements or live AI inference."
   ],
-  "command_path_note": "Private log/JUnit output directory is redacted; input test paths and executed arguments are preserved."
+  "command_path_note": "Private log/JUnit output directory is redacted; input test paths and executed arguments are preserved.",
+  "updated_at_utc": "2026-11-09T17:17:46.276071+00:00",
+  "hosted_acceptance_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "verified_at_utc": "2026-11-09T16:26:42Z",
+    "status": "PASS",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "workflow": {
+      "name": "Scoring acceptance - synthetic",
+      "path": ".github/workflows/scoring-acceptance.yml",
+      "source_url": "https://github.com/MulattoTech/MJobs/blob/8ef47ddf3c7d3000aa62330931450a48f748f9cb/.github/workflows/scoring-acceptance.yml",
+      "sha256": "24a0a3cd67afa47d3bb75436d28e7475ae46d3deecfb37148fd1dcabe9378bef"
+    },
+    "pull_request_url": "https://github.com/MulattoTech/MJobs/pull/1003",
+    "run": {
+      "id": 42654303758,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758",
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T16:23:40Z",
+      "updated_at": "2026-11-09T16:24:40Z"
+    },
+    "job": {
+      "id": 129288566438,
+      "name": "Scoring / browser acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/job/129288566438"
+    },
+    "artifact": {
+      "id": 13690529027,
+      "name": "scoring-browser-8ef47ddf3c7d3000aa62330931450a48f748f9cb-1",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/artifacts/13690529027",
+      "primary_api_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/13690529027",
+      "digest": "sha256:e62710b637969583b668ba0d3bd182a60092643649f52eb89cd940c7f18a581f",
+      "size_in_bytes": 1596,
+      "created_at": "2026-11-09T16:24:35Z",
+      "expires_at": "2026-11-16T16:24:34Z",
+      "run_id": 42654303758,
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "archive_digest_independently_verified": true
+    },
+    "checkout_provenance": {
+      "checkout_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "expected_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "github_sha": "4c5f2c6933bdefe66e4da3e306953f17802d12a2",
+      "node": "v24.22.2",
+      "operation_mode": "FIXTURE",
+      "python": "3.12.16",
+      "recorded_at": "2026-11-09T16:23:49.145405+00:00",
+      "run_attempt": "1",
+      "run_id": "42654303758"
+    },
+    "selected_test_summary": {
+      "expected": 5,
+      "observed_unique": 5,
+      "PASS": 5,
+      "FAIL": 0,
+      "ERROR": 0,
+      "SKIP": 0,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0
+    },
+    "cases": [
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": 1.984,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "PASS",
+        "time_seconds": 2.443,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-115",
+        "node": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::test_manual_capture_displays_required_and_preferred_section_strengths",
+        "result": "PASS",
+        "time_seconds": 4.157,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "PASS",
+        "time_seconds": 3.136,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "PASS",
+        "time_seconds": 2.503,
+        "xml_file": "scoring-browser.xml"
+      }
+    ],
+    "independent_verification": {
+      "reviewer": "/root/publication_scout",
+      "private_receipt_filename": "matching-hosted-acceptance.json",
+      "receipt_sha256": "572340734e841f6293275d52537510359ce2c70a74314ad7ce5f289e075877ed",
+      "archive_digest_verified": true,
+      "artifact_file_sha256": {
+        "scoring-browser-validation.json": "c477dd5c05d4f2afd16bc67d5e52ff636d889ca0f81bcb29c5cb673f8e559c40",
+        "scoring-browser.xml": "de095239e9b3a3eb298afed3e25d5a9843f608e0cc989aa05290fbc70f58af55",
+        "scoring-checkout.json": "57f999da411eb92a3566f7ed95cb45c93cf97ceff4c4c4b1c233b21e5d64b5f8"
+      },
+      "checkout_matches_published_pr_head": true,
+      "source_matches_independent_review": true
+    },
+    "attribution": "The actual checkout and EXPECTED_SHA receipts both name 8ef47ddf3c7d3000aa62330931450a48f748f9cb; the separately recorded PR-event GITHUB_SHA is not the tested checkout. This five-node PASS does not change the historical exact-971 failures or turn the local socket-EPERM attempt into a PASS.",
+    "shared_execution": "The same five-node run is cited by MJ-REQ-115 and MJ-REQ-117. It is one execution, with one requirement-strength node and four scoring nodes; neither document claims five requirement-specific browser nodes.",
+    "later_revision_credit": "NONE; these results apply only to the exact tested revision, not to any subsequent configuration or evidence commit.",
+    "credited_requirement_nodes": [
+      {
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": 1.984
+      },
+      {
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "PASS",
+        "time_seconds": 2.443
+      },
+      {
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "PASS",
+        "time_seconds": 3.136
+      },
+      {
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "PASS",
+        "time_seconds": 2.503
+      }
+    ]
+  },
+  "local_exact_head_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "execution_started_at_utc": "2026-11-09T16:19:00.680510+00:00",
+    "execution_finished_at_utc": "2026-11-09T16:19:17.938842+00:00",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "result": "PASS",
+    "environment": {
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "python": "Python 3.12.14",
+      "mode": "Cloud workspace; synthetic temporary SQLite stores; locked existing dependencies"
+    },
+    "private_receipt_filename": "matching-final-verification.json",
+    "receipt_sha256": "107cd6e308490edb855c34228837809e79a7835e477408c2136876cec79a7445",
+    "clean_tree_before_and_after_execution": true,
+    "commands": [
+      {
+        "name": "scoring-backend",
+        "command": [
+          "python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/unit/test_scoring_profiles.py",
+          "tests/unit/test_profile_scoring.py",
+          "tests/unit/test_preference_scoring.py",
+          "tests/integration/test_scoring_profiles_api.py",
+          "tests/integration/test_role_scoring_profiles_api.py",
+          "tests/integration/test_role_scoring_search_flow.py",
+          "tests/integration/test_role_scoring_peer_recalculation_isolation.py",
+          "tests/integration/test_preference_weighting.py",
+          "tests/integration/test_matching_explanation_contributions.py",
+          "tests/integration/test_matching_explanations_api.py",
+          "--junitxml",
+          "<private-run-dir>/matching-final-scoring.xml"
+        ],
+        "working_directory": "repository root",
+        "result": "PASS",
+        "exit_code": 0,
+        "started_at_utc": "2026-11-09T16:19:00.692772+00:00",
+        "finished_at_utc": "2026-11-09T16:19:11.238648+00:00",
+        "log_filename": "matching-final-scoring-backend.log",
+        "log_sha256": "d3cb3a0a869e0d2cb346e6e770c5025cd707308b0f99471a58da0530da6aa0fa",
+        "summary": {
+          "test_cases_passed": 82,
+          "subtests_passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "junit": {
+          "filename": "matching-final-scoring.xml",
+          "sha256": "a9a3f6258852b6de1a5e79d09d9fc6033ffeb4120c2a99bcd3db1d0bfbf9b0f3",
+          "testcase_elements": 82,
+          "subtest_count_source": "Executed pytest summary in the bound log; subtests are not additional testcase elements."
+        }
+      },
+      {
+        "name": "scoring-ui",
+        "command": [
+          "npm",
+          "exec",
+          "--",
+          "vitest",
+          "run",
+          "src/role-scoring-preference-dimensions.test.tsx",
+          "src/role-scoring-preview.test.tsx",
+          "src/role-scoring-profile-client.test.ts",
+          "src/role-scoring-custom-dimensions.test.tsx",
+          "src/role-scoring-profile-editor.test.tsx"
+        ],
+        "working_directory": "apps/web",
+        "result": "PASS",
+        "exit_code": 0,
+        "started_at_utc": "2026-11-09T16:19:16.847120+00:00",
+        "finished_at_utc": "2026-11-09T16:19:17.930480+00:00",
+        "log_filename": "matching-final-scoring-ui.log",
+        "log_sha256": "5a6607625a669f788caf8db0e012952c2bc64fd3ae49436a57adfea147ad1bd4",
+        "summary": {
+          "tests_passed": 38,
+          "test_files_passed": 5,
+          "failed": 0
+        }
+      }
+    ],
+    "attribution": "These previously completed local executions are attributed to exact 8ef47dd. The original 1e800 command records and counts above remain unchanged. No new tests were run to prepare this completion update.",
+    "local_browser": "NOT_RUN; the existing socket-EPERM restriction remains. Hosted browser completion is recorded separately."
+  },
+  "later_revision_publication_checks": {
+    "status": "PENDING",
+    "scope": "Required checks and any applicable focused acceptance replay on a subsequent configuration or evidence commit.",
+    "exact_revision": "No later revision is tested or credited by this record.",
+    "attribution_rule": "Keep the completed exact-8ef result and inspect any later published SHA independently; missing or unexecuted checks remain NOT_RUN.",
+    "canonical_acceptance": "PROPOSAL_ONLY; the integration steward owns any canonical transition."
+  },
+  "criterion_completion": {
+    "status": "PASS_PROPOSED",
+    "scope": "All three criteria in criterion_analysis, including configurable distribution and higher-priority truth/scope safety.",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "backend_and_ui": "The same criterion-bearing scoring suites were re-executed at exact-8ef: 82 backend cases plus 29 subtests and 38 UI tests in five files.",
+    "browser": "All four requirement-specific browser nodes in hosted_acceptance_completion.credited_requirement_nodes passed once, covering selected-search edit/readback, persisted preference contributions, reload, explanation and isolation.",
+    "historical_attribution": "The original criterion_analysis, 1e800 backend/UI results and historical 971 outcomes retain their original scope."
+  }
 }
