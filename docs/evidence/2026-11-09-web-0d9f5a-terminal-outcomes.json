@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-033",
+  "issue": 403,
+  "run_id": "web-20261109T132018Z-0d9f5a0511ab",
+  "recorded_at_utc": "2026-11-09T13:32:20.197325+00:00",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+  "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+  "result": "PARTIAL",
+  "verified_slice_result": "PASS",
+  "full_requirement_promoted": false,
+  "objective": "Preserve the actual rejected or failed terminal outcome when an oversized requested batch has an unused tail.",
+  "behavior": {
+    "before": "Requested length over 20 overwrote early REJECTED or FAILED with LIMIT_REACHED / STEP_BUDGET_EXHAUSTED.",
+    "after": "Only an otherwise completed permitted prefix can be relabeled as step exhaustion. Error results retain existing terminal state/reason and precise step code.",
+    "unchanged": [
+      "20-step cap",
+      "tool validation and handler admission",
+      "human-review proposal gate",
+      "trace schema and value-free persistence",
+      "diagnostic-only reruns",
+      "external application submission remains disabled"
+    ]
+  },
+  "baseline": {
+    "implementation_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "new_test_blob": "751a3519fcd43705ac1b940a56e9578f4499c329",
+    "command": "python -m pytest -q tests/integration/test_agent_terminal_precedence.py",
+    "exit_code": 1,
+    "regression_subcases_failed": 12,
+    "positive_boundary_subcases_passed": 3,
+    "junit_sha256": "7287719d6883680eab9d06561347b7fca07e40e77ed46e4b40a7f7c40a640baa"
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_agent_terminal_precedence.py tests/integration/test_agent_tools.py tests/integration/test_agent_diagnostic_reruns.py tests/unit/test_agent_acceptance.py",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+      "exit_code": 0,
+      "tests_passed": 36,
+      "subtests_passed": 41,
+      "skipped": 0,
+      "duration_seconds": 2.81,
+      "junit_sha256": "2971d5fe81240536fba6578dfb78e4222b428c06988eb720f3c282c0e293fb82"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS",
+      "timestamp_utc": "2026-11-09T13:31:40.225751+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS",
+      "timestamp_utc": "2026-11-09T13:31:40.263389+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT",
+      "timestamp_utc": "2026-11-09T13:31:40.317984+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "exit_code": 0,
+      "output": "Reference provenance validation: PASS",
+      "timestamp_utc": "2026-11-09T13:31:40.351008+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 2 source files",
+      "timestamp_utc": "2026-11-09T13:31:40.393151+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "output": "",
+      "timestamp_utc": "2026-11-09T13:31:40.398815+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    }
+  ],
+  "assertions": [
+    "UNKNOWN_TOOL, INVALID_ARGUMENTS and ARGUMENTS_TOO_LARGE retain REJECTED; no invalid handler dispatch.",
+    "TOOL_FAILED, INVALID_TOOL_RESULT and RESULT_TOO_LARGE retain FAILED.",
+    "Each error occurs at the first and twentieth allowed positions with a 21-call request.",
+    "Unused tail is never dispatched; precise failed-step code survives a fresh SQLite Store reopen.",
+    "19 and 20 successful calls remain COMPLETED; 21 requested successful calls execute only 20 and report STEP_BUDGET_EXHAUSTED.",
+    "Raw argument, exception and output canaries and profile email remain absent from durable traces."
+  ],
+  "independent_review": {
+    "reviewer": "Separate ChatGPT-Web terminal_review agent",
+    "result": "No actionable scoped blocker",
+    "reviewed_blobs": {
+      "services/agents/runtime.py": "9ffa5bd957f979def6c4e2d4980d8dd6e772b125",
+      "tests/integration/test_agent_terminal_precedence.py": "751a3519fcd43705ac1b940a56e9578f4499c329"
+    },
+    "candidate_regressions": "3 tests and 15 subtests PASS",
+    "independent_probes": "2 tests PASS: six explicit escape/budget reasons with oversized tails; prior-slice later handler failure remains diagnostic-only. Root repeated both probes at implementation_sha.",
+    "probe_sha256": "7fe10ed113fe6b25397c02e0757e555f7a76201db00215d7b4c21808be0c98b7",
+    "scope": "Scoped source review, not protected approval, full acceptance, or permission to merge."
+  },
+  "criterion_ledger": [
+    {
+      "criterion": 1,
+      "result": "PARTIAL",
+      "evidence": "Existing bounded local runtime behavior and declared budget regressions pass. Complete browser/worker deadline and cancellation contracts are not established by this change."
+    },
+    {
+      "criterion": 2,
+      "result": "PARTIAL",
+      "evidence": "Existing explicit escapes retain precedence in independent probes. Pending PR975 supplies separate REVIEW_REQUIRED and terminal proposal corrections; it is not included or asserted integrated."
+    },
+    {
+      "criterion": 3,
+      "result": "NOT_RUN",
+      "evidence": "Full collection output criterion is outside this slice; selected existing acceptance unit regressions pass without establishing all worker count/tail/empty behavior."
+    },
+    {
+      "criterion": 4,
+      "result": "PASS",
+      "scope": "Synthetic local AgentRuntime diagnostic and prior-slice journeys at tested_sha",
+      "evidence": "Focused diagnostic suites and independent failure probe preserve bounded retries and DIAGNOSTIC_ONLY, never treating agreement as correctness."
+    },
+    {
+      "criterion": 5,
+      "result": "PARTIAL",
+      "verified_slice": "PASS: actual early termination reason, executed step count and bounded consumption survive reopen, including first and twentieth failures.",
+      "remaining": "Broader worker/browser loops, cancellation, and collection contracts remain separate acceptance work."
+    }
+  ],
+  "original_prerequisites": {
+    "MJ-REQ-004": "Historical PARTIAL; no full promotion",
+    "MJ-REQ-139": "Historical PARTIAL; no full promotion",
+    "MJ-REQ-160": "Historical PARTIAL; no full promotion",
+    "MJ-REQ-227": "Historical PASS; not freshly reverified as a dependency gate"
+  },
+  "parallel_coordination": {
+    "backend": "tools.coordination.lane_coordination claims_lock and atomic claims replacement on MulattoTechBox",
+    "claim_key": "web:web-20261109T132018Z-0d9f5a0511ab:MJ-REF-033-terminal-outcomes",
+    "collision_review": "All 32 open PR filenames inspected. Runtime also touched by PR975 and PR983 on separate logic; no branch takeover. Shared runtime path exclusively claimed for this session.",
+    "compatibility": [
+      {
+        "pr": 975,
+        "head": "422551182c1ee0e5191696d23c33f763bdbc6052",
+        "scope": "Explicit escapes/proposal break and page admission; independent logical compatibility review."
+      },
+      {
+        "pr": 983,
+        "head": "bb18b3137d0d160a57209dd4eb1c01b91e23f019",
+        "scope": "Review audit result in _reserve_review; independent logical compatibility review."
+      }
+    ]
+  },
+  "environment": {
+    "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.12.14",
+    "SQLAlchemy": "2.1.1",
+    "pydantic": "2.13.5",
+    "pytest": "9.0.3",
+    "database": "Temporary SQLite, real Store and reopened durable readback",
+    "host": "Isolated cloud workspace; no tests/builds/process swarm on MulattoTechBox"
+  },
+  "not_run": [
+    "Full local unit suite",
+    "PostgreSQL/Redis service integration",
+    "Browser/production end-to-end",
+    "Hosted checks for final publication head are pending",
+    "Protected integration and production deployment"
+  ],
+  "acceptance_programs_unchanged": {
+    "MJ-REF": {
+      "total": 59,
+      "historical_PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36,
+      "fresh_full_requirement_PASS": 0
+    },
+    "MJ-REQ": {
+      "total": 366,
+      "historical_PASS": 183,
+      "PARTIAL": 82,
+      "NOT_RUN": 101,
+      "fresh_full_requirement_PASS": 0
+    }
+  },
+  "rollback": "Revert this dedicated feature-branch change through the protected PR workflow; no migration or data rewrite.",
+  "integration_authority": "PR_ONLY"
+}

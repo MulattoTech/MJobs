@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-033-terminal-0d9f5a",
+  "objective": "Preserve actual failed or rejected agent outcomes when unused requested calls exceed the step limit",
+  "owner": "ChatGPT-Web/web-20261109T132018Z-0d9f5a0511ab",
+  "branch": "web/web-20261109T132018Z-0d9f5a0511ab/MJ-REF-033-terminal-outcomes",
+  "head_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+  "routing_state": "VERIFY",
+  "next_action": "Read exact published head and required checks; repair only owned scoped failures, then hand off for authorized serial integration with PR975 and PR983 compatibility review",
+  "created_at": "2026-11-09T13:31:40.650758+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Exact source e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc: focused agent suites 36 passed, 41 subtests; independent escape/budget/diagnostic probes 2 passed; provenance/catalogue/progress/dashboard/reference/diff checks passed",
+      "result": "PASS"
+    },
+    {
+      "command": "Full local unit suite, PostgreSQL/Redis services, browser/production journeys, and hosted checks on final publication head",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "PR_ONLY authority; full MJ-REF-033 and original prerequisites remain incomplete; no canonical acceptance promotion"
+  ]
+}
