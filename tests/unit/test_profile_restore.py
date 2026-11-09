@@ -5,11 +5,13 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from packages.domain.profile import ContactDetails, JobPreferences
+from packages.persistence.profile_restore import apply_profile_restore
 from packages.persistence.store import Store
 from services.career_profile.story_bank import create_story
-from services.data_export import export_profile_backup
+from services.data_export import export_profile_backup, export_profile_json
 from services.documents.uploads import save_resume
 from services.profile_restore import (
     MAX_IMPORT_BYTES,
@@ -189,6 +191,85 @@ def _json_node_count(value):
 
 
 class ProfileRestoreTests(unittest.TestCase):
+    def test_capacity_accounts_for_persisted_float_serialization(self):
+        for section in ("job_matches", "answer_confidence_policy"):
+            with self.subTest(section=section), tempfile.TemporaryDirectory(
+                    prefix="restore-float-capacity-") as directory:
+                payload = _versioned_fact_backup([0, 0])
+                if section == "job_matches":
+                    for number in range(8):
+                        job_id, route_id = f"job-{number}", f"route-{number}"
+                        url = f"https://jobs.example.invalid/{number}"
+                        payload["jobs"].append({
+                            "id": job_id, "company": "Synthetic Employer",
+                            "requisition": str(number), "title": "Engineer",
+                            "description": "", "skills": [], "location": "Remote",
+                            "remote_type": "REMOTE", "application_url": url,
+                            "match_score": 0, "application_state": None,
+                        })
+                        payload["application_routes"].append({
+                            "id": route_id, "job_id": job_id, "company_id": "company",
+                            "provider": "manual", "tenant": "", "requisition": str(number),
+                            "url": url,
+                        })
+                        payload["job_matches"].append({
+                            "id": f"match-{number}", "job_id": job_id,
+                            "profile_version": "v1", "score": 0,
+                            "missing": [], "components": {},
+                        })
+                else:
+                    payload["settings"][section] = [{
+                        "id": "confidence-policy", "minimum_saved_answer_confidence": 80,
+                        "minimum_question_match_confidence": 1,
+                        "updated_at": "2026-11-09T00:00:00+00:00",
+                    }]
+                original = copy.deepcopy(payload)
+                root = Path(directory)
+                profile_id = "t" * 128
+                stores = []
+                try:
+                    # Measure the real persisted/exported representation, so
+                    # the boundary is independent of the planner's projection.
+                    for name in ("measured", "accepted"):
+                        store = Store(f"sqlite:///{(root / (name + '.db')).as_posix()}")
+                        stores.append(store)
+                        store.migrate()
+                        store.bind_workspace_mode("FIXTURE")
+                    plan = build_restore_plan(payload, profile_id)
+                    apply_profile_restore(stores[0], plan, root, "measure-float-capacity")
+                    exported = export_profile_json(stores[0], profile_id, output_dir=root)
+                    persisted = json.loads(exported)
+                    if section == "job_matches":
+                        self.assertTrue(all(type(row["score"]) is float
+                                            for row in persisted[section]))
+                    else:
+                        self.assertIs(type(persisted["settings"][section][0][
+                            "minimum_question_match_confidence"]), float)
+                    required_bytes = len(exported.encode("utf-8"))
+                    self.assertLess(len(json.dumps(payload).encode("utf-8")),
+                                    required_bytes - 1)
+                    with patch("services.profile_restore.MAX_IMPORT_BYTES", required_bytes - 1):
+                        for operation in (preview_profile_restore,
+                                          lambda value: build_restore_plan(value, profile_id)):
+                            with self.subTest(operation=operation.__name__):
+                                with self.assertRaises(ProfileRestoreError) as caught:
+                                    operation(payload)
+                                self.assertEqual(caught.exception.code, "RESTORE_LIMIT_EXCEEDED")
+                    # At the admitted neighboring boundary, both export formats
+                    # remain usable after an actual fresh restore.
+                    with patch("services.profile_restore.MAX_IMPORT_BYTES", required_bytes), \
+                            patch("services.data_export.MAX_EXPORT_BYTES", required_bytes):
+                        preview_profile_restore(payload)
+                        accepted = build_restore_plan(payload, profile_id)
+                        apply_profile_restore(stores[1], accepted, root, "accept-float-capacity")
+                        self.assertEqual(export_profile_json(
+                            stores[1], profile_id, output_dir=root), exported)
+                        export_profile_backup(stores[1], profile_id, output_dir=root)
+                    self.assertEqual(payload, original)
+                finally:
+                    for store in stores:
+                        store.engine.dispose()
+
     def test_preview_and_plan_reserve_capacity_for_new_active_snapshot_and_facts(self):
         cases = {
             "fact_row_expansion": ([200, 9700], "SQL"),

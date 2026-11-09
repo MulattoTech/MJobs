@@ -1125,6 +1125,20 @@ def _validate_restored_capacity(payload, result):
         **{name: [{**row, "id": identifier} for row in settings[name]]
            for name in ("ai_cost_policy", "answer_confidence_policy")},
     }
+    # SQL Float columns are exported as floats even when the import used an
+    # integer (for example, 0 becomes 0.0). Reserve the persisted JSON width
+    # before admitting a restore at the export limit; leave source data intact.
+    for rows, field in (
+            (projected["job_matches"], "score"),
+            (projected["settings"]["answer_confidence_policy"],
+             "minimum_question_match_confidence")):
+        for row in rows:
+            value = row.get(field)
+            if type(value) is int:
+                try:
+                    row[field] = float(value)
+                except OverflowError:
+                    _fail()
     try:
         _normalize_payload(projected)
     except ProfileRestoreError as exc:
