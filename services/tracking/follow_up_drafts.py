@@ -9,7 +9,9 @@ _ALLOWED_ATTRIBUTIONS = {"USER_REPORTED", "EXTERNAL_USER_REPORTED"}
 _CHARACTER_LIMITS = {"subject": 120, "email_body": 500, "dm_body": 280}
 _EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
 _URL = re.compile(r"(?i)\b(?:https?://|www\.)[^\s<>]+|\b(?:[A-Z0-9-]+\.)+[A-Z]{2,}(?:/[^\s<>]*)?")
-_HANDLE = re.compile(r"(?<![\w.+-])@[A-Z0-9_][A-Z0-9_.-]*", re.IGNORECASE)
+# Handles can be pasted directly after punctuation or role/company text.
+# Scrub recognized @tokens anywhere after complete email and URL removal.
+_HANDLE = re.compile(r"@[A-Z0-9_][A-Z0-9_.-]*", re.IGNORECASE)
 _PHONE = re.compile(r"(?<!\w)\+?\d[\d().\s-]{5,}\d(?!\w)")
 
 

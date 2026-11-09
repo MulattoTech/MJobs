@@ -155,6 +155,41 @@ class FollowUpDraftTests(unittest.TestCase):
             with self.subTest(now=now), self.assertRaises(ValueError):
                 self.run_drafts(now=now)
 
+    def test_scrubs_handles_without_requiring_a_separator_in_both_dynamic_fields(self):
+        prefixes = (" ", "-", "+", ".", ":", "(", "[", "/", "Contact", "担当")
+        outputs = ("job_title", "company", "email_subject", "email_body", "dm_body")
+        for field in ("title", "company"):
+            for prefix in prefixes:
+                with self.subTest(field=field, prefix=prefix):
+                    self.store.applications_by_profile["p1"] = [application(
+                        **{field: f"Systems {prefix}@Recruiter_42"})]
+                    candidate = self.run_drafts()["candidates"][0]
+                    for output in outputs:
+                        self.assertNotIn("@Recruiter_42", candidate[output], output)
+                    scrubbed_field = "job_title" if field == "title" else "company"
+                    self.assertIn("[redacted]", candidate[scrubbed_field])
+
+    def test_contact_token_order_preserves_clean_role_text_and_removes_full_addresses(self):
+        title = "C++ / .NET Engineer"
+        company = "Example + Partners - Tech"
+        self.store.applications_by_profile["p1"] = [application(
+            title=title, company=company)]
+        candidate = self.run_drafts()["candidates"][0]
+        self.assertEqual(candidate["job_title"], title)
+        self.assertEqual(candidate["company"], company)
+        self.assertIn(title, candidate["email_body"])
+        self.assertIn(company, candidate["dm_body"])
+
+        self.store.applications_by_profile["p1"] = [application(
+            title=title + " alice+tag@example.test",
+            company=company + " https://example.test/@Recruiter_42")]
+        candidate = self.run_drafts()["candidates"][0]
+        for output in ("job_title", "company", "email_subject", "email_body", "dm_body"):
+            for contact in ("alice+tag", "example.test", "@Recruiter_42"):
+                self.assertNotIn(contact, candidate[output], output)
+        self.assertIn(title, candidate["job_title"])
+        self.assertIn(company, candidate["company"])
+
     def test_scrubs_contacts_from_dynamic_job_metadata_and_caps_all_drafts(self):
         self.store.applications_by_profile["p1"] = [application(
             title="Architect " + "x" * 160 + " alice@example.com https://secret.example/app @recruiter 555-555-1212",
