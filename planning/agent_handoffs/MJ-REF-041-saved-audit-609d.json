@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-041-saved-audit-609d",
+  "objective": "Audit validated saved resume words against the recorded target snapshot without regenerating or changing facts",
+  "owner": "ChatGPT-Web web-20261109T131806Z-609d06db9213",
+  "branch": "web/web-20261109T131806Z-609d06db9213/MJ-REF-041-saved-resume-audit",
+  "head_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Queue owned branch at current PR capacity; request integration-owner publication admission when ready, then verify required hosted checks. Implement bounded feedback/regeneration in a separately claimed slice; canonical MJ-REF-041 remains NOT_RUN.",
+  "created_at": "2026-11-09T13:55:48.905906+00:00",
+  "requirements": [
+    "MJ-REF-041"
+  ],
+  "tests": [
+    {
+      "command": "Exact source b9901bf65d06c47ded61837f3ee5d6eeac8a007d: targeted audit/provenance/comparison/tailoring pytest 60 passed and 102 subtests",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact source b9901bf65d06c47ded61837f3ee5d6eeac8a007d: document-history Vitest 67 passed; npm run build PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact source: catalogue, progress validation, dashboard current, reference provenance, strict commit provenance and diff checks PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Full Python/frontend suites; real browser journey; PostgreSQL/Redis; hosted CI; deployment; regeneration loop",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "36 open development PRs; configured warning threshold32; current user directive queues prepared work at capacity",
+    "Full requirement incomplete: bounded feedback/regeneration and before-after evidence not implemented"
+  ],
+  "run_id": "web-20261109T131806Z-609d06db9213",
+  "model_id": "unknown",
+  "issue": 424,
+  "evidence_path": "docs/evidence/2026-11-09-web-609d-saved-resume-audit.json",
+  "implementation_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+  "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+  "full_requirement_status": "NOT_RUN",
+  "canonical_matrices_changed": false,
+  "publication": {
+    "state": "QUEUED_CAPACITY_WARNING",
+    "open_development_prs": 36,
+    "configured_capacity": 32,
+    "capacity_behavior": "warn",
+    "pr": null
+  },
+  "metadata_note": "This checkpoint binds exact tested source; a later evidence-only commit does not change the six reviewed source/test blobs."
+}

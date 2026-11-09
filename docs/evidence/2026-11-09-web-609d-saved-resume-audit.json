@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131806Z-609d06db9213",
+  "recorded_utc": "2026-11-09T13:56:39Z",
+  "requirement_id": "MJ-REF-041",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/424",
+  "slice": "Saved-resume recorded-target literal-term audit",
+  "scope_result": "PASS_FOR_SCOPED_ASSERTIONS",
+  "full_requirement_result": "NOT_RUN",
+  "canonical_status_changed": false,
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+  "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+  "branch": "web/web-20261109T131806Z-609d06db9213/MJ-REF-041-saved-resume-audit",
+  "source_blobs": {
+    "apps/web/src/document-history.test.tsx": "ccb92ec925f5d5ca12f4535fdb7c44ec812397e9",
+    "apps/web/src/document-history.tsx": "f18379f5421c5a7428a63a3896ec72d215227364",
+    "services/documents/history.py": "d4ee63d8fbf1c9e40827143e5ed828badb833988",
+    "services/documents/quality_audit.py": "27087ff3a377575b3586861ee2ff01e2adc1b607",
+    "tests/integration/test_document_quality_audit_history.py": "0a69780bc528b17ba4a4a6fef57ed1896fc7ce6d",
+    "tests/unit/test_document_quality_audit.py": "fc2f48ee9a801beb76e12985ddefd2fd80cd9a42"
+  },
+  "behavior": {
+    "contract": "quality_audit schema_version 1, CASEFOLD_LITERAL_TERMS_V1; AVAILABLE or UNAVAILABLE",
+    "consumer": "Existing profile-scoped application document-history API and saved resume display",
+    "input": "Existing validated saved preview plus recorded generation_context.job_skills; never current job/profile terms",
+    "output": "Present and missing literal target terms, document/profile revision, recorded TXT checksum, job identity, target fingerprint and original-list digest",
+    "bounds": {
+      "raw_target_entries": 100,
+      "raw_or_casefold_term_characters": 120,
+      "raw_or_casefold_preview_characters": 200000
+    },
+    "method": "Unicode casefold and whitespace normalization; whole literal terms with punctuation guards; no synonyms, inferred qualifications or score",
+    "side_effects": "Read only; no document generation, provider access, network call or persistence write"
+  },
+  "criteria": [
+    {
+      "id": "AUDIT-1",
+      "result": "PASS",
+      "assertion": "Saved output is audited after explicit fact selection; a skill in source facts but omitted from saved resume is reported missing",
+      "proof": "test_audit_reports_saved_output_after_explicit_selection_and_never_writes"
+    },
+    {
+      "id": "AUDIT-2",
+      "result": "PASS",
+      "assertion": "Source revision and recorded target remain stable after current profile/job edits; TXT digest retains exact saved bytes",
+      "proof": "test_current_profile_and_job_edits_do_not_reinterpret_a_saved_revision and unit source-binding tests"
+    },
+    {
+      "id": "AUDIT-3",
+      "result": "PASS",
+      "assertion": "Corrupt artifacts, unavailable/unapproved source facts, invalid target context, known rejected target provenance, current avoid-list failures and missing legacy snapshots do not yield available results",
+      "proof": "New unit/integration rejection cases including intact bytes with a different well-formed target fingerprint"
+    },
+    {
+      "id": "AUDIT-4",
+      "result": "PASS",
+      "assertion": "Bounded literal Unicode/punctuation matching; invalid inputs fail closed; source output omits resume content and arbitrary metadata",
+      "proof": "24 auditor unit tests, with 85 subtests, included in combined exact-source run"
+    },
+    {
+      "id": "AUDIT-5",
+      "result": "PASS",
+      "assertion": "Existing API exposes audit for resumes only, rejects cross-profile reads, and does not write on readback",
+      "proof": "test_existing_profile_scoped_api_exposes_audit_and_rejects_cross_profile_reads"
+    },
+    {
+      "id": "AUDIT-6",
+      "result": "PASS",
+      "assertion": "Frontend labels found/absent terms honestly and withholds mismatched, incomplete, malformed or known-invalid results",
+      "proof": "67 document-history Vitest tests; production TypeScript/build pass"
+    },
+    {
+      "id": "FULL-REGENERATION",
+      "result": "NOT_RUN",
+      "assertion": "Bounded feedback/regeneration pass with before/after evidence",
+      "reason": "Not implemented in this independently coherent read-only audit slice"
+    },
+    {
+      "id": "FULL-BROWSER-AND-INTEGRATION",
+      "result": "NOT_RUN",
+      "assertion": "Fresh real browser journey, required hosted gates and protected integration",
+      "reason": "Targeted API, component and build evidence only; branch is queued"
+    },
+    {
+      "id": "CANONICAL-ACCEPTANCE",
+      "result": "NOT_RUN",
+      "assertion": "Reference matrix/completion report promotion",
+      "reason": "Reserved for the authorized integration/acceptance owner; both canonical programs unchanged"
+    }
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q --tb=short --show-capture=no tests/unit/test_document_quality_audit.py tests/unit/test_resume_comparison.py tests/unit/test_resume_tailoring_facts.py tests/integration/test_document_quality_audit_history.py tests/integration/test_document_provenance.py tests/integration/test_resume_comparison.py tests/integration/test_resume_tailoring_facts.py",
+      "cwd": "repository root",
+      "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+      "result": "PASS",
+      "exit_code": 0,
+      "passed": 60,
+      "subtests_passed": 102,
+      "skipped": 0,
+      "duration_seconds": 28.95
+    },
+    {
+      "command": "npm test -- --coverage.enabled=false src/document-history.test.tsx",
+      "cwd": "apps/web",
+      "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+      "result": "PASS",
+      "exit_code": 0,
+      "passed": 67,
+      "duration_seconds": 0.378
+    },
+    {
+      "command": "npm run build",
+      "cwd": "apps/web",
+      "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+      "result": "PASS",
+      "exit_code": 0,
+      "includes": "tsc --noEmit and Vite production build"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD --strict",
+      "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+      "result": "PASS",
+      "exit_code": 0,
+      "source_files": 6
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.reference_provenance; git diff --check",
+      "tested_sha": "b9901bf65d06c47ded61837f3ee5d6eeac8a007d",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "Full Python/frontend suites; PostgreSQL/Redis; real browser/product journey; hosted CI; deployment; bounded regeneration loop",
+      "result": "NOT_RUN"
+    }
+  ],
+  "environment": {
+    "surface": "Isolated Linux scratch worktree; no MulattoTechBox test/build load",
+    "python": "3.12.14",
+    "os": "Linux 6.18.57 x86_64 glibc 2.41",
+    "packages": {
+      "pytest": "9.1.1",
+      "SQLAlchemy": "2.1.1",
+      "pydantic": "2.13.5",
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "httpx": "0.28.1",
+      "alembic": "1.20.0",
+      "python-docx": "1.2.0",
+      "reportlab": "4.4.9",
+      "pypdf": "6.21.4"
+    },
+    "node": "24.22.1",
+    "npm": "11.9.0",
+    "vitest": "5.0.3",
+    "vite": "8.3.3",
+    "dependency_note": "Private Python venv uses selected pinned installs plus preinstalled runtime packages; not a fully locked environment (FastAPI/reportlab differ from repository pins). npm ci used the unchanged committed lockfile.",
+    "warnings": [
+      "Starlette TestClient httpx deprecation",
+      "npm http-proxy environment configuration deprecation",
+      "Existing production bundle exceeds the 500 kB warning threshold"
+    ]
+  },
+  "independent_review": {
+    "reviewer": "Separate ChatGPT-Web subagent /root/cancellation_ci_triage, not an implementation author",
+    "type": "Read-only static review plus remediation verification",
+    "result": "No remaining introduced blocker found in the six final source/test blobs",
+    "findings_resolved": [
+      {
+        "severity": "P2",
+        "finding": "Incomplete Unicode audit could claim no recorded terms absent",
+        "fix": "Require a complete first-spelling lowercase partition for every snapshot; fail unavailable when full-casefold dedup is ambiguous",
+        "regression": "Four new frontend failures reproduced before correction; final67 tests pass"
+      },
+      {
+        "severity": "P2",
+        "finding": "Known-invalid responsibility target provenance ignored by audit",
+        "fix": "Backend and frontend reject explicit responsibility_context_valid false",
+        "regression": "Real saved artifact remains valid after a well-formed target fingerprint is altered; audit becomes unavailable with no source/terms and no write"
+      }
+    ],
+    "reviewed_source_blobs": {
+      "apps/web/src/document-history.test.tsx": "ccb92ec925f5d5ca12f4535fdb7c44ec812397e9",
+      "apps/web/src/document-history.tsx": "f18379f5421c5a7428a63a3896ec72d215227364",
+      "services/documents/history.py": "d4ee63d8fbf1c9e40827143e5ed828badb833988",
+      "services/documents/quality_audit.py": "27087ff3a377575b3586861ee2ff01e2adc1b607",
+      "tests/integration/test_document_quality_audit_history.py": "0a69780bc528b17ba4a4a6fef57ed1896fc7ce6d",
+      "tests/unit/test_document_quality_audit.py": "fc2f48ee9a801beb76e12985ddefd2fd80cd9a42"
+    },
+    "limits": "Reviewer did not execute tests/builds or browser checks; root and implementation agents supplied executed test evidence"
+  },
+  "reference_provenance": {
+    "reference_derived": true,
+    "project_id": "PERSONAL_JOBPILOT",
+    "pinned_commit": "a582c29d0f1aed97b93b13d843671487ab8c25d3",
+    "source": "docs/reference/REFERENCE_PROJECTS.json and issue424",
+    "material_concept": "Post-generation alignment feedback on saved resume words",
+    "implementation": "Independent MJobs implementation using existing local facts, artifact validators and document-history API",
+    "third_party_code_assets_prose_copied": false,
+    "license_registry": "MIT; concept inspiration only by default",
+    "notice_change_needed": false,
+    "reference_validator": "PASS"
+  },
+  "safety": {
+    "external_submission": "Remains review-only/off under existing policy",
+    "provider_or_paid_service_calls": 0,
+    "workstation_compute_slots": 0,
+    "canonical_matrix_edits": 0,
+    "secrets_or_real_applicant_data_in_evidence": false,
+    "privacy_cases": "Synthetic API fixture cross-profile404, no contact data copied into audit, no raw exception labels in UI"
+  },
+  "publication": {
+    "state": "QUEUED_BRANCH_PREPARATION",
+    "open_development_prs_observed": 36,
+    "configured_capacity": 32,
+    "capacity_behavior": "warn",
+    "decision": "Queue prepared branch under current user directive at capacity; no additional PR or workflow dispatch",
+    "cli_live_preflight": "Attempted; unavailable because scratch GitHub CLI is not authenticated. Authenticated GitHub connector supplied complete REST pages (36 plus empty second page); final candidate assessment is recorded in the run checkpoint."
+  },
+  "limitations": [
+    "Literal term appearance is not proof of qualifications, factual truth, ATS success or job fit.",
+    "Recorded fingerprint/digest pointers do not independently authenticate stored metadata. Existing explicit target-validation failures are honored.",
+    "The UI conservatively displays unavailable when Python full-casefold duplicates cannot be reconciled with JavaScript lowercase (for example Straße/STRASSE).",
+    "Legacy or untailored revisions without recorded target terms remain unavailable; no current-job substitution.",
+    "No feedback/regeneration pass or before/after regeneration evidence is implemented.",
+    "Hosted checks, human review, protected integration and deployment remain pending."
+  ],
+  "acceptance_snapshot": {
+    "main_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "MJ_REF": {
+      "total": 59,
+      "historical_PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "MJ_REQ": {
+      "total": 366,
+      "historical_PASS": 183,
+      "PARTIAL": 82,
+      "NOT_RUN": 101
+    },
+    "fresh_full_requirement_passes_this_run": 0
+  }
+}
