@@ -15,7 +15,8 @@ export type OperationProgressRecord = {
   retry_count?: number | null;
   recovery_summary?: string | null;
   preparation_priority?: { tier: number; effective_tier: number; queue_priority: string;
-    enqueued_at: string; aging_interval_seconds: number; basis: string } | null;
+    enqueued_at: string; aging_interval_seconds: number; basis: string;
+    timestamp_source?: string; timestamp_kind?: string; timestamp_state?: string } | null;
 };
 
 export type OperationProgressProps = {
@@ -124,9 +125,36 @@ function retryCount(value: unknown): number | null {
   return Number.isSafeInteger(value) && typeof value === 'number' && value >= 0 && value <= 1_000_000 ? value : null;
 }
 
+function preparationBasis(priority: NonNullable<OperationProgressRecord['preparation_priority']>): string {
+  // Older snapshots reported POSTING_AGE unconditionally. Require the saved
+  // provenance before describing their date evidence, and never render raw codes.
+  if (priority.timestamp_state === 'FUTURE') {
+    return 'The saved date was in the future when queued, so recency was unknown.';
+  }
+  if (priority.timestamp_state === 'INVALID') {
+    return 'The saved date could not be validated when queued, so recency was unknown.';
+  }
+  if (priority.timestamp_state === 'KNOWN') {
+    if (priority.timestamp_kind === 'POSTED'
+      && (priority.timestamp_source === 'attributes.reported_posted_at' || priority.timestamp_source === 'job.posted_at')
+      && priority.basis === 'APPROVED_SKILL_EVIDENCE_AND_POSTING_AGE') {
+      return 'Approved skill evidence and reported posting age determined the initial order.';
+    }
+    if (priority.timestamp_kind === 'FIRST_SEEN' && priority.timestamp_source === 'attributes.first_seen_at'
+      && priority.basis === 'APPROVED_SKILL_EVIDENCE_AND_FIRST_SEEN_RECENCY') {
+      return 'Approved skill evidence and first-seen recency determined the initial order. The publication date was unknown when queued.';
+    }
+    if (priority.timestamp_kind === 'CREATED' && priority.timestamp_source === 'job.created_at'
+      && priority.basis === 'APPROVED_SKILL_EVIDENCE_AND_RECORD_CREATION_RECENCY') {
+      return 'Approved skill evidence and local record age determined the initial order. The publication date was unknown when queued.';
+    }
+  }
+  return 'Date evidence for the initial order is unknown.';
+}
+
 function OperationCard({ operation }: { operation: OperationProgressRecord }) {
   const priority = operation.operation_type === 'PREPARE' ? operation.preparation_priority : null;
-  const priorityLabels = ['Fresh excellent match', 'High', 'Normal', 'Deferred', 'Low', 'Unknown evidence'];
+  const priorityLabels = ['Highest', 'High', 'Normal', 'Deferred', 'Low', 'Unknown evidence'];
   const priorityValid = priority && Number.isInteger(priority.tier) && priority.tier >= 0 && priority.tier <= 5
     && Number.isInteger(priority.effective_tier) && priority.effective_tier >= 0 && priority.effective_tier <= 5;
   const stateCode = code(operation.state);
@@ -166,7 +194,8 @@ function OperationCard({ operation }: { operation: OperationProgressRecord }) {
     </dl>
     {priorityValid && <div>
       <p><strong>Preparation priority:</strong> {priorityLabels[priority.tier]}</p>
-      <p>Approved skill evidence and posting age determine the initial order; this is not a qualification assessment.</p>
+      <p>{preparationBasis(priority)}</p>
+      <p>This priority sets the internal processing order for document preparation.</p>
       {operation.state === 'QUEUED' && <p>{priority.effective_tier < priority.tier ? 'Promoted while waiting. ' : ''}
         Waiting work moves up one tier each hour. Running work is not interrupted.</p>}
     </div>}

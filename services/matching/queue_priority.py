@@ -29,6 +29,8 @@ QueueTierName = Literal["CRITICAL", "HIGH", "NORMAL", "DEFERRED", "STALE", "BACK
 DispatchPriority = Literal["HIGH", "NORMAL", "LOW"]
 MatchQualityBand = Literal["EXCEPTIONAL", "EXCELLENT", "STRONG", "POSSIBLE", "WEAK", "POOR", "UNKNOWN"]
 FreshnessBand = Literal["FRESH", "RECENT", "AGING", "STALE", "UNKNOWN"]
+TimestampKind = Literal["POSTED", "FIRST_SEEN", "CREATED", "UNKNOWN"]
+TimestampState = Literal["KNOWN", "INVALID", "FUTURE", "UNKNOWN"]
 
 
 class QueuePriorityResult(TypedDict):
@@ -41,6 +43,9 @@ class QueuePriorityResult(TypedDict):
     match_quality: MatchQualityBand
     freshness_band: FreshnessBand
     age_hours: float | None
+    timestamp_source: str
+    timestamp_kind: TimestampKind
+    timestamp_state: TimestampState
     explanation: str
     expedited: bool
     deferred: bool
@@ -55,9 +60,14 @@ def _parse_timestamp(value: Any) -> datetime | None:
             value = datetime.fromisoformat(text)
         except (ValueError, TypeError):
             return None
-    if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
+    if not isinstance(value, datetime):
         return None
-    return value.astimezone(timezone.utc)
+    try:
+        if value.tzinfo is None or value.utcoffset() is None:
+            return None
+        return value.astimezone(timezone.utc)
+    except (ValueError, TypeError, OverflowError):
+        return None
 
 
 def _extract_match_score(match: Any) -> float | None:
@@ -88,29 +98,52 @@ def _classify_match_quality(score: float | None) -> MatchQualityBand:
     return "POOR"
 
 
-def _extract_job_timestamp(job: Mapping[str, Any]) -> tuple[datetime | None, str]:
-    """Extract the most relevant freshness timestamp and its provenance."""
+def _timestamp_evidence(
+    value: Any, source: str, kind: TimestampKind,
+) -> tuple[datetime | None, str, TimestampKind, TimestampState]:
+    parsed = _parse_timestamp(value)
+    return parsed, source, kind, "KNOWN" if parsed is not None else "INVALID"
+
+
+def _supplied_timestamp(value: Any) -> bool:
+    return value is not None and value != ""
+
+
+def _extract_job_timestamp(
+    job: Mapping[str, Any],
+) -> tuple[datetime | None, str, TimestampKind, TimestampState]:
+    """Select date evidence using this queue's conservative precedence policy.
+
+    Explicit normalized publication evidence, then direct ``posted_at``, takes
+    precedence over first-seen observation and local record creation. Invalid
+    supplied evidence is retained as unknown rather than replaced by a lower
+    precedence date. In particular, normalized-null with a nonempty raw source
+    claim follows ``effective_job_timestamp``'s non-fallback convention.
+    First-seen/created values describe observed recency, never publication.
+    Local ``updated_at`` does not establish an employer publication update.
+    """
     attributes = job.get("attributes")
     if isinstance(attributes, Mapping):
-        # 1. First choice: employer/source-reported posting date
-        reported = _parse_timestamp(attributes.get("reported_posted_at"))
-        if reported is not None:
-            return reported, "attributes.reported_posted_at"
-        # 2. Second choice: first seen timestamp
-        first_seen = _parse_timestamp(attributes.get("first_seen_at"))
-        if first_seen is not None:
-            return first_seen, "attributes.first_seen_at"
+        reported = attributes.get("reported_posted_at")
+        if _supplied_timestamp(reported):
+            return _timestamp_evidence(reported, "attributes.reported_posted_at", "POSTED")
+        if _supplied_timestamp(attributes.get("reported_posted_at_raw")):
+            return None, "attributes.reported_posted_at_raw", "POSTED", "INVALID"
 
-    # 3. Third choice: direct job created_at / posted_at
-    posted_at = _parse_timestamp(job.get("posted_at"))
-    if posted_at is not None:
-        return posted_at, "job.posted_at"
+    posted_at = job.get("posted_at")
+    if _supplied_timestamp(posted_at):
+        return _timestamp_evidence(posted_at, "job.posted_at", "POSTED")
 
-    created_at = _parse_timestamp(job.get("created_at"))
-    if created_at is not None:
-        return created_at, "job.created_at"
+    if isinstance(attributes, Mapping):
+        first_seen = attributes.get("first_seen_at")
+        if _supplied_timestamp(first_seen):
+            return _timestamp_evidence(first_seen, "attributes.first_seen_at", "FIRST_SEEN")
 
-    return None, "UNKNOWN"
+    created_at = job.get("created_at")
+    if _supplied_timestamp(created_at):
+        return _timestamp_evidence(created_at, "job.created_at", "CREATED")
+
+    return None, "UNKNOWN", "UNKNOWN", "UNKNOWN"
 
 
 def _classify_freshness(age_hours: float | None) -> FreshnessBand:
@@ -133,10 +166,18 @@ def calculate_job_queue_priority(
 ) -> QueuePriorityResult:
     """Calculate queue priority for one job and match evidence.
 
-    Combines match quality with posting freshness:
+    Combines match quality with explicitly identified date evidence:
     - New excellent matches (score >= 85, age <= 24h) receive CRITICAL queue priority (Tier 0).
     - Fresh strong matches or recent excellent matches receive HIGH priority (Tier 1).
     - Older or lower-quality jobs are deferred behind fresh opportunities.
+
+    These tiers express internal processing preference, not an employer deadline.
+    This bounded policy treats every future date as FUTURE with unknown age and
+    freshness; no clock-skew allowance is assumed. Invalid or naive dates are
+    INVALID. A KNOWN first-seen/created time provides observation recency while
+    publication remains unknown. Raw input dates are never rewritten. These
+    conservative choices do not establish route state, employer closure, or a
+    source update-date contract required by the broader MJ-REF-056 capability.
     """
     if not isinstance(job, Mapping):
         raise ValueError("Job must be a mapping")
@@ -150,17 +191,21 @@ def calculate_job_queue_priority(
     match_quality = _classify_match_quality(match_score)
 
     current_time = _parse_timestamp(now) or datetime.now(timezone.utc)
-    job_time, time_source = _extract_job_timestamp(job)
+    job_time, time_source, time_kind, time_state = _extract_job_timestamp(job)
 
     if job_time is not None:
         age_hours = (current_time - job_time).total_seconds() / 3600.0
         if age_hours < 0:
-            # Future timestamp; treat as zero hours fresh
-            age_hours = 0.0
+            age_hours = None
+            time_state = "FUTURE"
     else:
         age_hours = None
 
     freshness = _classify_freshness(age_hours)
+    date_label = {
+        "POSTED": "posting", "FIRST_SEEN": "first-seen observation",
+        "CREATED": "local record", "UNKNOWN": "observation",
+    }[time_kind]
 
     # Determine Tier based on (match_quality, freshness)
     tier: int
@@ -175,8 +220,8 @@ def calculate_job_queue_priority(
         dispatch_priority = "HIGH"
         queue_weight = 100
         explanation = (
-            f"Expedited queue priority: fresh posting ({age_hours:.1f}h old) with "
-            f"{match_quality.lower()} match ({match_score:.1f}%). Process immediately."
+            f"Expedited queue priority: fresh {date_label} ({age_hours:.1f}h old) with "
+            f"{match_quality.lower()} match ({match_score:.1f}%)."
         )
     elif (match_quality in {"EXCEPTIONAL", "EXCELLENT"} and freshness == "RECENT") or (
         match_quality == "STRONG" and freshness == "FRESH"
@@ -187,12 +232,12 @@ def calculate_job_queue_priority(
         queue_weight = 80
         if freshness == "FRESH":
             explanation = (
-                f"High queue priority: fresh posting ({age_hours:.1f}h old) with "
+                f"High queue priority: fresh {date_label} ({age_hours:.1f}h old) with "
                 f"strong match ({match_score:.1f}%)."
             )
         else:
             explanation = (
-                f"High queue priority: recent posting ({age_hours / 24:.1f}d old) with "
+                f"High queue priority: recent {date_label} ({age_hours / 24:.1f}d old) with "
                 f"{match_quality.lower()} match ({match_score:.1f}%)."
             )
     elif (match_quality == "STRONG" and freshness == "RECENT") or (
@@ -212,7 +257,7 @@ def calculate_job_queue_priority(
         dispatch_priority = "LOW"
         queue_weight = 40
         explanation = (
-            f"Deferred queue priority: aging posting ({age_hours / 24:.1f}d old). "
+            f"Deferred queue priority: aging {date_label} ({age_hours / 24:.1f}d old). "
             f"Deferred behind fresher high-quality opportunities."
         )
     elif freshness == "STALE" or match_quality in {"WEAK", "POOR"}:
@@ -222,7 +267,7 @@ def calculate_job_queue_priority(
         queue_weight = 20
         if freshness == "STALE":
             explanation = (
-                f"Low queue priority: stale posting ({age_hours / 24:.1f}d old). "
+                f"Low queue priority: stale {date_label} ({age_hours / 24:.1f}d old). "
                 f"Processed after fresh jobs."
             )
         else:
@@ -237,9 +282,29 @@ def calculate_job_queue_priority(
         dispatch_priority = "LOW"
         queue_weight = 10
         explanation = (
-            "Background queue priority: match quality or posting freshness is UNKNOWN; "
+            "Background queue priority: match quality or usable recency evidence is UNKNOWN; "
             "scheduled for baseline evaluation."
         )
+
+    if time_state == "INVALID":
+        date_note = (
+            f"Publication date unknown: supplied {date_label} timestamp is invalid "
+            "or lacks a timezone; age is unknown."
+        )
+    elif time_state == "FUTURE":
+        date_note = (
+            f"Publication date unknown: supplied {date_label} timestamp is in the future; "
+            "age is unknown."
+        )
+    elif time_kind == "POSTED":
+        date_note = "Recency is based on the reported publication time."
+    elif time_kind == "FIRST_SEEN":
+        date_note = "Publication date unknown; recency is based on first-seen observation."
+    elif time_kind == "CREATED":
+        date_note = "Publication date unknown; recency is based on local record creation."
+    else:
+        date_note = "Publication date unknown; no usable observation timestamp is available."
+    explanation += f" {date_note} Internal processing preference."
 
     return {
         "job_id": job_id,
@@ -251,6 +316,9 @@ def calculate_job_queue_priority(
         "match_quality": match_quality,
         "freshness_band": freshness,
         "age_hours": round(age_hours, 2) if age_hours is not None else None,
+        "timestamp_source": time_source,
+        "timestamp_kind": time_kind,
+        "timestamp_state": time_state,
         "explanation": explanation,
         "expedited": tier in (0, 1),
         "deferred": tier >= 3,
@@ -294,6 +362,9 @@ def order_queue_by_fresh_priority(
         augmented["dispatch_priority"] = priority["dispatch_priority"]
         augmented["queue_weight"] = priority["queue_weight"]
         augmented["freshness_band"] = priority["freshness_band"]
+        augmented["timestamp_source"] = priority["timestamp_source"]
+        augmented["timestamp_kind"] = priority["timestamp_kind"]
+        augmented["timestamp_state"] = priority["timestamp_state"]
         augmented["match_quality"] = priority["match_quality"]
         augmented["queue_explanation"] = priority["explanation"]
         augmented["expedited"] = priority["expedited"]

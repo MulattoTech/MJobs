@@ -130,6 +130,9 @@ class PreparationPriorityTests(unittest.TestCase):
         snapshot = self.row(operation)["params"]["preparation_priority"]
         self.assertEqual(snapshot["tier"], 0)
         self.assertEqual(snapshot["match_score"], 100)
+        self.assertEqual(snapshot["timestamp_source"], "attributes.reported_posted_at")
+        self.assertEqual(snapshot["timestamp_kind"], "POSTED")
+        self.assertEqual(snapshot["timestamp_state"], "KNOWN")
         self.assertEqual(self.admit(job, "snapshot"), operation)
         reopened = Store(self.store.url)
         try:
@@ -140,8 +143,124 @@ class PreparationPriorityTests(unittest.TestCase):
             reopened.engine.dispose()
         public = self.client.get("/profiles/fixture/operations/progress").json()["operations"][0]
         self.assertEqual(public["preparation_priority"]["tier"], 0)
+        self.assertEqual(public["preparation_priority"]["basis"],
+                         "APPROVED_SKILL_EVIDENCE_AND_POSTING_AGE")
+        for field in ("timestamp_source", "timestamp_kind", "timestamp_state"):
+            self.assertEqual(public["preparation_priority"][field], snapshot[field])
         self.assertNotIn("profile_version", public["preparation_priority"])
         self.assertNotIn("job_fingerprint", public["preparation_priority"])
+
+    def test_timestamp_provenance_survives_replay_reopen_and_http_readback(self):
+        timestamp = datetime.now(timezone.utc)
+        recent = (timestamp - timedelta(hours=1)).isoformat()
+        future = (timestamp + timedelta(days=1)).isoformat()
+        cases = (
+            ("first-seen", {"first_seen_at": recent}, "attributes.first_seen_at",
+             "FIRST_SEEN", "KNOWN", "FIRST_SEEN_RECENCY"),
+            ("unknown", {}, "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN_RECENCY"),
+            ("invalid", {"reported_posted_at": "not-a-date", "first_seen_at": recent},
+             "attributes.reported_posted_at", "POSTED", "INVALID", "UNKNOWN_RECENCY"),
+            ("naive", {"reported_posted_at": "2026-01-01T00:00:00", "first_seen_at": recent},
+             "attributes.reported_posted_at", "POSTED", "INVALID", "UNKNOWN_RECENCY"),
+            ("raw-invalid", {"reported_posted_at": None,
+                             "reported_posted_at_raw": "an unparseable source date",
+                             "first_seen_at": recent},
+             "attributes.reported_posted_at_raw", "POSTED", "INVALID", "UNKNOWN_RECENCY"),
+            ("future", {"reported_posted_at": future, "first_seen_at": recent},
+             "attributes.reported_posted_at", "POSTED", "FUTURE", "UNKNOWN_RECENCY"),
+        )
+        admitted = []
+        for label, dates, source, kind, state, basis in cases:
+            with self.subTest(label=label):
+                job_id = self.job(label)
+                attributes = {key: value for key, value in self.store.job(job_id)["attributes"].items()
+                              if key not in {"reported_posted_at", "reported_posted_at_raw", "first_seen_at"}}
+                attributes.update(dates)
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                        attributes=attributes))
+                operation = self.admit(job_id, label)
+                snapshot = self.row(operation)["params"]["preparation_priority"]
+                expected = {"timestamp_source": source, "timestamp_kind": kind,
+                            "timestamp_state": state}
+                self.assertEqual({key: snapshot[key] for key in expected}, expected)
+                self.assertEqual(snapshot["tier"], 0 if state == "KNOWN" else 5)
+                self.assertEqual(snapshot["freshness_band"], "FRESH" if state == "KNOWN" else "UNKNOWN")
+                # Later source evidence and request replay must not rewrite the admission decision.
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                        attributes={**attributes, "reported_posted_at": recent}))
+                self.assertEqual(self.admit(job_id, label), operation)
+                self.assertEqual(self.row(operation)["params"]["preparation_priority"], snapshot)
+                admitted.append((operation, snapshot, expected, basis))
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:8090", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                # Even when the formerly future date has passed, only waiting-time aging changes.
+                with patch("services.operations.progress.now",
+                           return_value=(timestamp + timedelta(days=2)).isoformat()):
+                    response = client.get("/profiles/fixture/operations/progress")
+                self.assertEqual(response.status_code, 200, response.text)
+                public = {row["operation_id"]: row["preparation_priority"]
+                          for row in response.json()["operations"]}
+                for operation, snapshot, expected, basis in admitted:
+                    with self.subTest(operation=operation):
+                        with reopened.engine.connect() as connection:
+                            stored = connection.execute(select(m.operations.c.params).where(
+                                m.operations.c.id == operation)).scalar_one()
+                        self.assertEqual(stored["preparation_priority"], snapshot)
+                        priority = public[operation]
+                        self.assertEqual({key: priority[key] for key in expected}, expected)
+                        self.assertEqual(priority["basis"], f"APPROVED_SKILL_EVIDENCE_AND_{basis}")
+                        self.assertEqual(priority["tier"], snapshot["tier"])
+                        self.assertEqual(priority["enqueued_at"], snapshot["enqueued_at"])
+                        self.assertEqual(priority["effective_tier"], 0)
+                        for field in ("profile_version", "job_fingerprint", "reported_posted_at_raw"):
+                            self.assertNotIn(field, priority)
+        finally:
+            reopened.engine.dispose()
+
+    def test_legacy_priority_readback_has_unknown_dates_without_rewriting_snapshot(self):
+        from services.matching.preparation_priority import scheduling_key
+        job_id = self.job("legacy", age=1000)
+        operation = self.admit(job_id, "legacy")
+        row = self.row(operation)
+        legacy = {key: value for key, value in row["params"]["preparation_priority"].items()
+                  if key not in {"timestamp_source", "timestamp_kind", "timestamp_state"}}
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == operation).values(
+                params={**row["params"], "preparation_priority": legacy}))
+        timestamp = (datetime.fromisoformat(legacy["enqueued_at"]) + timedelta(hours=2)).isoformat()
+        before = scheduling_key(self.row(operation), timestamp)
+        self.assertEqual(legacy["tier"], 4)
+        self.assertEqual(before[0], 2)
+        self.assertEqual(self.admit(job_id, "legacy"), operation)
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:8090", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                with patch("services.operations.progress.now", return_value=timestamp):
+                    response = client.get("/profiles/fixture/operations/progress")
+                self.assertEqual(response.status_code, 200, response.text)
+                priority = response.json()["operations"][0]["preparation_priority"]
+                self.assertEqual(priority["basis"], "APPROVED_SKILL_EVIDENCE_AND_UNKNOWN_RECENCY")
+                for field in ("timestamp_source", "timestamp_kind", "timestamp_state"):
+                    self.assertEqual(priority[field], "UNKNOWN")
+                self.assertEqual(priority["tier"], legacy["tier"])
+                self.assertEqual(priority["queue_priority"], legacy["queue_priority"])
+                self.assertEqual(priority["effective_tier"], before[0])
+                self.assertEqual(priority["enqueued_at"], legacy["enqueued_at"])
+                self.assertNotIn("profile_version", priority)
+                self.assertNotIn("job_fingerprint", priority)
+                with reopened.engine.connect() as connection:
+                    persisted = dict(connection.execute(select(m.operations).where(
+                        m.operations.c.id == operation)).mappings().one())
+                self.assertEqual(persisted["params"]["preparation_priority"], legacy)
+                self.assertEqual(scheduling_key(persisted, timestamp), before)
+        finally:
+            reopened.engine.dispose()
 
     def test_aging_and_stable_ties_do_not_reset_on_redispatch(self):
         old = self.admit(self.job("old", age=1000, skills=["Java"]), "old")

@@ -212,10 +212,14 @@ def test_summarize_queue_distribution():
 
 
 def test_future_timestamp_handling():
-    # Future timestamp (e.g. clock drift) should not crash or cause negative age
+    # A future source claim is not evidence that a posting is fresh.
     job = {"id": "future-job", "posted_at": (NOW + timedelta(hours=2)).isoformat()}
     result = calculate_job_queue_priority(job, 88.0, now=NOW)
 
-    assert result["age_hours"] == 0.0
-    assert result["freshness_band"] == "FRESH"
-    assert result["tier"] == 0
+    assert result["age_hours"] is None
+    assert result["freshness_band"] == "UNKNOWN"
+    assert result["timestamp_state"] == "FUTURE"
+    assert result["timestamp_kind"] == "POSTED"
+    assert result["timestamp_source"] == "job.posted_at"
+    assert result["tier"] == 5
+    assert result["expedited"] is False

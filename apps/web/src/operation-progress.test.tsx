@@ -33,11 +33,70 @@ describe('persistent operation progress', () => {
     const waiting = { ...operation, operation_type: 'PREPARE', state: 'QUEUED', preparation_priority: {
       tier: 4, effective_tier: 0, queue_priority: 'STALE', enqueued_at: '2026-10-11T00:00:00Z',
       aging_interval_seconds: 3600, basis: 'APPROVED_SKILL_EVIDENCE_AND_POSTING_AGE',
+      timestamp_source: 'attributes.reported_posted_at', timestamp_kind: 'POSTED', timestamp_state: 'KNOWN',
     }};
     const html = renderToStaticMarkup(<OperationProgress operations={[waiting]} />);
     expect(html).toContain('Preparation priority:');
     expect(html).toContain('Promoted while waiting');
-    expect(html).toContain('Approved skill evidence and posting age');
+    expect(html).toContain('Approved skill evidence and reported posting age');
+    expect(html).toContain('internal processing order');
+  });
+  it.each([
+    ['POSTED', 'job.posted_at', 'POSTING_AGE', 'reported posting age'],
+    ['FIRST_SEEN', 'attributes.first_seen_at', 'FIRST_SEEN_RECENCY', 'first-seen recency'],
+    ['CREATED', 'job.created_at', 'RECORD_CREATION_RECENCY', 'local record age'],
+  ])('explains known %s evidence using its saved meaning', (kind, source, basis, expected) => {
+    const priority = {
+      tier: 0, effective_tier: 0, queue_priority: 'CRITICAL', enqueued_at: '2026-10-11T00:00:00Z',
+      aging_interval_seconds: 3600, basis: `APPROVED_SKILL_EVIDENCE_AND_${basis}`,
+      timestamp_source: source, timestamp_kind: kind, timestamp_state: 'KNOWN',
+    };
+    const html = renderToStaticMarkup(<OperationProgress operations={[{
+      ...operation, operation_type: 'PREPARE', preparation_priority: priority,
+    }]} />);
+    expect(html).toContain(`Approved skill evidence and ${expected}`);
+    expect(html).toContain('Highest');
+    expect(html).toContain('internal processing order');
+    expect(html).not.toContain('Fresh excellent match');
+    expect(html).not.toContain(source);
+    if (kind !== 'POSTED') {
+      expect(html).toContain('The publication date was unknown when queued.');
+      expect(html).not.toContain('reported posting age');
+    }
+  });
+  it.each([
+    ['FUTURE', 'The saved date was in the future when queued, so recency was unknown.'],
+    ['INVALID', 'The saved date could not be validated when queued, so recency was unknown.'],
+    ['UNKNOWN', 'Date evidence for the initial order is unknown.'],
+  ])('keeps %s date evidence unknown even with a stale posting-age basis', (state, expected) => {
+    const html = renderToStaticMarkup(<OperationProgress operations={[{
+      ...operation, operation_type: 'PREPARE', preparation_priority: {
+        tier: 5, effective_tier: 0, queue_priority: 'BACKGROUND', enqueued_at: '2026-10-11T00:00:00Z',
+        aging_interval_seconds: 3600, basis: 'APPROVED_SKILL_EVIDENCE_AND_POSTING_AGE',
+        timestamp_source: 'attributes.reported_posted_at', timestamp_kind: 'POSTED', timestamp_state: state,
+      },
+    }]} />);
+    expect(html).toContain(expected);
+    expect(html).not.toContain('reported posting age');
+    expect(html).not.toContain('Fresh excellent match');
+  });
+  it.each([
+    {},
+    { timestamp_kind: 'POSTED', timestamp_state: 'KNOWN' },
+    { timestamp_source: 'job.created_at', timestamp_kind: 'POSTED', timestamp_state: 'KNOWN' },
+    { timestamp_source: 'private-source-value', timestamp_kind: 'private-kind-value', timestamp_state: 'private-state-value' },
+    { timestamp_source: 'job.posted_at', timestamp_kind: 'POSTED', timestamp_state: 'KNOWN', basis: 'private-basis-value' },
+  ])('uses an unknown fallback for legacy, inconsistent, or unrecognized evidence %j', evidence => {
+    const html = renderToStaticMarkup(<OperationProgress operations={[{
+      ...operation, operation_type: 'PREPARE', preparation_priority: {
+        tier: 0, effective_tier: 0, queue_priority: 'CRITICAL', enqueued_at: '2026-10-11T00:00:00Z',
+        aging_interval_seconds: 3600, basis: 'APPROVED_SKILL_EVIDENCE_AND_POSTING_AGE', ...evidence,
+      },
+    }]} />);
+    expect(html).toContain('Date evidence for the initial order is unknown.');
+    expect(html).not.toContain('reported posting age');
+    expect(html).not.toContain('Fresh excellent match');
+    expect(html).not.toContain('private-');
   });
   it('shows the persisted retry deadline while safely queued', () => {
     const waiting = { ...operation, state: 'QUEUED', current_step: 'RETRY_WAIT',
