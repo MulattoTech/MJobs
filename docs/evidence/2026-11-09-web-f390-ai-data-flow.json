@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "run_id": "web-20261109T131810Z-f390e73add1a",
-  "recorded_at_utc": "2026-11-09T15:33:31.427485+00:00",
+  "recorded_at_utc": "2026-11-09T20:59:35.099737+00:00",
   "requirement_ids": [
     "MJ-REF-042",
     "MJ-REQ-171"
@@ -56,8 +56,8 @@
     },
     {
       "criterion": "Automated tests and connected user journey",
-      "result": "PARTIAL",
-      "evidence": "Python and UI suites pass; real browser test assertions added, but browser environment prevented execution."
+      "result": "PASS_FOR_SLICE",
+      "evidence": "Original Python/UI validation retained; exact frozen36689984 hosted disclosure journey passed once in5.124s with no skip. Full four-shard browser workflow remains FAILURE:271PASS/26FAIL/5SKIP across302primary cases plus46successful subtests."
     },
     {
       "criterion": "Canonical acceptance publication",
@@ -100,6 +100,43 @@
       "command": "tools.verification.catalogue; progress validate; progress_dashboard --check; reference_provenance; commit_provenance --commit HEAD; git diff --check",
       "result": "PASS",
       "exit_code": 0
+    },
+    {
+      "revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "command": "Existing browser-regression.yml workflow_dispatch run42670650376; select the named disclosure node from verified browser-0.xml",
+      "nodeid": "tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload",
+      "result": "PASS",
+      "tests": 1,
+      "skips": 0,
+      "seconds": 5.124,
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42670650376",
+      "proof_receipt_sha256": "b8174522a485375fb28998e7946910ea92e4de6fc4c02df7892071e65cbbe6a8"
+    },
+    {
+      "revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "command": "Existing browser-regression.yml workflow_dispatch run42670650376; complete four-shard JUnit inventory",
+      "result": "FAIL",
+      "primary_tests": 302,
+      "primary_passed": 271,
+      "primary_failed": 26,
+      "primary_errors": 0,
+      "primary_skipped": 5,
+      "successful_subtests": 46,
+      "note": "Whole-suite result remains separate from the bounded disclosure PASS; no unrelated failure or skip is waived."
+    },
+    {
+      "revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "command": "Security / secret scan; run42668241010/job129337549295",
+      "result": "PASS",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42668241010"
+    },
+    {
+      "revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "command": "Integration run42668241164; all3shards succeeded but required aggregate was never created",
+      "result": "FAIL",
+      "required_aggregate_result": "NOT_RUN",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42668241164",
+      "note": "Visible GitHub internal server error; one failed-job retry rejected403 without execution."
     }
   ],
   "independent_review": {
@@ -111,33 +148,544 @@
     "resolved_finding": "Runtime provider guard now matches backend six-provider allowlist and sanitizes malformed provider labels"
   },
   "browser_validation": {
-    "result": "NOT_RUN_ENVIRONMENT",
-    "test": "tests/browser/test_profile_ai_credentials.py",
-    "attempts": [
+    "result": "PASS_FOR_BOUNDED_DISCLOSURE_JOURNEY",
+    "tested_revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+    "test": "tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload",
+    "run": {
+      "id": 42670650376,
+      "name": "Browser regression - full synthetic suite",
+      "event": "workflow_dispatch",
+      "path": ".github/workflows/browser-regression.yml",
+      "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "head_branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T18:04:03Z",
+      "updated_at": "2026-11-09T18:15:00Z",
+      "run_started_at": "2026-11-09T18:04:03Z",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42670650376",
+      "workflow_id": 381443516
+    },
+    "case": {
+      "classname": "tests.browser.test_profile_ai_credentials.ProfileAICredentialBrowserTests",
+      "name": "test_explicit_saved_key_selection_rotation_worker_and_history_reload",
+      "group": "disclosure",
+      "matches": 1,
+      "seconds": 5.124,
+      "result": "PASS",
+      "junit_member": "browser-0.xml",
+      "artifact_id": 13697814642,
+      "artifact_name": "browser-results-0",
+      "target_group": "disclosure",
+      "nodeid": "tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload",
+      "skips": 0
+    },
+    "job_id": 129346013142,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42670650376/job/129346013142",
+    "proof_receipt": {
+      "filename": "browser42670650376-verification.json",
+      "bytes": 74840,
+      "sha256": "b8174522a485375fb28998e7946910ea92e4de6fc4c02df7892071e65cbbe6a8",
+      "review": "Root and independent /root/pr_readiness verified the original run, four artifact archives, checkout revisions and JUnit inventory; this update rechecks the retained receipt digest and selected result."
+    },
+    "artifact_integrity": {
+      "result": "PASS",
+      "archives": [
+        {
+          "artifact": {
+            "id": 13697814642,
+            "name": "browser-results-0",
+            "size_in_bytes": 21642,
+            "digest": "sha256:cc555688eb4cb058d31d0a75f9ab38670657bf95ea1975bcac1461461ecc2977",
+            "created_at": "2026-11-09T18:08:43Z",
+            "updated_at": "2026-11-09T18:08:43Z",
+            "expired": false,
+            "workflow_run": {
+              "id": 42670650376,
+              "repository_id": 1396540139,
+              "head_repository_id": 1396540139,
+              "head_branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+              "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939"
+            }
+          },
+          "zip_verification": {
+            "downloaded_bytes": 21642,
+            "sha256": "cc555688eb4cb058d31d0a75f9ab38670657bf95ea1975bcac1461461ecc2977",
+            "metadata_digest_matches": true,
+            "metadata_size_matches": true,
+            "artifact_run_id_matches": true,
+            "artifact_head_sha_matches": true,
+            "member_crc_valid": true
+          },
+          "junit_files": [
+            {
+              "member": "browser-0.xml",
+              "uncompressed_bytes": 122571,
+              "sha256": "687457e6722f72210230ae10c76ee1c447f8ef26b2bb8e8f945fea18a8ad80ed",
+              "declared_suite_counts": {
+                "tests": 65,
+                "failures": 6,
+                "errors": 0,
+                "skipped": 0
+              },
+              "testcase_elements": 63,
+              "primary_case_counts": {
+                "PASS": 57,
+                "FAIL": 6,
+                "ERROR": 0,
+                "SKIP": 0
+              }
+            }
+          ]
+        },
+        {
+          "artifact": {
+            "id": 13698189403,
+            "name": "browser-results-1",
+            "size_in_bytes": 31459,
+            "digest": "sha256:086775922128981f69dcfeb469e5830a8a3d8c71eed52fbe51066b78195e111b",
+            "created_at": "2026-11-09T18:09:33Z",
+            "updated_at": "2026-11-09T18:09:33Z",
+            "expired": false,
+            "workflow_run": {
+              "id": 42670650376,
+              "repository_id": 1396540139,
+              "head_repository_id": 1396540139,
+              "head_branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+              "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939"
+            }
+          },
+          "zip_verification": {
+            "downloaded_bytes": 31459,
+            "sha256": "086775922128981f69dcfeb469e5830a8a3d8c71eed52fbe51066b78195e111b",
+            "metadata_digest_matches": true,
+            "metadata_size_matches": true,
+            "artifact_run_id_matches": true,
+            "artifact_head_sha_matches": true,
+            "member_crc_valid": true
+          },
+          "junit_files": [
+            {
+              "member": "browser-1.xml",
+              "uncompressed_bytes": 189854,
+              "sha256": "e2f3c9e402ec55ee1b2f664ee1a0ed96cc2099d6aa3c339bdf8b6001beedbd49",
+              "declared_suite_counts": {
+                "tests": 97,
+                "failures": 9,
+                "errors": 0,
+                "skipped": 0
+              },
+              "testcase_elements": 75,
+              "primary_case_counts": {
+                "PASS": 66,
+                "FAIL": 9,
+                "ERROR": 0,
+                "SKIP": 0
+              }
+            }
+          ]
+        },
+        {
+          "artifact": {
+            "id": 13698802723,
+            "name": "browser-results-2",
+            "size_in_bytes": 8723,
+            "digest": "sha256:e98376a4ba290c1ee6b5e0610f3e729a4bacb495abd1403d816fe7256f43791b",
+            "created_at": "2026-11-09T18:14:55Z",
+            "updated_at": "2026-11-09T18:14:55Z",
+            "expired": false,
+            "workflow_run": {
+              "id": 42670650376,
+              "repository_id": 1396540139,
+              "head_repository_id": 1396540139,
+              "head_branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+              "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939"
+            }
+          },
+          "zip_verification": {
+            "downloaded_bytes": 8723,
+            "sha256": "e98376a4ba290c1ee6b5e0610f3e729a4bacb495abd1403d816fe7256f43791b",
+            "metadata_digest_matches": true,
+            "metadata_size_matches": true,
+            "artifact_run_id_matches": true,
+            "artifact_head_sha_matches": true,
+            "member_crc_valid": true
+          },
+          "junit_files": [
+            {
+              "member": "browser-2.xml",
+              "uncompressed_bytes": 43426,
+              "sha256": "b0c380d30892f7138fb03556d3d09df850614405fa4ab9ce863bb2c78ab4589d",
+              "declared_suite_counts": {
+                "tests": 107,
+                "failures": 4,
+                "errors": 0,
+                "skipped": 1
+              },
+              "testcase_elements": 100,
+              "primary_case_counts": {
+                "PASS": 95,
+                "FAIL": 4,
+                "ERROR": 0,
+                "SKIP": 1
+              }
+            }
+          ]
+        },
+        {
+          "artifact": {
+            "id": 13698857215,
+            "name": "browser-results-3",
+            "size_in_bytes": 14743,
+            "digest": "sha256:28539cd5e169bc571d2e02392e5b045976b26d25b21b10a3e234b2badbd993d5",
+            "created_at": "2026-11-09T18:10:05Z",
+            "updated_at": "2026-11-09T18:10:05Z",
+            "expired": false,
+            "workflow_run": {
+              "id": 42670650376,
+              "repository_id": 1396540139,
+              "head_repository_id": 1396540139,
+              "head_branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+              "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939"
+            }
+          },
+          "zip_verification": {
+            "downloaded_bytes": 14743,
+            "sha256": "28539cd5e169bc571d2e02392e5b045976b26d25b21b10a3e234b2badbd993d5",
+            "metadata_digest_matches": true,
+            "metadata_size_matches": true,
+            "artifact_run_id_matches": true,
+            "artifact_head_sha_matches": true,
+            "member_crc_valid": true
+          },
+          "junit_files": [
+            {
+              "member": "browser-3.xml",
+              "uncompressed_bytes": 85263,
+              "sha256": "d4d211b2905d94294f3a08433905a69dc985c0f876e7e2ed57d1acce0baca65e",
+              "declared_suite_counts": {
+                "tests": 79,
+                "failures": 7,
+                "errors": 0,
+                "skipped": 4
+              },
+              "testcase_elements": 64,
+              "primary_case_counts": {
+                "PASS": 53,
+                "FAIL": 7,
+                "ERROR": 0,
+                "SKIP": 4
+              }
+            }
+          ]
+        }
+      ],
+      "checkout": [
+        {
+          "job_id": 129346009458,
+          "run_id": 42670650376,
+          "expected_head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+          "head_sha_seen_in_job_log": true
+        },
+        {
+          "job_id": 129346010307,
+          "run_id": 42670650376,
+          "expected_head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+          "head_sha_seen_in_job_log": true
+        },
+        {
+          "job_id": 129346010374,
+          "run_id": 42670650376,
+          "expected_head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+          "head_sha_seen_in_job_log": true
+        },
+        {
+          "job_id": 129346013142,
+          "run_id": 42670650376,
+          "expected_head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+          "head_sha_seen_in_job_log": true
+        }
+      ]
+    },
+    "full_suite": {
+      "workflow_conclusion": "failure",
+      "primary_testcase_elements": 302,
+      "primary_case_counts": {
+        "PASS": 271,
+        "FAIL": 26,
+        "ERROR": 0,
+        "SKIP": 5
+      },
+      "declared_suite_counts": {
+        "tests": 348,
+        "failures": 26,
+        "errors": 0,
+        "skipped": 5
+      },
+      "additional_suite_entries": 46,
+      "subtests_passed_observed_in_job_logs": 46,
+      "interpretation": "Primary testcase totals and successful subtests are separate. Nonpassing unrelated cases are preserved; this is not a full-suite PASS."
+    },
+    "failed_cases": [
       {
-        "environment": "Pinned Playwright1.63 Chromium1243",
-        "result": "Browser download returned invalid/truncated ZIP"
+        "classname": "tests.browser.test_application_review_queue.ApplicationReviewQueueBrowserTests",
+        "name": "test_unresolved_question_routes_to_review_and_saves_only_with_explicit_consent",
+        "result": "FAIL",
+        "artifact_id": 13697814642,
+        "junit_member": "browser-0.xml"
       },
       {
-        "environment": "Playwright1.63 with installed Chromium156.0.8078.79",
-        "result": "Browser launch blocked by OS socket Operation not permitted before journey assertions"
+        "classname": "tests.browser.test_cover_letter_preview.CoverLetterPreviewBrowserTests",
+        "name": "test_preview_is_bound_explained_recoverable_and_read_only",
+        "result": "FAIL",
+        "artifact_id": 13697814642,
+        "junit_member": "browser-0.xml"
+      },
+      {
+        "classname": "tests.browser.test_job_sorting.JobSortingBrowserTests",
+        "name": "test_newest_selection_orders_connected_jobs_after_profile_reload",
+        "result": "FAIL",
+        "artifact_id": 13697814642,
+        "junit_member": "browser-0.xml"
+      },
+      {
+        "classname": "tests.browser.test_preference_weighting",
+        "name": "test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "FAIL",
+        "artifact_id": 13697814642,
+        "junit_member": "browser-0.xml"
+      },
+      {
+        "classname": "tests.browser.test_recruiter_classification.RecruiterClassificationBrowserTests",
+        "name": "test_classification_is_evidence_bound_advisory_and_never_filters_or_writes",
+        "result": "FAIL",
+        "artifact_id": 13697814642,
+        "junit_member": "browser-0.xml"
+      },
+      {
+        "classname": "tests.browser.test_resume_tailoring_facts.ResumeTailoringFactsBrowserTests",
+        "name": "test_dropping_named_credential_is_reported_and_creates_no_tailored_version",
+        "result": "FAIL",
+        "artifact_id": 13697814642,
+        "junit_member": "browser-0.xml"
+      },
+      {
+        "classname": "tests.browser.test_application_priority_mount.ApplicationPriorityMountedPanelBrowserTests",
+        "name": "test_mounted_panel_hides_misscoped_data_and_retries_read_only",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_browser_job_extraction_ui.BrowserJobExtractionUiTests",
+        "name": "test_local_capture_preview_is_reviewable_scoped_and_read_only",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_greenhouse_autodiscovery.GreenhouseAutodiscoveryBrowserTests",
+        "name": "test_new_aggregator_employer_review_enrollment_reload_and_pause",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_matching_explanation_workflow.MatchingExplanationWorkflowBrowserTests",
+        "name": "test_saved_match_explanation_scope_stale_retry_and_read_only",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_mock_answer_bindings.MockAnswerBindingFlowTests",
+        "name": "test_edit_invalidated_question_answer_does_not_bind",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_mock_answer_bindings.MockAnswerBindingFlowTests",
+        "name": "test_wrong_question_on_legacy_slot_id_does_not_fall_back_to_id",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_responsive_design_sustain_256.ResponsiveJobsBrowserTests",
+        "name": "test_jobs_fit_desktop_tablet_and_mobile_with_keyboard_selection",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests",
+        "name": "test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_source_candidate_review_panel_connected.SourceCandidateReviewPanelConnectedTests",
+        "name": "test_filters_review_retry_profile_isolation_and_durable_readback",
+        "result": "FAIL",
+        "artifact_id": 13698189403,
+        "junit_member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_kind_edit_requires_fresh_review",
+        "result": "FAIL",
+        "artifact_id": 13698802723,
+        "junit_member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_source_edit_requires_fresh_review",
+        "result": "FAIL",
+        "artifact_id": 13698802723,
+        "junit_member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_text_edit_requires_fresh_review",
+        "result": "FAIL",
+        "artifact_id": 13698802723,
+        "junit_member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests",
+        "name": "test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "FAIL",
+        "artifact_id": 13698802723,
+        "junit_member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_job_risk_signals.JobRiskSignalsBrowserTests",
+        "name": "test_risk_evidence_is_limited_unknown_and_non_blocking",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_manual_capture_review_receipt_safety.ManualCaptureReviewReceiptSafetyTests",
+        "name": "test_failed_capture_retry_preserves_rejection_receipt_after_reload",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_match_feedback_workflow.MatchFeedbackWorkflowBrowserTests",
+        "name": "test_categories_retry_readback_isolation_and_review_only_preferences",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_explicit_ordering_reaches_worker_and_download",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_responsibility_matched_summary_survives_prepare_reload_and_comparison",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_target_bullet_fallback_explicit_precedence_and_reload",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_user_reviewed_technology_experience_rewrite_survives_reload",
+        "result": "FAIL",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
       }
     ],
-    "connected_browser": "Browser plugin bootstrap timed out; no authenticated runtime page or candidate journey verified"
+    "skipped_cases": [
+      {
+        "classname": "tests.browser.test_manual_auth_departed_recovery.ManualAuthDepartedRecoveryTests",
+        "name": "test_api_departure_closed_tree_recovery_reload_then_explicit_retry",
+        "result": "SKIP",
+        "artifact_id": 13698802723,
+        "junit_member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests",
+        "name": "test_mounted_api_closes_original_tree_then_allows_separate_explicit_retry",
+        "result": "SKIP",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests",
+        "name": "test_mounted_prelaunch_cancellation_confirms_native_rollback_and_releases_capacity",
+        "result": "SKIP",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests",
+        "name": "test_native_sign_in_persists_for_separate_worker_dry_run_without_replay",
+        "result": "SKIP",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      },
+      {
+        "classname": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests",
+        "name": "test_saved_attempt_private_host_observer_closure_and_held_capacity",
+        "result": "SKIP",
+        "artifact_id": 13698857215,
+        "junit_member": "browser-3.xml"
+      }
+    ],
+    "historical_local_validation": {
+      "status": "HISTORICAL; unavailable local execution is preserved, superseded for this bounded journey by the hosted proof above",
+      "original_record": {
+        "result": "NOT_RUN_ENVIRONMENT",
+        "test": "tests/browser/test_profile_ai_credentials.py",
+        "attempts": [
+          {
+            "environment": "Pinned Playwright1.63 Chromium1243",
+            "result": "Browser download returned invalid/truncated ZIP"
+          },
+          {
+            "environment": "Playwright1.63 with installed Chromium156.0.8078.79",
+            "result": "Browser launch blocked by OS socket Operation not permitted before journey assertions"
+          }
+        ],
+        "connected_browser": "Browser plugin bootstrap timed out; no authenticated runtime page or candidate journey verified"
+      }
+    },
+    "scope_limits": [
+      "This is one successful synthetic built-UI disclosure journey, not a full-browser-suite PASS.",
+      "Full MJ-REF-042 privacy/data-flow transparency and MJ-REQ-171 PII protection remain incomplete.",
+      "No real provider, production origin or deployment acceptance is claimed."
+    ]
   },
   "prerequisites": {
     "MJ-REQ-171": "PARTIAL umbrella; this disclosure is independently testable privacy groundwork, not a full PII acceptance claim",
     "MJ-REQ-175": "Recorded PASS preserved; saved-key boundaries exercised by this focused suite, broader acceptance not freshly certified"
   },
   "not_run": [
-    "Full unit suite",
-    "PostgreSQL-specific new acceptance",
-    "Actual built-UI browser journey",
+    "PostgreSQL-specific new disclosure acceptance",
     "Real provider inference or billing",
     "Authenticated production origin/revision",
     "Deployment",
     "Whole MJ-REF-042 acceptance",
-    "REF058/REF059 dependency promotion"
+    "Whole MJ-REQ-171 PII acceptance",
+    "REF058/REF059 dependency promotion",
+    "Required Integration / PostgreSQL and Redis aggregate on frozen36689984: never created",
+    "Required hosted gates on the resulting, not-yet-published evidence update"
   ],
   "remaining_work": [
     "Cover other AI/document/browser/network operations",
@@ -176,20 +724,31 @@
     },
     "integrity": "git diff --check and commit provenance PASS",
     "required_hosted_checks": "Pending on refreshed publication head; prior-head success is retained separately and is not a substitute",
-    "canonical_acceptance": "Unchanged; no full requirement promoted"
+    "canonical_acceptance": "Unchanged; no full requirement promoted",
+    "record_scope": "HISTORICAL refresh snapshot; later frozen-head results below supersede its pending-CI note without changing the recorded regression evidence."
   },
   "browser_workflow_coverage": {
-    "inspected_head": "db9892c83042e010fd68c4eeac35616a1caedf2c",
-    "reviewer": "/root/pr_readiness",
-    "result": "New disclosure browser assertions NOT_RUN",
-    "automatic_ci": "Connected workflow uses cli.ui_e2e plus five named browser files; tests/browser/test_profile_ai_credentials.py is not selected. Integration shards select only tests/integration.",
-    "manual_option": "browser-regression.yml has no test-file inputs and runs all four browser shards; no manual run dispatched",
-    "specific_next_command": "python -m pytest -q tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload --junitxml=outputs/ci/profile-ai-disclosure.xml",
-    "environment_blockers": [
-      "Pinned Chromium download invalid ZIP",
-      "Installed Chromium socket() EPERM before test assertions",
-      "Connected browser runtime bootstrap timeout"
-    ],
+    "inspected_head": "36689984ce32c84fcc592cb4225a50c8a4863939",
+    "result": "Specific disclosure case PASS through the existing manual four-shard workflow; full workflow FAILURE preserved",
+    "automatic_ci": "Automatic connected and integration workflows do not select this browser file; they do not substitute for the named hosted browser result.",
+    "executed_manual_run": 42670650376,
+    "workflow": ".github/workflows/browser-regression.yml",
+    "target_nodeid": "tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload",
+    "manual_dispatches_for_frozen_head": 1,
+    "historical_before_dispatch": {
+      "inspected_head": "db9892c83042e010fd68c4eeac35616a1caedf2c",
+      "reviewer": "/root/pr_readiness",
+      "result": "New disclosure browser assertions NOT_RUN",
+      "automatic_ci": "Connected workflow uses cli.ui_e2e plus five named browser files; tests/browser/test_profile_ai_credentials.py is not selected. Integration shards select only tests/integration.",
+      "manual_option": "browser-regression.yml has no test-file inputs and runs all four browser shards; no manual run dispatched",
+      "specific_next_command": "python -m pytest -q tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload --junitxml=outputs/ci/profile-ai-disclosure.xml",
+      "environment_blockers": [
+        "Pinned Chromium download invalid ZIP",
+        "Installed Chromium socket() EPERM before test assertions",
+        "Connected browser runtime bootstrap timeout"
+      ],
+      "upstream_refresh_changes_workflow_or_browser_source": false
+    },
     "upstream_refresh_changes_workflow_or_browser_source": false
   },
   "scanner_repair": {
@@ -226,7 +785,8 @@
     "change": "Only exact immutable commit/path/rule/line fingerprints appended to existing .gitleaksignore; no source, scanner rule, workflow, path-wide or value-wide exemption",
     "independence": "Root and /root/telemetry_scope recomputed independently",
     "policy": "Shared scanner-file claim acquired through existing atomic coordinator",
-    "new_head_scanner_result": "Pending at this evidence snapshot; consult exact-head CI and final run checkpoint"
+    "new_head_scanner_result": "Pending at this evidence snapshot; consult exact-head CI and final run checkpoint",
+    "record_scope": "HISTORICAL repair stage; later frozen36689984 own secret-scan success is recorded under hosted_ci and reviewed_scanner_reuse."
   },
   "reviewed_scanner_reuse": {
     "run_id": "web-20261109T173838Z-82ee9dc5ccd8",
@@ -240,10 +800,156 @@
     "dependency_passed_scan_url": "https://github.com/MulattoTech/MJobs/actions/runs/42661816471/job/129315056547",
     "scope": "Exact same five immutable commit/path/rule/line fingerprints reused after release and atomic claim; preserves all prior entries and all scanner rules and all-ref coverage.",
     "own_claim": "web:web-20261109T173838Z-82ee9dc5ccd8:PR1000-resume",
-    "new_own_head_ci": "PENDING; dependency success is not own-head success",
+    "new_own_head_ci": "Own frozen36689984 Security / secret scan PASS in run42668241010/job129337549295; this does not establish all required gates or future-head success.",
     "own_previous_gate": "FAILURE retained at 4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
     "production_source_and_test_changes": false,
     "canonical_changes": false,
-    "next_validation": "Freeze publication head, obtain own required scan and one existing full browser workflow including the disclosure journey."
+    "next_validation": "Commit and publish the completed milestone evidence, then obtain required protected checks on the resulting head. Preserve source binding to the completed frozen-head browser proof."
+  },
+  "evidence_update": {
+    "owner_run": "web-20261109T173838Z-82ee9dc5ccd8",
+    "stage": "Completed frozen-head proof correction; pending commit and publication",
+    "base_revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+    "latest_hosted_tested_revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+    "scope": "Only this evidence and its paired handoff change. No runtime, test, workflow or scanner file changes. Future publication-head gates remain NOT_RUN.",
+    "source_binding": {
+      "implementation_revision": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+      "hosted_revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "path_count": 7,
+      "all_equal": true,
+      "bindings": [
+        {
+          "path": "services/ai/data_flow.py",
+          "git_blob": "4c618d016f6098c8c2ed22849e3dc21cf0031707",
+          "sha256": "4f1b2326b7fbdc8a5dfadded188d6907c9ad8374d0433286a39267c4088fd708",
+          "same_at_implementation_and_frozen_head": true
+        },
+        {
+          "path": "services/ai/provider_credentials.py",
+          "git_blob": "3d9f392f876649d36d93e0ff7d939ac0ce0f4bea",
+          "sha256": "9a460be6fa671bd59e570de8dd76049558e70b92844de3d52699f418c12b162b",
+          "same_at_implementation_and_frozen_head": true
+        },
+        {
+          "path": "apps/web/src/ai-search-provenance.tsx",
+          "git_blob": "69f1aba7bd345b0f2de71b5bb6067d28df1c60f8",
+          "sha256": "f1fe933e7d8299db3abb713f72803d6a6c5425a5efa2f883b12f0c5dc7d9493c",
+          "same_at_implementation_and_frozen_head": true
+        },
+        {
+          "path": "apps/web/src/ai-search-provenance.test.tsx",
+          "git_blob": "39f6f397b0b5f51fcde7f0b1b42ed50ab12e273d",
+          "sha256": "5a43396224f3c378350ed84044dbe5631464342840da6e88f76609eacc058af4",
+          "same_at_implementation_and_frozen_head": true
+        },
+        {
+          "path": "tests/unit/test_ai_data_flow_disclosure.py",
+          "git_blob": "64dd8c188717d0df6df1bb54c97ed0090b92673c",
+          "sha256": "538c3e4d24699a03c1d978b260404b3d8135c4c233d4e52efe4be50589408d67",
+          "same_at_implementation_and_frozen_head": true
+        },
+        {
+          "path": "tests/integration/test_profile_ai_credentials.py",
+          "git_blob": "de913425d10e3122ec538690e4415333d813944c",
+          "sha256": "80adee2aed78f832b5f1cf69c155ee3423e27e82ecfe270cde35c77348931d96",
+          "same_at_implementation_and_frozen_head": true
+        },
+        {
+          "path": "tests/browser/test_profile_ai_credentials.py",
+          "git_blob": "d003d2d71a8fec945a46946e0bbc5b9e2d8e5ffb",
+          "sha256": "c0b4f6b7650abace5799285533ca2afcfc6e97487dc71a5acfab7bb43140b752",
+          "same_at_implementation_and_frozen_head": true
+        }
+      ]
+    }
+  },
+  "tested_revision_scope": "Original implementation validation; each subsequent validation entry names its own exact revision. Latest hosted proof is bound separately to36689984.",
+  "canonical_status_snapshot": {
+    "basis": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "MJ-REF-042": "NOT_RUN",
+    "MJ-REQ-171": "PARTIAL",
+    "changed": false,
+    "interpretation": "Both whole requirements remain incomplete; bounded disclosure proof does not promote either canonical authority."
+  },
+  "historical_not_run_snapshot": {
+    "stage": "Original implementation evidence before the completed manual browser run",
+    "items": [
+      "Full unit suite",
+      "PostgreSQL-specific new acceptance",
+      "Actual built-UI browser journey",
+      "Real provider inference or billing",
+      "Authenticated production origin/revision",
+      "Deployment",
+      "Whole MJ-REF-042 acceptance",
+      "REF058/REF059 dependency promotion"
+    ]
+  },
+  "hosted_ci": {
+    "frozen_revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+    "scanner": {
+      "result": "PASS",
+      "id": 42668241010,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42668241010",
+      "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "job": {
+        "id": 129337549295,
+        "name": "Security / secret scan",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42668241010/job/129337549295"
+    },
+    "integration": {
+      "result": "FAILURE_WITH_REQUIRED_AGGREGATE_NOT_RUN",
+      "id": 42668241164,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42668241164",
+      "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+      "status": "completed",
+      "conclusion": "failure",
+      "attempt": 1,
+      "successful_shards": [
+        {
+          "id": 129337549838,
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 129337550139,
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 129337550152,
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "required_aggregate": {
+        "name": "Integration / PostgreSQL and Redis",
+        "result": "NOT_RUN",
+        "job_created": false
+      },
+      "run_level_diagnostic": {
+        "source": "Visible GitHub run page read by root on2026-11-09 at20:39UTC",
+        "message": "Internal server error. Correlation ID: 42a56566-391d-4e0f-b074-443e41960a38",
+        "observed_at_utc": "2026-11-09T20:39:51.036687+00:00"
+      },
+      "bounded_failed_job_retry": {
+        "attempts": 1,
+        "result": "REJECTED_NO_EXECUTION",
+        "http_status": 403,
+        "message": "This workflow run cannot be retried",
+        "capacity_precheck": "Root confirmed zero active/queued repository jobs before the single request."
+      }
+    },
+    "all_required_checks": "INCOMPLETE; absent aggregate is NOT_RUN, not PASS",
+    "resulting_evidence_update_checks": "NOT_RUN; no future SHA or current-head pass is asserted",
+    "policy": "Protected required checks remain enabled. No retry loop, check skipping, bypass or integration is performed by this evidence correction."
   }
 }
