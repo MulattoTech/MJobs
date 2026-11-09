@@ -1,0 +1,699 @@
+{
+  "schema_version": 1,
+  "evidence_id": "2026-11-09-web-82ee-source-child-acceptance",
+  "recorded_at_utc": "2026-11-09T17:55:13.750375+00:00",
+  "run_id": "web-20261109T173838Z-82ee9dc5ccd8",
+  "scope": "Complete child-criterion revalidation for Remote OK and Remotive, not parent MJ-REQ-017 or scheduler acceptance.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "tree": "35447039890f0d5785bdc48a967cd7fb13a9c8cd",
+    "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/source-child-acceptance",
+    "runtime_and_test_changes": false,
+    "source_blobs": {
+      "services/discovery/sources/remoteok.py": {
+        "git_blob": "96d4899945dbc06cf3c9645e257a5f9d4d625c25",
+        "sha256": "d3b6afcc0531d0c9d1835a3703ecd0b1e200ee3cc7fd1faf132c9655d40f0b2b",
+        "worktree_matches_git": true
+      },
+      "services/discovery/sources/remotive.py": {
+        "git_blob": "df2cab7105ab04f62e745da5f2904c2ba7934a5f",
+        "sha256": "3ad86c3c73efc9af81a7dc38897ce587de5a004f8b4ddfb21622765847994cf3",
+        "worktree_matches_git": true
+      },
+      "services/discovery/sources/contract.py": {
+        "git_blob": "6ed7d7fe9b60d871b001c2e8ec9e53e62a7b0424",
+        "sha256": "f9a0d473a017fdf7d3efca5fa2b002e107207c27db34f758a6c075f1401cdf9c",
+        "worktree_matches_git": true
+      },
+      "services/discovery/sources/registry.py": {
+        "git_blob": "2b304038496b9a643e07f08deadd9397b4c8154a",
+        "sha256": "3043d1c43c64ba011382439f577d35c9b4f5e110159b4a355514f2b30b990e40",
+        "worktree_matches_git": true
+      },
+      "services/discovery/sources/collect.py": {
+        "git_blob": "d377cc09c5a6f70aa04d21289d2ad7c38e596c40",
+        "sha256": "4db2e08aaf4a3035c61ba72d039bf006401427c1f6fe1f66d2a20a714321986f",
+        "worktree_matches_git": true
+      },
+      "services/discovery/sources/http_transport.py": {
+        "git_blob": "516386410f9f0e43c720de572a450f3233a11f13",
+        "sha256": "702549bbde24463b23fadd6e2231bf8a1e2a34d30226cb20d35c677339b66ff5",
+        "worktree_matches_git": true
+      },
+      "services/discovery/sources/errors.py": {
+        "git_blob": "28183d9b8fea686cf9d9577d8e98090cdcc8e68e",
+        "sha256": "56db073c314c6f04d65618c2a28ac7819b2d7b8adc321e7b1f774e1f52aac66f",
+        "worktree_matches_git": true
+      },
+      "tests/integration/test_remoteok.py": {
+        "git_blob": "838a2fe56bd724e7ceb3d1313f06966cc7bd1013",
+        "sha256": "25788ba6dc26b06ede9873967239ac04ad8ac976b652a5b8e572a029eec0608b",
+        "worktree_matches_git": true
+      },
+      "tests/unit/test_remoteok_salary.py": {
+        "git_blob": "1ead9cdc0c98cdecb6bb2a40409de2f520caa9dc",
+        "sha256": "14bfa7a67406ec32ccbd5e670331445abe97882d2de8b5d89945becb3c7d89ae",
+        "worktree_matches_git": true
+      },
+      "tests/integration/test_remotive.py": {
+        "git_blob": "613566c1c075e8851657e08b2052d8f68e71e8ef",
+        "sha256": "07ee54db1b91b4bdb3eab0425adaa40fc29d0efec659965b8d1b8138a2008462",
+        "worktree_matches_git": true
+      },
+      "tests/integration/test_remotive_job_id_isolation.py": {
+        "git_blob": "7ad36528fd10b211f11793b037629af7095baf2e",
+        "sha256": "c34fc38cf250f820fcaf68dc6b1d34674c9cb5c6c86ef1d0c34b77cf6c67e23b",
+        "worktree_matches_git": true
+      },
+      "tests/unit/test_remotive_body_deadline.py": {
+        "git_blob": "e33ff81decb158e7cfe0f0107260b7c66e8f8890",
+        "sha256": "8513c02a151d3f83c9dc4aae03ef68aff9a93b6042faeff469f55706fc171b4e",
+        "worktree_matches_git": true
+      },
+      "tests/unit/test_remotive_job_ids.py": {
+        "git_blob": "4d58491895231684e4b851e54d18fcbf4e253c5d",
+        "sha256": "6c09964e2cff30869ebbe24de45c88972ed7ba287a41440a361d00530d43e00e",
+        "worktree_matches_git": true
+      },
+      "tests/unit/test_remotive_url_contract.py": {
+        "git_blob": "bbabc50cada9cee565a5ee83b421c62aec1175ed",
+        "sha256": "336d54e27897fa84190ab8f44b617aca89e4d33ee190e6fb7ac8fa4eac13ea6f",
+        "worktree_matches_git": true
+      },
+      "tests/unit/test_operation_cancellation_commit.py": {
+        "git_blob": "d61335b53abd9f9f1f26e9bc9ccc44ec7f11289a",
+        "sha256": "7483cba5861f7e63488f05b0a2b0bd9c60f4b793d1625320fe9cd64f36ea5bf8",
+        "worktree_matches_git": true
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de",
+        "worktree_matches_git": true
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215",
+        "worktree_matches_git": true
+      }
+    },
+    "snapshot_role": "Original unchanged f3db acceptance source; all original tests/live outcomes below remain bound to that revision. The subsequent Remotive working-tree repair has a separate receipt."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "implementation": "CPython",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "packages": {
+      "pytest": "9.0.3",
+      "pytest-subtests": "not separately installed",
+      "httpx": "0.28.1",
+      "httpcore": "1.0.9",
+      "SQLAlchemy": "2.1.1",
+      "fastapi": "0.142.1"
+    }
+  },
+  "primary_access_policy": {
+    "method": "web primary-source reads, verified with official-domain search",
+    "sources": [
+      {
+        "provider": "remoteok",
+        "url": "https://remoteok.com/faq",
+        "observed": "Official FAQ offers unauthenticated public JSON API at /api, permits tag filters, and requires source credit and links to original listings when shared.",
+        "safe_probe_basis": "One documented GET with tag=engineer, no credentials, no redistribution or application actions."
+      },
+      {
+        "provider": "remoteok",
+        "url": "https://remoteok.com/legal",
+        "observed": "Terms updated 2026-10-26 require a backlink on an app screen or page using API/site data."
+      },
+      {
+        "provider": "remotive",
+        "url": "https://remotive.com/remote-jobs/api",
+        "observed": "Official API page grants API access, requires Remotive attribution and original listing links, prohibits forwarding jobs to other third-party job sites, and says jobs are delayed 24 hours."
+      },
+      {
+        "provider": "remotive",
+        "url": "https://github.com/remotive-com/remote-jobs-api/blob/main/README.md",
+        "observed": "Official linked documentation specifies GET /api/remote-jobs and a limit parameter; advises a maximum of four fetches per day and says more than two requests per minute will be blocked."
+      },
+      {
+        "provider": "remotive",
+        "url": "https://remotive.com/terms-of-use",
+        "observed": "General website terms prohibit unauthorized scraping/automated extraction. This probe uses the separately documented public API grant; it does not scrape HTML, access subscription-only data, or redistribute jobs."
+      }
+    ],
+    "inference": "The explicit public API documentation supports one bounded read-only verification per provider. This is not a legal conclusion about commercial redistribution, continued scheduling, or every product display.",
+    "no_paid_or_authenticated_access": true,
+    "raw_public_listing_content_retained": false,
+    "checked_date_utc": "2026-11-09",
+    "ordering": "Primary policy reads completed before the 2026-11-09T17:48:50Z adapter attempts."
+  },
+  "requirements": [
+    {
+      "id": "MJ-REQ-017.S07",
+      "issue": 308,
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/308",
+      "issue_state_observed": "open",
+      "recorded_matrix_result": "PASS",
+      "revalidation_result": "PASS",
+      "closure_eligible": true,
+      "closure_decision": "Root completed independent review and closed #308 as completed at 2026-11-09T17:57:42Z. This reconciles an already-recorded PASS and changes no canonical acceptance total.",
+      "capabilities": {
+        "strategy": "PUBLIC_JSON",
+        "supported": [
+          "DISCOVERY",
+          "JOB_DETAIL",
+          "SALARY",
+          "REMOTE_METADATA",
+          "APPLICATION_REDIRECT"
+        ],
+        "unsupported": [
+          "DIRECT_APPLICATION",
+          "APPLICATION_STATUS"
+        ]
+      },
+      "criteria": [
+        {
+          "id": 1,
+          "criterion": "Declare exact capabilities supported rather than implying unsupported behavior.",
+          "result": "PASS",
+          "evidence": "Exact declared capability and unsupported-feature tests passed; live metadata preserved no direct application or status support."
+        },
+        {
+          "id": 2,
+          "criterion": "Add deterministic fixtures/contract tests.",
+          "result": "PASS",
+          "evidence": "17 Remote OK integration/salary tests passed, including multi-company persistence, registry, normalization, malformed optional pay, errors, payload/deadline and stream cancellation; no test code changes."
+        },
+        {
+          "id": 3,
+          "criterion": "Perform bounded live read-only validation where appropriate and safe.",
+          "result": "PASS",
+          "evidence": "First cloud attempt BLOCKED at connection; separate authorized RDC attempt on the same exact source returned 3/3 bounded valid results, HEALTHY, all nine assertions true in 1.594 s."
+        },
+        {
+          "id": 4,
+          "criterion": "Record limitations and last-tested evidence.",
+          "result": "PASS",
+          "evidence": "This receipt binds policy, timestamps, exact source/commands, both network attempts, and explicit capability/scheduler limitations."
+        },
+        {
+          "id": 5,
+          "criterion": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+          "result": "PASS",
+          "evidence": "Existing fixed public API endpoint; one adapter GET per environment attempt; no credentials, redirect following, retries, private endpoint, HTML scraping or application action. Cloud failure was not bypassed by this worker; root chose its separately authorized normal RDC route."
+        }
+      ],
+      "live_attempts": [
+        {
+          "provider": "remoteok",
+          "started_at_utc": "2026-11-09T17:48:50.950910+00:00",
+          "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+          "method": "GET",
+          "endpoint": "https://remoteok.com/api?tag=engineer",
+          "adapter_search_arguments": {
+            "tag": "engineer",
+            "limit": 3
+          },
+          "adapter_search_calls": 1,
+          "maximum_http_requests_by_unchanged_source": 1,
+          "redirects": false,
+          "retries": 0,
+          "request_timeout_seconds": 15,
+          "overall_budget_seconds": 25,
+          "response_body_limit_bytes": 5000000,
+          "credentials": false,
+          "raw_job_content_retained": false,
+          "database_opened": false,
+          "result": "BLOCKED",
+          "error_types": [
+            "SourceError",
+            "ConnectError",
+            "ConnectError"
+          ],
+          "health": "SOURCE_NETWORK_ERROR",
+          "elapsed_seconds": 0.176598,
+          "finished_at_utc": "2026-11-09T17:48:51.127538+00:00",
+          "environment": "cloud Linux",
+          "attempt": 1
+        },
+        {
+          "provider": "remoteok",
+          "started_at_utc": "2026-11-09T17:50:50.755900+00:00",
+          "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+          "method": "GET",
+          "endpoint": "https://remoteok.com/api?tag=engineer",
+          "adapter_search_arguments": {
+            "tag": "engineer",
+            "limit": 3
+          },
+          "adapter_search_calls": 1,
+          "maximum_http_requests_by_unchanged_source": 1,
+          "redirects": false,
+          "retries": 0,
+          "request_timeout_seconds": 15,
+          "overall_budget_seconds": 25,
+          "response_body_limit_bytes": 5000000,
+          "credentials": false,
+          "raw_job_content_retained": false,
+          "database_opened": false,
+          "result": "PASS",
+          "checks": {
+            "one_to_three_results": true,
+            "titles_present": true,
+            "provider_job_ids_present": true,
+            "remote_type": true,
+            "provider_attribution": true,
+            "complete_inventory_false": true,
+            "source_links_present": true,
+            "no_direct_application": true,
+            "no_application_status": true
+          },
+          "count": 3,
+          "health": "HEALTHY",
+          "elapsed_seconds": 1.594,
+          "finished_at_utc": "2026-11-09T17:50:52.346138+00:00",
+          "environment": "authorized normal RDC host",
+          "attempt": 2,
+          "receipt_provenance": "Executed and transferred by root; exact checkout HEAD verified by root and recorded in receipt."
+        }
+      ],
+      "latest_issue_state": "closed",
+      "issue_closure": {
+        "state_reason": "completed",
+        "closed_at_utc": "2026-11-09T17:57:42Z",
+        "performed_by": "root coordinating agent",
+        "independent_review": "Root independently reviewed all five criteria, delivered main/source/test contracts and executed the exact-host live probe.",
+        "readback": "Independently fetched issue308 after closure; closed/completed and timestamp confirmed.",
+        "original_issue_body_preserved": true,
+        "canonical_matrix_changed": false,
+        "accepted_original_count_delta": 0,
+        "cited_preclosure_receipt_sha256": "e84269994b41f1c21c8b9fe98388418303d989855e4eee52bdf544fe22b0138d",
+        "exact_preclosure_bytes_preserved_at": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/source-child-acceptance-preclosure-e8426999.json"
+      }
+    },
+    {
+      "id": "MJ-REQ-017.S08",
+      "issue": 309,
+      "issue_url": "https://github.com/MulattoTech/MJobs/issues/309",
+      "issue_state_observed": "open",
+      "recorded_matrix_result": "PASS",
+      "revalidation_result": "FAIL",
+      "closure_eligible": false,
+      "closure_decision": "Keep open. Preserve the known result-limit defect and failed live assertion until an authorized owner repairs and verifies it; historical PASS is not fresh full-criterion evidence.",
+      "capabilities": {
+        "strategy": "PUBLIC_JSON",
+        "supported": [
+          "DISCOVERY",
+          "JOB_DETAIL",
+          "SALARY",
+          "REMOTE_METADATA",
+          "APPLICATION_REDIRECT"
+        ],
+        "unsupported": [
+          "DIRECT_APPLICATION",
+          "APPLICATION_STATUS"
+        ]
+      },
+      "criteria": [
+        {
+          "id": 1,
+          "criterion": "Declare exact capabilities supported rather than implying unsupported behavior.",
+          "result": "PASS",
+          "evidence": "Exact declared/unsupported capability tests and live normalization metadata passed. No full inventory or submission/status support is claimed."
+        },
+        {
+          "id": 2,
+          "criterion": "Add deterministic fixtures/contract tests.",
+          "result": "FAIL",
+          "evidence": "68 existing child-focused tests passed, but they omit search(limit=...). New scratch regression reproduces 12 returned items for limit=3 with one synthetic GET; its upper-bound assertion FAILS. Existing tests are not sufficient to claim the newly observed contract is correct."
+        },
+        {
+          "id": 3,
+          "criterion": "Perform bounded live read-only validation where appropriate and safe.",
+          "result": "FAIL",
+          "evidence": "First cloud attempt BLOCKED. Authorized RDC request was HEALTHY, with eight metadata assertions true, but returned 12 items for limit=3, so the recorded bounded-result assertion FAILS. Time/body limits remained enforced; this is not a full live PASS."
+        },
+        {
+          "id": 4,
+          "criterion": "Record limitations and last-tested evidence.",
+          "result": "PASS",
+          "evidence": "Both attempts, upstream policy, exact source, failed assertion, remedy candidate and unresolved cancellation gate are preserved."
+        },
+        {
+          "id": 5,
+          "criterion": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+          "result": "PASS",
+          "evidence": "Documented public API GET only. No access controls, rate limits, authentication, subscription content or anti-bot mechanisms were bypassed; no retry or job redistribution."
+        }
+      ],
+      "live_attempts": [
+        {
+          "provider": "remotive",
+          "started_at_utc": "2026-11-09T17:48:50.950906+00:00",
+          "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+          "method": "GET",
+          "endpoint": "https://remotive.com/api/remote-jobs?limit=3",
+          "adapter_search_arguments": {
+            "limit": 3
+          },
+          "adapter_search_calls": 1,
+          "maximum_http_requests_by_unchanged_source": 1,
+          "redirects": false,
+          "retries": 0,
+          "request_timeout_seconds": 15,
+          "overall_budget_seconds": 25,
+          "response_body_limit_bytes": 5000000,
+          "credentials": false,
+          "raw_job_content_retained": false,
+          "database_opened": false,
+          "result": "BLOCKED",
+          "error_types": [
+            "SourceError",
+            "ConnectError",
+            "ConnectError"
+          ],
+          "health": "SOURCE_NETWORK_ERROR",
+          "elapsed_seconds": 0.177096,
+          "finished_at_utc": "2026-11-09T17:48:51.128031+00:00",
+          "environment": "cloud Linux",
+          "attempt": 1
+        },
+        {
+          "provider": "remotive",
+          "started_at_utc": "2026-11-09T17:50:52.527901+00:00",
+          "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+          "method": "GET",
+          "endpoint": "https://remotive.com/api/remote-jobs?limit=3",
+          "adapter_search_arguments": {
+            "limit": 3
+          },
+          "adapter_search_calls": 1,
+          "maximum_http_requests_by_unchanged_source": 1,
+          "redirects": false,
+          "retries": 0,
+          "request_timeout_seconds": 15,
+          "overall_budget_seconds": 25,
+          "response_body_limit_bytes": 5000000,
+          "credentials": false,
+          "raw_job_content_retained": false,
+          "database_opened": false,
+          "result": "FAIL",
+          "checks": {
+            "one_to_three_results": false,
+            "titles_present": true,
+            "provider_job_ids_present": true,
+            "remote_type": true,
+            "provider_attribution": true,
+            "complete_inventory_false": true,
+            "source_links_present": true,
+            "no_direct_application": true,
+            "no_application_status": true
+          },
+          "count": 12,
+          "health": "HEALTHY",
+          "elapsed_seconds": 1.125,
+          "finished_at_utc": "2026-11-09T17:50:53.644969+00:00",
+          "environment": "authorized normal RDC host",
+          "attempt": 2,
+          "receipt_provenance": "Executed and transferred by root; exact checkout HEAD verified by root and recorded in receipt."
+        }
+      ]
+    }
+  ],
+  "executed_checks": [
+    {
+      "command": [
+        "/workspace/scratch/8cd5b6b0e512/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_remoteok.py",
+        "tests/unit/test_remoteok_salary.py",
+        "tests/integration/test_remotive.py",
+        "tests/integration/test_remotive_job_id_isolation.py",
+        "tests/unit/test_remotive_body_deadline.py",
+        "tests/unit/test_remotive_job_ids.py",
+        "tests/unit/test_remotive_url_contract.py",
+        "-k",
+        "not live_bounded_search_read_only",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/deterministic.xml"
+      ],
+      "start_utc": "2026-11-09T17:47:25.946055+00:00",
+      "elapsed_seconds": 7.612704672996188,
+      "exit_code": 0,
+      "stdout_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/deterministic.log",
+      "junit_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/deterministic.xml",
+      "command_text": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/integration/test_remoteok.py tests/unit/test_remoteok_salary.py tests/integration/test_remotive.py tests/integration/test_remotive_job_id_isolation.py tests/unit/test_remotive_body_deadline.py tests/unit/test_remotive_job_ids.py tests/unit/test_remotive_url_contract.py -k 'not live_bounded_search_read_only' --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/deterministic.xml",
+      "result": "PASS",
+      "passed": 85,
+      "subtests_passed": 47,
+      "deselected": 1,
+      "skipped": 0,
+      "deselection_reason": "Remote OK live test excluded from deterministic group; separate single-GET live probe executed instead.",
+      "groups": {
+        "tests.integration.test_remoteok.RemoteOKTests": {
+          "passed": 13,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "tests.unit.test_remoteok_salary.RemoteOKSalaryTests": {
+          "passed": 4,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "tests.integration.test_remotive.RemotiveTests": {
+          "passed": 11,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "tests.integration.test_remotive_job_id_isolation": {
+          "passed": 3,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "tests.unit.test_remotive_body_deadline.RemotiveBodyDeadlineTests": {
+          "passed": 4,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "tests.unit.test_remotive_job_ids": {
+          "passed": 19,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "tests.unit.test_remotive_url_contract": {
+          "passed": 31,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        }
+      },
+      "pytest_summary": "85 passed, 1 deselected, 47 subtests passed in 5.59s"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8cd5b6b0e512/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_operation_cancellation_commit.py::OperationCancellationCommitTests::test_source_watchers_do_not_delay_their_cancellation_commit",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/cancellation-commit.xml"
+      ],
+      "start_utc": "2026-11-09T17:50:45.675387+00:00",
+      "elapsed_seconds": 1.0142977880022954,
+      "exit_code": 0,
+      "stdout_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/cancellation-commit.log",
+      "junit_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/cancellation-commit.xml",
+      "command_text": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/unit/test_operation_cancellation_commit.py::OperationCancellationCommitTests::test_source_watchers_do_not_delay_their_cancellation_commit --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/cancellation-commit.xml",
+      "result": "PASS",
+      "passed": 1,
+      "subtests_passed": 12,
+      "skipped": 0,
+      "pytest_summary": "1 passed, 12 subtests passed in 0.46s",
+      "limitation": "One exact-main synthetic commit/cancellation test. Does not erase PR987's failing hosted case on a different source/fixture head or prove all durable scheduling."
+    },
+    {
+      "command_text": "PYTHONPATH=. /workspace/scratch/8cd5b6b0e512/venv/bin/python /workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive_limit_probe.py",
+      "exit_code": 1,
+      "result": "FAIL",
+      "regression_receipt": {
+        "checked_at_utc": "2026-11-09T17:53:28.386586+00:00",
+        "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "result": "FAIL",
+        "network_requests": 0,
+        "repository_mutations": 0,
+        "cases": [
+          {
+            "provider": "remotive",
+            "requested_limit": 3,
+            "upstream_fixture_count": 12,
+            "expected_returned_count": 3,
+            "actual_returned_count": 12,
+            "requests": [
+              {
+                "method": "GET",
+                "path": "/api/remote-jobs",
+                "query": {
+                  "limit": "3"
+                }
+              }
+            ],
+            "checks": {
+              "returned_count_matches_limit": false,
+              "one_get": true,
+              "stable_order": true,
+              "complete_inventory_false": true
+            },
+            "result": "FAIL"
+          },
+          {
+            "provider": "remotive",
+            "requested_limit": null,
+            "upstream_fixture_count": 12,
+            "expected_returned_count": 12,
+            "actual_returned_count": 12,
+            "requests": [
+              {
+                "method": "GET",
+                "path": "/api/remote-jobs",
+                "query": {}
+              }
+            ],
+            "checks": {
+              "returned_count_matches_limit": true,
+              "one_get": true,
+              "stable_order": true,
+              "complete_inventory_false": true
+            },
+            "result": "PASS"
+          },
+          {
+            "provider": "remoteok",
+            "requested_limit": 3,
+            "upstream_fixture_count": 12,
+            "expected_returned_count": 3,
+            "actual_returned_count": 3,
+            "requests": [
+              {
+                "method": "GET",
+                "path": "/api",
+                "query": {}
+              }
+            ],
+            "checks": {
+              "returned_count_matches_limit": true,
+              "one_get": true,
+              "stable_order": true,
+              "complete_inventory_false": true
+            },
+            "result": "PASS"
+          },
+          {
+            "provider": "remoteok",
+            "requested_limit": null,
+            "upstream_fixture_count": 12,
+            "expected_returned_count": 12,
+            "actual_returned_count": 12,
+            "requests": [
+              {
+                "method": "GET",
+                "path": "/api",
+                "query": {}
+              }
+            ],
+            "checks": {
+              "returned_count_matches_limit": true,
+              "one_get": true,
+              "stable_order": true,
+              "complete_inventory_false": true
+            },
+            "result": "PASS"
+          }
+        ]
+      },
+      "scope": "In-memory MockTransport comparison; zero network requests; unchanged production classes. Remotive limit=3 fails, Remotive unlimited and both Remote OK controls pass."
+    }
+  ],
+  "remotive_limit_finding": {
+    "location": "services/discovery/sources/remotive.py:Remotive.search",
+    "observed": "Positive limit is sent to the provider but all accepted response rows are returned. The live API and a deterministic overlarge fixture both return 12 items for limit=3.",
+    "contract_basis": [
+      "Official provider README documents limit as the number of job listing results, not as an advisory minimum.",
+      "Remotive.search explicitly accepts and validates a positive integer limit.",
+      "RemoteOK.search enforces the same caller-facing parameter locally by slicing accepted items."
+    ],
+    "contract_qualification": "SourceAdapter Protocol has no typed limit argument and no broader generic limit postcondition. The defect assessment is specific to Remotive's explicit parameter and the documented provider behavior, not an invented universal interface guarantee.",
+    "provider_docs_url": "https://github.com/remotive-com/remote-jobs-api/blob/main/README.md",
+    "existing_test_gap": "tests/integration/test_remotive.py never invokes search(limit=...).",
+    "bounded_remedy_candidate": "After existing malformed-row filtering, cap returned accepted items to limit when not None, preserving order, query parameters, one GET, unlimited behavior and complete_inventory=False. Add a focused excess-results fixture and unlimited/invalid-limit controls.",
+    "ownership": "No fix authored: runtime services/discovery/sources/** is under a legacy active claim; root must coordinate with that owner before edits."
+  },
+  "related_unresolved_gate": {
+    "pr": 987,
+    "url": "https://github.com/MulattoTech/MJobs/pull/987",
+    "head": "b3109c95e81fc8db1d53baaef6aeaa1776f23034",
+    "reported_case": "COMPANY_SOURCE_REFRESH / mjobs-remotive-cancellation",
+    "observed_elapsed_seconds": 0.90333,
+    "required_less_than_seconds": 0.35,
+    "hosted_job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42561554310/job/128978869671",
+    "state": "UNRESOLVED; preserved from live PR metadata",
+    "acceptance_rule": "A child-specific integration failure reproduced on the candidate must be addressed before closure. This receipt does not waive the named gate or promote source scheduling. The existing child-focused integration suites passed here; the Remotive limit defect independently prevents closure."
+  },
+  "limitations": [
+    "MJ-REQ-017 parent remains PARTIAL; no other source adapter is accepted by this receipt.",
+    "Live API checks verify current public feed/normalization metadata only, not scheduled discovery, durable workers, repeated polling policy, full inventory, or current vacancy availability.",
+    "Remotive API documentation states a 24-hour feed delay. No live freshness guarantee is inferred.",
+    "Source credit/backlink and redistribution restrictions remain applicable to any subsequent display or reuse; this verification retains no live job descriptions or titles.",
+    "Real external application submission and application-status checks are unsupported and were not attempted.",
+    "Full repository, PostgreSQL/Redis, connected browser and fresh hosted gates were not run by this worker.",
+    "Remote host Python/package versions are not present in the transferred metadata; root verified the exact checkout and is the executor of those receipts."
+  ],
+  "authority": {
+    "claim": "source_children",
+    "claimed_by_root_until": "2026-11-09T18:30:00Z",
+    "owned_paths": [
+      "docs/evidence/2026-11-09-web-82ee-source-child-acceptance.json",
+      "planning/agent_handoffs/MJ-REQ-017.S07-S08-82ee.json"
+    ],
+    "canonical_matrices_changed": false,
+    "issues_changed": false,
+    "runtime_or_test_files_changed": false,
+    "committed": false,
+    "pushed": false,
+    "merged": false,
+    "scope_note": "These action flags describe this worker's original acceptance execution. Root's later issue closure and this worker's separately authorized repair are recorded in follow_up."
+  },
+  "artifact_hashes": {
+    "deterministic.log": "a5189980fc71bdda6af9e2d9e61959cc3c0dfd1b8577d4038edf1825ec1da41a",
+    "deterministic.xml": "8ffad26aa153000b206c516c60cff65e30118ef56b7356974e61be7b5daad0cb",
+    "cancellation-commit.log": "c63936a4cbb4a34106d7ba91ec537c7d86e8b42489da1e02821fc305e96cb571",
+    "cancellation-commit.xml": "344392ed9000c1a30c921f372838c2766b1ed46ef1e6a778012151ca2de2ce53",
+    "live_probe.py": "5a9957dfc8829e75436b4de705f9c3fa9cda6e2402caca06ca4cf3efa018893d",
+    "live-remoteok.json": "b805826fe243139fe733827df7fcc2c0d127b28a913b5eaaa5e25db1115b066a",
+    "live-remotive.json": "f9a10d263f3620cbea1aad8cadccae1f95ce597f58f96fb817f9ccaf12c8b865",
+    "remoteok-rdc-live.json": "fefde9bef13c564c6626a4a0062d5f38e44e17e28f20ddab12e432d151e65af4",
+    "remotive-rdc-live.json": "d5904c87c444f80feb87ea2a63527e020c32855eb6eae5370704aa3e1ffc5f5b",
+    "remotive_limit_probe.py": "b1357c3103f223b7d35a5a1dd4af897814b904473e50cd4f6ed310bbdfa622b9",
+    "remotive-limit-regression.json": "32d9a0f0de34721882f95bcc983ef0a0eeb02474cdfca5fc29303bea6d003785"
+  },
+  "follow_up": {
+    "recorded_at_utc": "2026-11-09T18:03:43.864608+00:00",
+    "original_preclosure_receipt_sha256": "e84269994b41f1c21c8b9fe98388418303d989855e4eee52bdf544fe22b0138d",
+    "remoteok_closed_by_root": true,
+    "remotive_issue_state": "open",
+    "remotive_prior_failures_preserved": true,
+    "remotive_runtime_ownership_recovered_by_root": true,
+    "remotive_fix_evidence": "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json",
+    "remotive_fix_state": "UNCOMMITTED_WORKING_TREE; meaningful baseline failure and fixed 82-test PASS; independent review, commit, fresh live decision and protected delivery pending.",
+    "claim_recovery_note": "The original ownership blocker in remotive_limit_finding describes the earlier observation and was subsequently resolved by root's audited verified-orphan recovery."
+  }
+}

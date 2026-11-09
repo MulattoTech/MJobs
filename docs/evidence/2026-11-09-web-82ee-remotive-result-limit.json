@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "evidence_id": "2026-11-09-web-82ee-remotive-result-limit",
+  "recorded_at_utc": "2026-11-09T18:03:43.864608+00:00",
+  "run_id": "web-20261109T173838Z-82ee9dc5ccd8",
+  "requirement": "MJ-REQ-017.S08",
+  "issue": 309,
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/309",
+  "problem": "The existing Remotive adapter returned 12 results when the caller requested limit=3. This was observed through the public API and reproduced with a deterministic excess-response fixture.",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/source-child-acceptance",
+    "state": "UNCOMMITTED_WORKING_TREE",
+    "tested_source_binding": "The base revision alone is not the fixed candidate. Exact tested runtime/test byte hashes below bind the uncommitted source.",
+    "baseline_runtime_sha256": "3ad86c3c73efc9af81a7dc38897ce587de5a004f8b4ddfb21622765847994cf3",
+    "files": [
+      {
+        "path": "services/discovery/sources/remotive.py",
+        "git_blob_for_current_bytes": "c21376b3d54aec1a80e38d56bdbdc6d921b4ed11",
+        "sha256": "e2ce300e42b49328493c73ea5c3af28d380301341ba0532f091dc539b42956ff",
+        "bytes": 18164
+      },
+      {
+        "path": "tests/unit/test_remotive_search_limit.py",
+        "git_blob_for_current_bytes": "db3350eeb9b87952c5a7121bc46d93fe2bc463e2",
+        "sha256": "f6b0949d15771be2f74669d0623473b017e7eafa5cc1b9c4f390a2bc802cb0ce",
+        "bytes": 3388
+      }
+    ],
+    "runtime_diff_sha256": "62406158b509bed95270eb79243f9ba2d5534347531fa0590fadefe3d780d27a",
+    "runtime_diff": "diff --git a/services/discovery/sources/remotive.py b/services/discovery/sources/remotive.py\nindex df2cab71..c21376b3 100644\n--- a/services/discovery/sources/remotive.py\n+++ b/services/discovery/sources/remotive.py\n@@ -270,6 +270,8 @@ class Remotive:\n                 domain=\"https://remotive.com\",\n             )\n             items.append(SourceItem(raw, company))\n+            if limit is not None and len(items) >= limit:\n+                break\n \n         return SearchBatch(\n             endpoint=API_URL,\n"
+  },
+  "change": {
+    "function": "services/discovery/sources/remotive.py:Remotive.search",
+    "behavior": "After appending a dictionary row accepted by the existing filter, stop building the batch when the requested non-None limit is reached.",
+    "preserved": [
+      "Provider order and each selected raw posting/company attribution.",
+      "Existing category, search and limit query parameters.",
+      "Exactly one GET; no fetch, retry or follow-up request introduced.",
+      "Unlimited limit=None behavior used by existing consumers.",
+      "Fewer or empty provider results.",
+      "Existing positive-integer limit validation before I/O.",
+      "Existing non-object row filtering; malformed prefix rows do not consume the accepted-item budget.",
+      "complete_inventory=False; no full inventory or scheduler claim."
+    ],
+    "untouched": [
+      "HTTP transport, cancellation callbacks, deadlines and cleanup.",
+      "The PR987 cancellation bound and its unrelated hosted failure.",
+      "Application capabilities, submission behavior and source normalization.",
+      "Canonical acceptance matrices and public issue state."
+    ]
+  },
+  "regression_cases": [
+    "Twelve upstream jobs with limit=1 or limit=3 return only the requested number, preserving raw rows, company attribution, order, endpoint and query.",
+    "Non-object rows before and between valid dictionary rows do not consume limit=3.",
+    "Zero or two upstream jobs for limit=3 remain unchanged.",
+    "limit=None returns all twelve items and omits the limit query parameter.",
+    "Zero, negative, boolean, float, string, list and mapping limits fail before the mock transport receives any request."
+  ],
+  "baseline": {
+    "command": [
+      "/workspace/scratch/8cd5b6b0e512/venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_remotive_search_limit.py",
+      "--tb=short",
+      "--junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-baseline.xml"
+    ],
+    "start_utc": "2026-11-09T18:00:13.304672+00:00",
+    "elapsed_seconds": 0.5292770669911988,
+    "exit_code": 1,
+    "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "runtime_sha256": "3ad86c3c73efc9af81a7dc38897ce587de5a004f8b4ddfb21622765847994cf3",
+    "test_sha256": "f6b0949d15771be2f74669d0623473b017e7eafa5cc1b9c4f390a2bc802cb0ce",
+    "stdout_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-baseline.log",
+    "junit_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-baseline.xml",
+    "command_text": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/unit/test_remotive_search_limit.py --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-baseline.xml",
+    "result": "FAIL",
+    "expected_failure": true,
+    "junit": {
+      "tests": 14,
+      "passed": 11,
+      "failed": 3,
+      "errors": 0,
+      "skipped": 0,
+      "failed_cases": [
+        "tests.unit.test_remotive_search_limit::test_excess_upstream_results_are_capped_without_changing_order_or_query[1]",
+        "tests.unit.test_remotive_search_limit::test_excess_upstream_results_are_capped_without_changing_order_or_query[3]",
+        "tests.unit.test_remotive_search_limit::test_non_object_rows_do_not_consume_the_result_limit"
+      ]
+    },
+    "summary": "Three meaningful upper-bound assertions fail on the original runtime; eleven boundary/control cases pass."
+  },
+  "fixed_verification": {
+    "command": [
+      "/workspace/scratch/8cd5b6b0e512/venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/unit/test_remotive_search_limit.py",
+      "tests/integration/test_remotive.py",
+      "tests/integration/test_remotive_job_id_isolation.py",
+      "tests/unit/test_remotive_body_deadline.py",
+      "tests/unit/test_remotive_job_ids.py",
+      "tests/unit/test_remotive_url_contract.py",
+      "--tb=short",
+      "--junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-fixed.xml"
+    ],
+    "start_utc": "2026-11-09T18:00:25.494597+00:00",
+    "elapsed_seconds": 7.329369289000169,
+    "exit_code": 0,
+    "source_head": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "runtime_sha256": "e2ce300e42b49328493c73ea5c3af28d380301341ba0532f091dc539b42956ff",
+    "test_sha256": "f6b0949d15771be2f74669d0623473b017e7eafa5cc1b9c4f390a2bc802cb0ce",
+    "stdout_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-fixed.log",
+    "junit_path": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-fixed.xml",
+    "command_text": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/unit/test_remotive_search_limit.py tests/integration/test_remotive.py tests/integration/test_remotive_job_id_isolation.py tests/unit/test_remotive_body_deadline.py tests/unit/test_remotive_job_ids.py tests/unit/test_remotive_url_contract.py --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-fixed.xml",
+    "result": "PASS",
+    "junit": {
+      "tests": 82,
+      "passed": 82,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failed_cases": []
+    },
+    "new_regression_cases_passed": 14,
+    "existing_focused_remotive_cases_passed": 68,
+    "summary": "82 passed in 5.11s; zero failures/errors/skips. Same new test bytes as the failing baseline."
+  },
+  "prior_live_verification": {
+    "evidence": "docs/evidence/2026-11-09-web-82ee-source-child-acceptance.json",
+    "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "cloud_result": "BLOCKED",
+    "rdc_result": "FAIL",
+    "requested_limit": 3,
+    "returned_count": 12,
+    "retained_failure_receipt_sha256": "d5904c87c444f80feb87ea2a63527e020c32855eb6eae5370704aa3e1ffc5f5b",
+    "not_reinterpreted": true
+  },
+  "pending": {
+    "independent_review": "PENDING root-coordinated review",
+    "committed_candidate": "NOT_RUN; root will commit after review",
+    "fresh_live_check_of_fixed_candidate": "NOT_RUN; no live repeat performed by this worker. Root decides one post-commit normal-route check within provider policy.",
+    "hosted_checks_and_protected_delivery": "NOT_RUN",
+    "full_child_closure": "NOT_ELIGIBLE_YET; do not close #309 from deterministic repair evidence alone.",
+    "pr987": "Known hosted cancellation timing gate remains unresolved and is not relaxed or accepted here."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "implementation": "CPython",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "packages": {
+      "pytest": "9.0.3",
+      "pytest-subtests": "not separately installed",
+      "httpx": "0.28.1",
+      "httpcore": "1.0.9",
+      "SQLAlchemy": "2.1.1",
+      "fastapi": "0.142.1"
+    }
+  },
+  "authority": {
+    "source": "Root's explicit follow-up assignment after independently reviewed verified-orphan recovery",
+    "claim_key": "web:web-20261109T173838Z-82ee9dc5ccd8:remotive-result-limit",
+    "expires_at_utc": "2026-11-09T18:43:47Z",
+    "owned_runtime_test_evidence_paths": [
+      "services/discovery/sources/remotive.py",
+      "tests/unit/test_remotive_search_limit.py",
+      "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json"
+    ],
+    "runtime_claim_recovery": "Root reported exact-compare recovery under lock, all former owner anchors gone, main ancestry verified, no successor and independent pr_readiness acceptance. This worker did not mutate the coordination registry.",
+    "committed": false,
+    "pushed": false,
+    "merged": false,
+    "live_repeats": 0,
+    "canonical_changes": false,
+    "issue_changes_by_this_worker": false
+  },
+  "artifact_hashes": {
+    "remotive-limit-baseline-command.json": "70aeaf00b0b22f50bcf12d09a62e104e59fb193e1ed1353039f737091c67f696",
+    "remotive-limit-baseline.xml": "38e9d8d0e5854f7efaf991ff41c2ebf2cf4f26d5d5c3f76b5060764fdd09847f",
+    "remotive-limit-baseline.log": "84feb1d7cfd3a10be27a2f17532050e66d476bd14ad5929bb38999fc0d6d16f7",
+    "remotive-limit-fixed-command.json": "1252395d4d18103dc4c25d1660a5cb01c3014f7f0c46c87e82bcf482e9265806",
+    "remotive-limit-fixed.xml": "b39d2edcb93a315fa57b8d3bc85db5aaab231fe1e43fcc3c1a5b30f535939914",
+    "remotive-limit-fixed.log": "898de8d68ebd03f039723feca4f3a89676ffb8f3532bbf445901bfe1a183a93d"
+  },
+  "independent_review": {
+    "reviewer": "/root/privacy_scope",
+    "recorded_at_utc": "2026-11-09T18:06:20.594855+00:00",
+    "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+    "new_limit_tests": {
+      "passed": 14,
+      "seconds": 0.18
+    },
+    "adjacent_body_deadline_tests": {
+      "passed": 4,
+      "seconds": 0.79
+    },
+    "source_test_sha256_matched_before_and_after": true,
+    "scope": "Cap accepted raw dictionary SourceItems in upstream order. No guarantee of N fully normalized postings; response byte/time bounds unchanged. No scheduler987 acceptance or full child closure implied."
+  },
+  "ownership_recovery": {
+    "method": "Audited verified-orphan recovery, not expiry based; full original claim record and independent review preserved in run checkpoint. Under lock exact record equality, absent local/remote ref/worktree and no newer overlapping claim rechecked.",
+    "new_claim": "web:web-20261109T173838Z-82ee9dc5ccd8:remotive-result-limit",
+    "recovered_utc": "2026-11-09T17:58:47.310491+00:00",
+    "other_source_or_dice_work_assigned": false
+  }
+}
