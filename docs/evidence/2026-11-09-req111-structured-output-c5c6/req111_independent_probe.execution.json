@@ -1,0 +1,14 @@
+{
+  "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "started_utc": "2026-11-09T15:38:50.221146+00:00",
+  "command": [
+    "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+    "/workspace/scratch/ebe0fd8c651c/runc5c6/req111_independent_probe.py",
+    "--repo",
+    "/workspace/scratch/ebe0fd8c651c/mjobs-verify111",
+    "--output",
+    "/workspace/scratch/ebe0fd8c651c/runc5c6/req111_independent_probe.result.json"
+  ],
+  "finished_utc": "2026-11-09T15:38:55.692457+00:00",
+  "exit_code": 0
+}

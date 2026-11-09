@@ -1,0 +1,17 @@
+{
+  "result": "FAIL_PROBE_EXPECTATION",
+  "exit_code": 1,
+  "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "script_sha256": "4a3d214fc4a7a98a7a94d7e75ed935e5e8de5b5c1a6a21df4876e48354861cba",
+  "assertion": "Expected response_format.type=json_schema",
+  "observed": {
+    "response_format": {
+      "type": "json_object"
+    }
+  },
+  "completed_before_failure": "19 parser cases and closed production schema checks; first valid durable worker completed then probe failed inspecting request format",
+  "reason": "Probe assumed native vendor schema enforcement; current OpenAI-compatible implementation uses JSON mode followed by strict local typed validation. Requirement111 asks schema-validated output, not vendor-native enforcement.",
+  "production_changed": false,
+  "started_utc": null,
+  "start_time_note": "Not separately recorded on initial failed probe; targeted suite and successful corrected probe record exact timestamps."
+}

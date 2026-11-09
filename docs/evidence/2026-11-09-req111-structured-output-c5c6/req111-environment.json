@@ -1,0 +1,35 @@
+{
+  "recorded_utc": "2026-11-09T15:38:00.873252+00:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "executable": "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "sqlite": "3.53.1",
+  "dependencies": {
+    "pytest": "9.1.1",
+    "pydantic": "2.13.5",
+    "SQLAlchemy": "2.1.1",
+    "alembic": "1.20.0",
+    "fastapi": "0.141.1",
+    "starlette": "1.6.0",
+    "httpx": "0.28.1",
+    "cryptography": "50.0.0",
+    "python-docx": "1.2.0",
+    "reportlab": "4.4.9"
+  },
+  "environment_limit": "Private venv uses system-site-packages; selected dependencies were installed in prior run. Not a fully locked environment.",
+  "sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "status": "",
+  "source_blobs": {
+    "services/ai/structured_output.py": "c3fd0b4b7aa0575eba34a024ec53d108ecdfabef",
+    "services/ai/tasks.py": "1db14b09746e1fe552ba008b4a3b18d2b237eb3e",
+    "services/ai/consumer.py": "07f01f54edb40481ed8d1a72914fbf5238a6cb59",
+    "services/ai/durable_evaluation.py": "9ffc77dd9841b8c3803d1a8d520d648afb29a33a",
+    "services/documents/ai_resume.py": "775ac1ec98e6fa2ce8c14f9df55d37ce55da40c3",
+    "tests/unit/test_ai_structured_output.py": "38f38822825f28d84ceca2605c6754508c9b60ae",
+    "tests/unit/test_ai_source_quotes.py": "3d1f26d6acc0ac248b7699e21b41fdb606ae3d1c",
+    "tests/unit/test_ai_cost_consumer.py": "1f7329064ee46d4eeecaa5832621b6af1adc39e7",
+    "tests/integration/test_ai_source_quotes.py": "4736c3a5fce541a4e50e1269e2d8886eadf2721f",
+    "tests/integration/test_profile_ai_credentials.py": "e996fe79c0bd1f70e67c9e3a7bc5b9e32ec92138",
+    "tests/integration/test_ai_resume_fact_trace.py": "450f90fecfe7b132f4a4f949777e2e5b51af7a27"
+  }
+}

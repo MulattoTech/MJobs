@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T153331Z-c5c6d43141a0",
+  "task": "MJ-REQ-111",
+  "issue": 112,
+  "recorded_utc": "2026-11-09T15:40:11.815457+00:00",
+  "role": "ACCEPTANCE_VERIFIER",
+  "reviewer": "independent integration_recon agent; did not author implementation",
+  "worktree": "/workspace/scratch/ebe0fd8c651c/mjobs-verify111",
+  "branch": "web/web-20261109T153331Z-c5c6d43141a0/verify-MJ-REQ-111",
+  "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "working_tree_clean": true,
+  "authority": "Acceptance proposal only; parent review and active single integration owner decide canonical transition.",
+  "canonical_status_before": "PARTIAL",
+  "proposed_status": "PASS",
+  "canonical_changed": false,
+  "requirement_source": "https://github.com/MulattoTech/MJobs/issues/112",
+  "specification": "docs/spec/areas/matching_ai.md section111",
+  "scope": "Validate structured AI output using strict Pydantic models, JSON Schema and typed results; reject arbitrary free-form JSON before production consumption.",
+  "criteria": [
+    {
+      "id": "C1",
+      "criterion": "Use strict schema-validated Pydantic output and typed result objects.",
+      "result": "PASS",
+      "implementation": [
+        "services/ai/structured_output.py:StrictAIResult",
+        "services/ai/structured_output.py:parse_structured_output",
+        "services/ai/consumer.py:AIJobEvaluation",
+        "services/documents/ai_resume.py:ResumeProposal"
+      ],
+      "evidence": [
+        "req111-targeted.xml",
+        "req111_independent_probe.result.json"
+      ],
+      "assertions": "Valid results have exact typed model identity; strict field types and enum/list/string bounds are enforced; undeclared top-level and nested fields fail."
+    },
+    {
+      "id": "C2",
+      "criterion": "Use declared JSON Schema through a capability-aware provider-neutral boundary.",
+      "result": "PASS",
+      "implementation": [
+        "services/ai/structured_output.py:output_schema_for",
+        "services/ai/tasks.py:AITaskRouter.generate_structured"
+      ],
+      "evidence": [
+        "req111-targeted.xml",
+        "req111_independent_probe.result.json"
+      ],
+      "assertions": "Generated schema closes object definitions and reaches the real provider method; unsupported structured capabilities and disabled provider fail before generation. OpenAI wire mode is JSON object, followed by local schema validation; vendor-native schema enforcement is not claimed."
+    },
+    {
+      "id": "C3",
+      "criterion": "Do not trust arbitrary free-form JSON.",
+      "result": "PASS",
+      "implementation": [
+        "services/ai/structured_output.py:parse_structured_output",
+        "services/ai/tasks.py:AITaskRouter.generate_structured"
+      ],
+      "evidence": [
+        "req111-targeted.xml",
+        "req111_independent_probe.result.json"
+      ],
+      "assertions": "Malformed/non-text/root-array/root-scalar/trailing/fenced JSON, duplicate root/nested keys, nonstandard constants, oversized text, wrong types and extra fields are rejected with sanitized fixed errors."
+    },
+    {
+      "id": "C4",
+      "criterion": "Apply the contract in existing production consumers before publishing results.",
+      "result": "PASS",
+      "implementation": [
+        "services/ai/consumer.py:consume_ai_candidates",
+        "services/ai/durable_evaluation.py:evaluate_for_operation",
+        "services/documents/ai_resume.py:request_draft"
+      ],
+      "evidence": [
+        "req111-targeted.xml",
+        "req111_independent_probe.result.json"
+      ],
+      "assertions": "All three production generation call sites use generate_structured. Six malformed raw response payloads through real OpenAI adapter and durable worker block with AI_ERROR, publish no history even after Store reopen, retain no raw response canary in public result/operation/audit and make no additional call on replay. Valid control completes and survives reopen. Resume raw-JSON failure and successful immutable-source readback pass."
+    }
+  ],
+  "executed": {
+    "targeted_pytest": {
+      "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "started_utc": "2026-11-09T15:37:37.210103+00:00",
+      "command": [
+        "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--tb=short",
+        "--show-capture=no",
+        "tests/unit/test_ai_structured_output.py",
+        "tests/unit/test_ai_source_quotes.py",
+        "tests/unit/test_ai_cost_consumer.py",
+        "tests/integration/test_ai_source_quotes.py",
+        "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_unknown_duplicate_missing_and_extra_provider_fields_fail_closed",
+        "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_changed_ai_wording_and_original_sources_survive_reopen",
+        "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_changed_protected_tokens_cannot_publish_a_draft",
+        "--junitxml=/workspace/scratch/ebe0fd8c651c/runc5c6/req111-targeted.xml"
+      ],
+      "cwd": "/workspace/scratch/ebe0fd8c651c/mjobs-verify111",
+      "finished_utc": "2026-11-09T15:37:45.313136+00:00",
+      "exit_code": 0,
+      "tests_passed": 29,
+      "subtests_passed": 28,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "pytest_elapsed_seconds": 5.68,
+      "junit_testcases": 29,
+      "junit_tests_attribute": 57,
+      "junit_note": "29 testcase elements plus28 reported subtests; suite tests attribute57."
+    },
+    "independent_probe": {
+      "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "started_utc": "2026-11-09T15:38:50.221146+00:00",
+      "command": [
+        "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+        "/workspace/scratch/ebe0fd8c651c/runc5c6/req111_independent_probe.py",
+        "--repo",
+        "/workspace/scratch/ebe0fd8c651c/mjobs-verify111",
+        "--output",
+        "/workspace/scratch/ebe0fd8c651c/runc5c6/req111_independent_probe.result.json"
+      ],
+      "finished_utc": "2026-11-09T15:38:55.692457+00:00",
+      "exit_code": 0,
+      "parser_cases_passed": 19,
+      "worker_cases_passed": 7,
+      "network_calls": 0,
+      "result": "PASS"
+    }
+  },
+  "environment": {
+    "recorded_utc": "2026-11-09T15:38:00.873252+00:00",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "executable": "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "sqlite": "3.53.1",
+    "dependencies": {
+      "pytest": "9.1.1",
+      "pydantic": "2.13.5",
+      "SQLAlchemy": "2.1.1",
+      "alembic": "1.20.0",
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "httpx": "0.28.1",
+      "cryptography": "50.0.0",
+      "python-docx": "1.2.0",
+      "reportlab": "4.4.9"
+    },
+    "environment_limit": "Private venv uses system-site-packages; selected dependencies were installed in prior run. Not a fully locked environment.",
+    "sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "status": "",
+    "source_blobs": {
+      "services/ai/structured_output.py": "c3fd0b4b7aa0575eba34a024ec53d108ecdfabef",
+      "services/ai/tasks.py": "1db14b09746e1fe552ba008b4a3b18d2b237eb3e",
+      "services/ai/consumer.py": "07f01f54edb40481ed8d1a72914fbf5238a6cb59",
+      "services/ai/durable_evaluation.py": "9ffc77dd9841b8c3803d1a8d520d648afb29a33a",
+      "services/documents/ai_resume.py": "775ac1ec98e6fa2ce8c14f9df55d37ce55da40c3",
+      "tests/unit/test_ai_structured_output.py": "38f38822825f28d84ceca2605c6754508c9b60ae",
+      "tests/unit/test_ai_source_quotes.py": "3d1f26d6acc0ac248b7699e21b41fdb606ae3d1c",
+      "tests/unit/test_ai_cost_consumer.py": "1f7329064ee46d4eeecaa5832621b6af1adc39e7",
+      "tests/integration/test_ai_source_quotes.py": "4736c3a5fce541a4e50e1269e2d8886eadf2721f",
+      "tests/integration/test_profile_ai_credentials.py": "e996fe79c0bd1f70e67c9e3a7bc5b9e32ec92138",
+      "tests/integration/test_ai_resume_fact_trace.py": "450f90fecfe7b132f4a4f949777e2e5b51af7a27"
+    }
+  },
+  "first_probe_attempt": {
+    "result": "FAIL_PROBE_EXPECTATION",
+    "exit_code": 1,
+    "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "script_sha256": "4a3d214fc4a7a98a7a94d7e75ed935e5e8de5b5c1a6a21df4876e48354861cba",
+    "assertion": "Expected response_format.type=json_schema",
+    "observed": {
+      "response_format": {
+        "type": "json_object"
+      }
+    },
+    "completed_before_failure": "19 parser cases and closed production schema checks; first valid durable worker completed then probe failed inspecting request format",
+    "reason": "Probe assumed native vendor schema enforcement; current OpenAI-compatible implementation uses JSON mode followed by strict local typed validation. Requirement111 asks schema-validated output, not vendor-native enforcement.",
+    "production_changed": false,
+    "started_utc": null,
+    "start_time_note": "Not separately recorded on initial failed probe; targeted suite and successful corrected probe record exact timestamps."
+  },
+  "source_inspection": {
+    "production_generate_structured_sites": [
+      "services/ai/consumer.py",
+      "services/ai/durable_evaluation.py",
+      "services/documents/ai_resume.py"
+    ],
+    "production_plaintext_router_generate_sites": [],
+    "historical_note_reconciled": "Canonical note saying no production task consumer is implemented is stale; durable job evaluation and resume proposal consumers now use the strict boundary."
+  },
+  "limitations": [
+    "No live AI provider, paid inference, provider availability or model semantic accuracy is asserted.",
+    "OpenAI-compatible and Azure adapters request JSON object mode; they do not forward the declared schema as a vendor-native enforced JSON Schema. Strict local validation remains the authoritative acceptance boundary.",
+    "Browser, real-loopback socket test, PostgreSQL and full repository suites were not run for this verification. Parent reported socket restrictions; selected API integrations use synthetic HTTPX transport and SQLite.",
+    "Schema validation does not prove factual correctness or semantic equivalence; exact supplied-text quotation checks and explicit resume review remain separate safeguards.",
+    "Private environment inherits system site packages and is not fully locked; all observed dependency versions are recorded.",
+    "No new hosted CI check, merge, deployment, canonical edit or whole AI platform acceptance is claimed.",
+    "The initial probe failed an overly strong native-wire-schema expectation; it is retained. The corrected probe observes actual schema at the provider method boundary and verifies strict downstream rejection without production edits.",
+    "Known PR995 admission/telemetry findings are separate from this strict-output contract and are not resolved by these tests."
+  ],
+  "artifact_manifest": {
+    "req111-environment.json": {
+      "bytes": 1760,
+      "sha256": "198a3358f1993dc68e7d5ad77cec988509cffd8f95878bf15e034622069529a1"
+    },
+    "req111-targeted.execution.json": {
+      "bytes": 1056,
+      "sha256": "6adee9c9e16eb88ec4a040c9c44bd74e52ca8141194318e9fbf134403869c6c9"
+    },
+    "req111-targeted.log": {
+      "bytes": 682,
+      "sha256": "4ce18366a3db6d94c37b1dc2c5af9da4e7649a3cfb0339161a34d46d9dd27b06"
+    },
+    "req111-targeted.xml": {
+      "bytes": 4990,
+      "sha256": "efe9dcf5bdd5a2d25244e0680693b3c3b80c7fc0feaea0ffba00ae25a7594e24"
+    },
+    "req111_independent_probe.execution.json": {
+      "bytes": 510,
+      "sha256": "3bbe9f498caea31d1c4c234e331b33c6fce6d4bbfc6f46da9b59627605facd9c"
+    },
+    "req111_independent_probe.initial.py": {
+      "bytes": 9630,
+      "sha256": "4a3d214fc4a7a98a7a94d7e75ed935e5e8de5b5c1a6a21df4876e48354861cba"
+    },
+    "req111_independent_probe.initial_failure.json": {
+      "bytes": 943,
+      "sha256": "9bc58d38ecc7a4ecf4c98b592aa17b9ab74be425f0ec67443014505f70994834"
+    },
+    "req111_independent_probe.log": {
+      "bytes": 406,
+      "sha256": "5ccdd4a9e2ebcece0a79997b9bb771598a6ea6754e907a079a64bb9c7115cb19"
+    },
+    "req111_independent_probe.py": {
+      "bytes": 10275,
+      "sha256": "92f450df114d98834555269ec6acf687f56908bc0726a6f5f9b12d38c6a21ad9"
+    },
+    "req111_independent_probe.result.json": {
+      "bytes": 5201,
+      "sha256": "cdbb8551ec2f479f75fdf89d7add7d4561d5bb279d11581f6387481b630b86ae"
+    },
+    "req111-native-checkpoint.json": {
+      "bytes": 1229,
+      "sha256": "9742dd428500483169404d67a0c19721a097fc58f81adf6d65b6d613ea32323f"
+    },
+    "req111-native-checkpoint-validation.json": {
+      "bytes": 4292,
+      "sha256": "084f95c6e5f3a1d3be07602c1363f107a7c3851ca5f6f68f6101e1825f04f397"
+    }
+  },
+  "next_action": "Parent independently review probe, command results and all criteria, then submit this exact-main evidence to the active integration steward for a reviewed canonical MJ-REQ-111 transition through protected workflow.",
+  "native_checkpoint": {
+    "path": "/workspace/scratch/ebe0fd8c651c/runc5c6/req111-native-checkpoint.json",
+    "validated": true,
+    "moved_outside_git_after_validation": true
+  },
+  "git_diff_check": "PASS"
+}

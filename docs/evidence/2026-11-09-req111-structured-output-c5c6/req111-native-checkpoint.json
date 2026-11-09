@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-111",
+  "objective": "Independently verify original AI structured-output acceptance at immutable main971ba",
+  "owner": "web-20261109T153331Z-c5c6d43141a0/integration_recon",
+  "branch": "web/web-20261109T153331Z-c5c6d43141a0/verify-MJ-REQ-111",
+  "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "routing_state": "VERIFY",
+  "next_action": "Parent review req111-acceptance-proposal.json and saved probe; active integration steward owns any canonical transition.",
+  "created_at": "2026-11-09T15:40:33.653110+00:00",
+  "requirements": [
+    "MJ-REQ-111"
+  ],
+  "tests": [
+    {
+      "command": "29 targeted tests and28 subtests,zero skips at971ba; JUnit req111-targeted.xml.",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent19parser+7realworker synthetic-transport cases PASS; saved probe and result bind exacthead.",
+      "result": "PASS"
+    },
+    {
+      "command": "Browser, PostgreSQL, full suite, real loopback and live provider inference not run; no canonical or hosted acceptance promotion.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Canonical transition pending independent parent review and active integration steward."
+  ]
+}

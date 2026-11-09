@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-111",
+  "reviewer": "ChatGPT-Web primary independent review",
+  "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "recorded_utc": "2026-11-09T15:43:40.857494+00:00",
+  "source_authorship": "No source authored by this run or its verifier",
+  "proposal_sha256": "5db3e92b399bbf2f4c150e9f5cb61f286ed3ec68b241f66d18758122d5f97a5c",
+  "probe_sha256": "92f450df114d98834555269ec6acf687f56908bc0726a6f5f9b12d38c6a21ad9",
+  "rerun_result_sha256": "ece1531ac0c7a25fdc5b716ab12ba37f9186bfc372532b21c13d6244c7bc9b94",
+  "result": "RECOMMEND_PASS",
+  "reason": "All original structured-output criteria verified in strict typed parser, declared JSON Schema and all current production consumers. No arbitrary provider JSON is published without validation.",
+  "independent_rerun": {
+    "parser_cases_passed": 19,
+    "durable_worker_cases_passed": 7,
+    "started_utc": "2026-11-09T15:42:22.308717+00:00",
+    "finished_utc": "2026-11-09T15:42:25.516921+00:00",
+    "exit_code": 0
+  },
+  "limits": [
+    "OpenAI wire format is json_object, with authoritative strict local schema validation; vendor-native schema enforcement is not claimed.",
+    "No live model, PostgreSQL, browser, semantic model accuracy, PR995 telemetry remediation, whole platform release or deployment claim.",
+    "Single integration steward must approve and apply canonical update; current source remains PARTIAL until then."
+  ],
+  "canonical_changed": false
+}

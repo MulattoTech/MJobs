@@ -1,0 +1,188 @@
+{
+  "requirement": "MJ-REQ-111",
+  "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "started_utc": "2026-11-09T15:38:51.212758+00:00",
+  "parser_cases": [
+    {
+      "name": "typed_job_evaluation",
+      "result": "PASS",
+      "expected": "typed result"
+    },
+    {
+      "name": "typed_nested_resume",
+      "result": "PASS",
+      "expected": "typed result"
+    },
+    {
+      "name": "root_array",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "root_scalar",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "non_text",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "duplicate_key",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "nested_duplicate_key",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "nonstandard_nan",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "nonstandard_infinity",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "trailing_json",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "markdown_fence",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "extra_root",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "wrong_rationale_type",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "invalid_enum",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "empty_rationale",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "rationale_limit",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "extra_nested",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "empty_nested_list",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_INVALID"
+    },
+    {
+      "name": "raw_size_limit",
+      "result": "PASS",
+      "expected": "AI_STRUCTURED_OUTPUT_TOO_LARGE"
+    }
+  ],
+  "worker_cases": [
+    {
+      "name": "valid_control",
+      "result": "PASS",
+      "durable_state": "COMPLETED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 1,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    },
+    {
+      "name": "extra_root",
+      "result": "PASS",
+      "durable_state": "BLOCKED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 0,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    },
+    {
+      "name": "wrong_type",
+      "result": "PASS",
+      "durable_state": "BLOCKED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 0,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    },
+    {
+      "name": "invalid_enum",
+      "result": "PASS",
+      "durable_state": "BLOCKED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 0,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    },
+    {
+      "name": "rationale_limit",
+      "result": "PASS",
+      "durable_state": "BLOCKED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 0,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    },
+    {
+      "name": "extra_nested",
+      "result": "PASS",
+      "durable_state": "BLOCKED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 0,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    },
+    {
+      "name": "quote_count_limit",
+      "result": "PASS",
+      "durable_state": "BLOCKED",
+      "provider_calls": 1,
+      "replay_calls": 0,
+      "reopened_history_count": 0,
+      "exact_schema_received_by_real_provider_method": true,
+      "wire_response_format": "json_object",
+      "vendor_native_schema_enforcement": false
+    }
+  ],
+  "provider_transport": "httpx.MockTransport, real OpenAI adapter/router/worker",
+  "live_provider_calls": 0,
+  "network_guard": "socket.create_connection and socket.getaddrinfo denied",
+  "script_sha256": "92f450df114d98834555269ec6acf687f56908bc0726a6f5f9b12d38c6a21ad9",
+  "closed_production_schemas": "PASS",
+  "finished_utc": "2026-11-09T15:38:54.405265+00:00",
+  "result": "PASS"
+}

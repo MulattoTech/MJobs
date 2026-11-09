@@ -1,0 +1,23 @@
+{
+  "head": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "started_utc": "2026-11-09T15:37:37.210103+00:00",
+  "command": [
+    "/workspace/scratch/ebe0fd8c651c/mjobs-test-env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--tb=short",
+    "--show-capture=no",
+    "tests/unit/test_ai_structured_output.py",
+    "tests/unit/test_ai_source_quotes.py",
+    "tests/unit/test_ai_cost_consumer.py",
+    "tests/integration/test_ai_source_quotes.py",
+    "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_unknown_duplicate_missing_and_extra_provider_fields_fail_closed",
+    "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_changed_ai_wording_and_original_sources_survive_reopen",
+    "tests/integration/test_ai_resume_fact_trace.py::AIResumeTests::test_changed_protected_tokens_cannot_publish_a_draft",
+    "--junitxml=/workspace/scratch/ebe0fd8c651c/runc5c6/req111-targeted.xml"
+  ],
+  "cwd": "/workspace/scratch/ebe0fd8c651c/mjobs-verify111",
+  "finished_utc": "2026-11-09T15:37:45.313136+00:00",
+  "exit_code": 0
+}
