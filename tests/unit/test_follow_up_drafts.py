@@ -190,6 +190,77 @@ class FollowUpDraftTests(unittest.TestCase):
         self.assertIn(title, candidate["job_title"])
         self.assertIn(company, candidate["company"])
 
+
+    def assert_contact_scrubbed(self, contact, fragments):
+        outputs = ("job_title", "company", "email_subject", "email_body", "dm_body")
+        for field in ("title", "company"):
+            with self.subTest(field=field, contact=contact):
+                original = application(**{field: f"Systems {contact} role"})
+                self.store.applications_by_profile["p1"] = [original]
+                snapshot = dict(original)
+                candidate = self.run_drafts()["candidates"][0]
+                scrubbed_field = "job_title" if field == "title" else "company"
+                self.assertEqual(candidate[scrubbed_field], "Systems [redacted] role")
+                for output in outputs:
+                    for fragment in (contact, *fragments):
+                        self.assertNotIn(fragment, candidate[output], output)
+                self.assertLessEqual(len(candidate["email_subject"]), 120)
+                self.assertLessEqual(len(candidate["email_body"]), 500)
+                self.assertLessEqual(len(candidate["dm_body"]), 280)
+                self.assertEqual(original, snapshot)
+
+    def test_scrubs_attached_phone_extensions_and_unicode_dash_separators(self):
+        contacts = (
+            "5555551212x123",
+            "555-555-1212x123",
+            "5555551212ext123",
+            "(555)555-1212x123",
+            "1 (555) 010-0199x123",
+            "555-555-1212 EXT. 123",
+            "555-555-1212 extension123",
+            "555-555-1212#123",
+            "+1\u2011555\u2011010\u20110199",
+            "+1\u2013555\u2013010\u20130199",
+            "+1\u2011555\u2011010\u20110199 ext. 42",
+            "+1\u2212555\u2212010\u22120199x42",
+            "\uff0b\uff11\uff08\uff15\uff15\uff15\uff09\uff10\uff11\uff10\uff0d\uff10\uff11\uff19\uff19",
+            "\uff0b\uff11\uff08\uff15\uff15\uff15\uff09\uff10\uff11\uff10\uff0d\uff10\uff11\uff19\uff19\uff58\uff11\uff12\uff13",
+        )
+        for contact in contacts:
+            self.assert_contact_scrubbed(contact, ("555", "1212", "0199"))
+
+    def test_scrubs_whole_unicode_email_and_handle_tokens_without_fragments(self):
+        contacts = (
+            ("\u62db\u8058@\u4f8b\u5b50.\u516c\u53f8", ("\u62db\u8058", "\u4f8b\u5b50", "\u516c\u53f8")),
+            ("candidate@example.c\u00f8m", ("candidate", "example.c", "\u00f8m")),
+            ("caf\u00e9@example.test", ("caf\u00e9", "example.test")),
+            ("cafe\u0301@example.test", ("cafe", "\u0301", "example.test")),
+            ("@\u63a1\u7528\u62c5\u5f53", ("\u63a1\u7528\u62c5\u5f53",)),
+            ("Contact@\u62db\u8058", ("Contact", "\u62db\u8058")),
+            ("@recrute\u0301", ("recrute", "\u0301")),
+            ("\u62db\u8058\uff20\u4f8b\u5b50.\u516c\u53f8", ("\u62db\u8058", "\u4f8b\u5b50")),
+            ("\uff20\u63a1\u7528\u62c5\u5f53", ("\u63a1\u7528\u62c5\u5f53",)),
+            ("https://example.test/@recruiter;private", ("example.test", "recruiter", "private")),
+        )
+        for contact, fragments in contacts:
+            self.assert_contact_scrubbed(contact, fragments)
+
+    def test_expanded_scrubbing_preserves_role_text_and_short_nonphone_numbers(self):
+        for title in (
+                "C++ / .NET Engineer",
+                "Build 404x1234",
+                "\uff23\uff0b\uff0b / .\uff2e\uff25\uff34 Engineer",
+                "Build 12-34-56 ext.123456"):
+            with self.subTest(title=title):
+                company = "Example + Partners - Tech"
+                self.store.applications_by_profile["p1"] = [application(
+                    title=title, company=company)]
+                candidate = self.run_drafts()["candidates"][0]
+                self.assertEqual(candidate["job_title"], title)
+                self.assertEqual(candidate["company"], company)
+                self.assertIn(title, candidate["email_body"])
+                self.assertIn(company, candidate["dm_body"])
+
     def test_scrubs_contacts_from_dynamic_job_metadata_and_caps_all_drafts(self):
         self.store.applications_by_profile["p1"] = [application(
             title="Architect " + "x" * 160 + " alice@example.com https://secret.example/app @recruiter 555-555-1212",

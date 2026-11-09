@@ -73,11 +73,13 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
             connection.execute(update(m.jobs).where(
                 m.jobs.c.id == self.jobs[0]["id"]).values(
                     title="Synthetic Admin recruiter@example.test +1 (555) 010-0199 "
-                          "-@synthetic_recruiter Contact@compact_title"))
+                          "-@synthetic_recruiter Contact@compact_title "
+                          "招聘@例子.公司 5555551212x123"))
             connection.execute(update(m.companies).where(
                 m.companies.c.id == company_id).values(
                     name="Example Employer https://private.example.test/path "
-                         "+@company_recruiter .@company_handle"))
+                         "+@company_recruiter .@company_handle "
+                         "candidate@example.cøm +1‑555‑010‑0199"))
         self.client.post(
             f"/profiles/fixture/applications/{quiet_app}/tracking/notes",
             json={"text": "Synthetic history: contact recruiter@example.test or @synthetic_recruiter; "
@@ -111,7 +113,9 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
         for private_contact in ("alex@example.test", "recruiter@example.test",
                                 "other@example.test", "+1 (555) 010-0199",
                                 "https://private.example.test/path", "@synthetic_recruiter",
-                                "@compact_title", "@company_recruiter", "@company_handle"):
+                                "@compact_title", "@company_recruiter", "@company_handle",
+                                "招聘@例子.公司", "candidate@example.cøm",
+                                "5555551212", "+1‑555‑010‑0199"):
             self.assertNotIn(private_contact, combined_draft)
             self.assertNotIn(private_contact, candidate["job_title"] + candidate["company"])
         # Attribution and verification remain visible as metadata; the draft text
@@ -155,9 +159,11 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
         api_candidate = next(row for row in first.json()["candidates"]
                              if row["application_id"] == quiet_app)
         for output in ("job_title", "company", "email_subject", "email_body", "dm_body"):
-            for handle in ("@synthetic_recruiter", "@compact_title",
-                           "@company_recruiter", "@company_handle"):
-                self.assertNotIn(handle, api_candidate[output], output)
+            for contact in ("@synthetic_recruiter", "@compact_title",
+                            "@company_recruiter", "@company_handle",
+                            "招聘@例子.公司", "candidate@example.cøm",
+                            "5555551212", "+1‑555‑010‑0199"):
+                self.assertNotIn(contact, api_candidate[output], output)
         self.assertNotIn(other_app, {row["application_id"] for row in first.json()["candidates"]})
         self.assertEqual(self.store.count("audit_events"), before_reads)
         self.assertEqual(self.client.get(
@@ -225,6 +231,15 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
         self._backdate_status(
             "fixture", application_id, "APPLIED", "follow-up-reopen-applied",
             datetime.now(timezone.utc) - timedelta(days=2))
+        with self.store.engine.begin() as connection:
+            company_id = connection.execute(select(m.jobs.c.company_id).where(
+                m.jobs.c.id == self.jobs[0]["id"])).scalar_one()
+            connection.execute(update(m.jobs).where(
+                m.jobs.c.id == self.jobs[0]["id"]).values(
+                    title="Synthetic Readback 招聘@例子.公司 5555551212x123"))
+            connection.execute(update(m.companies).where(
+                m.companies.c.id == company_id).values(
+                    name="Example Readback candidate@example.cøm +1–555–010–0199"))
         self.client.close()
         self.store.engine.dispose()
         self.store = Store(f"sqlite:///{(self.root / 'follow-up.db').as_posix()}")
@@ -238,5 +253,13 @@ class ApplicationFollowUpDraftTests(unittest.TestCase):
         self.assertIn(application_id, {
             row["application_id"] for row in response.json()["candidates"]
         })
+        candidate = next(row for row in response.json()["candidates"]
+                         if row["application_id"] == application_id)
+        self.assertIn("Synthetic Readback", candidate["job_title"])
+        self.assertIn("Example Readback", candidate["company"])
+        for output in ("job_title", "company", "email_subject", "email_body", "dm_body"):
+            for contact in ("招聘@例子.公司", "candidate@example.cøm",
+                            "5555551212", "+1–555–010–0199"):
+                self.assertNotIn(contact, candidate[output], output)
         self.assertEqual(self.client.post(
             "/profiles/fixture/application-follow-up-drafts?quiet_days=1").status_code, 405)
