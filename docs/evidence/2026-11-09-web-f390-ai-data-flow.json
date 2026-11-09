@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131810Z-f390e73add1a",
+  "recorded_at_utc": "2026-11-09T15:33:31.427485+00:00",
+  "requirement_ids": [
+    "MJ-REF-042",
+    "MJ-REQ-171"
+  ],
+  "issue_urls": [
+    "https://github.com/MulattoTech/MJobs/issues/426",
+    "https://github.com/MulattoTech/MJobs/issues/172"
+  ],
+  "slice": "Recorded job-scoring data-flow disclosure in existing AI preview and saved history",
+  "implementation_commit": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+  "tested_revision": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+  "base_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "acceptance": "PARTIAL",
+  "canonical_matrices_changed": false,
+  "fresh_complete_requirements": 0,
+  "contract": {
+    "new_plan_marker": "JOB_SCORING_V1",
+    "operation": "job_scoring",
+    "outgoing_prompt_fields": [
+      "job_title",
+      "company",
+      "job_description",
+      "deterministic_match_score"
+    ],
+    "maximum_characters": {
+      "job_title": 512,
+      "company": 512,
+      "job_description": 8000,
+      "complete_prompt": 12000
+    },
+    "history": "Only the saved marker selects known metadata; legacy or unsupported metadata remains UNKNOWN",
+    "destination": "Saved-profile OpenAI is fixed; runtime configuration remains unknown",
+    "provider_retention": "UNKNOWN",
+    "local_records": "MJobs database input snapshots and advisory results; not assumed to be on the viewer device",
+    "scope_limits": [
+      "Raw profile fields are not directly added by this prompt; job source text can itself contain sensitive data",
+      "The deterministic score derives from profile information",
+      "Preview does not call the model; disclosure is not evidence of dispatch",
+      "No application submission or changed provider behavior"
+    ]
+  },
+  "criteria": [
+    {
+      "criterion": "Bounded stable API contract",
+      "result": "PASS_FOR_SLICE",
+      "evidence": "Closed versioned metadata captured with new plans and rendered through existing preview/history consumers."
+    },
+    {
+      "criterion": "Preserve provenance and safety gates",
+      "result": "PASS_FOR_SLICE",
+      "evidence": "Real API, SQLite reopen, durable worker and synthetic transport tests preserve credential rotation/deletion, unknown historical metadata and no submission."
+    },
+    {
+      "criterion": "Automated tests and connected user journey",
+      "result": "PARTIAL",
+      "evidence": "Python and UI suites pass; real browser test assertions added, but browser environment prevented execution."
+    },
+    {
+      "criterion": "Canonical acceptance publication",
+      "result": "NOT_RUN",
+      "evidence": "Worker leaves matrices unchanged; promotion belongs to the authorized integration owner."
+    },
+    {
+      "criterion": "Independent implementation/license boundaries",
+      "result": "PASS_FOR_SLICE",
+      "evidence": "Clean-room change derived from the current MJobs request projection; no copied third-party code, assets or prose."
+    }
+  ],
+  "validation": [
+    {
+      "revision": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+      "command": "python -m pytest -q tests/unit/test_ai_data_flow_disclosure.py tests/unit/test_ai_cost_consumer.py tests/integration/test_profile_ai_credentials.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_grounded_ai_candidates.py",
+      "result": "PASS",
+      "tests": 73,
+      "subtests": 37,
+      "exit_code": 0,
+      "environment": "Isolated Linux workspace; Python3.12; exact requirements.txt and .github/test-requirements.txt; SQLite and httpx MockTransport"
+    },
+    {
+      "revision": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+      "command": "npm --prefix apps/web test -- src/ai-search-provenance.test.tsx",
+      "result": "PASS",
+      "tests": 42,
+      "exit_code": 0,
+      "environment": "Node24.22.1; exact package-lock.json; coverage completeness not claimed"
+    },
+    {
+      "revision": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "Full TypeScript check and Vite production build. Existing large-bundle advisory remains."
+    },
+    {
+      "revision": "2970bd2bfaf159b94b9ef176828b347a9016ccb7",
+      "command": "tools.verification.catalogue; progress validate; progress_dashboard --check; reference_provenance; commit_provenance --commit HEAD; git diff --check",
+      "result": "PASS",
+      "exit_code": 0
+    }
+  ],
+  "independent_review": {
+    "reviewer": "independent-agent-/root/telemetry_scope",
+    "result": "PASS_FOR_SCOPED_SLICE",
+    "unresolved_findings": [],
+    "source_binding": "Root verified all six reviewer digests against the implementation commit",
+    "checks": "11 Python tests +20 subtests;42 UI tests; counts overlap the main suite and are not additive",
+    "resolved_finding": "Runtime provider guard now matches backend six-provider allowlist and sanitizes malformed provider labels"
+  },
+  "browser_validation": {
+    "result": "NOT_RUN_ENVIRONMENT",
+    "test": "tests/browser/test_profile_ai_credentials.py",
+    "attempts": [
+      {
+        "environment": "Pinned Playwright1.63 Chromium1243",
+        "result": "Browser download returned invalid/truncated ZIP"
+      },
+      {
+        "environment": "Playwright1.63 with installed Chromium156.0.8078.79",
+        "result": "Browser launch blocked by OS socket Operation not permitted before journey assertions"
+      }
+    ],
+    "connected_browser": "Browser plugin bootstrap timed out; no authenticated runtime page or candidate journey verified"
+  },
+  "prerequisites": {
+    "MJ-REQ-171": "PARTIAL umbrella; this disclosure is independently testable privacy groundwork, not a full PII acceptance claim",
+    "MJ-REQ-175": "Recorded PASS preserved; saved-key boundaries exercised by this focused suite, broader acceptance not freshly certified"
+  },
+  "not_run": [
+    "Full unit suite",
+    "PostgreSQL-specific new acceptance",
+    "Actual built-UI browser journey",
+    "Real provider inference or billing",
+    "Authenticated production origin/revision",
+    "Deployment",
+    "Whole MJ-REF-042 acceptance",
+    "REF058/REF059 dependency promotion"
+  ],
+  "remaining_work": [
+    "Cover other AI/document/browser/network operations",
+    "Connect complete retention/deletion and session-artifact disclosures",
+    "Verify broader PII protection and end-to-end browser workflows on the integration revision"
+  ],
+  "shared_ci_dependency": {
+    "reused_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "own_dependency_commit": "3a78716d649ec6cdc7404074f509aff2a53fa562",
+    "verification": "Independently recomputed the historical public-source digest and compared the exact four-line exception; no scanner rule or path-wide exclusion changed"
+  },
+  "rollback": "Revert this bounded feature through protected integration. No migration or stored-history rewrite is introduced.",
+  "integration_authority": "PR_ONLY",
+  "host_resource_admission": "No workstation build or test slot used; all implementation/testing occurred off-host."
+}

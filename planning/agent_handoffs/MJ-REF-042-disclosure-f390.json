@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-042-disclosure-f390",
+  "objective": "Expose recorded job-scoring data flow in preview and saved history",
+  "owner": "web-20261109T131810Z-f390e73add1a",
+  "branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+  "head_sha": "3a78716d649ec6cdc7404074f509aff2a53fa562",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the owned reviewed branch under the shared admission lease, inspect exact-head CI, and obtain browser evidence before broader acceptance",
+  "created_at": "2026-11-09T15:33:31.466142+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Exact implementation 2970bd2: 73 Python tests and 37 subtests; 42 UI tests; production build; integrity and provenance checks",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent scoped review: 11 Python tests and 20 subtests plus 42 UI tests; source digests match implementation",
+      "result": "PASS"
+    },
+    {
+      "command": "Actual browser journey: pinned download invalid ZIP and installed Chromium OS socket denial; production and PostgreSQL acceptance not run",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full REF042 and original PII umbrella remain incomplete; canonical matrices unchanged; PR_ONLY"
+  ]
+}
