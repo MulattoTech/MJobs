@@ -8,3 +8,6 @@ Rules:
 - Company/title normalization is not permission to merge identities.
 - Application routes remain independent from listing/posting URLs.
 - Ambiguous cross-source deduplication belongs to the later dedupe PRs.
+- Source metadata v1 is a bounded read projection over durable raw postings;
+  private-key/URL omissions are explicit and raw payloads remain unchanged.
+- Metadata extensions never overwrite canonical fields or assert field confidence.
