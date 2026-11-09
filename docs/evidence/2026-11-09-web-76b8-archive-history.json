@@ -201,7 +201,7 @@
     "changed_file_overlaps": 0,
     "candidate_branch_collision": false,
     "final_admission": "Must requery under shared publication lock.",
-    "known_ci_dependency": "PR993 history scanner flags a verified source checksum at commit 20fea5e line 45; existing exact-fingerprint correction a796ffb is separately owned and not included yet."
+    "known_ci_dependency": "Reviewed exact-fingerprint correction included; fresh exact-head hosted scanner result pending."
   },
   "integration": {
     "canonical_acceptance_changed": false,
@@ -209,5 +209,21 @@
     "fresh_full_requirement_passes": 0,
     "original_MJ_REQ_198_status": "PARTIAL"
   },
-  "rollback": "Revert the isolated archive implementation commit through the normal protected PR process; no migration or historical event rewrite is introduced."
+  "rollback": "Revert the isolated archive implementation commit through the normal protected PR process; no migration or historical event rewrite is introduced.",
+  "shared_scanner_dependency": {
+    "recorded_at_utc": "2026-11-09T13:46:08.023298+00:00",
+    "origin_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "included_commit": "6009ceb3ec0ec229f7be0639d7ff31d78bb961c9",
+    "trigger": "PR993 exact-head secret scan run42626296954 artifact13678288320 reported one historical checksum candidate.",
+    "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "source_file": "tests/integration/test_career_story_import_api.py",
+    "source_bytes": 5844,
+    "source_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_sha256": "bcdb8e13663f81eaad52cfdbefe40ae3a3a3ac7476307219c58e90e72a6af2c3",
+    "verification": "Root and separate reviewer independently recomputed the committed source digest and matched the reported evidence checksum.",
+    "ignore_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "scope": "One exact immutable commit/path/rule/line; no scanner rule, workflow or broader path exception.",
+    "product_source_and_test_blobs": "UNCHANGED from the recorded tested implementation revision",
+    "hosted_scan_after_correction": "PENDING publication; no local scanner PASS claimed."
+  }
 }
