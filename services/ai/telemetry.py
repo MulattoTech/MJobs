@@ -11,12 +11,10 @@ Acceptance criteria:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from math import isfinite
 import threading
 import time
-from typing import Any, Generator, Literal, Mapping, TypedDict
+from typing import Generator, Literal, Mapping, TypedDict
 
 
 MODEL_PRICING_PER_MILLION: dict[str, tuple[float, float]] = {
@@ -68,6 +66,13 @@ class AIBudgetExceededError(RuntimeError):
 
 class AIAdmissionCancelledError(RuntimeError):
     """Raised when a queued request is cancelled before admission."""
+
+
+class AIAdmissionObserverError(RuntimeError):
+    """A cancellation observer failed without disclosing its private details."""
+
+    def __init__(self) -> None:
+        super().__init__("AI_ADMISSION_OBSERVER_UNAVAILABLE")
 
 
 class AIConcurrencyLimitError(RuntimeError):
@@ -177,66 +182,83 @@ class LLMTelemetryEngine:
         timeout_seconds: float = 5.0,
         cancellation_event: threading.Event | None = None,
     ) -> Generator[None, None, None]:
-        """Acquire a process-local slot subject to global and per-provider concurrency caps."""
+        """Acquire a process-local slot subject to concurrency, budget and deadline gates.
+
+        Caller-owned observers may perform I/O or inspect this engine. Never run
+        them under the accounting lock, and recheck time after they return. This
+        prevents late admission; it cannot preempt a blocked synchronous observer.
+        """
         p_norm = provider.casefold().strip()
         deadline = time.monotonic() + timeout_seconds
-        if cancellation_event is not None and cancellation_event.is_set():
-            raise AIAdmissionCancelledError()
 
-        with self._lock:
-            # Check budget stop before admitting request
-            if self.budget_ceiling_usd is not None and self._total_cost_usd >= self.budget_ceiling_usd:
-                raise AIBudgetExceededError(
-                    f"AI budget ceiling (${self.budget_ceiling_usd:.2f}) reached. Task '{task}' halted.",
-                    current_cost=self._total_cost_usd,
-                    budget_limit=self.budget_ceiling_usd,
-                )
+        def check_cancellation() -> None:
+            if cancellation_event is None:
+                return
+            try:
+                cancelled = bool(cancellation_event.is_set())
+            except Exception:
+                raise AIAdmissionObserverError() from None
+            if cancelled:
+                raise AIAdmissionCancelledError()
 
         acquired = False
-        while time.monotonic() < deadline:
+        try:
+            check_cancellation()
             with self._lock:
-                if cancellation_event is not None and cancellation_event.is_set():
-                    raise AIAdmissionCancelledError()
                 if self.budget_ceiling_usd is not None and self._total_cost_usd >= self.budget_ceiling_usd:
                     raise AIBudgetExceededError(
                         f"AI budget ceiling (${self.budget_ceiling_usd:.2f}) reached. Task '{task}' halted.",
                         current_cost=self._total_cost_usd,
                         budget_limit=self.budget_ceiling_usd,
                     )
-                provider_limit = self.provider_concurrency_limits.get(p_norm, self.global_concurrency_limit)
-                provider_active = self._active_by_provider.get(p_norm, 0)
 
-                if (self._active_global < self.global_concurrency_limit) and (provider_active < provider_limit):
-                    self._active_global += 1
-                    self._active_by_provider[p_norm] = provider_active + 1
-                    acquired = True
+            while time.monotonic() < deadline:
+                check_cancellation()
+                with self._lock:
+                    # Both the observer and lock acquisition can consume the
+                    # remaining wait. Check again before changing any counters.
+                    if time.monotonic() >= deadline:
+                        break
+                    if self.budget_ceiling_usd is not None and self._total_cost_usd >= self.budget_ceiling_usd:
+                        raise AIBudgetExceededError(
+                            f"AI budget ceiling (${self.budget_ceiling_usd:.2f}) reached. Task '{task}' halted.",
+                            current_cost=self._total_cost_usd,
+                            budget_limit=self.budget_ceiling_usd,
+                        )
+                    provider_limit = self.provider_concurrency_limits.get(p_norm, self.global_concurrency_limit)
+                    provider_active = self._active_by_provider.get(p_norm, 0)
+                    if self._active_global < self.global_concurrency_limit and provider_active < provider_limit:
+                        self._active_global += 1
+                        self._active_by_provider[p_norm] = provider_active + 1
+                        acquired = True
+
+                if acquired:
+                    # Reservation cleanup already covers observer exceptions,
+                    # cancellation, deadline expiry, and the caller's body.
+                    check_cancellation()
+                    if time.monotonic() < deadline:
+                        yield
+                        return
                     break
+                time.sleep(min(0.01, max(0.0, deadline - time.monotonic())))
 
-            time.sleep(0.01)
-
-        if cancellation_event is not None and cancellation_event.is_set() and not acquired:
-            raise AIAdmissionCancelledError()
-        if not acquired:
+            check_cancellation()
             with self._lock:
                 cur_act = self._active_by_provider.get(p_norm, 0)
                 lim = self.provider_concurrency_limits.get(p_norm, self.global_concurrency_limit)
                 if self._active_global >= self.global_concurrency_limit:
                     cur_act, lim = self._active_global, self.global_concurrency_limit
             raise AIConcurrencyLimitError(
-                f"Concurrency limit saturated for provider '{provider}' ({cur_act}/{lim}).",
+                f"Admission deadline reached for provider '{provider}' ({cur_act}/{lim}).",
                 provider=provider,
                 current_active=cur_act,
                 limit=lim,
             )
-
-        try:
-            if cancellation_event is not None and cancellation_event.is_set():
-                raise AIAdmissionCancelledError()
-            yield
         finally:
-            with self._lock:
-                self._active_global = max(0, self._active_global - 1)
-                self._active_by_provider[p_norm] = max(0, self._active_by_provider.get(p_norm, 1) - 1)
+            if acquired:
+                with self._lock:
+                    self._active_global = max(0, self._active_global - 1)
+                    self._active_by_provider[p_norm] = max(0, self._active_by_provider.get(p_norm, 1) - 1)
 
     def record_attempt(
         self,

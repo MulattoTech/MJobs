@@ -59,6 +59,18 @@ class AIProviderError(RuntimeError):
         super().__init__(self.code)
 
 
+def _check_provider_cancellation(cancellation_event: threading.Event | None) -> None:
+    """Check a caller-owned observer without exposing its implementation details."""
+    if cancellation_event is None:
+        return
+    try:
+        cancelled = bool(cancellation_event.is_set())
+    except Exception:
+        raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
+    if cancelled:
+        raise AIProviderError("AI_PROVIDER_CANCELLED")
+
+
 class DisabledAIProvider:
     """No-op provider that declares no capabilities and never performs I/O."""
 
