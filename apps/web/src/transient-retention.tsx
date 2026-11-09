@@ -12,9 +12,15 @@ export const MANAGED_RETENTION_CATEGORIES = [
 export type RetentionArtifactCategory = typeof MANAGED_RETENTION_CATEGORIES[number]['id'];
 export type RetentionPanelStatus = 'loading' | 'ready' | 'error';
 export type RetentionSweepStatus = 'NOT_RUN' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+export type RetentionPreviewStatus = 'OK' | 'BLOCKED' | 'PARTIAL';
+export type RetentionCleanupControl =
+  | { source: 'PERSISTED_POLICY'; state: 'ALLOWED' | 'DISABLED' | 'REVIEW_REQUIRED' | 'SERVER_DISABLED'; policyRevision: number }
+  | { source: 'SERVER_CONFIGURATION'; state: 'ALLOWED' | 'SERVER_DISABLED'; policyRevision: null };
 
 export interface RetentionPolicy {
   category: RetentionArtifactCategory;
+  /** Legacy callers may omit configured; enabled alone never proves global cleanup permission. */
+  configured?: boolean;
   enabled: boolean;
   maxAgeDays: number;
 }
@@ -23,6 +29,7 @@ export interface RetentionPreviewRow {
   category: RetentionArtifactCategory;
   eligibleCount: number;
   eligibleBytes: number;
+  available?: boolean;
 }
 
 export interface RetentionLastSweep {
@@ -36,6 +43,8 @@ export interface RetentionSnapshot {
   policies: RetentionPolicy[];
   preview: RetentionPreviewRow[];
   lastSweep: RetentionLastSweep;
+  cleanupControl?: RetentionCleanupControl;
+  previewStatus?: RetentionPreviewStatus;
 }
 
 export interface BoundedRetentionCleanup {
@@ -103,13 +112,39 @@ function isManagedCategory(category: unknown): category is RetentionArtifactCate
 function validPolicy(policy: RetentionPolicy): boolean {
   return isManagedCategory(policy.category)
     && typeof policy.enabled === 'boolean'
+    && (policy.configured === undefined || typeof policy.configured === 'boolean')
     && Number.isInteger(policy.maxAgeDays) && policy.maxAgeDays >= 1 && policy.maxAgeDays <= 365;
 }
 
 function validPreviewRow(preview: RetentionPreviewRow): boolean {
   return isManagedCategory(preview.category)
-    && Number.isInteger(preview.eligibleCount) && preview.eligibleCount >= 0
-    && Number.isInteger(preview.eligibleBytes) && preview.eligibleBytes >= 0;
+    && Number.isSafeInteger(preview.eligibleCount) && preview.eligibleCount >= 0
+    && Number.isSafeInteger(preview.eligibleBytes) && preview.eligibleBytes >= 0
+    && (preview.available === undefined || typeof preview.available === 'boolean');
+}
+
+export function isRetentionCleanupControl(value: unknown): value is RetentionCleanupControl {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const control = value as Record<string, unknown>;
+  if (Object.keys(control).length !== 3 ||
+      !Object.hasOwn(control, 'source') || !Object.hasOwn(control, 'state') || !Object.hasOwn(control, 'policyRevision')) return false;
+  if (control.source === 'SERVER_CONFIGURATION') {
+    return control.policyRevision === null && (control.state === 'ALLOWED' || control.state === 'SERVER_DISABLED');
+  }
+  return control.source === 'PERSISTED_POLICY'
+    && typeof control.policyRevision === 'number' && Number.isSafeInteger(control.policyRevision) && control.policyRevision >= 0
+    && ['ALLOWED', 'DISABLED', 'REVIEW_REQUIRED', 'SERVER_DISABLED'].includes(control.state as string)
+    && (control.policyRevision >= 1 || (control.state !== 'ALLOWED' && control.state !== 'DISABLED'));
+}
+
+function cleanupPermissionLabel(control: RetentionCleanupControl | undefined): string {
+  if (!isRetentionCleanupControl(control)) return 'Unknown';
+  switch (control.state) {
+    case 'ALLOWED': return control.source === 'PERSISTED_POLICY' ? 'Allowed by saved settings' : 'Allowed by server configuration';
+    case 'DISABLED': return 'Disabled by saved settings';
+    case 'REVIEW_REQUIRED': return 'Review required';
+    case 'SERVER_DISABLED': return 'Disabled by server configuration';
+  }
 }
 
 function snapshotCoversManagedCategories(snapshot: RetentionSnapshot): boolean {
@@ -127,6 +162,9 @@ function snapshotCoversManagedCategories(snapshot: RetentionSnapshot): boolean {
 
 function validCleanup(cleanup: BoundedRetentionCleanup | undefined, snapshot: RetentionSnapshot): cleanup is BoundedRetentionCleanup {
   return cleanup?.supported === true
+    && isRetentionCleanupControl(snapshot.cleanupControl) && snapshot.cleanupControl.state === 'ALLOWED'
+    && snapshot.previewStatus === 'OK'
+    && snapshot.preview.every(row => row.available !== false)
     && (snapshot.lastSweep.status === 'SUCCEEDED' || snapshot.lastSweep.status === 'NOT_RUN')
     && snapshotCoversManagedCategories(snapshot)
     && cleanup.previewId.trim().length > 0
@@ -159,7 +197,7 @@ export function TransientRetention({ status, snapshot, cleanup, onRefresh }: Tra
             <table>
               <caption>Managed artifact retention policy and current cleanup preview</caption>
               <thead>
-                <tr><th scope="col">Managed category</th><th scope="col">Policy</th><th scope="col">Eligible now</th></tr>
+                <tr><th scope="col">Managed category</th><th scope="col">Configured rule</th><th scope="col">Preview candidates</th></tr>
               </thead>
               <tbody>
                 {MANAGED_RETENTION_CATEGORIES.map(category => {
@@ -167,19 +205,41 @@ export function TransientRetention({ status, snapshot, cleanup, onRefresh }: Tra
                   const preview = snapshot.preview.find(row => row.category === category.id);
                   const eligibleCount = safeCount(preview?.eligibleCount ?? 0);
                   const eligibleBytes = safeBytes(preview?.eligibleBytes ?? 0);
+                  const configured = policy && validPolicy(policy) && (policy.configured ?? policy.enabled);
+                  const countsAvailable = preview && validPreviewRow(preview) && preview.available !== false && snapshot.previewStatus !== 'BLOCKED';
                   return (
                     <tr key={category.id}>
                       <th scope="row">{category.label}</th>
-                      <td>{policy && validPolicy(policy) ? `${policy.enabled ? 'Enabled' : 'Disabled'} · ${policy.maxAgeDays} day${policy.maxAgeDays === 1 ? '' : 's'}` : 'Policy unavailable'}</td>
-                      <td>{countLabel(eligibleCount, 'item')} · {formatBytes(eligibleBytes)}</td>
+                      <td>{policy && validPolicy(policy) ? configured ? `Configured · ${policy.maxAgeDays} day${policy.maxAgeDays === 1 ? '' : 's'}` : 'Not configured' : 'Policy unavailable'}</td>
+                      <td>{snapshot.previewStatus === 'BLOCKED' ? 'Unavailable'
+                        : !configured ? 'Not configured'
+                        : countsAvailable ? `${snapshot.previewStatus === 'PARTIAL' ? 'Observed: ' : ''}${countLabel(eligibleCount, 'item')} · ${formatBytes(eligibleBytes)}`
+                        : 'Unavailable'}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
+          <div role="group" aria-labelledby="retention-cleanup-control-title">
+            <h3 id="retention-cleanup-control-title">Cleanup permission</h3>
+            <p role="status">Cleanup permission: {cleanupPermissionLabel(snapshot.cleanupControl)}</p>
+            {isRetentionCleanupControl(snapshot.cleanupControl)
+              ? snapshot.cleanupControl.source === 'PERSISTED_POLICY'
+                ? snapshot.cleanupControl.policyRevision === 0
+                  ? <p>No reviewed cleanup policy is available.</p>
+                  : <p>Saved policy revision: {snapshot.cleanupControl.policyRevision}</p>
+                : <p>No saved policy revision was used; this status comes from server configuration.</p>
+              : <p>This snapshot does not report whether cleanup is allowed. Configured rules alone do not enable deletion.</p>}
+            {snapshot.cleanupControl?.state === 'REVIEW_REQUIRED' ? <p>Review the current retention settings and save consent before cleanup can be allowed.</p> : null}
+            <p>This preview does not delete files. Cleanup permission does not confirm that scheduled cleanup is running.</p>
+          </div>
+          {snapshot.previewStatus === 'BLOCKED' ? <p role="alert">Preview blocked. Candidate counts are unavailable; no successful scan is recorded.</p>
+            : snapshot.previewStatus === 'PARTIAL' ? <p role="alert">Preview incomplete. Shown counts are partial observations; unreported categories remain unavailable.</p>
+            : snapshot.previewStatus === 'OK' ? <p>Preview completed for the configured rules. Listed candidates have not been deleted by this preview.</p>
+            : <p role="status">Preview status: Unknown. These displayed counts do not prove a complete scan.</p>}
           <div role="group" aria-labelledby="retention-last-sweep-title">
-            <h3 id="retention-last-sweep-title">Last automatic sweep</h3>
+            <h3 id="retention-last-sweep-title">Last recorded sweep</h3>
             <p>Last sweep: {sweepLabel(snapshot.lastSweep.status)}</p>
             {snapshot.lastSweep.completedAt ? <p>Completed: {safeTimestamp(snapshot.lastSweep.completedAt)}</p> : null}
             {snapshot.lastSweep.status === 'SUCCEEDED' ? (
