@@ -19,6 +19,7 @@ from services.data_export import export_profile_backup
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.uploads import read_resume, save_resume
+from services.profile_restore import build_restore_plan
 from tests.integration.test_spine import PROFILE
 
 
@@ -679,16 +680,41 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                 restored_facts = connection.execute(select(m.facts).where(
                     m.facts.c.profile_id == profile_id,
                 )).mappings().all()
-            self.assertEqual(len(versions), len(self.backup['profile_versions']))
+            # Imported assessments belong to their historical source snapshots.
+            # Restore creates a separate current snapshot with unapproved facts.
+            self.assertEqual(len(versions), len(self.backup['profile_versions']) + 1)
             restored_current_version = reloaded.profile(profile_id)['version']
             expected_versions = {
-                row['version']: (restored_current_version if row['version'] == self.backup['profile']['version']
-                                 else identity('restored-historical-profile-version', profile_id,
-                                               fingerprint, row['version']))
+                row['version']: identity('restored-historical-profile-version', profile_id,
+                                         fingerprint, row['version'])
                 for row in self.backup['profile_versions']
             }
-            self.assertEqual({row['version'] for row in versions}, set(expected_versions.values()))
-            self.assertEqual(len(restored_facts), len(self.backup['facts']))
+            self.assertNotIn(restored_current_version, set(expected_versions.values()))
+            self.assertEqual({row['version'] for row in versions},
+                             set(expected_versions.values()) | {restored_current_version})
+            historical_facts = [row for row in restored_facts
+                                if row['version'] in set(expected_versions.values())]
+            active_facts = [row for row in restored_facts
+                            if row['version'] == restored_current_version]
+            source_current_facts = [row for row in self.backup['facts']
+                                    if row['version'] == self.backup['profile']['version']]
+            self.assertEqual(len(historical_facts), len(self.backup['facts']))
+            self.assertEqual(len(active_facts), len(source_current_facts))
+            self.assertEqual(len(restored_facts), len(self.backup['facts']) + len(source_current_facts))
+            self.assertEqual({row['fact_id'] for row in active_facts},
+                             {row['fact_id'] for row in source_current_facts})
+            historical_by_id = {row['id']: row for row in historical_facts}
+            normalized_fact_sources = {
+                (row['version'], row['fact_id']): row['source']
+                for row in build_restore_plan(self.backup, profile_id)['history']['profile_facts']
+            }
+            for original_fact in self.backup['facts']:
+                archived = historical_by_id[identity(
+                    profile_id, expected_versions[original_fact['version']], original_fact['fact_id'])]
+                for field in ('fact_id', 'kind', 'text'):
+                    self.assertEqual(archived[field], original_fact[field])
+                self.assertEqual(archived['source'], normalized_fact_sources[
+                    (original_fact['version'], original_fact['fact_id'])])
             self.assertTrue({row['id'] for row in restored_facts}.isdisjoint(
                 {row['id'] for row in self.backup['facts']}))
             self.assertTrue({row['version'] for row in restored_facts} <=

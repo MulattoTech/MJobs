@@ -469,16 +469,22 @@ def apply_profile_restore(store, plan: dict, output_dir: str | Path, request_id:
             staged_directory, staged_files = _stage_files(uploads, history["documents"], output_dir)
             version, snapshot, facts = _profile_rows(profile, fingerprint)
             timestamp = now()
+            # Imported assessments describe exported snapshots, not the newly
+            # unapproved current facts. Keep every imported version historical,
+            # including the source's former current version, so old match scores
+            # and approval annotations cannot become current without recalculation.
             profile_version_ids = {
-                row["source_version"]: (
-                    version if row["source_version"] == history["current_source_version"]
-                    else identity("restored-historical-profile-version", profile["id"],
-                                  fingerprint, row["source_version"])
+                row["source_version"]: identity(
+                    "restored-historical-profile-version", profile["id"],
+                    fingerprint, row["source_version"],
                 ) for row in history["profile_versions"]
             }
             connection.execute(m.profiles.insert().values(
                 id=profile["id"], name=profile["name"], email=profile["email"], version=version,
             ))
+            connection.execute(m.profile_versions.insert().values(**snapshot))
+            if facts:
+                connection.execute(m.facts.insert(), facts)
             for row in history["profile_versions"]:
                 target_version = profile_version_ids[row["source_version"]]
                 connection.execute(m.profile_versions.insert().values(
@@ -688,7 +694,7 @@ def apply_profile_restore(store, plan: dict, output_dir: str | Path, request_id:
             for row in history["resume_workspace_revisions"]:
                 # Imported workspace content is historical and inert. Its
                 # source references are retained as user data, but bindings
-                # point at the newly remapped target job and current version.
+                # point at the remapped target job and historical profile version.
                 from datetime import datetime
                 created = row["created_at"]
                 if isinstance(created, str):

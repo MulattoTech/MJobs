@@ -2,15 +2,19 @@ import base64
 import copy
 import hashlib
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
+from packages.domain.profile import ContactDetails, JobPreferences
 from packages.persistence.store import Store
 from services.career_profile.story_bank import create_story
 from services.data_export import export_profile_backup
 from services.documents.uploads import save_resume
 from services.profile_restore import (
+    MAX_IMPORT_BYTES,
+    MAX_IMPORT_NODES,
+    MAX_IMPORT_ROWS,
     ProfileRestoreError,
     build_restore_plan,
     preview_profile_restore,
@@ -131,7 +135,94 @@ def _payload():
     }
 
 
+def _versioned_fact_backup(fact_counts, *, fact_text="SQL"):
+    """A valid bounded backup whose restored active copy consumes extra capacity."""
+    profile_id = "bounded-source"
+    preferences = JobPreferences().model_dump()
+    preferences["company_discovery"]["company_discovery_enabled"] = False
+    preferences["application_route_preference"] = "USER_CHOICE"
+    preferences["sensitive_answer_policies"] = {
+        category: {"mode": "ALWAYS_REQUIRE_REVIEW", "response": None}
+        for category in ("RACE_ETHNICITY", "RELIGION", "SEX_GENDER", "DISABILITY",
+                         "VETERAN_STATUS", "OTHER_VOLUNTARY_DEMOGRAPHIC")
+    }
+    contact = {"name": "Synthetic Bounds", "email": "bounds@example.invalid",
+               "contact": ContactDetails().model_dump(), "preferences": preferences}
+    payload = {
+        "schema_version": 1, "export_type": "profile_backup", "profile_id": profile_id,
+        "profile": {"id": profile_id, "name": contact["name"], "email": contact["email"],
+                    "version": "v0"},
+        "profile_versions": [], "facts": [],
+        "settings": {"search_profiles": [], "ai_task_settings": [],
+                     "ai_cost_policy": [], "answer_confidence_policy": []},
+    }
+    for section in (
+        "jobs", "application_routes", "job_matches", "applications", "application_route_choices",
+        "documents", "attempts", "career_stories", "resume_workspace_revisions", "interview_prep_packs",
+        "ai_evaluation_runs", "ai_job_evaluations", "ai_document_reviews", "source_candidates",
+        "source_candidate_reviews", "resume_revisions", "uploaded_resumes",
+        "company_discovery_requests", "company_discovery_history", "document_files",
+    ):
+        payload[section] = []
+    for ordinal, fact_count in enumerate(fact_counts):
+        version = f"v{ordinal}"
+        payload["profile_versions"].append({
+            "id": _identity(profile_id, version), "version": version,
+            "contact": copy.deepcopy(contact), "answers": [],
+        })
+        for number in range(fact_count):
+            fact_id = f"f{number}"
+            payload["facts"].append({
+                "id": _identity(profile_id, version, fact_id), "version": version,
+                "fact_id": fact_id, "kind": "skill", "text": fact_text, "source": "Synthetic",
+                "verified": True, "user_approved": True, "confidence": 95,
+            })
+    return payload
+
+
+def _json_node_count(value):
+    if isinstance(value, dict):
+        return 1 + sum(_json_node_count(nested) for nested in value.values())
+    if isinstance(value, list):
+        return 1 + sum(_json_node_count(nested) for nested in value)
+    return 1
+
+
 class ProfileRestoreTests(unittest.TestCase):
+    def test_preview_and_plan_reserve_capacity_for_new_active_snapshot_and_facts(self):
+        cases = {
+            "fact_row_expansion": ([200, 9700], "SQL"),
+            "node_expansion": ([200] * 48, "SQL"),
+            "byte_expansion": ([200, 200], "x" * 9000),
+        }
+        for name, (fact_counts, fact_text) in cases.items():
+            with self.subTest(case=name):
+                payload = _versioned_fact_backup(fact_counts, fact_text=fact_text)
+                original = copy.deepcopy(payload)
+                # These requests fit the existing input bounds. The rejected
+                # expansion is caused by preserving history plus a new active copy.
+                self.assertLess(len(payload["facts"]), MAX_IMPORT_ROWS)
+                self.assertLess(_json_node_count(payload), MAX_IMPORT_NODES)
+                self.assertLess(len(json.dumps(payload).encode("utf-8")), MAX_IMPORT_BYTES)
+                for operation in (preview_profile_restore,
+                                  lambda value: build_restore_plan(value, "bounded-restored")):
+                    with self.subTest(operation=operation.__name__):
+                        with self.assertRaises(ProfileRestoreError) as caught:
+                            operation(payload)
+                        self.assertEqual(caught.exception.code, "RESTORE_LIMIT_EXCEEDED")
+                self.assertEqual(payload, original)
+
+    def test_near_limit_history_with_room_for_active_snapshot_remains_accepted(self):
+        payload = _versioned_fact_backup([200] * 47)
+        original = copy.deepcopy(payload)
+        preview = preview_profile_restore(payload)
+        plan = build_restore_plan(payload, "bounded-restored")
+        self.assertEqual(preview["counts"]["facts"], 200)
+        self.assertEqual(len(plan["history"]["profile_versions"]), 47)
+        self.assertEqual(len(plan["history"]["profile_facts"]), 9400)
+        self.assertEqual(len(plan["profile"]["facts"]), 200)
+        self.assertEqual(payload, original)
+
     def test_discovery_history_requires_bounded_allowlisted_snapshot_and_safe_references(self):
         payload = _payload()
         snapshot = {
