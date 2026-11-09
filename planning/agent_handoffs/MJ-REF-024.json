@@ -1,25 +1,33 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-024",
-  "objective": "Repair contact handle leakage in follow-up draft metadata and text",
+  "objective": "Repair contact leakage in follow-up metadata and copyable drafts",
   "owner": "ChatGPT-Web web-20261109T031310Z-90fc8ec06c08",
   "branch": "web/web-20261109T031310Z-90fc8ec06c08/MJ-REF-024-contact-scrubbing",
-  "head_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
-  "routing_state": "INTEGRATE",
-  "next_action": "Inspect current PR head/checks and acceptance evidence, then authorized serial integration; rerun connected browser when admitted",
-  "created_at": "2026-11-09T03:26:00.746651+00:00",
-  "requirements": [],
+  "head_sha": "d31f69bd9ae3681e09cb550856882df7781aae3f",
+  "routing_state": "VERIFY",
+  "next_action": "Inspect final PR980 exact-head hosted results and remaining acceptance gaps; authorized serial integration only after required gates. Keep REF054 prerequisite qualified.",
+  "created_at": "2026-11-09T04:04:52Z",
+  "requirements": [
+    "MJ-REF-024"
+  ],
   "tests": [
     {
-      "command": "Exact 33c34501ab7c3d236814ac213cc0c5e83d096a48: focused follow-up service/route/SQLite tests 20 passed, 30 subtests; catalogue/progress/dashboard/provenance/diff checks PASS",
+      "command": "Exact d31f69bd9ae3681e09cb550856882df7781aae3f: cloud isolated unit 17 methods / 80 subtests PASS; independent42 public field cases and6 controls PASS; committed blob readback/provenance/diff checks PASS",
       "result": "PASS"
     },
     {
-      "command": "Connected browser and heavy suites: resource gate; merge/deployment: PR_ONLY",
+      "command": "Exact 33c34501ab7c3d236814ac213cc0c5e83d096a48: earlier focused service/route/SQLite suite20 tests /30 subtests PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Expanded SQLite/API, hosted final-head gates, connected Brave and heavy local suites",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Historical full REF024 PASS not newly promoted; REF054 dependency remains qualified pending integration/acceptance"
+    "Full REF024 not reaccepted: candidate enumeration limit and remaining product journey; REF054 still gated.",
+    "Hosted final-head validation pending at this checkpoint; local resources below safe validation headroom.",
+    "PR_ONLY authority; no merge or deployment performed."
   ]
 }
