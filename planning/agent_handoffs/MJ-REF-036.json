@@ -1,25 +1,33 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-036",
-  "objective": "Expose bounded versioned source metadata and a profile-scoped JSON export",
-  "owner": "ChatGPT-Web/web-20261109T031048Z-b789251ab0cf",
+  "objective": "Repair unsafe URL object-key omission in existing PR988 metadata projection/export",
+  "owner": "ChatGPT-Web/web-20261109T131825Z-4b3185c66c15",
   "branch": "web/web-20261109T031048Z-b789251ab0cf/MJ-REF-036-source-metadata",
-  "head_sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+  "head_sha": "ee7cc1f6da9b69c309fcf75195460b57413b863d",
   "routing_state": "VERIFY",
-  "next_action": "Run final-head smoke/provenance, serialize candidate preflight and publish the owned PR; inspect exact hosted checks. Integrator combines PR978 only after its gates.",
-  "created_at": "2026-11-09T03:43:15.487840+00:00",
+  "next_action": "Publish reviewed PR988 update under live expected-head admission; inspect exact hosted checks. Full REF036 remains PARTIAL; no merge or deployment.",
+  "created_at": "2026-11-09T13:57:18.620401+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Implementation e347f6cac0c38902b078a04837f9262b72476dd3: 106 pytest tests and46 subtests; catalogue/progress/dashboard/reference-provenance/diff checks passed",
+      "command": "Exact source ee7cc1f6:108 tests/50subtests,0skips in17.26s; independent correction review PASS at matching blobs; catalogue/progress/dashboard/reference-provenance/commit-provenance/lint/diff PASS",
       "result": "PASS"
     },
     {
-      "command": "Full local suites, PostgreSQL/Redis, browser and web build resource gated; hosted checks pending",
+      "command": "New hosted checks pending publication; feature-specific PostgreSQL, authenticated browser, and combined PR978 acceptance NOT_RUN",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Full REF036 acceptance remains PARTIAL; canonical-field provenance is complementary PR978; no merge authority"
+    "No full REF036 acceptance promotion; canonical field provenance depends on separate PR978 and combined verification"
+  ],
+  "transfer_history": [
+    {
+      "from_owner": "ChatGPT-Web/web-20261109T031048Z-b789251ab0cf",
+      "to_owner": "ChatGPT-Web/web-20261109T131825Z-4b3185c66c15",
+      "reason": "Prior owner explicitly released PR988 in final checkpoint; fresh atomic scope and exact remote34541e48 verified. Repair independently reproduced unsafe URL object-key export omission.",
+      "transferred_at": "2026-11-09T13:53:23.402066+00:00"
+    }
   ]
 }
