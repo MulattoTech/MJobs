@@ -38,7 +38,6 @@
     "blob_identity_verified_at_utc": "2026-11-09T16:03:19.888347+00:00"
   },
   "reproduction": {
-    "exact_api_snapshot_commit": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
     "input_contract": "Profile-owned approved and verified saved answers, confidence 100, exact saved text, reviewed=true, omitted sensitive policy. All data is synthetic.",
     "questions": [
       "Have you served in the armed forces?",
@@ -49,7 +48,8 @@
       "Are you at least 18 years old?"
     ],
     "observed": "Matching rejected with HTTP 422 and policy suggestions returned blank ALWAYS_REQUIRE_REVIEW; direct bank-ID exports returned HTTP 201, created durable private documents, recorded REVIEWED_REUSE with score 1.0, downloaded exact synthetic values and survived database/client restart.",
-    "interpretation": "Inconsistent reuse admission. The explicit reviewed=true flag remained required. No unauthorized inference, automatic application submission or external data transfer is claimed."
+    "interpretation": "Inconsistent reuse admission. The explicit reviewed=true flag remained required. No unauthorized inference, automatic application submission or external data transfer is claimed.",
+    "exact_reproduction_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
   },
   "implementation": [
     "Use the existing services.answers.review.is_review_sensitive_question for requested and saved questions in matching and export.",
@@ -474,6 +474,18 @@
       "failed_run": 42652619306,
       "classification": "Public source Git object identity, not a credential. Root and independent reviewer fetched the exact evidence/source, recomputed the object, and confirmed identical current-main source bytes. One immutable fingerprint added.",
       "hosted_repaired_head": "NOT_RUN"
+    },
+    "own_immutable_commit_reference": {
+      "failed_run": 42655696078,
+      "historical_evidence_commit": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e",
+      "historical_line": 41,
+      "classification": "Public commit reference independently recomputed from its exact Git commit bytes; not a credential. Only this immutable finding is excepted. The current metadata field is renamed to avoid a misleading API-key heuristic.",
+      "reviewers": [
+        "Root ChatGPT-Web",
+        "Independent evidence reviewer"
+      ],
+      "source_or_tests_changed": false,
+      "new_head_scan": "PENDING"
     }
   }
 }

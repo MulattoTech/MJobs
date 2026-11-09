@@ -349,3 +349,6 @@ aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structu
 
 # Independently verified public Git object in the original API acceptance evidence.
 cc1e5083ce1a94b20a424e09a038c0f72972ab10:docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json:generic-api-key:520
+
+# Independently recomputed public commit-reference metadata, not a credential.
+5d0d9564b00cc69a0940291cc3a3f55dabf2618e:docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json:generic-api-key:41
