@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-106-sensitive-reuse-4f1d",
+  "objective": "Align sensitive saved-answer reuse at matching and direct export with the existing review policy. Whole MJ-REQ-106 and MJ-REQ-107 remain PARTIAL. Scoped validation: 164 tests plus 142 subtests passed; target tests are included, not additive.",
+  "owner": "ChatGPT-Web web-20261109T131824Z-4f1d2da391c4",
+  "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-106-sensitive-reuse",
+  "head_sha": "6dc2fbf6244d11ab462a1502015901de06ba08cb",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the reviewed answer-controls PR; inspect exact-head hosted checks. Integration owner evaluates the separate105PASSproposal at971;106/107 remainPARTIAL.",
+  "created_at": "2026-11-09T16:03:19.926474+00:00",
+  "requirements": [
+    "MJ-REQ-106-sensitive-reuse-4f1d"
+  ],
+  "tests": [
+    {
+      "command": "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python -B -m pytest -q -p no:cacheprovider tests/unit/test_answer_reuse_sensitive_boundary.py tests/unit/test_answer_matching.py tests/unit/test_answer_matching_sustain_220.py tests/unit/test_sensitive_answer_policy.py tests/unit/test_sensitive_answer_policy_model.py tests/unit/test_fleet_t13_answer_review.py tests/unit/test_fleet_t13_review.py tests/unit/test_answer_export_path_security.py tests/integration/test_answer_export_sensitive_boundary.py tests/integration/test_application_answer_matching_api.py tests/integration/test_application_answer_export.py tests/integration/test_sensitive_answer_policy.py tests/integration/test_legal_question_preflight.py tests/integration/test_reviewed_application_answer_save.py tests/integration/test_reviewed_application_answer_durability.py tests/integration/test_application_answer_story_citation_export.py tests/integration/test_answer_export_privacy.py tests/integration/test_application_answer_resume_api.py tests/integration/test_fleet_t13_lead_answer_flow.py --tb=short --junitxml=/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-regressions.xml",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Browser, PostgreSQL, Windows, full suites, hosted candidate gates, protected merge, deployment and whole MJ-REQ-106/107 acceptance.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "independent_review": "Completed; scoped review supports the recorded claim; not human approval."
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-105-acceptance-4f1d",
+  "objective": "Verify the literal configurable answer-confidence threshold criterion without changing production or tests.",
+  "owner": "ChatGPT-Web /root/foundation_scout; run web-20261109T131824Z-4f1d2da391c4",
+  "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-106-sensitive-reuse",
+  "head_sha": "6dc2fbf6244d11ab462a1502015901de06ba08cb",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the reviewed answer-controls PR; inspect exact-head hosted checks. Integration owner evaluates the separate105PASSproposal at971;106/107 remainPARTIAL.",
+  "created_at": "2026-11-09T16:05:33.662876+00:00",
+  "requirements": [
+    "MJ-REQ-105"
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py tests/unit/test_fleet_t13_answer_review.py tests/integration/test_fleet_t13_worker_review.py --tb=short at 971ba931: 52 tests and 22 subtests PASS, zero skips (40.67s)",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py tests/unit/test_fleet_t13_answer_review.py tests/integration/test_fleet_t13_worker_review.py --tb=short at f3db88aa: 52 tests and 22 subtests PASS, zero skips (38.92s)",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted run 42646926759/job 129262580304/artifact 13688786744 at 971ba931: four ApplicationAnswerExportBrowserTests PASS; threshold case 4.361s; enclosing run/shard FAIL elsewhere",
+      "result": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web ci --offline --ignore-scripts --no-audit --no-fund: PASS at f3db88aa",
+      "result": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build: PASS at f3db88aa",
+      "result": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run test -- --run src/answer-matching.test.ts src/fleet_t13_answer_matching.test.ts: 19 PASS at f3db88aa",
+      "result": "PASS"
+    },
+    {
+      "command": "Full f3db browser execution, fresh PostgreSQL/Redis, deployment and live external integrations: NOT_RUN",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Cloud system-Chromium launch wrapper for tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers at f3db88aa",
+      "result": "FAIL",
+      "classification": "BLOCKED_ENVIRONMENT",
+      "reason": "Chromium socket() Operation not permitted before any page opened; raw failure retained."
+    }
+  ],
+  "blockers": [
+    "Canonical promotion and protected integration remain with the authorized integration owner."
+  ],
+  "evidence_path": "docs/evidence/2026-11-09-web-4f1d-answer-threshold-acceptance.json",
+  "functional_acceptance_proposal": {
+    "result": "PASS",
+    "tested_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "current_reverification_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "canonical_files_modified": false
+  },
+  "independent_review": "Completed; scoped review supports the recorded claim; not human approval."
+}

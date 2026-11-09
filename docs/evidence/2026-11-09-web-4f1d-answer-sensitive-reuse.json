@@ -1,0 +1,491 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-11-09T16:03:19.888335+00:00",
+  "status": "SCOPED_VALIDATION_AND_INDEPENDENT_REVIEW_PASSED",
+  "repository": "MulattoTech/MJobs",
+  "requirement_ids": [
+    "MJ-REQ-106",
+    "MJ-REQ-107"
+  ],
+  "scope": "Align saved-answer matching and direct bank-ID export with the existing sensitive-question review predicate. Whole requirements remain PARTIAL.",
+  "owner_run": "web-20261109T131824Z-4f1d2da391c4",
+  "source": {
+    "base_commit": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-106-sensitive-reuse",
+    "implementation_commit": "6dc2fbf6244d11ab462a1502015901de06ba08cb",
+    "tested_state": "Validation executed on the working tree before committing. All three tested source/test blobs were independently read back from the implementation commit and are identical; remaining source is unchanged from the stated base. No hosted check or whole-requirement acceptance is claimed.",
+    "baseline_answer_blob": "dc3d8e99f5c1d502eb687a578d891f685aaa6048",
+    "files": [
+      {
+        "path": "services/documents/answers.py",
+        "bytes": 23668,
+        "git_blob": "95e8c414eab7de2011d21124f21f19bc74ec1493",
+        "sha256": "42e9a46f8591d3c4cb52de80e2e9b0271dc2a6999a41a167f6f8356d47870697"
+      },
+      {
+        "path": "tests/unit/test_answer_reuse_sensitive_boundary.py",
+        "bytes": 4359,
+        "git_blob": "d63315d8f76ef05824f8ad4b8471cec68688bfbb",
+        "sha256": "6e4484dc4670e56260df74d30813746c010b52faa68ed77e347f270a9a4a6bf0"
+      },
+      {
+        "path": "tests/integration/test_answer_export_sensitive_boundary.py",
+        "bytes": 12623,
+        "git_blob": "b44af0a9c58cce5cdfc52d547b9d2517224cf8eb",
+        "sha256": "e1944214d053da08bb39a70f0aa57633ba877668aff5c59289f777d24d99501c"
+      }
+    ],
+    "blob_identity_verified_at_utc": "2026-11-09T16:03:19.888347+00:00"
+  },
+  "reproduction": {
+    "input_contract": "Profile-owned approved and verified saved answers, confidence 100, exact saved text, reviewed=true, omitted sensitive policy. All data is synthetic.",
+    "questions": [
+      "Have you served in the armed forces?",
+      "What is your national origin?",
+      "What is your expected salary?",
+      "Do you have restrictive covenants?",
+      "What legal certifications do you hold?",
+      "Are you at least 18 years old?"
+    ],
+    "observed": "Matching rejected with HTTP 422 and policy suggestions returned blank ALWAYS_REQUIRE_REVIEW; direct bank-ID exports returned HTTP 201, created durable private documents, recorded REVIEWED_REUSE with score 1.0, downloaded exact synthetic values and survived database/client restart.",
+    "interpretation": "Inconsistent reuse admission. The explicit reviewed=true flag remained required. No unauthorized inference, automatic application submission or external data transfer is claimed.",
+    "exact_reproduction_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+  },
+  "implementation": [
+    "Use the existing services.answers.review.is_review_sensitive_question for requested and saved questions in matching and export.",
+    "Defer its import because review.py imports answers.py; both clean-process import orders are tested.",
+    "Retain existing confidence, ordinary matching, polarity, explicit manual answers, immutable files, private permissions and external_submission OFF contracts.",
+    "Do not alter the shared regex, existing review policy, routes, UI, Store, preflight or story-citation classifier."
+  ],
+  "validation": [
+    {
+      "phase": "baseline-initial-fixture-error",
+      "command_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_answer_reuse_sensitive_boundary.py",
+        "tests/integration/test_answer_export_sensitive_boundary.py",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-baseline.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-repair",
+      "junit_counts": {
+        "tests": 54,
+        "failures": 27,
+        "errors": 0,
+        "skipped": 0
+      },
+      "seconds": 5.609,
+      "started_at_utc": "2026-11-09T15:57:28.755719+00:00",
+      "exit_code": 1,
+      "failures": [
+        {
+          "class": "tests.unit.test_answer_reuse_sensitive_boundary.AnswerReuseSensitiveBoundaryTests",
+          "test": "test_either_side_of_a_high_overlap_pair_can_require_individual_review",
+          "message": "AssertionError: {'method': 'FUZZY', 'score': 0.9} is not None",
+          "details": "tests/unit/test_answer_reuse_sensitive_boundary.py:40: in test_either_side_of_a_high_overlap_pair_can_require_individual_review\n    self.assertIsNone(match_answer_question(requested, saved))\nE   AssertionError: {'method': 'FUZZY', 'score': 0.9} is not None"
+        },
+        {
+          "class": "tests.unit.test_answer_reuse_sensitive_boundary.AnswerReuseSensitiveBoundaryTests",
+          "test": "test_sensitive_and_legal_paraphrases_never_become_exact_reuse",
+          "message": "AssertionError: {'method': 'EXACT_NORMALIZATION', 'score': 1.0} is not None",
+          "details": "tests/unit/test_answer_reuse_sensitive_boundary.py:32: in test_sensitive_and_legal_paraphrases_never_become_exact_reuse\n    self.assertIsNone(match_answer_question(question, question))\nE   AssertionError: {'method': 'EXACT_NORMALIZATION', 'score': 1.0} is not None"
+        },
+        {
+          "class": "tests.unit.test_answer_reuse_sensitive_boundary.AnswerReuseSensitiveBoundaryTests",
+          "test": "test_shared_policy_imports_work_in_both_fresh_process_orders",
+          "message": "AssertionError: 1 != 0 : Traceback (most recent call last):\n  File \"<string>\", line 7, in <module>\nAssertionError",
+          "details": "tests/unit/test_answer_reuse_sensitive_boundary.py:84: in test_shared_policy_imports_work_in_both_fresh_process_orders\n    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)\nE   AssertionError: 1 != 0 : Traceback (most recent call last):\nE     File \"<string>\", line 7, in <module>\nE   AssertionError"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_explicit_policy_modes_do_not_authorize_sensitive_bank_id_reuse",
+          "message": "AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:176: in test_explicit_policy_modes_do_not_authorize_sensitive_bank_id_reuse\n    self.assertEqual(result.status_code, 422, result.text)\nE   AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_matching_and_direct_export_reject_the_same_sensitive_paraphrases",
+          "message": "AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:143: in test_matching_and_direct_export_reject_the_same_sensitive_paraphrases\n    self.assertEqual(exported.status_code, 422, exported.text)\nE   AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_ordinary_reuse_and_explicit_manual_sensitive_answers_remain_private_and_durable",
+          "message": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/mjobs-sensitive-export-boundary-7mv4qzmu/documents/answers/1/1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b-60d8d03345b4be0f20c95815dc2d50114d2e878c4bffbe1154258753c9df49c1.txt'",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:196: in test_ordinary_reuse_and_explicit_manual_sensitive_answers_remain_private_and_durable\n    reused_record = self._download(reused_id, \"SYNTHETIC_SAVED_ANSWER\")\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/integration/test_answer_export_sensitive_boundary.py:125: in _download\n    self.assertEqual(stat.S_IMODE((self.output / record[\"files\"][\"txt\"]).stat().st_mode), 0o600)\n                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:840: in stat\n    return os.stat(self, follow_symlinks=follow_symlinks)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   FileNotFoundError: [Errno 2] No such file or directory: '/tmp/mjobs-sensitive-export-boundary-7mv4qzmu/documents/answers/1/1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b-60d8d03345b4be0f20c95815dc2d50114d2e878c4bffbe1154258753c9df49c1.txt'"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_sensitive_saved_or_requested_wording_blocks_high_overlap_reuse",
+          "message": "AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"eba6c8aec0e9392940bad264bc30bbb2c31f4ff7a90a2abbe1dd43ad376ee42d\",\"external_submission\":\"OFF\",\"story_citation_count\":0}",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:155: in test_sensitive_saved_or_requested_wording_blocks_high_overlap_reuse\n    self.assertEqual(result.status_code, 422, result.text)\nE   AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"eba6c8aec0e9392940bad264bc30bbb2c31f4ff7a90a2abbe1dd43ad376ee42d\",\"external_submission\":\"OFF\",\"story_citation_count\":0}"
+        }
+      ]
+    },
+    {
+      "phase": "baseline",
+      "command_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_answer_reuse_sensitive_boundary.py",
+        "tests/integration/test_answer_export_sensitive_boundary.py",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-baseline.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-repair",
+      "junit_counts": {
+        "tests": 54,
+        "failures": 26,
+        "errors": 0,
+        "skipped": 0
+      },
+      "seconds": 5.304,
+      "started_at_utc": "2026-11-09T15:57:46.436031+00:00",
+      "exit_code": 1,
+      "failures": [
+        {
+          "class": "tests.unit.test_answer_reuse_sensitive_boundary.AnswerReuseSensitiveBoundaryTests",
+          "test": "test_either_side_of_a_high_overlap_pair_can_require_individual_review",
+          "message": "AssertionError: {'method': 'FUZZY', 'score': 0.9} is not None",
+          "details": "tests/unit/test_answer_reuse_sensitive_boundary.py:40: in test_either_side_of_a_high_overlap_pair_can_require_individual_review\n    self.assertIsNone(match_answer_question(requested, saved))\nE   AssertionError: {'method': 'FUZZY', 'score': 0.9} is not None"
+        },
+        {
+          "class": "tests.unit.test_answer_reuse_sensitive_boundary.AnswerReuseSensitiveBoundaryTests",
+          "test": "test_sensitive_and_legal_paraphrases_never_become_exact_reuse",
+          "message": "AssertionError: {'method': 'EXACT_NORMALIZATION', 'score': 1.0} is not None",
+          "details": "tests/unit/test_answer_reuse_sensitive_boundary.py:32: in test_sensitive_and_legal_paraphrases_never_become_exact_reuse\n    self.assertIsNone(match_answer_question(question, question))\nE   AssertionError: {'method': 'EXACT_NORMALIZATION', 'score': 1.0} is not None"
+        },
+        {
+          "class": "tests.unit.test_answer_reuse_sensitive_boundary.AnswerReuseSensitiveBoundaryTests",
+          "test": "test_shared_policy_imports_work_in_both_fresh_process_orders",
+          "message": "AssertionError: 1 != 0 : Traceback (most recent call last):\n  File \"<string>\", line 7, in <module>\nAssertionError",
+          "details": "tests/unit/test_answer_reuse_sensitive_boundary.py:84: in test_shared_policy_imports_work_in_both_fresh_process_orders\n    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)\nE   AssertionError: 1 != 0 : Traceback (most recent call last):\nE     File \"<string>\", line 7, in <module>\nE   AssertionError"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_explicit_policy_modes_do_not_authorize_sensitive_bank_id_reuse",
+          "message": "AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:177: in test_explicit_policy_modes_do_not_authorize_sensitive_bank_id_reuse\n    self.assertEqual(result.status_code, 422, result.text)\nE   AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_matching_and_direct_export_reject_the_same_sensitive_paraphrases",
+          "message": "AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:144: in test_matching_and_direct_export_reject_the_same_sensitive_paraphrases\n    self.assertEqual(exported.status_code, 422, exported.text)\nE   AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"0843c75c4078dfa2c99352063214e78c81acacc342326ec6c238e5b2b4a9005e\",\"external_submission\":\"OFF\",\"story_citation_count\":0}"
+        },
+        {
+          "class": "tests.integration.test_answer_export_sensitive_boundary.AnswerExportSensitiveBoundaryTests",
+          "test": "test_sensitive_saved_or_requested_wording_blocks_high_overlap_reuse",
+          "message": "AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"eba6c8aec0e9392940bad264bc30bbb2c31f4ff7a90a2abbe1dd43ad376ee42d\",\"external_submission\":\"OFF\",\"story_citation_count\":0}",
+          "details": "tests/integration/test_answer_export_sensitive_boundary.py:156: in test_sensitive_saved_or_requested_wording_blocks_high_overlap_reuse\n    self.assertEqual(result.status_code, 422, result.text)\nE   AssertionError: 201 != 422 : {\"document_id\":\"1d28a3b370e5b272490f9cd510d1fa11c81570f56ee35aae59d0e60c4f43271b\",\"version\":1,\"sha256\":\"eba6c8aec0e9392940bad264bc30bbb2c31f4ff7a90a2abbe1dd43ad376ee42d\",\"external_submission\":\"OFF\",\"story_citation_count\":0}"
+        }
+      ]
+    },
+    {
+      "phase": "target",
+      "command_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_answer_reuse_sensitive_boundary.py",
+        "tests/integration/test_answer_export_sensitive_boundary.py",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-target.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-repair",
+      "junit_counts": {
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "seconds": 5.504,
+      "started_at_utc": "2026-11-09T15:58:10.519540+00:00",
+      "exit_code": 0,
+      "failures": []
+    },
+    {
+      "phase": "regressions",
+      "command_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_answer_reuse_sensitive_boundary.py",
+        "tests/unit/test_answer_matching.py",
+        "tests/unit/test_answer_matching_sustain_220.py",
+        "tests/unit/test_sensitive_answer_policy.py",
+        "tests/unit/test_sensitive_answer_policy_model.py",
+        "tests/unit/test_fleet_t13_answer_review.py",
+        "tests/unit/test_fleet_t13_review.py",
+        "tests/unit/test_answer_export_path_security.py",
+        "tests/integration/test_answer_export_sensitive_boundary.py",
+        "tests/integration/test_application_answer_matching_api.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/integration/test_sensitive_answer_policy.py",
+        "tests/integration/test_legal_question_preflight.py",
+        "tests/integration/test_reviewed_application_answer_save.py",
+        "tests/integration/test_reviewed_application_answer_durability.py",
+        "tests/integration/test_application_answer_story_citation_export.py",
+        "tests/integration/test_answer_export_privacy.py",
+        "tests/integration/test_application_answer_resume_api.py",
+        "tests/integration/test_fleet_t13_lead_answer_flow.py",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-regressions.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-repair",
+      "junit_counts": {
+        "tests": 306,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "seconds": 78.808,
+      "started_at_utc": "2026-11-09T15:58:41.034511+00:00",
+      "exit_code": 0,
+      "failures": []
+    },
+    {
+      "phase": "immutable-independent-review",
+      "tested_revision": "6dc2fbf6244d11ab462a1502015901de06ba08cb",
+      "result": "PASS",
+      "tests": 70,
+      "subtests": 89,
+      "skips": 0,
+      "duration_seconds": 49.52,
+      "note": "Independent reviewer execution on exact committed source, no blocking finding. These counts overlap the author regression union."
+    }
+  ],
+  "result_summary": {
+    "baseline_final": "10 test methods exercised; 26 failing subcases; 18 passing subtests; zero errors or skips. The pytest method-level 10 passed count is not a passing suite.",
+    "target": "10 tests plus 44 subtests passed, zero failures/errors/skips, 5.50 seconds.",
+    "regression_union": "164 tests plus 142 subtests passed, zero failures/errors/skips, 78.80 seconds. Includes the target 10 tests/44 subtests; totals must not be added.",
+    "diff_check": "PASS"
+  },
+  "fixture_corrections": [
+    {
+      "phase": "initial API probe",
+      "problem": "Scratch probe used operations instead of the actual worker_operations table name, producing two fixture errors in addition to six production failures.",
+      "correction": "Only changed the synthetic count target; the clean final reproduction preserved all six failures."
+    },
+    {
+      "phase": "initial tracked-test baseline",
+      "problem": "Private-file assertion treated a path relative to the application root as relative to the global documents directory. The initial baseline reported 26 production subfailures plus one fixture lookup failure.",
+      "correction": "Only added the known application ID to that test file lookup. No production or rejection assertion changed. The final baseline retained 26 production subfailures and the positive control passed."
+    }
+  ],
+  "coverage": [
+    "Sensitive, legal, medical and private exact paraphrases; requested-only and saved-only high-overlap cases.",
+    "All three explicit veteran policy modes, including configured text differing from the saved bank answer.",
+    "Ordinary term boundaries, numeric context and negation/polarity.",
+    "No new document, audit entry, regular file, application attempt, worker operation or profile mutation on denied exports.",
+    "Ordinary reuse and a user-selected configured sensitive response with explicit per-application review; immutable manifest/hash, no-store response, POSIX 0600 permissions, SQLite restart.",
+    "Existing threshold, persistence, legal preflight, resume/review, path-security, private recovery and story-citation regression modules."
+  ],
+  "not_run": [
+    "Browser/frontend journeys on this candidate.",
+    "Feature-specific PostgreSQL/concurrency execution on this candidate.",
+    "Full repository unit/integration/browser suites.",
+    "Windows and Windows ACL validation.",
+    "GitHub hosted required gates for a published candidate.",
+    "Protected merge, deployment or authenticated production journey.",
+    "Whole MJ-REQ-105, MJ-REQ-106 or MJ-REQ-107 acceptance; canonical matrices are unchanged."
+  ],
+  "limitations": [
+    "The existing review classifier remains bounded/conservative; this repair adds no general semantic inference.",
+    "Story-citation sensitivity is a separate consumer using the narrower existing regex; its classification behavior is not changed or recertified.",
+    "Preflight supports explicit profile mappings only for work authorization and sponsorship; other legally significant profile/policy workflows remain separate.",
+    "Regression execution uses synthetic SQLite/API/local fixtures and subprocesses; no real applicant/provider/production data or employer submission."
+  ],
+  "artifacts": [
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-export-probe.log",
+      "bytes": 6701,
+      "sha256": "22015bcf1eafcfd6ee044dc6044c48d0b6d0445f29c40cb78f01f0b7a04fd1c9"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-export-probe.json",
+      "bytes": 10976,
+      "sha256": "cfc0e51b35561a60bf09c607f46f999244a40aa57eade8659588c984f95ab358"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-export-probe-initial-fixture-error.log",
+      "bytes": 8321,
+      "sha256": "a83dc9f151030bd86453168c553c3300d06a1beffe5e71a031e6ff996b23e7af"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-baseline-initial-fixture-error.log",
+      "bytes": 20510,
+      "sha256": "8e21d46218083be8ccf104878973f7e889bc293b0df0ccdc4b44ae1b91117359"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-baseline-initial-fixture-error.xml",
+      "bytes": 18320,
+      "sha256": "6d4b7a0299680f1d414a48495e5d43df7fd7c87515bd36b1f4654c01a33b04e2"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-baseline.log",
+      "bytes": 19170,
+      "sha256": "e2712b6920ba17a6e7f21352c2e5fffc90c0b8da98ea1b3e7bcf487b48fd7c8a"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-baseline.xml",
+      "bytes": 16996,
+      "sha256": "8f231074b4b2b8bfd36dd1ea4ad7c6879732068fac35c1953040ee6cfb0489ad"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-target.log",
+      "bytes": 75,
+      "sha256": "d58f4c1396c879d2f1de992c5549a1cfa635b40f0f95e95a4f02b8267fee69a4"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-target.xml",
+      "bytes": 2214,
+      "sha256": "69c41b3e5e4f3c01cf797c575c1d5c6bf643a7f2320f87ee21e0c547e255835f"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-regressions.log",
+      "bytes": 302,
+      "sha256": "dcea017c111856169c7b5173f39ef398de624e508b6625dbd8b433b2be4c5f1f"
+    },
+    {
+      "path": "/workspace/scratch/1d691ba9cdbd/answer-sensitive-reuse-regressions.xml",
+      "bytes": 28747,
+      "sha256": "73362f67a9d97b7af1b79418475fadfc18f5b36176bee196beb4bd0c8ba02027"
+    }
+  ],
+  "independent_review": {
+    "schema_version": 1,
+    "reviewer": "Independent ChatGPT agent /root/independent_review",
+    "review_type": "Independent automated code review and executed targeted regression checks; not human approval",
+    "exact_tested_sha": "6dc2fbf6244d11ab462a1502015901de06ba08cb",
+    "result": "NO_BLOCKING_FINDINGS",
+    "scope": [
+      "services/documents/answers.py",
+      "tests/unit/test_answer_reuse_sensitive_boundary.py",
+      "tests/integration/test_answer_export_sensitive_boundary.py"
+    ],
+    "production_diff": "12 insertions and 2 deletions; one deferred classifier helper and shared classification at match/export reuse boundaries.",
+    "assessed_contracts": [
+      {
+        "contract": "Deferred import and module initialization",
+        "finding": "Safe in the reviewed paths. The helper imports review only when called; review imports completed answer definitions and its classifier does not call the matcher. Both fresh-process import orders passed."
+      },
+      {
+        "contract": "Both requested and saved question are guarded",
+        "finding": "The shared classifier runs on each original question before normalization/scoring and before saved-bank export. A sensitive source cannot be laundered through an ordinary high-overlap target, or vice versa."
+      },
+      {
+        "contract": "Ordinary answers and manual review",
+        "finding": "Existing ordinary matching/reuse and threshold semantics passed. Explicit manual sensitive input without answer_id remains user-entered, reviewed, private and durable; no sensitivity value is inferred."
+      },
+      {
+        "contract": "Current profile and export safety",
+        "finding": "Existing profile ownership, exact saved text, verified/approved confidence, transaction locking and durable-file behavior are unchanged. API tests verify rejection leaves documents, audit, applications, attempts, operations and existing file bytes unchanged."
+      },
+      {
+        "contract": "Privacy/publication assessment",
+        "finding": "No secrets, private applicant data, new package dependency, migration, network destination, provider call, autofill, or employer submission is introduced. New fixtures use synthetic values/example.test. Test-only subprocesses execute Python imports."
+      }
+    ],
+    "executed_validation": {
+      "status": "PASS",
+      "test_methods_or_parameter_instances": 70,
+      "subtests_passed": 89,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "duration_seconds": 49.52,
+      "exit_code": 0,
+      "modules": 8,
+      "log": "/workspace/scratch/1d691ba9cdbd/answer-repair-independent.log",
+      "junit": "/workspace/scratch/1d691ba9cdbd/answer-repair-independent.xml",
+      "junit_sha256": "e96fc1c029b87ddd061cfc50692f2cf6c7240be434d1c03aaa025e6f8e235d45",
+      "execution_manifest": "/workspace/scratch/1d691ba9cdbd/answer-repair-independent-execution.json",
+      "diff_check": "PASS",
+      "clean_worktree_at_start_and_completion": true,
+      "head_and_three_source_test_hashes_unchanged": true
+    },
+    "material_missing_regressions_for_scoped_fix": [],
+    "limitations": [
+      "The known-sensitive classifier remains a bounded lexical classifier. This review does not certify arbitrary natural-language sensitive/legal recognition.",
+      "This is a saved-answer reuse boundary repair. Explicit application-specific manual review remains supported.",
+      "The original probe used explicit user-provided values and reviewed:true. It did not establish invented answers, unreviewed disclosure, or external submission.",
+      "Full browser and PostgreSQL execution at this repair SHA were not performed by this reviewer.",
+      "MJ-REQ-106 and MJ-REQ-107 do not gain full acceptance from this patch review.",
+      "Protected CI, publication and canonical acceptance remain with the authorized owners."
+    ],
+    "tracked_files_changed_by_reviewer": false,
+    "human_approval": false,
+    "canonical_acceptance_changed": false,
+    "recorded_at_utc": "2026-11-09T16:08:04.176197+00:00"
+  },
+  "publication": {
+    "status": "NOT_PUBLISHED",
+    "implementation_commit": "6dc2fbf6244d11ab462a1502015901de06ba08cb",
+    "hosted_checks": "NOT_RUN",
+    "merge": "NOT_RUN"
+  },
+  "review_recorded_at_utc": "2026-11-09T16:09:36.560152+00:00",
+  "shared_scanner_repair": {
+    "recorded_at_utc": "2026-11-09T16:12:17.693552+00:00",
+    "reviewed_source_commit": "4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
+    "reviewed_proof_url": "https://github.com/MulattoTech/MJobs/blob/4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a/docs/evidence/2026-11-09-web-f390-ai-data-flow.json",
+    "observed_failure": "PR1001 scanner reported two public Git object identifiers in another worker's source-evidence maps; imported exact immutable fingerprints after original scanner owner released its atomic claim.",
+    "verification": "Original reported values were independently fetched at their exact historical commit and matched Git object identity on the exact public source file. Root independently reran the Git-object lookup. Artifact digest matches hosted metadata.",
+    "scope": "No scanner rule, workflow, directory, path or secret-type exemption. Only the two reviewed commit/path/rule/line fingerprints; pre-existing approved exceptions retained.",
+    "hosted_after_repair": "NOT_RUN; must inspect exact published repaired head.",
+    "later_historical_finding": {
+      "failed_shared_run": 42651609957,
+      "source_commit": "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45",
+      "source_evidence_url": "https://github.com/MulattoTech/MJobs/blob/aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45/docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json",
+      "line": 20,
+      "rule": "generic-api-key",
+      "classification": "Same public Git object identifier as the two previously reviewed findings; exact committed line independently fetched and matched to the recorded public source Git object. One immutable fingerprint added.",
+      "reviewers": [
+        "Root ChatGPT-Web",
+        "Independent agent reviewing redacted artifact and exact Git source"
+      ],
+      "recorded_at_utc": "2026-11-09T16:21:42.373805+00:00"
+    },
+    "api_acceptance_historical_finding": {
+      "source_commit": "cc1e5083ce1a94b20a424e09a038c0f72972ab10",
+      "source_evidence_url": "https://github.com/MulattoTech/MJobs/blob/cc1e5083ce1a94b20a424e09a038c0f72972ab10/docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json",
+      "line": 520,
+      "rule": "generic-api-key",
+      "failed_run": 42652619306,
+      "classification": "Public source Git object identity, not a credential. Root and independent reviewer fetched the exact evidence/source, recomputed the object, and confirmed identical current-main source bytes. One immutable fingerprint added.",
+      "hosted_repaired_head": "NOT_RUN"
+    },
+    "own_immutable_commit_reference": {
+      "failed_run": 42655696078,
+      "historical_evidence_commit": "5d0d9564b00cc69a0940291cc3a3f55dabf2618e",
+      "historical_line": 41,
+      "classification": "Public commit reference independently recomputed from its exact Git commit bytes; not a credential. Only this immutable finding is excepted. The current metadata field is renamed to avoid a misleading API-key heuristic.",
+      "reviewers": [
+        "Root ChatGPT-Web",
+        "Independent evidence reviewer"
+      ],
+      "source_or_tests_changed": false,
+      "new_head_scan": "PENDING"
+    }
+  }
+}

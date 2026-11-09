@@ -1,0 +1,784 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-105-CONFIGURABLE-THRESHOLDS-ACCEPTANCE-20261109-4f1d",
+  "recorded_at_utc": "2026-11-09T16:05:33.618158+00:00",
+  "requirement_id": "MJ-REQ-105",
+  "issue_number": 106,
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/106",
+  "result": "PASS",
+  "result_scope": "Independently reviewed complete literal MJ-REQ-105 PASS proposal at immutable971ba931; currentf3db backend/frontend verification and matching input objects support applicability. Canonical promotion remains with the integration owner.",
+  "canonical_acceptance": {
+    "before": "PARTIAL",
+    "modified_by_this_work": false,
+    "integration_authority": "Existing single integration owner; this worker does not change the canonical matrices or original completion count."
+  },
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-106-sensitive-reuse",
+    "full_criterion_tested_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "current_reverification_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "current_reverification_tree": "35447039890f0d5785bdc48a967cd7fb13a9c8cd",
+    "authored_production_or_test_changes": [],
+    "private_archive": {
+      "local_artifact": "answer-105-hosted-base-4f1d.tar",
+      "sha256": "3eefcc1d53c1a78bd243ea41e64d80f18f83ceef5a02bace99c78c358a5bebb6",
+      "bytes": 32634880
+    }
+  },
+  "literal_requirement": {
+    "source": "docs/spec/areas/career_profile_documents.md, section 105; issue #106 authoritative requirement text",
+    "normative_clause": "Use configurable thresholds.",
+    "interpretation": "The confidence ladder is explicitly introduced as an example. Its example values are not individually mandated. Broad semantic matching, generated-answer support, sensitive/legal policy breadth and unexported-draft persistence are not added to this clause; their own requirements remain separate.",
+    "supported_configuration": {
+      "minimum_saved_answer_confidence": {
+        "default": 80,
+        "range": [
+          80,
+          100
+        ],
+        "unit": "percent"
+      },
+      "minimum_question_match_confidence": {
+        "default": 0.75,
+        "range": [
+          0.75,
+          1.0
+        ],
+        "unit": "score"
+      }
+    },
+    "safety_note": "Configuration preserves the existing 80% saved-answer and 75% question-match floors, explicit approval/verification, and deliberate per-job review."
+  },
+  "criterion_ledger": [
+    {
+      "criterion": "Users can configure application-answer confidence thresholds and the configured values affect answer reuse.",
+      "result": "PASS",
+      "revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "configuration_and_durability": "API save/readback retains distinct profile policies after Store reopen. Invalid values are rejected and missing profiles return 404.",
+      "effective_enforcement": "Both saved-answer confidence and question-match confidence are rechecked at export; equality at 85 and 0.778 passes, while 86 or 0.779 rejects the same selection. Threshold 0.96 rejects a 0.95 semantic match before export writes. Reviewed manual answers remain available at maximum thresholds.",
+      "mounted_ui": "Real hosted Chromium saves and reloads the controls, observes 85-versus-86 and 95%-versus-96% filtering, retains exact 100% suggestions, verifies another profile defaults, restores suggestions after lowering thresholds, and exports an explicitly reviewed manual answer with external_submission OFF. The test asserts zero off-origin browser requests and no page errors, and completes server shutdown.",
+      "worker_guards": "Current stored policies bind match responses and worker preflight; unavailable or changed policies stop browser admission. Existing unapproved/sensitive/conflicting-answer guards remain covered.",
+      "exact_test_nodes": {
+        "configuration_and_durability": [
+          "tests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_answer_confidence_thresholds_are_profile_scoped_and_survive_reopen",
+          "tests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_invalid_answer_confidence_thresholds_are_rejected"
+        ],
+        "effective_boundaries_and_export": [
+          "tests/unit/test_answer_matching.py::AnswerMatchingTests::test_configured_match_confidence_threshold_filters_fuzzy_matches",
+          "tests/unit/test_answer_matching.py::AnswerMatchingTests::test_match_threshold_boundary_uses_the_visible_rounded_score",
+          "tests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_current_answer_threshold_is_rechecked_by_export",
+          "tests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_confidence_boundaries_manual_answers_and_external_submission_control",
+          "tests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_api_recomputes_weekend_match_threshold_before_any_export_write"
+        ],
+        "worker_policy_binding": [
+          "tests/unit/test_fleet_t13_answer_review.py::FleetT13AnswerReviewApiTests::test_match_response_is_bound_to_persisted_profile_snapshot",
+          "tests/integration/test_fleet_t13_worker_review.py::test_worker_gate_survives_slot_normalization",
+          "tests/integration/test_fleet_t13_worker_review.py::test_policy_failure_or_change_blocks_browser_admission"
+        ],
+        "mounted_browser_workflow": [
+          "tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers"
+        ]
+      },
+      "evidence_sources": [
+        "cloud backend execution at 971ba931",
+        "hosted scoped browser cases at 971ba931",
+        "current f3db backend/frontend/build checks",
+        "exact relevant source/test/lock/workflow equivalence"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py tests/unit/test_fleet_t13_answer_review.py tests/integration/test_fleet_t13_worker_review.py --tb=short --junitxml=answer-105-python.xml",
+      "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "result": "PASS",
+      "log": {
+        "local_artifact": "answer-105-python.log",
+        "sha256": "94e44870ec96adee03392b87c99b9607c804e3acb6bcde542dd93dbb9c06d210",
+        "bytes": 1089
+      },
+      "output": ".................................................. [ 96%]\n..                                                                       [100%]\n=============================== warnings summary ===============================\ntests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_concurrent_answer_exports_receive_distinct_immutable_versions\n  /workspace/scratch/1d691ba9cdbd/mjobs-venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'state' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n52 passed, 1 warning, 22 subtests passed in 38.92s\n",
+      "exit_code": 0,
+      "test_methods_or_parameter_instances": 52,
+      "subtests": 22,
+      "failures": 0,
+      "skips": 0,
+      "duration_seconds": 38.92,
+      "junit": {
+        "local_artifact": "answer-105-python.xml",
+        "sha256": "0f0f7def5be207bebab4445237837657e5126a27f1904871c2b62a8624f95518",
+        "bytes": 9215
+      },
+      "executed_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_answer_matching.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/unit/test_fleet_t13_answer_review.py",
+        "tests/integration/test_fleet_t13_worker_review.py",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-105-python.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py tests/unit/test_fleet_t13_answer_review.py tests/integration/test_fleet_t13_worker_review.py --tb=short --junitxml=answer-105-hosted-base-python.xml",
+      "tested_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "result": "PASS",
+      "log": {
+        "local_artifact": "answer-105-hosted-base-python.log",
+        "sha256": "199b2acf4694e1fbcc4df9fbdf81969c4c60db38afbc48323c618256f0e29e68",
+        "bytes": 1094
+      },
+      "output": ".................................................. [ 96%]\n..                                                                       [100%]\n=============================== warnings summary ===============================\ntests/integration/test_application_answer_export.py::ApplicationAnswerExportTests::test_concurrent_answer_exports_receive_distinct_immutable_versions\n  /workspace/scratch/1d691ba9cdbd/mjobs-venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'profile_id' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n52 passed, 1 warning, 22 subtests passed in 40.67s\n",
+      "exit_code": 0,
+      "test_methods_or_parameter_instances": 52,
+      "subtests": 22,
+      "failures": 0,
+      "skips": 0,
+      "duration_seconds": 40.67,
+      "junit": {
+        "local_artifact": "answer-105-hosted-base-python.xml",
+        "sha256": "8bfccf83840d06bdcac9a84d772c160708317292580b8573f18f15bba72efff4",
+        "bytes": 9215
+      },
+      "source_note": "Executed in a private git-archive snapshot of the exact hosted revision; all 19 recorded source/test/lock inputs equal the current checkout.",
+      "executed_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_answer_matching.py",
+        "tests/integration/test_application_answer_export.py",
+        "tests/unit/test_fleet_t13_answer_review.py",
+        "tests/integration/test_fleet_t13_worker_review.py",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-105-hosted-base-python.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-base-4f1d",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    },
+    {
+      "command": "npm --prefix apps/web ci --offline --ignore-scripts --no-audit --no-fund",
+      "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "result": "PASS",
+      "log": {
+        "local_artifact": "answer-105-npm-ci-offline.log",
+        "sha256": "83cbcb05e56597d7238e3f680cc0807dcb886f683923f3ea6854be80c7f7a7a2",
+        "bytes": 247
+      },
+      "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\nnpm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation\n\nadded 233 packages in 2s\n",
+      "exit_code": 0,
+      "packages_added": 233,
+      "executed_argv": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "ci",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "result": "PASS",
+      "log": {
+        "local_artifact": "answer-105-build.log",
+        "sha256": "4f2094f0cbd6829210f8c5b7817c2aedbfe1c9dc03f57f6f1a1651610350cd0a",
+        "bytes": 1015
+      },
+      "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> mjobs-web@0.1.0 build\n> npm run typecheck && vite build\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> mjobs-web@0.1.0 typecheck\n> tsc --noEmit\n\nvite v8.3.3 building client environment for production...\ntransforming...\n\u2713 142 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.41 kB \u2502 gzip:   0.29 kB\ndist/assets/index-BYoKyum1.css   12.09 kB \u2502 gzip:   3.35 kB\ndist/assets/index-PzQA58yU.js   991.64 kB \u2502 gzip: 268.47 kB\n\n\u2713 built in 303ms\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n",
+      "exit_code": 0,
+      "scope": "TypeScript typecheck and Vite production build; this alone is not browser runtime proof.",
+      "executed_argv": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance"
+    },
+    {
+      "command": "npm --prefix apps/web run test -- --run src/answer-matching.test.ts src/fleet_t13_answer_matching.test.ts",
+      "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "result": "PASS",
+      "log": {
+        "local_artifact": "answer-105-frontend.log",
+        "sha256": "1332814fc74edb7c811dcc08e1d37d3ee31830283e73ce841c7545963f563c8f",
+        "bytes": 766
+      },
+      "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> mjobs-web@0.1.0 test\n> vitest run --run src/answer-matching.test.ts src/fleet_t13_answer_matching.test.ts\n\n\n RUN  v5.0.3 /workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance/apps/web\n      Coverage enabled with v8\n\n\n Test Files  2 passed (2)\n      Tests  19 passed (19)\n   Start at  09:54:50\n   Duration  286ms (transform 49%, worker 21%, import 17%, tests 13%)\n\n % Coverage report from v8\n\n=============================== Coverage summary ===============================\nStatements   : 0% ( 0/34 )\nBranches     : 0% ( 0/49 )\nFunctions    : 0% ( 0/14 )\nLines        : 0% ( 0/30 )\n================================================================================\n",
+      "exit_code": 0,
+      "test_files": 2,
+      "tests": 19,
+      "failures": 0,
+      "skips": 0,
+      "scope": "Actual frontend matching/policy functions; does not substitute for the mounted browser workflow.",
+      "executed_argv": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "test",
+        "--",
+        "--run",
+        "src/answer-matching.test.ts",
+        "src/fleet_t13_answer_matching.test.ts"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance"
+    },
+    {
+      "command": "python answer_105_browser_runner.py -q tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers --tb=short --junitxml=answer-105-browser.xml",
+      "tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "result": "FAIL",
+      "log": {
+        "local_artifact": "answer-105-browser.log",
+        "sha256": "1231dd147e5a449440bac58c0a7b3281bc74597ce3b07d3cd451678b2a7141ff",
+        "bytes": 6356
+      },
+      "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_ ApplicationAnswerExportBrowserTests.test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers _\ntests/browser/test_application_answer_export.py:135: in test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers\n    browser = pw.chromium.launch(headless=True)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../answer_105_browser_runner.py:64: in system_chromium\n    browser = original_launch(instance, *args, **kwargs)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../mjobs-venv/lib/python3.12/site-packages/playwright/sync_api/_generated.py:16814: in launch\n    self._sync(\n../mjobs-venv/lib/python3.12/site-packages/playwright/_impl/_browser_type.py:101: in launch\n    await self._channel.send(\n../mjobs-venv/lib/python3.12/site-packages/playwright/_impl/_connection.py:76: in send\n    return await self._connection.wrap_api_call(\n../mjobs-venv/lib/python3.12/site-packages/playwright/_impl/_connection.py:632: in wrap_api_call\n    raise rewrite_error(error, f\"{parsed_st['apiName']}: {error}\") from None\nE   playwright._impl._errors.TargetClosedError: BrowserType.launch: Target page, context or browser has been closed\nE   Browser logs:\nE   \nE   <launching> /usr/bin/chromium --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-cLGgwD --remote-debugging-pipe --no-startup-window\nE   <launched> pid=28\nE   [pid=28][err] /usr/bin/chromium: 9: [: 5225713664: unexpected operator\nE   [pid=28][err] [28:28:1109/095331.988554:FATAL:chrome/browser/process_singleton_posix.cc:297] Check failed: . socket() failed: Operation not permitted (1)\nE   [pid=28][err] [1109/095331.988766:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\nE   Call log:\nE     - <launching> /usr/bin/chromium --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-cLGgwD --remote-debugging-pipe --no-startup-window\nE     - <launched> pid=28\nE     - [pid=28][err] /usr/bin/chromium: 9: [: 5225713664: unexpected operator\nE     - [pid=28][err] [28:28:1109/095331.988554:FATAL:chrome/browser/process_singleton_posix.cc:297] Check failed: . socket() failed: Operation not permitted (1)\nE     - [pid=28][err] [1109/095331.988766:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\nE     - [pid=28] <gracefully close start>\nE     - [pid=28] <kill>\nE     - [pid=28] <will force kill>\nE     - [pid=28] <process did exit: exitCode=null, signal=SIGABRT>\nE     - [pid=28] starting temporary directories cleanup\nE     - [pid=28] finished temporary directories cleanup\nE     - [pid=28] <gracefully close end>\n=========================== short test summary info ============================\nFAILED tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers\n1 failed in 3.42s\n{\"blocked_python_connections\": [], \"browser_launches\": [], \"ephemeral_configuration\": \"system Chromium executable; Python loopback-only network\", \"pytest_exit_code\": 1}\n",
+      "classification": "BLOCKED_ENVIRONMENT",
+      "exit_code": 1,
+      "tests": 1,
+      "failures": 1,
+      "skips": 0,
+      "duration_seconds": 3.42,
+      "successful_browser_launches": 0,
+      "blocked_python_non_loopback_attempts": 0,
+      "reason": "Installed Chromium aborted before opening a page: process_singleton_posix.cc socket() returned Operation not permitted; SIGABRT. No UI assertion executed.",
+      "configuration": "Ephemeral launcher selected /usr/bin/chromium and denied Python non-loopback connections; repository production and test files were unchanged. No environment restriction bypass was attempted.",
+      "runner": {
+        "local_artifact": "answer_105_browser_runner.py",
+        "sha256": "31c80acc42259bf9328f0055e82da848b566803122c34a43a33404009ea1f870",
+        "bytes": 2935
+      },
+      "junit": {
+        "local_artifact": "answer-105-browser.xml",
+        "sha256": "5a83e4cd40e1d89ec99b16f8799e6588039b7ca3a8604db530c34dbf6b7ff684",
+        "bytes": 6355
+      },
+      "executed_argv": [
+        "/workspace/scratch/1d691ba9cdbd/mjobs-venv/bin/python",
+        "/workspace/scratch/1d691ba9cdbd/answer_105_browser_runner.py",
+        "-q",
+        "tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers",
+        "--tb=short",
+        "--junitxml=/workspace/scratch/1d691ba9cdbd/answer-105-browser.xml"
+      ],
+      "working_directory": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    }
+  ],
+  "hosted_browser_evidence": {
+    "result_for_requirement_scope": "PASS",
+    "tested_revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "workflow": "Browser regression - full synthetic suite",
+    "run_id": 42646926759,
+    "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+    "job_id": 129262580304,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/job/129262580304",
+    "shard": 2,
+    "workflow_command": "python -m tools.ci.run_shard --suite browser --index \"$SHARD\" --count 4",
+    "workflow_environment": {
+      "SHARD": "2",
+      "MJOBS_OPERATION_MODE": "FIXTURE"
+    },
+    "workflow_blob": "1a89adf44925c5f599f1455821c796e39ca2571f",
+    "runner_blob": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+    "execution_note": "Existing sharding selected this test module and executed its four cases against the built application using installed Playwright Chromium. This evidence recovery did not dispatch a workflow.",
+    "artifact_id": 13688786744,
+    "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13688786744",
+    "archive": {
+      "local_artifact": "answer-105-hosted-42646926759-browser-2.zip",
+      "sha256": "d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+      "bytes": 8739
+    },
+    "github_artifact_digest": "sha256:d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+    "digest_provenance": "The independent reviewer retrieved GitHub artifact metadata and verified its digest; the evidence author separately rehashed the same ZIP and XML.",
+    "xml": {
+      "local_artifact": "answer-105-hosted-42646926759-browser-2.xml",
+      "sha256": "34ff72427963cf4e490eee16522d17b313b14cfe790ff1b544ff20910f218645",
+      "bytes": 43426
+    },
+    "scoped_cases": [
+      {
+        "classname": "tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests",
+        "name": "test_avoid_terms_save_and_block_reviewed_answer_with_safe_reason",
+        "time": "4.409",
+        "result": "PASS",
+        "failure_error_skip_children": []
+      },
+      {
+        "classname": "tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests",
+        "name": "test_fuzzy_suggestion_requires_review_and_export_survives_reload",
+        "time": "4.730",
+        "result": "PASS",
+        "failure_error_skip_children": []
+      },
+      {
+        "classname": "tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests",
+        "name": "test_opposite_polarity_answer_is_not_suggested_but_manual_review_remains_available",
+        "time": "2.465",
+        "result": "PASS",
+        "failure_error_skip_children": []
+      },
+      {
+        "classname": "tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests",
+        "name": "test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers",
+        "time": "4.361",
+        "result": "PASS",
+        "failure_error_skip_children": []
+      }
+    ],
+    "overall_workflow_result": "FAIL",
+    "overall_shard_result": "FAIL",
+    "overall_shard_xml_summary": {
+      "tests": "107",
+      "failures": "4",
+      "errors": "0",
+      "skipped": "1",
+      "time": "367.637",
+      "timestamp": "2026-11-09T15:40:39.887827+00:00"
+    },
+    "scope_limit": "The enclosing shard has four failures and one skip outside ApplicationAnswerExportBrowserTests; neither the shard nor the complete workflow is reported PASS. No browser execution of the complete f3db tree or a future repair revision is claimed.",
+    "retrieval_metadata": {
+      "repository": "MulattoTech/MJobs",
+      "repository_id": 1396540139,
+      "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "run_id": 42646926759,
+      "job_id": 129262580304,
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+      "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/job/129262580304",
+      "artifact": {
+        "id": 13688786744,
+        "name": "browser-results-2",
+        "size_in_bytes": 8739,
+        "url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/13688786744",
+        "archive_download_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/13688786744/zip",
+        "expired": false,
+        "created_at": "2026-11-09T15:46:55Z",
+        "expires_at": "2026-11-16T15:46:55Z",
+        "updated_at": "2026-11-09T15:46:55Z",
+        "digest": "sha256:d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+        "workflow_run": {
+          "id": 42646926759,
+          "repository_id": 1396540139,
+          "head_repository_id": 1396540139,
+          "head_branch": "web/web-20261109T153331Z-c5c6d43141a0/verify-MJ-REQ-186",
+          "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d"
+        }
+      },
+      "workflow_blob": "1a89adf44925c5f599f1455821c796e39ca2571f",
+      "workflow_path": ".github/workflows/browser-regression.yml",
+      "workflow_command": "python -m tools.ci.run_shard --suite browser --index \"$SHARD\" --count 4",
+      "shard": 2,
+      "selected_file_count": 46,
+      "driver_blob": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+      "driver_behavior": "Sorted browser test files modulo 4; pytest -q on all selected files; --junitxml outputs/ci/browser-2.xml",
+      "scoped_test_class": "tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests",
+      "target_test": "test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers",
+      "target_result": {
+        "status": "PASS",
+        "seconds": 4.361,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "class_result": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0
+      },
+      "enclosing_shard": {
+        "pytest_passed": 95,
+        "pytest_failed": 4,
+        "pytest_skipped": 1,
+        "subtests_passed": 7,
+        "junit_tests": 107,
+        "junit_failures": 4,
+        "junit_skipped": 1,
+        "status": "FAIL"
+      },
+      "evidence_paths": {
+        "zip": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-42646926759-browser-2.zip",
+        "xml": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-42646926759-browser-2.xml",
+        "decoded_log": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-42646926759-job-129262580304.log"
+      },
+      "sha256": {
+        "zip": "d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+        "xml": "34ff72427963cf4e490eee16522d17b313b14cfe790ff1b544ff20910f218645",
+        "decoded_log": "03f586269d6932ded9260906417ccd39c8e4fcf03cdaabf8c455d58434f5d7c7"
+      },
+      "retrieval": "Read-only GitHub connector job-log and artifact endpoints; artifact ZIP downloaded through connector-returned file reference and digest independently verified; XML parsed directly.",
+      "selected_log_excerpts": [
+        "2026-11-09T15:39:56.0598213Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +971ba931418fc271e7a652e27c288e1776448b6d:refs/remotes/origin/web/web-20261109T153331Z-c5c6d43141a0/verify-MJ-REQ-186",
+        "2026-11-09T15:39:58.0489759Z  * [new ref]         971ba931418fc271e7a652e27c288e1776448b6d -> origin/web/web-20261109T153331Z-c5c6d43141a0/verify-MJ-REQ-186",
+        "2026-11-09T15:39:58.0580025Z 971ba931418fc271e7a652e27c288e1776448b6d",
+        "2026-11-09T15:39:58.2510704Z [command]/usr/bin/git log -1 --format=%H",
+        "2026-11-09T15:39:58.2542704Z 971ba931418fc271e7a652e27c288e1776448b6d",
+        "2026-11-09T15:40:39.2567420Z ##[group]Run python -m tools.ci.run_shard --suite browser --index \"$SHARD\" --count 4",
+        "2026-11-09T15:40:39.2567772Z \u001b[36;1mpython -m tools.ci.run_shard --suite browser --index \"$SHARD\" --count 4\u001b[0m",
+        "2026-11-09T15:40:39.2587532Z   SHARD: 2",
+        "2026-11-09T15:40:39.2888369Z browser shard 3/4: 46 files",
+        "2026-11-09T15:46:51.4280663Z 4 failed, 95 passed, 1 skipped, 7 subtests passed in 367.64s (0:06:07)",
+        "2026-11-09T15:46:54.9200471Z   SHARD: 2"
+      ],
+      "no_dispatch": true,
+      "recorded_at_utc": "2026-11-09T16:04:13.997098+00:00"
+    },
+    "retrieval_metadata_sha256": "abf2f29956b5252d56cfe4c6468129777536ec370a90299ac83c22b45db49c70",
+    "scoped_junit_xml": [
+      "<testcase classname=\"tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests\" name=\"test_avoid_terms_save_and_block_reviewed_answer_with_safe_reason\" time=\"4.409\" />",
+      "<testcase classname=\"tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests\" name=\"test_fuzzy_suggestion_requires_review_and_export_survives_reload\" time=\"4.730\" />",
+      "<testcase classname=\"tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests\" name=\"test_opposite_polarity_answer_is_not_suggested_but_manual_review_remains_available\" time=\"2.465\" />",
+      "<testcase classname=\"tests.browser.test_application_answer_export.ApplicationAnswerExportBrowserTests\" name=\"test_profile_scoped_confidence_threshold_controls_reuse_without_blocking_manual_answers\" time=\"4.361\" />"
+    ]
+  },
+  "source_equivalence": {
+    "base": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "current": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "objects": [
+      {
+        "path": "apps/web",
+        "base": "d799bfb2808e72e285c945b30d146319aacdb3f5",
+        "current": "d799bfb2808e72e285c945b30d146319aacdb3f5",
+        "identical": true
+      },
+      {
+        "path": "apps/api/main.py",
+        "base": "c172440c68bca5884f1dfd183315a429771f617d",
+        "current": "c172440c68bca5884f1dfd183315a429771f617d",
+        "identical": true
+      },
+      {
+        "path": "apps/api/application_answer_matching.py",
+        "base": "6264f8debd5ac44fd1aba12c1c71931febc2526f",
+        "current": "6264f8debd5ac44fd1aba12c1c71931febc2526f",
+        "identical": true
+      },
+      {
+        "path": "services/documents",
+        "base": "af586bb8fcbbf1dac2bdec2286a6093984183247",
+        "current": "af586bb8fcbbf1dac2bdec2286a6093984183247",
+        "identical": true
+      },
+      {
+        "path": "services/answers",
+        "base": "57304b87ba838c20e802b8951bdce2ca1a2174aa",
+        "current": "57304b87ba838c20e802b8951bdce2ca1a2174aa",
+        "identical": true
+      },
+      {
+        "path": "services/applications",
+        "base": "14a325a91cf7bb6ad24e55bf070a10b135746ccc",
+        "current": "14a325a91cf7bb6ad24e55bf070a10b135746ccc",
+        "identical": true
+      },
+      {
+        "path": "services/discovery",
+        "base": "a7d23ae5491e35713ce5a3c597e7d1b8c16a6f4a",
+        "current": "a7d23ae5491e35713ce5a3c597e7d1b8c16a6f4a",
+        "identical": true
+      },
+      {
+        "path": "packages/persistence",
+        "base": "f7a3d759dfcf9cec468e4597809abae61edcfff1",
+        "current": "f7a3d759dfcf9cec468e4597809abae61edcfff1",
+        "identical": true
+      },
+      {
+        "path": "workers",
+        "base": "f03724479872a3e0260b83fce8a5c3450113187a",
+        "current": "f03724479872a3e0260b83fce8a5c3450113187a",
+        "identical": true
+      },
+      {
+        "path": "fixtures",
+        "base": "7c6677bb580524e75786e0491e02e933df2d0a17",
+        "current": "7c6677bb580524e75786e0491e02e933df2d0a17",
+        "identical": true
+      },
+      {
+        "path": "tests/browser/test_application_answer_export.py",
+        "base": "4a080af4a0d712e3b9bcbfc2393cb58c44ce4f46",
+        "current": "4a080af4a0d712e3b9bcbfc2393cb58c44ce4f46",
+        "identical": true
+      },
+      {
+        "path": "tests/integration/test_spine.py",
+        "base": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+        "current": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+        "identical": true
+      },
+      {
+        "path": "requirements.lock",
+        "base": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+        "current": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+        "identical": true
+      },
+      {
+        "path": ".github/test-requirements.txt",
+        "base": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+        "current": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+        "identical": true
+      },
+      {
+        "path": ".github/workflows/browser-regression.yml",
+        "base": "1a89adf44925c5f599f1455821c796e39ca2571f",
+        "current": "1a89adf44925c5f599f1455821c796e39ca2571f",
+        "identical": true
+      },
+      {
+        "path": "tools/ci/run_shard.py",
+        "base": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+        "current": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+        "identical": true
+      }
+    ],
+    "hosted_run_id": 42646926759,
+    "hosted_job_id": 129262580304,
+    "hosted_artifact_id": 13688786744,
+    "hosted_test_scope": "ApplicationAnswerExportBrowserTests",
+    "portability_limit": "The complete f3db tree was not browser-executed here. Between hosted base and f3db, source-metadata/data-export additions exist outside the unchanged answer-confidence source and test scope. Existing hosted overall shard and run failed elsewhere.",
+    "author_reverified_all_recorded_git_objects": true,
+    "author_reverified_all_19_archived_input_sha256_values": true
+  },
+  "source_inputs": {
+    "services/documents/answers.py": {
+      "sha256": "6e84f0e0ae7d89ea7d84e7af707f94b4c9054803e9fd07ecb475fd5bbe10b315",
+      "bytes": 23245,
+      "git_blob": "dc3d8e99f5c1d502eb687a578d891f685aaa6048"
+    },
+    "services/answers/review.py": {
+      "sha256": "96d83ec8709b5b691c16a6d2a9cb7987e0c004add79bef0a184ea5e8c78d3cb1",
+      "bytes": 5597,
+      "git_blob": "bbbc0d1719fb935c367a86c30a5152dcf3d4713a"
+    },
+    "services/applications/mock_adapter.py": {
+      "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6",
+      "bytes": 50952,
+      "git_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4"
+    },
+    "services/applications/preflight.py": {
+      "sha256": "7b9d8b3bcbbef65a2d50f50bdae8dfe65699f0af6609f9f6b938bf5f6ffbc419",
+      "bytes": 35020,
+      "git_blob": "77f49ac35b86bb53bf3170310b1976e26a3c7e89"
+    },
+    "apps/api/main.py": {
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8",
+      "bytes": 161511,
+      "git_blob": "c172440c68bca5884f1dfd183315a429771f617d"
+    },
+    "apps/web/src/main.tsx": {
+      "sha256": "82417ccccdbc97b3e1bbe050b42747d6a52b5e24deffc77873ac184f991d63ca",
+      "bytes": 255990,
+      "git_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96"
+    },
+    "apps/web/src/answer-matching.ts": {
+      "sha256": "0f228be0d9c35d27208357f90f7794cf6af59b5294a00147de5116eff4f21d43",
+      "bytes": 6193,
+      "git_blob": "fb671f2bdc3ce6c228d8809daef3080ffa24c2f7"
+    },
+    "packages/persistence/models.py": {
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76",
+      "bytes": 44803,
+      "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2"
+    },
+    "packages/persistence/store.py": {
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215",
+      "bytes": 80862,
+      "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8"
+    },
+    "migrations/versions/20261008_answer_confidence_thresholds.py": {
+      "sha256": "82748ba31f0ee29a4448826622eddb3db943d8c96f92e3785395a68d78ee43da",
+      "bytes": 1552,
+      "git_blob": "d74de53f405ad2932a91e861a3160be7d796c1e8"
+    },
+    "tests/unit/test_answer_matching.py": {
+      "sha256": "33bd1e81b31a0f474eea7622fcd576cbc972fd83d3b9658f2c3fbcd017741eb9",
+      "bytes": 5802,
+      "git_blob": "5c6d3b2de33eb3f6218614de01bbbb0a37d0932a"
+    },
+    "tests/integration/test_application_answer_export.py": {
+      "sha256": "649b7963cf42991c868df1bf7875f2b7097ea9bbd579b7705744eb2839f7c176",
+      "bytes": 47358,
+      "git_blob": "21d904c5bc70e2e73a5d644a82d1acac7737eac6"
+    },
+    "tests/unit/test_fleet_t13_answer_review.py": {
+      "sha256": "faaab46d532ec992330cb65b1742c7b7f81d1593a7d1a923b8039588819d5919",
+      "bytes": 6710,
+      "git_blob": "3a6390e07fad8346c74d02e683a32ef96e71f6aa"
+    },
+    "tests/integration/test_fleet_t13_worker_review.py": {
+      "sha256": "bd42a90c86174ba4056ccbe60659a5a52dcddd1a7de9c39f743005ddee09b9ac",
+      "bytes": 7917,
+      "git_blob": "7921914d0ad81a71656557b7b2fa066fe8c38908"
+    },
+    "tests/browser/test_application_answer_export.py": {
+      "sha256": "24a7e37ad3d552510026a12f2036bdbacc8ce1dd1635f39ad2d073685189ee26",
+      "bytes": 32591,
+      "git_blob": "4a080af4a0d712e3b9bcbfc2393cb58c44ce4f46"
+    },
+    "apps/web/src/answer-matching.test.ts": {
+      "sha256": "500b604ebdd9913f05954a844ed0948ac91ce49215ccdb28781de24fab4707a2",
+      "bytes": 5820,
+      "git_blob": "4675f69a2ee14f556655c589e1b21b593dc5c035"
+    },
+    "apps/web/src/fleet_t13_answer_matching.test.ts": {
+      "sha256": "71fc0e1754a22bca0348915d1a3a9d1b3ddb956d715192604c97090e44be8c4a",
+      "bytes": 2227,
+      "git_blob": "2d5dc09032ec1ca24032a7a314302af024311265"
+    },
+    "apps/web/package.json": {
+      "sha256": "94afa2f7c000696a15b0db59967902a6bcbf12681fe998c7f9d5e5e33f07c67f",
+      "bytes": 1242,
+      "git_blob": "d9c5c800323fbbd463fe45310b455b0c1fb4f5e1"
+    },
+    "apps/web/package-lock.json": {
+      "sha256": "13c65a92fdfd93de6ce225abb10b86ed4764be906ed9ae939310221f1f67d4cd",
+      "bytes": 137089,
+      "git_blob": "d9bf83e1051a5ad1fb56936f5f668982a8c2c99d"
+    }
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "packages": {
+      "pytest": "9.2.0",
+      "playwright": "1.63.0",
+      "sqlalchemy": "2.1.1",
+      "pydantic": "2.13.5"
+    },
+    "node": "v24.22.1",
+    "npm": "11.9.0",
+    "database": "Disposable synthetic SQLite databases",
+    "installed_system_chromium": "156.0.8078.79",
+    "system_chromium_launch_result": "BLOCKED_ENVIRONMENT",
+    "dependency_install": "Locked npm ci from the existing offline cache; ignored lifecycle scripts; no network package fetch."
+  },
+  "historical_evidence_retained": [
+    {
+      "path": "docs/evidence/2026-10-08-answer-confidence-thresholds.json",
+      "observation": "Original API/storage checks passed; local Chromium executable was absent; PostgreSQL was NOT_RUN."
+    },
+    {
+      "path": "docs/evidence/2026-10-08-answer-match-polarity-guard.json",
+      "observation": "Later four-case answer browser module PASS is a dated historical result, not a fresh execution of f3db."
+    },
+    {
+      "path": "docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json",
+      "observation": "Later confidence browser test had a Windows API-server shutdown failure; that historical failure is not removed."
+    }
+  ],
+  "limitations": [
+    "Cloud Chromium could not launch at f3db. The real browser PASS belongs to exact revision 971ba931 and the scope explicitly identified in the hosted artifact.",
+    "The complete f3db repository tree was not browser-executed here. Source metadata/data-export additions between the revisions remain outside the unchanged confidence scope; current backend tests ran against those f3db additions.",
+    "The hosted workflow and enclosing browser shard remain FAIL because of unrelated cases. This is scoped case evidence, not a green whole workflow or release.",
+    "No fresh PostgreSQL, Redis, production deployment, real employer application, or paid/live AI-provider verification was performed. None is asserted by the local SQLite/controlled-browser result.",
+    "MJ-REQ-104, MJ-REQ-106, MJ-REQ-107, broader application workflows and reference requirements gain no acceptance claim from this evidence.",
+    "No browser execution or functional acceptance is claimed for a future answer-control repair commit; its own validation and protected gates remain necessary."
+  ],
+  "independent_review": {
+    "requirement": "MJ-REQ-105",
+    "issue": "https://github.com/MulattoTech/MJobs/issues/106",
+    "reviewer": "Independent ChatGPT agent /root/independent_review",
+    "review_type": "Independent automated source/evidence review, not human approval",
+    "review_result": "NO_LITERAL_CRITERION_GAP_FOUND",
+    "recommendation": "SUPPORT_VERIFIED_PASS_PROPOSAL",
+    "acceptance_basis_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "supporting_regression_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "exact_basis_backend_status": "PASS",
+    "canonical_files_changed": false,
+    "human_approval": false,
+    "criteria": [
+      {
+        "criterion": "Confidence is represented and distinguishes supported question-match evidence.",
+        "result": "PASS",
+        "evidence": "Exact/normalized questions score 1.00; curated semantic matches score 0.95; bounded fuzzy matching reports its score. The issue labels score rows as examples, not mandatory fixed values. The exact-971 matching/backend suite passed."
+      },
+      {
+        "criterion": "Use configurable thresholds.",
+        "result": "PASS_AT_HOSTED_BASIS",
+        "evidence": "Real SPA/API browser case changes saved-answer and question-match thresholds, verifies filtering, reload persistence, profile isolation, restored availability after lowering, and manual reviewed export at 100/100."
+      },
+      {
+        "criterion": "Thresholds apply at consumers without replacing explicit review.",
+        "result": "PASS_AT_971",
+        "evidence": "At immutable 971ba931, 52 Python tests and 22 subtests passed, including API/service/export and worker preflight/current-policy revalidation. The real hosted manual-export assertion also passed. Separately, current f3db regressions include the same 52+22 Python checks and 19 frontend tests."
+      }
+    ],
+    "not_added_as_acceptance_requirements": [
+      "Exact numerical values from the illustrative score table",
+      "General language-model answer generation",
+      "An unrestricted threshold range below existing safety floors",
+      "Durable unsaved drafts",
+      "Full MJ-REQ-106 or MJ-REQ-107 acceptance"
+    ],
+    "proof_boundaries": [
+      "Browser PASS belongs to 971ba931418fc271e7a652e27c288e1776448b6d only.",
+      "The 4 target answer-export browser cases passed; the enclosing hosted shard and whole run failed elsewhere.",
+      "f3db local browser execution stopped at Chromium socket() Operation not permitted before UI assertions; status remains BLOCKED_ENVIRONMENT.",
+      "Exact Git object equality supports scoped portability, not a whole-tree f3db browser PASS.",
+      "No fresh PostgreSQL, real provider, employer submission, or production deployment proof is claimed.",
+      "Only the authorized integration owner may update canonical acceptance; this review is not a human review."
+    ],
+    "sensitive_probe_assessment": {
+      "basis_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "observed_defect": "Six known sensitive/legal aliases were blocked by the central matcher but accepted as REVIEWED_REUSE by direct answer_id export through its narrower sensitivity classifier.",
+      "confirmed_controls": [
+        "Every request used explicit text and reviewed:true",
+        "Saved answers were explicit verified/user-approved values",
+        "Unreviewed request rejected",
+        "Existing narrow sensitive wording rejected",
+        "Manual reviewed sensitive input intentionally supported",
+        "No attempt or worker operation created; response external_submission OFF"
+      ],
+      "non_claims": [
+        "No evidence of invented answers",
+        "No evidence of unreviewed export",
+        "No automatic autofill or external submission demonstrated",
+        "No claim that arbitrary natural-language sensitive/legal classification is complete"
+      ],
+      "implication_106": "Export/reuse classification inconsistency is a real boundary defect. The blank-policy probe by itself is weaker proof of overriding an explicit conflicting policy; preserve that distinction.",
+      "implication_107": "The probe reuses explicit saved profile values, so it does not by itself demonstrate violation of the literal no-invention/explicit-value requirement.",
+      "repair_scope": "Unify known-sensitive reuse classification while retaining explicit application-specific manual review."
+    },
+    "metadata_path": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-retrieval-metadata.json",
+    "equivalence_path": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-source-equivalence.json",
+    "finalized_at_utc": "2026-11-09T16:08:04.174780+00:00",
+    "exact_basis_backend_evidence": {
+      "revision": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "tests_passed": 52,
+      "subtests_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 40.67,
+      "log": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-base-python.log",
+      "log_sha256": "199b2acf4694e1fbcc4df9fbdf81969c4c60db38afbc48323c618256f0e29e68",
+      "xml": "/workspace/scratch/1d691ba9cdbd/answer-105-hosted-base-python.xml",
+      "xml_sha256": "8bfccf83840d06bdcac9a84d772c160708317292580b8573f18f15bba72efff4",
+      "archive_sha256": "3eefcc1d53c1a78bd243ea41e64d80f18f83ceef5a02bace99c78c358a5bebb6",
+      "reviewer_independently_parsed_log_and_xml": true,
+      "reviewer_regenerated_same_git_archive_digest": true,
+      "reviewer_checked_snapshot_inputs_against_git_blobs": 19
+    },
+    "reviewed_owned_evidence": "/workspace/scratch/1d691ba9cdbd/mjobs-answer-acceptance/docs/evidence/2026-11-09-web-4f1d-answer-threshold-acceptance.json"
+  },
+  "next_action": "Independent reviewer assesses this literal-criterion ledger; root preserves the exact tested revisions when publishing; the integration owner decides canonical promotion under the protected workflow.",
+  "review_recorded_at_utc": "2026-11-09T16:09:36.560974+00:00"
+}
