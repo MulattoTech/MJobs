@@ -1,0 +1,440 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "agent": "ChatGPT-Web",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T17:01:50.075008+00:00",
+  "exact_tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "canonical_status": "PROPOSAL_ONLY; no canonical acceptance matrix or counter changed by this worker.",
+  "hosted_execution": {
+    "id": 42647745364,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364",
+    "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "event": "push",
+    "branch": "main",
+    "result": "SUCCESS",
+    "workflow": ".github/workflows/integration.yml",
+    "commands": [
+      "python -m tools.ci.run_shard --suite integration --index 0 --count 3",
+      "python -m tools.ci.run_shard --suite integration --index 1 --count 3",
+      "python -m tools.ci.run_shard --suite integration --index 2 --count 3"
+    ],
+    "environment": "Existing GitHub-hosted ubuntu-24.04 workflow with Python3.12, Chromium, SQLite and disposable PostgreSQL17/Redis7 services; fictional profiles and controlled local mock provider.",
+    "artifacts": [
+      {
+        "id": 13689925030,
+        "name": "integration-results-1",
+        "sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13689925030",
+        "digest_verified": true
+      },
+      {
+        "id": 13689895623,
+        "name": "integration-results-0",
+        "sha256": "fbfffb780ff0cc81d9d803ddf4fe6cdb5cfacd51a8c8a708d86935451fcd51f0",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13689895623",
+        "digest_verified": true
+      },
+      {
+        "id": 13688379510,
+        "name": "integration-results-2",
+        "sha256": "501d11ab535bf8d8e12990b0deec182680150b17c3b267962f01b4b13aa7f7b7",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13688379510",
+        "digest_verified": true
+      }
+    ],
+    "verification": "Downloaded archive digests matched primary GitHub metadata; selected exact JUnit nodes independently parsed and matched to this source revision."
+  },
+  "execution_attribution": "Existing exact-f3 hosted execution. This verification did not dispatch or rerun a test workload. Selected cases can overlap adjacent requirement ledgers and are not additive new executions.",
+  "scope": "The supported production queue-backed controlled application flow. No live external ATS submission, universal native-provider behavior, deployment or automatic browser takeover is claimed.",
+  "proposed_result": "PASS",
+  "no_runtime_changes": true,
+  "acceptance_authority": "The integration steward must independently approve and record any canonical transition.",
+  "requirement_id": "MJ-REQ-144",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/145",
+  "criterion_ledger": [
+    {
+      "criterion": "After a browser fails immediately following Submit, do not blindly retry the submission.",
+      "criterion_id": "MJ-REQ-144-C1",
+      "executed_nodes": [
+        "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+        "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests::test_confirmed_submit_crash_before_worker_ack_replays_completed_attempt",
+        "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests::test_post_submit_worker_crash_recovers_from_receipt_without_second_browser_or_submit",
+        "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+        "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests::test_confirmed_submit_crash_before_worker_ack_replays_completed_attempt",
+        "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests::test_post_submit_worker_crash_recovers_from_receipt_without_second_browser_or_submit",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_missing_receipt_is_not_permission_to_retry_and_check_is_idempotent",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_uncertain_submission_cannot_transition_back_to_submitting",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_ambiguous_and_confirmed_applications_do_not_admit_new_browser_work",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_terminal_request_replay_never_reopens_operation"
+      ],
+      "limits": [
+        "Crash is intentionally injected at a specific source seam. It is not an observed external-provider incident or exhaustive coverage of every browser/OS crash location."
+      ],
+      "observed_contract": [
+        "An actual owned Python child executes the real Chromium adapter and local fixture provider submission. A deterministic os._exit(73) hook terminates that child after the provider side effect, before normal acknowledgement.",
+        "After store reopen and lease recovery, the same operation enters receipt lookup without a second Chromium launch. Provider counts remain exactly one review and one submit, with one original physical attempt.",
+        "A new submission intent is refused while the state is uncertain; once a receipt proves confirmation, further new submission intent is also refused. Same-ID replay returns saved intent rather than initiating another submission.",
+        "A separate crash after durable confirmation but before worker acknowledgement is finalized from persisted confirmation without another provider request or browser."
+      ],
+      "production_paths": [
+        "services/applications/mock_adapter.py::apply_mock",
+        "services/applications/run_requests.py::queue_mock_run",
+        "services/applications/run_requests.py::application_retry_blocker",
+        "workers/operations.py::recover_expired",
+        "workers/tasks.py::execute_operation"
+      ],
+      "status": "PASS"
+    },
+    {
+      "criterion": "Persist SUBMISSION_UNCONFIRMED when submission occurred but confirmation cannot be established.",
+      "criterion_id": "MJ-REQ-144-C2",
+      "executed_nodes": [
+        "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+        "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_uncertain_submission_cannot_be_confirmed_without_receipt",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_uncertain_submission_cannot_transition_back_to_submitting",
+        "tests.integration.test_fleet_t10_confirmation_flow.FleetT10ConfirmationFlowTests::test_missing_receipt_is_saved_and_readback_is_profile_scoped",
+        "tests.integration.test_fleet_t10_confirmation_flow.FleetT10ConfirmationFlowTests::test_timeout_evidence_survives_lost_response_and_restart_without_retrying_submit",
+        "tests.integration.test_fleet_t10_confirmation_flow.FleetT10ConfirmationFlowTests::test_timeout_moves_submitting_to_explicit_unconfirmed_without_losing_prior_confirmation",
+        "tests.integration.test_fleet_t10_confirmation_timeout.FleetT10ConfirmationTimeoutTests::test_timeout_is_durable_unconfirmed_evidence_after_store_reopen"
+      ],
+      "limits": [
+        "Abrupt process termination leaves the previously committed SUBMITTING state until recovery executes; no write by the dead process is claimed. Recovery resolves it to CONFIRMED if a valid receipt exists, or SUBMISSION_UNCONFIRMED when the receipt cannot establish the outcome."
+      ],
+      "observed_contract": [
+        "Following the actual child crash, an actual loopback proxy returns HTTP503 for the provider receipt GET. The worker becomes BLOCKED and the application becomes SUBMISSION_UNCONFIRMED while provider submission count stays one.",
+        "A second Store/API reopen retains uncertainty and the original attempt record. New submit intent remains blocked.",
+        "Missing receipts and timeout evidence are persisted with explicit unavailable/unknown status, survive lost-response replay and reopen, and cannot be promoted to CONFIRMED without receipt-bearing evidence.",
+        "An application with earlier durable confirmation is not downgraded by a later receipt outage, and the readback distinguishes prior confirmation from fresh provider verification."
+      ],
+      "production_paths": [
+        "services/applications/mock_adapter.py::apply_mock",
+        "services/applications/mock_adapter.py::handle_browser_failure",
+        "services/applications/confirmation_recovery.py::reconcile_confirmation",
+        "packages/persistence/store.py::Store.transition"
+      ],
+      "status": "PASS"
+    },
+    {
+      "criterion": "Attempt read-only verification before any resubmission.",
+      "criterion_id": "MJ-REQ-144-C3",
+      "executed_nodes": [
+        "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+        "tests.integration.test_application_worker_crash_postgres.ApplicationWorkerCrashTests::test_post_submit_worker_crash_recovers_from_receipt_without_second_browser_or_submit",
+        "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+        "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests::test_post_submit_worker_crash_recovers_from_receipt_without_second_browser_or_submit",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_later_outage_does_not_masquerade_as_fresh_verification_or_downgrade",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_missing_receipt_is_not_permission_to_retry_and_check_is_idempotent",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_parallel_identical_checks_have_one_durable_check_identity",
+        "tests.integration.test_fleet_t10_confirmation_flow.FleetT10ConfirmationFlowTests::test_late_fixture_receipt_is_verified_once_and_saved_after_restart",
+        "tests.integration.test_fleet_t10_confirmation_flow.FleetT10ConfirmationFlowTests::test_timeout_evidence_survives_lost_response_and_restart_without_retrying_submit",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_additional_unlinked_running_attempt_keeps_application_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_fenced_same_request_replay_allows_read_only_reconcile_without_rewriting_attempt",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_fenced_successful_receipt_recovery_allows_read_only_reconcile",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_historical_category_free_proof_remains_readable",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_live_operation_is_never_authorized_by_stale_attempt_proof",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_mismatched_or_extra_category_evidence_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_mismatched_started_snapshot_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_missing_lease_recovery_audit_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_queued_operation_is_never_authorized_by_stale_attempt_proof",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_started_audit_scoped_to_another_application_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_terminal_operation_without_recovered_second_claim_keeps_attempt_reserved"
+      ],
+      "limits": [
+        "This verifies the supported FIXTURE/mock-provider recovery path. PERSONAL mode and unsupported/external targets are rejected before provider access. External-provider confirmation APIs or email-based verification were not exercised."
+      ],
+      "observed_contract": [
+        "Recovery uses the configured origin's validated receipt GET. No submit POST, browser launch, authentication bypass, or replay of form filling is performed by receipt reconciliation.",
+        "The profile-scoped local confirmation-check API is POST because it records a check, while its provider method remains GET. Request bodies may provide only a bounded request ID; they cannot authorize submission or supply an arbitrary provider origin.",
+        "Sequential replay of a completed check returns its durable result without another provider contact; latest readback reads saved evidence. Concurrent same-ID checks prove one durable check identity, not necessarily one physical GET. A real late receipt resolves the application without altering the immutable original attempt history or increasing submission count.",
+        "The recovery guard requires matching operation identity, frozen inputs, lease recovery/start/finish audit receipts, terminal state and expected attempt count. Missing, stale, mismatched, additional or cross-application ownership evidence remains reserved."
+      ],
+      "production_paths": [
+        "services/applications/confirmation_recovery.py::reconcile_confirmation",
+        "services/applications/confirmation_recovery.py::latest_confirmation_check",
+        "services/applications/confirmation_recovery.py::_guard",
+        "services/applications/confirmation_recovery.py::_recovered_attempt_is_fenced",
+        "apps/api/application_confirmation_recovery.py",
+        "services/applications/mock_adapter.py::_receipt"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "selected_test_summary": {
+    "ERROR": 0,
+    "FAIL": 0,
+    "PASS": 49,
+    "SKIP": 0,
+    "decisive_actual_child_crash_cases": 6,
+    "duplicate_selected_nodes": 0,
+    "existing_hosted_execution": true,
+    "fresh_test_execution": false,
+    "reused_cancellation_admission_cases": 8,
+    "selected_module_count": 8,
+    "supporting_receipt_safety_cases": 35,
+    "total_selected_unique_cases": 49
+  },
+  "limits": {
+    "automatic_browser_takeover": "Not claimed. Recovery performs receipt reads without opening another browser; live/ambiguous ownership remains guarded.",
+    "crash_injection": "Actual owned child-process termination at the deterministic post-provider-submit/pre-ack seam using os._exit(73); the browser/provider behavior otherwise runs normally. This is an injected crash, not an external provider outage observation.",
+    "external_submission": "NONE; controlled local mock ATS and fictional profiles only.",
+    "fresh_local_tests": "NOT_RUN_BY_INSTRUCTION; reuse exact-f3 hosted executions.",
+    "hosted_postgresql": "PASS: all three decisive PostgreSQL subclass nodes actually executed, non-skipped, using the workflow-provisioned disposable MJOBS_APPLICATION_CRASH_POSTGRES_URL.",
+    "local_browser": "NOT_RUN; no cloud browser restriction was bypassed.",
+    "local_postgresql": "NOT_RUN; no local database was provisioned.",
+    "migration_scope": "The decisive PostgreSQL subclass runs Alembic upgrade head in a new isolated schema; this is real current migration-chain setup. Upgrading every historical populated database version and arbitrary migration failure/recovery is outside these nodes.",
+    "new_workflow_dispatch": false,
+    "outage_injection": "An owned loopback reverse proxy injects actual HTTP503 on receipt reads. This is a deterministic synthetic outage, not a live external-provider observation.",
+    "postgres_schema": "PostgreSQLApplicationWorkerCrashTests creates an isolated schema and runs Alembic upgrade head. SQLite base class uses Store.migrate.",
+    "provider_method": "Receipt reconciliation uses provider GET only. The local API POST records an explicit check; it does not submit an application.",
+    "same_run_reuse": "All49 credited cases come from the same existing run/head. Safety cases reused from145 are counted once within this ledger and are not presented as fresh executions."
+  },
+  "recommendation": {
+    "canonical_owner": "integration steward 0d9f; root owns evidence publication/coordination",
+    "full_original_criterion_result": "PASS",
+    "new_source_changes_required_for_original_criteria": false,
+    "new_tests_needed_for_original_criteria": false,
+    "rationale": "The supported production submission path prevents blind resubmission, preserves explicit uncertainty when receipt verification cannot resolve the outcome, and uses read-only confirmation recovery. Actual worker termination after provider acceptance, HTTP503 receipt failure, Store/API restart and saved-confirmation replay are executed on SQLite and PostgreSQL; safety negatives preserve the boundaries.",
+    "recommended_canonical_action": "Canonical steward may promote original MJ-REQ-144 from PARTIAL to PASS using the three complete criterion rows and exact-f3 hosted execution. This reviewer has not changed canonical state or counters.",
+    "scope": "Original ambiguous-submission safety behavior for the supported queue-backed controlled provider path. External ATS coverage, arbitrary crash/retry liveness, live-browser takeover and whole-product readiness are not certified."
+  },
+  "source_integrity": [
+    {
+      "path": ".github/test-requirements.txt",
+      "git_blob": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+      "sha256": "ad2cacc636d387bc4c9094eb949a33c0d28b4ebdca12039a46a25bf47436a1e8"
+    },
+    {
+      "path": ".github/workflows/integration.yml",
+      "git_blob": "285b101923ea94535e39baf6bc541d9bc578c2db",
+      "sha256": "4637dbbbd01c4ad1a435f223c2d56b19098d77862ff7543f637f04477ff62217"
+    },
+    {
+      "path": "AGENTS.md",
+      "git_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "sha256": "4d0da3ede2e4e45c9284de78e6b4af32617690b503aae7a53c07ebdd6f3bce3e"
+    },
+    {
+      "path": "alembic.ini",
+      "git_blob": "69a1f6de23132f40242ebf890691bf2b6d17aee7",
+      "sha256": "67738255524b84c0ba55495601eaa769da405e74dd6a1b8e25424f75bec2c78d"
+    },
+    {
+      "path": "apps/api/application_confirmation_recovery.py",
+      "git_blob": "25baf8b1b7576fcedd264012ec3851b2cf74f055",
+      "sha256": "a6c83c000ae6c849f9ea57c41dbcd86e9fbc7e0d32c1f9364fea9b583355325f"
+    },
+    {
+      "path": "apps/api/main.py",
+      "git_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8"
+    },
+    {
+      "path": "docs/AI_AGENT_CONTINUITY.md",
+      "git_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+      "sha256": "7850113a1a434e09207a9c6d96e79ebbdb6e471a835e9939435e0dc4df5a0423"
+    },
+    {
+      "path": "docs/spec/areas/application_automation.md",
+      "git_blob": "e04d99826dd22dc350330d46f8004b682d66fa9f",
+      "sha256": "03a6a2e93e46aa29aebfda85ccd644f0e0ada7490a802727d0160947603e433e"
+    },
+    {
+      "path": "docs/spec/source/MJobs_Startup_Prompt.original.md",
+      "git_blob": "b3ac43fc254f30427bdd71ecc406a1146303ee66",
+      "sha256": "1cf94181ae4b8e599063ada219759cb39b766f9d1bb7d860b99f4bb58adc0998"
+    },
+    {
+      "path": "fixtures/mock_server.py",
+      "git_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+      "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7"
+    },
+    {
+      "path": "packages/persistence/models.py",
+      "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+    },
+    {
+      "path": "planning/CAPABILITY_MATRIX.json",
+      "git_blob": "715ebb1660a64611de380467cd1d85cc3750e331",
+      "sha256": "cbc3750a59cda7ce19b3e495ddbb6b84e224715e1c1a2413263f8072f2f6fd55"
+    },
+    {
+      "path": "planning/REQUIREMENT_INDEX.json",
+      "git_blob": "3f2e3cddde70c2486e92cc9f2f20620a3ec5b1db",
+      "sha256": "f31b37521a50ba70a9929aa8d235314b9b4433485e55edd2a2bca87b7bb349f4"
+    },
+    {
+      "path": "requirements.lock",
+      "git_blob": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+      "sha256": "0d2b46f83633cea05c38e2c09f7ca1be4c675423e3b93e30edd722d0b373ef1e"
+    },
+    {
+      "path": "services/applications/attempt_history.py",
+      "git_blob": "43ffc9d15563913f3f27f5d8dd34df24a8f48795",
+      "sha256": "a0e185302c18c3b0af6c340d060ca9701ed42ecaa28ca0919e8d5385852d4aec"
+    },
+    {
+      "path": "services/applications/confirmation_recovery.py",
+      "git_blob": "364d2b1d92d5fad0b0fe917dcf2843aec3fce08d",
+      "sha256": "d59ce7d828492a09ac803c20543cc16a3f11f9030c4d90d9e1116c61ba562b79"
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "git_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6"
+    },
+    {
+      "path": "services/applications/run_requests.py",
+      "git_blob": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+      "sha256": "ab78660766ac9dafa3b99e493f5a4c70a7e51e327ee880b1879554f16bc132e3"
+    },
+    {
+      "path": "tests/integration/test_application_confirmation_recovered_attempt.py",
+      "git_blob": "d858a199baad1fd335201701dda854f8e0eae107",
+      "sha256": "46e0773b0d2ab7e27432f3870c817caeae87b137ba6bd83c87104076ea5ed8f3"
+    },
+    {
+      "path": "tests/integration/test_application_confirmation_recovery.py",
+      "git_blob": "f7798a18c413997d2bb78b7f91a41654f5d02af2",
+      "sha256": "bbc4caa68aecebcb10b9306fb5ca050ebebe9cea45fcea073c9364a1ab302460"
+    },
+    {
+      "path": "tests/integration/test_application_run_requests.py",
+      "git_blob": "a3dc65bc75557afeddee02aebbd52c6b2221c236",
+      "sha256": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef"
+    },
+    {
+      "path": "tests/integration/test_application_worker_crash_postgres.py",
+      "git_blob": "8b5e6edb0689e2d50348e2d6180dad1250396180",
+      "sha256": "b5bc631c78683d12f4a2e9cbfd7ee13a7bf934fb8c4e7e6572b7cd311671c94b"
+    },
+    {
+      "path": "tests/integration/test_fleet_t09_operation_fence.py",
+      "git_blob": "4413ff670ea562e829d7784bb56c7f8936271d34",
+      "sha256": "7d70d629e383ffb00f07aa2b4df2a952268daafade7ff753bb201d5e3983e76a"
+    },
+    {
+      "path": "tests/integration/test_fleet_t10_confirmation_flow.py",
+      "git_blob": "03d0e1ffb62dd0d62a9bda7d75b96079c953f746",
+      "sha256": "cdd8550d502d8ce48b4d3a9643c8752edf7fd4b4df7c2e3408710dac6d6f40b8"
+    },
+    {
+      "path": "tests/integration/test_fleet_t10_confirmation_timeout.py",
+      "git_blob": "b5bccec38755b32be153725dc905f4b95dd4f758",
+      "sha256": "1ce142b7c68b5bbcf21a009f105ea2e5eb2305e0992e552d5eb38dccd53544e4"
+    },
+    {
+      "path": "tests/integration/test_route_attempt_concurrency.py",
+      "git_blob": "5e67a0d85939947cd398baf75829d40ab5a75dbb",
+      "sha256": "f9b6dbbbf4ba9decfaffb844eec1ab133963cde74d2af8c436d29b097b16c107"
+    },
+    {
+      "path": "tests/integration/test_route_attempt_concurrency_postgres.py",
+      "git_blob": "faa115e00b6692a81c7a134e1ac18eb4d0454fc2",
+      "sha256": "e4dc08f856d0a6f5ed33271cf9622891a80f7a6c8dc2c7635ded5d65305b659d"
+    },
+    {
+      "path": "tests/integration/test_spine.py",
+      "git_blob": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+      "sha256": "4c7f018237cb976c3bcf0640db30d20dec15744a598d2c6a2602ed3ae0ab7184"
+    },
+    {
+      "path": "tests/integration/test_worker_attempt_identity.py",
+      "git_blob": "1542aae1fc571b30c1d13eeb7db1ed277486fbb4",
+      "sha256": "f5cdf50e898acc1179f2417a756b2f9f80b26b4f843fa65bcf410afb2ca59918"
+    },
+    {
+      "path": "tools/ci/run_shard.py",
+      "git_blob": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+      "sha256": "a2fab4988b66a759d4832d5262b4c312051df3acfc22c2bbfae5e29b51cc0d8f"
+    },
+    {
+      "path": "workers/operations.py",
+      "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+    },
+    {
+      "path": "workers/tasks.py",
+      "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+    }
+  ],
+  "private_source_ledger": {
+    "filename": "ambiguity144-verification.json",
+    "sha256": "523d9e849f4e4d5a77a6f85e0693c9e6a29a57b5dd5842dc99f8dc7db46eabeb"
+  },
+  "independent_review": {
+    "file": "ambiguity144-independent-review.json",
+    "sha256": "966dbb6bc40eac58db6ebb333aaa36fea44ad4ed7a4670646fa46fe170fd283c",
+    "reviewer": "/root/acceptance_scout",
+    "verdict": "APPROVE_EVIDENCE_ACCURACY_WITH_NONBLOCKING_WORDING_CLARIFICATION"
+  },
+  "public_wording_refinement": "The independent review distinguished sequential completed-request replay from concurrent same-ID GETs; this does not change application submission safety or a test result.",
+  "safety_and_edge_review": {
+    "broader_unverified_extensions": [
+      "External ATS provider coverage",
+      "Arbitrary/repeated crashes during the receipt-only recovery itself",
+      "Separate physical browser-click/cancellation timing race",
+      "Automatic takeover of a potentially live browser"
+    ],
+    "cancellation": {
+      "executed_nodes": [
+        "tests.integration.test_fleet_t09_operation_fence.FleetT09OperationFenceTests::test_cancelled_or_cancel_requested_owner_cannot_reserve_attempt",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_cancellation_after_submit_reservation_requires_receipt_reconciliation",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_cancelled_queue_replay_remains_cancelled_and_never_calls_adapter"
+      ],
+      "finding": "Queued cancellation stays CANCELLED and never invokes the adapter. A submission already reserved as SUBMITTING causes real request_cancel to return RECONCILIATION_REQUIRED, preserving cancel_requested=False and the submission state. Cancelled/cancel-requested operation owners cannot reserve a new physical attempt.",
+      "test_boundary": "The post-reservation cancellation test seeds SUBMITTING and calls the actual service. It is not a separate concurrent cancellation-versus-real-browser-click experiment."
+    },
+    "receipt_and_scope": {
+      "executed_nodes": [
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_cross_profile_missing_and_nonpost_requests_are_rejected",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_foreign_receipt_fails_existing_receipt_validation",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_payload_cannot_authorize_a_submit_or_supply_an_external_origin",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_personal_mode_and_external_targets_fail_before_provider_access",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_receipt_only_api_hides_private_profile_and_filesystem_details",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_route_changed_during_lookup_does_not_change_application",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_wrong_origin_is_rejected_without_contacting_it",
+        "tests.integration.test_fleet_t10_confirmation_timeout.FleetT10ConfirmationTimeoutTests::test_latest_check_is_mode_owned_and_bound_to_saved_route",
+        "tests.integration.test_fleet_t10_confirmation_timeout.FleetT10ConfirmationTimeoutTests::test_replay_refuses_legacy_check_without_saved_route_snapshot",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_personal_mode_rejects_explicit_admission_and_recovery"
+      ],
+      "finding": "Foreign/missing receipts do not establish confirmation; wrong origin, changed route, wrong profile, unsupported mode/target and submit-bearing request payloads are refused. Public readback avoids private profile and filesystem values."
+    },
+    "recovery_fencing": {
+      "executed_nodes": [
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_additional_unlinked_running_attempt_keeps_application_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_fenced_same_request_replay_allows_read_only_reconcile_without_rewriting_attempt",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_fenced_successful_receipt_recovery_allows_read_only_reconcile",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_historical_category_free_proof_remains_readable",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_live_operation_is_never_authorized_by_stale_attempt_proof",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_mismatched_or_extra_category_evidence_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_mismatched_started_snapshot_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_missing_lease_recovery_audit_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_queued_operation_is_never_authorized_by_stale_attempt_proof",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_started_audit_scoped_to_another_application_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovered_attempt.RecoveredApplicationAttemptProofTests::test_terminal_operation_without_recovered_second_claim_keeps_attempt_reserved",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_even_ancient_unfinished_attempt_is_not_stolen",
+        "tests.integration.test_application_confirmation_recovery.ConfirmationRecoveryTests::test_running_worker_is_not_stolen_even_with_expired_lease",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_expired_lease_cannot_steal_unfinished_browser_reservation"
+      ],
+      "finding": "Unfinished/unknown physical owners are not stolen. Live or queued operations, absent lease audit, mismatched snapshots/categories, unlinked extra attempts and insufficient recovery attempt proof all fail closed.",
+      "limit": "The observed successful hard-crash recovery has one original physical attempt and one receipt-only replay. The guard requires exact fenced attempt_count==2. Additional process crashes during receipt-only recovery, automatic takeover and full repeated-crash liveness are not established by this evidence."
+    },
+    "required_criterion_gaps_found": [],
+    "status": "PASS_FOR_TESTED_BOUNDARIES"
+  }
+}

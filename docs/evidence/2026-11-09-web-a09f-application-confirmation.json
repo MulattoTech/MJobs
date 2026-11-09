@@ -1,0 +1,532 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "agent": "ChatGPT-Web",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T17:01:50.078394+00:00",
+  "requirement_id": "MJ-REQ-143",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/144",
+  "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "exact_tested_source_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+  "proposed_result": "PASS",
+  "canonical_status": "PROPOSAL_ONLY; no canonical acceptance matrix or counter changed by this worker.",
+  "acceptance_authority": "The integration steward must independently approve and record any canonical transition.",
+  "scope": "Original five confirmation indicators and four capture fields for the supported controlled-provider receipt consumer.",
+  "owned_test_change": "tests/unit/test_application_confirmation_indicators.py",
+  "owned_test_sha256": "6edc910e377aa4aa936cbed458e2fa2096206b66ed1f41d7f86014005d8e92c9",
+  "criterion_ledger": [
+    {
+      "criterion_id": "MJ-REQ-143-C1",
+      "criterion": "Detect: Thank you for applying.",
+      "result": "PASS",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[thank-you-for-applying]"
+      ],
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "observed_contract": "The exact literal indicator is the only accepted confirmation phrase in this case. The real production receipt consumer accepts it while all four capture fields and the observed page identity are asserted.",
+      "scope": "Production _receipt helper through the real MockClient; only its HTTP transport is synthetic."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C2",
+      "criterion": "Detect: Application received.",
+      "result": "PASS",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-received]"
+      ],
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "observed_contract": "The exact literal indicator is the only accepted confirmation phrase in this case. The real production receipt consumer accepts it while all four capture fields and the observed page identity are asserted.",
+      "scope": "Production _receipt helper through the real MockClient; only its HTTP transport is synthetic."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C3",
+      "criterion": "Detect: We've received your application.",
+      "result": "PASS",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[received-your-application]"
+      ],
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "observed_contract": "The exact literal indicator is the only accepted confirmation phrase in this case. The real production receipt consumer accepts it while all four capture fields and the observed page identity are asserted.",
+      "scope": "Production _receipt helper through the real MockClient; only its HTTP transport is synthetic."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C4",
+      "criterion": "Detect: confirmation ID.",
+      "result": "PASS",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[confirmation-id]"
+      ],
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "observed_contract": "The exact literal indicator is the only accepted confirmation phrase in this case. The real production receipt consumer accepts it while all four capture fields and the observed page identity are asserted.",
+      "scope": "Production _receipt helper through the real MockClient; only its HTTP transport is synthetic."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C5",
+      "criterion": "Detect: application reference.",
+      "result": "PASS",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-reference]"
+      ],
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "observed_contract": "The exact literal indicator is the only accepted confirmation phrase in this case. The real production receipt consumer accepts it while all four capture fields and the observed page identity are asserted.",
+      "scope": "Production _receipt helper through the real MockClient; only its HTTP transport is synthetic."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C6",
+      "criterion": "Capture the confirmation timestamp.",
+      "result": "PASS",
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[thank-you-for-applying]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-received]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[received-your-application]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[confirmation-id]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-reference]",
+        "tests.unit.test_application_confirmation_indicators::test_case_and_whitespace_matching_preserves_original_text_and_timestamp",
+        "tests.unit.test_application_confirmation_indicators::test_missing_required_capture_field_cannot_be_a_verified_receipt[timestamp]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[null-timestamp]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[non-string-timestamp]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[invalid-timestamp]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[timezone-free-timestamp]"
+      ],
+      "observed_contract": "Each indicator preserves the literal timestamp; the timestamp is timezone-aware. A normalization case preserves Z notation. Missing, non-string, malformed and timezone-free timestamps are rejected.",
+      "historical_persistence_and_ui_evidence": [
+        {
+          "node": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests::test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        },
+        {
+          "node": "tests.browser.test_mock_application.MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        }
+      ],
+      "attribution": "Current helper assertions and historical real-browser persistence/UI assertions are separate evidence; see the embedded historical_browser record."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C7",
+      "criterion": "Capture the confirmation URL.",
+      "result": "PASS",
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[thank-you-for-applying]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-received]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[received-your-application]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[confirmation-id]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-reference]",
+        "tests.unit.test_application_confirmation_indicators::test_missing_required_capture_field_cannot_be_a_verified_receipt[confirmation_url]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[foreign-confirmation-origin]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[credential-bearing-confirmation-url]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[different-confirmation-port]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[different-confirmation-scheme]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[null-confirmation-url]",
+        "tests.unit.test_application_confirmation_indicators::test_receipt_must_match_the_actually_observed_page[observed-url-mismatch]"
+      ],
+      "observed_contract": "Each indicator preserves the exact observed local confirmation URL. Missing/non-string, external-origin, credential-bearing, different-port/scheme and observed-page URL mismatches are rejected.",
+      "historical_persistence_and_ui_evidence": [
+        {
+          "node": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests::test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        },
+        {
+          "node": "tests.browser.test_mock_application.MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        }
+      ],
+      "attribution": "Current helper assertions and historical real-browser persistence/UI assertions are separate evidence; see the embedded historical_browser record."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C8",
+      "criterion": "Capture the confirmation text.",
+      "result": "PASS",
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[thank-you-for-applying]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-received]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[received-your-application]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[confirmation-id]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-reference]",
+        "tests.unit.test_application_confirmation_indicators::test_case_and_whitespace_matching_preserves_original_text_and_timestamp",
+        "tests.unit.test_application_confirmation_indicators::test_missing_required_capture_field_cannot_be_a_verified_receipt[confirmation_text]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[empty-confirmation-text]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[non-string-text]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[oversized-confirmation-text]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[unrecognized-confirmation-text]",
+        "tests.unit.test_application_confirmation_indicators::test_receipt_must_match_the_actually_observed_page[observed-text-mismatch]"
+      ],
+      "observed_contract": "Each indicator preserves its exact receipt text. Casing and whitespace may be normalized for recognition/observed-page comparison without rewriting captured text. Missing, non-string, empty, oversized, unrecognized or observed-page-mismatched text is rejected.",
+      "historical_persistence_and_ui_evidence": [
+        {
+          "node": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests::test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        },
+        {
+          "node": "tests.browser.test_mock_application.MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        }
+      ],
+      "attribution": "Current helper assertions and historical real-browser persistence/UI assertions are separate evidence; see the embedded historical_browser record."
+    },
+    {
+      "criterion_id": "MJ-REQ-143-C9",
+      "criterion": "Capture the reference number.",
+      "result": "PASS",
+      "tested_revision": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+      "executed_nodes": [
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[thank-you-for-applying]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-received]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[received-your-application]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[confirmation-id]",
+        "tests.unit.test_application_confirmation_indicators::test_each_required_indicator_preserves_all_four_observed_capture_fields[application-reference]",
+        "tests.unit.test_application_confirmation_indicators::test_missing_required_capture_field_cannot_be_a_verified_receipt[reference_number]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[reference-missing-from-confirmation-text]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[null-reference]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[receipt-reference-mismatch]",
+        "tests.unit.test_application_confirmation_indicators::test_invalid_receipt_evidence_is_not_verified[foreign-receipt-namespace]",
+        "tests.unit.test_application_confirmation_indicators::test_receipt_must_match_the_actually_observed_page[observed-reference-mismatch]"
+      ],
+      "observed_contract": "Each indicator preserves the exact reference, matching both the receipt identity and observed marker; the reference must occur in the confirmation text. Missing/null, mismatched, absent-text, wrong-namespace or observed-marker-mismatched references are rejected.",
+      "historical_persistence_and_ui_evidence": [
+        {
+          "node": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests::test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        },
+        {
+          "node": "tests.browser.test_mock_application.MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart",
+          "result": "PASS",
+          "tested_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "artifact_id": 13688786744
+        }
+      ],
+      "attribution": "Current helper assertions and historical real-browser persistence/UI assertions are separate evidence; see the embedded historical_browser record."
+    }
+  ],
+  "executed_validation": {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/unit/test_application_confirmation_indicators.py",
+      "--junitxml",
+      "<private-run-dir>/confirmation143-source.xml"
+    ],
+    "started_at_utc": "2026-11-09T16:48:09.948617+00:00",
+    "finished_at_utc": "2026-11-09T16:48:11.887582+00:00",
+    "result": "PASS",
+    "passed": 39,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duplicates": 0,
+    "log_sha256": "126d72b2ecdb0a7600aaf47eb6f5a7f8199d122de7c369b85d730ab681f35ad8",
+    "junit_sha256": "0aecf8c94854ff81bcef38e3eb75ff89d370c110c3ada98f5c90fb02295d3abe",
+    "environment": "Cloud workspace, Python3.12, real MockClient and production _receipt; HTTP transport substituted with httpx.MockTransport. No socket, browser or live provider used by this unit suite."
+  },
+  "test_design": {
+    "isolated_positive_indicators": 5,
+    "normalization_positive_cases": 1,
+    "negative_cases": 33,
+    "total_unique_cases": 39,
+    "groups": {
+      "test_case_and_whitespace_matching_preserves_original_text_and_timestamp": 1,
+      "test_each_required_indicator_preserves_all_four_observed_capture_fields": 5,
+      "test_invalid_receipt_evidence_is_not_verified": 19,
+      "test_missing_required_capture_field_cannot_be_a_verified_receipt": 4,
+      "test_non_object_response_is_not_a_verified_receipt": 3,
+      "test_receipt_must_match_the_actually_observed_page": 3,
+      "test_unavailable_or_invalid_receipt_response_cannot_confirm": 4
+    },
+    "real_code": [
+      "services.applications.mock_adapter._receipt",
+      "services.discovery.pipeline.MockClient.__init__",
+      "services.discovery.pipeline.MockClient.allowed",
+      "services.discovery.pipeline.MockClient.get"
+    ],
+    "substituted_boundary": "Only services.discovery.pipeline.SourceTransport is replaced with an in-memory httpx.MockTransport.",
+    "request_guard": "Every fixture teardown requires exactly one bodyless GET to the bound local application's receipt endpoint; additional, foreign, read-replay or write requests fail.",
+    "source_imports": {
+      "mock_adapter": "services/applications/mock_adapter.py",
+      "pipeline": "services/discovery/pipeline.py"
+    },
+    "execution_limit": "These new tests directly exercise production receipt-consumption logic, without launching a browser, server, worker or mounted API."
+  },
+  "source_integrity": [
+    {
+      "path": "apps/api/main.py",
+      "base_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "historic_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8",
+      "working_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "base_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+      "historic_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+      "sha256": "82417ccccdbc97b3e1bbe050b42747d6a52b5e24deffc77873ac184f991d63ca",
+      "working_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "fixtures/mock_server.py",
+      "base_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+      "historic_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+      "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7",
+      "working_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "base_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "historic_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215",
+      "working_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "base_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "historic_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6",
+      "working_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "services/discovery/pipeline.py",
+      "base_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+      "historic_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+      "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f",
+      "working_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "tests/browser/test_application_pipeline.py",
+      "base_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+      "historic_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+      "sha256": "c337a2736f19dbae64d15171dd7633a3ce074a3d174d7a9f096ed1bb951b13ff",
+      "working_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "tests/browser/test_mock_application.py",
+      "base_blob": "4cc2c36a28d26ebdf6d7e0bbf0720c8da00b0947",
+      "historic_blob": "4cc2c36a28d26ebdf6d7e0bbf0720c8da00b0947",
+      "sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+      "working_blob": "4cc2c36a28d26ebdf6d7e0bbf0720c8da00b0947",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    },
+    {
+      "path": "workers/tasks.py",
+      "base_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "historic_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55",
+      "working_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "unchanged_between_historical_base_and_current": true,
+      "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+    }
+  ],
+  "mounted_consumers": {
+    "worker": "workers/tasks.py APPLY_MOCK branch validates the operation and calls apply_mock.",
+    "live_mock_browser": "apply_mock calls _receipt after the confirmation marker appears, passing observed page URL/body text/reference; valid receipts enter Store.transition(CONFIRMED).",
+    "durable_store": "Store.transition persists the full confirmation dictionary with the application state.",
+    "scoped_api": "GET /profiles/{profile_id}/applications/{application_id} checks ownership and returns the saved application.",
+    "ui": "Application detail renders saved selectedApp.confirmation; existing browser acceptance checks all four fields after Store reopen and page reload."
+  },
+  "scope_limits": [
+    "No runtime behavior changed. Unknown or mismatched receipt evidence still returns no verified receipt.",
+    "The current adapter supports the explicit configured local MOCK provider. These tests do not claim live employer submission or provider-neutral confirmation support.",
+    "No applicant profile, real credentials or external provider was used. Transport responses and all receipt identifiers are synthetic.",
+    "Historical three-node browser PASS evidence retains exact971 attribution, although nine relevant blobs are unchanged through c410.",
+    "Existing exact-f3 connected-command browser confirmation nodes are skipped and excluded from PASS evidence.",
+    "Required hosted checks for a subsequently published evidence commit are a separate publication gate; this receipt does not claim a merge, deployment or canonical acceptance mutation."
+  ],
+  "historical_browser": {
+    "schema_version": 1,
+    "recorded_at": "2026-11-09T16:49:52Z",
+    "reviewer": "/root/publication_scout",
+    "scope": "Historical full-flow browser proof for MJ-REQ-143, with exact revision and named-source equivalence retained",
+    "run": {
+      "id": 42646926759,
+      "name": "Browser regression - full synthetic suite",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+      "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "head_branch": "web/web-20261109T153331Z-c5c6d43141a0/verify-MJ-REQ-186",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T15:39:50Z",
+      "updated_at": "2026-11-09T15:46:59Z"
+    },
+    "overall_run_conclusion": "failure",
+    "individual_selected_results": "Three requested nodes each PASS once with no skips, failures or errors. Other nodes in the historical full suite failed; this receipt does not label that workflow successful.",
+    "artifact": {
+      "id": 13688786744,
+      "name": "browser-results-2",
+      "digest": "sha256:d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+      "size_in_bytes": 8739,
+      "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "workflow_run_id": 42646926759,
+      "archive_digest_independently_verified": true,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13688786744"
+    },
+    "cases": [
+      {
+        "issues": [],
+        "node": "tests.browser.test_application_pipeline.ApplicationPipelineBrowserTests::test_mock_confirmation_fields_read_back_in_ui_after_store_reopen",
+        "result": "PASS",
+        "time_seconds": 3.478,
+        "xml_file": "browser-2.xml"
+      },
+      {
+        "issues": [],
+        "node": "tests.browser.test_mock_application.MockApplicationTests::test_mock_submission_confirmed_once_and_survives_restart",
+        "result": "PASS",
+        "time_seconds": 2.656,
+        "xml_file": "browser-2.xml"
+      },
+      {
+        "issues": [],
+        "node": "tests.browser.test_mock_application.MockApplicationTests::test_unrecognized_confirmation_text_is_not_persisted_as_confirmed",
+        "result": "PASS",
+        "time_seconds": 1.629,
+        "xml_file": "browser-2.xml"
+      }
+    ],
+    "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c",
+    "base_commit": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "named_source_equivalence": [
+      {
+        "path": "apps/api/main.py",
+        "base_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "historic_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8",
+        "working_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "apps/web/src/main.tsx",
+        "base_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+        "historic_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+        "sha256": "82417ccccdbc97b3e1bbe050b42747d6a52b5e24deffc77873ac184f991d63ca",
+        "working_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "fixtures/mock_server.py",
+        "base_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+        "historic_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+        "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7",
+        "working_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "packages/persistence/store.py",
+        "base_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "historic_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215",
+        "working_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "services/applications/mock_adapter.py",
+        "base_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+        "historic_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+        "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6",
+        "working_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "services/discovery/pipeline.py",
+        "base_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "historic_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "sha256": "d6301ad9bcd5f5b3df409ba3c888b9319494b513563f6aeca249f76d6b20695f",
+        "working_blob": "0196eecde91bcf017b1cb5d0653670a1d06b685a",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "tests/browser/test_application_pipeline.py",
+        "base_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+        "historic_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+        "sha256": "c337a2736f19dbae64d15171dd7633a3ce074a3d174d7a9f096ed1bb951b13ff",
+        "working_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "tests/browser/test_mock_application.py",
+        "base_blob": "4cc2c36a28d26ebdf6d7e0bbf0720c8da00b0947",
+        "historic_blob": "4cc2c36a28d26ebdf6d7e0bbf0720c8da00b0947",
+        "sha256": "ec60ca5eaa84ed47778df0e36b706fb2f3cad82bf3ba495f0c86aac43d5ffc66",
+        "working_blob": "4cc2c36a28d26ebdf6d7e0bbf0720c8da00b0947",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      },
+      {
+        "path": "workers/tasks.py",
+        "base_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "historic_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55",
+        "working_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+        "unchanged_between_historical_base_and_current": true,
+        "current_source_commit": "c410441faa430b92cf4b1084cb5cb9ee34ffcc1c"
+      }
+    ],
+    "interpretation": "The nine named runtime/browser-test paths have identical Git blobs at historical971, basef3 and the current source commit. The browser execution remains attributed to971; it is not presented as a new c410 browser run.",
+    "other_existing_evidence": {
+      "run_id": 42647745364,
+      "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "inventory": {
+        "private_filename": "exact-f3-integration-junit-cache.json",
+        "sha256": "9f77f999da168d789f72826f381cf601f772147e991b2cfcf89e1f716476626b",
+        "public_primary_evidence": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364"
+      },
+      "note": "Relevant production worker/recovery tests run on exactf3, but connected-verification browser confirmation cases are SKIPPED in that inventory and are not counted as passing confirmation evidence."
+    },
+    "no_new_browser_execution": true,
+    "no_workflow_dispatch": true
+  },
+  "current_candidate_browser": "NOT_RUN; the historical971 browser nodes retain their original revision and whole-run FAILURE result.",
+  "no_runtime_changes": true,
+  "private_source_ledger": {
+    "filename": "confirmation143-verification.json",
+    "sha256": "a32234c786b0d89f769b37d5498a6f9ed834d7c82ca276653348799a02bc21f5"
+  },
+  "independent_review": {
+    "file": "confirmation143-independent-review.json",
+    "sha256": "b52e7d2286430e0d491d0ec417376bb19e7155a74a4cedddfe357cb3c230fb16",
+    "reviewer": "/root/acceptance_scout",
+    "verdict": "APPROVE_TEST_CONTRACT_AND_EXACT_COMMIT_EXECUTION_ATTRIBUTION"
+  },
+  "command_path_note": "Private log output directory and interpreter path are normalized; input test path and executed arguments are preserved."
+}
