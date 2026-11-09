@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { api } from './api';
 
 export type FollowUpDraftCandidate = {
@@ -18,14 +18,9 @@ export type FollowUpDraftCandidate = {
 
 type FollowUpDraftResponse = {quiet_days:number;candidates:FollowUpDraftCandidate[]};
 type CopyKind = 'subject'|'email'|'dm';
-type ClipboardError = {context:string;message:string};
 
 export function followUpDraftsPath(profileId:string,quietDays:number) {
   return `/profiles/${encodeURIComponent(profileId)}/application-follow-up-drafts?quiet_days=${quietDays}`;
-}
-
-export function clipboardErrorAfterContextChange(error:ClipboardError|null,previousContext:string,nextContext:string) {
-  return previousContext===nextContext?error:null;
 }
 
 function reportedAt(value:string) {
@@ -33,9 +28,7 @@ function reportedAt(value:string) {
   return Number.isNaN(parsed.getTime())?value:parsed.toLocaleString();
 }
 
-export function FollowUpDraftsView({
-  quietDays,candidates,loading,error,copied,onQuietDaysChange,onCopy,
-}: {
+type FollowUpDraftsViewProps = {
   quietDays:number;
   candidates:FollowUpDraftCandidate[];
   loading:boolean;
@@ -43,10 +36,13 @@ export function FollowUpDraftsView({
   copied:string|null;
   onQuietDaysChange:(days:number)=>void;
   onCopy:(kind:CopyKind,candidate:FollowUpDraftCandidate)=>void;
+};
+
+function FollowUpDraftsShell({quietDays,onQuietDaysChange,children}:{
+  quietDays:number;
+  onQuietDaysChange:(days:number)=>void;
+  children:ReactNode;
 }) {
-  const count=(value:string,limit:number)=>`${Array.from(value).length} / ${limit} characters`;
-  const eligibleCandidates=candidates.filter(candidate=>candidate.verified===false&&
-    (candidate.attribution==='USER_REPORTED'||candidate.attribution==='EXTERNAL_USER_REPORTED'));
   return <section className="panel" aria-label="Follow-up drafts">
     <h3>Follow-up drafts</h3>
     <p>Drafts are based on your reported application history. They do not confirm employer receipt and are never sent by MJobs.</p>
@@ -55,6 +51,16 @@ export function FollowUpDraftsView({
       onChange={event=>onQuietDaysChange(Number(event.currentTarget.value))}>
       {Array.from({length:90},(_,index)=>index+1).map(days=><option key={days} value={days}>{days} {days===1?'day':'days'}</option>)}
     </select>
+    {children}
+  </section>;
+}
+
+function FollowUpDraftResults({quietDays,candidates,loading,error,copied,onCopy}:
+  Omit<FollowUpDraftsViewProps,'onQuietDaysChange'>) {
+  const count=(value:string,limit:number)=>`${Array.from(value).length} / ${limit} characters`;
+  const eligibleCandidates=candidates.filter(candidate=>candidate.verified===false&&
+    (candidate.attribution==='USER_REPORTED'||candidate.attribution==='EXTERNAL_USER_REPORTED'));
+  return <>
     {loading?<p role="status">Loading follow-up drafts…</p>:error?<p role="alert"><strong>Could not load follow-up drafts.</strong> {error}</p>:eligibleCandidates.length===0?
       <p className="empty">No reported applications have been quiet for {quietDays} days or more.</p>:
       <ul aria-label="Reported follow-up draft candidates">{eligibleCandidates.map(candidate=><li key={candidate.application_id}>
@@ -76,50 +82,66 @@ export function FollowUpDraftsView({
           </div>
         </article>
       </li>)}</ul>}
-  </section>;
+  </>;
+}
+
+export function FollowUpDraftsView({quietDays,onQuietDaysChange,...results}:FollowUpDraftsViewProps) {
+  return <FollowUpDraftsShell quietDays={quietDays} onQuietDaysChange={onQuietDaysChange}>
+    <FollowUpDraftResults quietDays={quietDays} {...results}/>
+  </FollowUpDraftsShell>;
 }
 
 export function ApplicationFollowUpDrafts({profileId}:{profileId:string}) {
   const [quietDays,setQuietDays]=useState(7);
+  // A new query context gets fresh state before its first commit. Old requests
+  // and clipboard promises retain only the discarded instance's state setters.
+  // Keep the selector outside that boundary so changing it preserves focus.
+  return <FollowUpDraftsShell quietDays={quietDays} onQuietDaysChange={setQuietDays}>
+    <FollowUpDraftContext key={JSON.stringify([profileId,quietDays])} profileId={profileId} quietDays={quietDays}/>
+  </FollowUpDraftsShell>;
+}
+
+function FollowUpDraftContext({profileId,quietDays}:{
+  profileId:string;
+  quietDays:number;
+}) {
   const [candidates,setCandidates]=useState<FollowUpDraftCandidate[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState<string|null>(null);
   const [copied,setCopied]=useState<string|null>(null);
-  const [copyError,setCopyError]=useState<ClipboardError|null>(null);
-  const draftContext=JSON.stringify([profileId,quietDays]);
-  const previousDraftContext=useRef(draftContext);
-  const requestSequence=useRef(0);
+  const [copyError,setCopyError]=useState<string|null>(null);
+  const copySequence=useRef(0);
 
   useEffect(()=>{
-    const previousContext=previousDraftContext.current;
-    previousDraftContext.current=draftContext;
-    setCopyError(error=>clipboardErrorAfterContextChange(error,previousContext,draftContext));
-    const sequence=++requestSequence.current;
     let active=true;
-    if(!profileId){setCandidates([]);setLoading(false);setError(null);return ()=>{active=false;};}
-    setLoading(true);setError(null);setCopied(null);
+    const dispose=()=>{active=false;copySequence.current++;};
+    if(!profileId){setLoading(false);return dispose;}
     void api<FollowUpDraftResponse>(followUpDraftsPath(profileId,quietDays)).then(response=>{
-      if(active&&sequence===requestSequence.current)setCandidates(response.candidates);
+      if(active)setCandidates(response.candidates);
     }).catch(reason=>{
-      if(active&&sequence===requestSequence.current){setCandidates([]);setError(reason instanceof Error?reason.message:'The local API returned an error.');}
-    }).finally(()=>{if(active&&sequence===requestSequence.current)setLoading(false);});
-    return ()=>{active=false;};
-  },[profileId,quietDays,draftContext]);
+      if(active){setCandidates([]);setError(reason instanceof Error?reason.message:'The local API returned an error.');}
+    }).finally(()=>{if(active)setLoading(false);});
+    return dispose;
+  },[profileId,quietDays]);
 
   async function copy(kind:CopyKind,candidate:FollowUpDraftCandidate) {
     const text=kind==='subject'?candidate.email_subject:kind==='email'?candidate.email_body:candidate.dm_body;
     if(text===null)return;
+    const sequence=++copySequence.current;
+    setCopied(null);setCopyError(null);
     try {
       await navigator.clipboard.writeText(text);
+      if(sequence!==copySequence.current)return;
       setCopied(`${candidate.application_id}:${kind}`);setCopyError(null);
     } catch {
-      setCopyError({context:draftContext,message:'Clipboard access is unavailable. Select and copy the draft text manually.'});
+      if(sequence!==copySequence.current)return;
+      setCopyError('Clipboard access is unavailable. Select and copy the draft text manually.');
     }
   }
 
   return <>
-    <FollowUpDraftsView quietDays={quietDays} candidates={candidates} loading={loading} error={error} copied={copied}
-      onQuietDaysChange={setQuietDays} onCopy={(kind,candidate)=>void copy(kind,candidate)}/>
-    {copyError?.context===draftContext&&<p role="alert">{copyError.message}</p>}
+    <FollowUpDraftResults quietDays={quietDays} candidates={candidates} loading={loading} error={error} copied={copied}
+      onCopy={(kind,candidate)=>void copy(kind,candidate)}/>
+    {copyError&&<p role="alert">{copyError}</p>}
   </>;
 }
