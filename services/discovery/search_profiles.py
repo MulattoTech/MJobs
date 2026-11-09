@@ -29,7 +29,8 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "application_link_status": {"", "AVAILABLE", "UNAVAILABLE"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},
-               "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
+               "sort": {"score", "newest", "company", "title", "salary_high", "salary_low",
+                        "application_priority"}}
 UTC_DATE_BOUND = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}"
     r"(?::[0-9]{2}(?:\.[0-9]{1,6})?)?(?:Z|\+00:00)$"
@@ -54,13 +55,20 @@ def _clean_job_filters(value):
     optional = {"title", "company", "location", "salary_min", "salary_max", "salary_period", "salary_policy", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
                 "clearance_level", "ats_provider", "job_source_id", "application_link_status", "application_pipeline_status",
-                "application_capability"}
+                "application_capability", "include_dismissed", "include_blacklisted"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
     if not isinstance(query, str) or len(query) > 200:
         raise ValueError("Saved Jobs query must be text up to 200 characters")
     cleaned = {"q": query}
+    # These are Jobs viewing preferences, not discovery or application policy.
+    # Preserve legacy readback shapes; an absent preference does not opt in.
+    for key in ("include_dismissed", "include_blacklisted"):
+        if key in value:
+            if type(value[key]) is not bool:
+                raise ValueError(f"Saved Jobs {key} must be boolean")
+            cleaned[key] = value[key]
     for key in ("title", "company", "location"):
         item = value.get(key, "")
         if not isinstance(item, str) or len(item) > 200:
