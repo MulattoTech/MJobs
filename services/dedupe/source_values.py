@@ -16,6 +16,13 @@ from services.dedupe.policy import SOURCE_AUTHORITY
 
 BUNDLE_FIELDS = ('title', 'description', 'skills', 'location', 'remote_type', 'attributes')
 LIFECYCLE_FIELDS = ('first_seen_at', 'last_seen_at', 'last_collected_at')
+PROMOTED_ATTRIBUTE_FIELDS = (
+    'normalized_title', 'title_family', 'description_html', 'responsibilities',
+    'required_qualifications', 'preferred_qualifications', 'employment_type',
+    'experience_level', 'salary_min', 'salary_max', 'salary_currency',
+    'salary_period', 'salary_source', 'city', 'state', 'country',
+    'remote_regions', 'reported_posted_at', 'expires_at',
+)
 
 
 def _json(value):
@@ -54,7 +61,7 @@ def record_candidate(connection, *, posting_id, company_source_id, observation_i
     if attrs.get('source_id') not in {source['id'], source['collector_source_id']}:
         raise ValueError('SOURCE_VALUE_IDENTITY_MISMATCH')
     # Import timestamps belong to the canonical lifecycle, not the source's claims.
-    for key in (*LIFECYCLE_FIELDS, 'source_resolution'):
+    for key in (*LIFECYCLE_FIELDS, 'source_resolution', 'field_provenance'):
         attrs.pop(key, None)
     application_url = posting['application_url'] or ''
     if application_url:
@@ -127,6 +134,41 @@ def _refresh_match(connection, job, profile):
         replace=True)
 
 
+def _candidate_field_provenance(winner):
+    """Describe promoted normalized values, without inventing raw paths/confidence.
+
+    Source authority describes the independently checked origin, not the accuracy
+    of individual fields. Exact normalized values remain in the immutable candidate;
+    the snapshot is supporting source evidence, not a claim of verbatim extraction.
+    """
+    attrs = winner['normalized']['attributes']
+    hostname = urlsplit(attrs['source_endpoint']).hostname or ''
+    source = hostname if 0 < len(hostname) <= 80 else 'NORMALIZED_POSTING'
+    evidence = dict(
+        source=source, confidence=None, basis='NORMALIZED_CANDIDATE',
+        candidate_id=winner['id'], posting_id=winner['posting_id'],
+        posting_snapshot_id=winner['posting_snapshot_id'],
+        company_source_id=winner['company_source_id'],
+        quality_observation_id=winner['quality_observation_id'],
+        source_endpoint=attrs['source_endpoint'], provider=attrs['provider'],
+        source_authority=winner['authority'], observed_at=winner['observed_at'],
+    )
+    fields = {field: dict(evidence, normalized_field=field)
+              for field in BUNDLE_FIELDS if field != 'attributes'}
+    fields.update({field: dict(evidence, normalized_field='attributes.' + field)
+                   for field in PROMOTED_ATTRIBUTE_FIELDS if field in attrs})
+    if not attrs.get('normalized_title'):
+        fields['normalized_title'] = dict(fields['title'], derivation='CANONICAL_TITLE_FALLBACK')
+    # These are read-view aliases of the same promoted canonical values.
+    fields['description_text'] = dict(fields['description'], derivation='CANONICAL_DESCRIPTION_TEXT')
+    fields['location_text'] = dict(fields['location'], derivation='CANONICAL_LOCATION_TEXT')
+    fields['application_url'] = {
+        **evidence, 'basis': 'SELECTED_LISTING_URL',
+        'candidate_field': 'application_url',
+    }
+    return fields
+
+
 def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
     """Apply one whole candidate bundle, with source authority outranking quality."""
     job = dict(connection.execute(select(m.jobs).where(m.jobs.c.id == job_id).with_for_update()).mappings().one())
@@ -162,6 +204,9 @@ def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
         row['effective_quality'] if row['effective_quality'] is not None else -1,
         row['observed_at'], row['id']))
     attrs = deepcopy(winner['normalized']['attributes'])
+    # Legacy candidates may predate capture-time filtering. Never let their
+    # self-reported attribution shadow provenance derived by this resolver.
+    attrs.pop('field_provenance', None)
     old_attrs = dict(job['attributes'])
     attrs.update({key: old_attrs.get(key) for key in LIFECYCLE_FIELDS})
     attrs['first_seen_at'] = old_attrs.get('first_seen_at') or at
@@ -195,6 +240,8 @@ def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
     mismatch = bool((in_use or not same_route_identity) and route['url'] != winner['application_url'])
     attrs['source_resolution'] = dict(
         selected_candidate_id=winner['id'], selected_posting_id=winner['posting_id'],
+        field_provenance_schema_version=1,
+        field_provenance=_candidate_field_provenance(winner),
         authority=winner['authority'], authority_evidence=winner['authority_evidence'],
         quality=winner['quality'], effective_quality=winner['effective_quality'], evaluated_at=at,
         candidate_count=len(candidates), conflicts=conflicts,
