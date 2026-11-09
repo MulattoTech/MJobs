@@ -695,5 +695,49 @@
     "remotive_fix_evidence": "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json",
     "remotive_fix_state": "UNCOMMITTED_WORKING_TREE; meaningful baseline failure and fixed 82-test PASS; independent review, commit, fresh live decision and protected delivery pending.",
     "claim_recovery_note": "The original ownership blocker in remotive_limit_finding describes the earlier observation and was subsequently resolved by root's audited verified-orphan recovery."
+  },
+  "remotive_fixed_candidate_followup": {
+    "tested_revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+    "deterministic_result": "82testsPASS",
+    "bounded_live_result": "PASS:3returnedforlimit3;9assertionstrue;0.797s",
+    "fixed_live": {
+      "provider": "remotive",
+      "started_at_utc": "2026-11-09T18:07:04.313640+00:00",
+      "source_head": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+      "method": "GET",
+      "endpoint": "https://remotive.com/api/remote-jobs?limit=3",
+      "adapter_search_arguments": {
+        "limit": 3
+      },
+      "adapter_search_calls": 1,
+      "maximum_http_requests_by_unchanged_source": 1,
+      "redirects": false,
+      "retries": 0,
+      "request_timeout_seconds": 15,
+      "overall_budget_seconds": 25,
+      "response_body_limit_bytes": 5000000,
+      "credentials": false,
+      "raw_job_content_retained": false,
+      "database_opened": false,
+      "result": "PASS",
+      "checks": {
+        "one_to_three_results": true,
+        "titles_present": true,
+        "provider_job_ids_present": true,
+        "remote_type": true,
+        "provider_attribution": true,
+        "complete_inventory_false": true,
+        "source_links_present": true,
+        "no_direct_application": true,
+        "no_application_status": true
+      },
+      "count": 3,
+      "health": "HEALTHY",
+      "elapsed_seconds": 0.797,
+      "finished_at_utc": "2026-11-09T18:07:05.119574+00:00"
+    },
+    "main_original_failure_preserved": true,
+    "closure_eligible_on_delivered_main": false,
+    "next_action": "Publish minimal reviewed fix, pass required hosted checks, integrate through sole owner, then verify delivered applicability."
   }
 }

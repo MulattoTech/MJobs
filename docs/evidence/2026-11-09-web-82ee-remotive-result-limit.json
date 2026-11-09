@@ -140,14 +140,11 @@
     "retained_failure_receipt_sha256": "d5904c87c444f80feb87ea2a63527e020c32855eb6eae5370704aa3e1ffc5f5b",
     "not_reinterpreted": true
   },
-  "pending": {
-    "independent_review": "PENDING root-coordinated review",
-    "committed_candidate": "NOT_RUN; root will commit after review",
-    "fresh_live_check_of_fixed_candidate": "NOT_RUN; no live repeat performed by this worker. Root decides one post-commit normal-route check within provider policy.",
-    "hosted_checks_and_protected_delivery": "NOT_RUN",
-    "full_child_closure": "NOT_ELIGIBLE_YET; do not close #309 from deterministic repair evidence alone.",
-    "pr987": "Known hosted cancellation timing gate remains unresolved and is not relaxed or accepted here."
-  },
+  "pending": [
+    "Required checks on the published candidate and protected integration by sole owner",
+    "Reverify delivered-source applicability before closing309",
+    "Unrelated scheduler987 cancellation timing gate remains unresolved and unwaived"
+  ],
   "environment": {
     "python": "3.12.14",
     "implementation": "CPython",
@@ -206,5 +203,50 @@
     "new_claim": "web:web-20261109T173838Z-82ee9dc5ccd8:remotive-result-limit",
     "recovered_utc": "2026-11-09T17:58:47.310491+00:00",
     "other_source_or_dice_work_assigned": false
+  },
+  "committed_candidate": {
+    "revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+    "exact_regression_result": "82PASS; zero failures/errors/skips;5.01s",
+    "command": "python -m pytest -q tests/unit/test_remotive_search_limit.py tests/integration/test_remotive.py tests/integration/test_remotive_job_id_isolation.py tests/unit/test_remotive_body_deadline.py tests/unit/test_remotive_job_ids.py tests/unit/test_remotive_url_contract.py --junitxml=remotive-fixed-exact-82ee.xml",
+    "junit_sha256": "016cb949d9a6b6e3b5253e79e22c4a5725e04158db043b86bf77d0f331aaa15b",
+    "fixed_live": {
+      "provider": "remotive",
+      "started_at_utc": "2026-11-09T18:07:04.313640+00:00",
+      "source_head": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+      "method": "GET",
+      "endpoint": "https://remotive.com/api/remote-jobs?limit=3",
+      "adapter_search_arguments": {
+        "limit": 3
+      },
+      "adapter_search_calls": 1,
+      "maximum_http_requests_by_unchanged_source": 1,
+      "redirects": false,
+      "retries": 0,
+      "request_timeout_seconds": 15,
+      "overall_budget_seconds": 25,
+      "response_body_limit_bytes": 5000000,
+      "credentials": false,
+      "raw_job_content_retained": false,
+      "database_opened": false,
+      "result": "PASS",
+      "checks": {
+        "one_to_three_results": true,
+        "titles_present": true,
+        "provider_job_ids_present": true,
+        "remote_type": true,
+        "provider_attribution": true,
+        "complete_inventory_false": true,
+        "source_links_present": true,
+        "no_direct_application": true,
+        "no_application_status": true
+      },
+      "count": 3,
+      "health": "HEALTHY",
+      "elapsed_seconds": 0.797,
+      "finished_at_utc": "2026-11-09T18:07:05.119574+00:00"
+    },
+    "root_review": "Independent scoped PASS; source/test fingerprints match reviewed bytes; no transport or cancellation edits.",
+    "required_gates": "PENDING_PUBLICATION; no main merge or full child closure yet",
+    "recorded_at_utc": "2026-11-09T18:10:01.545984+00:00"
   }
 }
