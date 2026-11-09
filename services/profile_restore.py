@@ -1001,6 +1001,152 @@ def _company_discovery_history(payload, source_id, jobs_by_id, companies):
     return output
 
 
+def _validate_restored_capacity(payload, result):
+    """Reserve export/import capacity for the normalized current/history split.
+
+    Planning has no target identity or clock yet. Hash identities have a fixed
+    width; reserve the maximum target profile ID and UTC timestamp widths so
+    preview and commit planning make the same bounded decision. This projection
+    is only a size budget, not a replacement for export or linkage validation.
+    """
+    identifier = "0" * 64
+    profile_id = "0" * 128
+    timestamp = "0000-00-00T00:00:00.000000+00:00"
+    history = result["history"]
+    if (len(history["profile_versions"]) + 1 > MAX_IMPORT_ROWS
+            or len(history["profile_facts"]) + len(result["facts"]) > MAX_IMPORT_ROWS):
+        _fail("RESTORE_LIMIT_EXCEEDED")
+
+    projected = dict(payload)
+    projected["export_type"] = "profile_json_export"
+    projected["profile_id"] = profile_id
+    projected["profile"] = {"id": profile_id, **result["source_profile"],
+                            "version": identifier}
+    current_snapshot = {
+        "contact": {**result["source_profile"], "contact": result["contact"],
+                    "preferences": result["preferences"]},
+        "answers": result["answers"],
+    }
+    projected["profile_versions"] = [
+        {"id": identifier, "version": identifier, "contact": row["contact"],
+         "answers": row["answers"]}
+        for row in [*history["profile_versions"], current_snapshot]
+    ]
+    projected["facts"] = [
+        {"id": identifier, "version": identifier,
+         "fact_id": row.get("fact_id", row.get("id")),
+         "kind": row["kind"], "text": row["text"], "source": row["source"],
+         "verified": False, "user_approved": False, "confidence": 0.0}
+        for row in [*history["profile_facts"], *result["facts"]]
+    ]
+
+    # Include the complete native graph, not only profile rows. Restored IDs
+    # and foreign keys grow to SHA-256 width even when source IDs were short.
+    remapped_fields = {"id", "job_id", "company_id", "application_id", "route_id",
+                       "run_id", "candidate_id", "upload_id", "series_id", "profile_version"}
+    for section, fields in _HISTORY_FIELDS.items():
+        if section == "uploaded_resumes":
+            continue
+        projected[section] = [
+            {key: identifier if key in remapped_fields and row.get(key) is not None
+             else row.get(key) for key in fields}
+            for row in history[section]
+        ]
+    ambiguous_states = {"SUBMITTING", "CONFIRMED", "SUBMISSION_CONFIRMED",
+                        "SUBMISSION_UNCONFIRMED", "APPLICATION_SUBMITTED"}
+    terminal_states = {"FAILED", "CANCELLED", "REJECTED", "BLOCKED",
+                       "DEAD_LETTERED", "DISCARDED", "UNKNOWN"}
+    jobs = {row["id"]: row for row in history["jobs"]}
+    routes = {row["id"]: row for row in history["application_routes"]}
+    route_urls = {}
+    for row in history["application_routes"]:
+        route_urls.setdefault(row["job_id"], []).append(row["url"])
+    states = {}
+    for source, row in zip(history["applications"], projected["applications"]):
+        if row["state"] in ambiguous_states:
+            row["state"], row["submitted_at"] = "SUBMISSION_UNCONFIRMED", None
+        elif row["state"] not in terminal_states and row["state"] != "REVIEW_REQUIRED":
+            row["state"], row["submitted_at"] = "REVIEW_REQUIRED", None
+        job, route = jobs[source["job_id"]], routes[source["route_id"]]
+        row.update(title=job["title"], company=job["company"],
+                   provider=route["provider"], application_url=route["url"])
+        states[source["job_id"]] = row["state"]
+    for source, row in zip(history["jobs"], projected["jobs"]):
+        # The selected route can change when IDs are remapped. Its longest
+        # serialized URL is a tight upper bound independent of hash order.
+        row.update(match_score=None, application_state=states.get(source["id"]),
+                   application_url=max(route_urls.get(source["id"], []), key=lambda value: len(
+                       json.dumps(value, ensure_ascii=False).encode("utf-8")), default=None))
+    for row in projected["attempts"]:
+        if row["state"] == "RUNNING":
+            row["state"] = "UNKNOWN"
+    for row in projected["source_candidates"]:
+        if row["state"] not in {"DISCOVERED", "NEEDS_REVIEW", "BLOCKED", "REJECTED"}:
+            row["state"] = "NEEDS_REVIEW"
+        row["collection_enabled"] = False
+    for row in projected["career_stories"]:
+        row.update(review_status="PENDING", review_note=None, reviewed_at=None)
+    for row in projected["interview_prep_packs"]:
+        row["selected_story_revision_ids"] = [
+            identifier for _ in (row["selected_story_revision_ids"] or [])
+        ]
+    for row in projected["resume_workspace_revisions"]:
+        # Persistence normalizes these timestamps through datetime.isoformat.
+        if isinstance(row["created_at"], str) and len(row["created_at"]) < len(timestamp):
+            row["created_at"] = timestamp
+
+    projected["company_discovery_requests"] = []
+    projected["company_discovery_history"] = [
+        {**row, "payload": {
+            **row["payload"],
+            **{key: identifier if row["payload"][key] is not None else None
+               for key in ("target_job_id", "target_company_id")},
+        }} for row in history["company_discovery_history"]
+    ]
+    projected["uploaded_resumes"] = [
+        {"id": identifier, **{key: row[key] for key in (
+            "filename", "format", "media_type", "size_bytes", "sha256")},
+         "status": "STORED_UNREVIEWED", "created_at": timestamp}
+        for row in result["uploaded_files"]
+    ]
+    projected["document_files"] = [
+        {**row, "id": identifier} for row in payload.get("document_files", [])
+    ]
+    settings = result["safe_settings"]
+    projected["settings"] = {
+        "search_profiles": [
+            {**row, "id": identifier, "created_at": timestamp, "updated_at": timestamp}
+            for row in result["search_profiles"]
+        ],
+        "ai_task_settings": [
+            {**row, "id": identifier, "provider": "disabled", "model": None}
+            for row in settings["ai_task_settings"]
+        ],
+        **{name: [{**row, "id": identifier} for row in settings[name]]
+           for name in ("ai_cost_policy", "answer_confidence_policy")},
+    }
+    # SQL Float columns are exported as floats even when the import used an
+    # integer (for example, 0 becomes 0.0). Reserve the persisted JSON width
+    # before admitting a restore at the export limit; leave source data intact.
+    for rows, field in (
+            (projected["job_matches"], "score"),
+            (projected["settings"]["answer_confidence_policy"],
+             "minimum_question_match_confidence")):
+        for row in rows:
+            value = row.get(field)
+            if type(value) is int:
+                try:
+                    row[field] = float(value)
+                except OverflowError:
+                    _fail()
+    try:
+        _normalize_payload(projected)
+    except ProfileRestoreError as exc:
+        if exc.code in {"RESTORE_INPUT_TOO_LARGE", "RESTORE_LIMIT_EXCEEDED"}:
+            _fail("RESTORE_LIMIT_EXCEEDED")
+        raise
+
+
 def _validated(payload):
     normalized, canonical = _normalize_payload(payload)
     source_id, source_profile, current_version, versions, contact, preferences = _source_profile(normalized)
@@ -1082,7 +1228,7 @@ def _validated(payload):
         "ai_task_settings": len(safe_settings["ai_task_settings"]),
         "company_discovery_history": len(history["company_discovery_history"]),
     }
-    return {
+    result = {
         "fingerprint": fingerprint,
         "source_id": source_id,
         "source_profile": source_profile,
@@ -1103,6 +1249,8 @@ def _validated(payload):
             history_omitted_sections=history["omitted_sections"],
         ),
     }
+    _validate_restored_capacity(normalized, result)
+    return result
 
 
 def preview_profile_restore(payload) -> dict:

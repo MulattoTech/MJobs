@@ -2,15 +2,21 @@ import base64
 import copy
 import hashlib
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
+from packages.domain.profile import ContactDetails, JobPreferences
+from packages.persistence.profile_restore import apply_profile_restore
 from packages.persistence.store import Store
 from services.career_profile.story_bank import create_story
-from services.data_export import export_profile_backup
+from services.data_export import export_profile_backup, export_profile_json
 from services.documents.uploads import save_resume
 from services.profile_restore import (
+    MAX_IMPORT_BYTES,
+    MAX_IMPORT_NODES,
+    MAX_IMPORT_ROWS,
     ProfileRestoreError,
     build_restore_plan,
     preview_profile_restore,
@@ -131,7 +137,173 @@ def _payload():
     }
 
 
+def _versioned_fact_backup(fact_counts, *, fact_text="SQL"):
+    """A valid bounded backup whose restored active copy consumes extra capacity."""
+    profile_id = "bounded-source"
+    preferences = JobPreferences().model_dump()
+    preferences["company_discovery"]["company_discovery_enabled"] = False
+    preferences["application_route_preference"] = "USER_CHOICE"
+    preferences["sensitive_answer_policies"] = {
+        category: {"mode": "ALWAYS_REQUIRE_REVIEW", "response": None}
+        for category in ("RACE_ETHNICITY", "RELIGION", "SEX_GENDER", "DISABILITY",
+                         "VETERAN_STATUS", "OTHER_VOLUNTARY_DEMOGRAPHIC")
+    }
+    contact = {"name": "Synthetic Bounds", "email": "bounds@example.invalid",
+               "contact": ContactDetails().model_dump(), "preferences": preferences}
+    payload = {
+        "schema_version": 1, "export_type": "profile_backup", "profile_id": profile_id,
+        "profile": {"id": profile_id, "name": contact["name"], "email": contact["email"],
+                    "version": "v0"},
+        "profile_versions": [], "facts": [],
+        "settings": {"search_profiles": [], "ai_task_settings": [],
+                     "ai_cost_policy": [], "answer_confidence_policy": []},
+    }
+    for section in (
+        "jobs", "application_routes", "job_matches", "applications", "application_route_choices",
+        "documents", "attempts", "career_stories", "resume_workspace_revisions", "interview_prep_packs",
+        "ai_evaluation_runs", "ai_job_evaluations", "ai_document_reviews", "source_candidates",
+        "source_candidate_reviews", "resume_revisions", "uploaded_resumes",
+        "company_discovery_requests", "company_discovery_history", "document_files",
+    ):
+        payload[section] = []
+    for ordinal, fact_count in enumerate(fact_counts):
+        version = f"v{ordinal}"
+        payload["profile_versions"].append({
+            "id": _identity(profile_id, version), "version": version,
+            "contact": copy.deepcopy(contact), "answers": [],
+        })
+        for number in range(fact_count):
+            fact_id = f"f{number}"
+            payload["facts"].append({
+                "id": _identity(profile_id, version, fact_id), "version": version,
+                "fact_id": fact_id, "kind": "skill", "text": fact_text, "source": "Synthetic",
+                "verified": True, "user_approved": True, "confidence": 95,
+            })
+    return payload
+
+
+def _json_node_count(value):
+    if isinstance(value, dict):
+        return 1 + sum(_json_node_count(nested) for nested in value.values())
+    if isinstance(value, list):
+        return 1 + sum(_json_node_count(nested) for nested in value)
+    return 1
+
+
 class ProfileRestoreTests(unittest.TestCase):
+    def test_capacity_accounts_for_persisted_float_serialization(self):
+        for section in ("job_matches", "answer_confidence_policy"):
+            with self.subTest(section=section), tempfile.TemporaryDirectory(
+                    prefix="restore-float-capacity-") as directory:
+                payload = _versioned_fact_backup([0, 0])
+                if section == "job_matches":
+                    for number in range(8):
+                        job_id, route_id = f"job-{number}", f"route-{number}"
+                        url = f"https://jobs.example.invalid/{number}"
+                        payload["jobs"].append({
+                            "id": job_id, "company": "Synthetic Employer",
+                            "requisition": str(number), "title": "Engineer",
+                            "description": "", "skills": [], "location": "Remote",
+                            "remote_type": "REMOTE", "application_url": url,
+                            "match_score": 0, "application_state": None,
+                        })
+                        payload["application_routes"].append({
+                            "id": route_id, "job_id": job_id, "company_id": "company",
+                            "provider": "manual", "tenant": "", "requisition": str(number),
+                            "url": url,
+                        })
+                        payload["job_matches"].append({
+                            "id": f"match-{number}", "job_id": job_id,
+                            "profile_version": "v1", "score": 0,
+                            "missing": [], "components": {},
+                        })
+                else:
+                    payload["settings"][section] = [{
+                        "id": "confidence-policy", "minimum_saved_answer_confidence": 80,
+                        "minimum_question_match_confidence": 1,
+                        "updated_at": "2026-11-09T00:00:00+00:00",
+                    }]
+                original = copy.deepcopy(payload)
+                root = Path(directory)
+                profile_id = "t" * 128
+                stores = []
+                try:
+                    # Measure the real persisted/exported representation, so
+                    # the boundary is independent of the planner's projection.
+                    for name in ("measured", "accepted"):
+                        store = Store(f"sqlite:///{(root / (name + '.db')).as_posix()}")
+                        stores.append(store)
+                        store.migrate()
+                        store.bind_workspace_mode("FIXTURE")
+                    plan = build_restore_plan(payload, profile_id)
+                    apply_profile_restore(stores[0], plan, root, "measure-float-capacity")
+                    exported = export_profile_json(stores[0], profile_id, output_dir=root)
+                    persisted = json.loads(exported)
+                    if section == "job_matches":
+                        self.assertTrue(all(type(row["score"]) is float
+                                            for row in persisted[section]))
+                    else:
+                        self.assertIs(type(persisted["settings"][section][0][
+                            "minimum_question_match_confidence"]), float)
+                    required_bytes = len(exported.encode("utf-8"))
+                    self.assertLess(len(json.dumps(payload).encode("utf-8")),
+                                    required_bytes - 1)
+                    with patch("services.profile_restore.MAX_IMPORT_BYTES", required_bytes - 1):
+                        for operation in (preview_profile_restore,
+                                          lambda value: build_restore_plan(value, profile_id)):
+                            with self.subTest(operation=operation.__name__):
+                                with self.assertRaises(ProfileRestoreError) as caught:
+                                    operation(payload)
+                                self.assertEqual(caught.exception.code, "RESTORE_LIMIT_EXCEEDED")
+                    # At the admitted neighboring boundary, both export formats
+                    # remain usable after an actual fresh restore.
+                    with patch("services.profile_restore.MAX_IMPORT_BYTES", required_bytes), \
+                            patch("services.data_export.MAX_EXPORT_BYTES", required_bytes):
+                        preview_profile_restore(payload)
+                        accepted = build_restore_plan(payload, profile_id)
+                        apply_profile_restore(stores[1], accepted, root, "accept-float-capacity")
+                        self.assertEqual(export_profile_json(
+                            stores[1], profile_id, output_dir=root), exported)
+                        export_profile_backup(stores[1], profile_id, output_dir=root)
+                    self.assertEqual(payload, original)
+                finally:
+                    for store in stores:
+                        store.engine.dispose()
+
+    def test_preview_and_plan_reserve_capacity_for_new_active_snapshot_and_facts(self):
+        cases = {
+            "fact_row_expansion": ([200, 9700], "SQL"),
+            "node_expansion": ([200] * 48, "SQL"),
+            "byte_expansion": ([200, 200], "x" * 9000),
+        }
+        for name, (fact_counts, fact_text) in cases.items():
+            with self.subTest(case=name):
+                payload = _versioned_fact_backup(fact_counts, fact_text=fact_text)
+                original = copy.deepcopy(payload)
+                # These requests fit the existing input bounds. The rejected
+                # expansion is caused by preserving history plus a new active copy.
+                self.assertLess(len(payload["facts"]), MAX_IMPORT_ROWS)
+                self.assertLess(_json_node_count(payload), MAX_IMPORT_NODES)
+                self.assertLess(len(json.dumps(payload).encode("utf-8")), MAX_IMPORT_BYTES)
+                for operation in (preview_profile_restore,
+                                  lambda value: build_restore_plan(value, "bounded-restored")):
+                    with self.subTest(operation=operation.__name__):
+                        with self.assertRaises(ProfileRestoreError) as caught:
+                            operation(payload)
+                        self.assertEqual(caught.exception.code, "RESTORE_LIMIT_EXCEEDED")
+                self.assertEqual(payload, original)
+
+    def test_near_limit_history_with_room_for_active_snapshot_remains_accepted(self):
+        payload = _versioned_fact_backup([200] * 47)
+        original = copy.deepcopy(payload)
+        preview = preview_profile_restore(payload)
+        plan = build_restore_plan(payload, "bounded-restored")
+        self.assertEqual(preview["counts"]["facts"], 200)
+        self.assertEqual(len(plan["history"]["profile_versions"]), 47)
+        self.assertEqual(len(plan["history"]["profile_facts"]), 9400)
+        self.assertEqual(len(plan["profile"]["facts"]), 200)
+        self.assertEqual(payload, original)
+
     def test_discovery_history_requires_bounded_allowlisted_snapshot_and_safe_references(self):
         payload = _payload()
         snapshot = {

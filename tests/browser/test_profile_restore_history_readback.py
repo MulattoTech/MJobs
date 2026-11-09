@@ -133,6 +133,16 @@ class ProfileRestoreHistoryReadbackBrowserTests(unittest.TestCase):
                     self.assertEqual(store.profile(restored_id)['email'], 'source@example.invalid')
                     self.assertTrue(all(not row['verified'] and not row['user_approved']
                                         for row in store.profile(restored_id)['facts']))
+                    # Imported historical scores must not appear as approved
+                    # evidence for the newly restored, unapproved profile.
+                    heatmap_url = origin + f'/profiles/{restored_id}/skill-gap-heatmap'
+                    heatmap_response = page.request.get(heatmap_url)
+                    self.assertEqual(heatmap_response.status, 200, heatmap_response.text())
+                    restored_heatmap = heatmap_response.json()
+                    self.assertEqual(restored_heatmap['jobs_examined'], 0)
+                    self.assertEqual(restored_heatmap['skills'], [])
+                    self.assertTrue(all(job['match_score'] is None
+                                        for job in store.jobs(restored_id)))
 
                     history = page.get_by_role('region', name='Recovered company discovery history', exact=True)
                     expect(history).to_contain_text('HIGH_MATCH_JOB')
@@ -150,6 +160,7 @@ class ProfileRestoreHistoryReadbackBrowserTests(unittest.TestCase):
                     page.get_by_role('button', name='Profile', exact=True).click()
                     expect(page.get_by_label('Active profile', exact=True)).to_have_value(restored_id)
                     expect(history).to_contain_text('HIGH_MATCH_JOB')
+                    self.assertEqual(page.request.get(heatmap_url).json(), restored_heatmap)
                     # Tab navigation unmounts ProfileRestore independently of a page reload.
                     page.get_by_role('button', name=re.compile(r'^Jobs\b')).click()
                     page.get_by_role('button', name='Profile', exact=True).click()
