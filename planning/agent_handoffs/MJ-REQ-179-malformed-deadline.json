@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-179-malformed-deadline",
+  "objective": "Publish reviewed implementation with unchanged historical checksum exception dependency",
+  "owner": "ChatGPT-Web/web-20261109T031106Z-31f99071bbd9",
+  "branch": "web/web-20261109T031106Z-31f99071bbd9/MJ-REQ-179-malformed-deadline",
+  "head_sha": "ce46692fb3ea8cbed96e856918fae96e8e99e924",
+  "routing_state": "VERIFY",
+  "next_action": "Publish final owned head under atomic admission, inspect fresh hosted checks, then release owned claims at safe stop",
+  "created_at": "2026-11-09T03:52:38.112967+00:00",
+  "requirements": [
+    "MJ-REQ-179-malformed-deadline"
+  ],
+  "tests": [
+    {
+      "command": "Previously executed targeted tests on implementation SHA; exact source/test blob preservation after exception dependency; provenance, checkpoint and diff checks",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh final-head hosted scan and integration pending; full browser/deployed acceptance NOT_RUN",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full requirement acceptance not established; final hosted gates pending"
+  ]
+}
