@@ -233,6 +233,14 @@ def _token_edit_distance(left, right):
     return previous[-1]
 
 
+def _requires_individual_answer_review(question):
+    # Review imports this module for matching and confidence policy. Defer the
+    # import so both reuse boundaries share its classifier without an import cycle.
+    from services.answers.review import is_review_sensitive_question
+
+    return is_review_sensitive_question(question)
+
+
 def match_answer_question(question, saved_question, minimum_confidence=0.75):
     """Return a transparent local question match, or None when no safe match exists.
 
@@ -245,7 +253,8 @@ def match_answer_question(question, saved_question, minimum_confidence=0.75):
         raise ValueError("ANSWER_CONFIDENCE_POLICY_INVALID")
     if not isinstance(question, str) or not isinstance(saved_question, str):
         return None
-    if _SENSITIVE_TERMS.search(question) or _SENSITIVE_TERMS.search(saved_question):
+    if (_requires_individual_answer_review(question)
+            or _requires_individual_answer_review(saved_question)):
         return None
     normalized = normalize_question(question)
     saved_normalized = normalize_question(saved_question)
@@ -354,7 +363,8 @@ def export_answers(store, application_id, output_dir, items):
                     reusable = bank.get(answer_id)
                     if reusable is None or not reusable.get("question"):
                         raise ValueError("Reusable answer is unavailable in this application profile snapshot")
-                    if _SENSITIVE_TERMS.search(question) or _SENSITIVE_TERMS.search(reusable["question"]):
+                    if (_requires_individual_answer_review(question)
+                            or _requires_individual_answer_review(reusable["question"])):
                         raise ValueError("Sensitive or legal questions require an answer entered for this application")
                     match = match_answer_question(
                         question, reusable["question"],
