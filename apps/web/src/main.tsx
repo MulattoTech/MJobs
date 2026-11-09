@@ -50,7 +50,7 @@ import {
   type ApplicationAnswerMatchResponse,
   type ApplicationAnswerSuggestionDraft,
 } from './application-answer-matching-client';
-import { ApplicationReviewQueue, type ReviewQueueApplication } from './application-review-queue';
+import { ApplicationReviewQueue, selectApplicationReviewItems, type ReviewQueueApplication } from './application-review-queue';
 import { ApplicationAdapterKnowledgePanel } from './application-adapter-knowledge';
 import { ApplicationFollowUpDrafts } from './application-follow-up-drafts';
 import { ApplicationSupportingDocuments } from './application-supporting-documents';
@@ -754,11 +754,10 @@ function App() {
     const summaries=apps.filter(application=>application.profile_id===selectedProfile);
     setReviewQueueApplications([]);setReviewQueueLoading(summaries.length>0);setReviewQueueLoadError(false);
     void Promise.all(summaries.map(async summary=>{
-      if('question_preflight' in summary)return {application:{...summary,question_preflight:summary.question_preflight||{result:'UNKNOWN' as const,reason:'No supported question preflight result is saved.',missing:[]}},failed:false};
       try {
         const detail=await api<Application>(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(summary.id)}`);
-        if(detail.profile_id!==selectedProfile)return {application:null,failed:true};
-        return {application:{...summary,question_preflight:detail.question_preflight||{result:'UNKNOWN',reason:'No supported question preflight result is saved.',missing:[]}},failed:false};
+        if(detail.profile_id!==selectedProfile||detail.id!==summary.id)return {application:null,failed:true};
+        return {application:{...summary,state:detail.state,trace:detail.trace,question_preflight:detail.question_preflight},failed:false};
       } catch { return {application:null,failed:true}; }
     })).then(rows=>{
       if(sequence===reviewQueueSequence.current&&profileRef.current===selectedProfile){
@@ -1552,7 +1551,7 @@ function App() {
     {id:'run-first-search',label:'Run first search',description:'Run your saved search on one enabled source. Results are filtered and matched using your profile.',complete:firstRunSearchComplete,action:'search',actionLabel:'Run saved search'},
   ];
   return <div className="layout" data-operation-mode={operationMode||'LOADING'}>
-    <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Pipeline','Profile','Career Stories','Learning','Sources','Applications','Review Queue','AI Settings','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:item==='Review Queue'?reviewQueueApplications.filter(application=>application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL').length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
+    <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Pipeline','Profile','Career Stories','Learning','Sources','Applications','Review Queue','AI Settings','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:item==='Review Queue'?selectApplicationReviewItems(reviewQueueApplications,profileId).length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
     <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Pipeline'?'Move opportunities forward.':tab==='Profile'?'Your experience, in your words.':tab==='Career Stories'?'Build reusable career stories.':tab==='Learning'?'Understand your matches.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':tab==='Review Queue'?'Review application blockers.':tab==='AI Settings'?'Choose models by task.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div><ThemeControl/></header>
       <FirstRunWizard
         key={profileId||'new-profile'}

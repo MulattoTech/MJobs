@@ -1,0 +1,546 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-196-REVIEW-BLOCKERS-20261109-WEB-4F1D",
+  "recorded_at_utc": "2026-11-09T18:18:46.725360+00:00",
+  "run_id": "web-20261109T131824Z-4f1d2da391c4",
+  "requirement_id": "MJ-REQ-196",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/197",
+  "result": "PASS",
+  "result_scope": "Bounded saved-application blocker queue improvement; not full requirement acceptance.",
+  "canonical_acceptance": {
+    "recorded_result": "PARTIAL",
+    "modified": false,
+    "full_pass_proposed": false
+  },
+  "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "reviewed_source_revision": "2c1b292157b339f068f504c4c7a3b4b40df34278",
+  "problem": "The queue only showed question preflight failures, could use stale summary preflight without reading detail, and could reopen settled applications because preflight revision currentness does not describe application lifecycle.",
+  "resulting_behavior": [
+    "Current AUTH_REQUIRED, USER_INTERVENTION_REQUIRED and SUBMISSION_UNCONFIRMED applications receive saved-state explanations and concrete review guidance.",
+    "CAPTCHA is named only for a current intervention whose latest exact trace marker is CAPTCHA_REQUIRED; other intervention states receive generic manual guidance without raw trace text.",
+    "Fresh profile-scoped detail is read even when summaries contain preflight. Both profile ID and application ID must match; incomplete reads are visible and late responses cannot cross profiles.",
+    "One shared selector supplies list and sidebar counts. Each application counts once even with multiple blockers.",
+    "CONFIRMED, CANCELLED and EXTERNALLY_APPLIED applications remain outside the queue despite retained current FAIL/UNKNOWN preflight; active/legacy failures remain reviewable.",
+    "Missing preflight remains unavailable evidence, not a fabricated saved UNKNOWN result. Guidance points to available checks and manual-review options.",
+    "Row actions only navigate to existing application detail. No automatic answer, state transition, authentication, CAPTCHA solving, retry or external submission was added."
+  ],
+  "executed_validation": {
+    "author_final": {
+      "basis": "Exact source/test blobs later committed as the reviewed revision; execution preceded the correction commit.",
+      "command": "npm test -- --coverage.enabled=false src/application-review-blockers.test.tsx src/application-review-queue.test.tsx src/application-review-queue.fleet_t14.test.tsx src/workspace-request-deadline.test.tsx src/injected-request-lifecycle.test.tsx src/request-deadline-components.test.tsx",
+      "cwd": "apps/web",
+      "tests_passed": 79,
+      "failures": 0,
+      "skips": 0,
+      "build_command": "npm run build",
+      "build_result": "PASS (TypeScript and Vite)",
+      "test_log": {
+        "name": "review-blockers-guidance-final-tests.log",
+        "sha256": "b15035722b253d7594638bc805e28e70d4beb8bdff02647a623088a040134b9d",
+        "bytes": 639
+      },
+      "build_log": {
+        "name": "review-blockers-guidance-final-build.log",
+        "sha256": "ab400daa6902712e424a84a5f69e68035a54616432890e3169d67635bd7c9d57",
+        "bytes": 1015
+      }
+    },
+    "regression_controls": [
+      {
+        "case": "Initial saved-state/navigation behavior",
+        "result": "16 failed /4 passed before implementation",
+        "log": {
+          "name": "review-blockers-baseline.log",
+          "sha256": "38e1176b26ed2aada0463d6d8c2173e2f2075adb920661ade20720f746673530",
+          "bytes": 35356
+        }
+      },
+      {
+        "case": "Retained preflight after settled state, including real sidebar count6 instead3",
+        "result": "13 failed /23 passed before terminal precedence correction",
+        "log": {
+          "name": "review-blockers-terminal-baseline.log",
+          "sha256": "eee6490f9ba041bbf7358271b099e6125704bd8cf2cfc60c99722ef951a13b88",
+          "bytes": 10273
+        }
+      },
+      {
+        "case": "UNKNOWN/REAL targets across3 missing-preflight states",
+        "result": "6 failed /35 passed before guidance correction",
+        "log": {
+          "name": "review-blockers-guidance-baseline.log",
+          "sha256": "87de163c6cb56ab5eb36068141eb2e2979814754ad85f423fc7465646783a3dd",
+          "bytes": 3744
+        }
+      }
+    ],
+    "independent": [
+      {
+        "basis": "ce03dafee4a315e941c30c29733697ab720ba4fc",
+        "purpose": "Original coherent requested six-module regression union",
+        "test_files": 6,
+        "tests_passed": 74,
+        "tests_failed": 0,
+        "skipped": 0,
+        "test_duration_seconds": 3.74,
+        "build": "PASS (tsc --noEmit and Vite production build)",
+        "receipt": {
+          "path": "review-blockers-196-independent-execution-ce03daf.json",
+          "sha256": "86c5a1636c1e02cb644fe7690f8c03d1d52b0e28e15853b105ee091996d79fa3"
+        },
+        "executions": [
+          {
+            "label": "tests",
+            "command": [
+              "npm",
+              "test",
+              "--",
+              "--coverage.enabled=false",
+              "src/application-review-blockers.test.tsx",
+              "src/application-review-queue.test.tsx",
+              "src/application-review-queue.fleet_t14.test.tsx",
+              "src/workspace-request-deadline.test.tsx",
+              "src/injected-request-lifecycle.test.tsx",
+              "src/request-deadline-components.test.tsx"
+            ],
+            "command_shell": "npm test -- --coverage.enabled=false src/application-review-blockers.test.tsx src/application-review-queue.test.tsx src/application-review-queue.fleet_t14.test.tsx src/workspace-request-deadline.test.tsx src/injected-request-lifecycle.test.tsx src/request-deadline-components.test.tsx",
+            "cwd": "apps/web",
+            "started_at_utc": "2026-11-09T18:08:37.775458+00:00",
+            "completed_at_utc": "2026-11-09T18:08:41.994319+00:00",
+            "wall_seconds": 4.219,
+            "exit_code": 0,
+            "log": {
+              "path": "review-blockers-196-independent-tests.log",
+              "sha256": "e7094260d2b05f1c3cc9380e7548565da78b515bfd9d89773f05fea05d9fc736",
+              "size": 640
+            }
+          },
+          {
+            "label": "build",
+            "command": [
+              "npm",
+              "run",
+              "build"
+            ],
+            "command_shell": "npm run build",
+            "cwd": "apps/web",
+            "started_at_utc": "2026-11-09T18:08:41.994500+00:00",
+            "completed_at_utc": "2026-11-09T18:08:43.741833+00:00",
+            "wall_seconds": 1.747,
+            "exit_code": 0,
+            "log": {
+              "path": "review-blockers-196-independent-build.log",
+              "sha256": "9e94723771d7b16eb92dabc315e8b3390004eafc9158e10674884e38cf269e4a",
+              "size": 1015
+            }
+          }
+        ]
+      },
+      {
+        "basis": "2c1b292157b339f068f504c4c7a3b4b40df34278",
+        "purpose": "Narrow revalidation after the capability-neutral wording correction",
+        "test_files": 1,
+        "tests_passed": 41,
+        "tests_failed": 0,
+        "skipped": 0,
+        "test_duration_seconds": 3.29,
+        "build": "PASS (tsc --noEmit and Vite production build)",
+        "receipt": {
+          "path": "review-blockers-196-independent-execution-2c1b292.json",
+          "sha256": "33bbd1a3e7d3ac59355cb06c4ac3509fdf8fdeb40e77438f5ff4662b73036600"
+        },
+        "executions": [
+          {
+            "label": "tests",
+            "command": [
+              "npm",
+              "test",
+              "--",
+              "--coverage.enabled=false",
+              "src/application-review-blockers.test.tsx"
+            ],
+            "command_shell": "npm test -- --coverage.enabled=false src/application-review-blockers.test.tsx",
+            "cwd": "apps/web",
+            "started_at_utc": "2026-11-09T18:14:43.585788+00:00",
+            "completed_at_utc": "2026-11-09T18:14:47.329115+00:00",
+            "wall_seconds": 3.743,
+            "exit_code": 0,
+            "log": {
+              "path": "review-blockers-196-independent-guidance-tests.log",
+              "sha256": "328c47d2b1d4fead1031772e1289ce7dee27d1c23b7de9c5fe9b0e1c50ce1cd3",
+              "size": 432
+            }
+          },
+          {
+            "label": "build",
+            "command": [
+              "npm",
+              "run",
+              "build"
+            ],
+            "command_shell": "npm run build",
+            "cwd": "apps/web",
+            "started_at_utc": "2026-11-09T18:14:47.329427+00:00",
+            "completed_at_utc": "2026-11-09T18:14:49.137980+00:00",
+            "wall_seconds": 1.809,
+            "exit_code": 0,
+            "log": {
+              "path": "review-blockers-196-independent-guidance-build.log",
+              "sha256": "af44b258352411bd273110dc74176debffadb157ff2ff1fc6b894ddb9cde7b19",
+              "size": 1015
+            }
+          }
+        ]
+      }
+    ],
+    "counting_rule": "The 74-test original run and 41-test corrected-module run overlap and are NOT additive. This review does not claim that the independent reviewer reran the full 79-test author union on the final revision."
+  },
+  "independent_review": {
+    "kind": "Independent AI source, mounted React interaction and frontend build review",
+    "verdict": "PASS_SCOPED_REVIEW",
+    "reviewed_at_utc": "2026-11-09T18:16:28.000744+00:00",
+    "receipt": {
+      "name": "review-blockers-196-independent-review.json",
+      "sha256": "3f1ddbb2348c80954749c6e5426e3abfed40910d598af86080220888b9a325c6",
+      "bytes": 24183
+    },
+    "findings": [
+      {
+        "id": "RQ196-COPY-1",
+        "severity": "LOW",
+        "status": "CLOSED_VERIFIED",
+        "original_revision": "ce03dafee4a315e941c30c29733697ab720ba4fc",
+        "original_path": "apps/web/src/application-review-queue.tsx",
+        "original_line": 105,
+        "title": "Missing-preflight guidance assumed a supported local dry run",
+        "resolution": "Replaced the unconditional dry-run instruction with available question checks/manual-review guidance; added six unsupported/non-MOCK target/state cases.",
+        "fixed_revision": "2c1b292157b339f068f504c4c7a3b4b40df34278",
+        "verification": "Independent 41-test affected module and production typecheck/build passed at the fixed revision. No runtime capability or permission decision changed."
+      }
+    ],
+    "open_material_findings": [],
+    "not_human_approval": true
+  },
+  "reviewed_behavior": [
+    {
+      "area": "Current detail and identity",
+      "result": "PASS_SCOPED",
+      "reason": "Queue entry now always reads profile-scoped application detail, verifies both profile and application ID, and takes state, trace and preflight from that response rather than stale summary fields. Failed or mismatched responses are excluded and cause an incomplete-read warning.",
+      "source": {
+        "path": "apps/web/src/main.tsx",
+        "line": 759,
+        "anchor": "if(detail.profile_id!==selectedProfile||detail.id!==summary.id)"
+      },
+      "tests": [
+        "uses fresh detail state and trace even when summaries include preflight, with the same sidebar and list count",
+        "excludes mismatched profile, mismatched application ID, and failed detail reads from both counts"
+      ]
+    },
+    {
+      "area": "Profile and stale response isolation",
+      "result": "PASS_SCOPED",
+      "reason": "Existing sequence and profile checks guard queue completion; effect cleanup invalidates old requests. The mounted real App switches profiles while a detail request remains pending and proves its late response does not replace the current queue or badge. Existing request helper bounds transport/body completion.",
+      "source": {
+        "path": "apps/web/src/main.tsx",
+        "line": 763,
+        "anchor": "if(sequence===reviewQueueSequence.current&&profileRef.current===selectedProfile)"
+      },
+      "tests": [
+        "ignores a late profile-a detail after switching to profile-b",
+        "original requested request-deadline and lifecycle regression modules"
+      ]
+    },
+    {
+      "area": "One application, one row and badge entry",
+      "result": "PASS_SCOPED",
+      "reason": "The sidebar and list both call selectApplicationReviewItems. Multiple blockers on one application yield one queue entry. Foreign profile rows and explicitly stale preflight are excluded.",
+      "source": {
+        "path": "apps/web/src/application-review-queue.tsx",
+        "line": 59,
+        "anchor": "export function selectApplicationReviewItems"
+      },
+      "tests": [
+        "keeps current preflight reasons, excludes stale and foreign rows, and counts each application once",
+        "mounted workspace detail and count case"
+      ]
+    },
+    {
+      "area": "State and retained history precedence",
+      "result": "PASS_SCOPED",
+      "reason": "Exactly CONFIRMED, CANCELLED and EXTERNALLY_APPLIED suppress retained FAIL/UNKNOWN preflight. FAILED, BLOCKED, REVIEW_REQUIRED and legacy state-absent records retain actionable failed preflight. Missing preflight is marked unavailable only for PREPARED, REVIEW_REQUIRED or DRY_RUN_COMPLETE; no saved UNKNOWN result is fabricated.",
+      "source": {
+        "path": "apps/web/src/application-review-queue.tsx",
+        "line": 65,
+        "anchor": "if(['CONFIRMED','CANCELLED','EXTERNALLY_APPLIED'].includes"
+      },
+      "tests": [
+        "12 retained-preflight combinations across the three settled states",
+        "4 active/legacy failed-preflight cases",
+        "settled state plus historical challenge/no-preflight cases"
+      ]
+    },
+    {
+      "area": "Login, intervention and uncertain submission explanations",
+      "result": "PASS_SCOPED",
+      "reason": "Labels are based on current application state. CAPTCHA is named only when the state is USER_INTERVENTION_REQUIRED and the last trace marker is exactly CAPTCHA_REQUIRED. Other intervention states receive a neutral manual-review explanation; raw trace text is not rendered. SUBMISSION_UNCONFIRMED instructs receipt/history review before another attempt.",
+      "source": {
+        "path": "apps/web/src/application-review-queue.tsx",
+        "line": 36,
+        "anchor": "function currentStateBlocker"
+      },
+      "tests": [
+        "three state-specific explanations and click handlers",
+        "four generic intervention/older-marker variants",
+        "no raw private sentinel text rendered"
+      ]
+    },
+    {
+      "area": "Navigation and action boundaries",
+      "result": "PASS_SCOPED",
+      "reason": "Each row has one type=button navigation action. Real App event tests open existing application review and observe GET-only requests without changing the supplied saved object. No mutation, retry, browser automation or submit action was added to the queue.",
+      "source": {
+        "path": "apps/web/src/application-review-queue.tsx",
+        "line": 106,
+        "anchor": "aria-label={`Review application:"
+      },
+      "tests": [
+        "opens the actual AUTH_REQUIRED application review without transport writes",
+        "opens the actual USER_INTERVENTION_REQUIRED application review without transport writes",
+        "opens the actual SUBMISSION_UNCONFIRMED application review without transport writes"
+      ]
+    },
+    {
+      "area": "Capability-neutral missing-preflight guidance",
+      "result": "PASS_CORRECTED",
+      "reason": "The reviewed correction directs users to inspect available question checks and manual review options, without promising an unsupported local dry run. Six rendered combinations cover UNKNOWN and REAL targets across all three eligible states.",
+      "source": {
+        "path": "apps/web/src/application-review-queue.tsx",
+        "line": 105,
+        "anchor": "available question checks and manual review options"
+      },
+      "tests": [
+        "six target/state cases in the independently rerun 41-test module"
+      ]
+    }
+  ],
+  "production_contract_review": [
+    {
+      "claim": "Persisted state vocabulary is distinct from worker-operation terminal states.",
+      "source": {
+        "path": "packages/persistence/models.py",
+        "line": 564,
+        "anchor": "APPLICATION_STATES ="
+      },
+      "assessment": "The three explicit settled-state exclusions are valid application states. A worker COMPLETED state is not used as a blanket application completion rule."
+    },
+    {
+      "claim": "State and ordered trace are durable application fields.",
+      "source": {
+        "path": "packages/persistence/store.py",
+        "line": 1299,
+        "anchor": "def transition("
+      },
+      "assessment": "Store.transition appends a step to trace and saves state atomically; the UI uses current detail and only the most recent marker."
+    },
+    {
+      "claim": "Current CAPTCHA producer emits the exact last marker.",
+      "source": {
+        "path": "services/applications/mock_adapter.py",
+        "line": 744,
+        "anchor": "\"USER_INTERVENTION_REQUIRED\", \"CAPTCHA_REQUIRED\""
+      },
+      "assessment": "The production MOCK adapter saves USER_INTERVENTION_REQUIRED/CHALLENGE_DETECTED, appends CAPTCHA_REQUIRED when specifically detected, and returns. Generic/newer intervention therefore does not reuse an old CAPTCHA label."
+    },
+    {
+      "claim": "Preflight currentness describes revision compatibility, not settled application status.",
+      "source": {
+        "path": "services/applications/preflight.py",
+        "line": 715,
+        "anchor": "def latest_preflight("
+      },
+      "assessment": "is_current checks profile/document/route versions and can remain true after a later confirmed/cancelled/external state. Explicit settled-state precedence fixes that edge without rewriting persisted history."
+    },
+    {
+      "claim": "Profile-scoped detail is the existing backend authority.",
+      "source": {
+        "path": "apps/api/main.py",
+        "line": 2484,
+        "anchor": "def application_read("
+      },
+      "assessment": "The endpoint reads the requested application, enforces profile ownership and attaches latest preflight. No backend endpoint or state transition was changed."
+    },
+    {
+      "claim": "Uncertain submissions cannot safely be treated as a retry request.",
+      "source": {
+        "path": "packages/persistence/store.py",
+        "line": 1304,
+        "anchor": "if row[\"state\"] == \"SUBMISSION_UNCONFIRMED\""
+      },
+      "assessment": "The persistence contract requires receipt-bearing confirmation before leaving this state. The queue guidance and navigation preserve that contract."
+    }
+  ],
+  "whole_requirement_ledger": [
+    {
+      "category": "CAPTCHA",
+      "status": "SCOPED_SUPPORT",
+      "limit": "Current persisted intervention with exact latest CAPTCHA marker; no new detector, solver, challenge handling or real-provider execution."
+    },
+    {
+      "category": "login",
+      "status": "SCOPED_SUPPORT",
+      "limit": "Current AUTH_REQUIRED state receives a navigation-only explanation; no new login or authentication flow."
+    },
+    {
+      "category": "unknown question",
+      "status": "EXISTING_SUPPORT_PRESERVED",
+      "limit": "Saved current FAIL/UNKNOWN preflight and missing mappings remain reviewable; missing active preflight is presented as unavailable evidence."
+    },
+    {
+      "category": "sensitive question",
+      "status": "NOT_IMPLEMENTED_AS_SEPARATE_QUEUE_CATEGORY"
+    },
+    {
+      "category": "low-confidence field",
+      "status": "NOT_IMPLEMENTED_AS_SEPARATE_QUEUE_CATEGORY"
+    },
+    {
+      "category": "unsupported ATS",
+      "status": "NOT_IMPLEMENTED_AS_SEPARATE_QUEUE_CATEGORY"
+    },
+    {
+      "category": "ambiguous submission",
+      "status": "SCOPED_SUPPORT",
+      "limit": "SUBMISSION_UNCONFIRMED explanation directs receipt/history review without initiating retry or confirmation."
+    },
+    {
+      "category": "document validation",
+      "status": "NOT_IMPLEMENTED_AS_SEPARATE_QUEUE_CATEGORY"
+    }
+  ],
+  "critical_input_identities": [
+    {
+      "path": "apps/web/src/application-review-queue.tsx",
+      "git_blob": "1333b4ff916a7211c2ee1b268a962babbbb189af",
+      "sha256": "bdb4d8a3ddae683f012cc4fddc96f710029f3526f3ae29bbad4c24b3d4d6ad4d",
+      "bytes": 7370
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "git_blob": "b89227425ee8bc3949e00710fc27cc48c309bc08",
+      "sha256": "5c68fb930c982adca69d3f9960319717762d96066069c585c6d0b5fac1b5b6d3",
+      "bytes": 255679
+    },
+    {
+      "path": "apps/web/src/application-review-blockers.test.tsx",
+      "git_blob": "f5ab5b6cd1a19a95f41d2e4c362ab2ba2d06657c",
+      "sha256": "7327d2d84a369cfe58343f8869f7678127af302c34b725c8626d456dc97513b1",
+      "bytes": 20690
+    },
+    {
+      "path": "apps/web/src/application-review-queue.fleet_t14.test.tsx",
+      "git_blob": "a7164f0a1dc79a057933a485adf32bb7c54b1610",
+      "sha256": "e7b432c802a44b1a032bea198b4ad4216b66ab46335b4516f7cf000685075748",
+      "bytes": 2363
+    },
+    {
+      "path": "tests/browser/test_application_review_queue.py",
+      "git_blob": "b060653ddcf30306dd757410b10551432b17d50d",
+      "sha256": "36790f96c4eafb6ba4f7819ad27def46493d65826ed9b4d3f0b70723e98da9ae",
+      "bytes": 18400
+    },
+    {
+      "path": ".gitleaksignore",
+      "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+      "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+      "bytes": 33733
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "git_blob": "b766da16749b8d4f17df6a6db4335ba4accb63df",
+      "sha256": "0b4e242fd52b26e51b3c2c322a4d5990cadc8bba1979c4e61f09ae22149b826f",
+      "bytes": 6856
+    },
+    {
+      "path": "apps/web/package.json",
+      "git_blob": "d9c5c800323fbbd463fe45310b455b0c1fb4f5e1",
+      "sha256": "94afa2f7c000696a15b0db59967902a6bcbf12681fe998c7f9d5e5e33f07c67f",
+      "bytes": 1242
+    },
+    {
+      "path": "apps/web/package-lock.json",
+      "git_blob": "d9bf83e1051a5ad1fb56936f5f668982a8c2c99d",
+      "sha256": "13c65a92fdfd93de6ce225abb10b86ed4764be906ed9ae939310221f1f67d4cd",
+      "bytes": 137089
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "git_blob": "bb2d11572c3f7ff3b98b8acbb8c9ccb8cad992db",
+      "sha256": "9656a96a73126479f79891b97457931285343a6d58a2f8d0c1da5843e9591685",
+      "bytes": 254
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "git_blob": "8d9e208b0aa96b82d6b3782fc03065fddba5a537",
+      "sha256": "247fe949fe0f1eca82d704e75c7d50a6feb79789ea9d29bb1f77a61ced5a17b2",
+      "bytes": 594
+    },
+    {
+      "path": "packages/persistence/models.py",
+      "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76",
+      "bytes": 44803
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "git_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6",
+      "bytes": 50952
+    },
+    {
+      "path": "services/applications/preflight.py",
+      "git_blob": "77f49ac35b86bb53bf3170310b1976e26a3c7e89",
+      "sha256": "7b9d8b3bcbbef65a2d50f50bdae8dfe65699f0af6609f9f6b938bf5f6ffbc419",
+      "bytes": 35020
+    },
+    {
+      "path": "apps/api/main.py",
+      "git_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8",
+      "bytes": 161511
+    }
+  ],
+  "private_manifests": [
+    {
+      "path": "review-blockers-196-independent-inputs-ce03daf.json",
+      "sha256": "b9a8c89dc92aa6a35f80b346eae46a27ab96ac3dd9d9e1560798560b7f431d65"
+    },
+    {
+      "path": "review-blockers-196-independent-inputs-2c1b292.json",
+      "sha256": "ead0b8a2dd6c4753a1bdf8c25fac18be5266df021d19fb9d0a080b2d149f5a4e"
+    }
+  ],
+  "proof_boundaries": [
+    "The new tests capture the entrypoint then mount the actual App and children in jsdom; network responses are controlled fetch fixtures. This is interaction/request evidence, not a real Chromium/API/worker end-to-end run.",
+    "The actual App navigation cases use synthetic UNKNOWN-target applications. Conditional MOCK/REAL child controls were source-reviewed, not newly exercised end to end in this task.",
+    "No new browser launch was attempted, per the scoped instruction and prior environment blocker. The edited browser expectation was reviewed but not executed at these revisions.",
+    "No live provider, external application submission, backend test suite, hosted CI run or deployment was performed by this reviewer.",
+    "Existing request-deadline/lifecycle modules passed in the original six-module union; the correction changes copy and tests only and was verified with the affected module plus build.",
+    "Build logs retain the existing large JavaScript chunk advisory and an environment npm http-proxy configuration warning; both commands exited 0.",
+    "The full original requirement remains PARTIAL. Canonical acceptance was not edited, and this review is not human approval, merge authorization or release certification."
+  ],
+  "publication_assessment": {
+    "production_scope": "Read-only queue selection, display and existing review navigation. No backend, permission, submission or automatic action changes.",
+    "sensitive_data_found_in_diff": false,
+    "new_external_transmissions": false,
+    "fixture_note": "Test employers, profiles, addresses and PRIVATE_* strings are synthetic sentinels. Raw application trace contents are not displayed in new queue labels.",
+    "scanner_metadata": "Exact immutable historical false-positive fingerprints from the previously reviewed reference; no broad exclusion introduced."
+  },
+  "scanner_followup": {
+    "file": ".gitleaksignore",
+    "source_revision": "62b1e93f567fa0c00cea61bbb1a98c3ab09651fc",
+    "exact_historical_fingerprints_added": 5,
+    "broad_rule_workflow_or_path_exclusion_changed": false
+  },
+  "hosted_gates": "New published-head checks require separate live verification; no earlier run is relabeled as current.",
+  "next_action": "Read the live owned PR and exact-head required checks; the designated integration owner evaluates the scoped improvement. Keep full MJ-REQ-196 PARTIAL and implement the four remaining separate categories in later coherent work."
+}

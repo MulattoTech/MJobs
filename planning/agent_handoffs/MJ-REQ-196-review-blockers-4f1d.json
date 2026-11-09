@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-196-review-blockers-4f1d",
+  "objective": "Surface current saved application blockers with accurate counts and actionable review guidance",
+  "owner": "ChatGPT-Web / web-20261109T131824Z-4f1d2da391c4",
+  "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-196-review-blockers",
+  "head_sha": "2c1b292157b339f068f504c4c7a3b4b40df34278",
+  "routing_state": "VERIFY",
+  "next_action": "Read the live owned PR and exact-head required checks; the designated integration owner evaluates the scoped improvement. Keep full MJ-REQ-196 PARTIAL and implement the four remaining separate categories in later coherent work.",
+  "created_at": "2026-11-09T18:18:46.730334+00:00",
+  "requirements": [
+    "MJ-REQ-196"
+  ],
+  "tests": [
+    {
+      "command": "At ce03daf: npm test -- --coverage.enabled=false src/application-review-blockers.test.tsx src/application-review-queue.test.tsx src/application-review-queue.fleet_t14.test.tsx src/workspace-request-deadline.test.tsx src/injected-request-lifecycle.test.tsx src/request-deadline-components.test.tsx",
+      "result": "PASS"
+    },
+    {
+      "command": "At2c1b292: npm test -- --coverage.enabled=false src/application-review-blockers.test.tsx",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Real Chromium/API/worker execution of the changed browser expectation",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "New published-head hosted checks",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Whole196 remains PARTIAL; sensitive questions, low-confidence fields, unsupported ATS and document validation still lack separate queue categories"
+  ],
+  "evidence": "docs/evidence/2026-11-09-web-4f1d-review-queue-blockers.json",
+  "reviewed_source_revision": "2c1b292157b339f068f504c4c7a3b4b40df34278",
+  "full_requirement_status": "PARTIAL",
+  "publication_record": "Authoring snapshot; publication already authorized. Use the live owned PR for delivery status."
+}
