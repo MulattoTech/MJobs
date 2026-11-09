@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-09T03:44:34.085Z",
+  "task": "Resume workspace keyword coverage truthfulness",
+  "claim_key": "web:web-20261109T031132Z-475f811ba74e:MJ-REF-007-alignment-truth",
+  "branch": "web/web-20261109T031132Z-475f811ba74e/MJ-REF-007-alignment-truth",
+  "base_head": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "tested_revision_kind": "Tested two-file candidate, then independently byte-matched both exact Git blobs to the source commit; all remaining source files equal base_head",
+  "worktree": "/workspace/scratch/a6379588013b/MJobs-alignment-475f811ba74e",
+  "source_manifest": [
+    {
+      "path": "apps/web/src/resume-workspace.tsx",
+      "base_blob": "31f229400125ddeb89fce686059059c636ed8ac6",
+      "candidate_blob": "3209f7421bca46564cf858d9fb0445d2ccf6d51a",
+      "sha256": "3fac22f2bf3304d5e57426c1944f3cb89741183f5730fe46dde4cf9df5611c8c"
+    },
+    {
+      "path": "apps/web/src/resume-workspace.test.tsx",
+      "base_blob": "df886b7b621b1cc29e68e1c2fe7de5a6f8757bd4",
+      "candidate_blob": "710914057759135a36fd5404cedeb1b7e2344b6e",
+      "sha256": "c1590fbe1515606eac39424c31097e933976d7e26aa2390e6a8badc0be13e819"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "MJ-REF-007",
+      "issue": "https://github.com/MulattoTech/MJobs/issues/377",
+      "scope": "Truthful keyword/requirement coverage regression repair",
+      "acceptance_change": "None; historical PASS not freshly reaccepted"
+    },
+    {
+      "id": "MJ-REQ-095",
+      "issue": "https://github.com/MulattoTech/MJobs/issues/96",
+      "scope": "Keyword-alignment presentation correctness",
+      "acceptance_change": "None; remains PARTIAL"
+    },
+    {
+      "id": "MJ-REF-041",
+      "issue": "https://github.com/MulattoTech/MJobs/issues/424",
+      "scope": "Partial audit-foundation relevance only",
+      "acceptance_change": "None; no post-generation audit or regeneration implementation"
+    }
+  ],
+  "behavior": [
+    "SUPPORTED requires a nonempty list of nonblank fact IDs, all present in selected_fact_ids and source_refs.facts for the preview.",
+    "Unknown API string terms render their actual labels once; explicit unknown evidence overrides contradictory support.",
+    "Missing, malformed, or unbound evidence cannot yield support; invalid structures show an incomplete-coverage message without throwing.",
+    "Preview text, API payloads, backend matching, review/save controls and canonical acceptance records are unchanged."
+  ],
+  "validation": [
+    {
+      "command": [
+        "npm",
+        "ci",
+        "--prefix",
+        "apps/web",
+        "--no-audit",
+        "--no-fund",
+        "--cache",
+        "/workspace/scratch/a6379588013b/alignment-npm-cache-475f811ba74e"
+      ],
+      "exit_code": 0,
+      "result": "233 locked packages installed only in own cloud worktree",
+      "log": "npm-ci.log"
+    },
+    {
+      "stage": "BASELINE_RED",
+      "command": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "test",
+        "--",
+        "src/resume-workspace.test.tsx",
+        "--coverage.enabled=false"
+      ],
+      "exit_code": 1,
+      "failed": 23,
+      "passed": 4,
+      "source_sha256": {
+        "apps/web/src/resume-workspace.tsx": "8e78abccbd0bf19a5432cd64050b1931857dc3ddf9ddb43fe20740dbd348e7bb",
+        "apps/web/src/resume-workspace.test.tsx": "c1590fbe1515606eac39424c31097e933976d7e26aa2390e6a8badc0be13e819"
+      },
+      "log": "vitest-baseline-red.log"
+    },
+    {
+      "stage": "CANDIDATE_GREEN",
+      "command": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "test",
+        "--",
+        "src/resume-workspace.test.tsx",
+        "src/resume-workspace-client.test.ts",
+        "--coverage.enabled=false"
+      ],
+      "exit_code": 0,
+      "passed": 32,
+      "test_files": 2,
+      "log": "vitest-targeted-green.log"
+    },
+    {
+      "command": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src/resume-workspace.tsx",
+        "src/resume-workspace.test.tsx"
+      ],
+      "cwd": "apps/web",
+      "exit_code": 0,
+      "log": "scoped-eslint.log"
+    },
+    {
+      "command": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "result": "TypeScript and Vite build passed; bundle-size warning retained",
+      "log": "web-build.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "diff-check.log"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "4051ac7aa87e3e05a3cf323de8eb718512252296"
+      ],
+      "exit_code": 0,
+      "result": "PASS: provenance complete for 2 source files"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.reference_provenance"
+      ],
+      "exit_code": 0,
+      "result": "Reference provenance validation: PASS"
+    }
+  ],
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "node": "v24.22.1",
+    "package_lock_sha256": "13c65a92fdfd93de6ce225abb10b86ed4764be906ed9ae939310221f1f67d4cd",
+    "npm": "11.9.0"
+  },
+  "not_run": [
+    "Browser connected journey",
+    "Full frontend suite",
+    "Hosted checks on a published candidate commit",
+    "Deployment or protected-main integration"
+  ],
+  "shared_gate_dependency": {
+    "reported_by": "parent /root",
+    "state": "Shared historical gitleaks checksum false-positive blocks prior PR979 hosted CI; .gitleaksignore owned by another active writer",
+    "action": "No shared gate file changed in this candidate"
+  },
+  "other_known_gap": "Backend canonical skill aliases can incorrectly mark the second synonymous spelling unmatched; separate scope, unchanged here.",
+  "publication": "Immutable pre-publication evidence snapshot. Source commit created and provenance validated; parent owns final admission, branch and PR publication.",
+  "logs": {
+    "diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "npm-ci.log": "c1663d422b4a8bd7afb53da687bb4a9d6846b018ee8addfd492070e1dc1b69c2",
+    "scoped-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck.log": "4a832ef5848706c4bee0fe45d9582a24372ac56c1b7c2437623f79ffd7fa5a30",
+    "vitest-baseline-red.log": "123081dffa3d43b046b44a02a1dd34ddb43e01e8423c88bb1029af00bcce7d6e",
+    "vitest-targeted-green.log": "e60fee226213783b69cef00525bcae932cbe19913a98f0329d63fd6cc6e9e87c",
+    "web-build.log": "e4af78a3c1a4e039ea8d1d26fccb7b8ffbdf32498ee1e9132e9aed3476fb29da"
+  },
+  "run_id": "web-20261109T031132Z-475f811ba74e",
+  "source_commit": "4051ac7aa87e3e05a3cf323de8eb718512252296",
+  "source_tree": "830efc8352914365a9bd59f6fa0cc07877829cec",
+  "independent_reviews": [
+    {
+      "reviewer": "alignment_contract_review",
+      "result": "No scoped blocker",
+      "scope": "Source/diff review only; no test execution",
+      "blobs": [
+        "3209f7421bca46564cf858d9fb0445d2ccf6d51a",
+        "710914057759135a36fd5404cedeb1b7e2344b6e"
+      ]
+    },
+    {
+      "reviewer": "deployment_readiness",
+      "result": "No scoped blocking findings",
+      "scope": "Independent source, actual backend contract, and test/log review; did not rerun tests",
+      "blobs": [
+        "3209f7421bca46564cf858d9fb0445d2ccf6d51a",
+        "710914057759135a36fd5404cedeb1b7e2344b6e"
+      ],
+      "human_approval": false
+    }
+  ],
+  "nonduplicate_review": {
+    "observed_at_utc": "2026-11-09T03:42:47.580152+00:00",
+    "open_prs": 23,
+    "method": "Complete initial changed-file inventory plus all PRs updated since the 03:34:21 UTC claim; source/evidence overlaps absent",
+    "ownership": "Atomic owner-token check found no workset conflicts"
+  },
+  "acceptance": {
+    "canonical_changes": false,
+    "fresh_full_requirement_passes": 0,
+    "integration_authority": "PR_ONLY"
+  }
+}
