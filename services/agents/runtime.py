@@ -318,7 +318,7 @@ class AgentRuntime:
                 state = "LIMIT_REACHED"
                 stop_reason = "TIME_BUDGET_EXHAUSTED"
                 break
-        if len(calls) > step_limit and stop_reason is None:
+        if state == "COMPLETED" and len(calls) > step_limit and stop_reason is None:
             state = "LIMIT_REACHED"
             stop_reason = "STEP_BUDGET_EXHAUSTED"
         if state == "COMPLETED" and collection_contract is not None and _prior_slice is None:
