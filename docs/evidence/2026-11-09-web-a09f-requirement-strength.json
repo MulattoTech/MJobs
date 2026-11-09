@@ -1,0 +1,635 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "agent": "ChatGPT-Web",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T16:16:53.774449+00:00",
+  "base_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "tested_source_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "Python 3.12.14",
+    "mode": "Cloud workspace; synthetic temporary SQLite stores; locked existing dependencies"
+  },
+  "publication_scope": "One coherent matching-acceptance PR; no production behavior changes.",
+  "canonical_acceptance": "UNCHANGED; proposed full-criterion evidence requires the integration steward review.",
+  "exact_head_browser": "PASS on exact 8ef47ddf3c7d3000aa62330931450a48f748f9cb: all five expected hosted nodes executed once in run 42654303758. Local Chromium remains NOT_RUN; later revisions receive no PASS credit from this run.",
+  "local_browser_limit": "Chromium process_singleton socket creation is denied in the cloud workspace; the failed baseline launch is not a product/browser PASS.",
+  "not_run": [
+    "Independent local PostgreSQL execution",
+    "Full local repository suite",
+    "Live providers",
+    "Production deployment"
+  ],
+  "commands": [
+    {
+      "name": "scoring-backend",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_scoring_profiles.py",
+        "tests/unit/test_profile_scoring.py",
+        "tests/unit/test_preference_scoring.py",
+        "tests/integration/test_scoring_profiles_api.py",
+        "tests/integration/test_role_scoring_profiles_api.py",
+        "tests/integration/test_role_scoring_search_flow.py",
+        "tests/integration/test_role_scoring_peer_recalculation_isolation.py",
+        "tests/integration/test_preference_weighting.py",
+        "tests/integration/test_matching_explanation_contributions.py",
+        "tests/integration/test_matching_explanations_api.py",
+        "--junitxml",
+        "<private-run-dir>/matching-source-scoring.xml"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:11.874062+00:00",
+      "finished_at_utc": "2026-11-09T16:14:21.926207+00:00",
+      "exit_code": 0,
+      "log_sha256": "4be5d7a716fa5cf28745ec63d91a0ea6cda8e95fda6395b1c9b08fc37bc2ba9f"
+    },
+    {
+      "name": "strength-backend",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_requirement_parsers.py",
+        "tests/unit/test_negative_filters.py",
+        "tests/integration/test_explainable_matching.py",
+        "tests/integration/test_manual_capture_extraction_provenance.py",
+        "--junitxml",
+        "<private-run-dir>/matching-source-strength.xml"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:21.926712+00:00",
+      "finished_at_utc": "2026-11-09T16:14:28.531675+00:00",
+      "exit_code": 0,
+      "log_sha256": "02dfbe867ccd0d37a1e073bb7d142968f5ef553e8cdaab61d295abd22d081173"
+    },
+    {
+      "name": "scoring-ui",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "vitest",
+        "run",
+        "src/role-scoring-preference-dimensions.test.tsx",
+        "src/role-scoring-preview.test.tsx",
+        "src/role-scoring-profile-client.test.ts",
+        "src/role-scoring-custom-dimensions.test.tsx",
+        "src/role-scoring-profile-editor.test.tsx"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:28.532069+00:00",
+      "finished_at_utc": "2026-11-09T16:14:29.679191+00:00",
+      "exit_code": 0,
+      "log_sha256": "79df3569e9ec49b961180427c7025300914dc824c34824bf349a53fc101108d4"
+    },
+    {
+      "name": "web-build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:29.679606+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.637806+00:00",
+      "exit_code": 0,
+      "log_sha256": "305692a0c646268a3164ec329f35e88176cf4b2e98920c7e8494eef0be506514"
+    },
+    {
+      "name": "catalogue",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:31.638229+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.691692+00:00",
+      "exit_code": 0,
+      "log_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916"
+    },
+    {
+      "name": "progress",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:31.692013+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.734980+00:00",
+      "exit_code": 0,
+      "log_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470"
+    },
+    {
+      "name": "dashboard",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:31.735317+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.789957+00:00",
+      "exit_code": 0,
+      "log_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53"
+    }
+  ],
+  "shared_hosted_baseline": {
+    "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+    "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "overall_result": "FAILURE",
+    "attribution": "Existing peer-owned run; this worker did not dispatch a duplicate.",
+    "artifact_proof": [
+      {
+        "id": 13688786744,
+        "name": "browser-results-2",
+        "size_in_bytes": 8739,
+        "digest": "sha256:d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13688786744",
+        "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "archive_digest_verified": true
+      },
+      {
+        "id": 13688571396,
+        "name": "browser-results-1",
+        "size_in_bytes": 31449,
+        "digest": "sha256:6c1b9caaa604c2bc3ed9c2d0c24dc4567cd4791a423c03b67ddb733ea6332215",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13688571396",
+        "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "archive_digest_verified": true
+      },
+      {
+        "id": 13687364996,
+        "name": "browser-results-0",
+        "size_in_bytes": 21640,
+        "digest": "sha256:0aa5400232234d600df12b08e8aaebfb6f160b75d42788669977e499e9f9b466",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13687364996",
+        "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "archive_digest_verified": true
+      }
+    ]
+  },
+  "rollback": "Revert the three browser guard edits and the newly added scoring workflow; runtime code and data schemas are unchanged.",
+  "requirement_id": "MJ-REQ-115",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/116",
+  "objective": "Verify required/preferred/nice-to-have/unknown extraction and differential scoring through the real capture and matching consumers.",
+  "criterion_ledger": [
+    {
+      "id": "115-A",
+      "criterion": "Requirement extraction distinguishes REQUIRED, PREFERRED, NICE_TO_HAVE and UNKNOWN.",
+      "tests": [
+        "test_skill_strengths_require_local_unambiguous_classification",
+        "test_manual_skill_strengths_survive_reopen_and_weight_explainable_match",
+        "test_manual_capture_persists_certification_strengths_for_reloaded_job"
+      ],
+      "assertions_verified": [
+        "Persisted skill classifications: Windows Server REQUIRED, Active Directory PREFERRED, PowerShell NICE_TO_HAVE, Linux UNKNOWN.",
+        "Persisted certification classifications: Security+ REQUIRED, AZ-104 PREFERRED, ITIL NICE_TO_HAVE, CCNA UNKNOWN.",
+        "Classifications survive database disposal/reopening and match recalculation."
+      ],
+      "paths": [
+        "services/discovery/requirement_parsers.py",
+        "services/discovery/manual_capture.py",
+        "services/discovery/matching.py"
+      ],
+      "result": "PASS",
+      "evidence_command": "connected_requirement_strength_backend",
+      "exact_revision": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+      "initial_exact_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+    },
+    {
+      "id": "115-B",
+      "criterion": "Missing a preferred technology does not penalize the score as severely as missing a mandatory qualification.",
+      "tests": [
+        "test_explicit_preferred_requirement_has_lower_weight_than_required",
+        "test_manual_skill_strengths_survive_reopen_and_weight_explainable_match",
+        "test_explainable_match_reports_the_weighted_skill_coverage_math"
+      ],
+      "assertions_verified": [
+        "The same two-skill job scores 66.67 when the required skill is covered and the preferred skill is uncovered.",
+        "The same job scores 33.33 when only the preferred skill is covered.",
+        "Persisted required/preferred/nice-to-have weights remain 1.0/0.5/0.25 through capture, store reopen and rescore.",
+        "Explained covered/possible weighted totals agree with the calculated score."
+      ],
+      "paths": [
+        "services/discovery/matching.py",
+        "tests/integration/test_explainable_matching.py"
+      ],
+      "result": "PASS",
+      "evidence_command": "connected_requirement_strength_backend",
+      "exact_revision": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+      "initial_exact_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+    },
+    {
+      "id": "115-S1",
+      "criterion": "Safety: ambiguous, negated, unapproved and unsupported evidence is not invented as a qualification.",
+      "tests": [
+        "test_skill_strength_negation_conflict_and_ambiguous_lists_fail_closed",
+        "test_manual_capture_preserves_negated_must_have_as_unknown_after_reload",
+        "test_manual_capture_persists_skill_mentions_and_explains_unknown_strength",
+        "test_generic_fixture_skills_do_not_become_required",
+        "test_unavailable_fit_inputs_are_unknown_and_never_penalize_score",
+        "test_manual_post_readback_preserves_confirmed_values_and_sanitized_provenance"
+      ],
+      "assertions_verified": [
+        "Ambiguous and negated strength cues stay UNKNOWN.",
+        "Unapproved Windows Server evidence receives no approved evidence credit.",
+        "Generic source skills do not become mandatory solely by being present.",
+        "Unknown optional fit inputs do not reduce the base skill score.",
+        "Public manual capture preserves confirmed values and sanitized extraction provenance."
+      ],
+      "paths": [
+        "services/discovery/requirement_parsers.py",
+        "services/discovery/manual_capture.py",
+        "services/discovery/matching.py",
+        "services/matching/skill_evidence.py"
+      ],
+      "result": "PASS",
+      "evidence_command": "connected_requirement_strength_backend",
+      "exact_revision": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+      "initial_exact_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+    },
+    {
+      "id": "115-S2",
+      "criterion": "Safety: weighting does not invent hard exclusion preferences; explicit hard filters continue to operate.",
+      "tests": [
+        "test_default_search_does_not_assume_negative_preferences",
+        "test_explicit_negative_filters_exclude_only_selected_conditions",
+        "test_unknown_travel_does_not_get_invented_or_excluded",
+        "test_search_policy_can_exclude_clearance_and_work_authorization_flags"
+      ],
+      "assertions_verified": [
+        "Default search permits explicit negative conditions unless a matching exclusion is configured.",
+        "Configured exclusions reject only the selected conditions and excessive known travel.",
+        "Unknown travel is not invented or automatically excluded.",
+        "Configured clearance/work-authorization exclusions remain enforced."
+      ],
+      "paths": [
+        "services/discovery/negative_filters.py",
+        "services/discovery/search_semantics.py"
+      ],
+      "result": "PASS",
+      "evidence_command": "connected_requirement_strength_backend",
+      "exact_revision": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+      "initial_exact_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc"
+    }
+  ],
+  "backend_result": {
+    "tests_passed": 63,
+    "subtests_passed": 55,
+    "failed": 0,
+    "skipped": 0,
+    "exact_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395"
+  },
+  "hosted_browser_baseline": {
+    "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+    "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "test_class": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests",
+    "test_name": "test_manual_capture_displays_required_and_preferred_section_strengths",
+    "result": "PASS",
+    "seconds": 2.662,
+    "artifact_id": 13688571396,
+    "junit_file": "browser-1.xml",
+    "archive_sha256": "6c1b9caaa604c2bc3ed9c2d0c24dc4567cd4791a423c03b67ddb733ea6332215",
+    "provenance": "Publication scout independently retrieved and parsed the hosted artifact; source/blob equality checked by this verifier. This is baseline browser evidence at 971, not a new f3db browser execution.",
+    "overall_run_conclusion": "FAILURE",
+    "source_comparison": {
+      "AGENTS.md": {
+        "baseline_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+        "current_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+        "identical": true
+      },
+      "apps/api/main.py": {
+        "baseline_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "current_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+        "identical": true
+      },
+      "apps/web/src/main.tsx": {
+        "baseline_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+        "current_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+        "identical": true
+      },
+      "docs/AI_AGENT_CONTINUITY.md": {
+        "baseline_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+        "current_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+        "identical": true
+      },
+      "docs/spec/areas/matching_ai.md": {
+        "baseline_blob": "c09183f76c3753b902e39857bc20c2919d5d052e",
+        "current_blob": "c09183f76c3753b902e39857bc20c2919d5d052e",
+        "identical": true
+      },
+      "packages/persistence/store.py": {
+        "baseline_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "current_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+        "identical": true
+      },
+      "services/discovery/manual_capture.py": {
+        "baseline_blob": "2d70b23fbade123570d7fa61e5baf6ea7a1399c4",
+        "current_blob": "2d70b23fbade123570d7fa61e5baf6ea7a1399c4",
+        "identical": true
+      },
+      "services/discovery/matching.py": {
+        "baseline_blob": "db2699e8e595e8ee4258d3590601850e903187d4",
+        "current_blob": "db2699e8e595e8ee4258d3590601850e903187d4",
+        "identical": true
+      },
+      "services/discovery/negative_filters.py": {
+        "baseline_blob": "63edf77b33bfb996c1a9affa86f3bbc1c644871f",
+        "current_blob": "63edf77b33bfb996c1a9affa86f3bbc1c644871f",
+        "identical": true
+      },
+      "services/discovery/requirement_parsers.py": {
+        "baseline_blob": "b1ab04eaf7cc08b48c2ccc33e57e06331a1db793",
+        "current_blob": "b1ab04eaf7cc08b48c2ccc33e57e06331a1db793",
+        "identical": true
+      },
+      "services/discovery/search_semantics.py": {
+        "baseline_blob": "adc2952d3cbf53f9fbc033797484957e899a3e8f",
+        "current_blob": "adc2952d3cbf53f9fbc033797484957e899a3e8f",
+        "identical": true
+      },
+      "services/matching/skill_evidence.py": {
+        "baseline_blob": "3cac17bead58d2ea1ded9ed9d9570ba612357bf5",
+        "current_blob": "3cac17bead58d2ea1ded9ed9d9570ba612357bf5",
+        "identical": true
+      },
+      "tests/browser/test_manual_requirement_section_strength.py": {
+        "baseline_blob": "861b22263a4e64cc5fc2006a591660f265e1f0b5",
+        "current_blob": "861b22263a4e64cc5fc2006a591660f265e1f0b5",
+        "identical": true
+      },
+      "tests/integration/test_explainable_matching.py": {
+        "baseline_blob": "aca5c650c4ad4710c237c325ed74c3a1c8523945",
+        "current_blob": "aca5c650c4ad4710c237c325ed74c3a1c8523945",
+        "identical": true
+      },
+      "tests/integration/test_manual_capture_extraction_provenance.py": {
+        "baseline_blob": "1a0533e3874008af2f7e496340de20746a830a4d",
+        "current_blob": "1a0533e3874008af2f7e496340de20746a830a4d",
+        "identical": true
+      },
+      "tests/unit/test_negative_filters.py": {
+        "baseline_blob": "74d638d0214e144cac5a582583127092e466cd86",
+        "current_blob": "74d638d0214e144cac5a582583127092e466cd86",
+        "identical": true
+      },
+      "tests/unit/test_requirement_parsers.py": {
+        "baseline_blob": "0abbcf1861d2fdc86fbd5616f7992781ee997764",
+        "current_blob": "0abbcf1861d2fdc86fbd5616f7992781ee997764",
+        "identical": true
+      }
+    }
+  },
+  "production_path": [
+    "services/discovery/requirement_parsers.py",
+    "services/discovery/manual_capture.py",
+    "services/discovery/matching.py",
+    "apps/web/src/main.tsx"
+  ],
+  "criterion_results": [
+    {
+      "criterion": "Distinguish REQUIRED, PREFERRED, NICE_TO_HAVE and UNKNOWN.",
+      "result": "PASS",
+      "exact_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+      "proof": "Parser and persisted manual-capture tests preserve all four strengths, including ambiguous/negated UNKNOWN through database reopen."
+    },
+    {
+      "criterion": "A missing preferred technology penalizes less than a missing mandatory qualification.",
+      "result": "PASS",
+      "exact_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+      "proof": "Same two-skill posting scores 66.67 with required skill covered versus 33.33 with preferred skill covered; explained weighted totals agree."
+    }
+  ],
+  "safety": "Unapproved evidence receives no qualification credit; uncertain/unsupported strength is not invented; explicit negative, clearance and work-authorization filters retain their behavior.",
+  "excluded_proof": [
+    "services/matching/requirement_strength.py and QualificationStrengthBreakdown standalone component evidence; no production caller of analyze_qualification_strengths was found."
+  ],
+  "independent_backend_review_receipt_sha256": "5ab8b3726ef5cac1e70c39ef32442e317b1a729c6733fd91407dd758e102e308",
+  "acceptance_recommendation": "PROPOSAL_ONLY: both original MJ-REQ-115 behavioral criteria and the recorded safety checks are supported by the exact-8ef backend replay plus the completed requirement-specific hosted browser node. Propose PASS for integration-steward review; no canonical status or counter is changed. Required checks on later configuration/evidence revisions remain separately pending.",
+  "scope_limits": [
+    "Deterministic extraction uses the supported skill/certification taxonomy; ambiguous or unclassified recognized mentions remain UNKNOWN. Unsupported qualifications are not inferred from arbitrary prose.",
+    "Scores describe approved evidence coverage, not proof that the applicant possesses or lacks a qualification.",
+    "Local SQLite fixtures were verified; independent local PostgreSQL and the full repository suite were not executed. The focused hosted browser node subsequently passed at exact-8ef and is recorded separately.",
+    "This acceptance does not imply completion of broader original matching requirements 112-114 or 117-120."
+  ],
+  "command_path_note": "Private log/JUnit output directory is redacted; input test paths and executed arguments are preserved.",
+  "updated_at_utc": "2026-11-09T17:17:46.276071+00:00",
+  "hosted_acceptance_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "verified_at_utc": "2026-11-09T16:26:42Z",
+    "status": "PASS",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "workflow": {
+      "name": "Scoring acceptance - synthetic",
+      "path": ".github/workflows/scoring-acceptance.yml",
+      "source_url": "https://github.com/MulattoTech/MJobs/blob/8ef47ddf3c7d3000aa62330931450a48f748f9cb/.github/workflows/scoring-acceptance.yml",
+      "sha256": "24a0a3cd67afa47d3bb75436d28e7475ae46d3deecfb37148fd1dcabe9378bef"
+    },
+    "pull_request_url": "https://github.com/MulattoTech/MJobs/pull/1003",
+    "run": {
+      "id": 42654303758,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758",
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T16:23:40Z",
+      "updated_at": "2026-11-09T16:24:40Z"
+    },
+    "job": {
+      "id": 129288566438,
+      "name": "Scoring / browser acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/job/129288566438"
+    },
+    "artifact": {
+      "id": 13690529027,
+      "name": "scoring-browser-8ef47ddf3c7d3000aa62330931450a48f748f9cb-1",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/artifacts/13690529027",
+      "primary_api_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/13690529027",
+      "digest": "sha256:e62710b637969583b668ba0d3bd182a60092643649f52eb89cd940c7f18a581f",
+      "size_in_bytes": 1596,
+      "created_at": "2026-11-09T16:24:35Z",
+      "expires_at": "2026-11-16T16:24:34Z",
+      "run_id": 42654303758,
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "archive_digest_independently_verified": true
+    },
+    "checkout_provenance": {
+      "checkout_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "expected_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "github_sha": "4c5f2c6933bdefe66e4da3e306953f17802d12a2",
+      "node": "v24.22.2",
+      "operation_mode": "FIXTURE",
+      "python": "3.12.16",
+      "recorded_at": "2026-11-09T16:23:49.145405+00:00",
+      "run_attempt": "1",
+      "run_id": "42654303758"
+    },
+    "selected_test_summary": {
+      "expected": 5,
+      "observed_unique": 5,
+      "PASS": 5,
+      "FAIL": 0,
+      "ERROR": 0,
+      "SKIP": 0,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0
+    },
+    "cases": [
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": 1.984,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "PASS",
+        "time_seconds": 2.443,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-115",
+        "node": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::test_manual_capture_displays_required_and_preferred_section_strengths",
+        "result": "PASS",
+        "time_seconds": 4.157,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "PASS",
+        "time_seconds": 3.136,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "PASS",
+        "time_seconds": 2.503,
+        "xml_file": "scoring-browser.xml"
+      }
+    ],
+    "independent_verification": {
+      "reviewer": "/root/publication_scout",
+      "private_receipt_filename": "matching-hosted-acceptance.json",
+      "receipt_sha256": "572340734e841f6293275d52537510359ce2c70a74314ad7ce5f289e075877ed",
+      "archive_digest_verified": true,
+      "artifact_file_sha256": {
+        "scoring-browser-validation.json": "c477dd5c05d4f2afd16bc67d5e52ff636d889ca0f81bcb29c5cb673f8e559c40",
+        "scoring-browser.xml": "de095239e9b3a3eb298afed3e25d5a9843f608e0cc989aa05290fbc70f58af55",
+        "scoring-checkout.json": "57f999da411eb92a3566f7ed95cb45c93cf97ceff4c4c4b1c233b21e5d64b5f8"
+      },
+      "checkout_matches_published_pr_head": true,
+      "source_matches_independent_review": true
+    },
+    "attribution": "The actual checkout and EXPECTED_SHA receipts both name 8ef47ddf3c7d3000aa62330931450a48f748f9cb; the separately recorded PR-event GITHUB_SHA is not the tested checkout. This five-node PASS does not change the historical exact-971 failures or turn the local socket-EPERM attempt into a PASS.",
+    "shared_execution": "The same five-node run is cited by MJ-REQ-115 and MJ-REQ-117. It is one execution, with one requirement-strength node and four scoring nodes; neither document claims five requirement-specific browser nodes.",
+    "later_revision_credit": "NONE; these results apply only to the exact tested revision, not to any subsequent configuration or evidence commit.",
+    "credited_requirement_nodes": [
+      {
+        "node": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::test_manual_capture_displays_required_and_preferred_section_strengths",
+        "result": "PASS",
+        "time_seconds": 4.157
+      }
+    ]
+  },
+  "local_exact_head_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "execution_started_at_utc": "2026-11-09T16:19:00.680510+00:00",
+    "execution_finished_at_utc": "2026-11-09T16:19:17.938842+00:00",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "result": "PASS",
+    "environment": {
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "python": "Python 3.12.14",
+      "mode": "Cloud workspace; synthetic temporary SQLite stores; locked existing dependencies"
+    },
+    "private_receipt_filename": "matching-final-verification.json",
+    "receipt_sha256": "107cd6e308490edb855c34228837809e79a7835e477408c2136876cec79a7445",
+    "clean_tree_before_and_after_execution": true,
+    "commands": [
+      {
+        "name": "strength-backend",
+        "command": [
+          "python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/unit/test_requirement_parsers.py",
+          "tests/unit/test_negative_filters.py",
+          "tests/integration/test_explainable_matching.py",
+          "tests/integration/test_manual_capture_extraction_provenance.py",
+          "--junitxml",
+          "<private-run-dir>/matching-final-strength.xml"
+        ],
+        "working_directory": "repository root",
+        "result": "PASS",
+        "exit_code": 0,
+        "started_at_utc": "2026-11-09T16:19:11.238902+00:00",
+        "finished_at_utc": "2026-11-09T16:19:16.846832+00:00",
+        "log_filename": "matching-final-strength-backend.log",
+        "log_sha256": "ef9c4c433e5cf230f7688d951ed1b43b28a39395ebe5203245c6451d5fd4d88e",
+        "summary": {
+          "test_cases_passed": 63,
+          "subtests_passed": 55,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "junit": {
+          "filename": "matching-final-strength.xml",
+          "sha256": "f6d5670a7d49a8b42fffe0b5e3f54dcd20623c62dedddce3eab18882acc764e8",
+          "testcase_elements": 63,
+          "subtest_count_source": "Executed pytest summary in the bound log; subtests are not additional testcase elements."
+        }
+      }
+    ],
+    "attribution": "These previously completed local executions are attributed to exact 8ef47dd. The original 1e800 command records and counts above remain unchanged. No new tests were run to prepare this completion update.",
+    "local_browser": "NOT_RUN; the existing socket-EPERM restriction remains. Hosted browser completion is recorded separately."
+  },
+  "later_revision_publication_checks": {
+    "status": "PENDING",
+    "scope": "Required checks and any applicable focused acceptance replay on a subsequent configuration or evidence commit.",
+    "exact_revision": "No later revision is tested or credited by this record.",
+    "attribution_rule": "Keep the completed exact-8ef result and inspect any later published SHA independently; missing or unexecuted checks remain NOT_RUN.",
+    "canonical_acceptance": "PROPOSAL_ONLY; the integration steward owns any canonical transition."
+  },
+  "criterion_completion": {
+    "status": "PASS_PROPOSED",
+    "scope": "Both original behavioral criteria (115-A and 115-B) and the two recorded safety checks (115-S1 and 115-S2).",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "backend": "The same criterion-bearing strength suites were re-executed at exact-8ef: 63 cases plus 55 subtests, with no failures, errors or skips.",
+    "browser": "The requirement-specific manual-capture required/preferred display node passed once at exact-8ef; its exact identity and result are in hosted_acceptance_completion.credited_requirement_nodes.",
+    "historical_attribution": "The original 1e800 criterion_ledger and criterion_results remain unchanged. The historical exact-971 browser PASS remains separately attributed and does not relabel its failed overall workflow."
+  }
+}

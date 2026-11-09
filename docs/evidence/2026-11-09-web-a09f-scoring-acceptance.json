@@ -1,0 +1,559 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "agent": "ChatGPT-Web",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T16:16:53.774449+00:00",
+  "base_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "tested_source_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395",
+  "environment": {
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "Python 3.12.14",
+    "mode": "Cloud workspace; synthetic temporary SQLite stores; locked existing dependencies"
+  },
+  "publication_scope": "One coherent matching-acceptance PR; no production behavior changes.",
+  "canonical_acceptance": "UNCHANGED; proposed full-criterion evidence requires the integration steward review.",
+  "exact_head_browser": "PASS on exact 8ef47ddf3c7d3000aa62330931450a48f748f9cb: all five expected hosted nodes executed once in run 42654303758. Local Chromium remains NOT_RUN; later revisions receive no PASS credit from this run.",
+  "local_browser_limit": "Chromium process_singleton socket creation is denied in the cloud workspace; the failed baseline launch is not a product/browser PASS.",
+  "not_run": [
+    "Independent local PostgreSQL execution",
+    "Full local repository suite",
+    "Live providers",
+    "Production deployment"
+  ],
+  "commands": [
+    {
+      "name": "scoring-backend",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_scoring_profiles.py",
+        "tests/unit/test_profile_scoring.py",
+        "tests/unit/test_preference_scoring.py",
+        "tests/integration/test_scoring_profiles_api.py",
+        "tests/integration/test_role_scoring_profiles_api.py",
+        "tests/integration/test_role_scoring_search_flow.py",
+        "tests/integration/test_role_scoring_peer_recalculation_isolation.py",
+        "tests/integration/test_preference_weighting.py",
+        "tests/integration/test_matching_explanation_contributions.py",
+        "tests/integration/test_matching_explanations_api.py",
+        "--junitxml",
+        "<private-run-dir>/matching-source-scoring.xml"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:11.874062+00:00",
+      "finished_at_utc": "2026-11-09T16:14:21.926207+00:00",
+      "exit_code": 0,
+      "log_sha256": "4be5d7a716fa5cf28745ec63d91a0ea6cda8e95fda6395b1c9b08fc37bc2ba9f"
+    },
+    {
+      "name": "strength-backend",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_requirement_parsers.py",
+        "tests/unit/test_negative_filters.py",
+        "tests/integration/test_explainable_matching.py",
+        "tests/integration/test_manual_capture_extraction_provenance.py",
+        "--junitxml",
+        "<private-run-dir>/matching-source-strength.xml"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:21.926712+00:00",
+      "finished_at_utc": "2026-11-09T16:14:28.531675+00:00",
+      "exit_code": 0,
+      "log_sha256": "02dfbe867ccd0d37a1e073bb7d142968f5ef553e8cdaab61d295abd22d081173"
+    },
+    {
+      "name": "scoring-ui",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "vitest",
+        "run",
+        "src/role-scoring-preference-dimensions.test.tsx",
+        "src/role-scoring-preview.test.tsx",
+        "src/role-scoring-profile-client.test.ts",
+        "src/role-scoring-custom-dimensions.test.tsx",
+        "src/role-scoring-profile-editor.test.tsx"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:28.532069+00:00",
+      "finished_at_utc": "2026-11-09T16:14:29.679191+00:00",
+      "exit_code": 0,
+      "log_sha256": "79df3569e9ec49b961180427c7025300914dc824c34824bf349a53fc101108d4"
+    },
+    {
+      "name": "web-build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:29.679606+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.637806+00:00",
+      "exit_code": 0,
+      "log_sha256": "305692a0c646268a3164ec329f35e88176cf4b2e98920c7e8494eef0be506514"
+    },
+    {
+      "name": "catalogue",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:31.638229+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.691692+00:00",
+      "exit_code": 0,
+      "log_sha256": "291867f56141795160d1eec886fa8190c675168078c0efc885620398314e3916"
+    },
+    {
+      "name": "progress",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:31.692013+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.734980+00:00",
+      "exit_code": 0,
+      "log_sha256": "95466f46d88328e9ad9cb838e5358a891dc1094990d3bad8e7b73568f02cf470"
+    },
+    {
+      "name": "dashboard",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "result": "PASS",
+      "started_at_utc": "2026-11-09T16:14:31.735317+00:00",
+      "finished_at_utc": "2026-11-09T16:14:31.789957+00:00",
+      "exit_code": 0,
+      "log_sha256": "5a4cca32ad3166fac276c00965fcf690a253268210d84bf47f589f63b5c80f53"
+    }
+  ],
+  "shared_hosted_baseline": {
+    "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759",
+    "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "overall_result": "FAILURE",
+    "attribution": "Existing peer-owned run; this worker did not dispatch a duplicate.",
+    "artifact_proof": [
+      {
+        "id": 13688786744,
+        "name": "browser-results-2",
+        "size_in_bytes": 8739,
+        "digest": "sha256:d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13688786744",
+        "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "archive_digest_verified": true
+      },
+      {
+        "id": 13688571396,
+        "name": "browser-results-1",
+        "size_in_bytes": 31449,
+        "digest": "sha256:6c1b9caaa604c2bc3ed9c2d0c24dc4567cd4791a423c03b67ddb733ea6332215",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13688571396",
+        "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "archive_digest_verified": true
+      },
+      {
+        "id": 13687364996,
+        "name": "browser-results-0",
+        "size_in_bytes": 21640,
+        "digest": "sha256:0aa5400232234d600df12b08e8aaebfb6f160b75d42788669977e499e9f9b466",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/42646926759/artifacts/13687364996",
+        "head_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "archive_digest_verified": true
+      }
+    ]
+  },
+  "rollback": "Revert the three browser guard edits and the newly added scoring workflow; runtime code and data schemas are unchanged.",
+  "requirement_id": "MJ-REQ-117",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/118",
+  "objective": "Verify configurable saved-search scoring through the mounted editor, persisted profile and real explanation/recalculation consumers.",
+  "criterion_analysis": [
+    {
+      "criterion": "Allow advanced configuration",
+      "backend_disposition": "PASS",
+      "proof": "Versioned selected-search API validates, persists and reads back weights/thresholds; actual recalculate consumer and persisted explanation are covered; peer search and hard eligibility invariants are exercised. Browser result is separately owned by root."
+    },
+    {
+      "criterion": "Do not hard-code the illustrated distribution as the only model",
+      "backend_disposition": "PASS",
+      "proof": "Data-driven family names, sparse/default profiles, custom named dimensions, independent weights and thresholds, explicit unknown handling, and changed weighted results are executed."
+    },
+    {
+      "criterion": "Preserve higher-priority truth, scope and safe failure behavior",
+      "backend_disposition": "PASS",
+      "proof": "Unapproved and malformed evidence is not converted to native fit, stale/foreign scope is rejected, peer match history and eligibility are preserved, and configured native preferences are not supplied by employer-provided arbitrary scores."
+    }
+  ],
+  "backend_result": {
+    "tests_passed": 82,
+    "subtests_passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "exact_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395"
+  },
+  "ui_result": {
+    "tests_passed": 38,
+    "test_files_passed": 5,
+    "failed": 0,
+    "exact_sha": "1e800b0b6e1d9cb22ec722cf10741bddaf04f395"
+  },
+  "historical_browser_nodes": {
+    "counts": {
+      "required": 4,
+      "observed_unique": 4,
+      "passed": 1,
+      "failed": 3
+    },
+    "cases": [
+      {
+        "classname": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests",
+        "name": "test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "FAILURE",
+        "time_seconds": "2.401",
+        "artifact_id": 13688786744,
+        "xml_file": "browser-2.xml",
+        "failure_summary": "Final write-boundary assertion rejected expected explicit job-view bookkeeping; retained as historical FAILURE."
+      },
+      {
+        "classname": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests",
+        "name": "test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "FAILURE",
+        "time_seconds": "3.728",
+        "artifact_id": 13688571396,
+        "xml_file": "browser-1.xml",
+        "failure_summary": "Final write-boundary assertion rejected expected explicit job-view bookkeeping; retained as historical FAILURE."
+      },
+      {
+        "classname": "tests.browser.test_preference_weighting",
+        "name": "test_preferences_save_reload_and_show_real_persisted_contributions",
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "FAILURE",
+        "time_seconds": "2.394",
+        "artifact_id": 13687364996,
+        "xml_file": "browser-0.xml",
+        "failure_summary": "Final write-boundary assertion rejected expected explicit job-view bookkeeping; retained as historical FAILURE."
+      },
+      {
+        "classname": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests",
+        "name": "test_selected_search_profile_edit_readback_and_isolation",
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": "1.701",
+        "artifact_id": 13687364996,
+        "xml_file": "browser-0.xml"
+      }
+    ],
+    "interpretation": "One editor node passed at historical exact-971. Three integration journeys reached their final boundary assertion and failed because ordinary explicit detail opens generated one/two same-origin POST /profiles/fixture/jobs/<job>/view requests that the old guard blocked. These remain real historical failures. The narrowly scoped test-boundary repair subsequently passed all four scoring nodes in the separately recorded exact-8ef hosted completion."
+  },
+  "browser_repair": {
+    "problem": "Three existing journeys blocked the current bodyless job-view POST caused by an explicit detail click, then failed their final request-boundary assertions.",
+    "change": "Arm one exact-origin/path bodyless POST immediately before each explicit click; consume the permission once; assert 201 receipt identities/UTC timestamp and every row in profile_job_views.",
+    "protections": "All prior scoring/isolation assertions remain. Unexpected writes, origins, jobs, profiles, replay and out-of-order visits are denied.",
+    "scope": "Expected view bookkeeping only; no application/disposition/search-state mutation is admitted."
+  },
+  "independent_review": {
+    "reviewer": "/root/publication_scout",
+    "verdict": "NO_SCOPED_BLOCKERS",
+    "source_sha256": {
+      ".github/workflows/scoring-acceptance.yml": "1643518fc9bd5e0ae2d533f2c9dbe1a00ed34ccdce11fac27346af9335f52195",
+      "tests/browser/test_preference_weighting.py": "207b592d8d80bb27524272cecff8e996cf14768f462314d9c55aef1febb659ee",
+      "tests/browser/test_role_scoring_profile_reload_match.py": "0076d8a86db69f7c34ded345605dc678bac4ee72e18f8cadea796ac081a8ecb3",
+      "tests/browser/test_role_scoring_selected_search_explanation_flow.py": "1a2103cdd80cf836921f5d06aefcd75053aac136d848488567cdf04f2e26b9c5"
+    },
+    "original_assertions_preserved": 114,
+    "assertions_added": 30,
+    "denied_request_probes_passed": 45,
+    "real_receipt_probe": "Only profile_job_views changed among 51 compared SQLite tables.",
+    "receipt_sha256": "c151dd95fa1cbf37d8d98384184298a30643a72fc57b6353e10cfffef6be95d2"
+  },
+  "focused_workflow": {
+    "path": ".github/workflows/scoring-acceptance.yml",
+    "sha256": "24a0a3cd67afa47d3bb75436d28e7475ae46d3deecfb37148fd1dcabe9378bef",
+    "git_blob": "61dacba6f34dcd5b08f41e144db252252e3d0cdd",
+    "review": "NO_SCOPED_BLOCKERS",
+    "validator_probes_passed": 11,
+    "expected_nodes": 5,
+    "missing_or_duplicate_or_skipped_nodes": "FAIL",
+    "receipt_sha256": "aaf3c9c64dd1ebad076317ce1a1cbdf700a2fc9b4b280f87703729fc6fe1b4e9"
+  },
+  "acceptance_recommendation": "PROPOSAL_ONLY: all original MJ-REQ-117 criteria are supported by the recorded exact-8ef backend/UI execution and all four requirement-specific hosted browser passes. Propose PASS for integration-steward review; no canonical status or counter is changed. Required checks on later configuration/evidence revisions remain separately pending.",
+  "scope_limits": [
+    "The illustrative weight table is not the only allowed model.",
+    "This does not certify every optional factor from adjacent requirements or live AI inference."
+  ],
+  "command_path_note": "Private log/JUnit output directory is redacted; input test paths and executed arguments are preserved.",
+  "updated_at_utc": "2026-11-09T17:17:46.276071+00:00",
+  "hosted_acceptance_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "verified_at_utc": "2026-11-09T16:26:42Z",
+    "status": "PASS",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "workflow": {
+      "name": "Scoring acceptance - synthetic",
+      "path": ".github/workflows/scoring-acceptance.yml",
+      "source_url": "https://github.com/MulattoTech/MJobs/blob/8ef47ddf3c7d3000aa62330931450a48f748f9cb/.github/workflows/scoring-acceptance.yml",
+      "sha256": "24a0a3cd67afa47d3bb75436d28e7475ae46d3deecfb37148fd1dcabe9378bef"
+    },
+    "pull_request_url": "https://github.com/MulattoTech/MJobs/pull/1003",
+    "run": {
+      "id": 42654303758,
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758",
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T16:23:40Z",
+      "updated_at": "2026-11-09T16:24:40Z"
+    },
+    "job": {
+      "id": 129288566438,
+      "name": "Scoring / browser acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/job/129288566438"
+    },
+    "artifact": {
+      "id": 13690529027,
+      "name": "scoring-browser-8ef47ddf3c7d3000aa62330931450a48f748f9cb-1",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42654303758/artifacts/13690529027",
+      "primary_api_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/13690529027",
+      "digest": "sha256:e62710b637969583b668ba0d3bd182a60092643649f52eb89cd940c7f18a581f",
+      "size_in_bytes": 1596,
+      "created_at": "2026-11-09T16:24:35Z",
+      "expires_at": "2026-11-16T16:24:34Z",
+      "run_id": 42654303758,
+      "head_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "archive_digest_independently_verified": true
+    },
+    "checkout_provenance": {
+      "checkout_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "event": "pull_request",
+      "expected_sha": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+      "github_sha": "4c5f2c6933bdefe66e4da3e306953f17802d12a2",
+      "node": "v24.22.2",
+      "operation_mode": "FIXTURE",
+      "python": "3.12.16",
+      "recorded_at": "2026-11-09T16:23:49.145405+00:00",
+      "run_attempt": "1",
+      "run_id": "42654303758"
+    },
+    "selected_test_summary": {
+      "expected": 5,
+      "observed_unique": 5,
+      "PASS": 5,
+      "FAIL": 0,
+      "ERROR": 0,
+      "SKIP": 0,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0
+    },
+    "cases": [
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": 1.984,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "PASS",
+        "time_seconds": 2.443,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-115",
+        "node": "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::test_manual_capture_displays_required_and_preferred_section_strengths",
+        "result": "PASS",
+        "time_seconds": 4.157,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "PASS",
+        "time_seconds": 3.136,
+        "xml_file": "scoring-browser.xml"
+      },
+      {
+        "requirement_id": "MJ-REQ-117",
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "PASS",
+        "time_seconds": 2.503,
+        "xml_file": "scoring-browser.xml"
+      }
+    ],
+    "independent_verification": {
+      "reviewer": "/root/publication_scout",
+      "private_receipt_filename": "matching-hosted-acceptance.json",
+      "receipt_sha256": "572340734e841f6293275d52537510359ce2c70a74314ad7ce5f289e075877ed",
+      "archive_digest_verified": true,
+      "artifact_file_sha256": {
+        "scoring-browser-validation.json": "c477dd5c05d4f2afd16bc67d5e52ff636d889ca0f81bcb29c5cb673f8e559c40",
+        "scoring-browser.xml": "de095239e9b3a3eb298afed3e25d5a9843f608e0cc989aa05290fbc70f58af55",
+        "scoring-checkout.json": "57f999da411eb92a3566f7ed95cb45c93cf97ceff4c4c4b1c233b21e5d64b5f8"
+      },
+      "checkout_matches_published_pr_head": true,
+      "source_matches_independent_review": true
+    },
+    "attribution": "The actual checkout and EXPECTED_SHA receipts both name 8ef47ddf3c7d3000aa62330931450a48f748f9cb; the separately recorded PR-event GITHUB_SHA is not the tested checkout. This five-node PASS does not change the historical exact-971 failures or turn the local socket-EPERM attempt into a PASS.",
+    "shared_execution": "The same five-node run is cited by MJ-REQ-115 and MJ-REQ-117. It is one execution, with one requirement-strength node and four scoring nodes; neither document claims five requirement-specific browser nodes.",
+    "later_revision_credit": "NONE; these results apply only to the exact tested revision, not to any subsequent configuration or evidence commit.",
+    "credited_requirement_nodes": [
+      {
+        "node": "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::test_selected_search_profile_edit_readback_and_isolation",
+        "result": "PASS",
+        "time_seconds": 1.984
+      },
+      {
+        "node": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "PASS",
+        "time_seconds": 2.443
+      },
+      {
+        "node": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "PASS",
+        "time_seconds": 3.136
+      },
+      {
+        "node": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "PASS",
+        "time_seconds": 2.503
+      }
+    ]
+  },
+  "local_exact_head_completion": {
+    "recorded_at_utc": "2026-11-09T17:17:46.276071+00:00",
+    "execution_started_at_utc": "2026-11-09T16:19:00.680510+00:00",
+    "execution_finished_at_utc": "2026-11-09T16:19:17.938842+00:00",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "result": "PASS",
+    "environment": {
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "python": "Python 3.12.14",
+      "mode": "Cloud workspace; synthetic temporary SQLite stores; locked existing dependencies"
+    },
+    "private_receipt_filename": "matching-final-verification.json",
+    "receipt_sha256": "107cd6e308490edb855c34228837809e79a7835e477408c2136876cec79a7445",
+    "clean_tree_before_and_after_execution": true,
+    "commands": [
+      {
+        "name": "scoring-backend",
+        "command": [
+          "python",
+          "-B",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "tests/unit/test_scoring_profiles.py",
+          "tests/unit/test_profile_scoring.py",
+          "tests/unit/test_preference_scoring.py",
+          "tests/integration/test_scoring_profiles_api.py",
+          "tests/integration/test_role_scoring_profiles_api.py",
+          "tests/integration/test_role_scoring_search_flow.py",
+          "tests/integration/test_role_scoring_peer_recalculation_isolation.py",
+          "tests/integration/test_preference_weighting.py",
+          "tests/integration/test_matching_explanation_contributions.py",
+          "tests/integration/test_matching_explanations_api.py",
+          "--junitxml",
+          "<private-run-dir>/matching-final-scoring.xml"
+        ],
+        "working_directory": "repository root",
+        "result": "PASS",
+        "exit_code": 0,
+        "started_at_utc": "2026-11-09T16:19:00.692772+00:00",
+        "finished_at_utc": "2026-11-09T16:19:11.238648+00:00",
+        "log_filename": "matching-final-scoring-backend.log",
+        "log_sha256": "d3cb3a0a869e0d2cb346e6e770c5025cd707308b0f99471a58da0530da6aa0fa",
+        "summary": {
+          "test_cases_passed": 82,
+          "subtests_passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "junit": {
+          "filename": "matching-final-scoring.xml",
+          "sha256": "a9a3f6258852b6de1a5e79d09d9fc6033ffeb4120c2a99bcd3db1d0bfbf9b0f3",
+          "testcase_elements": 82,
+          "subtest_count_source": "Executed pytest summary in the bound log; subtests are not additional testcase elements."
+        }
+      },
+      {
+        "name": "scoring-ui",
+        "command": [
+          "npm",
+          "exec",
+          "--",
+          "vitest",
+          "run",
+          "src/role-scoring-preference-dimensions.test.tsx",
+          "src/role-scoring-preview.test.tsx",
+          "src/role-scoring-profile-client.test.ts",
+          "src/role-scoring-custom-dimensions.test.tsx",
+          "src/role-scoring-profile-editor.test.tsx"
+        ],
+        "working_directory": "apps/web",
+        "result": "PASS",
+        "exit_code": 0,
+        "started_at_utc": "2026-11-09T16:19:16.847120+00:00",
+        "finished_at_utc": "2026-11-09T16:19:17.930480+00:00",
+        "log_filename": "matching-final-scoring-ui.log",
+        "log_sha256": "5a6607625a669f788caf8db0e012952c2bc64fd3ae49436a57adfea147ad1bd4",
+        "summary": {
+          "tests_passed": 38,
+          "test_files_passed": 5,
+          "failed": 0
+        }
+      }
+    ],
+    "attribution": "These previously completed local executions are attributed to exact 8ef47dd. The original 1e800 command records and counts above remain unchanged. No new tests were run to prepare this completion update.",
+    "local_browser": "NOT_RUN; the existing socket-EPERM restriction remains. Hosted browser completion is recorded separately."
+  },
+  "later_revision_publication_checks": {
+    "status": "PENDING",
+    "scope": "Required checks and any applicable focused acceptance replay on a subsequent configuration or evidence commit.",
+    "exact_revision": "No later revision is tested or credited by this record.",
+    "attribution_rule": "Keep the completed exact-8ef result and inspect any later published SHA independently; missing or unexecuted checks remain NOT_RUN.",
+    "canonical_acceptance": "PROPOSAL_ONLY; the integration steward owns any canonical transition."
+  },
+  "criterion_completion": {
+    "status": "PASS_PROPOSED",
+    "scope": "All three criteria in criterion_analysis, including configurable distribution and higher-priority truth/scope safety.",
+    "exact_tested_revision": "8ef47ddf3c7d3000aa62330931450a48f748f9cb",
+    "backend_and_ui": "The same criterion-bearing scoring suites were re-executed at exact-8ef: 82 backend cases plus 29 subtests and 38 UI tests in five files.",
+    "browser": "All four requirement-specific browser nodes in hosted_acceptance_completion.credited_requirement_nodes passed once, covering selected-search edit/readback, persisted preference contributions, reload, explanation and isolation.",
+    "historical_attribution": "The original criterion_analysis, 1e800 backend/UI results and historical 971 outcomes retain their original scope."
+  }
+}

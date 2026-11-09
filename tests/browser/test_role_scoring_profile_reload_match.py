@@ -6,6 +6,7 @@ match without changing search eligibility or another search's configuration.
 """
 
 from copy import deepcopy
+from datetime import datetime, timedelta
 from pathlib import Path
 import tempfile
 import threading
@@ -265,6 +266,8 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
             external_requests = []
             ai_requests = []
             submission_requests = []
+            pending_view_paths = []
+            recorded_view_paths = []
             try:
                 thread.start()
                 deadline = time.monotonic() + 10
@@ -306,6 +309,11 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                                 route.abort()
                         elif path.endswith("/match-explanation") and request.method == "GET":
                             explanation_reads.append(request.url)
+                            route.continue_()
+                        elif (request.method == "POST" and pending_view_paths
+                              and request.url == f"{origin}{pending_view_paths[0]}"
+                              and request.post_data is None):
+                            recorded_view_paths.append(pending_view_paths.pop(0))
                             route.continue_()
                         elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                             blocked_writes.append((request.method, request.url))
@@ -438,12 +446,28 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                         row["id"] for row in jobs_response.value.json()["jobs"]
                     ]
                     self.assertIn("selected-job", visible_job_ids)
-                    with page.expect_response(lambda response:
-                        urlsplit(response.url).path.endswith(
-                            "/selected-search/jobs/selected-job/match-explanation")
-                    ) as explanation_response:
+                    view_path = "/profiles/fixture/jobs/selected-job/view"
+                    with (
+                        page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and response.url == f"{origin}{view_path}"
+                        ) as viewed,
+                        page.expect_response(lambda response:
+                            urlsplit(response.url).path.endswith(
+                                "/selected-search/jobs/selected-job/match-explanation")
+                        ) as explanation_response,
+                    ):
+                        # Permit one bodyless view request only for this explicit detail open.
+                        pending_view_paths.append(view_path)
                         page.locator(".job-card").filter(
                             has_text="Cloud Systems Engineer").click()
+                    view_receipt = viewed.value.json()
+                    self.assertEqual(viewed.value.status, 201)
+                    self.assertEqual(set(view_receipt), {"profile_id", "job_id", "viewed_at"})
+                    self.assertEqual(view_receipt["profile_id"], "fixture")
+                    self.assertEqual(view_receipt["job_id"], "selected-job")
+                    self.assertEqual(datetime.fromisoformat(view_receipt["viewed_at"]).utcoffset(),
+                                     timedelta(0))
                     explanation_body = explanation_response.value.json()
                     self.assertEqual(explanation_response.value.status, 200)
                     self.assertEqual(explanation_body["search_profile_id"], "selected-search")
@@ -496,6 +520,15 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     )
                     self.assertEqual(_eligibility(criteria_after, _jobs(store)), eligibility_before)
                     self.assertEqual(store.profile("fixture"), profile_before)
+                    # Inspect every scope so a second job/profile write cannot be hidden.
+                    with store.engine.connect() as connection:
+                        history = [dict(row) for row in connection.execute(select(
+                            m.profile_job_views.c.profile_id, m.profile_job_views.c.job_id,
+                            m.profile_job_views.c.viewed_at, m.profile_job_views.c.visit_order,
+                        )).mappings()]
+                    self.assertEqual(history, [{**view_receipt, "visit_order": 1}])
+                    self.assertEqual(pending_view_paths, [])
+                    self.assertEqual(recorded_view_paths, [view_path])
                     self.assertEqual(len(profile_writes), 2)
                     self.assertGreaterEqual(len(profile_reads), 5)
                     self.assertGreaterEqual(len(explanation_reads), 1)

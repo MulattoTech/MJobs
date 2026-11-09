@@ -7,6 +7,7 @@ this browser acceptance seeds its local persisted result after the editor save.
 """
 
 from copy import deepcopy
+from datetime import datetime, timedelta
 from pathlib import Path
 import tempfile
 import threading
@@ -223,6 +224,9 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
             profile_reads = []
             profile_writes = []
             explanation_reads = []
+            pending_view_paths = []
+            recorded_view_paths = []
+            view_receipts = []
             try:
                 thread.start()
                 deadline = time.monotonic() + 10
@@ -235,7 +239,7 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
 
-                    def local_scoring_read_and_profile_write_only(route):
+                    def local_scoring_boundary(route):
                         request = route.request
                         parsed = urlsplit(request.url)
                         path = parsed.path.lower()
@@ -265,13 +269,18 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                         elif path.endswith("/match-explanation") and request.method == "GET":
                             explanation_reads.append(request.url)
                             route.continue_()
+                        elif (request.method == "POST" and pending_view_paths
+                              and request.url == f"{origin}{pending_view_paths[0]}"
+                              and request.post_data is None):
+                            recorded_view_paths.append(pending_view_paths.pop(0))
+                            route.continue_()
                         elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                             blocked_writes.append((request.method, request.url))
                             route.abort()
                         else:
                             route.continue_()
 
-                    context.route("**/*", local_scoring_read_and_profile_write_only)
+                    context.route("**/*", local_scoring_boundary)
                     page = context.new_page()
                     page.set_default_timeout(8000)
                     page.goto(origin, wait_until="domcontentloaded")
@@ -337,12 +346,31 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                     expect(editor.get_by_label("Role family", exact=True)).to_have_value(
                         "Network Operations")
                     saved_search.select_option("selected-search")
-                    with page.expect_response(lambda response:
-                        urlsplit(response.url).path ==
-                        "/profiles/fixture/search-profiles/selected-search/jobs/selected-job/match-explanation"
-                    ) as selected_explanation:
+                    selected_view_path = "/profiles/fixture/jobs/selected-job/view"
+                    with (
+                        page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and response.url == f"{origin}{selected_view_path}"
+                        ) as selected_viewed,
+                        page.expect_response(lambda response:
+                            urlsplit(response.url).path ==
+                            "/profiles/fixture/search-profiles/selected-search/jobs/selected-job/match-explanation"
+                        ) as selected_explanation,
+                    ):
+                        # Permit one bodyless view request only for this explicit detail open.
+                        pending_view_paths.append(selected_view_path)
                         page.locator(".job-card").filter(
                             has_text="Cloud Systems Engineer").click()
+                    selected_view_receipt = selected_viewed.value.json()
+                    self.assertEqual(selected_viewed.value.status, 201)
+                    self.assertEqual(set(selected_view_receipt), {"profile_id", "job_id", "viewed_at"})
+                    self.assertEqual(selected_view_receipt["profile_id"], "fixture")
+                    self.assertEqual(selected_view_receipt["job_id"], "selected-job")
+                    self.assertEqual(
+                        datetime.fromisoformat(selected_view_receipt["viewed_at"]).utcoffset(),
+                        timedelta(0),
+                    )
+                    view_receipts.append(selected_view_receipt)
                     selected_body = selected_explanation.value.json()
                     self.assertEqual(selected_body["profile_id"], "fixture")
                     self.assertEqual(selected_body["search_profile_id"], "selected-search")
@@ -368,12 +396,31 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                         has_text="Education")).to_contain_text("UNKNOWN")
 
                     saved_search.select_option("other-search")
-                    with page.expect_response(lambda response:
-                        urlsplit(response.url).path ==
-                        "/profiles/fixture/search-profiles/other-search/jobs/other-job/match-explanation"
-                    ) as other_explanation:
+                    other_view_path = "/profiles/fixture/jobs/other-job/view"
+                    self.assertEqual(pending_view_paths, [])
+                    with (
+                        page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and response.url == f"{origin}{other_view_path}"
+                        ) as other_viewed,
+                        page.expect_response(lambda response:
+                            urlsplit(response.url).path ==
+                            "/profiles/fixture/search-profiles/other-search/jobs/other-job/match-explanation"
+                        ) as other_explanation,
+                    ):
+                        pending_view_paths.append(other_view_path)
                         page.locator(".job-card").filter(
                             has_text="Network Operations Engineer").click()
+                    other_view_receipt = other_viewed.value.json()
+                    self.assertEqual(other_viewed.value.status, 201)
+                    self.assertEqual(set(other_view_receipt), {"profile_id", "job_id", "viewed_at"})
+                    self.assertEqual(other_view_receipt["profile_id"], "fixture")
+                    self.assertEqual(other_view_receipt["job_id"], "other-job")
+                    self.assertEqual(
+                        datetime.fromisoformat(other_view_receipt["viewed_at"]).utcoffset(),
+                        timedelta(0),
+                    )
+                    view_receipts.append(other_view_receipt)
                     other_body = other_explanation.value.json()
                     self.assertEqual(other_body["search_profile_id"], "other-search")
                     self.assertEqual(other_body["job_id"], "other-job")
@@ -384,6 +431,18 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                     expect(explanation).not_to_contain_text("Cloud Platform Operations")
                     expect(explanation).not_to_contain_text("fixture:cloud-ai")
 
+                    # The complete index contains only these two ordered fixture visits.
+                    with store.engine.connect() as connection:
+                        history = [dict(row) for row in connection.execute(select(
+                            m.profile_job_views.c.profile_id, m.profile_job_views.c.job_id,
+                            m.profile_job_views.c.viewed_at, m.profile_job_views.c.visit_order,
+                        ).order_by(m.profile_job_views.c.visit_order)).mappings()]
+                    self.assertEqual(history, [
+                        {**receipt, "visit_order": order}
+                        for order, receipt in enumerate(view_receipts, start=1)
+                    ])
+                    self.assertEqual(pending_view_paths, [])
+                    self.assertEqual(recorded_view_paths, [selected_view_path, other_view_path])
                     self.assertEqual(len(profile_writes), 1)
                     self.assertGreaterEqual(len(profile_reads), 3)
                     self.assertGreaterEqual(len(explanation_reads), 2)

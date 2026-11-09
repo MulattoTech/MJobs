@@ -1,0 +1,207 @@
+name: Scoring acceptance - synthetic
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '.github/workflows/scoring-acceptance.yml'
+      - '.github/test-requirements.txt'
+      - '.github/docs-requirements.txt'
+      - 'requirements.lock'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+      - 'apps/api/main.py'
+      - 'apps/api/scoring_profiles.py'
+      - 'apps/api/matching_explanations.py'
+      - 'apps/api/recently_viewed.py'
+      - 'services/matching/**'
+      - 'services/discovery/matching.py'
+      - 'services/discovery/manual_capture.py'
+      - 'services/discovery/search_profiles.py'
+      - 'services/discovery/search_semantics.py'
+      - 'services/discovery/skill_taxonomy.py'
+      - 'services/discovery/requirement_parsers.py'
+      - 'services/discovery/negative_filters.py'
+      - 'services/discovery/lifecycle.py'
+      - 'services/tracking/recently_viewed.py'
+      - 'packages/persistence/**'
+      - 'packages/domain/automation.py'
+      - 'apps/web/index.html'
+      - 'apps/web/package.json'
+      - 'apps/web/package-lock.json'
+      - 'apps/web/vite.config.ts'
+      - 'apps/web/tsconfig.json'
+      - 'apps/web/src/main.tsx'
+      - 'apps/web/src/api.ts'
+      - 'apps/web/src/role-scoring-*'
+      - 'apps/web/src/matching-explanation*'
+      - 'apps/web/src/recently-viewed-*'
+      - 'apps/web/src/selectable-card.tsx'
+      - 'fixtures/browser_ports.py'
+      - 'tests/browser/test_role_scoring_profile_editor.py'
+      - 'tests/browser/test_preference_weighting.py'
+      - 'tests/browser/test_manual_requirement_section_strength.py'
+      - 'tests/browser/test_role_scoring_profile_reload_match.py'
+      - 'tests/browser/test_role_scoring_selected_search_explanation_flow.py'
+      - 'tests/integration/test_preference_weighting.py'
+      - 'tests/integration/test_spine.py'
+      - 'tests/unit/test_preference_scoring.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scoring-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scoring-browser:
+    name: Scoring / browser acceptance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MJOBS_OPERATION_MODE: FIXTURE
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.lock
+            requirements.txt
+            .github/test-requirements.txt
+            .github/docs-requirements.txt
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Record exact checkout provenance
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          import os
+          from pathlib import Path
+          import platform
+          import subprocess
+
+          checkout_sha = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"], text=True).strip()
+          expected_sha = os.environ["EXPECTED_SHA"]
+          if checkout_sha != expected_sha:
+              raise SystemExit("Scoring acceptance checkout does not match the requested revision")
+          output = Path("outputs/ci")
+          output.mkdir(parents=True, exist_ok=True)
+          metadata = {
+              "checkout_sha": checkout_sha,
+              "expected_sha": expected_sha,
+              "github_sha": os.environ["GITHUB_SHA"],
+              "event": os.environ["GITHUB_EVENT_NAME"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "recorded_at": datetime.now(timezone.utc).isoformat(),
+              "operation_mode": os.environ["MJOBS_OPERATION_MODE"],
+              "python": platform.python_version(),
+              "node": subprocess.check_output(["node", "--version"], text=True).strip(),
+          }
+          (output / "scoring-checkout.json").write_text(
+              json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+          print(f"Scoring acceptance revision: {checkout_sha}")
+          PY
+      - name: Install locked Python dependencies
+        run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Install locked frontend dependencies
+        run: npm ci --prefix apps/web --no-audit --no-fund
+      - name: Build frontend from this checkout
+        run: npm run build --prefix apps/web
+      - name: Execute scoring browser acceptance
+        run: |
+          python -m pytest -q \
+            tests/browser/test_role_scoring_profile_editor.py \
+            tests/browser/test_preference_weighting.py \
+            tests/browser/test_manual_requirement_section_strength.py \
+            tests/browser/test_role_scoring_profile_reload_match.py \
+            tests/browser/test_role_scoring_selected_search_explanation_flow.py \
+            --junitxml=outputs/ci/scoring-browser.xml
+      - name: Require all five executed acceptance nodes
+        if: always()
+        run: |
+          python - <<'PY'
+          from collections import Counter
+          import json
+          import os
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          expected = {
+              "tests.browser.test_role_scoring_profile_editor.RoleScoringProfileEditorBrowserTests::"
+              "test_selected_search_profile_edit_readback_and_isolation",
+              "tests.browser.test_preference_weighting::"
+              "test_preferences_save_reload_and_show_real_persisted_contributions",
+              "tests.browser.test_manual_requirement_section_strength.ManualRequirementSectionStrengthBrowserTests::"
+              "test_manual_capture_displays_required_and_preferred_section_strengths",
+              "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::"
+              "test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+              "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::"
+              "test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+          }
+          report = Path("outputs/ci/scoring-browser.xml")
+          problems = []
+          counts = Counter()
+          if not report.is_file():
+              problems.append("Required scoring JUnit report is missing (NOT_RUN)")
+          else:
+              root = ET.parse(report).getroot()
+              counts.update(
+                  f"{case.get('classname', '')}::{case.get('name', '')}"
+                  for case in root.iter("testcase")
+              )
+              for node in sorted(expected):
+                  if counts[node] != 1:
+                      problems.append(f"Required node must execute exactly once: {node} ({counts[node]})")
+              for node in sorted(set(counts) - expected):
+                  problems.append(f"Unexpected JUnit node: {node}")
+              for outcome in ("skipped", "failure", "error"):
+                  total = sum(1 for _ in root.iter(outcome))
+                  if total:
+                      problems.append(f"Required scoring report contains {total} {outcome} result(s)")
+          summary = {
+              "status": "FAIL" if problems else "PASS",
+              "expected_nodes": sorted(expected),
+              "observed_nodes": dict(sorted(counts.items())),
+              "problems": problems,
+          }
+          output = Path("outputs/ci/scoring-browser-validation.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+          message = "## Scoring browser acceptance\n\n" + (
+              "\n".join(f"- {problem}" for problem in problems)
+              if problems else "All five required nodes executed once with no skips, failures, or errors."
+          ) + "\n"
+          print(message)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(message)
+          if problems:
+              raise SystemExit(1)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: scoring-browser-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: |
+            outputs/ci/scoring-checkout.json
+            outputs/ci/scoring-browser.xml
+            outputs/ci/scoring-browser-validation.json
+          retention-days: 7
+          if-no-files-found: error
