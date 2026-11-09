@@ -1,35 +1,48 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REQ-168",
-  "objective": "Keep imported match approvals historical after restore and enforce capacity before mutation",
-  "owner": "web-20261109T031130Z-e950d8153e31",
+  "objective": "Repair PR989 restore capacity admission while preserving historical match isolation",
+  "owner": "web-20261109T131825Z-4b3185c66c15",
   "branch": "web/web-20261109T031130Z-e950d8153e31/MJ-REQ-168-restored-match-currentness",
-  "head_sha": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+  "head_sha": "a98a985d6416608f9a22b8a44abd75310133e3bc",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Publish the owned tested branch, inspect exact-head required CI, and obtain browser history-readback evidence before acceptance; integration remains PR_ONLY",
-  "created_at": "2026-11-09T03:52:40.233967+00:00",
+  "next_action": "Publish the reviewed capacity correction and exact scanner fingerprint on owned PR989, inspect new required checks, and keep restore browser and full acceptance NOT_RUN until executed",
+  "created_at": "2026-11-09T13:35:38.729768+00:00",
   "requirements": [
     "MJ-REQ-168"
   ],
   "tests": [
     {
-      "command": "d9ab13b53921715f1b6e0115ae31047dc2f2161a: focused restore/heatmap unit, SQLite and API suite: 44 passed, 29 subtests passed, 0 skipped",
+      "command": "a98a985d6416608f9a22b8a44abd75310133e3bc:54 focused tests and59 subtests PASS,0skips; exact pinned dependencies",
       "result": "PASS"
     },
     {
-      "command": "d9ab13b53921715f1b6e0115ae31047dc2f2161a: commit provenance, catalogue, progress validation, dashboard, and whitespace checks PASS",
+      "command": "Independent original5MiB counterexample now rejected; accepted neighbor restore/backup/JSON export PASS; overflow errors sanitized; inputs unchanged",
       "result": "PASS"
     },
     {
-      "command": "Reviewed implementation tree: web TypeScript/Vite build and fatal-error static lint PASS; independent scoped review found no blocker",
+      "command": "Catalogue,progress,dashboard,commit provenance,fatal-error lint,whitespace PASS; unchanged web production build PASS",
       "result": "PASS"
     },
     {
-      "command": "Browser assertions blocked by Chromium runtime restrictions; PostgreSQL and exact-head hosted checks pending",
+      "command": "Browser blocked before product assertions: truncated download and installed Chromium socket permission denied",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Fresh required hosted checks pending publication; prior hosted cancellation latency root cause not reproduced",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Full requirement acceptance remains partial; existing restored databases and arbitrary repeated near-limit restores are outside this fix"
+    "Full original/reference acceptance and deployed restore journey remain unverified; PR_ONLY authority",
+    "Instrumented unit prefix:2unrelated environment failures preserved; cancellation9tests/24subtests pass without changing thresholds"
+  ],
+  "transfer_history": [
+    {
+      "from_owner": "web-20261109T031130Z-e950d8153e31",
+      "to_owner": "web-20261109T131825Z-4b3185c66c15",
+      "reason": "Prior owner released verified checkpoint; fresh atomic PR989 and path claims verified at unchanged head",
+      "transferred_at": "2026-11-09T13:33:53.320451+00:00"
+    }
   ]
 }

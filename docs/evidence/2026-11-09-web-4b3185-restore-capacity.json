@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131825Z-4b3185c66c15",
+  "model_id": "unknown",
+  "model_label": "GPT-6 Astra Pro",
+  "requirement": "MJ-REQ-168",
+  "related_requirement": "MJ-REF-026",
+  "pr": 989,
+  "previous_published_head": "3605e3eb88eb0196eb9a1fb16b8a27b11e77b427",
+  "tested_source_commit": "a98a985d6416608f9a22b8a44abd75310133e3bc",
+  "recorded_at_utc": "2026-11-09T13:33:53.274429+00:00",
+  "scope": "Reserve persisted float JSON widths before restore capacity admission; reuse exact reviewed historical checksum exception",
+  "criterion_results": [
+    {
+      "criterion": "Preview and plan reject a graph whose persisted float representation exceeds unchanged capacity",
+      "result": "PASS",
+      "evidence": "New boundary regression: four baseline subtest failures; repaired preview/plan rejection for both affected float fields"
+    },
+    {
+      "criterion": "A neighboring accepted restore remains exportable in backup and JSON formats without mutating source payload",
+      "result": "PASS",
+      "evidence": "Real SQLite restore/export boundary regression plus independent original5MiB distinct-job counterexample"
+    },
+    {
+      "criterion": "Oversized integer conversion errors remain sanitized fixed codes",
+      "result": "PASS",
+      "evidence": "Independent preview/plan probes of both float fields yielded RESTORE_INPUT_INVALID; input unchanged"
+    },
+    {
+      "criterion": "Full MJ-REQ-168 and MJ-REF-026 acceptance",
+      "result": "NOT_RUN",
+      "evidence": "Scoped defect repair only; browser, hosted gates and full acceptance remain independent"
+    }
+  ],
+  "independent_review": {
+    "reviewer": "ChatGPT-Web independent restore-review agent",
+    "review_type": "agent review, not human approval",
+    "conclusion": "No blocking issue in scoped correction",
+    "reviewed_blobs": {
+      "services/profile_restore.py": "312a58ec7d8dbf6af2fd33dec8820b8469855df2",
+      "tests/unit/test_profile_restore.py": "ae41048ee896fcd1154de93d2c674807f0e3e29a"
+    },
+    "original_boundary": {
+      "source_bytes": 5188820,
+      "projected_bytes": 5242880,
+      "limit": 5242880,
+      "restored_backup_bytes": 5242939,
+      "normal_export_outcome": "EXPORT_TOO_LARGE",
+      "base_backup_bytes": 5241560,
+      "base_export_outcome": "SUCCESS"
+    },
+    "fix_probe": {
+      "result": "PASS",
+      "base_head": "3605e3eb88eb0196eb9a1fb16b8a27b11e77b427",
+      "revision_note": "Reviewed uncommitted working-tree blobs; not exact HEAD test evidence",
+      "source_blobs": {
+        "services/profile_restore.py": "312a58ec7d8dbf6af2fd33dec8820b8469855df2",
+        "tests/unit/test_profile_restore.py": "ae41048ee896fcd1154de93d2c674807f0e3e29a",
+        "packages/persistence/profile_restore.py": "c3110b729330824e68e88bf30ae2db8959f434cb"
+      },
+      "original_source_bytes": 5188820,
+      "legacy_projected_bytes": 5242880,
+      "fixed_original_projection_bytes": 5243136,
+      "limit_bytes": 5242880,
+      "early_rejections": [
+        {
+          "operation": "preview",
+          "code": "RESTORE_LIMIT_EXCEEDED"
+        },
+        {
+          "operation": "plan",
+          "code": "RESTORE_LIMIT_EXCEEDED"
+        }
+      ],
+      "neighbor_padding_reduction_bytes": 256,
+      "neighbor_projected_bytes": 5242880,
+      "neighbor_backup_bytes": 5242683,
+      "neighbor_json_export_bytes": 5242688,
+      "neighbor_restore_committed": true,
+      "overflow_results": [
+        {
+          "section": "job_matches",
+          "operation": "preview",
+          "code": "RESTORE_INPUT_INVALID"
+        },
+        {
+          "section": "job_matches",
+          "operation": "plan",
+          "code": "RESTORE_INPUT_INVALID"
+        },
+        {
+          "section": "answer_confidence_policy",
+          "operation": "preview",
+          "code": "RESTORE_INPUT_INVALID"
+        },
+        {
+          "section": "answer_confidence_policy",
+          "operation": "plan",
+          "code": "RESTORE_INPUT_INVALID"
+        }
+      ],
+      "source_payloads_unchanged": true,
+      "runtime_seconds": 0.735,
+      "python_dependencies": {
+        "pytest": "9.0.3",
+        "SQLAlchemy": "2.1.1",
+        "fastapi": "0.142.1",
+        "pydantic": "2.13.5"
+      }
+    }
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_profile_restore.py tests/unit/test_skill_gap_heatmap.py tests/unit/test_skill_gap_heatmap_unknowns.py tests/integration/test_profile_restore.py tests/integration/test_profile_restore_match_currentness.py tests/integration/test_skill_gap_heatmap_api.py tests/unit/test_operation_cancellation_commit.py",
+      "revision": "a98a985d6416608f9a22b8a44abd75310133e3bc",
+      "result": "PASS",
+      "exit_code": 0,
+      "tests_passed": 54,
+      "subtests_passed": 59,
+      "skipped": 0,
+      "duration_seconds": 16.04
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; git diff --check",
+      "revision": "a98a985d6416608f9a22b8a44abd75310133e3bc",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m ruff check --select E9,F63,F7,F82 services/profile_restore.py tests/unit/test_profile_restore.py",
+      "revision_kind": "same reviewed source/test blobs",
+      "result": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "revision_kind": "unchanged web blobs at tested_source_commit",
+      "result": "PASS",
+      "detail": "TypeScript/Vite build; existing chunk-size advisory"
+    },
+    {
+      "command": "Instrumented unit collection and execution prefix through cancellation fixture",
+      "revision_kind": "unchanged cancellation test, worker and Store blobs from previous published head",
+      "result": "FAIL",
+      "counts": {
+        "passed": 2377,
+        "failed": 2,
+        "skipped": 65,
+        "deselected": 1537,
+        "subtests_passed": 3495
+      },
+      "target_result": "Cancellation9tests/24subtests PASS; all26request calls<=0.001998s; hosted latency NOT_REPRODUCED",
+      "failures": [
+        "Breezy real DOM fixture: Chromium socket permission denied",
+        "Mock real HTTP fixture: environment SOCKS proxy needs unavailable socksio"
+      ],
+      "duration_seconds": 120.75
+    },
+    {
+      "command": "Changed restore history browser assertions",
+      "result": "NOT_RUN",
+      "detail": "Pinned Chromium download truncated; installed Chromium launch denied socket operations before product assertions"
+    },
+    {
+      "command": "Required hosted checks on new publication head",
+      "result": "NOT_RUN",
+      "detail": "Publication pending when this evidence was created; later exact-head receipts supersede only this pending field"
+    }
+  ],
+  "scanner_dependency": {
+    "verified_utc": "2026-11-09T13:26:27.559331+00:00",
+    "result": "PASS",
+    "source_bytes": 5844,
+    "source_checksum_matches_historical_evidence": true,
+    "exception_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "resulting_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "additional_lines": 4,
+    "scope": "One immutable commit/path/rule/line fingerprint; no rule or path-wide exclusion"
+  },
+  "environment": {
+    "runtime": "Isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "dependencies": "Exact requirements.lock and .github/test-requirements.txt",
+    "host_compute_slots": 0,
+    "host_heavy_jobs": 0
+  },
+  "limitations": [
+    "Existing restored databases unchanged",
+    "Worst-case projection remains deliberately conservative",
+    "Prior hosted cancellation latency root cause unresolved; no clock, threshold, GC setting, test or production cancellation change",
+    "Actual browser and deployed restore journey NOT_RUN",
+    "No merge, deployment or canonical acceptance transition; PR_ONLY"
+  ]
+}
