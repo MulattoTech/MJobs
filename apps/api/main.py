@@ -76,6 +76,7 @@ from services.documents.uploads import MAX_UPLOAD_BYTES, UploadIntegrityError, l
 from services.documents.alignment_preview import build_alignment_preview
 from services.documents.tailor import target_fingerprint
 from services.audit_history import list_audit_history
+from services.operations.profile_scope import operation_profile_scope
 from workers.dispatch import enqueue_operation
 from workers.operations import (
     QUEUES, OperationActionError, request_cancel, retry_dead_letter, discard_dead_letter, limit,
@@ -2744,13 +2745,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         with store.engine.connect() as connection:
             statement = select(m.operations)
             if profile_id:
-                app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
-                resume_ids = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
-                statement = statement.where((m.operations.c.entity_id == profile_id)
-                    | m.operations.c.entity_id.in_(app_ids)
-                    | m.operations.c.entity_id.in_(resume_ids)
-                    | ((m.operations.c.kind == 'COMPANY_DISCOVER')
-                       & (m.operations.c.params['profile_id'].as_string() == profile_id)))
+                statement = statement.where(operation_profile_scope(
+                    profile_id, dialect_name=store.engine.dialect.name))
             recent = list(connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings())
             # Recovery must remain reachable even after unrelated history grows.
             # Reuse the same profile fence and public serializer for held rows.
@@ -2767,13 +2763,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         from services.operations.progress import operation_public_record
         statement = select(m.operations).where(m.operations.c.state == "DEAD_LETTERED")
         if profile_id:
-            app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
-            resume_ids = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
-            statement = statement.where((m.operations.c.entity_id == profile_id)
-                | m.operations.c.entity_id.in_(app_ids)
-                | m.operations.c.entity_id.in_(resume_ids)
-                | ((m.operations.c.kind == 'COMPANY_DISCOVER')
-                   & (m.operations.c.params['profile_id'].as_string() == profile_id)))
+            statement = statement.where(operation_profile_scope(
+                profile_id, dialect_name=store.engine.dialect.name))
         with store.engine.connect() as connection:
             rows = list(connection.execute(statement.add_columns(func.count().over().label("queue_count")).order_by(
                 m.operations.c.dead_lettered_at.desc().nullslast(), m.operations.c.updated_at.desc()).limit(100)).mappings())
