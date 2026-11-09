@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031048Z-b789251ab0cf",
+  "recorded_at_utc": "2026-11-09T03:43:15.359612+00:00",
+  "requirement": "MJ-REF-036",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/406",
+  "slice": "versioned source-extension projection and profile-scoped JSON export",
+  "overall_result": "PARTIAL",
+  "base_main_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+  "tested_sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+  "source_sha256": [
+    {
+      "path": "services/normalization/source_metadata.py",
+      "sha256": "5791a713efcd393e9e4cfbb058c758f9a8bf54899934abbeefeb8c7fdc1fa531"
+    },
+    {
+      "path": "services/normalization/jobs.py",
+      "sha256": "28a1853a19204b1bec583c9c753713fd74819c6a6f2346519fae07205c0b8845"
+    },
+    {
+      "path": "services/normalization/AREA.md",
+      "sha256": "c8eedb93d299167327d6c9b19265fe7972fbd184448513ae55d23e39905c4ed7"
+    },
+    {
+      "path": "services/data_export.py",
+      "sha256": "1934df82be3c80bb0bfb494b52d667d491def576f11bbd79bb896717ea531ed2"
+    },
+    {
+      "path": "apps/api/data_export.py",
+      "sha256": "7db39e38ff3dfd1f0aebc0c06600404f003ca9135479404971bfc631656a65b2"
+    },
+    {
+      "path": "tests/unit/test_source_metadata.py",
+      "sha256": "476ad36da6f060ec7db25eecba82300a18e16824d500885ddf8df8a65af11d90"
+    },
+    {
+      "path": "tests/integration/test_job_source_metadata.py",
+      "sha256": "29ca40614f95921935f57ade74aafc0fe1966596ee50928ad9f6b4d3b82dde33"
+    },
+    {
+      "path": "docs/source-metadata.md",
+      "sha256": "7b39175be0eb0cdc1509eecd0c84175bc14ff913ad1058183087858f9ee0a2aa"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "1",
+      "result": "PASS",
+      "evidence": "Versioned v1 envelope on existing raw-posting API; raw and canonical representations retained."
+    },
+    {
+      "id": "2",
+      "result": "NOT_RUN",
+      "evidence": "Per-field canonical provenance belongs to complementary peer PR978; no competing contract in this slice."
+    },
+    {
+      "id": "3",
+      "result": "PASS",
+      "evidence": "Mounted job-detail API and dedicated scoped metadata download tested through actual FastAPI app."
+    },
+    {
+      "id": "4",
+      "result": "PARTIAL",
+      "evidence": "Unknown admissible JSON survives SQLite reopen and export unchanged; omitted or oversized data remains in original storage but is not represented losslessly in the metadata export. Omission/status boundaries are explicit."
+    },
+    {
+      "id": "5",
+      "result": "PASS",
+      "evidence": "Existing Remotive collector carries a new nested field through synthetic transport without adapter or schema changes; independent posting source namespaces retained."
+    }
+  ],
+  "validation": [
+    {
+      "name": "affected-regressions",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_source_metadata.py",
+        "tests/integration/test_job_source_metadata.py",
+        "tests/unit/test_job_normalization.py",
+        "tests/unit/test_normalization_contract.py",
+        "tests/unit/test_dedupe_policy.py",
+        "tests/unit/test_dedupe_signals.py",
+        "tests/integration/test_source_value_integrity.py",
+        "tests/integration/test_user_read_models.py",
+        "tests/unit/test_data_export.py",
+        "tests/unit/test_data_export_bounds.py",
+        "tests/integration/test_data_export_flow.py",
+        "tests/integration/test_remotive.py"
+      ],
+      "sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+      "started_utc": "2026-11-09T03:38:53.530949+00:00",
+      "finished_utc": "2026-11-09T03:39:47.340178+00:00",
+      "elapsed_seconds": 53.797,
+      "exit_code": 0,
+      "output": ".............................. [ 28%]\n.................................................................... [ 92%]\n........                                                                 [100%]\n106 passed, 46 subtests passed in 48.45s\n"
+    },
+    {
+      "name": "catalogue",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+      "started_utc": "2026-11-09T03:39:47.341224+00:00",
+      "finished_utc": "2026-11-09T03:39:47.537085+00:00",
+      "elapsed_seconds": 0.203,
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS\n"
+    },
+    {
+      "name": "progress",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+      "started_utc": "2026-11-09T03:39:47.537614+00:00",
+      "finished_utc": "2026-11-09T03:39:47.738043+00:00",
+      "elapsed_seconds": 0.203,
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS\n"
+    },
+    {
+      "name": "dashboard",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+      "started_utc": "2026-11-09T03:39:47.738567+00:00",
+      "finished_utc": "2026-11-09T03:39:47.890830+00:00",
+      "elapsed_seconds": 0.157,
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT\n"
+    },
+    {
+      "name": "reference-provenance",
+      "command": [
+        "python",
+        "-m",
+        "tools.verification.reference_provenance"
+      ],
+      "sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+      "started_utc": "2026-11-09T03:39:47.891344+00:00",
+      "finished_utc": "2026-11-09T03:39:47.956195+00:00",
+      "elapsed_seconds": 0.062,
+      "exit_code": 0,
+      "output": "Reference provenance validation: PASS\n"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+      "started_utc": "2026-11-09T03:39:47.956716+00:00",
+      "finished_utc": "2026-11-09T03:39:48.012627+00:00",
+      "elapsed_seconds": 0.047,
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "independent_review": {
+    "reviewer": "ChatGPT independent reviewer ref024_review",
+    "kind": "independent agent review, not human approval",
+    "reviewed_manifest": "manifest2",
+    "result": "No remaining blocker for narrowed slice; required hosted gates pending",
+    "off_host_tests": "14 pure unit tests passed; Unicode/embedded URI, source identity and maximum-length scanner probes verified"
+  },
+  "not_run": [
+    "Full repository unit suite locally",
+    "Local PostgreSQL/Redis fixture stack and web production build: no heavy slot; available RAM below16GiB",
+    "Authenticated public browser journey: originating connected browser unavailable",
+    "Required hosted CI on final publication head: pending PR publication",
+    "Full MJ-REF-036 acceptance, canonical matrix promotion, merge, deployment"
+  ],
+  "resource_gate": {
+    "mode": "LIGHT_LOCAL",
+    "shared_slot": 2,
+    "cpu_five_minute_average_percent": 49.93845,
+    "minimum_free_ram_gib": 11.139,
+    "heavy_operations_started": false
+  },
+  "ownership": {
+    "coordinator": "C:/Tools/Dev/MJobs/.git/mjobs-coordination/claims.json",
+    "scope_claim": "web:web-20261109T031048Z-b789251ab0cf:ref036",
+    "excluded_contract": "source_resolution.field_provenance is owned by complementary PR978",
+    "source_adapter_claim_respected": true
+  },
+  "canonical_acceptance_changed": false,
+  "fresh_full_requirement_passes": 0,
+  "external_application_submission": "OFF",
+  "integration_authority": "PR_ONLY",
+  "limitations": [
+    "Projection is generated from durable raw data; no separate historical normalized metadata revision is persisted.",
+    "Reserved-key and unsafe-link filtering is selective, not a universal detector of secrets or personal prose.",
+    "Streaming and output bounds do not cap decoding of an already-stored individual raw database row.",
+    "No combined exact-revision acceptance with PR978 or authenticated production UI evidence."
+  ],
+  "reference_provenance": "Clean-room implementation from MJobs issue406 and existing architecture. No third-party implementation source, assets, or prose copied.",
+  "rollback": "Revert this scoped PR. No migrations or stored-data mutation are introduced."
+}

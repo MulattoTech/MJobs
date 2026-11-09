@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-036",
+  "objective": "Expose bounded versioned source metadata and a profile-scoped JSON export",
+  "owner": "ChatGPT-Web/web-20261109T031048Z-b789251ab0cf",
+  "branch": "web/web-20261109T031048Z-b789251ab0cf/MJ-REF-036-source-metadata",
+  "head_sha": "e347f6cac0c38902b078a04837f9262b72476dd3",
+  "routing_state": "VERIFY",
+  "next_action": "Run final-head smoke/provenance, serialize candidate preflight and publish the owned PR; inspect exact hosted checks. Integrator combines PR978 only after its gates.",
+  "created_at": "2026-11-09T03:43:15.487840+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Implementation e347f6cac0c38902b078a04837f9262b72476dd3: 106 pytest tests and46 subtests; catalogue/progress/dashboard/reference-provenance/diff checks passed",
+      "result": "PASS"
+    },
+    {
+      "command": "Full local suites, PostgreSQL/Redis, browser and web build resource gated; hosted checks pending",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full REF036 acceptance remains PARTIAL; canonical-field provenance is complementary PR978; no merge authority"
+  ]
+}
