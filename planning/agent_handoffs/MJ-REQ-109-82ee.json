@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-109-82ee",
+  "objective": "Accept all seven independent, durable, profile-scoped AI model settings for MJ-REQ-109 / issue 110 without claiming consumer inference.",
+  "owner": "web-20261109T173838Z-82ee9dc5ccd8",
+  "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/MJ-REQ-109-task-settings",
+  "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "routing_state": "VERIFY",
+  "next_action": "Root reviews the claimed one-job workflow, commits and publishes the five scoped files, observes hosted browser/JUnit proof for the exact source revision, then updates the evidence and reconciles acceptance. No browser launch locally; keep separate from PR1000.",
+  "created_at": "2026-11-09T17:55:50.780341+00:00",
+  "requirements": [
+    "MJ-REQ-109"
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/integration/test_ai_seven_task_settings_acceptance.py tests/integration/test_ai_task_settings_api.py tests/unit/test_ai_task_configuration.py: 19 passed, 17 subtests passed in 6.24s",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest --collect-only -q for the five workflow-selected test modules: 22 tests collected in 1.22s; no browser launched",
+      "result": "PASS"
+    },
+    {
+      "command": "Static YAML parsing and checks: one 20-minute job, exact PR head, SHA-pinned actions, read-only permissions, no secrets, SPA prerequisite",
+      "result": "PASS"
+    },
+    {
+      "command": "Hosted .github/workflows/ai-task-settings-acceptance.yml: 22 selected cases, including three browser cases; publication/run pending",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "environment_limits": [
+    "Local browser execution is unavailable due to previously observed OS EPERM; no retry or bypass attempted. Dedicated hosted route prepared."
+  ]
+}

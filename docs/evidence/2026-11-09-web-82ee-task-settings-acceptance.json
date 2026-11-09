@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-109-SEVEN-TASK-SETTINGS-20261109-82EE",
+  "recorded_at_utc": "2026-11-09T17:55:26.589830+00:00",
+  "requirement_id": "MJ-REQ-109",
+  "issue": 110,
+  "result": "PARTIAL",
+  "scope": "Test-only acceptance of seven independent, profile-scoped provider/model settings. Existing production behavior is unchanged.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/110",
+    "working_spec": "docs/spec/areas/matching_ai.md#109-ai-task-configuration",
+    "literal_requirement": "Configure different models for job parsing, job scoring, requirement extraction, resume tailoring, cover letters, free-form answers, and company summarization.",
+    "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/MJ-REQ-109-task-settings",
+    "base_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "candidate_state": "Uncommitted acceptance files on the immutable base above; content hashes identify the tested additions. Source commit and hosted evidence must be recorded after publication.",
+    "canonical_acceptance": "UNCHANGED; MJ-REQ-109 remains PARTIAL pending connected-browser proof and acceptance reconciliation."
+  },
+  "criterion_mapping": {
+    "job_parsing": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    },
+    "job_scoring": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    },
+    "requirement_extraction": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    },
+    "resume_tailoring": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    },
+    "cover_letters": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    },
+    "free_form_answers": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    },
+    "company_summarization": {
+      "api": "PASS: a distinct syntactically valid synthetic Ollama model ID saves, reads back, survives fresh Store/API reopen, and remains isolated between profiles.",
+      "independent_edit_and_disable": "PASS: changing or disabling this task preserves every other task and the second profile.",
+      "connected_browser": "NOT_RUN: prepared acceptance checks the named control, all-seven save/reload, two-profile isolation, and independent edits."
+    }
+  },
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/integration/test_ai_seven_task_settings_acceptance.py tests/integration/test_ai_task_settings_api.py tests/unit/test_ai_task_configuration.py",
+      "result": "PASS",
+      "observed": "19 passed, 17 subtests passed in 6.24s",
+      "tests": 19,
+      "subtests": 17,
+      "failures": 0,
+      "skips": 0,
+      "new_integration_tests": 2,
+      "new_integration_subtests": 14,
+      "coverage": "Includes existing ten task-configuration/routing unit tests and seven settings API regression tests."
+    },
+    {
+      "command": "python -m pytest --collect-only -q tests/browser/test_ai_seven_task_settings_acceptance.py",
+      "result": "PASS",
+      "observed": "1 test collected in 0.90s",
+      "meaning": "Collection only; no browser launch or runtime assertions executed."
+    },
+    {
+      "command": "Static YAML inspection with yaml.BaseLoader",
+      "result": "PASS",
+      "observed": "One 20-minute job; exact PR-head checkout; SHA-pinned actions; contents:read only; no secret references; explicit built-SPA prerequisite."
+    },
+    {
+      "command": "python -m pytest --collect-only -q tests/unit/test_ai_task_configuration.py tests/integration/test_ai_task_settings_api.py tests/integration/test_ai_seven_task_settings_acceptance.py tests/browser/test_ai_task_settings.py tests/browser/test_ai_seven_task_settings_acceptance.py",
+      "result": "PASS",
+      "observed": "22 tests collected in 1.22s",
+      "meaning": "All five workflow targets collect: 19 locally passed API/unit cases and three browser cases awaiting hosted execution."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_ai_seven_task_settings_acceptance.py",
+      "result": "NOT_RUN",
+      "observed": "Local Chromium/socket execution was previously blocked by OS EPERM. No launch, retry, or bypass was attempted for this candidate; the new hosted workflow is the planned execution route."
+    }
+  ],
+  "hosted_verification": {
+    "workflow": ".github/workflows/ai-task-settings-acceptance.yml",
+    "status": "PREPARED_NOT_RUN",
+    "jobs": 1,
+    "job_timeout_minutes": 20,
+    "collected_tests": 22,
+    "collected_browser_tests": 3,
+    "trigger": "Pull requests to main touching the workflow, task configuration service/component, mounted main UI, API routes, persistence store, or five selected test modules; optional manual dispatch.",
+    "checkout": "Exact pull-request head SHA, or selected workflow-dispatch SHA.",
+    "test_modules": [
+      "tests/unit/test_ai_task_configuration.py",
+      "tests/integration/test_ai_task_settings_api.py",
+      "tests/integration/test_ai_seven_task_settings_acceptance.py",
+      "tests/browser/test_ai_task_settings.py",
+      "tests/browser/test_ai_seven_task_settings_acceptance.py"
+    ],
+    "artifact_name": "ai-task-settings-acceptance",
+    "artifact_contents": [
+      "outputs/ci/ai-task-settings.xml",
+      "outputs/ci/ai-task-settings-revision.txt"
+    ],
+    "retention_days": 7,
+    "proof_required": "Read JUnit and revision artifact for the published source revision; the new browser case must execute and pass, not skip. Record the run URL and counts before claiming connected acceptance.",
+    "python_cache_inputs": [
+      "requirements.lock",
+      "requirements.txt",
+      ".github/test-requirements.txt"
+    ]
+  },
+  "test_boundaries": {
+    "profiles": "Two fictional profiles copied from the existing synthetic fixture, in a disposable SQLite database.",
+    "models": "Seven distinct synthetic Ollama model identifiers per profile; identifier validity and persistence only, not installed-model availability.",
+    "real_validation": "The API, provider constructors/configuration validation, persistence, and fresh Store/API reads remain real.",
+    "provider_requests": "Ollama generation and synchronous/asynchronous httpx HTTP transports are guarded against calls; all three guards were uncalled in the new API tests.",
+    "browser_network": "Prepared browser test permits only its loopback test-server origin and records/aborts off-origin browser requests.",
+    "credentials": "No provider credentials, saved user data, or GitHub secrets are used by the new tests/workflow.",
+    "external_application_submission": "OFF; settings-only actions do not create or submit applications.",
+    "consumer_inference": "NOT_CLAIMED: these checks do not prove that all seven production task consumers perform inference.",
+    "postgresql": "NOT_RUN; the added acceptance uses SQLite.",
+    "production_changes": "NONE"
+  },
+  "review": {
+    "test_review": "Root and /root/pr_readiness independently reviewed both new tests; no blocking findings. Existing API/provider validators remain real, all seven literal configuration criteria represented.",
+    "workflow_review": "/root/pr_readiness and root reviewed the final one-job workflow with mounted UI/API/store paths, authoritative dependency cache inputs, pinned actions, read-only permissions, exact-head checkout, no secrets, and bounded synthetic execution. READY_FOR_COMMIT_AND_HOSTED_VERIFICATION; not whole-requirement PASS.",
+    "reviewed_at_utc": "2026-11-09T18:04:59.648826+00:00"
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python_environment": "Isolated cloud venv with repository-pinned requirements installed by root.",
+    "browser_runtime": "NOT_RUN locally; hosted execution pending."
+  },
+  "new_file_inputs": {
+    "tests/integration/test_ai_seven_task_settings_acceptance.py": {
+      "git_blob": "12c4e433fa20246ad5b4007ea385b29bfeb16274",
+      "sha256": "2260f2cb75a87d4048e3c3a6e13b61f0b76144e7477bfafa0d3af08698294b07"
+    },
+    "tests/browser/test_ai_seven_task_settings_acceptance.py": {
+      "git_blob": "293e55244f22928ad223d2276b1afdbda03a3dd2",
+      "sha256": "e2ec4d44db15e1efafc64e4c88756cf432602d53cc1149d554a05c297c343235"
+    },
+    ".github/workflows/ai-task-settings-acceptance.yml": {
+      "git_blob": "fd44952c8a645aee0abfb8db8454546a7016069a",
+      "sha256": "f5a308fa99b3e3ddc46fc222f7f5a24c71bdec2d2f3212c24a31cc0d1a36740b"
+    }
+  },
+  "next_action": "Root reviews the workflow, commits and publishes this coherent acceptance-only PR, observes the targeted hosted job, then records immutable browser proof and reconciles acceptance. Keep separate from PR1000."
+}
