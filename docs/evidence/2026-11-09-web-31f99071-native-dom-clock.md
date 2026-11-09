@@ -37,7 +37,7 @@ Severe event-loop stalls may still cause legitimate real-time expiry.
 - Catalogue, progress-journal validation, dashboard currentness, source-commit provenance and git diff --check: **PASS**.
 - Independent static review (ref024_review): **no material findings**; reviewer did not run tests.
 - Full local suite, build, Playwright/browser and deployed user journey: **NOT_RUN** under the heavy-operation resource gate.
-- Hosted checks: pending publication. Existing all-history checksum scanner dependency is tracked separately; no scanner configuration changed here.
+- Hosted checks: pending publication. The existing, reviewed checksum-fingerprint exception is incorporated as the dependency documented below.
 
 Test blob: e11c876c191c49e247d48b28781d0976e751054c.
 Unchanged production blob: 85f4b5553a7994c850f11472dd65156415a59e32.
@@ -50,5 +50,18 @@ and diagnoses one failure seen in PR973. It does not modify that peer's branch
 or certify all of its checks. PR-only authority applies.
 
 Observe checks on the exact published head. The scanner's historical checksum
-exception already exists on PR977/978; preserve the current owner's claim.
+exception from PR977/978 was incorporated unchanged after verified scope release.
 Rollback is a revert of this test/evidence slice, with no runtime or migration change.
+
+## Verified historical scanner dependency
+
+The all-history scanner reported one source-file checksum in another branch.
+Root and an independent reviewer recomputed the referenced immutable Git blob
+and confirmed equality. After the peer released the exclusive scope, this branch
+incorporated exception-only commit a796ffb478833fbcf87ff79892b6047108336226 unchanged via cherry-pick.
+The resulting ignore blob is e9591c3b04952b1752c020f5df909483227c3edd.
+Only one immutable commit/path/rule/line fingerprint is excepted; no scanner rule,
+workflow or directory-wide exclusion changed. Source and test blobs remain identical
+to the locally tested implementation. Fresh hosted scanning on the final head is pending.
+The companion JSON records exact provenance and the comparison result without
+repeating the flagged digest.

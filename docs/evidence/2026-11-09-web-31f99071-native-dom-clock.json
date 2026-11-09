@@ -148,7 +148,31 @@
     "No proof that all PR973 failures are fixed; its production branch was not modified.",
     "Full local pytest, production build, real browser/Playwright and deployed journey NOT_RUN under heavy resource gate.",
     "Hosted checks for this publication revision are pending.",
-    "Known all-history secret scanner dependency affects branches on current main: exact source-checksum false positive in20fea5e is already repaired on PR977/978; .gitleaksignore scope remains owned by peer fa3dd1dd5a8e."
+    "Existing checksum exception incorporated unchanged under exclusive scope after peer release; fresh exact-head hosted scan remains pending."
   ],
-  "rollback": "Revert this test/evidence slice; no production behavior or migration changes."
+  "rollback": "Revert this test/evidence slice; no production behavior or migration changes.",
+  "dependency_verification": {
+    "classification": "PUBLIC_SOURCE_CHECKSUM_FALSE_POSITIVE",
+    "evidence_commit": "20fea5e07086c8180beff97f5307e0ef3ce2aa89",
+    "evidence_path": "docs/evidence/2026-11-07-ref002-bounded-story-import.json",
+    "line": 45,
+    "implementation_commit": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+    "source_path": "tests/integration/test_career_story_import_api.py",
+    "source_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_bytes": 5844,
+    "sha256_matches_flagged_value": true,
+    "independent_reviewer": "pr_inventory",
+    "scanner_result_at_981_head": "FAIL",
+    "remedy": "Exact fingerprint already published in PR977 and PR978; preserve active peer ownership",
+    "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "original_exception_only_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "incorporated_dependency_commit": "ce46692fb3ea8cbed96e856918fae96e8e99e924",
+    "ignore_git_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "scope_claim": "web:web-20261109T031106Z-31f99071bbd9:secret-history-dependency",
+    "incorporated_utc": "2026-11-09T03:52:37.987088+00:00",
+    "source_and_test_blobs_unchanged": true,
+    "exact_head_hosted_scan": "PENDING",
+    "local_pinned_linux_scan": "NOT_RUN on Windows; hosted verification required"
+  },
+  "updated_at_utc": "2026-11-09T03:52:37.987088+00:00"
 }
