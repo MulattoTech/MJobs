@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-179-malformed-deadline",
+  "objective": "Separate malformed native DOM reply assertions from deadline expiry without changing production",
+  "owner": "ChatGPT-Web/web-20261109T031106Z-31f99071bbd9",
+  "branch": "web/web-20261109T031106Z-31f99071bbd9/MJ-REQ-179-malformed-deadline",
+  "head_sha": "552f7eae563876c2735287ec50cea197b5f2fb06",
+  "routing_state": "VERIFY",
+  "next_action": "Publish owned test repair after atomic admission; inspect exact-head hosted checks and existing scanner dependency; retain full acceptance as NOT_RUN",
+  "created_at": "2026-11-09T03:45:04.232593+00:00",
+  "requirements": [
+    "MJ-REQ-179-malformed-deadline"
+  ],
+  "tests": [
+    {
+      "command": "36 focused tests and 33 subtests; catalogue, progress, dashboard, provenance, diff; independent static review",
+      "result": "PASS"
+    },
+    {
+      "command": "Full local suite/build/browser/deployed acceptance; hosted checks pending publication",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Historical checksum scanner dependency is owned by peer; no full requirement acceptance"
+  ]
+}

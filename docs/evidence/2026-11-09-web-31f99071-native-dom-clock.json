@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031106Z-31f99071bbd9",
+  "requirement_id": "MJ-REQ-179",
+  "issue": 180,
+  "scope": "Deterministic malformed native-DOM reply validation and exact deadline precedence",
+  "recorded_at_utc": "2026-11-09T03:45:04.033971+00:00",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "552f7eae563876c2735287ec50cea197b5f2fb06",
+  "tested_sha": "552f7eae563876c2735287ec50cea197b5f2fb06",
+  "scope_result": "PASS",
+  "fresh_full_requirement_PASS": false,
+  "canonical_matrix_changed": false,
+  "production_changed": false,
+  "git_blobs": {
+    "tests/unit/test_browser_debug_capture.py": "e11c876c191c49e247d48b28781d0976e751054c",
+    "services/applications/debug_capture.py": "85f4b5553a7994c850f11472dd65156415a59e32"
+  },
+  "historical_failure": {
+    "pr": 973,
+    "tested_merge_sha": "b6cf60039f66c92c22b07d7f95da26047bb5f13d",
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42291677981/job/128146410991",
+    "test": "NativeDomCaptureTests.test_oversized_or_invalid_native_values_never_reach_json_decode(length=0)",
+    "expected": "OMITTED_CAPTURE_FAILED",
+    "actual": "OMITTED_TIMEOUT",
+    "suite_result": "1 failed, 4615 passed, 55 skipped, 4742 subtests passed",
+    "same_production_and_test_blobs_as_base": true,
+    "interpretation": "The fixture used real elapsed time for a validation-only assertion. Production correctly prioritizes an expired deadline after the sync bridge returns. Scheduling delay is plausible; logs do not establish its exact phase or a production defect."
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.10",
+    "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "dependencies": "Existing shared venv read-only; no installation",
+    "resource_mode": "LIGHT_LOCAL under shared slot 1; no heavy admission"
+  },
+  "criteria": [
+    {
+      "criterion": "Reject oversized, non-ASCII, empty and malformed native replies with exact validation status before expiry",
+      "result": "PASS",
+      "assertions": "Original malformed corpus retained; capture module clock fixed without replacing asyncio clock"
+    },
+    {
+      "criterion": "Preserve deadline precedence at sync return",
+      "result": "PASS",
+      "assertions": "Real sync bridge and cleanup complete; 1 ms before DOM deadline => OMITTED_CAPTURE_FAILED; exact DOM deadline => OMITTED_TIMEOUT"
+    },
+    {
+      "criterion": "Preserve no-decode privacy checks and native cleanup",
+      "result": "PASS",
+      "assertions": "No JSON decode for rejected oversized/non-ASCII/empty values and boundary cases; private text absent; full create/target/world/send/detach order; pending_tasks == 0"
+    },
+    {
+      "criterion": "Full MJ-REQ-179 user/browser acceptance",
+      "result": "NOT_RUN",
+      "assertions": "No new full requirement acceptance; production and canonical matrices unchanged"
+    }
+  ],
+  "checks": [
+    {
+      "name": "pytest",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_browser_debug_capture.py",
+        "tests/unit/test_fleet_t12_debug_capture_budget.py"
+      ],
+      "started_utc": "2026-11-09T03:42:16.121974+00:00",
+      "finished_utc": "2026-11-09T03:42:18.148326+00:00",
+      "exit": 0,
+      "stdout_tail": "....................................    [100%]\n36 passed, 33 subtests passed in 1.54s\n"
+    },
+    {
+      "name": "catalogue",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "started_utc": "2026-11-09T03:42:18.148326+00:00",
+      "finished_utc": "2026-11-09T03:42:18.238795+00:00",
+      "exit": 0,
+      "stdout_tail": "Catalogue validation: PASS\n"
+    },
+    {
+      "name": "progress",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "started_utc": "2026-11-09T03:42:18.238795+00:00",
+      "finished_utc": "2026-11-09T03:42:18.355615+00:00",
+      "exit": 0,
+      "stdout_tail": "Progress journal validation: PASS\n"
+    },
+    {
+      "name": "dashboard",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "started_utc": "2026-11-09T03:42:18.355615+00:00",
+      "finished_utc": "2026-11-09T03:42:18.453008+00:00",
+      "exit": 0,
+      "stdout_tail": "Progress dashboard: CURRENT\n"
+    },
+    {
+      "name": "provenance",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "started_utc": "2026-11-09T03:42:18.453008+00:00",
+      "finished_utc": "2026-11-09T03:42:18.705844+00:00",
+      "exit": 0,
+      "stdout_tail": "PASS: provenance complete for 1 source files\n"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_utc": "2026-11-09T03:42:18.705844+00:00",
+      "finished_utc": "2026-11-09T03:42:18.752537+00:00",
+      "exit": 0,
+      "stdout_tail": ""
+    }
+  ],
+  "independent_review": {
+    "reviewer": "ref024_review",
+    "result": "No material findings",
+    "scope": "Static review of final test diff and exact production blob; reviewer did not execute tests",
+    "notes": "Only debug_capture_module.time binding changes. Real asyncio waits and cancellation remain. Exact boundary oracle and cleanup assertions are meaningful."
+  },
+  "limitations": [
+    "Severe real event-loop stalls can still legitimately trigger per-await timeouts.",
+    "No proof that all PR973 failures are fixed; its production branch was not modified.",
+    "Full local pytest, production build, real browser/Playwright and deployed journey NOT_RUN under heavy resource gate.",
+    "Hosted checks for this publication revision are pending.",
+    "Known all-history secret scanner dependency affects branches on current main: exact source-checksum false positive in20fea5e is already repaired on PR977/978; .gitleaksignore scope remains owned by peer fa3dd1dd5a8e."
+  ],
+  "rollback": "Revert this test/evidence slice; no production behavior or migration changes."
+}
