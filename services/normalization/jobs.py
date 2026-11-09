@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import re
 
+from services.normalization.source_metadata import source_metadata_view
+
 
 def normalize_company_name(value):
     """Normalize display/search spelling without asserting company identity."""
@@ -71,4 +73,5 @@ def raw_posting_view(row):
         "raw_structured_payload": data.get("raw"),
         "source_url": data.get("source_url") or data.get("source"),
         "application_url": data.get("application_url") or "",
+        "source_metadata": source_metadata_view(data),
     }

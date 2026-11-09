@@ -5,6 +5,7 @@ Only cold-SSL accounting uses an owned operation clock; socket/cancellation
 budgets retain the real clock. No production transport/check/stream is replaced.
 Synthetic loopback stores only.
 """
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack, contextmanager
 import asyncio
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -48,6 +49,29 @@ def source_tenant(provider):
     return "synthetic" if provider == "greenhouse" else "default"
 
 
+class OwnedRequestThreads:
+    """Include only the owned worker and its real Greenhouse request pool."""
+
+    def __init__(self, worker):
+        self.worker = worker
+        self._pool = threading.local()
+
+    def owns_current_thread(self):
+        return threading.current_thread() is self.worker or getattr(self._pool, "owned", False)
+
+    def executor(self, max_workers=None, thread_name_prefix="", initializer=None, initargs=()):
+        if (threading.current_thread() is not self.worker
+                or (initializer is not None and not callable(initializer))):
+            return ThreadPoolExecutor(max_workers, thread_name_prefix, initializer, initargs)
+
+        def initialize():
+            self._pool.owned = True
+            if initializer is not None:
+                initializer(*initargs)
+
+        return ThreadPoolExecutor(max_workers, thread_name_prefix, initialize)
+
+
 @contextmanager
 def empty_source(provider):
     state = {"requests": 0}
@@ -88,6 +112,35 @@ def empty_source(provider):
 
 
 class SourceAdapterConnectCancellationTests(unittest.TestCase):
+    def test_ssl_readiness_owns_only_worker_created_request_threads(self):
+        scope = OwnedRequestThreads(threading.current_thread())
+        self.assertTrue(scope.owns_current_thread())
+        initialized = []
+
+        def initialize(marker):
+            initialized.append((threading.current_thread(), marker))
+
+        with scope.executor(1, "mjobs-greenhouse", initialize, ("owned",)) as executor:
+            self.assertIsInstance(executor, ThreadPoolExecutor)
+            thread, owned = executor.submit(
+                lambda: (threading.current_thread(), scope.owns_current_thread())).result(timeout=3)
+        self.assertTrue(owned)
+        self.assertIsNot(thread, scope.worker)
+        self.assertEqual(initialized, [(thread, "owned")])
+
+        def unrelated_pool():
+            self.assertFalse(scope.owns_current_thread())
+            with scope.executor(1, "mjobs-greenhouse", initialize, ("unrelated",)) as executor:
+                return executor.submit(
+                    lambda: (threading.current_thread(), scope.owns_current_thread())).result(timeout=3)
+
+        # Identical pool names do not establish fixture ownership. An unrelated
+        # caller must retain its real initializer and remain outside this scope.
+        with ThreadPoolExecutor(1, "mjobs-greenhouse") as unrelated:
+            thread, owned = unrelated.submit(unrelated_pool).result(timeout=3)
+        self.assertFalse(owned)
+        self.assertEqual(initialized[-1], (thread, "unrelated"))
+
     def test_injected_transports_keep_control_even_when_falsey(self):
         class FalseyTransport(httpx.MockTransport):
             def __bool__(self):
@@ -164,6 +217,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             cancel_calls = []
             worker_finished_at = []
             worker = None
+            request_threads = None
 
             # Transport-ready cases prepare the trust store separately. The
             # cold-context case charges real factory completion to its owned
@@ -182,9 +236,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                 self.assertTrue(ssl_context.check_hostname)
                 self.assertGreaterEqual(ssl_context_ready_at - ssl_setup_started_at, ssl_setup_delay)
             ssl_context_uses = []
+            ssl_context_threads = []
 
             def ready_ssl_context(verify=True, cert=None, trust_env=True):
-                if (threading.current_thread() is worker and verify is True
+                if (request_threads is not None and request_threads.owns_current_thread() and verify is True
                         and cert is None and trust_env is False):
                     if unprepared_ssl:
                         ssl_factory_calls["entered"] += 1
@@ -207,6 +262,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         self.assertTrue(context.check_hostname)
                         return context
                     ssl_context_uses.append(time.monotonic())
+                    ssl_context_threads.append(threading.current_thread())
                     return ssl_context
                 return original_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
 
@@ -431,6 +487,11 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                             phases["worker_finished_at"] = finished_at
 
                     worker = threading.Thread(target=execute, name="mjobs-owned-adapter-worker", daemon=True)
+                    request_threads = OwnedRequestThreads(worker)
+                    if provider == "greenhouse":
+                        endpoints.enter_context(patch(
+                            "services.discovery.sources.greenhouse.ThreadPoolExecutor",
+                            new=request_threads.executor))
                     started = time.monotonic()
                     worker.start()
                     try:
@@ -603,11 +664,6 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                              f"Expired setup must not start a socket connect; {phase_diagnostic()}")
                             self.assertFalse(transport_completed.is_set(),
                                              f"Setup timeout cannot report transport success; {phase_diagnostic()}")
-                        elif provider == "remoteok":
-                            self.assertTrue(ssl_context_uses,
-                                "Owned remoteok transport did not use its ready SSL context")
-                        if not unprepared_ssl:
-                            self.assertTrue(all(used_at >= ssl_context_ready_at for used_at in ssl_context_uses))
                         expected = "COMPLETED" if mode == "positive" else "CANCELLED" if mode == "cancel" else "DEAD_LETTERED"
                         reopened = Store(url)
                         try:
@@ -642,6 +698,14 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         elif mode != "positive":
                             self.assertEqual(state["connects"], 1)
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
+                        if not unprepared_ssl:
+                            if provider in ("greenhouse", "remoteok"):
+                                self.assertTrue(ssl_context_uses,
+                                    f"Owned {provider} transport did not use its ready SSL context")
+                                if provider == "greenhouse":
+                                    self.assertTrue(any(thread is not worker for thread in ssl_context_threads),
+                                        "Owned greenhouse request pool did not use its ready SSL context")
+                            self.assertTrue(all(used_at >= ssl_context_ready_at for used_at in ssl_context_uses))
                         print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
                             print(f"OWNED_ADAPTER_CANCEL_BOUNDARY response={cancel_response_elapsed:.3f}s "
@@ -677,6 +741,15 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
     def test_greenhouse_public_cancel_during_real_tcp_connect(self):
         self.run_source("greenhouse", "cancel")
 
+    def test_greenhouse_ssl_readiness_rejects_outer_worker_only_scope(self):
+        # Recreate the old ownership boundary. Healthy real HTTP requests still
+        # complete, but the fixture must reject bypassed prepared SSL readiness.
+        with patch.object(OwnedRequestThreads, "owns_current_thread",
+                          new=lambda scope: threading.current_thread() is scope.worker):
+            with self.assertRaisesRegex(AssertionError,
+                                       "Owned greenhouse transport did not use its ready SSL context"):
+                self.run_source("greenhouse", "positive")
+
     def test_remoteok_public_cancel_during_real_tcp_connect(self):
         self.run_source("remoteok", "cancel", worker_unwind_delay=.4)
 
@@ -700,7 +773,14 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             with self.subTest(provider=provider):
                 self.run_source(provider, "deadline",
                                 coordinator_delay=1.05 if provider == "remoteok" else 0,
-                                ssl_setup_delay=1.1 if provider == "remoteok" else 0)
+                                ssl_setup_delay=1.1 if provider in ("greenhouse", "remoteok") else 0)
+
+    def test_greenhouse_cold_ssl_setup_exhausts_worker_deadline_before_connect(self):
+        self.run_source("greenhouse", "cold_ssl_deadline", ssl_setup_delay=1.1)
+
+    def test_greenhouse_real_deadline_expires_before_ssl_setup_without_connect(self):
+        self.run_source("greenhouse", "pre_ssl_deadline",
+                        transport_setup_delay=1.0, ssl_setup_delay=1.1)
 
     def test_remoteok_cold_ssl_setup_exhausts_worker_deadline_before_connect(self):
         # Genuine SSL setup must consume the original logical deadline even
