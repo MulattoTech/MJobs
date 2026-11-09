@@ -191,5 +191,64 @@
     }
   },
   "rollback": "Revert this dedicated feature-branch change through the protected PR workflow; no migration or data rewrite.",
-  "integration_authority": "PR_ONLY"
+  "integration_authority": "PR_ONLY",
+  "updated_at_utc": "2026-11-09T13:57:55.814121+00:00",
+  "historical_scanner_dependency": {
+    "failed_head": "720c660de314bcc55cae1eb41ee4d4932e4aeab7",
+    "failed_job": "https://github.com/MulattoTech/MJobs/actions/runs/42627477299/job/129194876071",
+    "finding_count": 1,
+    "classification": "VERIFIED_NON_SECRET_SOURCE_CHECKSUM",
+    "immutable_fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "reviewer": "ChatGPT-Web independent terminal_review",
+    "source_commit": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+    "source_path": "tests/integration/test_career_story_import_api.py",
+    "source_git_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_bytes": 5844,
+    "recomputed_sha256": "bcdb8e13663f81eaad52cfdbefe40ae3a3a3ac7476307219c58e90e72a6af2c3",
+    "raw_byte_hash_matches_evidence": true,
+    "unchanged_exception_source": "a796ffb478833fbcf87ff79892b6047108336226",
+    "ignore_git_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "added_lines": 4,
+    "proof_sha256": "b290198b51cbe766142d0c65a3a5895392aca6d9016a5b599a55938b3507e5a2",
+    "scope": "Exactly one immutable historical commit/path/rule/line fingerprint. Existing scanner --all, rules, workflows and required gates retained.",
+    "fresh_scanner_result": "NOT_RUN before followup publication; inspect required hosted check on resulting exact head."
+  },
+  "runtime_compatibility": {
+    "result": "SCOPED_COMPATIBILITY_PASS",
+    "base_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "application_order": [
+      {
+        "pr": 975,
+        "head": "422551182c1ee0e5191696d23c33f763bdbc6052"
+      },
+      {
+        "pr": 983,
+        "head": "bb18b3137d0d160a57209dd4eb1c01b91e23f019"
+      },
+      {
+        "pr": 994,
+        "head": "720c660de314bcc55cae1eb41ee4d4932e4aeab7"
+      }
+    ],
+    "method": "Each exact main-to-head diff applied with git apply --index --3way --whitespace=error in a new disposable cloud checkout.",
+    "manual_conflict_resolutions": 0,
+    "combined_tree": "b1ca71dbd0299258581c010601a117d393f04aad",
+    "runtime_blob": "34581ba0d9fe200229e1006ae5ceea5cfd9e5406",
+    "validation": "41 passed, 47 subtests passed in 3.47s",
+    "command": [
+      "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_agent_tools.py",
+      "tests/integration/test_agent_diagnostic_reruns.py",
+      "tests/integration/test_agent_review_decisions.py",
+      "tests/integration/test_agent_terminal_precedence.py",
+      "tests/unit/test_agent_acceptance.py",
+      "--junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/runtime-compatibility-junit.xml"
+    ],
+    "junit_sha256": "46d6880eab8f18db6324a037e25f2b3673fb9a51cd20cd136840242865b9a550",
+    "proof_sha256": "7d28e28d9a3274e6e75bb856c9d7b67bf2a4f3e30b0f0f481258eda0caf3b21e",
+    "scope": "The three exact PR diffs combine without textual conflicts and pass focused agent runtime, diagnostic, review, terminal outcome and collection acceptance regressions. This is not full requirement acceptance, a hosted-check result, or merge/deployment authorization."
+  }
 }
