@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-109-SEVEN-TASK-SETTINGS-20261109-82EE",
-  "recorded_at_utc": "2026-11-09T17:55:26.589830+00:00",
+  "recorded_at_utc": "2026-11-09T20:43:04.087693+00:00",
   "requirement_id": "MJ-REQ-109",
   "issue": 110,
   "result": "PARTIAL",
@@ -13,8 +13,10 @@
     "literal_requirement": "Configure different models for job parsing, job scoring, requirement extraction, resume tailoring, cover letters, free-form answers, and company summarization.",
     "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/MJ-REQ-109-task-settings",
     "base_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
-    "candidate_state": "Uncommitted acceptance files on the immutable base above; content hashes identify the tested additions. Source commit and hosted evidence must be recorded after publication.",
-    "canonical_acceptance": "UNCHANGED; MJ-REQ-109 remains PARTIAL pending connected-browser proof and acceptance reconciliation."
+    "candidate_state": "Reviewed acceptance candidate with the exact common scanner dependency; hosted browser proof still NOT_RUN. Source/workflow/test bytes remain those of the recorded committed revision.",
+    "canonical_acceptance": "UNCHANGED; MJ-REQ-109 remains PARTIAL pending connected-browser proof and acceptance reconciliation.",
+    "source_revision": "0eb6ecc2f6a5156340cb3aedf92b248d4f143f14",
+    "previous_publication_revision": "417c97c5c47163e11ad0224a53f795b6236fffc0"
   },
   "criterion_mapping": {
     "job_parsing": {
@@ -91,7 +93,7 @@
   ],
   "hosted_verification": {
     "workflow": ".github/workflows/ai-task-settings-acceptance.yml",
-    "status": "PREPARED_NOT_RUN",
+    "status": "BLOCKED_PRE_JOB_ON_PRIOR_PUBLICATION; CURRENT_UPDATE_NOT_RUN",
     "jobs": 1,
     "job_timeout_minutes": 20,
     "collected_tests": 22,
@@ -116,7 +118,27 @@
       "requirements.lock",
       "requirements.txt",
       ".github/test-requirements.txt"
-    ]
+    ],
+    "prior_run": {
+      "id": 42672743071,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42672743071",
+      "head_sha": "417c97c5c47163e11ad0224a53f795b6236fffc0",
+      "attempt": 1,
+      "conclusion": "failure",
+      "exposed_jobs": 0,
+      "artifacts": 0,
+      "primary_tests": "NOT_RUN",
+      "browser_cases": "NOT_RUN",
+      "run_level_annotation": "Internal server error. Correlation ID: 3d5146bc-d290-49dd-88d5-9405dbe67b50",
+      "annotation_read_at_utc": "2026-11-09T20:39:50.329990+00:00",
+      "failed_job_retry": {
+        "result": "REJECTED_NO_EXECUTION",
+        "http_status": 403,
+        "message": "This workflow run cannot be retried",
+        "attempts": 1
+      },
+      "scanner_distinction": "The same-head scanner workflow also exposed zero jobs; its failure is not fresh fingerprint evidence."
+    }
   },
   "test_boundaries": {
     "profiles": "Two fictional profiles copied from the existing synthetic fixture, in a disposable SQLite database.",
@@ -132,14 +154,14 @@
   },
   "review": {
     "test_review": "Root and /root/pr_readiness independently reviewed both new tests; no blocking findings. Existing API/provider validators remain real, all seven literal configuration criteria represented.",
-    "workflow_review": "/root/pr_readiness and root reviewed the final one-job workflow with mounted UI/API/store paths, authoritative dependency cache inputs, pinned actions, read-only permissions, exact-head checkout, no secrets, and bounded synthetic execution. READY_FOR_COMMIT_AND_HOSTED_VERIFICATION; not whole-requirement PASS.",
+    "workflow_review": "The exact committed workflow was independently reviewed by /root/pr_readiness and root; no blocking findings. Its first hosted run stopped before any job due to the recorded GitHub internal server error. No workflow correction or weakened check is introduced.",
     "reviewed_at_utc": "2026-11-09T18:04:59.648826+00:00"
   },
   "environment": {
     "python": "3.12.14",
     "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
     "python_environment": "Isolated cloud venv with repository-pinned requirements installed by root.",
-    "browser_runtime": "NOT_RUN locally; hosted execution pending."
+    "browser_runtime": "NOT_RUN locally; the first hosted run failed before jobs. No local security-control bypass or repeated retry."
   },
   "new_file_inputs": {
     "tests/integration/test_ai_seven_task_settings_acceptance.py": {
@@ -155,7 +177,7 @@
       "sha256": "f5a308fa99b3e3ddc46fc222f7f5a24c71bdec2d2f3212c24a31cc0d1a36740b"
     }
   },
-  "next_action": "Root reviews the workflow, commits and publishes this coherent acceptance-only PR, observes the targeted hosted job, then records immutable browser proof and reconciles acceptance. Keep separate from PR1000.",
+  "next_action": "Publish the bounded reviewed dependency/evidence update to existing PR1009, verify its exact-head hosted workflow and artifacts if GitHub starts it, then reconcile acceptance only after all criteria pass. Preserve issue110 OPEN/PARTIAL until then.",
   "exact_revision_validation": {
     "tested_commit": "0eb6ecc2f6a5156340cb3aedf92b248d4f143f14",
     "command": "python -m pytest -q tests/integration/test_ai_seven_task_settings_acceptance.py tests/integration/test_ai_task_settings_api.py tests/unit/test_ai_task_configuration.py --junitxml=ai-settings-exact-82ee.xml",
@@ -169,10 +191,16 @@
     "recorded_at_utc": "2026-11-09T18:10:01.257468+00:00"
   },
   "publication_dependency": {
-    "status": "WAITING_OWNER_RELEASE",
+    "status": "EXACT_REVIEWED_COMMON_BLOB_REUSED",
     "path": ".gitleaksignore",
-    "reviewed_common_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
-    "active_foreign_claim": "web:web-20261109T131824Z-4f1d2da391c4:scanner-approved-fingerprints",
-    "policy": "No conflicting scanner edit; preserve required gate and coordinate the published exact dependency."
+    "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+    "review_url": "https://github.com/MulattoTech/MJobs/pull/1006#pullrequestreview-5829689648",
+    "proof_url": "https://github.com/MulattoTech/MJobs/blob/d71d1b545771de421ba06db79557206e01677814/docs/evidence/2026-11-09-web-810d-reviewed-history-fingerprints.json",
+    "dependency_pass_url": "https://github.com/MulattoTech/MJobs/actions/runs/42661816471/job/129315056547",
+    "same_owner_pr1000_pass_url": "https://github.com/MulattoTech/MJobs/actions/runs/42668241010/job/129337549295",
+    "own_path_claim": "web:web-20261109T173838Z-82ee9dc5ccd8:scanner-common-reuse",
+    "claim_acquired_at_utc": "2026-11-09T20:41:40.789910+00:00",
+    "scope": "Exact five reviewed public Git identifier fingerprints only. All existing rules and all-ref scan scope preserved. Dependency success does not substitute for this publication head."
   }
 }

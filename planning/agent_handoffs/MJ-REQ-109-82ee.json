@@ -6,7 +6,7 @@
   "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/MJ-REQ-109-task-settings",
   "head_sha": "0eb6ecc2f6a5156340cb3aedf92b248d4f143f14",
   "routing_state": "VERIFY",
-  "next_action": "Publish the independently reviewed one-job acceptance candidate; obtain exact hosted JUnit and revision receipts; reuse the reviewed scanner dependency only after coordinated path release.",
+  "next_action": "Publish the exact reviewed scanner dependency update to PR1009. Obtain hosted JUnit/revision proof on the resulting head; if GitHub again fails before jobs, retain NOT_RUN and report its annotation. Issue110 remains OPEN/PARTIAL.",
   "created_at": "2026-11-09T17:55:50.780341+00:00",
   "requirements": [
     "MJ-REQ-109"
@@ -25,7 +25,7 @@
       "result": "PASS"
     },
     {
-      "command": "Hosted .github/workflows/ai-task-settings-acceptance.yml: 22 selected cases, including three browser cases; publication/run pending",
+      "command": "Hosted run42672743071 on published417c97c5: failure before any jobs/artifacts; all22 selected cases including3 browser cases remain NOT_RUN. GitHub annotation and retry denial recorded in paired evidence.",
       "result": "NOT_RUN"
     },
     {
@@ -33,9 +33,17 @@
       "result": "PASS"
     }
   ],
-  "blockers": [],
+  "blockers": [
+    "Connected browser acceptance is NOT_RUN: original run42672743071 stopped before jobs with GitHub internal server error (correlation3d5146bc-d290-49dd-88d5-9405dbe67b50); one targeted retry was rejected HTTP403, This workflow run cannot be retried.",
+    "No whole-requirement PASS or issue110 closure until all browser criteria execute successfully on a source-bound candidate."
+  ],
   "environment_limits": [
     "Local browser execution is unavailable due to previously observed OS EPERM; no retry or bypass attempted. Dedicated hosted route prepared."
   ],
-  "updated_at": "2026-11-09T18:10:01.258134+00:00"
+  "updated_at": "2026-11-09T20:43:04.087693+00:00",
+  "publication_dependency": {
+    "state": "EXACT_COMMON_BLOB_REUSED_UNDER_OWN_CLAIM",
+    "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "hosted_current_update": "NOT_RUN"
+  }
 }
