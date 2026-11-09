@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031106Z-31f99071bbd9",
+  "requirement_id": "MJ-REF-024",
+  "issue": 394,
+  "scope": "Follow-up draft query context and asynchronous clipboard feedback",
+  "recorded_at_utc": "2026-11-09T03:29:14.300359+00:00",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+  "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+  "git_blobs": {
+    "apps/web/src/application-follow-up-drafts.tsx": "2090d9858a5d8031021790be13f13124bf08bd8a",
+    "apps/web/src/application-follow-up-drafts.test.tsx": "184a171c088fea85aef3f9b4656aa990a26d17c8",
+    "apps/web/package-lock.json": "d9bf83e1051a5ad1fb56936f5f668982a8c2c99d"
+  },
+  "scope_result": "PASS",
+  "fresh_full_requirement_PASS": false,
+  "canonical_matrix_changed": false,
+  "baseline": {
+    "production_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "production_blob": "ad4ad90ecb30fabe10cb069dbd5c0193cb48e888",
+    "new_regression_test_blob": "246a07f7037bd63a18229d370cf907fdb17f5c5f",
+    "result": "7 failed, 6 passed; stale first commits and obsolete clipboard completions reproduced",
+    "final_test_adjustment": "Removed seven unsupported Testing Library exact options; string name matching remains exact. Removed trailing blank line."
+  },
+  "environment": {
+    "os": "Windows",
+    "node": "v27.0.0-alpha.0.0.0",
+    "vitest": "5.0.3",
+    "jsdom": "26.1.0",
+    "typescript": "7.0.2",
+    "workers": 1,
+    "dependencies": "Private copies of cached dependencies. Missing packages copied only when their version matched the existing lockfile; no install, dependency-file edit or shared symlink."
+  },
+  "checks": [
+    {
+      "name": "vitest-final",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/application-follow-up-drafts.test.tsx",
+        "--maxWorkers=1",
+        "--no-file-parallelism",
+        "--coverage.enabled=false"
+      ],
+      "cwd": "apps\\web",
+      "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "started_utc": "2026-11-09T03:29:12.672076+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "RUN  v5.0.3 C:/Tools/Dev/MJobs-Web/31f99071-ref024/apps/web\n\n\n Test Files  1 passed (1)\n      Tests  13 passed (13)\n   Start at  21:29:12\n   Duration  885ms (environment 44%, tests 29%, import 20%, transform 7%)"
+    },
+    {
+      "name": "typecheck-final",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--ignoreConfig",
+        "--noEmit",
+        "--strict",
+        "--skipLibCheck",
+        "--jsx",
+        "react-jsx",
+        "--module",
+        "ESNext",
+        "--moduleResolution",
+        "Bundler",
+        "--target",
+        "ES2022",
+        "--lib",
+        "ES2022,DOM,DOM.Iterable",
+        "--verbatimModuleSyntax",
+        "src/vite-env.d.ts",
+        "src/application-follow-up-drafts.tsx",
+        "src/application-follow-up-drafts.test.tsx"
+      ],
+      "cwd": "apps\\web",
+      "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "started_utc": "2026-11-09T03:29:13.821221+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": ""
+    },
+    {
+      "name": "catalogue",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "cwd": ".",
+      "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "started_utc": "2026-11-09T03:29:13.974068+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Catalogue validation: PASS"
+    },
+    {
+      "name": "progress-validate",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "cwd": ".",
+      "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "started_utc": "2026-11-09T03:29:14.047317+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Progress journal validation: PASS"
+    },
+    {
+      "name": "dashboard-check",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "cwd": ".",
+      "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "started_utc": "2026-11-09T03:29:14.120365+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": "Progress dashboard: CURRENT"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": ".",
+      "tested_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "started_utc": "2026-11-09T03:29:14.218694+00:00",
+      "exit_code": 0,
+      "result": "PASS",
+      "summary": ""
+    }
+  ],
+  "local_environment_observations": [
+    "First run executed zero tests because the primary cache lacked jsdom; retained log; fixed using a private matching-version cache copy.",
+    "TypeScript 7 command-line invocation requires --ignoreConfig when explicit files are supplied; the final invocation preserves strict/verbatimModuleSyntax settings."
+  ],
+  "independent_review": {
+    "reviewer": "separate ChatGPT-Web subagent pr_inventory",
+    "scope": "source, regression assertions, focus, ABA transitions, effect cleanup, StrictMode and SSR",
+    "result": "No blocking findings",
+    "execution": "NOT_RUN by reviewer; root executed checks"
+  },
+  "verified_contracts": [
+    "No previous-context draft or API error is committed after profile or quiet-day changes",
+    "Old clipboard completion cannot erase or replace current context feedback",
+    "Within one context, superseded copy results do not replace the newest operation feedback",
+    "Returning to an earlier context does not revive its previous promises",
+    "The selector DOM node and keyboard focus survive quiet-day changes",
+    "Empty profile starts no lookup and displays no copyable candidates"
+  ],
+  "not_run": [
+    "Full web production build and real-browser acceptance: heavy resource gate not met",
+    "Full backend/unit/integration suites: no backend changes and no heavy slot",
+    "Deployed runtime/UI: no deployment performed",
+    "Fresh full MJ-REF-024 acceptance: another verifier owns review, this is a repair slice"
+  ],
+  "limits": [
+    "Already-requested browser clipboard writes cannot be cancelled; this repair governs UI feedback, not OS clipboard completion ordering.",
+    "Normal main.tsx profile switching already unmounts this component; direct prop-change coverage is not a claim of a reproduced production cross-profile leak.",
+    "Tracking-status changes do not invalidate mounted follow-up results; global consumer refresh remains an independent gap owned with apps/web/src/main.tsx.",
+    "No acceptance promotion, merge, external message/application submission or deployment."
+  ],
+  "resource_gate": {
+    "observed_at": "2026-11-09T03:19:52.857944+00:00",
+    "sample_duration_seconds": 308.105554,
+    "samples": 21,
+    "cpu_average_percent": 43.285714285714285,
+    "minimum_available_ram_gib": 11.292,
+    "latest_ram_gib": 11.375,
+    "disk_free_gib": 250.56156158447266,
+    "latest_independent_snapshot": "2026-11-09T03:18:38Z 11.131GiB 44%CPU",
+    "resource_claim": "web:web-20261109T031106Z-31f99071bbd9:light-local-1",
+    "max_light_slots": 2,
+    "heavy_admitted": false
+  },
+  "rollback": "Normal protected revert of the isolated source commit; no persisted data or API schema changed.",
+  "dependency_verification": {
+    "classification": "PUBLIC_SOURCE_CHECKSUM_FALSE_POSITIVE",
+    "evidence_commit": "20fea5e07086c8180beff97f5307e0ef3ce2aa89",
+    "evidence_path": "docs/evidence/2026-11-07-ref002-bounded-story-import.json",
+    "line": 45,
+    "implementation_commit": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+    "source_path": "tests/integration/test_career_story_import_api.py",
+    "source_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_bytes": 5844,
+    "sha256_matches_flagged_value": true,
+    "independent_reviewer": "pr_inventory",
+    "scanner_result_at_981_head": "FAIL",
+    "remedy": "Exact fingerprint already published in PR977 and PR978; preserve active peer ownership",
+    "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "original_exception_only_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "incorporated_dependency_commit": "ae0b32091703737cebf2ebb394adefab4fb5feba",
+    "ignore_git_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "scope_claim": "web:web-20261109T031106Z-31f99071bbd9:secret-history-dependency",
+    "incorporated_utc": "2026-11-09T03:52:36.409376+00:00",
+    "source_and_test_blobs_unchanged": true,
+    "exact_head_hosted_scan": "PENDING",
+    "local_pinned_linux_scan": "NOT_RUN on Windows; hosted verification required"
+  },
+  "updated_at_utc": "2026-11-09T03:52:36.409376+00:00"
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-024-async-state",
+  "objective": "Publish reviewed implementation with unchanged historical checksum exception dependency",
+  "owner": "ChatGPT-Web/web-20261109T031106Z-31f99071bbd9",
+  "branch": "web/web-20261109T031106Z-31f99071bbd9/MJ-REF-024-async-state",
+  "head_sha": "ae0b32091703737cebf2ebb394adefab4fb5feba",
+  "routing_state": "VERIFY",
+  "next_action": "Publish final owned head under atomic admission, inspect fresh hosted checks, then release owned claims at safe stop",
+  "created_at": "2026-11-09T03:52:36.546097+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Previously executed targeted tests on implementation SHA; exact source/test blob preservation after exception dependency; provenance, checkpoint and diff checks",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh final-head hosted scan and integration pending; full browser/deployed acceptance NOT_RUN",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full requirement acceptance not established; final hosted gates pending"
+  ]
+}
