@@ -155,5 +155,24 @@
       "sha256": "f5a308fa99b3e3ddc46fc222f7f5a24c71bdec2d2f3212c24a31cc0d1a36740b"
     }
   },
-  "next_action": "Root reviews the workflow, commits and publishes this coherent acceptance-only PR, observes the targeted hosted job, then records immutable browser proof and reconciles acceptance. Keep separate from PR1000."
+  "next_action": "Root reviews the workflow, commits and publishes this coherent acceptance-only PR, observes the targeted hosted job, then records immutable browser proof and reconciles acceptance. Keep separate from PR1000.",
+  "exact_revision_validation": {
+    "tested_commit": "0eb6ecc2f6a5156340cb3aedf92b248d4f143f14",
+    "command": "python -m pytest -q tests/integration/test_ai_seven_task_settings_acceptance.py tests/integration/test_ai_task_settings_api.py tests/unit/test_ai_task_configuration.py --junitxml=ai-settings-exact-82ee.xml",
+    "result": "PASS",
+    "primary_tests": 19,
+    "subtests": 17,
+    "seconds": 6.62,
+    "skips": 0,
+    "exit": 0,
+    "junit_sha256": "f34f10912960709d6933ca8b26e5edf43848a3f150c70bdc129aec8a5a7b7439",
+    "recorded_at_utc": "2026-11-09T18:10:01.257468+00:00"
+  },
+  "publication_dependency": {
+    "status": "WAITING_OWNER_RELEASE",
+    "path": ".gitleaksignore",
+    "reviewed_common_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "active_foreign_claim": "web:web-20261109T131824Z-4f1d2da391c4:scanner-approved-fingerprints",
+    "policy": "No conflicting scanner edit; preserve required gate and coordinate the published exact dependency."
+  }
 }
