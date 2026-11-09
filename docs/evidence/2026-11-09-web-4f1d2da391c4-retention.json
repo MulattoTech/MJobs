@@ -141,6 +141,28 @@
     "observed_failure": "PR1001 scanner reported two public Git object identifiers in another worker's source-evidence maps; imported exact immutable fingerprints after original scanner owner released its atomic claim.",
     "verification": "Original reported values were independently fetched at their exact historical commit and matched Git object identity on the exact public source file. Root independently reran the Git-object lookup. Artifact digest matches hosted metadata.",
     "scope": "No scanner rule, workflow, directory, path or secret-type exemption. Only the two reviewed commit/path/rule/line fingerprints; pre-existing approved exceptions retained.",
-    "hosted_after_repair": "NOT_RUN; must inspect exact published repaired head."
+    "hosted_after_repair": "NOT_RUN; must inspect exact published repaired head.",
+    "later_historical_finding": {
+      "failed_shared_run": 42651609957,
+      "source_commit": "aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45",
+      "source_evidence_url": "https://github.com/MulattoTech/MJobs/blob/aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45/docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json",
+      "line": 20,
+      "rule": "generic-api-key",
+      "classification": "Same public Git object identifier as the two previously reviewed findings; exact committed line independently fetched and matched to the recorded public source Git object. One immutable fingerprint added.",
+      "reviewers": [
+        "Root ChatGPT-Web",
+        "Independent agent reviewing redacted artifact and exact Git source"
+      ],
+      "recorded_at_utc": "2026-11-09T16:21:42.373277+00:00"
+    },
+    "api_acceptance_historical_finding": {
+      "source_commit": "cc1e5083ce1a94b20a424e09a038c0f72972ab10",
+      "source_evidence_url": "https://github.com/MulattoTech/MJobs/blob/cc1e5083ce1a94b20a424e09a038c0f72972ab10/docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json",
+      "line": 520,
+      "rule": "generic-api-key",
+      "failed_run": 42652619306,
+      "classification": "Public source Git object identity, not a credential. Root and independent reviewer fetched the exact evidence/source, recomputed the object, and confirmed identical current-main source bytes. One immutable fingerprint added.",
+      "hosted_repaired_head": "NOT_RUN"
+    }
   }
 }
