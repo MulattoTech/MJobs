@@ -29,6 +29,166 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class SavedSearchFiltersBrowserTests(unittest.TestCase):
+    def test_saved_priority_and_visibility_choices_restore_and_clear_without_policy_changes(self):
+        from services.matching.company_preferences import get_company_preference, set_company_preference
+        from services.tracking.jobs import read_job_tracking, set_job_disposition
+
+        with tempfile.TemporaryDirectory(prefix="mjobs-saved-visibility-browser-") as directory:
+            root = Path(directory)
+            database_url = f"sqlite:///{(root / 'browser.db').as_posix()}"
+            store = Store(database_url)
+            self.addCleanup(store.engine.dispose)
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                                "email": "other@example.test"})
+            with fixture_server() as source_origin:
+                discover(store, source_origin, "fixture")
+            with store.engine.connect() as connection:
+                hidden = dict(connection.execute(select(m.jobs).where(
+                    m.jobs.c.title == "Data Engineer")).mappings().one())
+            set_job_disposition(store, "fixture", hidden["id"], "HIDDEN", "browser-save-hide")
+            set_company_preference(store, "fixture", hidden["company_id"], "BLACKLISTED", "browser-save-blacklist")
+            preference_before = get_company_preference(store, "fixture", hidden["company_id"])
+            tracking_before = read_job_tracking(store, "fixture", hidden["id"])
+            operations_before = store.count("worker_operations")
+            applications_before = store.count("applications")
+            store.engine.dispose()
+            store = Store(database_url)
+            self.addCleanup(store.engine.dispose)
+
+            sock = bound_browser_socket()
+            origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+            server = uvicorn.Server(uvicorn.Config(
+                create_app(store, "http://127.0.0.1:1", root,
+                           "redis://127.0.0.1:1/0", operation_mode="FIXTURE"),
+                log_level="error"))
+            thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+            try:
+                thread.start()
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail("Isolated saved-visibility API did not start")
+                    time.sleep(0.02)
+
+                external = []
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(headless=True)
+                    context = browser.new_context()
+
+                    def local_only(route):
+                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
+                            external.append(route.request.url)
+                            route.abort()
+                        else:
+                            route.continue_()
+
+                    context.route("**/*", local_only)
+                    legacy = context.request.put(origin + "/search-profiles", data={
+                        "id": "legacy-visibility", "profile_id": "fixture", "name": "Legacy saved filters",
+                        "enabled": False, "include_titles": [], "remote": "ANY",
+                        "employment_types": [], "source_ids": [],
+                        "job_filters": {"q": "", "remote_type": "", "provider": "", "sort": "title"},
+                    })
+                    self.assertEqual(legacy.status, 200, legacy.text())
+                    page = context.new_page()
+                    page.set_default_timeout(8000)
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                    page.reload(wait_until="domcontentloaded")
+                    expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+                    searches = page.get_by_label("Saved search profile", exact=True)
+                    expect(searches.locator("option", has_text="Legacy saved filters")).to_have_count(1)
+                    dismissed = page.get_by_label("Show hidden and not interested", exact=True)
+                    blacklisted = page.get_by_label("Show blacklisted companies", exact=True)
+                    job_list = page.locator(".job-list")
+                    python_card = job_list.get_by_role("button", name="Example Systems Inc. Python Developer", exact=True)
+                    hidden_card = job_list.get_by_role("button", name="Example Systems Inc. Data Engineer", exact=True)
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    expect(python_card).to_have_count(0)
+                    expect(hidden_card).to_have_count(0)
+                    blacklisted.check()
+                    expect(python_card).to_be_visible()
+                    expect(hidden_card).to_have_count(0)
+                    dismissed.check()
+                    expect(hidden_card).to_be_visible()
+                    page.get_by_label("Sort", exact=True).select_option("application_priority")
+                    page.get_by_label("Saved search name", exact=True).fill("Review hidden employers")
+                    with page.expect_response(lambda response:
+                            response.url == origin + "/search-profiles"
+                            and response.request.method == "PUT") as saved_response:
+                        page.get_by_role("button", name="Save current filters", exact=True).click()
+                    self.assertEqual(saved_response.value.status, 200, saved_response.value.text())
+                    expect(searches.locator("option", has_text="Review hidden employers")).to_have_count(1)
+                    saved_id = searches.locator("option", has_text="Review hidden employers").get_attribute("value")
+                    persisted = context.request.get(origin + "/search-profiles", params={"profile_id": "fixture"})
+                    record = next(row for row in persisted.json()["search_profiles"] if row["id"] == saved_id)
+                    self.assertEqual(record["criteria"]["job_filters"]["sort"], "application_priority")
+                    self.assertIs(record["criteria"]["job_filters"]["include_dismissed"], True)
+                    self.assertIs(record["criteria"]["job_filters"]["include_blacklisted"], True)
+                    self.assertFalse(record["enabled"])
+
+                    searches.select_option("")
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    expect(python_card).to_have_count(0)
+                    searches.select_option(saved_id)
+                    expect(dismissed).to_be_checked()
+                    expect(blacklisted).to_be_checked()
+                    expect(page.get_by_label("Sort", exact=True)).to_have_value("application_priority")
+                    expect(python_card).to_be_visible()
+                    expect(hidden_card).to_be_visible()
+
+                    page.reload(wait_until="domcontentloaded")
+                    expect(searches.locator("option", has_text="Review hidden employers")).to_have_count(1)
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    searches.select_option(saved_id)
+                    expect(dismissed).to_be_checked()
+                    expect(blacklisted).to_be_checked()
+                    expect(page.get_by_label("Sort", exact=True)).to_have_value("application_priority")
+                    expect(hidden_card).to_be_visible()
+
+                    # Old records do not inherit a previous search's opt-ins.
+                    searches.select_option("legacy-visibility")
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    expect(python_card).to_have_count(0)
+                    expect(hidden_card).to_have_count(0)
+                    searches.select_option(saved_id)
+                    expect(dismissed).to_be_checked()
+                    expect(blacklisted).to_be_checked()
+                    page.get_by_label("Active profile", exact=True).select_option("other")
+                    expect(searches).to_have_value("")
+                    expect(searches.locator("option", has_text="Review hidden employers")).to_have_count(0)
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    expect(python_card).to_be_visible()
+                    expect(hidden_card).to_be_visible()
+                    page.get_by_label("Active profile", exact=True).select_option("fixture")
+                    expect(dismissed).not_to_be_checked()
+                    expect(blacklisted).not_to_be_checked()
+                    expect(python_card).to_have_count(0)
+                    expect(hidden_card).to_have_count(0)
+                    self.assertEqual(external, [])
+                    context.close()
+                    browser.close()
+
+                self.assertEqual(get_company_preference(store, "fixture", hidden["company_id"]), preference_before)
+                self.assertEqual(read_job_tracking(store, "fixture", hidden["id"]), tracking_before)
+                self.assertEqual(store.count("worker_operations"), operations_before)
+                self.assertEqual(store.count("applications"), applications_before)
+                self.assertEqual(schedule_due_sources(store)["scheduled"], [])
+            finally:
+                server.should_exit = True
+                thread.join(timeout=5)
+                sock.close()
+                store.engine.dispose()
+            self.assertFalse(thread.is_alive(), "Isolated saved-visibility API did not stop")
+
     def test_saved_filters_restore_controls_results_and_clear_with_profile_isolation(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-saved-filters-browser-") as directory:
             root = Path(directory)

@@ -295,6 +295,98 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(row["criteria"]["job_filters"]["employment_type"], "")
         self.assertEqual(row["criteria"]["job_filters"]["skill"], "")
 
+    def test_priority_and_visibility_filters_survive_reopen_without_changing_policy(self):
+        from services.matching.company_preferences import (
+            get_company_preference, set_company_preference,
+        )
+        from services.tracking.jobs import read_job_tracking, set_job_disposition
+
+        jobs = self.client.get("/jobs", params={"sort": "title"}).json()["jobs"]
+        hidden_job, visible_job = jobs
+        company_id = hidden_job["company_id"]
+        set_job_disposition(self.store, "fixture", hidden_job["id"], "HIDDEN", "saved-view-hide")
+        set_company_preference(self.store, "fixture", company_id, "BLACKLISTED", "saved-view-blacklist")
+        preference_before = get_company_preference(self.store, "fixture", company_id)
+        tracking_before = read_job_tracking(self.store, "fixture", hidden_job["id"])
+        operations_before = self.store.count("worker_operations")
+        applications_before = self.store.count("applications")
+        filters = {
+            "q": "", "remote_type": "", "provider": "", "sort": "application_priority",
+            "include_dismissed": True, "include_blacklisted": True,
+        }
+        criteria = {**self._profile(job_filters=filters), "include_titles": [], "remote": "ANY"}
+        response = self.client.put("/search-profiles", json=criteria)
+        self.assertEqual(response.status_code, 200, response.text)
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                records = client.get("/search-profiles", params={"profile_id": "fixture"}).json()["search_profiles"]
+                record = next(row for row in records if row["id"] == "saved-filter")
+                saved = record["criteria"]["job_filters"]
+                self.assertEqual(saved["sort"], "application_priority")
+                self.assertIs(saved["include_dismissed"], True)
+                self.assertIs(saved["include_blacklisted"], True)
+                self.assertFalse(record["enabled"])
+                params = {"profile_id": "fixture", "search_profile_id": "saved-filter", "sort": saved["sort"]}
+                # Saved display preferences cannot change API defaults or eligibility.
+                self.assertEqual(client.get("/jobs", params=params).json()["jobs"], [])
+                shown = client.get("/jobs", params={
+                    **params, "include_dismissed": saved["include_dismissed"],
+                    "include_blacklisted": saved["include_blacklisted"],
+                })
+                self.assertEqual(shown.status_code, 200, shown.text)
+                self.assertEqual({row["id"] for row in shown.json()["jobs"]}, {row["id"] for row in jobs})
+                hidden_again = client.get("/jobs", params={**params, "include_blacklisted": True})
+                self.assertEqual([row["id"] for row in hidden_again.json()["jobs"]], [visible_job["id"]])
+                self.assertEqual(client.get("/jobs", params={**params, "include_dismissed": True}).json()["jobs"], [])
+                ai_preview = client.get("/profiles/fixture/ai-cost-plan", params={
+                    "search_profile_id": "saved-filter",
+                })
+                self.assertEqual(ai_preview.status_code, 200, ai_preview.text)
+                self.assertEqual(ai_preview.json()["plan"]["scanned_job_count"], 0)
+                self.assertEqual(ai_preview.json()["candidates"], [])
+                self.assertIs(ai_preview.json()["no_model_calls"], True)
+                self.assertEqual(client.get("/jobs", params={**params, "profile_id": "other"}).status_code, 409)
+                self.assertEqual(client.get("/search-profiles", params={"profile_id": "other"}).json()["search_profiles"], [])
+                enabled = client.put("/search-profiles", json={
+                    "id": record["id"], "profile_id": "fixture", "name": record["name"], "enabled": True,
+                })
+                self.assertEqual(enabled.status_code, 422, enabled.text)
+                self.assertEqual(schedule_due_sources(reopened)["scheduled"], [])
+                self.assertEqual(get_company_preference(reopened, "fixture", company_id), preference_before)
+                self.assertEqual(read_job_tracking(reopened, "fixture", hidden_job["id"]), tracking_before)
+                self.assertEqual(reopened.count("worker_operations"), operations_before)
+                self.assertEqual(reopened.count("applications"), applications_before)
+        finally:
+            reopened.engine.dispose()
+
+    def test_visibility_preferences_reject_untyped_updates_atomically_and_clear_explicitly(self):
+        filters = {
+            "q": "", "remote_type": "", "provider": "", "sort": "application_priority",
+            "include_dismissed": True, "include_blacklisted": True,
+        }
+        payload = self._profile(job_filters=filters)
+        response = self.client.put("/search-profiles", json=payload)
+        self.assertEqual(response.status_code, 200, response.text)
+        before = self.client.get("/search-profiles", params={"profile_id": "fixture"}).json()
+        for key in ("include_dismissed", "include_blacklisted"):
+            for value in (None, 0, 1, "false", "true", [], {}):
+                with self.subTest(key=key, value=value):
+                    invalid = self.client.put("/search-profiles", json={
+                        **payload, "job_filters": {**filters, key: value},
+                    })
+                    self.assertEqual(invalid.status_code, 422, invalid.text)
+                    self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "fixture"}).json(), before)
+        cleared = self.client.put("/search-profiles", json={
+            **payload, "job_filters": {**filters, "include_dismissed": False, "include_blacklisted": False},
+        })
+        self.assertEqual(cleared.status_code, 200, cleared.text)
+        row = self.client.get("/search-profiles", params={"profile_id": "fixture"}).json()["search_profiles"][0]
+        self.assertIs(row["criteria"]["job_filters"]["include_dismissed"], False)
+        self.assertIs(row["criteria"]["job_filters"]["include_blacklisted"], False)
+
     def test_saved_job_filters_accept_experience_level_and_legacy_payload(self):
         filters = {"q": "", "title": "", "company": "", "location": "",
                    "salary_min": "", "salary_max": "", "min_match_score": "",
