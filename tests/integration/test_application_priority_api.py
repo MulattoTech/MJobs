@@ -115,6 +115,125 @@ class ApplicationPriorityApiTests(unittest.TestCase):
                 for table in m.metadata.sorted_tables
             }
 
+    def _set_coverage_signals(self, *, work_arrangement=False, expiration=True):
+        attributes = {
+            "reported_posted_at": "2026-10-08T12:00:00Z",
+            "application_complexity": "MEDIUM",
+            "experience_level": "SENIOR",
+            "recruiter_classification_evidence": [self._evidence()],
+        }
+        if expiration:
+            attributes["expires_at"] = "2026-10-12T12:00:00Z"
+        components = self._components()
+        if work_arrangement:
+            components["fit_factors"].append({
+                "id": "work_arrangement", "status": "ALIGNS",
+            })
+        self._set_job_signals(
+            attributes=attributes, components=components,
+            postings=("2026-10-08T12:00:00Z",),
+        )
+        saved = self.client.put(
+            "/profiles/fixture/company-preferences/company-job",
+            json={"status": "NEUTRAL", "request_id": "coverage-company"},
+        )
+        self.assertEqual(saved.status_code, 200, saved.text)
+
+    def _apply_coverage_feedback(self, category):
+        feedback = self.client.post("/profiles/fixture/jobs/job/match-feedback", json={
+            "category": category, "request_id": f"coverage-feedback-{category}",
+        })
+        self.assertEqual(feedback.status_code, 200, feedback.text)
+        proposal = feedback.json()["preference_proposal"]
+        applied = self.client.post("/profiles/fixture/match-preferences", json={
+            "feedback_id": feedback.json()["feedback"]["id"],
+            "dimension": proposal["dimension"], "direction": proposal["direction"],
+            "request_id": f"coverage-apply-{category}",
+        })
+        self.assertEqual(applied.status_code, 200, applied.text)
+
+    def _read_priority_without_writes(self, *, client=None):
+        before = self._snapshot()
+        response = (client or self.client).get(self._url())
+        self.assertEqual(self._snapshot(), before)
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["match_score"], 80.0)
+        self.assertEqual(before[m.matches.name][0]["score"], 80.0)
+        self.assertTrue(body["advisory"])
+        self.assertFalse(body["affects_match_score"])
+        self.assertEqual(before[m.applications.name], [])
+        self.assertEqual(before[m.operations.name], [])
+        return body
+
+    def test_complete_persisted_evidence_with_work_arrangement_has_full_coverage(self):
+        self._set_coverage_signals(work_arrangement=True)
+
+        body = self._read_priority_without_writes()
+
+        self.assertEqual(body["coverage_percent"], 100)
+        self.assertEqual(body["unknowns"], [])
+        self.assertEqual(body["priority_score"], 85.0)
+        factors = {row["key"]: row for row in body["factors"]}
+        self.assertEqual(factors["work_arrangement"]["status"], "KNOWN")
+        self.assertEqual(factors["work_arrangement"]["contribution"], 10.0)
+        self.assertEqual(factors["company_preference"]["status"], "KNOWN")
+        self.assertTrue(all(row["status"] == "KNOWN" for row in body["factors"]))
+
+    def test_reviewed_weights_preserve_full_coverage_after_database_reopen(self):
+        self._set_coverage_signals()
+        preferences_before = self.store.profile("fixture")["preferences"]
+        initial = self._read_priority_without_writes()
+        self.assertEqual(initial["coverage_percent"], 100)
+        final_body = None
+        for category, factor_key, contribution in (
+            ("BAD_SALARY", "salary", 20.0),
+            ("TOO_SENIOR", "seniority", 3.0),
+        ):
+            self._apply_coverage_feedback(category)
+            with self.subTest(category=category):
+                body = self._read_priority_without_writes()
+                self.assertEqual(body["coverage_percent"], 100)
+                self.assertEqual(body["unknowns"], [])
+                factor = next(row for row in body["factors"] if row["key"] == factor_key)
+                self.assertEqual(factor["contribution"], contribution)
+                self.assertIn("user-reviewed", factor["explanation"].lower())
+                self.assertNotEqual(body["priority_score"], initial["priority_score"])
+                final_body = body
+        self.assertEqual(self.store.profile("fixture")["preferences"], preferences_before)
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{(self.root / 'priority.db').as_posix()}")
+        self.addCleanup(self.store.engine.dispose)
+        app = FastAPI()
+        app.include_router(create_application_priority_router(
+            self.store, now_provider=lambda: NOW,
+        ))
+        with self.subTest(stage="database_reopen"), TestClient(app) as client:
+            reopened = self._read_priority_without_writes(client=client)
+            self.assertEqual(reopened["coverage_percent"], 100)
+            self.assertEqual(reopened, final_body)
+
+    def test_added_factors_and_reviewed_weights_do_not_hide_missing_expiration(self):
+        self._set_coverage_signals(work_arrangement=True, expiration=False)
+        self._apply_coverage_feedback("BAD_SALARY")
+        self._apply_coverage_feedback("TOO_SENIOR")
+
+        body = self._read_priority_without_writes()
+
+        self.assertGreater(body["coverage_percent"], 0)
+        self.assertLess(body["coverage_percent"], 100)
+        self.assertEqual(body["coverage_percent"], 96.15)
+        self.assertEqual(body["unknowns"], ["expiration_risk"])
+        factors = {row["key"]: row for row in body["factors"]}
+        expiration = factors["expiration_risk"]
+        self.assertEqual(expiration["status"], "UNKNOWN")
+        self.assertIsNone(expiration["score"])
+        self.assertIsNone(expiration["contribution"])
+        self.assertTrue(all(row["status"] == "KNOWN" for key, row in factors.items()
+                            if key != "expiration_risk"))
+
     def test_priority_explanation_composes_current_signals_without_changing_match_score(self):
         evidence = [self._evidence()]
         attributes = {

@@ -159,7 +159,7 @@ def _factor(row, *, status, score=None, contribution=None, detail=None):
         explanation = f"{label} is unknown because a valid explicit signal was not supplied; it contributes no priority points."
     else:
         explanation = (
-            f"{detail} This factor has a {weight}% weight and contributes "
+            f"{detail} This factor has a relative weight of {weight} and contributes "
             f"{contribution:.2f} weighted priority points."
         )
     return {
@@ -178,7 +178,8 @@ def explain_application_priority(signals, *, now, applied_preferences=None):
 
     `now` must be timezone-aware for posting-age, source-freshness and expiration
     comparisons. Missing or invalid inputs remain UNKNOWN and are omitted from
-    the weighted mean, with their lost weight reflected in coverage_percent.
+    the weighted mean. Coverage is the percentage of all enabled, effective
+    factor weights supported by known signals, including reviewed adjustments.
     This result is advisory and never changes the match score or eligibility.
     """
     signals = signals if isinstance(signals, Mapping) else {}
@@ -219,9 +220,11 @@ def explain_application_priority(signals, *, now, applied_preferences=None):
     unknowns = []
     weighted_total = 0.0
     known_weight = 0
+    total_weight = 0
     for row in factors_to_score:
         key, _, signal_key, base_weight = row
         weight = adjusted_weights.get(key, base_weight)
+        total_weight += weight
         factor_row = (row[0], row[1], row[2], weight)
         result = extractors[key](signals.get(signal_key))
         if result is None:
@@ -252,7 +255,7 @@ def explain_application_priority(signals, *, now, applied_preferences=None):
     return {
         "priority_score": priority_score,
         "priority_band": priority_band,
-        "coverage_percent": known_weight,
+        "coverage_percent": round(known_weight * 100 / total_weight, 2) if total_weight else 0,
         "factors": factors,
         "unknowns": unknowns,
         "advisory": True,

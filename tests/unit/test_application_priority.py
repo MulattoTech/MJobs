@@ -1,5 +1,6 @@
 """Application priority is an explainable advisory separate from match fit."""
 
+from copy import deepcopy
 from datetime import datetime, timezone
 
 import pytest
@@ -10,8 +11,8 @@ from services.discovery.application_priority import explain_application_priority
 NOW = datetime(2026, 10, 9, 12, 0, tzinfo=timezone.utc)
 
 
-def test_known_signals_produce_deterministic_weighted_explanations():
-    signals = {
+def _known_signals():
+    return {
         "match_score": 80,
         "posted_at": "2026-10-08T12:00:00Z",
         "salary_status": "ALIGNS",
@@ -21,6 +22,10 @@ def test_known_signals_produce_deterministic_weighted_explanations():
         "source_freshness_at": "2026-10-07T12:00:00Z",
         "expires_at": "2026-10-11T12:00:00Z",
     }
+
+
+def test_known_signals_produce_deterministic_weighted_explanations():
+    signals = _known_signals()
 
     result = explain_application_priority(signals, now=NOW)
 
@@ -40,6 +45,81 @@ def test_known_signals_produce_deterministic_weighted_explanations():
     }
     assert all(row["explanation"] and row["source"] for row in result["factors"])
     assert explain_application_priority(signals, now=NOW) == result
+
+
+@pytest.mark.parametrize(("optional_signals", "expected_score"), [
+    ({"work_arrangement_status": "ALIGNS"}, 83.18),
+    ({"work_arrangement_status": "ALIGNS", "seniority_status": "TOO_SENIOR",
+      "seniority_level": "SENIOR"}, 77.92),
+])
+def test_full_coverage_includes_optional_factors_without_exceeding_a_percentage(
+        optional_signals, expected_score):
+    signals = {**_known_signals(), **optional_signals}
+    before = deepcopy(signals)
+
+    result = explain_application_priority(signals, now=NOW)
+
+    assert result["coverage_percent"] == 100
+    assert result["priority_score"] == expected_score
+    assert result["unknowns"] == []
+    assert signals == before
+    assert all("relative weight" in row["explanation"] for row in result["factors"])
+    assert all("% weight" not in row["explanation"] for row in result["factors"])
+
+
+@pytest.mark.parametrize(("direction", "expected_score"), [
+    ("INCREASE", 82.38), ("DECREASE", 80.53),
+])
+def test_fully_known_reviewed_weights_still_mean_full_coverage(direction, expected_score):
+    preferences = [{
+        "id": "salary-review", "dimension": "salary", "direction": direction,
+        "created_at": "2026-10-09T11:00:00Z",
+    }]
+    before = deepcopy(preferences)
+
+    result = explain_application_priority(
+        _known_signals(), now=NOW, applied_preferences=preferences,
+    )
+
+    assert result["coverage_percent"] == 100
+    assert result["priority_score"] == expected_score
+    assert result["unknowns"] == []
+    assert preferences == before
+    assert result["advisory"] is True
+    assert result["affects_match_score"] is False
+
+
+@pytest.mark.parametrize(("signals", "expected_coverage", "expected_score", "unknowns"), [
+    ({"work_arrangement_status": None}, 90.91, 81.5, ["work_arrangement"]),
+    ({"work_arrangement_status": "ALIGNS", "seniority_status": "TOO_SENIOR",
+      "seniority_level": "SENIOR", "expires_at": None},
+     95.83, 77.83, ["expiration_risk"]),
+])
+def test_optional_factor_coverage_keeps_missing_evidence_visible(
+        signals, expected_coverage, expected_score, unknowns):
+    result = explain_application_priority({**_known_signals(), **signals}, now=NOW)
+
+    assert result["coverage_percent"] == expected_coverage
+    assert result["priority_score"] == expected_score
+    assert result["unknowns"] == unknowns
+
+
+@pytest.mark.parametrize(("direction", "expected_coverage"), [
+    ("INCREASE", 80.95), ("DECREASE", 89.47),
+])
+def test_unknown_reviewed_factor_weight_is_included_in_possible_coverage(
+        direction, expected_coverage):
+    result = explain_application_priority(
+        {**_known_signals(), "salary_status": None}, now=NOW,
+        applied_preferences=[{
+            "id": "salary-review", "dimension": "salary", "direction": direction,
+            "created_at": "2026-10-09T11:00:00Z",
+        }],
+    )
+
+    assert result["coverage_percent"] == expected_coverage
+    assert result["priority_score"] == 78.24
+    assert result["unknowns"] == ["salary"]
 
 
 def test_explicit_feedback_preferences_adjust_only_advisory_priority_weights():
