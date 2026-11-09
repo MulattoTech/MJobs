@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-151",
+  "objective": "Enforce the company daily cap while retaining uncertain durable reservations",
+  "owner": "ChatGPT-Web web-20261109T031055Z-f61f749bf2d7",
+  "branch": "web/web-20261109T031055Z-f61f749bf2d7/MJ-REQ-151-company-window",
+  "head_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+  "routing_state": "VERIFY",
+  "next_action": "Observe exact publication-head hosted checks, obtain PostgreSQL and existing configured-limit evidence, then hand off for authorized protected integration; broader MJ-REQ-151 remains incomplete.",
+  "created_at": "2026-11-09T03:38:08.247569+00:00",
+  "requirements": [
+    "MJ-REQ-151"
+  ],
+  "tests": [
+    {
+      "command": "At 3254eb40079725d213129a8f71c12731ee4f6b1e: focused company-window pytest 18 passed, 49 subtests; real SQLite, no stubs",
+      "result": "PASS"
+    },
+    {
+      "command": "Baseline 971ba931418fc271e7a652e27c288e1776448b6d: three expiry regressions fail as expected, without collection/import errors",
+      "result": "PASS"
+    },
+    {
+      "command": "Strict commit provenance and git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "10 PostgreSQL variants: no isolated PostgreSQL URL configured locally",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Existing configured-limit integration suite locally: broad API import closure; hosted CI pending",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Full repository suites, connected browser, deployed runtime and complete MJ-REQ-151 acceptance",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "MJ-REQ-151 still needs complete configurable route-per-canonical-job and minimum-match acceptance; MJ-REF-048 remains dependency blocked"
+  ]
+}
