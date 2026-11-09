@@ -63,7 +63,7 @@ export function OperationNotifications({profileId,enabled,operations,loadError=f
         {muted?'Show notifications':'Mute for this visit'}
       </button></div>
     {!muted&&<div aria-live="polite" aria-atomic="false">
-      {loadError&&<p>Activity updates are temporarily unavailable. Retrying shortly.</p>}
+      {loadError&&<p>Activity updates are temporarily unavailable. The notification list may be incomplete. Retrying shortly.</p>}
       {visible.length?<ul>{visible.map(op=><li key={notificationKey(op)}>
         <span>{Object.hasOwn(names,op.kind)?names[op.kind]:'Background task'} {outcomes[op.state]}.</span>{' '}
         <button type="button" onClick={()=>{
@@ -72,7 +72,7 @@ export function OperationNotifications({profileId,enabled,operations,loadError=f
           setDismissed(next);
           persistDismissals(profileId,next);
         }}>Dismiss notification</button>
-      </li>)}</ul>:<p>No new activity notifications.</p>}
+      </li>)}</ul>:!loadError&&<p>No new activity notifications.</p>}
     </div>}
   </section>;
 }

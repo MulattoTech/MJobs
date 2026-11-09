@@ -338,3 +338,17 @@ c5339366e7372f9a5fca24c4c0410edacf8a6b2d:docs/evidence/2026-11-05-web-30d19610-p
 # Reviewed source SHA-256 false positive; exact Git blob independently verified.
 # MJ-REF-002 implementation 951ab7d7d48a2982a4508e2a57d1822e3a0249e3; no rule or path-wide exclusion.
 20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45
+
+# Independently recomputed public Git blob IDs in source-evidence mappings.
+# Reviewed proof: https://github.com/MulattoTech/MJobs/commit/4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a
+08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json:generic-api-key:32
+08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json:generic-api-key:164
+
+# Same independently recomputed public Git object in a later immutable revalidation.
+aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-current-main-revalidation.json:generic-api-key:20
+
+# Independently verified public Git object in the original API acceptance evidence.
+cc1e5083ce1a94b20a424e09a038c0f72972ab10:docs/evidence/2026-11-09-mjreq205-acceptance-b40d54.json:generic-api-key:520
+
+# Independently recomputed public commit-reference metadata, not a credential.
+5d0d9564b00cc69a0940291cc3a3f55dabf2618e:docs/evidence/2026-11-09-web-4f1d-answer-sensitive-reuse.json:generic-api-key:41
