@@ -1,12 +1,15 @@
 """Connected local Chromium journey: edit native weights, reload and explain ranking."""
+from datetime import datetime, timedelta
 import threading
 import time
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
+from sqlalchemy import select
 import uvicorn
 
 from fixtures.browser_ports import bound_browser_socket
+from packages.persistence import models as m
 from tests.integration.test_preference_weighting import (
     CONFIG_URL, app_for, create_workspace, criteria, rescore,
 )
@@ -20,6 +23,7 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
     server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
     thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
     outside_requests, forbidden_writes, saved_requests = [], [], []
+    pending_view_paths, recorded_view_paths = [], []
     try:
         thread.start()
         deadline = time.monotonic() + 10
@@ -38,6 +42,11 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
                     route.abort()
                 elif request.method == "PUT" and parsed.path == CONFIG_URL:
                     saved_requests.append(request.post_data_json)
+                    route.continue_()
+                elif (request.method == "POST" and pending_view_paths
+                      and request.url == f"{origin}{pending_view_paths[0]}"
+                      and request.post_data is None):
+                    recorded_view_paths.append(pending_view_paths.pop(0))
                     route.continue_()
                 elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                     forbidden_writes.append((request.method, parsed.path))
@@ -76,8 +85,24 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
                 "heading", name="Role-specific scoring profile", exact=True))
             expect(editor.get_by_label("Remote work region weight", exact=True)).to_have_value("10")
             expect(editor.get_by_label("Title weight", exact=True)).to_have_value("10")
-            with page.expect_response(lambda r: urlsplit(r.url).path.endswith("/aligned-job/match-explanation")) as explained:
+            view_path = "/profiles/fixture/jobs/aligned-job/view"
+            with (
+                page.expect_response(lambda r:
+                    r.request.method == "POST" and r.url == f"{origin}{view_path}"
+                ) as viewed,
+                page.expect_response(lambda r:
+                    urlsplit(r.url).path.endswith("/aligned-job/match-explanation")
+                ) as explained,
+            ):
+                # Permit one bodyless view request only for this explicit detail open.
+                pending_view_paths.append(view_path)
                 page.locator(".job-card").filter(has_text="Systems Administrator").click()
+            view_receipt = viewed.value.json()
+            assert viewed.value.status == 201
+            assert set(view_receipt) == {"profile_id", "job_id", "viewed_at"}
+            assert view_receipt["profile_id"] == "fixture"
+            assert view_receipt["job_id"] == "aligned-job"
+            assert datetime.fromisoformat(view_receipt["viewed_at"]).utcoffset() == timedelta(0)
             body = explained.value.json()
             assert explained.value.status == 200
             assert body["score"] == 75
@@ -86,6 +111,15 @@ def test_preferences_save_reload_and_show_real_persisted_contributions(tmp_path)
             contributions = page.get_by_role("table", name="Scoring signal contributions", exact=True)
             expect(contributions).to_contain_text("DETERMINISTIC_PROFILE_JOB_FIT")
             expect(contributions).to_contain_text("match:fit_factors/remote_location")
+            # Inspect every scope so a second job/profile write cannot be hidden.
+            with store.engine.connect() as connection:
+                history = [dict(row) for row in connection.execute(select(
+                    m.profile_job_views.c.profile_id, m.profile_job_views.c.job_id,
+                    m.profile_job_views.c.viewed_at, m.profile_job_views.c.visit_order,
+                )).mappings()]
+            assert history == [{**view_receipt, "visit_order": 1}]
+            assert pending_view_paths == []
+            assert recorded_view_paths == [view_path]
             assert len(saved_requests) == 1
             assert outside_requests == [] and forbidden_writes == []
             context.close()
