@@ -70,9 +70,18 @@ def _mapping(value: object) -> Mapping:
 
 def _field_provenance(job: Mapping, field: str) -> dict:
     attributes = _mapping(job.get("attributes"))
-    all_provenance = _mapping(job.get("field_provenance"))
-    if not all_provenance:
-        all_provenance = _mapping(attributes.get("field_provenance"))
+    resolution = _mapping(attributes.get("source_resolution"))
+    if ("field_provenance_schema_version" in resolution
+            or "field_provenance" in resolution):
+        # A resolved job's server-derived attribution takes precedence. Unknown
+        # versions/shapes fail closed instead of falling back to source claims.
+        version = resolution.get("field_provenance_schema_version")
+        all_provenance = (_mapping(resolution.get("field_provenance"))
+                          if type(version) is int and version == 1 else {})
+    else:
+        all_provenance = _mapping(job.get("field_provenance"))
+        if not all_provenance:
+            all_provenance = _mapping(attributes.get("field_provenance"))
     item = _mapping(all_provenance.get(field))
     source = item.get("source")
     confidence = item.get("confidence")
@@ -330,8 +339,9 @@ def _reused_text_signal(job: Mapping, comparison_jobs: Iterable[Mapping] | None)
 def evaluate_job_risk(job: Mapping, *, comparison_jobs: Iterable[Mapping] | None = None) -> dict:
     """Return advisory heuristics for supplied job data; never fetch, reject, or mutate.
 
-    `field_provenance` is optional. When absent, evidence provenance remains
-    explicitly UNKNOWN rather than being inferred from a page or URL.
+    Supported canonical source-resolution attribution takes precedence over
+    optional legacy `field_provenance`. When absent or unsupported, evidence
+    provenance remains explicitly UNKNOWN rather than inferred from a page or URL.
     """
     if not isinstance(job, Mapping):
         raise ValueError("Job must be a mapping")
