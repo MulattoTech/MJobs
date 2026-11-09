@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REF-008",
+  "issue": 378,
+  "pr": 991,
+  "review_kind": "independent exact-head scoped backend verification",
+  "reviewed_at_utc": "2026-11-09T13:40:41.558072+00:00",
+  "head": "ca6a66fae084d4254c8044e2edb774b6e5a4a9b5",
+  "tree": "3eb631a9a16a731aebbbed0b3b9197427c0140f2",
+  "base": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "working_tree_clean": true,
+  "production_and_repository_source_writes": false,
+  "commands": [
+    {
+      "argv": [
+        "/workspace/scratch/9cf4231d81ef/.venv-review991/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_interview_preparation.py",
+        "tests/integration/test_interview_preparation_api.py",
+        "tests/integration/test_interview_preparation_scope_and_no_write.py",
+        "tests/integration/test_interview_preparation_router_mount.py",
+        "tests/integration/test_interview_preparation_migration.py",
+        "tests/integration/test_interview_preparation_migration_constraints.py",
+        "--junitxml=/workspace/scratch/9cf4231d81ef/evidence/ref008-review/affected-exact-source.xml"
+      ],
+      "cwd": "/workspace/scratch/9cf4231d81ef/mjobs-review991",
+      "stdout_stderr": "/workspace/scratch/9cf4231d81ef/evidence/ref008-review/affected-exact-source.log",
+      "exit_code": 0,
+      "tests_passed": 25,
+      "subtests_passed": 131,
+      "warnings": 1,
+      "elapsed_seconds": 4.17
+    },
+    {
+      "argv": [
+        "/workspace/scratch/9cf4231d81ef/.venv-review991/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "/workspace/scratch/9cf4231d81ef/evidence/ref008-review/test_ref008_independent.py",
+        "--junitxml=/workspace/scratch/9cf4231d81ef/evidence/ref008-review/independent.xml"
+      ],
+      "cwd": "/workspace/scratch/9cf4231d81ef/mjobs-review991",
+      "env": {
+        "PYTHONPATH": "/workspace/scratch/9cf4231d81ef/mjobs-review991"
+      },
+      "stdout_stderr": "/workspace/scratch/9cf4231d81ef/evidence/ref008-review/independent.log",
+      "exit_code": 0,
+      "tests_passed": 7,
+      "subtests_passed": 62,
+      "warnings": 1
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "971ba931418fc271e7a652e27c288e1776448b6d",
+        "ca6a66fae084d4254c8044e2edb774b6e5a4a9b5"
+      ],
+      "cwd": "/workspace/scratch/9cf4231d81ef/mjobs-review991",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/workspace/scratch/9cf4231d81ef/.venv-review991/bin/python",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "exit_code": 0,
+      "result": "No broken requirements found."
+    }
+  ],
+  "prerequisite_failures": [
+    {
+      "command": "Initial subset including full router import",
+      "exit_code": 2,
+      "result": "Collection stopped: missing repository-pinned redis dependency; no tests ran."
+    },
+    {
+      "command": "First six-module run",
+      "exit_code": 2,
+      "result": "Collection stopped: missing repository-pinned uvicorn dependency; no tests ran.",
+      "log": "affected-collection-missing-uvicorn.log"
+    }
+  ],
+  "environment": {
+    "isolated_venv": "/workspace/scratch/9cf4231d81ef/.venv-review991",
+    "python": "3.12.14",
+    "repository_pin_mismatches": [],
+    "pip_check": "PASS",
+    "real_provider_calls": false,
+    "fixture_database": "temporary SQLite"
+  },
+  "historical_scanner_exception": {
+    "finding": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "blob_source": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3:tests/integration/test_career_story_import_api.py",
+    "recomputed_sha256": "bcdb8e13663f81eaad52cfdbefe40ae3a3a3ac7476307219c58e90e72a6af2c3",
+    "matches": true,
+    "full_secret_scan_run_by_this_review": false
+  },
+  "confirmed_blocking_findings": [],
+  "fresh_whole_requirement_acceptance": "NOT_RUN",
+  "not_run": [
+    "Browser interactions",
+    "Deployed/live runtime acceptance",
+    "PostgreSQL-specific pack concurrency",
+    "Full repository suite",
+    "Frontend build and Vitest in this independent review",
+    "Hosted checks reexecution"
+  ],
+  "scope_result": "PASS: scoped exact-head backend regression checks; no fresh whole-requirement PASS promotion",
+  "artifacts": {
+    "test_ref008_independent.py": {
+      "sha256": "7d0b1c98774e3f3d236d9f37d2807f737217154aaa685f15fee8c83f945a7ba2",
+      "bytes": 13019
+    },
+    "affected-exact-source.log": {
+      "sha256": "1c3744700c1df139cfde6ae43dc175c66e2437e8b1fcc0e3148b3b30361a5ffd",
+      "bytes": 664
+    },
+    "affected-exact-source.xml": {
+      "sha256": "f2c32ada105a69272ae711e74375f51ee4d9f2e9f24609261de70a83f583f2bd",
+      "bytes": 4826
+    },
+    "independent.log": {
+      "sha256": "20fbec3e44aab815d8554daad50fac81568802801ae771f80f2469186eda64b2",
+      "bytes": 579
+    },
+    "independent.xml": {
+      "sha256": "e9f278af512d9a520a2bb0ed1df19dbaa56ff1e14803451dc0f3f36dc86d519f",
+      "bytes": 1542
+    },
+    "source-hashes.json": {
+      "sha256": "160ee9a8bb08af5331156c679c1a0edc49a07df5837732829bafed8dd9f646a6",
+      "bytes": 2181
+    },
+    "github-context.json": {
+      "sha256": "beaed71cf9107f61e68997ce549bf4ed5d89f1b67c937055a4e9c666bf0ec8da",
+      "bytes": 2282
+    },
+    "environment.txt": {
+      "sha256": "ed810e75bee52be636eed43d813ca919db9abe203a10846e0820199bec39b123",
+      "bytes": 885
+    }
+  }
+}
