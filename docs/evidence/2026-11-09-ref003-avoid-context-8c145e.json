@@ -8,7 +8,7 @@
   "implementation_commit": "33ec994c2009f7f0d977e7e776fe40e6dd2bf94b",
   "tested_commit": "33ec994c2009f7f0d977e7e776fe40e6dd2bf94b",
   "tested_tree": "5ff01d09537854c50c44793f3ee9940655d71911",
-  "environment": "Python3.12.14 Linux; isolated workspace; repository pinned requirements; temporary SQLite; injected capturing provider only",
+  "environment": "Python3.12.14 Linux; isolated workspace; repository pinned requirements; temporary SQLite; capturing provider fixtures plus local loopback HTTP provider fixture; no external AI provider",
   "source_manifest": {
     "services/documents/ai_resume.py": "81de72f0d0c7a323e0603b4761824f54275ee075f773fb3d890e7e483d5f11c2",
     "tests/integration/test_ai_resume_avoid_context.py": "cce73ad10b765be0888387d542f42878b60f6d1acb7d416b51b02f937672bd10",
@@ -147,14 +147,14 @@
     "existing_guards": "Explicit fact selection, consent, stale profile/job fences and final-output avoid-list validation remain in force."
   },
   "limits": [
-    "No real AI provider, connected browser journey, external submission or production deployment was exercised.",
+    "No external AI provider, connected browser journey, external submission or production deployment was exercised.",
     "Full suites, PostgreSQL/Redis fixtures, web production build and browser tests NOT_RUN locally; exact final PR head hosted checks tracked separately.",
     "Canonical reference and original capability matrices are unchanged. No full requirement PASS promotion.",
     "The final evidence-only commit preserves the tested source hashes; its exact-head receipt is recorded in the PR and run checkpoint."
   ],
   "safety": {
     "schema_or_migration_change": false,
-    "provider_calls": "Injected capturing test provider only; prohibited-input cases reject before construction",
+    "provider_calls": "Capturing provider fixtures plus local loopback HTTP provider fixture; no external AI provider. Prohibited-input cases reject before provider construction.",
     "external_application_submission": "OFF",
     "production_deployment": "UNCHANGED"
   },
