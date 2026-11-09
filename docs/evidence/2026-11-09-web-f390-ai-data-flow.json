@@ -151,5 +151,45 @@
   },
   "rollback": "Revert this bounded feature through protected integration. No migration or stored-history rewrite is introduced.",
   "integration_authority": "PR_ONLY",
-  "host_resource_admission": "No workstation build or test slot used; all implementation/testing occurred off-host."
+  "host_resource_admission": "No workstation build or test slot used; all implementation/testing occurred off-host.",
+  "upstream_refresh": {
+    "observed_utc": "2026-11-09T15:52:34.905855+00:00",
+    "previous_publication_head": "db9892c83042e010fd68c4eeac35616a1caedf2c",
+    "new_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "upstream_pr": 988,
+    "tested_merge_commit": "9e50b28881e675b985d3251b59ab6d8c742f3f8a",
+    "method": "Ordinary non-force merge of exact main into owned feature branch; no integration into main by this worker",
+    "conflicts": false,
+    "disclosure_source_test_blobs_unchanged": 7,
+    "independent_review": {
+      "reviewer": "/root/telemetry_scope",
+      "result": "NO_SCOPED_BLOCKER",
+      "reason": "Additive raw source-metadata detail/export leaves canonical_job_view, Store.jobs, AIJobInput, prompt and snapshot fields unchanged; sole overlapping .gitleaksignore blob is identical"
+    },
+    "targeted_regression": {
+      "command": "python -m pytest -q tests/unit/test_source_metadata.py::SourceMetadataTests::test_metadata_cannot_change_canonical_fields tests/unit/test_source_metadata.py::SourceMetadataTests::test_raw_read_view_preserves_original_payload_and_urls tests/unit/test_ai_data_flow_disclosure.py tests/integration/test_profile_ai_credentials.py::ProfileAICredentialTests::test_saved_key_reaches_real_router_at_fixed_origin_and_stays_private",
+      "sha": "9e50b28881e675b985d3251b59ab6d8c742f3f8a",
+      "tests_passed": 10,
+      "subtests_passed": 20,
+      "elapsed_seconds": 1.95,
+      "exit_code": 0
+    },
+    "integrity": "git diff --check and commit provenance PASS",
+    "required_hosted_checks": "Pending on refreshed publication head; prior-head success is retained separately and is not a substitute",
+    "canonical_acceptance": "Unchanged; no full requirement promoted"
+  },
+  "browser_workflow_coverage": {
+    "inspected_head": "db9892c83042e010fd68c4eeac35616a1caedf2c",
+    "reviewer": "/root/pr_readiness",
+    "result": "New disclosure browser assertions NOT_RUN",
+    "automatic_ci": "Connected workflow uses cli.ui_e2e plus five named browser files; tests/browser/test_profile_ai_credentials.py is not selected. Integration shards select only tests/integration.",
+    "manual_option": "browser-regression.yml has no test-file inputs and runs all four browser shards; no manual run dispatched",
+    "specific_next_command": "python -m pytest -q tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload --junitxml=outputs/ci/profile-ai-disclosure.xml",
+    "environment_blockers": [
+      "Pinned Chromium download invalid ZIP",
+      "Installed Chromium socket() EPERM before test assertions",
+      "Connected browser runtime bootstrap timeout"
+    ],
+    "upstream_refresh_changes_workflow_or_browser_source": false
+  }
 }
