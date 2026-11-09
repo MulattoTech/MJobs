@@ -1,33 +1,36 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-024",
-  "objective": "Repair contact leakage in follow-up metadata and copyable drafts",
+  "objective": "Repair follow-up contact leakage and validate persisted API fixture",
   "owner": "ChatGPT-Web web-20261109T031310Z-90fc8ec06c08",
   "branch": "web/web-20261109T031310Z-90fc8ec06c08/MJ-REF-024-contact-scrubbing",
-  "head_sha": "d31f69bd9ae3681e09cb550856882df7781aae3f",
+  "head_sha": "3621822af716806afda0cd494d56596cd8882017",
   "routing_state": "VERIFY",
-  "next_action": "Inspect final PR980 exact-head hosted results and remaining acceptance gaps; authorized serial integration only after required gates. Keep REF054 prerequisite qualified.",
-  "created_at": "2026-11-09T04:04:52Z",
+  "next_action": "Inspect final PR980 exact-head hosted gates after fixture-order correction; coordinate serial integration and remaining full acceptance before clearing REF054.",
+  "created_at": "2026-11-09T04:36:26Z",
   "requirements": [
     "MJ-REF-024"
   ],
   "tests": [
     {
-      "command": "Exact d31f69bd9ae3681e09cb550856882df7781aae3f: cloud isolated unit 17 methods / 80 subtests PASS; independent42 public field cases and6 controls PASS; committed blob readback/provenance/diff checks PASS",
+      "command": "Exact3621822af716806afda0cd494d56596cd8882017: service/route/SQLite/API/reopen targeted suite22 passed/82 subtests;1 browser case deselected; provenance and diff checks PASS",
       "result": "PASS"
     },
     {
-      "command": "Exact 33c34501ab7c3d236814ac213cc0c5e83d096a48: earlier focused service/route/SQLite suite20 tests /30 subtests PASS",
+      "command": "Source d31f69bd9ae3681e09cb550856882df7781aae3f: cloud isolated17 methods/80 subtests and independent42 field cases/6 controls PASS",
       "result": "PASS"
     },
     {
-      "command": "Expanded SQLite/API, hosted final-head gates, connected Brave and heavy local suites",
+      "command": "Previous headbc23ea8cc979b821ba688c86780e14e8bece8a87:13 checks PASS; one actual integration fixture test FAIL, now corrected; this is historical evidence",
+      "result": "FAIL"
+    },
+    {
+      "command": "Final-head full hosted gates, connected Brave, heavy local suites",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Full REF024 not reaccepted: candidate enumeration limit and remaining product journey; REF054 still gated.",
-    "Hosted final-head validation pending at this checkpoint; local resources below safe validation headroom.",
-    "PR_ONLY authority; no merge or deployment performed."
+    "Full REF024 remains partial: candidate enumeration beyond200, UI/product acceptance; REF054 remains gated.",
+    "Final-head hosted confirmation pending; PR_ONLY authority."
   ]
 }
