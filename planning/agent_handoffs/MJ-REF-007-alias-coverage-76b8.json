@@ -4,10 +4,10 @@
   "objective": "Repair read-only resume alignment evidence for equivalent skill aliases",
   "owner": "ChatGPT-Web web-20261109T131741Z-76b8f732f1a7",
   "branch": "web/web-20261109T131741Z-76b8f732f1a7/MJ-REF-007-alias-coverage",
-  "head_sha": "42d70f61a1543c81cbeea46025221dd944fb5fbe",
+  "head_sha": "f22d3ad6dc4ab2662d057d4867183cf4679ebbbf",
   "routing_state": "VERIFY",
-  "next_action": "Push reviewed exact-fingerprint scanner correction to existing PR993 after publication preflight; check fresh exact-head CI before authorized integration.",
-  "created_at": "2026-11-09T13:46:08.127743+00:00",
+  "next_action": "Run fresh candidate preflight under native admission, publish the approved owned branch, verify exact-head CI, then resume independent original-requirement work.",
+  "created_at": "2026-11-09T16:20:24.495749+00:00",
   "requirements": [],
   "tests": [
     {
@@ -21,6 +21,10 @@
     {
       "command": "Fresh hosted CI after correction; full reference acceptance and deployed journey",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "20 focused methods PASS at f22d3ad6dc4ab2662d057d4867183cf4679ebbbf after current protected-main synchronization",
+      "result": "PASS"
     }
   ],
   "blockers": [

@@ -157,5 +157,18 @@
     "scope": "One exact immutable commit/path/rule/line; no scanner rule, workflow or broader path exception.",
     "product_source_and_test_blobs": "UNCHANGED from the recorded tested implementation revision",
     "hosted_scan_after_correction": "PENDING publication; no local scanner PASS claimed."
+  },
+  "approved_resumption": {
+    "recorded_at_utc": "2026-11-09T16:20:24.495200+00:00",
+    "protected_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "tested_sha": "f22d3ad6dc4ab2662d057d4867183cf4679ebbbf",
+    "focused_methods": 20,
+    "result": "PASS",
+    "skips": 0,
+    "command": "Same focused unittest command recorded above, rerun after protected-main merge.",
+    "log_sha256": "47f4adfdbb1c8f4f354ff872d2cecb221473592098f1e6f3c3591f3a75b9200f",
+    "product_source_and_test_blobs": "UNCHANGED",
+    "scanner_dependency": "Identical correction is now included in protected main; .gitleaksignore bytes unchanged by synchronization and absent from candidate diff against main.",
+    "user_publication_approval": "Explicit approval received in this conversation; normal owned branch publication only."
   }
 }
