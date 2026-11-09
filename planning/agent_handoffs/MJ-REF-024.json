@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-024",
+  "objective": "Repair contact handle leakage in follow-up draft metadata and text",
+  "owner": "ChatGPT-Web web-20261109T031310Z-90fc8ec06c08",
+  "branch": "web/web-20261109T031310Z-90fc8ec06c08/MJ-REF-024-contact-scrubbing",
+  "head_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+  "routing_state": "INTEGRATE",
+  "next_action": "Inspect current PR head/checks and acceptance evidence, then authorized serial integration; rerun connected browser when admitted",
+  "created_at": "2026-11-09T03:26:00.746651+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Exact 33c34501ab7c3d236814ac213cc0c5e83d096a48: focused follow-up service/route/SQLite tests 20 passed, 30 subtests; catalogue/progress/dashboard/provenance/diff checks PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Connected browser and heavy suites: resource gate; merge/deployment: PR_ONLY",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Historical full REF024 PASS not newly promoted; REF054 dependency remains qualified pending integration/acceptance"
+  ]
+}
