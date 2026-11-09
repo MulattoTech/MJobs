@@ -190,6 +190,73 @@ prepare(store, os.environ["MJOBS_TEST_JOB_ID"], "fixture",
             self.assertEqual(temp_entry["classification"], "INCOMPLETE_TEMPORARY_FILE")
             self.assertTrue(temp_entry["eligible"])
 
+    def test_unmanaged_nested_files_cannot_be_quarantined_as_generated_artifacts(self):
+        now = datetime.now(timezone.utc)
+        old = (now - timedelta(days=3)).timestamp()
+        relatives = (
+            "unknown/project/reports/notes.txt",
+            "unknown/project/reports/manual.pdf",
+            "unknown/project/reports/template.docx",
+            "unknown/project/reports/.notes.worker.tmp",
+            "unknown/project/7/nested/notes.txt",
+            "unknown/project/7/nested/.notes.worker.tmp",
+        )
+        original_bytes = b"synthetic operator content outside a managed artifact path"
+        for relative in relatives:
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(original_bytes)
+            os.utime(path, (old, old))
+
+        inventory = {item["path"]: item for item in scan_artifacts(
+            self.store, self.root, now=now,
+        )}
+        for relative in relatives:
+            with self.subTest(path=relative):
+                entry = inventory[relative]
+                self.assertEqual(entry["classification"], "UNCLASSIFIED_PROTECTED")
+                self.assertFalse(entry["eligible"])
+                self.assertNotIn("artifact_id", entry)
+                digest = hashlib.sha256(original_bytes).hexdigest()
+                forged_id = hashlib.sha256(
+                    f"artifact-v1\0{relative}\0{digest}".encode("utf-8")
+                ).hexdigest()
+                with self.assertRaisesRegex(ValueError, "not eligible for quarantine"):
+                    quarantine_artifact(self.store, self.root, forged_id, now=now)
+                self.assertEqual((self.root / relative).read_bytes(), original_bytes)
+        self.assertEqual(list_quarantined(self.root), [])
+
+    def test_managed_individual_files_and_temporary_files_can_be_restored(self):
+        now = datetime.now(timezone.utc)
+        old = (now - timedelta(days=3)).timestamp()
+        for index, (filename, classification) in enumerate((
+            ("resume.pdf", "ORPHAN_GENERATED_FILE"),
+            (".resume.pdf.worker.tmp", "INCOMPLETE_TEMPORARY_FILE"),
+        )):
+            with self.subTest(filename=filename):
+                revision = self.root / f"orphan-individual-{index}" / "profile-v1" / "9"
+                revision.mkdir(parents=True)
+                # An unknown companion keeps the directory itself protected.
+                companion = revision / "operator-note.md"
+                companion.write_bytes(b"preserve this operator note")
+                path = revision / filename
+                original_bytes = b"synthetic individual generated artifact"
+                path.write_bytes(original_bytes)
+                os.utime(path, (old, old))
+                relative = path.relative_to(self.root).as_posix()
+                entry = next(item for item in scan_artifacts(self.store, self.root, now=now)
+                             if item["path"] == relative)
+                self.assertEqual(entry["classification"], classification)
+                self.assertTrue(entry["eligible"])
+
+                record = quarantine_artifact(self.store, self.root, entry["artifact_id"], now=now)
+                self.assertFalse(path.exists())
+                self.assertEqual(companion.read_bytes(), b"preserve this operator note")
+                restored = restore_quarantined(self.store, self.root, record["quarantine_id"], now=now)
+                self.assertEqual(restored["state"], "RESTORED")
+                self.assertEqual(path.read_bytes(), original_bytes)
+                self.assertEqual(companion.read_bytes(), b"preserve this operator note")
+
     def test_reviewed_marker_revision_is_managed_but_unknown_content_stays_protected(self):
         now = datetime.now(timezone.utc)
         managed = self._old_reviewed_orphan(

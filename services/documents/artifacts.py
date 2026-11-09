@@ -226,10 +226,17 @@ def _classification(path: Path, root: Path, referenced: set[str]) -> tuple[str, 
         if _managed_reviewed_revision(path, parts):
             return "ORPHAN_REVIEWED_REVISION", True
         return "INVALID_REVIEWED_REVISION_PROTECTED", False
-    if path.is_file() and len(parts) >= 4 and path.name.endswith(".tmp"):
-        return "INCOMPLETE_TEMPORARY_FILE", True
-    if path.is_file() and len(parts) >= 4 and path.suffix.casefold() in {".pdf", ".docx", ".txt"}:
-        return "ORPHAN_GENERATED_FILE", True
+    if path.is_file():
+        classification = None
+        if path.name.endswith(".tmp"):
+            classification = "INCOMPLETE_TEMPORARY_FILE"
+        elif path.suffix.casefold() in {".pdf", ".docx", ".txt"}:
+            classification = "ORPHAN_GENERATED_FILE"
+        # Quarantine must accept only the same managed layouts restore accepts.
+        # A familiar suffix in an arbitrary nested directory is not provenance.
+        if classification and _managed_generated_path(
+                relative, is_directory=False, classification=classification):
+            return classification, True
     return "UNCLASSIFIED_PROTECTED", False
 
 
