@@ -133,5 +133,14 @@
     "adjacent_owner": "web-20261109T131754Z-a09f7fd22182 owns retention API/UI disclosure; this change keeps response shape unchanged",
     "no_shared_fixtures_or_acceptance_matrix_changes": true
   },
-  "rollback": "Normal revert of this isolated commit restores previous receipt publishing behavior; deletion eligibility and core records are unchanged."
+  "rollback": "Normal revert of this isolated commit restores previous receipt publishing behavior; deletion eligibility and core records are unchanged.",
+  "shared_scanner_repair": {
+    "recorded_at_utc": "2026-11-09T16:12:17.692791+00:00",
+    "reviewed_source_commit": "4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
+    "reviewed_proof_url": "https://github.com/MulattoTech/MJobs/blob/4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a/docs/evidence/2026-11-09-web-f390-ai-data-flow.json",
+    "observed_failure": "PR1001 scanner reported two public Git object identifiers in another worker's source-evidence maps; imported exact immutable fingerprints after original scanner owner released its atomic claim.",
+    "verification": "Original reported values were independently fetched at their exact historical commit and matched Git object identity on the exact public source file. Root independently reran the Git-object lookup. Artifact digest matches hosted metadata.",
+    "scope": "No scanner rule, workflow, directory, path or secret-type exemption. Only the two reviewed commit/path/rule/line fingerprints; pre-existing approved exceptions retained.",
+    "hosted_after_repair": "NOT_RUN; must inspect exact published repaired head."
+  }
 }
