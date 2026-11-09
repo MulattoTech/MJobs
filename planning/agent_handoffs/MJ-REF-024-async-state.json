@@ -1,25 +1,25 @@
 {
   "schema_version": 1,
   "task_id": "MJ-REF-024-async-state",
-  "objective": "Isolate follow-up draft and clipboard state across contexts while preserving focus",
+  "objective": "Publish reviewed implementation with unchanged historical checksum exception dependency",
   "owner": "ChatGPT-Web/web-20261109T031106Z-31f99071bbd9",
   "branch": "web/web-20261109T031106Z-31f99071bbd9/MJ-REF-024-async-state",
-  "head_sha": "b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+  "head_sha": "ae0b32091703737cebf2ebb394adefab4fb5feba",
   "routing_state": "VERIFY",
-  "next_action": "Publish owned repair PR after atomic live admission; observe exact-head checks; leave full acceptance and main.tsx refresh with existing owners",
-  "created_at": "2026-11-09T03:29:14.667427+00:00",
+  "next_action": "Publish final owned head under atomic admission, inspect fresh hosted checks, then release owned claims at safe stop",
+  "created_at": "2026-11-09T03:52:36.546097+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "13 targeted Vitest tests, strict targeted TypeScript, catalogue, progress validation, dashboard currentness and diff check on b62a0d2293db3b6c3182af67c7dd6170ceea62d7",
+      "command": "Previously executed targeted tests on implementation SHA; exact source/test blob preservation after exception dependency; provenance, checkpoint and diff checks",
       "result": "PASS"
     },
     {
-      "command": "Full production build, real-browser/deployed journey and full requirement acceptance",
+      "command": "Fresh final-head hosted scan and integration pending; full browser/deployed acceptance NOT_RUN",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Global tracking-status refresh needs main.tsx owner; heavy resource gate unavailable"
+    "Full requirement acceptance not established; final hosted gates pending"
   ]
 }

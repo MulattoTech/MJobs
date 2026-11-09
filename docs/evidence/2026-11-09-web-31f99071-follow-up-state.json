@@ -184,5 +184,29 @@
     "max_light_slots": 2,
     "heavy_admitted": false
   },
-  "rollback": "Normal protected revert of the isolated source commit; no persisted data or API schema changed."
+  "rollback": "Normal protected revert of the isolated source commit; no persisted data or API schema changed.",
+  "dependency_verification": {
+    "classification": "PUBLIC_SOURCE_CHECKSUM_FALSE_POSITIVE",
+    "evidence_commit": "20fea5e07086c8180beff97f5307e0ef3ce2aa89",
+    "evidence_path": "docs/evidence/2026-11-07-ref002-bounded-story-import.json",
+    "line": 45,
+    "implementation_commit": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+    "source_path": "tests/integration/test_career_story_import_api.py",
+    "source_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_bytes": 5844,
+    "sha256_matches_flagged_value": true,
+    "independent_reviewer": "pr_inventory",
+    "scanner_result_at_981_head": "FAIL",
+    "remedy": "Exact fingerprint already published in PR977 and PR978; preserve active peer ownership",
+    "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "original_exception_only_commit": "a796ffb478833fbcf87ff79892b6047108336226",
+    "incorporated_dependency_commit": "ae0b32091703737cebf2ebb394adefab4fb5feba",
+    "ignore_git_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "scope_claim": "web:web-20261109T031106Z-31f99071bbd9:secret-history-dependency",
+    "incorporated_utc": "2026-11-09T03:52:36.409376+00:00",
+    "source_and_test_blobs_unchanged": true,
+    "exact_head_hosted_scan": "PENDING",
+    "local_pinned_linux_scan": "NOT_RUN on Windows; hosted verification required"
+  },
+  "updated_at_utc": "2026-11-09T03:52:36.409376+00:00"
 }
