@@ -4,30 +4,26 @@
   "objective": "Repair read-only resume alignment evidence for equivalent skill aliases",
   "owner": "ChatGPT-Web web-20261109T131741Z-76b8f732f1a7",
   "branch": "web/web-20261109T131741Z-76b8f732f1a7/MJ-REF-007-alias-coverage",
-  "head_sha": "5876fa5a6633d1b935047f691e5c5238eae36757",
+  "head_sha": "42d70f61a1543c81cbeea46025221dd944fb5fbe",
   "routing_state": "VERIFY",
-  "next_action": "Publish the reviewed bounded PR under shared publication admission; check exact-head CI, then return source and evidence to the serialized integration owner.",
-  "created_at": "2026-11-09T13:29:12.389849+00:00",
+  "next_action": "Push reviewed exact-fingerprint scanner correction to existing PR993 after publication preflight; check fresh exact-head CI before authorized integration.",
+  "created_at": "2026-11-09T13:46:08.127743+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "20 focused unittest methods at 5876fa5a6633d1b935047f691e5c5238eae36757; API readback/no writes, taxonomy, eligibility and selection",
+      "command": "20 focused methods at 5876fa5a6633d1b935047f691e5c5238eae36757; product source/test blobs unchanged",
       "result": "PASS"
     },
     {
-      "command": "Independent source review: 8 methods plus 72 ordered taxonomy probes and result-list isolation",
+      "command": "Independent 72 taxonomy probes, provenance and reviewed historical checksum verification",
       "result": "PASS"
     },
     {
-      "command": "Catalogue, progress, dashboard, reference provenance, commit provenance and diff checks",
-      "result": "PASS"
-    },
-    {
-      "command": "Full Python/web/browser/deployment verification; exact-head hosted CI pending publication",
+      "command": "Fresh hosted CI after correction; full reference acceptance and deployed journey",
       "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Full MJ-REF-007 and MJ-REQ-198 remain unverified/PARTIAL; worker may not promote acceptance or merge"
+    "PR_ONLY authority; full requirement acceptance remains unverified"
   ]
 }
