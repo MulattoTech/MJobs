@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031130Z-e950d8153e31",
+  "observed_utc": "2026-11-09T03:52:40.197072+00:00",
+  "requirement_id": "MJ-REQ-168",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/169",
+  "related_requirements": [
+    "MJ-REQ-092",
+    "MJ-REF-026"
+  ],
+  "scope": "Restore currentness and bounded recovery admission; no full-requirement acceptance promotion",
+  "overall_acceptance": "PARTIAL",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+  "tested_sha": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+  "implementation_tree": "8f819cca2afdf6b030a266e33353196f3e1eb401",
+  "branch": "web/web-20261109T031130Z-e950d8153e31/MJ-REQ-168-restored-match-currentness",
+  "source_test_sha256": {
+    "packages/persistence/profile_restore.py": "c696f1678f047211384e7e5c224a6aa933951037ad9f03d0a86584dac3bfae65",
+    "services/profile_restore.py": "e4ffdcc7674fe0d474fb3c177b87b3106e1b0ad2d9a11cae21666d4708732fb1",
+    "tests/integration/test_profile_restore_match_currentness.py": "f6b22759352b8f4faee42d95b3b08caf1b9a40877e01c872f6e3ec3b4805a6cc",
+    "tests/integration/test_profile_restore.py": "5cbbf6534205ba83da75da81afd7c95e391c288d18ab0c9e187124d073caa927",
+    "tests/unit/test_profile_restore.py": "c2a0cf764662bd9be5303deec790daad5079ce7410b47dfb60e98a4e136da0de",
+    "tests/browser/test_profile_restore_history_readback.py": "db169cacd8eaf6b2abf6882c15eab2af6629aa1dc02459aa75ab384419153e13"
+  },
+  "problem": "Restore reset imported facts to unapproved but rebound exported current-version scores and APPROVED annotations to the fresh active version. Heatmap and job current-score consumers could therefore present stale approval as current evidence.",
+  "change": "Every imported source version is mapped to a historical version. A separate new active snapshot contains unapproved facts. Shared preview/plan validation reserves the extra active snapshot and fact rows under existing row, node and byte limits before persistence.",
+  "criteria": [
+    {
+      "criterion": "Imported match scores and approval annotations are absent from current heatmap and job score immediately after restore and database reopen",
+      "result": "PASS",
+      "evidence": "Real SQLite regression tests at tested_sha"
+    },
+    {
+      "criterion": "Fresh recalculation uses unapproved current facts and preserves historical match payloads; later explicit synthetic fact approval produces its own version and score",
+      "result": "PASS",
+      "evidence": "Real SQLite regression test at tested_sha"
+    },
+    {
+      "criterion": "All imported history remains linked to historical profile versions, documents remain preserved, and receipt replay is idempotent",
+      "result": "PASS",
+      "evidence": "Existing and new restore integration tests at tested_sha"
+    },
+    {
+      "criterion": "Ordinary restore/export/restore/export preserves history and never promotes imported match evidence to current",
+      "result": "PASS",
+      "evidence": "test_replay_and_second_restore_preserve_history_without_promoting_it at tested_sha"
+    },
+    {
+      "criterion": "Preview and restore planning reject projected row, node and byte growth that exceeds existing resource limits without mutating the input",
+      "result": "PASS",
+      "evidence": "Unit limit regressions and accepted neighbor at tested_sha; independent real SQLite boundary review"
+    },
+    {
+      "criterion": "Browser restore journey shows an empty heatmap and unscored imported jobs before and after reload",
+      "result": "NOT_RUN",
+      "evidence": "Assertions added; Chromium could not launch in the workspace, before product assertions"
+    },
+    {
+      "criterion": "Full MJ-REQ-168 restore acceptance and full MJ-REF-026 acceptance",
+      "result": "NOT_RUN",
+      "evidence": "Scope is a regression fix; required hosted checks, broad restore coverage, PostgreSQL and browser coverage are separate evidence"
+    }
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_profile_restore.py tests/unit/test_skill_gap_heatmap.py tests/unit/test_skill_gap_heatmap_unknowns.py tests/integration/test_profile_restore.py tests/integration/test_profile_restore_match_currentness.py tests/integration/test_skill_gap_heatmap_api.py --junitxml=../run_evidence/source-commit.xml",
+      "revision": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+      "result": "PASS",
+      "exit_code": 0,
+      "tests_passed": 44,
+      "subtests_passed": 29,
+      "skipped": 0,
+      "duration_seconds": 14.17,
+      "environment": "Isolated ChatGPT Linux workspace, Python 3.12.14, exact requirements.lock and .github/test-requirements.txt; SQLite and ASGI fixtures"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "revision": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+      "result": "PASS",
+      "detail": "Complete required trailers for six source/test files"
+    },
+    {
+      "command": "python -m tools.verification.catalogue && python -m tools.verification.progress validate && python -m tools.verification.progress_dashboard --check && git diff --check",
+      "revision": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+      "result": "PASS",
+      "detail": "Catalogue PASS; journal PASS; dashboard CURRENT; no whitespace errors"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "revision_kind": "Reviewed working tree, with the same six source/test file hashes as implementation_sha",
+      "result": "PASS",
+      "detail": "TypeScript and Vite production build completed; existing chunk-size advisory only"
+    },
+    {
+      "command": "python -m ruff check --select E9,F63,F7,F82 <six changed Python files>",
+      "revision_kind": "Reviewed working tree, same hashes as implementation_sha",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_profile_restore.py tests/browser/test_profile_restore_history_readback.py (temporary environment harness selecting installed /usr/bin/chromium)",
+      "result": "NOT_RUN",
+      "operational_state": "BLOCKED",
+      "detail": "Playwright Chromium download was invalid/truncated. Installed Chromium launch then failed because the environment denied socket/ptrace operations. Two launch failures occurred before browser assertions; no access controls were changed."
+    },
+    {
+      "command": "GitHub required checks and hosted browser regression",
+      "result": "NOT_RUN",
+      "detail": "PR publication pending at this evidence commit; check exact published head separately"
+    }
+  ],
+  "baseline_regression": {
+    "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "result": "EXPECTED_FAILURE",
+    "detail": "Three real SQLite currentness tests failed on the base implementation; the first exposed an imported APPROVED heatmap entry and score 100 despite unapproved restored facts. Four row/node capacity subtests also failed before the guard."
+  },
+  "independent_review": {
+    "schema_version": 1,
+    "run_id": "web-20261109T031130Z-e950d8153e31",
+    "reviewer": "deployment_readback",
+    "observed_utc": "2026-11-09T03:43:32.001193+00:00",
+    "requirement": "MJ-REQ-168",
+    "related_consumer": "MJ-REF-026",
+    "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "checkout_head_at_review": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "reviewed_revision_kind": "working-tree byte hashes; caller must verify exact final commit contains these source/test bytes",
+    "source_test_sha256": {
+      "packages/persistence/profile_restore.py": "c696f1678f047211384e7e5c224a6aa933951037ad9f03d0a86584dac3bfae65",
+      "services/profile_restore.py": "e4ffdcc7674fe0d474fb3c177b87b3106e1b0ad2d9a11cae21666d4708732fb1",
+      "tests/integration/test_profile_restore_match_currentness.py": "f6b22759352b8f4faee42d95b3b08caf1b9a40877e01c872f6e3ec3b4805a6cc",
+      "tests/integration/test_profile_restore.py": "5cbbf6534205ba83da75da81afd7c95e391c288d18ab0c9e187124d073caa927",
+      "tests/unit/test_profile_restore.py": "c2a0cf764662bd9be5303deec790daad5079ce7410b47dfb60e98a4e136da0de",
+      "tests/browser/test_profile_restore_history_readback.py": "db169cacd8eaf6b2abf6882c15eab2af6629aa1dc02459aa75ab384419153e13"
+    },
+    "independent_of_source_and_test_authorship": true,
+    "verdict": "APPROVE_SCOPED_CHANGE_NO_BLOCKING_FINDINGS",
+    "blocking_findings": [],
+    "resolved_findings": [
+      {
+        "id": "new-active-snapshot-exceeds-backup-bounds",
+        "previous_priority": "P2",
+        "resolution": "Shared preview/plan validator now reserves normalized post-restore rows/nodes/bytes before persistence. Original row/node/byte-growth fixtures reject with fixed RESTORE_LIMIT_EXCEEDED; established global safety limits are unchanged.",
+        "independently_executed": {
+          "environment": "Cloud Linux scratch, ../mjobs-venv/bin/python; real SQLite Store and production restore/export/parser functions",
+          "result": "PASS_EXPECTED_BEHAVIOR",
+          "exit_code": 0,
+          "prior_48_versions_x_200_facts": {
+            "planning": "RESTORE_LIMIT_EXCEEDED"
+          },
+          "adjacent_47_versions_x_200_facts": {
+            "planning": "ACCEPTED",
+            "apply_restore": "APPLIED",
+            "export_profile_backup": "ACCEPTED",
+            "reexport_raw_parser": "ACCEPTED",
+            "export_versions": 48,
+            "export_facts": 9600,
+            "export_bytes": 3133782,
+            "next_restore_preview": "RESTORE_LIMIT_EXCEEDED"
+          }
+        }
+      },
+      {
+        "id": "normalized-fact-source-test",
+        "resolution": "Updated preservation assertion compares against parser-normalized source prefix rather than raw original source; other fact payload fields still equal original."
+      },
+      {
+        "id": "historical-workspace-comment",
+        "resolution": "Comment now states historical profile-version binding."
+      }
+    ],
+    "reviewed_contracts": [
+      "Fresh active profile snapshot/facts/answers are separate from every imported source version and remain unapproved.",
+      "Store.jobs, Store.job and heatmap current-version consumers do not treat imported scores/APPROVED annotations as current evidence.",
+      "Recalculation creates fresh evidence and leaves historical scores/payloads intact; a later explicit fact review creates its own new version.",
+      "All imported version-dependent artifacts retain remapped historical references; applications remain inert/review-required with cleared facts and confirmation.",
+      "Canonical profile/fact IDs remain compatible with exporter/parser linkage rules.",
+      "Receipt lookup precedes staging/extra inserts; replay does not multiply snapshots or files.",
+      "New DB rows remain inside existing transaction and rollback scope.",
+      "Capacity projection executes during both preview and plan validation, does not mutate input, and preserves original global resource limits.",
+      "Guard projection is a bounded size estimate and explicitly is not export/linkage validation."
+    ],
+    "validation_evidence_read": {
+      "focused_log": "/workspace/scratch/b9aae1566824/run_evidence/focused.log",
+      "focused_xml": "/workspace/scratch/b9aae1566824/run_evidence/focused.xml",
+      "parent_executed_pytest_tests_passed": 44,
+      "parent_executed_subtests_passed": 29,
+      "xml_test_cases": 73,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "xml_timestamp": "2026-11-08T21:35:34.445518-06:00",
+      "web_build_and_repo_checks": "Parent reported passing; not independently rerun by reviewer",
+      "browser": "Parent reports environment blocked launch before assertions; NOT_RUN, not passed"
+    },
+    "limitations": [
+      "Near-capacity restored exports can fit raw format limits yet be refused for another restore because the next active snapshot would exceed bounds. Bounded admission protects the data; arbitrary repeated near-limit restores are not promised.",
+      "Worst-case target ID/timestamp/route-size projection can conservatively reject near byte limits; it is not a byte-for-byte exporter implementation.",
+      "No browser end-to-end or PostgreSQL execution was performed by this reviewer.",
+      "This changes future restores. Existing restored profiles are not repaired or migrated by this change.",
+      "No full MJ-REQ-168 or MJ-REF-026 acceptance, deployment, merge permission, or GitHub required-check substitution is conferred.",
+      "Final committed source/test hashes must match this review; later edits require scoped re-review."
+    ]
+  },
+  "privacy_and_safety": {
+    "data": "Synthetic fixtures only; no applicant data or credentials",
+    "external_application_submission": "No submission path or authorization gate changed",
+    "persistence": "Existing transaction and rollback scope retained; no migration or deletion",
+    "coordination": "Exclusive file claims in existing atomic coordinator; no shared acceptance matrix edits",
+    "reference_provenance": "Original repository contract and synthetic regression evidence; no third-party code, assets, or material inspiration"
+  },
+  "limitations": [
+    "Future restore operations are corrected; previously restored databases are not rewritten or repaired.",
+    "Near-capacity restored exports may fit raw format bounds yet be refused for another restore because another fresh active snapshot would exceed bounds. Arbitrary repeated near-limit recovery is not promised.",
+    "Worst-case target identifier and timestamp size projection can conservatively reject near byte limits; it is not an exporter/linkage implementation.",
+    "Browser assertions, PostgreSQL execution and hosted required checks are not established by this local evidence.",
+    "Canonical 59-item MJ-REF and 366-item MJ-REQ acceptance matrices remain unchanged. No merge or deployment is authorized by this evidence."
+  ],
+  "rollback": "If integrated and a regression is found, revert this scoped PR through the protected review workflow. No migration rollback is required; historical/current profile records created by successful restores remain ordinary data and must not be deleted automatically.",
+  "hosted_coverage": {
+    "automatic_pr_checks": "The new restore-currentness integration file runs in Integration / shard 1; existing restore integration file runs in shard 0. Changed unit tests run in Python / unit and integrity. These restore fixtures use SQLite, regardless of the PostgreSQL/Redis aggregate workflow name.",
+    "browser_gap": "The changed history-readback browser test runs only in the separate scheduled/manual full browser workflow (shard 3), not automatic PR CI or the five-file Disposable Compose selection. No broad manual browser workflow was dispatched by this evidence.",
+    "required_policy_checks": [
+      "CI / required",
+      "Integration / PostgreSQL and Redis",
+      "Disposable Compose / mock end-to-end",
+      "Dependencies / introduced vulnerabilities",
+      "Security / secret scan"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-168",
+  "objective": "Keep imported match approvals historical after restore and enforce capacity before mutation",
+  "owner": "web-20261109T031130Z-e950d8153e31",
+  "branch": "web/web-20261109T031130Z-e950d8153e31/MJ-REQ-168-restored-match-currentness",
+  "head_sha": "d9ab13b53921715f1b6e0115ae31047dc2f2161a",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Publish the owned tested branch, inspect exact-head required CI, and obtain browser history-readback evidence before acceptance; integration remains PR_ONLY",
+  "created_at": "2026-11-09T03:52:40.233967+00:00",
+  "requirements": [
+    "MJ-REQ-168"
+  ],
+  "tests": [
+    {
+      "command": "d9ab13b53921715f1b6e0115ae31047dc2f2161a: focused restore/heatmap unit, SQLite and API suite: 44 passed, 29 subtests passed, 0 skipped",
+      "result": "PASS"
+    },
+    {
+      "command": "d9ab13b53921715f1b6e0115ae31047dc2f2161a: commit provenance, catalogue, progress validation, dashboard, and whitespace checks PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Reviewed implementation tree: web TypeScript/Vite build and fatal-error static lint PASS; independent scoped review found no blocker",
+      "result": "PASS"
+    },
+    {
+      "command": "Browser assertions blocked by Chromium runtime restrictions; PostgreSQL and exact-head hosted checks pending",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full requirement acceptance remains partial; existing restored databases and arbitrary repeated near-limit restores are outside this fix"
+  ]
+}
