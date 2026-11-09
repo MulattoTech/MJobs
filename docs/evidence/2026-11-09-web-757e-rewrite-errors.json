@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-09T14:02:01.707130+00:00",
+  "run_id": "web-20261109T131907Z-757e92836b83",
+  "requirement": "MJ-REQ-171",
+  "issue": 172,
+  "scope": "Resume rewrite-review API: bounded public service errors; same PR as resume editor error privacy",
+  "implementation_commit": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+  "base_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "source_blobs": {
+    "apps/api/resume_rewrite_review.py": "df570a7d812f2369ec8c1b332060d300c18f0af0",
+    "tests/integration/test_resume_rewrite_review_error_privacy.py": "13d693e499d93bd1e7fa50d4c327c2b1294a9fc7"
+  },
+  "behavior": [
+    "Only six documented PreparationError codes with an exact built-in string type are exposed with their existing HTTP statuses.",
+    "Unexpected, private, malformed or spoofed builder errors return fixed HTTP 500 RESUME_REWRITE_SERVICE_ERROR.",
+    "Known stale-context and validation errors, post-computation freshness rechecks, approved-fact review and protected-token response validation are preserved.",
+    "Read-only failures preserve reopened SQLite state, and real review succeeds after the injected failure is removed."
+  ],
+  "baseline_regression": {
+    "purpose": "new regression on unchanged main rewrite router",
+    "implementation_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "test_blob": "13d693e499d93bd1e7fa50d4c327c2b1294a9fc7",
+    "command": [
+      "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_resume_rewrite_review_error_privacy.py",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "started_utc": "2026-11-09T13:43:27.239931+00:00",
+    "ended_utc": "2026-11-09T13:43:33.291651+00:00",
+    "exit_code": 1,
+    "summary": "19 failed, 3 passed, 12 subtests passed in 3.76s",
+    "interpretation": "Expected failure on unchanged main: 18 failing privacy/status subtests plus one real privacy assertion failure in the recovery test; no fixture setup error."
+  },
+  "combined_targeted_regression": {
+    "purpose": "Combined regressions on API-created exact source commit",
+    "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+    "command": [
+      "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_resume_workspace_editor_error_privacy.py",
+      "tests/integration/test_resume_workspace_editor_api.py",
+      "tests/integration/test_resume_workspace_api.py",
+      "tests/integration/test_resume_workspace_preview_api.py",
+      "tests/integration/test_resume_workspace_preview_error_privacy.py",
+      "tests/unit/test_resume_workspace.py",
+      "tests/unit/test_resume_workspace_export.py",
+      "tests/integration/test_resume_rewrite_review_error_privacy.py",
+      "tests/integration/test_resume_rewrite_review_api.py",
+      "tests/unit/test_resume_rewrite_review.py",
+      "tests/unit/test_resume_workspace_preview.py",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "started_utc": "2026-11-09T13:59:40.525734+00:00",
+    "ended_utc": "2026-11-09T14:00:03.998401+00:00",
+    "exit_code": 0,
+    "summary": "55 passed, 186 subtests passed in 19.82s"
+  },
+  "independent_review": {
+    "reviewer": "ChatGPT independent agent /root/sensitive_fields_review",
+    "result": "PASS for the bounded slice; not human GitHub approval or full requirement acceptance",
+    "reviewed_source_blob": "df570a7d812f2369ec8c1b332060d300c18f0af0",
+    "reviewed_test_blob": "13d693e499d93bd1e7fa50d4c327c2b1294a9fc7",
+    "regression_result": "18 tests and 43 subtests passed across new API, existing API and rewrite unit suites",
+    "additional_probe_result": "8 checks passed using fully mounted create_app and the real approved-fact builder with lower-level error injection, exact source-hash/protected-token recovery, and actual mid-computation synthetic job/fact-approval changes",
+    "hostile_dependency_code_reads": 0,
+    "probe_sha256": "b373a4291cccfe82b40958b18270e6c70672db0bebe940ec63638492e4d61848",
+    "probe_checkpoint": "C:/Tools/Dev/MJobs-Web/_run_web-20261109T131907Z-757e92836b83/independent_rewrite_privacy_probe.py",
+    "revision_binding": "Independent code/probe results bind to the four reviewed Git blobs. Independent remote review confirmed those exact blobs at ade5e987792e032e5417b51d0f450581fc9a00d5. Parent executed the combined 55-test/186-subtest suite on that exact remote commit."
+  },
+  "integrity": {
+    "commit_provenance": "PASS for two source files at implementation_commit",
+    "ruff_BLE_F_I": "PASS for the rewrite router and its new regression file; one narrowly explained BLE001 boundary suppression",
+    "git_diff_check": "PASS"
+  },
+  "not_run": [
+    "Full unit and integration suites",
+    "PostgreSQL-specific execution",
+    "Browser E2E at candidate revision",
+    "Hosted checks before PR publication",
+    "Deployed candidate verification"
+  ],
+  "acceptance_note": "Canonical MJ-REQ and MJ-REF matrices are unchanged. MJ-REQ-171 remains PARTIAL. This evidence verifies a bounded API privacy slice, not complete privacy acceptance.",
+  "rollback": "Revert the source commit through the feature branch or a protected-main PR; no schema, data or configuration migration.",
+  "historical_local_validation": {
+    "tested_sha": "3d240f12e36fba7595cd99dd114e88254f81e32d",
+    "summary": "55 passed, 186 subtests passed in 20.62s",
+    "exit_code": 0,
+    "role": "Earlier local validation; current combined proof binds to the new API-created source commit"
+  },
+  "integrity_checks": [
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.486307+00:00",
+      "ended_utc": "2026-11-09T14:02:01.533410+00:00",
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.533428+00:00",
+      "ended_utc": "2026-11-09T14:02:01.579372+00:00",
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.579389+00:00",
+      "ended_utc": "2026-11-09T14:02:01.650368+00:00",
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD",
+        "--strict"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.650382+00:00",
+      "ended_utc": "2026-11-09T14:02:01.700292+00:00",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 4 source files\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "origin/main...HEAD"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.700309+00:00",
+      "ended_utc": "2026-11-09T14:02:01.702861+00:00",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "publication": {
+    "method": "GitHub Git-data API after workstation LIGHT_LOCAL gate failed",
+    "local_publication_not_run": "Fresh free RAM 9.984 GiB was below the required 10 GiB; no local Git transport, light slot or heavy operation was started",
+    "preserved_local_head": "241d9937d968e80708ad3f6a28b960e84ade2773",
+    "preserved_branch": "web/web-20261109T131907Z-757e92836b83/MJ-REQ-171-resume-error-privacy-local-recovery",
+    "remote_source_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+    "remote_identity_review": "Independent reviewer confirmed the sole main parent, all four exact source/test blobs, intended four-file diff and strict provenance"
+  }
+}

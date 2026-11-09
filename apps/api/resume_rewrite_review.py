@@ -55,6 +55,23 @@ _REWRITE_FIELDS = {
     "protected_token_audit",
 }
 _AUDIT_FIELDS = {"required", "retained", "missing"}
+_PUBLIC_ERROR_STATUSES = {
+    "RESUME_REWRITE_PROFILE_STALE": 409,
+    "RESUME_REWRITE_JOB_STALE": 409,
+    "RESUME_REWRITE_JOB_INVALID": 422,
+    "RESUME_REWRITE_SELECTION_INVALID": 422,
+    "RESUME_REWRITE_INVALID": 422,
+    "RESUME_REWRITE_FACT_INVALID": 422,
+}
+
+
+def _service_http_error(error: Exception) -> HTTPException:
+    """Expose only documented domain codes, never arbitrary service diagnostics."""
+    if isinstance(error, PreparationError):
+        code = getattr(error, "code", None)
+        if type(code) is str and code in _PUBLIC_ERROR_STATUSES:
+            return HTTPException(_PUBLIC_ERROR_STATUSES[code], {"code": code})
+    return HTTPException(500, {"code": "RESUME_REWRITE_SERVICE_ERROR"})
 
 
 def _load_profile(store, profile_id: str) -> dict:
@@ -143,11 +160,8 @@ def create_resume_rewrite_review_router(store) -> APIRouter:
                 value.expected_profile_version,
                 value.expected_job_fingerprint,
             )
-        except PreparationError as error:
-            status = 409 if error.code in {
-                "RESUME_REWRITE_PROFILE_STALE", "RESUME_REWRITE_JOB_STALE",
-            } else 422
-            raise HTTPException(status, {"code": error.code}) from None
+        except Exception as error:  # noqa: BLE001 - This boundary must hide service diagnostics.
+            raise _service_http_error(error) from None
 
         current_profile = _load_profile(store, profile_id)
         current_job = _load_job(store, profile_id, job_id)

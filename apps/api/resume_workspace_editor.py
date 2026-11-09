@@ -7,14 +7,20 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from services.documents.errors import PreparationError
 from services.documents.resume_templates import list_resume_templates
-from services.documents.resume_workspace import list_resume_workspace_revisions, ResumeWorkspaceError
+from services.documents.resume_workspace import (
+    ResumeWorkspaceError,
+    list_resume_workspace_revisions,
+)
 from services.documents.resume_workspace_export import (
     read_reviewed_resume_workspace_export,
     render_reviewed_resume_workspace_export,
     save_reviewed_resume_workspace_export,
 )
-from services.documents.resume_workspace_preview import build_resume_workspace_draft_preview
+from services.documents.resume_workspace_preview import (
+    build_resume_workspace_draft_preview,
+)
 
 
 class Section(BaseModel):
@@ -62,12 +68,42 @@ class SaveInput(BaseModel):
         return self
 
 
-def _raise(error: Exception):
-    code = getattr(error, "code", "RESUME_WORKSPACE_SERVICE_ERROR")
-    status = 409 if ("STALE" in code or "CONFLICT" in code or code == "AVOID_LIST_BLOCKED") else 404 if "NOT_FOUND" in code else 422 if code in {
-        "RESUME_WORKSPACE_INVALID", "RESUME_WORKSPACE_REVIEW_REQUIRED", "RESUME_WORKSPACE_PREVIEW_STALE",
-    } else 500
-    raise HTTPException(status, {"code": code}) from None
+_PUBLIC_ERROR_STATUSES = {
+    "AVOID_LIST_BLOCKED": 409,
+    "DOCUMENT_CONTENT_MISMATCH": 500,
+    "DOCUMENT_FONT_UNAVAILABLE": 500,
+    "DOCUMENT_UNSUPPORTED_GLYPH": 500,
+    "RESUME_TEMPLATE_SELECTION_INVALID": 500,
+    "RESUME_TEMPLATE_VERSION_REQUIRED": 500,
+    "RESUME_TEMPLATE_VERSION_STALE": 409,
+    "RESUME_WORKSPACE_INVALID": 422,
+    "RESUME_WORKSPACE_JOB_STALE": 409,
+    "RESUME_WORKSPACE_NOT_FOUND": 404,
+    "RESUME_WORKSPACE_PREVIEW_INVALID": 500,
+    "RESUME_WORKSPACE_PREVIEW_STALE": 409,
+    "RESUME_WORKSPACE_PROFILE_STALE": 409,
+    "RESUME_WORKSPACE_REQUEST_CONFLICT": 409,
+    "RESUME_WORKSPACE_REVIEW_REQUIRED": 422,
+    "RESUME_WORKSPACE_SERVICE_ERROR": 500,
+    "RESUME_WORKSPACE_STALE_CONTEXT": 409,
+    "RESUME_WORKSPACE_STALE_VERSION": 409,
+}
+
+
+def _public_error_code(error: Exception) -> str:
+    """Retain known domain codes; dependency diagnostics are private."""
+    if isinstance(error, (ResumeWorkspaceError, PreparationError)):
+        code = getattr(error, "code", None)
+        if type(code) is str and code in _PUBLIC_ERROR_STATUSES:
+            return code
+    return "RESUME_WORKSPACE_SERVICE_ERROR"
+
+
+def _raise(error: Exception, *, invalid_not_found: bool = False):
+    code = _public_error_code(error)
+    if invalid_not_found and code == "RESUME_WORKSPACE_INVALID":
+        code = "RESUME_WORKSPACE_NOT_FOUND"
+    raise HTTPException(_PUBLIC_ERROR_STATUSES[code], {"code": code}) from None
 
 
 def _json_row(row):
@@ -89,9 +125,7 @@ def create_resume_workspace_editor_router(store):
         try:
             versions = [_json_row(row) for row in list_resume_workspace_revisions(store, profile_id, job_id)]
         except Exception as error:
-            if getattr(error, "code", None) == "RESUME_WORKSPACE_INVALID":
-                raise HTTPException(404, {"code": "RESUME_WORKSPACE_NOT_FOUND"}) from None
-            _raise(error)
+            _raise(error, invalid_not_found=True)
         return {"profile_id": profile_id, "job_id": job_id,
                 "current": versions[-1] if versions else None, "versions": versions}
 
@@ -133,9 +167,7 @@ def create_resume_workspace_editor_router(store):
         try:
             text = read_reviewed_resume_workspace_export(store, profile_id, job_id, version)
         except Exception as error:
-            if getattr(error, "code", None) == "RESUME_WORKSPACE_INVALID":
-                raise HTTPException(404, {"code": "RESUME_WORKSPACE_NOT_FOUND"}) from None
-            _raise(error)
+            _raise(error, invalid_not_found=True)
         return PlainTextResponse(text, headers={"Content-Disposition": f'attachment; filename="resume-workspace-v{version}.txt"'})
 
     @router.get("/profiles/{profile_id}/jobs/{job_id}/resume-workspace/versions/{version}/{format}")

@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131907Z-757e92836b83",
+  "requirement_id": "MJ-REQ-171",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/172",
+  "slice": "resume-editor-error-privacy",
+  "recorded_utc": "2026-11-09T14:02:01.705086+00:00",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+  "full_requirement_result": "PARTIAL",
+  "slice_result": "PASS",
+  "implementation": {
+    "source": "apps/api/resume_workspace_editor.py",
+    "source_blob": "526a32546de6fb55321c5140eda81f796a6e5599",
+    "regression_test": "tests/integration/test_resume_workspace_editor_error_privacy.py",
+    "test_blob": "af469652786c4f51caa3bd0fc23582cf20b047e2"
+  },
+  "criteria": [
+    {
+      "criterion": "Unknown dependency and domain diagnostics never escape public editor error responses",
+      "result": "PASS",
+      "proof": "Mounted history/preview/save/text/txt/docx/pdf fault cases; bounded fixed JSON envelope and synthetic code/message/cause checks."
+    },
+    {
+      "criterion": "Dependency-supplied values cannot spoof not-found/conflict responses or break normalization",
+      "result": "PASS",
+      "proof": "Forged documented codes on RuntimeError, misleading strings, malformed values and deceptive string subclasses."
+    },
+    {
+      "criterion": "Known domain errors preserve existing HTTP contracts",
+      "result": "PASS",
+      "proof": "Trusted ResumeWorkspaceError/PreparationError exact-string map; preview stale remains409; history/text missing scope404; validation422 and existing render/template500."
+    },
+    {
+      "criterion": "Errors preserve reviewed state and normal workflows recover",
+      "result": "PASS",
+      "proof": "SQLite reopen compares profile/job/history and application/document/worker counts; real preview, idempotent save, text and DOCX recovery."
+    }
+  ],
+  "environment": {
+    "host": "isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "dependencies": "requirements.lock plus .github/test-requirements.txt; pinned in run-owned virtual environment",
+    "database": "temporary SQLite fixtures",
+    "external_application_submission": "OFF",
+    "windows_compute": "No tests/builds/dependency installs executed on MulattoTechBox"
+  },
+  "baseline_regression": {
+    "purpose": "corrected regression on untouched baseline router",
+    "implementation_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "test_blob": "af469652786c4f51caa3bd0fc23582cf20b047e2",
+    "command": [
+      "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_resume_workspace_editor_error_privacy.py",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "started_utc": "2026-11-09T13:29:18.359580+00:00",
+    "ended_utc": "2026-11-09T13:29:24.503512+00:00",
+    "exit_code": 1,
+    "summary": "63 failed, 4 passed, 20 subtests passed in 4.58s",
+    "expected_result": "FAIL",
+    "clarification": "Corrected regression fixture rerun:62 failing privacy/status subtests plus1 real privacy assertion failure in recovery method; no fixture table error in this rerun. Initial author run also had a table-name fixture mistake, corrected before this recorded rerun."
+  },
+  "targeted_regression": {
+    "purpose": "Combined regressions on API-created exact source commit",
+    "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+    "command": [
+      "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_resume_workspace_editor_error_privacy.py",
+      "tests/integration/test_resume_workspace_editor_api.py",
+      "tests/integration/test_resume_workspace_api.py",
+      "tests/integration/test_resume_workspace_preview_api.py",
+      "tests/integration/test_resume_workspace_preview_error_privacy.py",
+      "tests/unit/test_resume_workspace.py",
+      "tests/unit/test_resume_workspace_export.py",
+      "tests/integration/test_resume_rewrite_review_error_privacy.py",
+      "tests/integration/test_resume_rewrite_review_api.py",
+      "tests/unit/test_resume_rewrite_review.py",
+      "tests/unit/test_resume_workspace_preview.py",
+      "--tb=short",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "started_utc": "2026-11-09T13:59:40.525734+00:00",
+    "ended_utc": "2026-11-09T14:00:03.998401+00:00",
+    "exit_code": 0,
+    "summary": "55 passed, 186 subtests passed in 19.82s"
+  },
+  "integrity_checks": [
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.486307+00:00",
+      "ended_utc": "2026-11-09T14:02:01.533410+00:00",
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.533428+00:00",
+      "ended_utc": "2026-11-09T14:02:01.579372+00:00",
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.579389+00:00",
+      "ended_utc": "2026-11-09T14:02:01.650368+00:00",
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/8a8dff07082c/mjobs-venv/bin/python",
+        "-B",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD",
+        "--strict"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.650382+00:00",
+      "ended_utc": "2026-11-09T14:02:01.700292+00:00",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 4 source files\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "origin/main...HEAD"
+      ],
+      "tested_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+      "started_utc": "2026-11-09T14:02:01.700309+00:00",
+      "ended_utc": "2026-11-09T14:02:01.702861+00:00",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "independent_review": {
+    "reviewer": "ChatGPT independent agent /root/sensitive_fields_review",
+    "review_result": "PASS for bounded slice; not human GitHub approval or full requirement acceptance",
+    "reviewed_source_blob": "526a32546de6fb55321c5140eda81f796a6e5599",
+    "reviewed_test_blob": "af469652786c4f51caa3bd0fc23582cf20b047e2",
+    "focused_rerun": "5 passed,82 subtests passed; exit0",
+    "additional_probe": "16 checks passed through real reviewed-save and lower-level renderer error injection; hostile dependency code property accessed0times; no private response/attachment headers; reopened state unchanged",
+    "probe_sha256": "d52f82bb6478acb1b7b40ce6c71da736c75d51303874495cbcbe190c10bc3e67",
+    "probe_checkpoint": "C:/Tools/Dev/MJobs-Web/_run_web-20261109T131907Z-757e92836b83/independent_renderer_privacy_probe.py",
+    "revision_binding": "Independent code/probe results bind to the four reviewed Git blobs. Independent remote review confirmed those exact blobs at ade5e987792e032e5417b51d0f450581fc9a00d5. Parent executed the combined 55-test/186-subtest suite on that exact remote commit."
+  },
+  "optional_lint": {
+    "default_ruff": "5 pre-existing BLE001 broad-exception boundary findings; no new ignore/suppression",
+    "expanded_E_F_I": "24 long-line E501 findings including pre-existing source/test formatting; unrestricted lint PASS not claimed"
+  },
+  "not_run": [
+    "Full unit and integration suites",
+    "PostgreSQL-specific execution",
+    "Browser E2E at candidate revision",
+    "Hosted checks before PR publication",
+    "Deployed candidate verification"
+  ],
+  "acceptance_note": "Canonical MJ-REQ/MJ-REF matrices are unchanged; original MJ-REQ-171 remainsPARTIAL. Safe source slice only; required hosted checks and authorized integration remain separate.",
+  "rollback": "Revert this source commit on the feature branch or through a protected-main PR; no schema/data/configuration migration.",
+  "historical_local_validation": {
+    "tested_sha": "2a736624f3f5029020d8fa22504921ae2203f044",
+    "summary": "37 passed, 143 subtests passed in 17.33s",
+    "exit_code": 0,
+    "role": "Earlier local validation, retained as history; current combined exact-source proof is below"
+  },
+  "publication": {
+    "method": "GitHub Git-data API after workstation LIGHT_LOCAL gate failed",
+    "local_publication_not_run": "Fresh free RAM 9.984 GiB was below the required 10 GiB; no local Git transport, light slot or heavy operation was started",
+    "preserved_local_head": "241d9937d968e80708ad3f6a28b960e84ade2773",
+    "preserved_branch": "web/web-20261109T131907Z-757e92836b83/MJ-REQ-171-resume-error-privacy-local-recovery",
+    "remote_source_sha": "ade5e987792e032e5417b51d0f450581fc9a00d5",
+    "remote_identity_review": "Independent reviewer confirmed the sole main parent, all four exact source/test blobs, intended four-file diff and strict provenance"
+  }
+}
