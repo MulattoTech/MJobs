@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131741Z-76b8f732f1a7",
+  "recorded_at_utc": "2026-11-09T13:43:51.634328+00:00",
+  "requirements": [
+    "MJ-REQ-198"
+  ],
+  "related_issue": 199,
+  "related_reference_requirements": [
+    "MJ-REF-007",
+    "MJ-REF-041"
+  ],
+  "scope": "Authoritative archive state, historical retry identity, and supporting-document eligibility remain correct beyond the bounded audit-history view.",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7",
+  "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7",
+  "source_blobs": {
+    "services/documents/archive.py": "10887bd615f740d58759dc6ab3b0cbd24607bfe6",
+    "services/documents/archive_store.py": "54aaadb70cf3840bc4a1508ea90982596c674c74",
+    "services/applications/supporting_documents.py": "b8e160f5c588c8da06d498b0d5edd1fc4f36f7a7",
+    "tests/unit/test_document_archive_history_window.py": "c0d948102a922bf96624c0ddcd0df4b6d05b1630"
+  },
+  "environment": {
+    "host": "isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "database": "SQLite, including real file-backed and shared-memory Store fixtures",
+    "dependencies": "Repository requirements.txt pins in own virtual environment",
+    "workstation_compute": "No workstation builds, dependency installs or tests; resource gate not cleared."
+  },
+  "baseline": {
+    "source_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "regression_methods": 7,
+    "subtests": 14,
+    "failed_subtests": 12,
+    "passing_isolation_subtests": 2,
+    "elapsed_seconds": 1.129,
+    "observed_defects": [
+      "Bulk state omitted an older archived document after more than 1,000 unrelated events.",
+      "Old archive/restore replays reported a change and stale service state without changing durable history.",
+      "A reused operation key for another already-archived revision was silently accepted.",
+      "The real API replay response falsely reported changed=true.",
+      "Supporting-document listing and selection accepted an older archived upload."
+    ],
+    "scope_note": "Existing per-document library metadata already reported the latest archive state correctly; no claim that the library UI re-exposed older documents."
+  },
+  "criterion_results": [
+    {
+      "criterion": "Archive and restore immutable document revisions",
+      "slice": "Authoritative latest state for all documents regardless of display-history length",
+      "result": "PASS",
+      "evidence": "Uploaded and generated histories with 1,001 later transitions; equal-timestamp ordering and colliding entity scopes."
+    },
+    {
+      "criterion": "Idempotent archive and restore retries",
+      "slice": "Exact old operation identities preserve current state, complete history and immutable revision metadata",
+      "result": "PASS",
+      "evidence": "Old archive/restore and operation-conflict regressions in both scopes; actual FastAPI router response checks."
+    },
+    {
+      "criterion": "Prevent archived supporting-document selection",
+      "slice": "Older archived uploads remain unavailable to selection consumers",
+      "result": "PASS",
+      "evidence": "Public selection listing/rejection tests plus existing selected-byte snapshot and pre-network archive gates."
+    },
+    {
+      "criterion": "Ownership and immutable bytes",
+      "result": "PASS",
+      "evidence": "Cross-profile denial, unchanged history/metadata hashes and existing generated/uploaded byte-preservation checks."
+    },
+    {
+      "criterion": "Full MJ-REQ-198 and related reference acceptance",
+      "result": "NOT_RUN",
+      "reason": "No fresh full documents UI, compare/edit/regenerate/browser/production/PostgreSQL verification; historical original status remains PARTIAL."
+    }
+  ],
+  "commands": [
+    {
+      "command": "env -u ALL_PROXY -u all_proxy -u HTTP_PROXY -u http_proxy -u HTTPS_PROXY -u https_proxy PYTHONDONTWRITEBYTECODE=1 python -m unittest -v tests.unit.test_document_archive tests.unit.test_document_archive_history_window tests.integration.test_document_archive_api_contract tests.integration.test_fleet_t04_b_supporting_documents tests.integration.test_application_supporting_documents.ApplicationSupportingDocumentTests.test_profile_owned_selection_is_durable_job_scoped_and_idempotent tests.integration.test_application_supporting_documents.ApplicationSupportingDocumentTests.test_rejects_wrong_document_kind_and_foreign_revision tests.integration.test_application_supporting_documents.ApplicationSupportingDocumentTests.test_selection_isolated_to_the_exact_prepared_job tests.integration.test_application_supporting_documents.ApplicationSupportingDocumentTests.test_archived_selected_revision_requires_review_before_mock_network_access",
+      "result": "PASS",
+      "exit_code": 0,
+      "methods": 23,
+      "skips": 0,
+      "elapsed_seconds": 13.341,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7",
+      "log_sha256": "efb9773d56b918cc025d9809c0e3d2b0c18ed03bfba8b07b0399b379621f6479"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "exit_code": 0,
+      "tested_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7"
+    },
+    {
+      "command": "Original five-module focused unittest invocation including the browser dry-run method",
+      "result": "ENVIRONMENT_ERRORS",
+      "methods": 24,
+      "passed": 22,
+      "errors": 2,
+      "elapsed_seconds": 15.409,
+      "details": [
+        "Missing optional socksio while inherited proxy configuration initialized an HTTP client.",
+        "Pinned Playwright Chromium executable absent for test_mock_dry_run_uploads_only_selected_file_and_stops_before_submission."
+      ]
+    },
+    {
+      "command": "Archived-selection pre-network test with proxy variables unset only for the loopback fixture invocation",
+      "result": "PASS",
+      "exit_code": 0,
+      "methods": 1,
+      "resolution": "No global environment or dependency configuration changed. This method also passes in the exact-SHA 23-method run."
+    },
+    {
+      "command": "Browser dry-run method, PostgreSQL execution, full Python suite, web build and deployed user journey",
+      "result": "NOT_RUN",
+      "reason": "Browser executable unavailable; PostgreSQL service absent; broader acceptance remains outside this bounded local run."
+    }
+  ],
+  "independent_review": {
+    "reviewer": "separate ChatGPT-Web agent independent_slice_scout",
+    "result": "NO_SCOPED_BLOCKER",
+    "source_blobs_unchanged_at_commit": true,
+    "overlapping_project_tests": {
+      "command": "python -B -m unittest -v tests.unit.test_document_archive tests.integration.test_document_archive_api_contract; selected-byte snapshot method from tests.integration.test_fleet_t04_b_supporting_documents",
+      "result": "PASS",
+      "methods": 6,
+      "counting_note": "These overlap parent coverage and are not added to 23."
+    },
+    "additional_probes": [
+      {
+        "name": "Streaming result lifetime and caller transaction",
+        "command": "python -B inline probe using DocumentArchiveHistoryWindowTests fixture, Connection.execute spy, latest_archive_events single/bulk reads, execution-options snapshot and rollback marker",
+        "result": "PASS",
+        "exit_code": 0,
+        "assertions": [
+          "Both result objects closed, including early single-document stop.",
+          "Connection execution options unchanged.",
+          "Caller transaction active; subsequent synthetic write rolled back."
+        ]
+      },
+      {
+        "name": "Two simultaneous SQLite retries",
+        "command": "python -B inline probe using file-backed DocumentArchiveTests fixture, Barrier(2), ThreadPoolExecutor(max_workers=2), archive pair then restore pair",
+        "result": "PASS",
+        "exit_code": 0,
+        "assertions": [
+          "Each pair has exactly one changed result and one unchanged replay.",
+          "Each pair returns the same single durable event identity.",
+          "Final authoritative archive state matches the requested transition."
+        ]
+      }
+    ],
+    "review_limit": "Not independent full requirement acceptance or PostgreSQL concurrency proof."
+  },
+  "design_notes": [
+    "Bounded list_archive_events display contract unchanged.",
+    "Authoritative reader streams in batches of 100 and retains one latest event per document; single-document reads stop on the first exact match.",
+    "Exact decoded scope comparison preserves profile/application isolation across SQLite and PostgreSQL SQL dialects without adding JSON casts.",
+    "Exact deterministic operation lookup validates complete immutable payload and entity scope, including no-op requests.",
+    "Before/after current-state comparison remains inside existing ownership locks and transaction."
+  ],
+  "limits": [
+    "A full history scan and database sorting can still be required; result memory is bounded by distinct documents plus a fetch batch.",
+    "Preexisting profile-wide API idempotency-preflight concurrency across distinct actions/applications is not repaired or certified here."
+  ],
+  "publication": {
+    "authority": "PR_ONLY",
+    "bounded_scope": "Second and final new PR candidate for this run; existing PR993 may receive the independently verified shared scanner correction.",
+    "inventory_at_utc": "2026-11-09T13:42:40Z",
+    "open_prs": 35,
+    "draft_prs": 1,
+    "changed_file_overlaps": 0,
+    "candidate_branch_collision": false,
+    "final_admission": "Must requery under shared publication lock.",
+    "known_ci_dependency": "PR993 history scanner flags a verified source checksum at commit 20fea5e line 45; existing exact-fingerprint correction a796ffb is separately owned and not included yet."
+  },
+  "integration": {
+    "canonical_acceptance_changed": false,
+    "merge_or_deployment_performed": false,
+    "fresh_full_requirement_passes": 0,
+    "original_MJ_REQ_198_status": "PARTIAL"
+  },
+  "rollback": "Revert the isolated archive implementation commit through the normal protected PR process; no migration or historical event rewrite is introduced."
+}

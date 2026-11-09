@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-198-archive-history-76b8",
+  "objective": "Repair archive authority, historical retries and supporting-document eligibility beyond bounded history",
+  "owner": "ChatGPT-Web web-20261109T131741Z-76b8f732f1a7",
+  "branch": "web/web-20261109T131741Z-76b8f732f1a7/MJ-REQ-198-archive-history",
+  "head_sha": "1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7",
+  "routing_state": "VERIFY",
+  "next_action": "Apply the reviewed scanner dependency only after its shared claim is released and acquired; publish the bounded archive PR under admission lock and verify exact-head CI. Return source/evidence to authorized serialized integration.",
+  "created_at": "2026-11-09T13:43:51.684824+00:00",
+  "requirements": [
+    "MJ-REQ-198-archive-history-76b8"
+  ],
+  "tests": [
+    {
+      "command": "23 focused methods PASS at 1b986e49d8a7ce4a5dd01366e84effb8e8bc25a7; 9 long-history methods include 16 subtests",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent source, streaming transaction and concurrent SQLite replay review PASS; overlapping project tests not added to 23",
+      "result": "PASS"
+    },
+    {
+      "command": "Catalogue, progress, dashboard, reference and commit provenance, diff checks PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Browser dry-run executable missing; PostgreSQL, full Python/web/browser/deployment and full requirement acceptance NOT_RUN",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Shared scanner correction is actively owned by another peer; no full MJ-REQ-198 acceptance promotion or merge authority"
+  ]
+}
