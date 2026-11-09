@@ -2,11 +2,11 @@
   "schema_version": 1,
   "task_id": "MJ-REF-042-disclosure-f390",
   "objective": "Expose recorded job-scoring data flow in preview and saved history",
-  "owner": "web-20261109T131810Z-f390e73add1a",
+  "owner": "web-20261109T173838Z-82ee9dc5ccd8",
   "branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
-  "head_sha": "9e50b28881e675b985d3251b59ab6d8c742f3f8a",
+  "head_sha": "4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
   "routing_state": "VERIFY",
-  "next_action": "Fast-forward published PR1000 with refreshed main-compatible candidate; inspect exact-head required CI and obtain specific disclosure browser evidence before full acceptance",
+  "next_action": "Publish the exact reviewed common scanner blob; freeze head and inspect required checks plus one manual browser-regression run. Retain the full REF042 and171 limits.",
   "created_at": "2026-11-09T15:52:34.941679+00:00",
   "requirements": [],
   "tests": [
@@ -25,9 +25,14 @@
     {
       "command": "Specific disclosure browser assertions: environment blocked and not selected by automatic hosted workflows; full REF042 and production not verified",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Common scanner dependency blob 00157fca1bf41ea3e59188467df3d9957a795c8a and SHA256 match; existing independent review and dependency exact-head passed scan inspected",
+      "result": "PASS"
     }
   ],
   "blockers": [
-    "Full REF042 and MJ-REQ-171 remain incomplete; canonical matrices unchanged; PR_ONLY; refreshed-head CI pending"
-  ]
+    "Own updated-head hosted gates and specific disclosure browser assertion are pending; full REF042 and MJ-REQ-171 remain incomplete; sole integration and canonical owner is a separate worker."
+  ],
+  "updated_at": "2026-11-09T17:47:05.000400+00:00"
 }

@@ -227,5 +227,23 @@
     "independence": "Root and /root/telemetry_scope recomputed independently",
     "policy": "Shared scanner-file claim acquired through existing atomic coordinator",
     "new_head_scanner_result": "Pending at this evidence snapshot; consult exact-head CI and final run checkpoint"
+  },
+  "reviewed_scanner_reuse": {
+    "run_id": "web-20261109T173838Z-82ee9dc5ccd8",
+    "recorded_at_utc": "2026-11-09T17:47:04.999930+00:00",
+    "previous_head": "4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
+    "exact_reused_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+    "dependency_commit": "d71d1b545771de421ba06db79557206e01677814",
+    "proof_url": "https://github.com/MulattoTech/MJobs/blob/d71d1b545771de421ba06db79557206e01677814/docs/evidence/2026-11-09-web-810d-reviewed-history-fingerprints.json",
+    "independent_review_url": "https://github.com/MulattoTech/MJobs/pull/1006#pullrequestreview-5829689648",
+    "dependency_passed_scan_url": "https://github.com/MulattoTech/MJobs/actions/runs/42661816471/job/129315056547",
+    "scope": "Exact same five immutable commit/path/rule/line fingerprints reused after release and atomic claim; preserves all prior entries and all scanner rules and all-ref coverage.",
+    "own_claim": "web:web-20261109T173838Z-82ee9dc5ccd8:PR1000-resume",
+    "new_own_head_ci": "PENDING; dependency success is not own-head success",
+    "own_previous_gate": "FAILURE retained at 4dbff766daeb630cc3b6f1a162ac46ebe0d90e3a",
+    "production_source_and_test_changes": false,
+    "canonical_changes": false,
+    "next_validation": "Freeze publication head, obtain own required scan and one existing full browser workflow including the disclosure journey."
   }
 }
