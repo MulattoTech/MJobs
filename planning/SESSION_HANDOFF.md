@@ -526,3 +526,12 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
+
+
+## Web MJ-REF-002 bounded career-story import — 2026-11-07
+
+Run web-20261107T192718Z-9a399d59d3db, branch web/web-20261107T192718Z-9a399d59d3db/ref002-story-import, base 971ba931418fc271e7a652e27c288e1776448b6d, source 951ab7d7d48a2982a4508e2a57d1822e3a0249e3. The existing mounted story-bank API now accepts bounded versioned JSON batches. All records validate current approved fact links and commit as pending revision1 rows atomically. Canonical normalized-content hash plus record index provide durable import origin and safe replay; existing approvals and later edits remain intact. No canonical career fact is rewritten.
+
+Exact-source validation: 26 Python tests and26subtests PASS. Baseline import route at main971ba93 returned404. Independent review found the oversized JSON integer decoder edge; the final parser returns sanitizedINVALID_IMPORT422 and regressions verify no writes. Catalogue/progress/dashboard/reference/diff and commit provenance checks PASS. No source migration, shared hotfile, or navigation change. Local heavy admission is closed below16GiB RAM; connected browser/PostgreSQL/full-unit/build checks are NOT_RUN locally. Hosted Linux checks remain separate.
+
+Evidence: docs/evidence/2026-11-07-ref002-bounded-story-import.json. User/API instructions: docs/career-story-import.md. Full MJ-REF-002 remains PARTIAL; no new browser file picker or full acceptance is claimed. Scope/freshness audit and per-run receipts are in C:\Tools\Dev\MJobs-Web\_run_web-20261107T192718Z-9a399d59d3db. No matrix changes, paid provider call, real submission, main push, merge, or deployment. Next: publish reviewed PR, inspect its actual-head required CI, release the temporary lease at stop, and leave integration to the authorized owner.
