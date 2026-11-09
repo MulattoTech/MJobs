@@ -69,9 +69,11 @@ same stored posting are deterministic.
 
 The policy conservatively omits credential, session, browser, prompt, diagnostic,
 request/response, profile/contact, and related reserved key names at any depth.
-It also omits values containing recognized unsafe links, including links in
-prose or HTML. Links with credentials, query strings, fragments, sensitive path
-segments, unsupported schemes, or malformed authorities are not exported as
+It also omits values and object keys containing recognized unsafe links, including
+links in prose or HTML. An unsafe object key omits its entire entry and counts as
+one unsafe-URL omission; eligible public URL keys remain unchanged. Links with
+credentials, query strings, fragments, sensitive path segments, unsupported
+schemes, or malformed authorities are not exported as
 partial links. HTML entities are decoded only for inspection; retained text is
 unchanged. An omitted URL in an array becomes `null` to preserve array positions,
 and `UNSAFE_URLS_OMITTED` makes that loss explicit.

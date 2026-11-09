@@ -139,6 +139,34 @@ class SourceMetadataTests(unittest.TestCase):
         self.assertEqual(envelope["status"], "COMPLETE")
         self.assertEqual(envelope["extensions"]["info"], value)
 
+    def test_unsafe_url_keys_are_omitted_without_losing_safe_neighbors(self):
+        marker = "URL_KEY_CANARY"
+        unsafe_keys = [
+            f"https://jobs.example.test/apply?sig={marker}",
+            f"https://person:{marker}@jobs.example.test/apply",
+            f"https://jobs.example.test/apply#{marker}",
+            f'<a href="https:&#47;&#47;jobs.example.test/apply?sig={marker}">Apply</a>',
+        ]
+        public_key = "https://jobs.example.test/openings/123"
+        public_value = {"title": "Développeur", "open": False}
+        for unsafe_key in unsafe_keys:
+            with self.subTest(unsafe_key=unsafe_key):
+                raw = {"vendor": [{"links_by_url": {
+                    unsafe_key: {"label": "Apply"}, public_key: deepcopy(public_value),
+                }}]}
+                before = deepcopy(raw)
+                envelope = metadata.source_metadata_view(posting(raw))
+                self.assertEqual(envelope["extensions"], {
+                    "vendor": [{"links_by_url": {public_key: public_value}}],
+                })
+                self.assertEqual(envelope["status"], "PARTIAL")
+                self.assertEqual(envelope["omissions"], {
+                    "private_fields": 0, "unsafe_urls": 1, "source_identity_fields": 0,
+                })
+                self.assertEqual(envelope["reason_codes"], ["UNSAFE_URLS_OMITTED"])
+                self.assertNotIn(marker, json.dumps(envelope))
+                self.assertEqual(raw, before)
+
     def test_maximum_length_url_free_text_is_preserved(self):
         value = "a" * metadata.MAX_STRING_BYTES
         envelope = metadata.source_metadata_view(posting({"info": value}))

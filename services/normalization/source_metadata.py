@@ -181,6 +181,9 @@ def _project(value, state, depth=0):
             if _private_key(key):
                 state["private_fields"] += 1
                 continue
+            if _has_unsafe_url(key):
+                state["unsafe_urls"] += 1
+                continue
             projected = _project(item, state, depth + 1)
             if projected is not _OMIT:
                 result[key] = projected

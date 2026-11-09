@@ -196,6 +196,47 @@ class JobSourceMetadataTests(unittest.TestCase):
         self.assertEqual(self._export().status_code, 200)
         self.assertEqual(self._stored(), before)
 
+    def test_reopened_export_and_job_metadata_omit_unsafe_url_keys(self):
+        marker = "URL_KEY_CANARY"
+        unsafe_keys = [
+            f"https://jobs.example.test/apply?sig={marker}",
+            f"https://person:{marker}@jobs.example.test/apply",
+            f"https://jobs.example.test/apply#{marker}",
+            f'<a href="https:&#47;&#47;jobs.example.test/apply?sig={marker}">Apply</a>',
+        ]
+        public_key = "https://jobs.example.test/openings/123"
+        raw = {"vendor": {"links_by_url": {
+            **{key: {"label": "Apply"} for key in unsafe_keys},
+            public_key: {"title": "Développeur", "open": False},
+        }}}
+        with self.store.engine.begin() as connection:
+            connection.execute(m.postings.update().where(m.postings.c.id == "posting-one").values(raw=raw))
+        before = self._stored()
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.client = self._client()
+
+        response = self._export()
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertNotIn(marker, response.text)
+        exported = next(row["source_metadata"] for row in response.json()["postings"]
+                        if row["source_metadata"]["source"]["posting_id"] == "posting-one")
+        detail = self.client.get("/jobs/job-one", params={"profile_id": "fixture"})
+        self.assertEqual(detail.status_code, 200, detail.text)
+        posting = next(row for row in detail.json()["postings"] if row["id"] == "posting-one")
+        self.assertEqual(posting["source_metadata"], exported)
+        self.assertEqual(exported["extensions"], {"vendor": {"links_by_url": {
+            public_key: {"title": "Développeur", "open": False},
+        }}})
+        self.assertEqual(exported["status"], "PARTIAL")
+        self.assertEqual(exported["omissions"], {
+            "private_fields": 0, "unsafe_urls": len(unsafe_keys), "source_identity_fields": 0,
+        })
+        self.assertEqual(exported["reason_codes"], ["UNSAFE_URLS_OMITTED"])
+        self.assertEqual(posting["raw"], raw)
+        self.assertEqual(self._stored(), before)
+
     def test_export_is_read_only_and_limits_fail_with_sanitized_errors(self):
         statements = []
 
