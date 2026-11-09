@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-024",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/394",
+  "run_id": "web-20261109T031310Z-90fc8ec06c08",
+  "recorded_at_utc": "2026-11-09T04:36:26Z",
+  "scope": "Contact-bearing tokens, Unicode contacts, common phone punctuation/extensions in follow-up draft metadata and copyable text",
+  "result": "SCOPED_LOCAL_REGRESSIONS_PASS_HOSTED_PENDING",
+  "full_requirement_result": "PARTIAL",
+  "canonical_acceptance_changed": false,
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "3621822af716806afda0cd494d56596cd8882017",
+  "runtime_source_sha": "d31f69bd9ae3681e09cb550856882df7781aae3f",
+  "tested_sha": "3621822af716806afda0cd494d56596cd8882017",
+  "tested_tree": "b883d8012b73fa1a2e107aa31416bdea10f5c9f9",
+  "file_blobs": {
+    "services/tracking/follow_up_drafts.py": "fe119ed9a84f93df9932f8ff509325dc552682d5",
+    "tests/unit/test_follow_up_drafts.py": "632f5de54e5d68363060dc16aa37c4b1329e27d0",
+    "tests/integration/test_application_follow_up_drafts.py": "828bf87210737ad255ccc04800205314e0d83750",
+    ".gitleaksignore": "e9591c3b04952b1752c020f5df909483227c3edd"
+  },
+  "fixture_correction": {
+    "failed_head": "bc23ea8cc979b821ba688c86780e14e8bece8a87",
+    "failed_job": "https://github.com/MulattoTech/MJobs/actions/runs/42560072861/job/128974330343",
+    "failed_test": "test_candidate_boundary_status_transitions_profile_isolation_and_read_only_get",
+    "cause": "The second profile document was prepared after deliberate Unicode contact metadata injection; the PDF renderer correctly rejected unsupported glyphs.",
+    "change": "Prepare both profile documents before contact injection. Keep all contact, status-transition, profile-isolation, read-only and reopen assertions unchanged.",
+    "runtime_or_renderer_changes": false,
+    "independent_review": "Exact diff reviewed by independent peer /root/deployment_readonly; no blocking concern"
+  },
+  "environment": "Cached Windows Python, one atomically admitted LIGHT_LOCAL slot, temporary SQLite/local HTTP fixtures. The single Chromium mock-submission integration case was explicitly deselected.",
+  "checks": [
+    {
+      "source_commit": "3621822af716806afda0cd494d56596cd8882017",
+      "started_at_utc": "2026-11-09T04:34:05.969472+00:00",
+      "completed_at_utc": "2026-11-09T04:34:17.089369+00:00",
+      "elapsed_seconds": 11.125,
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_follow_up_drafts.py",
+        "tests/unit/test_application_follow_up_drafts_route.py",
+        "tests/integration/test_application_follow_up_drafts.py",
+        "-k",
+        "not interval_validation_and_automation_only_submission"
+      ],
+      "exit_code": 0,
+      "stdout": "......................                                         [100%]\n22 passed, 1 deselected, 82 subtests passed in 9.66s\n",
+      "stderr": "",
+      "deliberately_not_run": "Single mock-submission browser integration test requires heavy/Chromium admission; hosted preceding head passed it, production code unchanged",
+      "result": "PASS",
+      "passed": 22,
+      "subtests_passed": 82,
+      "deselected": 1,
+      "scope": "Real service/route/SQLite/public API/store-reopen tests on exact repair commit; browser case excluded"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit 3621822af716806afda0cd494d56596cd8882017",
+      "result": "PASS",
+      "summary": "provenance complete for 1 source file"
+    },
+    {
+      "command": "git diff --check bc23ea8cc979b821ba688c86780e14e8bece8a87 3621822af716806afda0cd494d56596cd8882017",
+      "result": "PASS"
+    },
+    {
+      "command": "Final-head hosted full unit, integration, Compose, web/build, security and policy gates",
+      "result": "NOT_RUN",
+      "reason": "Awaiting publication of fixture correction and final-head hosted checks."
+    }
+  ],
+  "previous_hosted_receipt": {
+    "head": "bc23ea8cc979b821ba688c86780e14e8bece8a87",
+    "checkout": "d43257f3e30631f0fa0fa1c960c39fba2289e0c8",
+    "tree_equal": true,
+    "checks_success": 13,
+    "checks_failed": 2,
+    "actual_failing_tests": 1,
+    "unit": {
+      "passed": 3930,
+      "skipped": 54,
+      "subtests_passed": 4650
+    },
+    "integration": {
+      "passed": 2832,
+      "failed": 1,
+      "skipped": 39,
+      "subtests_passed": 1796
+    },
+    "scoped_integration": {
+      "passed": [
+        "test_interval_validation_and_automation_only_submission_is_not_a_candidate",
+        "test_profile_error_and_candidate_store_reopen_do_not_need_mutating_route"
+      ],
+      "failed": [
+        "test_candidate_boundary_status_transitions_profile_isolation_and_read_only_get"
+      ]
+    },
+    "classification": "Historical failed-head evidence; do not assign these full-suite results to the repaired head."
+  },
+  "criteria": [
+    {
+      "criterion": "Configurable durable-history follow-up candidates",
+      "status": "PARTIAL",
+      "evidence": "Current targeted real-store tests verify quiet thresholds/status/date/profile behavior; larger-profile candidate enumeration beyond200 still needs repair."
+    },
+    {
+      "criterion": "Grounded email/DM drafts",
+      "status": "SCOPED_LOCAL_PASS",
+      "evidence": "Deterministic templates, attribution and real persisted API output checked on repair commit."
+    },
+    {
+      "criterion": "No invented recipient identity or accomplishments",
+      "status": "SUPPORTED_BY_STATIC_AND_FIXTURE_REVIEW",
+      "evidence": "No recipient/model/lookup/accomplishment code added."
+    },
+    {
+      "criterion": "Length/contact constraints",
+      "status": "PASS_FOR_EXECUTED_CONTACT_CASES",
+      "evidence": "Original exact-byte cloud cases and independent probes plus current real SQLite/API/store-reopen tests verify redaction and limits. No universal obfuscation-detection claim."
+    },
+    {
+      "criterion": "Sending outside this feature",
+      "status": "SUPPORTED_BY_STATIC_AND_READ_ONLY_API_TESTS",
+      "evidence": "Unsupported POST, repeated deterministic GET and unchanged audit count pass. Production code remains read only; separate Chromium automation-origin exclusion awaits new hosted run."
+    }
+  ],
+  "resource_gate": {
+    "utc": "2026-11-09T04:34:04.120764+00:00",
+    "claim": "web:resource:light:1",
+    "current_free_ram_gib": 12.0030632019043,
+    "sample": {
+      "start": "2026-11-09T04:28:42.3163086Z",
+      "end": "2026-11-09T04:33:50.7842180Z",
+      "samples": 21,
+      "cpu_average_percent": 40.57142857142857,
+      "cpu_max_percent": 93,
+      "minimum_available_ram_gib": 12.04,
+      "latest": {
+        "utc": "2026-11-09T04:33:50.7716128Z",
+        "cpu_percent": 41,
+        "available_ram_gib": 12.644
+      },
+      "disk_free_gib": 250.21
+    },
+    "other_light_claims": []
+  },
+  "light_slot_released_after_tests": true,
+  "heavy_job_admission": false,
+  "scanner_dependency": {
+    "path": ".gitleaksignore",
+    "blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "classification": "Independently recomputed public source checksum, not a credential",
+    "source_git_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_bytes": 5844,
+    "independent_review": "https://github.com/MulattoTech/MJobs/pull/978#pullrequestreview-5821452102",
+    "scope": "Identical reviewed four-line append from PR977/978; no rules/workflow/path-wide exception changes"
+  },
+  "limitations": [
+    "Whole @-bearing tokens are conservatively redacted, including ambiguous noncontact text. Clean metadata is not globally Unicode-normalized.",
+    "These cases do not assert universal detection of every obfuscated contact syntax.",
+    "The inherited ASCII-domain URL regex is unchanged. Its isolated regex probe exceeded 3 seconds on a 100001-character hyphenated word at both the initial PR980 revision and this candidate; this existing performance limit remains separate.",
+    "Oldest-candidate loss beyond 200 newer applications remains reported by the independent acceptance owner; candidate enumeration is outside this contact slice.",
+    "Connected Brave UI, fresh full requirement acceptance, merge and deployment are not established. REF054 must remain gated."
+  ],
+  "prior_contact_expansion_receipt": {
+    "schema_version": 1,
+    "requirement_id": "MJ-REF-024",
+    "issue": "https://github.com/MulattoTech/MJobs/issues/394",
+    "run_id": "web-20261109T031310Z-90fc8ec06c08",
+    "recorded_at_utc": "2026-11-09T04:04:52Z",
+    "scope": "Contact-bearing tokens, Unicode contacts, common phone punctuation/extensions in follow-up draft metadata and copyable text",
+    "result": "SCOPED_CLOUD_UNIT_VERIFIED_HOSTED_PENDING",
+    "full_requirement_result": "PARTIAL",
+    "canonical_acceptance_changed": false,
+    "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "implementation_sha": "d31f69bd9ae3681e09cb550856882df7781aae3f",
+    "tested_sha": "d31f69bd9ae3681e09cb550856882df7781aae3f",
+    "tested_tree": "c882ba95ca4f7ab51daff9d550d525a966705014",
+    "file_blobs": {
+      "services/tracking/follow_up_drafts.py": "fe119ed9a84f93df9932f8ff509325dc552682d5",
+      "tests/unit/test_follow_up_drafts.py": "632f5de54e5d68363060dc16aa37c4b1329e27d0",
+      "tests/integration/test_application_follow_up_drafts.py": "fc23802d23668b63c6704a4072a3fff4ef208ea8",
+      ".gitleaksignore": "e9591c3b04952b1752c020f5df909483227c3edd"
+    },
+    "environment": "Cloud Linux, isolated exact production module and unit fixture. Only services.tracking.applications import is a stand-in; existing test fixtures supply read-only history. No database/API/browser execution is attributed to this new source revision.",
+    "checks": [
+      {
+        "command": "python3 ref024-contact-candidate/validation/run_isolated_unit.py --source ref024-contact-candidate/services/tracking/follow_up_drafts.py --tests ref024-contact-candidate/tests/unit/test_follow_up_drafts.py --report ref024-contact-candidate/validation/exact-commit-green.json --log ref024-contact-candidate/validation/exact-commit-green.log",
+        "tested_sha": "d31f69bd9ae3681e09cb550856882df7781aae3f",
+        "result": "PASS",
+        "exit_code": 0,
+        "test_methods": 17,
+        "subtests": 80,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "scope": "ISOLATED_UNIT_ONLY",
+        "source_identity": "All four committed blobs fetched back from GitHub and matched byte-for-byte before this rerun."
+      },
+      {
+        "command": "Same expanded unit tests with exact previous production module 86adcdd6aa769950f7474e20492e7ab575e70442",
+        "result": "EXPECTED_BASELINE_FAIL",
+        "exit_code": 1,
+        "test_methods": 17,
+        "subtests": 80,
+        "failing_subcases": 46,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "command": "Independent bounded public draft-function probes on identical source blob",
+        "result": "PASS",
+        "field_cases": 42,
+        "clean_controls": 6,
+        "scope": "Cloud synthetic read-only tracking inputs; no SQLite/API/browser/network"
+      },
+      {
+        "command": "Python AST parse for three changed Python files",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.commit_provenance --commit d31f69bd9ae3681e09cb550856882df7781aae3f",
+        "result": "PASS",
+        "summary": "provenance complete for 3 source files",
+        "environment": "Metadata-only cached Windows validator; no workstation test process"
+      },
+      {
+        "command": "git diff --check 86adcdd6aa769950f7474e20492e7ab575e70442 d31f69bd9ae3681e09cb550856882df7781aae3f",
+        "result": "PASS",
+        "exit_code": 0
+      },
+      {
+        "command": "Expanded SQLite/public API/store-reopen fixtures and complete repository suites on this revision",
+        "result": "NOT_RUN",
+        "reason": "No local test admission: refreshed 5-minute window had minimum available RAM 8.873GiB. Hosted exact-final-head checks required."
+      }
+    ],
+    "criteria": [
+      {
+        "criterion": "Configurable durable-history follow-up candidates",
+        "status": "PARTIAL",
+        "evidence": "Existing unit behavior and earlier exact-source SQLite tests pass; separate peer reports candidate loss beyond the store's newest 200 application rows. Candidate enumeration is unchanged by this patch."
+      },
+      {
+        "criterion": "Grounded email/DM drafts",
+        "status": "SCOPED_UNIT_PASS",
+        "evidence": "Templates still use only scrubbed title/company and durable reported date; deterministic fixture behavior retained. Expanded API fixture awaits hosted execution."
+      },
+      {
+        "criterion": "No invented recipient identity or accomplishments",
+        "status": "SUPPORTED_BY_STATIC_AND_UNIT_REVIEW",
+        "evidence": "No recipient selection, model invocation, lookup, accomplishments or sending code added."
+      },
+      {
+        "criterion": "Length/contact constraints",
+        "status": "PASS_FOR_EXECUTED_CONTACT_CASES",
+        "evidence": "Both input fields/all five outputs tested; complete Unicode/combining-mark/fullwidth-at contact tokens; common x/ext/extension/hash and fullwidth-x phone extensions; Unicode/fullwidth phone punctuation; original length limits and clean/short-number controls. Persisted/reopen tests added; hosted proof pending."
+      },
+      {
+        "criterion": "Sending outside this feature",
+        "status": "SUPPORTED_BY_STATIC_REVIEW",
+        "evidence": "No network/persistence/send path added. Earlier source revision's read-only API checks passed; new exact-head API execution not yet claimed."
+      }
+    ],
+    "independent_review": {
+      "reviewer": "Independent peer /root/deployment_readonly",
+      "source_blob": "fe119ed9a84f93df9932f8ff509325dc552682d5",
+      "unit_blob": "632f5de54e5d68363060dc16aa37c4b1329e27d0",
+      "integration_blob": "fc23802d23668b63c6704a4072a3fff4ef208ea8",
+      "result": "NO_BLOCKING_FINDINGS_FOR_SCOPED_PATCH",
+      "scope": "42 field cases and 6 controls executed; integration additions statically reviewed; no native approval or full-criterion certification"
+    },
+    "peer_findings_addressed": [
+      "https://github.com/MulattoTech/MJobs/pull/980#pullrequestreview-5821405253",
+      "https://github.com/MulattoTech/MJobs/pull/980#pullrequestreview-5821406358",
+      "https://github.com/MulattoTech/MJobs/pull/980#pullrequestreview-5821433419"
+    ],
+    "scanner_dependency": {
+      "path": ".gitleaksignore",
+      "blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+      "fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+      "classification": "Independently recomputed public source checksum, not a credential",
+      "source_git_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+      "source_bytes": 5844,
+      "independent_review": "https://github.com/MulattoTech/MJobs/pull/978#pullrequestreview-5821452102",
+      "scope": "Identical reviewed four-line append from PR977/978; no rules/workflow/path-wide exception changes"
+    },
+    "limitations": [
+      "Whole @-bearing tokens are conservatively redacted, including ambiguous noncontact text. Clean metadata is not globally Unicode-normalized.",
+      "These cases do not assert universal detection of every obfuscated contact syntax.",
+      "The inherited ASCII-domain URL regex is unchanged. Its isolated regex probe exceeded 3 seconds on a 100001-character hyphenated word at both the initial PR980 revision and this candidate; this existing performance limit remains separate.",
+      "Oldest-candidate loss beyond 200 newer applications remains reported by the independent acceptance owner; candidate enumeration is outside this contact slice.",
+      "Connected Brave UI, fresh full requirement acceptance, merge and deployment are not established. REF054 must remain gated."
+    ],
+    "resource_gate_refresh": {
+      "start": "2026-11-09T03:55:32.7591412Z",
+      "end": "2026-11-09T04:00:47.1953721Z",
+      "samples": 21,
+      "cpu_average_percent": 53.714285714285715,
+      "minimum_available_ram_gib": 8.873,
+      "latest_available_ram_gib": 10.1,
+      "disk_free_gib": 250.21,
+      "local_test_admission": false,
+      "heavy_job_admission": false
+    },
+    "initial_handle_repair_receipt": {
+      "schema_version": 1,
+      "requirement_id": "MJ-REF-024",
+      "issue": "https://github.com/MulattoTech/MJobs/issues/394",
+      "run_id": "web-20261109T031310Z-90fc8ec06c08",
+      "recorded_at_utc": "2026-11-09T03:26:00.306479+00:00",
+      "scope": "Follow-up contact handle scrubbing across returned metadata and email/DM draft text",
+      "result": "SLICE_VERIFIED",
+      "full_requirement_result": "PARTIAL",
+      "canonical_acceptance_changed": false,
+      "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "implementation_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+      "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+      "tested_tree": "8fa44e4850b82a62eafa736a271d80e17b38d7f1",
+      "file_blobs": {
+        "services/tracking/follow_up_drafts.py": "a80b4042b70f94f2464de0999f6b6af451ae0852",
+        "tests/unit/test_follow_up_drafts.py": "c96e9dd2108e69b44b10f67f9415900af9ded4b2",
+        "tests/integration/test_application_follow_up_drafts.py": "3ba5a3623cb27e8d02d52a332509acd42390aec5"
+      },
+      "environment": "Windows cached virtualenv, temporary SQLite, synthetic local HTTP fixtures, one admitted LIGHT_LOCAL slot",
+      "red_regression": {
+        "production_source_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+        "test_source_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+        "command": "python -m pytest -q tests/unit/test_follow_up_drafts.py -k scrubs_handles_without --tb=short",
+        "exit_code": 1,
+        "summary": "10 failing subcases reproduced for title/company with -, +, ., ASCII-word and Unicode-word prefixes; 10 other prefix subcases passed"
+      },
+      "checks": [
+        {
+          "check": "focused",
+          "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+          "started_at_utc": "2026-11-09T03:23:14.612589+00:00",
+          "completed_at_utc": "2026-11-09T03:23:29.994959+00:00",
+          "exit_code": 0,
+          "elapsed_seconds": 15.391,
+          "result": "PASS",
+          "command": "python -m pytest -q tests/unit/test_follow_up_drafts.py tests/unit/test_application_follow_up_drafts_route.py tests/integration/test_application_follow_up_drafts.py",
+          "summary": "....................                       [100%]\n20 passed, 30 subtests passed in 13.70s"
+        },
+        {
+          "check": "catalogue",
+          "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+          "started_at_utc": "2026-11-09T03:23:29.994959+00:00",
+          "completed_at_utc": "2026-11-09T03:23:30.105537+00:00",
+          "exit_code": 0,
+          "elapsed_seconds": 0.109,
+          "result": "PASS",
+          "command": "python -m tools.verification.catalogue",
+          "summary": "Catalogue validation: PASS"
+        },
+        {
+          "check": "progress",
+          "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+          "started_at_utc": "2026-11-09T03:23:30.105537+00:00",
+          "completed_at_utc": "2026-11-09T03:23:30.203274+00:00",
+          "exit_code": 0,
+          "elapsed_seconds": 0.094,
+          "result": "PASS",
+          "command": "python -m tools.verification.progress validate",
+          "summary": "Progress journal validation: PASS"
+        },
+        {
+          "check": "dashboard",
+          "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+          "started_at_utc": "2026-11-09T03:23:30.203274+00:00",
+          "completed_at_utc": "2026-11-09T03:23:30.310352+00:00",
+          "exit_code": 0,
+          "elapsed_seconds": 0.11,
+          "result": "PASS",
+          "command": "python -m tools.verification.progress_dashboard --check",
+          "summary": "Progress dashboard: CURRENT"
+        },
+        {
+          "check": "provenance",
+          "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+          "started_at_utc": "2026-11-09T03:23:30.310352+00:00",
+          "completed_at_utc": "2026-11-09T03:23:30.680625+00:00",
+          "exit_code": 0,
+          "elapsed_seconds": 0.375,
+          "result": "PASS",
+          "command": "python -m tools.verification.commit_provenance --commit HEAD",
+          "summary": "PASS: provenance complete for 3 source files"
+        },
+        {
+          "check": "diff",
+          "tested_sha": "33c34501ab7c3d236814ac213cc0c5e83d096a48",
+          "started_at_utc": "2026-11-09T03:23:30.680625+00:00",
+          "completed_at_utc": "2026-11-09T03:23:30.742561+00:00",
+          "exit_code": 0,
+          "elapsed_seconds": 0.062,
+          "result": "PASS",
+          "command": "git diff --check",
+          "summary": ""
+        }
+      ],
+      "criteria": [
+        {
+          "criterion": "Configurable follow-up candidates from durable events",
+          "status": "SUPPORTED_IN_EXECUTED_TARGETED_TESTS",
+          "evidence": "Existing boundary, current-status, external application date, isolation and reopen tests pass."
+        },
+        {
+          "criterion": "Grounded email and DM drafts",
+          "status": "SUPPORTED_IN_EXECUTED_TARGETED_TESTS",
+          "evidence": "Deterministic title/company/reported-date templates retain source attribution and verified=false."
+        },
+        {
+          "criterion": "No invented recipient identity or accomplishments",
+          "status": "SUPPORTED_BY_STATIC_REVIEW_AND_FIXTURE_TESTS",
+          "evidence": "No model, lookup, recipient selection or accomplishments added."
+        },
+        {
+          "criterion": "Length/contact-scrubbing constraints",
+          "status": "PASS_FOR_SCOPED_REGRESSION",
+          "evidence": "Existing recognized handle tokens are scrubbed regardless of preceding context in both dynamic fields; all five output fields checked, ordinary C++/.NET/company text retained, full email/URL stripping and length caps retained."
+        },
+        {
+          "criterion": "Sending outside the feature",
+          "status": "SUPPORTED_BY_STATIC_REVIEW_AND_API_TESTS",
+          "evidence": "No outbound integration added; deterministic read-only GET, no audit/application-attempt growth, and unsupported POST checks retained."
+        }
+      ],
+      "independent_review": {
+        "reviewer": "independent peer /root/pr_inventory",
+        "type": "static patch review",
+        "result": "NO_BLOCKING_FINDINGS",
+        "reviewed_paths": [
+          "services/tracking/follow_up_drafts.py",
+          "tests/unit/test_follow_up_drafts.py",
+          "tests/integration/test_application_follow_up_drafts.py"
+        ],
+        "scope": "Three-file patch before commit, matching these source/test blobs. No independent execution or native GitHub approval claimed."
+      },
+      "remaining": [
+        "Connected Brave browser journey: connection unavailable and free RAM below heavy-operation gate",
+        "Full pytest, production web build, PostgreSQL/Redis, Docker and broad acceptance: heavy-operation gate not met",
+        "Merge and production deployment: PR_ONLY authority"
+      ],
+      "limitations": [
+        "Existing recognized ASCII handle grammar is preserved; this does not assert recognition of every international platform username syntax.",
+        "Ambiguous embedded @tokens are conservatively scrubbed in copyable drafts.",
+        "Historical canonical PASS is not promoted or recertified by this worker; MJ-REF-054 prerequisite needs integrator acceptance after fresh required checks and applicable product journey."
+      ],
+      "resource_gate": {
+        "start": "2026-11-09T03:13:11.3081821Z",
+        "end": "2026-11-09T03:18:19.4137366Z",
+        "samples": 21,
+        "cpu_average_percent": 43.285714285714285,
+        "cpu_max_percent": 85,
+        "minimum_available_ram_gib": 11.292,
+        "latest": {
+          "utc": "2026-11-09T03:18:19.4137366Z",
+          "cpu_percent": 31,
+          "available_ram_gib": 11.375
+        }
+      },
+      "rollback": "Revert the focused source commit through a protected PR if required; no schema or stored data is changed."
+    },
+    "rollback": "Normal protected revert of the focused source changes; no schema or stored-data migration."
+  },
+  "rollback": "Normal protected revert of the focused source changes; no schema or stored-data migration."
+}

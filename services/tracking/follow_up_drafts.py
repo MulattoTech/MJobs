@@ -7,10 +7,15 @@ from services.tracking.applications import list_application_tracking
 
 _ALLOWED_ATTRIBUTIONS = {"USER_REPORTED", "EXTERNAL_USER_REPORTED"}
 _CHARACTER_LIMITS = {"subject": 120, "email_body": 500, "dm_body": 280}
-_EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
+# Redact whole @tokens, including Unicode/combining marks and attached text.
+# Token scanning avoids leaving address fragments after a partial domain match.
+_CONTACT_TOKEN = re.compile(r"[^\s<>]+")
 _URL = re.compile(r"(?i)\b(?:https?://|www\.)[^\s<>]+|\b(?:[A-Z0-9-]+\.)+[A-Z]{2,}(?:/[^\s<>]*)?")
-_HANDLE = re.compile(r"(?<![\w.+-])@[A-Z0-9_][A-Z0-9_.-]*", re.IGNORECASE)
-_PHONE = re.compile(r"(?<!\w)\+?\d[\d().\s-]{5,}\d(?!\w)")
+_PHONE = re.compile(
+    r"(?<!\w)(?P<number>[+\uff0b]?[(\uff08]?\d"
+    r"[\d().\uff08\uff09\uff0e\s\-\u2010-\u2015\u2212\uff0d]{5,}\d)"
+    r"(?:\s*(?i:x|\uff58|ext(?:ension)?[.\uff0e]?|#|\uff03)\s*\d+)?(?!\w)"
+)
 
 
 def _aware_datetime(value, *, label):
@@ -28,18 +33,24 @@ def _aware_datetime(value, *, label):
     return parsed
 
 
+def _scrub_contact_token(match):
+    value = match.group(0)
+    return " [redacted] " if "@" in value or "\uff20" in value else value
+
+
 def _scrub_phone(match):
     value = match.group(0)
-    return " [redacted] " if sum(character.isdigit() for character in value) >= 7 else value
+    # An extension must not turn a short non-phone number into a contact.
+    number = match.group("number")
+    return " [redacted] " if sum(character.isdigit() for character in number) >= 7 else value
 
 
 def _scrub_dynamic(value):
     if not isinstance(value, str):
         value = ""
-    # Remove complete email tokens before domains so their fragments cannot remain.
-    value = _EMAIL.sub(" [redacted] ", value)
+    # Contact-bearing tokens are removed before URL/domain matching can split them.
+    value = _CONTACT_TOKEN.sub(_scrub_contact_token, value)
     value = _URL.sub(" [redacted] ", value)
-    value = _HANDLE.sub(" [redacted] ", value)
     value = _PHONE.sub(_scrub_phone, value)
     return re.sub(r"\s+", " ", value).strip()
 
