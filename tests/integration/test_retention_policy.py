@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -185,6 +186,59 @@ class RetentionPolicyIntegrationTests(unittest.TestCase):
                 self.assertFalse(result["dry_run"])
                 self.assertEqual(result["removed_count"], 1)
                 self.assertFalse(old.exists())
+
+    def test_invalid_rule_admission_preserves_consent_files_and_worker_boundary(self):
+        saved = self._put(age=15)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        saved_policy = saved.json()
+        canaries = [
+            self._write_old(self.managed / "must-survive.png"),
+            self._write_old(self.root / "sessions" / "tmp" / "must-survive.png"),
+            self._write_old(self.root / "applications" / "history.json"),
+        ]
+        before_files = {path: path.read_bytes() for path in canaries}
+        with self.store.engine.connect() as connection:
+            before_audit = connection.execute(select(m.audit).order_by(m.audit.c.id)).all()
+
+        original = self.config["rules"][0]
+        invalid_rules = [
+            [dict(original, relative_root="sessions/tmp")],
+            [dict(original, relative_root="secrets/tmp")],
+            [dict(original, relative_root="cache/bad name")],
+            [original, dict(original, id="duplicate", relative_root="Transient/ScreenShots")],
+        ]
+        for rules in invalid_rules:
+            with self.subTest(rules=rules):
+                invalid = {**self.config, "rules": rules}
+                self.environment[CONFIG_ENV] = json.dumps(invalid)
+                read = self.client.get("/retention/policy")
+                write = self._put(
+                    expected_revision=saved_policy["revision"],
+                    expected_config_fingerprint=saved_policy["config_fingerprint"],
+                )
+                preview = self.client.get("/retention/preview")
+                for response in (read, write, preview):
+                    self.assertEqual(response.status_code, 503, response.text)
+                    self.assertEqual(response.json(), {
+                        "detail": {"code": "RETENTION_POLICY_INVALID_CONFIG"},
+                    })
+
+                engine = Mock(side_effect=AssertionError("invalid policy reached sweep engine"))
+                outcome = run_with_config(invalid, store=self.store, engine=engine, now=NOW)
+                self.assertEqual(outcome["status"], "BLOCKED", outcome)
+                self.assertEqual(outcome["errors"], ["POLICY_READ_FAILED"])
+                self.assertEqual(outcome["removed_count"], 0)
+                engine.assert_not_called()
+                self.assertEqual({path: path.read_bytes() for path in canaries}, before_files)
+                self.assertFalse(self.summary.exists())
+                with self.store.engine.connect() as connection:
+                    after_audit = connection.execute(select(m.audit).order_by(m.audit.c.id)).all()
+                self.assertEqual(after_audit, before_audit)
+
+                self.environment[CONFIG_ENV] = json.dumps(self.config)
+                recovered = self.client.get("/retention/policy")
+                self.assertEqual(recovered.status_code, 200, recovered.text)
+                self.assertEqual(recovered.json(), saved_policy)
 
     def test_changed_config_requires_reconfirmation_and_admin_ceiling_blocks_pruning(self):
         stale = self._write_old(self.managed / "must-survive.png")
