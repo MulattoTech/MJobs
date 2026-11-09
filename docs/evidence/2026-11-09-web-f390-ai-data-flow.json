@@ -191,5 +191,41 @@
       "Connected browser runtime bootstrap timeout"
     ],
     "upstream_refresh_changes_workflow_or_browser_source": false
+  },
+  "scanner_repair": {
+    "failed_head": "80f8f5142950027d43ba1d292eac0c2aa5477715",
+    "failed_job": "https://github.com/MulattoTech/MJobs/actions/runs/42649581244/job/129271977029",
+    "artifact_id": 13689237686,
+    "cause": "Two public Git blob IDs in another branch evidence were matched by the all-ref historical scan",
+    "proof": {
+      "commit": "08c80e4648abb8a0286506c95c09e55c64571339",
+      "ancestor_of_own_candidate": false,
+      "source_file": "tests/integration/test_profile_ai_credentials.py",
+      "git_blob_id": "e996fe79c0bd1f70e67c9e3a7bc5b9e32ec92138",
+      "source_bytes": 16576,
+      "findings": [
+        {
+          "file": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json",
+          "line": 32,
+          "fingerprint": "08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-environment.json:generic-api-key:32",
+          "matches_git_object_hash": true,
+          "occurrences": 1
+        },
+        {
+          "file": "docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json",
+          "line": 164,
+          "fingerprint": "08c80e4648abb8a0286506c95c09e55c64571339:docs/evidence/2026-11-09-req111-structured-output-c5c6/req111-acceptance-proposal.json:generic-api-key:164",
+          "matches_git_object_hash": true,
+          "occurrences": 1
+        }
+      ],
+      "method": "SHA1 of the Git blob header plus exact file bytes; matches git rev-parse and both reported values",
+      "reviewer": "Root ChatGPT-Web",
+      "independent_review": "/root/telemetry_scope separately confirmed"
+    },
+    "change": "Only exact immutable commit/path/rule/line fingerprints appended to existing .gitleaksignore; no source, scanner rule, workflow, path-wide or value-wide exemption",
+    "independence": "Root and /root/telemetry_scope recomputed independently",
+    "policy": "Shared scanner-file claim acquired through existing atomic coordinator",
+    "new_head_scanner_result": "Pending at this evidence snapshot; consult exact-head CI and final run checkpoint"
   }
 }
