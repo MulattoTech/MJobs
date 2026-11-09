@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-204-notification-readback-4f1d",
+  "objective": "Keep incomplete notification readback distinct from a verified empty result while preserving known notifications and local dismissal",
+  "owner": "ChatGPT-Web / web-20261109T131824Z-4f1d2da391c4",
+  "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REQ-204-notification-readback",
+  "head_sha": "ad0717d8e40a18402f816fd92bc69177d6c9473e",
+  "routing_state": "VERIFY",
+  "next_action": "Read the live owned PR and exact-head required checks; publication is already authorized. Keep full MJ-REQ-204 NOT_RUN and coordinate future provider-abstraction and event-coverage work with the designated integration owner. The live PR supersedes this authoring snapshot for delivery status.",
+  "created_at": "2026-11-09T18:24:12.716235+00:00",
+  "requirements": [
+    "MJ-REQ-204"
+  ],
+  "tests": [
+    {
+      "command": "npm test -- --coverage.enabled=false src/operation-notifications.test.tsx",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "command": "Mounted App failing /operations request and real Chromium/API/worker acceptance",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Full MJ-REQ-204 provider abstraction and event coverage",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "New published-head hosted checks",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Whole MJ-REQ-204 remains NOT_RUN; future provider abstraction and complete event coverage are outside this bounded correction."
+  ],
+  "evidence": "docs/evidence/2026-11-09-web-4f1d-notification-readback.json",
+  "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "reviewed_source_revision": "ad0717d8e40a18402f816fd92bc69177d6c9473e",
+  "full_requirement_status": "NOT_RUN",
+  "full_pass_proposed": false,
+  "publication_record": "Authoring snapshot; publication already authorized. Use the live owned PR for delivery status."
+}

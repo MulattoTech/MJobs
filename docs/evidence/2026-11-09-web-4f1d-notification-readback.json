@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-204-NOTIFICATION-READBACK-20261109-WEB-4F1D",
+  "recorded_at_utc": "2026-11-09T18:24:12.709563+00:00",
+  "run_id": "web-20261109T131824Z-4f1d2da391c4",
+  "requirement_id": "MJ-REQ-204",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/205",
+  "result": "PASS",
+  "result_scope": "Bounded notification-readback presentation correction; not whole requirement acceptance.",
+  "canonical_acceptance": {
+    "recorded_result": "NOT_RUN",
+    "modified": false,
+    "full_pass_proposed": false
+  },
+  "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "reviewed_source_revision": "ad0717d8e40a18402f816fd92bc69177d6c9473e",
+  "reviewed_tree": "e180cde86f12c6659990eddce9bb2c2b473768d7",
+  "problem": "A failed activity read could show a definitive No new activity notifications message, including after dismissing the last previously loaded item.",
+  "resulting_behavior": [
+    "For enabled, unmuted notifications, loadError explicitly warns that the list may be incomplete; previously loaded items remain visible and dismissible.",
+    "When the notification list is shown, definitive empty copy appears only while loadError is false. Dismissing the last known item during failure retains the warning, and successful recovery restores normal empty or changed-outcome notifications."
+  ],
+  "production_change": "Two render expressions in OperationNotifications; polling, preferences, provider delivery and backend behavior are unchanged.",
+  "executed_validation": {
+    "red_baseline": {
+      "command": "npm test -- --coverage.enabled=false src/operation-notifications.test.tsx",
+      "cwd": "apps/web",
+      "production_blob": "9afd02fe97a4b2922d2bd7684be4ae5031ed9934",
+      "test_blob": "3359f82dcfc29e3618d186061fbbb712a8c98da2",
+      "tests_failed": 4,
+      "tests_passed": 5,
+      "exit_code": 1,
+      "reason": "All four new cases found the definitive No new activity notifications message during failed activity reads.",
+      "log": {
+        "name": "notification-readback-baseline.log",
+        "sha256": "16facadc16fb8944c4810e9141260714308dc8c7409290c8a6f51d8b4f23ce86",
+        "bytes": 4361
+      }
+    },
+    "initial_build_failure": {
+      "command": "npm run build",
+      "cwd": "apps/web",
+      "exit_code": 1,
+      "reason": "Test fixture TS2353: exact is not an accepted ByRoleOptions property.",
+      "correction": "Removed the unsupported exact option from getByRole; retained the exact string accessible-name query and every behavioral assertion.",
+      "log": {
+        "name": "notification-readback-build.log",
+        "sha256": "7f207118113ecc98058f95123e1acb29e47c6fba9d8469444d02ce6373f24a10",
+        "bytes": 465
+      }
+    },
+    "author_final": {
+      "execution_phase": "PRECOMMIT",
+      "binding": "The recorded source/test blobs are identical to the later immutable candidate; these logs are not relabeled as postcommit execution.",
+      "later_candidate_revision": "ad0717d8e40a18402f816fd92bc69177d6c9473e",
+      "source_blobs": {
+        "apps/web/src/operation-notifications.tsx": "a7d9d35fc3fe135fd5a280137170559090a75769",
+        "apps/web/src/operation-notifications.test.tsx": "c82c53d07c8f3503d45b0544aeefaf76b6643e93"
+      },
+      "command": "npm test -- --coverage.enabled=false src/operation-notifications.test.tsx",
+      "cwd": "apps/web",
+      "tests_passed": 9,
+      "tests_failed": 0,
+      "skips": 0,
+      "test_log": {
+        "name": "notification-readback-final-tests.log",
+        "sha256": "37a4d9b0893fbca9b39cf355c2fe98fc4f850dfaf88bad65691b8b3f7d37a108",
+        "bytes": 434
+      },
+      "build_command": "npm run build",
+      "build_result": "PASS (tsc --noEmit and Vite production build)",
+      "build_log": {
+        "name": "notification-readback-final-build.log",
+        "sha256": "b0eb0990a90a312fe728caba7a63dcd6466069e91003da177191f2bf5de06447",
+        "bytes": 1015
+      },
+      "corrected_receipt": {
+        "name": "notification-readback-author-receipt.json",
+        "sha256": "6b7025e9beabf5c824fcfe4d17b5590a550501de0ac68a1837ed24acb5275c7b",
+        "bytes": 7007
+      }
+    },
+    "independent": {
+      "tested_revision": "ad0717d8e40a18402f816fd92bc69177d6c9473e",
+      "tests_passed": 9,
+      "tests_failed": 0,
+      "skips": 0,
+      "test_duration_ms": 774,
+      "build": "PASS: npm run typecheck (tsc --noEmit) and Vite production build",
+      "commands": [
+        {
+          "label": "tests",
+          "command_shell": "npm test -- --coverage.enabled=false src/operation-notifications.test.tsx",
+          "started_at_utc": "2026-11-09T18:18:57.807739+00:00",
+          "completed_at_utc": "2026-11-09T18:18:59.066033+00:00",
+          "wall_seconds": 1.258,
+          "exit_code": 0,
+          "cwd": "apps/web",
+          "log": {
+            "name": "notification-readback-204-independent-tests.log",
+            "sha256": "3dc127f7851d0570641caad6719c8df697965bba774f36b17decac29922cd122",
+            "bytes": 444
+          }
+        },
+        {
+          "label": "build",
+          "command_shell": "npm run build",
+          "started_at_utc": "2026-11-09T18:18:59.066206+00:00",
+          "completed_at_utc": "2026-11-09T18:19:01.017525+00:00",
+          "wall_seconds": 1.951,
+          "exit_code": 0,
+          "cwd": "apps/web",
+          "log": {
+            "name": "notification-readback-204-independent-build.log",
+            "sha256": "4ff838889c6c11a2881d8c0d93953b811115c84a7829b072b3e2a7a2a04debdb",
+            "bytes": 1015
+          }
+        }
+      ],
+      "before_and_after_worktree": "clean",
+      "critical_inputs_verified_unchanged": 14,
+      "receipt": {
+        "name": "notification-readback-204-independent-execution.json",
+        "sha256": "f24e423fd32defbc5ab0278e9311b9984d18e9081c021018761a1f973a0fd901",
+        "bytes": 6720
+      }
+    },
+    "counting_rule": "Author and independent executions cover the same nine-test module and are not additive acceptance coverage. Historical failures remain recorded separately."
+  },
+  "independent_review": {
+    "kind": "Independent AI review and exact-revision frontend execution",
+    "verdict": "PASS_SCOPED_REVIEW",
+    "reviewed_at_utc": "2026-11-09T18:21:14.446374+00:00",
+    "open_material_findings": [],
+    "receipt": {
+      "name": "notification-readback-204-independent-review.json",
+      "sha256": "cf8d4b9259c97b39a65586979f54f1e9bf385b4da08a36d8a71112864369eb17",
+      "bytes": 12359
+    },
+    "not_human_approval": true
+  },
+  "reviewed_behavior": [
+    {
+      "topic": "Failure is not an empty result",
+      "result": "PASS",
+      "source": "apps/web/src/operation-notifications.tsx",
+      "lines": [
+        66,
+        75
+      ],
+      "reason": "The existing warning now explicitly says the list may be incomplete. The definitive empty paragraph is rendered only when no visible terminal notifications remain AND loadError is false. Loaded items keep their original list path."
+    },
+    {
+      "topic": "Last dismissal and recovery",
+      "result": "PASS",
+      "reason": "Rendered event tests dismiss the last known item during failure, retain the incomplete warning and suppress empty copy; successful readback restores a legitimate empty state and a later changed outcome becomes visible."
+    },
+    {
+      "topic": "Privacy and mutation",
+      "result": "PASS",
+      "reason": "Labels still come from fixed kind/outcome maps; unknown kinds use Background task. Raw error/result sentinel fields are neither displayed nor copied into dismissal storage. Saved input objects remain unchanged, and the new rendered cases make no fetch calls."
+    },
+    {
+      "topic": "Profile ownership",
+      "result": "SOURCE_REVIEW_AND_EXISTING_TEST_PASS",
+      "source": "apps/web/src/main.tsx",
+      "reason": "The unchanged caller requires opsProfileId to match the selected profile and keys the component by profileId. Its polling completion checks current profile/disposal. Existing executed tests verify reload persistence, distinct profile dismissal storage and a changed outcome. The component itself relies on that caller-provided profile scope."
+    },
+    {
+      "topic": "Preference and mute contracts",
+      "result": "PASS",
+      "reason": "Notifications remain disabled by default and opt in only when the saved settings response has enabled===true. Component enabled=false returns no UI. Muting changes only visit-local state; unmuting during failure restores the warning without a false empty result. No preference write or transport action was added."
+    },
+    {
+      "topic": "Retry wording matches the caller",
+      "result": "SOURCE_REVIEW",
+      "source": "apps/web/src/main.tsx",
+      "lines": [
+        784,
+        803
+      ],
+      "reason": "Existing /operations polling marks failures without clearing successfully read operations, clears the failure flag on success, and schedules the next attempt after 15 seconds. The patch does not change the poller."
+    }
+  ],
+  "author_provenance_correction": {
+    "result": "CORRECTION_VERIFIED",
+    "reason": "Parent committed the frozen snapshot before receipt generation. Reading HEAD mislabeled the base as the later candidate; git diff without explicit revisions produced an empty working-tree patch.",
+    "execution_phase": "PRECOMMIT",
+    "patch_command": "git diff f3db88aa97ef73a01ab9a1381d156213f7864fdc ad0717d8e40a18402f816fd92bc69177d6c9473e -- apps/web/src/operation-notifications.tsx apps/web/src/operation-notifications.test.tsx",
+    "corrected_two_path_patch": {
+      "name": "notification-readback-source.patch",
+      "sha256": "07c2c03d04f18b92699ab64eddefb79f5adbb308cd09bfd1a7ecd6215cf62a6c",
+      "bytes": 7081
+    },
+    "preserved_original_receipt": {
+      "name": "notification-readback-author-receipt.provenance-error-original.json",
+      "sha256": "5cf3fd48cd6c075028d4e435528b8fd4e783477ba65c4e6b1b8cdbbdc94d0c1d",
+      "bytes": 5125
+    },
+    "preserved_original_empty_patch": {
+      "name": "notification-readback-source.provenance-error-original.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "limit": "The superseded receipt and empty patch document the provenance error; they are not used to establish the source change or test revision. Source, tests and historical logs were not rewritten by the correction."
+  },
+  "whole_requirement_ledger": [
+    {
+      "criterion": "In-app notifications",
+      "status": "BOUNDED_READBACK_CORRECTION_VERIFIED",
+      "limit": "Only the existing component presentation during failed readback and its preserved contracts were tested."
+    },
+    {
+      "criterion": "Future provider abstraction",
+      "status": "NOT_VERIFIED_BY_THIS_SLICE",
+      "providers": [
+        "email",
+        "ntfy",
+        "Discord",
+        "Slack",
+        "desktop"
+      ]
+    },
+    {
+      "criterion": "Potential event catalogue",
+      "status": "NOT_FULLY_EVALUATED_BY_THIS_SLICE",
+      "events": [
+        "Excellent match",
+        "Application submitted",
+        "Application failed",
+        "Review required",
+        "Authentication expired",
+        "Source degraded",
+        "New employer source discovered"
+      ]
+    }
+  ],
+  "critical_input_identities": [
+    {
+      "path": ".gitleaksignore",
+      "head_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+      "base_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+      "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+      "bytes": 33733
+    },
+    {
+      "path": "apps/web/src/operation-notifications.test.tsx",
+      "head_blob": "c82c53d07c8f3503d45b0544aeefaf76b6643e93",
+      "base_blob": "bb56a6d8f7334ff953fc5251d237afb6dd9e77c8",
+      "sha256": "488453a41ce9f894378571d077df8d7152d52dbaa2ce50e713c92198f92231e7",
+      "bytes": 10677
+    },
+    {
+      "path": "apps/web/src/operation-notifications.tsx",
+      "head_blob": "a7d9d35fc3fe135fd5a280137170559090a75769",
+      "base_blob": "9afd02fe97a4b2922d2bd7684be4ae5031ed9934",
+      "sha256": "c52444aa063e38d973eabf4a28656525c3048b922632744252dfc6200e84acb5",
+      "bytes": 4004
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "head_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+      "base_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+      "sha256": "82417ccccdbc97b3e1bbe050b42747d6a52b5e24deffc77873ac184f991d63ca",
+      "bytes": 255990
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "head_blob": "b766da16749b8d4f17df6a6db4335ba4accb63df",
+      "base_blob": "b766da16749b8d4f17df6a6db4335ba4accb63df",
+      "sha256": "0b4e242fd52b26e51b3c2c322a4d5990cadc8bba1979c4e61f09ae22149b826f",
+      "bytes": 6856
+    },
+    {
+      "path": "apps/web/package.json",
+      "head_blob": "d9c5c800323fbbd463fe45310b455b0c1fb4f5e1",
+      "base_blob": "d9c5c800323fbbd463fe45310b455b0c1fb4f5e1",
+      "sha256": "94afa2f7c000696a15b0db59967902a6bcbf12681fe998c7f9d5e5e33f07c67f",
+      "bytes": 1242
+    },
+    {
+      "path": "apps/web/package-lock.json",
+      "head_blob": "d9bf83e1051a5ad1fb56936f5f668982a8c2c99d",
+      "base_blob": "d9bf83e1051a5ad1fb56936f5f668982a8c2c99d",
+      "sha256": "13c65a92fdfd93de6ce225abb10b86ed4764be906ed9ae939310221f1f67d4cd",
+      "bytes": 137089
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "head_blob": "bb2d11572c3f7ff3b98b8acbb8c9ccb8cad992db",
+      "base_blob": "bb2d11572c3f7ff3b98b8acbb8c9ccb8cad992db",
+      "sha256": "9656a96a73126479f79891b97457931285343a6d58a2f8d0c1da5843e9591685",
+      "bytes": 254
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "head_blob": "8d9e208b0aa96b82d6b3782fc03065fddba5a537",
+      "base_blob": "8d9e208b0aa96b82d6b3782fc03065fddba5a537",
+      "sha256": "247fe949fe0f1eca82d704e75c7d50a6feb79789ea9d29bb1f77a61ced5a17b2",
+      "bytes": 594
+    },
+    {
+      "path": "docs/spec/areas/web_api_analytics.md",
+      "head_blob": "fcb14499fcb063a30a0cf92214a24ae02a45d44c",
+      "base_blob": "fcb14499fcb063a30a0cf92214a24ae02a45d44c",
+      "sha256": "d8ba4356b69a1fa96134ce87de1cfc950b689309342c7d438d7900edc149f850",
+      "bytes": 6872
+    },
+    {
+      "path": "planning/CAPABILITY_MATRIX.json",
+      "head_blob": "715ebb1660a64611de380467cd1d85cc3750e331",
+      "base_blob": "715ebb1660a64611de380467cd1d85cc3750e331",
+      "sha256": "cbc3750a59cda7ce19b3e495ddbb6b84e224715e1c1a2413263f8072f2f6fd55",
+      "bytes": 285907
+    },
+    {
+      "path": "apps/web/AREA.md",
+      "head_blob": "a7fb2020bc7fa493e0c115599091f2f313422291",
+      "base_blob": "a7fb2020bc7fa493e0c115599091f2f313422291",
+      "sha256": "c951d27897107c66bda82b2a72e110c54a024ced54daabad03059c30c6ed728c",
+      "bytes": 1321
+    },
+    {
+      "path": "AGENTS.md",
+      "head_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "base_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "sha256": "4d0da3ede2e4e45c9284de78e6b4af32617690b503aae7a53c07ebdd6f3bce3e",
+      "bytes": 6943
+    },
+    {
+      "path": "docs/AI_AGENT_CONTINUITY.md",
+      "head_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+      "base_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+      "sha256": "7850113a1a434e09207a9c6d96e79ebbdb6e471a835e9939435e0dc4df5a0423",
+      "bytes": 6754
+    }
+  ],
+  "environment": {
+    "execution": "Isolated cloud Linux with synthetic operation fixtures and jsdom; no workstation tests or browser launch.",
+    "node": "v24.22.1",
+    "npm": "11.9.0",
+    "vitest": "5.0.3"
+  },
+  "proof_boundaries": [
+    "Only the requested 9-test component module and typecheck/build were independently executed; no extra suites or browser launch.",
+    "These rendered tests use jsdom and supplied readback props. They do not execute a real failing /operations request through the mounted App or a real browser; caller integration was source-reviewed.",
+    "The caller mounts notifications only when an operation snapshot is scoped to the active profile. This fix does not change first-load behavior before that scope exists.",
+    "Full MJ-REQ-204 acceptance, future provider abstraction, all potential event types, live delivery, hosted CI and deployment were not verified. Canonical MJ-REQ-204 remains NOT_RUN.",
+    "The existing large-chunk build advisory and npm environment http-proxy warning remain; both independent commands exited 0.",
+    "This is a scoped independent AI review, not human approval, merge authorization or a full notification-system acceptance claim."
+  ],
+  "publication_assessment": {
+    "private_user_data_in_diff": false,
+    "new_external_transmissions": false,
+    "new_provider_or_submission_actions": false,
+    "notes": "Source changes are two render expressions. Added data consists of synthetic operation fixtures and private-text sentinels. Existing localStorage dismissal behavior is unchanged."
+  },
+  "scanner_followup": {
+    "file": ".gitleaksignore",
+    "included_in_tested_revision": "ad0717d8e40a18402f816fd92bc69177d6c9473e",
+    "source_revision": "62b1e93f567fa0c00cea61bbb1a98c3ab09651fc",
+    "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "exact_historical_fingerprints_added": 5,
+    "broad_rule_workflow_or_path_exclusion_changed": false
+  },
+  "hosted_gates": "New published-head checks are NOT_RUN at authoring and require separate live verification. No prior execution is relabeled as a future publication-head check.",
+  "next_action": "Read the live owned PR and exact-head required checks; publication is already authorized. Keep full MJ-REQ-204 NOT_RUN and coordinate future provider-abstraction and event-coverage work with the designated integration owner. The live PR supersedes this authoring snapshot for delivery status."
+}
