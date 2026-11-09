@@ -4,9 +4,9 @@
   "objective": "Preserve actual failed or rejected agent outcomes when unused requested calls exceed the step limit",
   "owner": "ChatGPT-Web/web-20261109T132018Z-0d9f5a0511ab",
   "branch": "web/web-20261109T132018Z-0d9f5a0511ab/MJ-REF-033-terminal-outcomes",
-  "head_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+  "head_sha": "82fa368400a8119077cd3dce720a6e5e4304de7f",
   "routing_state": "VERIFY",
-  "next_action": "Read exact published head and required checks; repair only owned scoped failures, then hand off for authorized serial integration with PR975 and PR983 compatibility review",
+  "next_action": "Publish one owned PR994 update after live admission; inspect exact-head required hosted checks, then integrate serially if clean under explicit user authority. Full REF033/original acceptance remains open.",
   "created_at": "2026-11-09T13:31:40.650758+00:00",
   "requirements": [],
   "tests": [
@@ -17,9 +17,15 @@
     {
       "command": "Full local unit suite, PostgreSQL/Redis services, browser/production journeys, and hosted checks on final publication head",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Exact source 82fa368400a8119077cd3dce720a6e5e4304de7f: agent terminal/tool/diagnostic/acceptance suites, scanner sustain and real source TCP/cancellation fixture: 62 tests and 52 subtests PASS, zero skips; integrated main f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "result": "PASS"
     }
   ],
   "blockers": [
-    "PR_ONLY authority; full MJ-REF-033 and original prerequisites remain incomplete; no canonical acceptance promotion"
+    "Required hosted checks on the new published head remain NOT_RUN until automatic CI completes.",
+    "Full MJ-REF-033 and original prerequisites remain incomplete; no canonical acceptance promotion.",
+    "PR960 has two additive fixture text overlaps; bounded static resolution evidence saved; combined runtime not executed."
   ]
 }

@@ -6,7 +6,7 @@
   "recorded_at_utc": "2026-11-09T13:32:20.197325+00:00",
   "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
   "implementation_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
-  "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+  "tested_sha": "82fa368400a8119077cd3dce720a6e5e4304de7f",
   "result": "PARTIAL",
   "verified_slice_result": "PASS",
   "full_requirement_promoted": false,
@@ -84,6 +84,26 @@
       "output": "",
       "timestamp_utc": "2026-11-09T13:31:40.398815+00:00",
       "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python -B -m pytest -q -p no:cacheprovider tests/integration/test_agent_terminal_precedence.py tests/integration/test_agent_tools.py tests/integration/test_agent_diagnostic_reruns.py tests/unit/test_agent_acceptance.py tests/unit/test_secret_scan_sustain_176.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/pr994-combined-9a89.xml --tb=short",
+      "tested_sha": "9a89f85a291f777f6ba90378ffb8dbbfda1461db",
+      "exit_code": 0,
+      "tests_passed": 62,
+      "subtests_passed": 52,
+      "skipped": 0,
+      "duration_seconds": 39.02,
+      "junit_sha256": "a17b218b5b0d90d7e94aa2664dc1593638e2bca398ed35a3d7272f371fec5a34"
+    },
+    {
+      "command": "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python -B -m pytest -q -p no:cacheprovider tests/integration/test_agent_terminal_precedence.py tests/integration/test_agent_tools.py tests/integration/test_agent_diagnostic_reruns.py tests/unit/test_agent_acceptance.py tests/unit/test_secret_scan_sustain_176.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/pr994-combined-82fa.xml --tb=short",
+      "tested_sha": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "exit_code": 0,
+      "tests_passed": 62,
+      "subtests_passed": 52,
+      "skipped": 0,
+      "duration_seconds": 38.343,
+      "junit_sha256": "a64d855218b050aed456eb9663999ba0233b161eafcd1eed36a9ebc2a25141b8"
     }
   ],
   "assertions": [
@@ -191,8 +211,8 @@
     }
   },
   "rollback": "Revert this dedicated feature-branch change through the protected PR workflow; no migration or data rewrite.",
-  "integration_authority": "PR_ONLY",
-  "updated_at_utc": "2026-11-09T13:57:55.814121+00:00",
+  "integration_authority": "USER_APPROVED_PROTECTED_INTEGRATION_AND_VERIFIED_ACCEPTANCE",
+  "updated_at_utc": "2026-11-09T15:56:33.655755+00:00",
   "historical_scanner_dependency": {
     "failed_head": "720c660de314bcc55cae1eb41ee4d4932e4aeab7",
     "failed_job": "https://github.com/MulattoTech/MJobs/actions/runs/42627477299/job/129194876071",
@@ -250,5 +270,99 @@
     "junit_sha256": "46d6880eab8f18db6324a037e25f2b3673fb9a51cd20cd136840242865b9a550",
     "proof_sha256": "7d28e28d9a3274e6e75bb856c9d7b67bf2a4f3e30b0f0f481258eda0caf3b21e",
     "scope": "The three exact PR diffs combine without textual conflicts and pass focused agent runtime, diagnostic, review, terminal outcome and collection acceptance regressions. This is not full requirement acceptance, a hosted-check result, or merge/deployment authorization."
+  },
+  "owned_ci_fixture_correction": {
+    "exact_source_commit": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+    "integrated_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "path": "tests/integration/test_source_adapter_connect_cancellation.py",
+    "tested_blob": "1f43f88bf0b75b1f3b6d139fcd5f3087fbb7270c",
+    "tested_sha256": "888c68168cf9cb4916564233f5786240187ddfca5c1b610e10b81e573171455a",
+    "proven_gap": "Greenhouse requests execute in real pool threads outside the old outer-worker-only prepared SSL context scope.",
+    "change": "Mark only pool threads created by the owned outer worker via real executor initializer, preserving unrelated callers and argument guards; require actual prepared context use by Greenhouse.",
+    "unchanged_limits": {
+      "operation_deadline_seconds": 0.8,
+      "tcp_entry_completion_oracle_seconds": 1.0,
+      "cancel_service_response_seconds": 0.35,
+      "cancel_transport_settlement_seconds": 0.35
+    },
+    "positive_and_negative_controls": [
+      "real executor and initializer preservation",
+      "same-name unrelated executor exclusion",
+      "old outer-worker-only scope rejected after healthy HTTP completion",
+      "1.1-second prepared setup outside operation deadline",
+      "cold SSL setup charged to original deadline with no socket",
+      "real pre-SSL expiry does not open connection"
+    ],
+    "production_transport_unchanged": true,
+    "hosted_stall_root_cause": "Not established beyond the demonstrated fixture ownership gap. Historical original failure and diagnostic evidence remain valid.",
+    "combined_execution": {
+      "schema_version": 1,
+      "exact_commit": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "tree": "4be99e2a3673fdb864349c1d60f9139bcf42edcc",
+      "base_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "command": [
+        "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_agent_terminal_precedence.py",
+        "tests/integration/test_agent_tools.py",
+        "tests/integration/test_agent_diagnostic_reruns.py",
+        "tests/unit/test_agent_acceptance.py",
+        "tests/unit/test_secret_scan_sustain_176.py",
+        "tests/integration/test_source_adapter_connect_cancellation.py",
+        "--junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/pr994-combined-82fa.xml",
+        "--tb=short"
+      ],
+      "cwd": "/workspace/scratch/c6c2741e5c8e/mjobs-0d9f5a",
+      "started_at_utc": "2026-11-09T15:55:21.932306+00:00",
+      "duration_seconds": 44.907,
+      "returncode": 0,
+      "junit_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "114",
+          "time": "38.343",
+          "timestamp": "2026-11-09T09:55:22.338658-06:00",
+          "hostname": "3500872d9821"
+        }
+      ],
+      "junit_sha256": "a64d855218b050aed456eb9663999ba0233b161eafcd1eed36a9ebc2a25141b8",
+      "log_sha256": "411300f934c8d0c081031c48411aa695cd1d60b69d7e624554dc7a46594806a8",
+      "head_after": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "uncommitted_paths": [
+        "docs/evidence/2026-11-09-web-0d9f5a-terminal-outcomes.json",
+        "planning/agent_handoffs/MJ-REF-033-terminal-0d9f5a.json"
+      ],
+      "pytest_summary": "62 passed, 1 warning, 52 subtests passed in 38.34s",
+      "note": "Only own evidence/handoff JSON are unstaged; source/test tree is exact committed82fa. Prior9a89 had same tree with incomplete UTC trailer; fixed before publication; original receipt preserved."
+    },
+    "combined_count": {
+      "passed": 62,
+      "subtests_passed": 52,
+      "failures": 0,
+      "skipped": 0
+    },
+    "pr960_compatibility": {
+      "head": "c3a9d12b72e3b3b67b320c965455444a8f9c570c",
+      "static_result": "Two additive textual overlaps; retain both class-start tests and both observations after ssl_context_uses.append. No overlapping behavioral change.",
+      "combined_runtime_execution": "NOT_RUN",
+      "receipt_sha256": "79a7cb48cc48e4c9cf8f5d31dba8b111e12c35651515e15a8bcfcc8c69745367"
+    },
+    "acceptance_promotion": false,
+    "unpublished_provenance_correction": {
+      "initial_object": "9a89f85a291f777f6ba90378ffb8dbbfda1461db",
+      "corrected_object": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "identical_tree": "4be99e2a3673fdb864349c1d60f9139bcf42edcc",
+      "reason": "UTC-Date date-only trailer rejected by repository validator; corrected to full UTC timestamp before branch publication. Prior unreferenced object and original receipt preserved; no published history rewritten.",
+      "fresh_corrected_commit_execution": "62 tests and 52 subtests passed, zero failures/skips",
+      "provenance": "PASS: provenance complete for 1 source file"
+    }
   }
 }
