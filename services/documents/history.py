@@ -9,6 +9,7 @@ from packages.persistence import models as m
 from services.documents.avoid_list import validate_content as validate_avoid_list
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
+from services.documents.quality_audit import audit_saved_resume
 from services.documents.validation import validate_assertions, validate_formats
 
 
@@ -193,4 +194,12 @@ def application_documents(store, application_id, output_dir=None):
                 except (OSError, ValueError, KeyError, TypeError):
                     row['preview_text'] = None
                     row['preview_error'] = "Resume validation failed. Revise and prepare a new version before using this file."
+            if row['kind'] == 'resume':
+                validated = (output_dir is not None and row.get('preview_error') is None
+                             and isinstance(row.get('preview_text'), str)
+                             and not row.get('avoid_list_error'))
+                row['quality_audit'] = audit_saved_resume(
+                    row, row.get('preview_text'),
+                    validation_state='VALIDATED' if validated else 'NOT_VALIDATED',
+                )
         return rows
