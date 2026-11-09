@@ -468,7 +468,7 @@ class AgentRuntime:
             self.store._audit(connection, entity, "AGENT_PROPOSAL_REVIEWED", {
                 "proposal_id": proposal_id, "tool_name": tool_name,
                 "reviewer_ref": sha256(decision.reviewer_id.encode("utf-8")).hexdigest()[:24],
-                "result_code": "USER_APPROVED",
+                "result_code": "USER_APPROVED" if decision.approved else "USER_REJECTED",
                 "reviewed_at": now(),
             })
 
