@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-114-browser-web810d",
+  "objective": "Restore matching browser coverage with exactly four positively verified intentional visit receipts",
+  "owner": "ChatGPT-Web web-20261109T152935Z-810dfeed71db",
+  "branch": "web/web-20261109T152935Z-810dfeed71db/MJ-REQ-078-confidence-acceptance",
+  "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Publish the independently reviewed evidence and repaired fixtures as one bounded PR. The active integration owner reviews the explicit historical-note reconciliation and CAS baseline before any MJ-REQ-078 or MJ-REQ-110 canonical transition.",
+  "created_at": "2026-11-09T16:22:22.482324+00:00",
+  "requirements": [
+    "MJ-REQ-114"
+  ],
+  "tests": [
+    {
+      "command": "python -m tools.verification.commit_provenance --commit cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+      "result": "PASS"
+    },
+    {
+      "command": "Focused confidence/cost-control pytest command in docs/evidence/2026-11-09-web-810d-cost-controls-acceptance.json",
+      "result": "PASS",
+      "detail": "109 tests and 12 subtests; four PostgreSQL variants skipped, not passed."
+    },
+    {
+      "command": "GitHub browser workflow 42653280829 at cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+      "result": "FAIL",
+      "detail": "302 total cases: 275 passed, 22 failed, five skipped; all four shards completed."
+    },
+    {
+      "command": "Parse the nine scoped fact-review, matching-explanation, company-source and AI-settings JUnit cases from run 42653280829; verify artifact SHA256 digests",
+      "result": "PASS",
+      "detail": "All nine cases passed without failure, error or skip children. This does not turn the full workflow green."
+    },
+    {
+      "command": "PostgreSQL variants, live paid providers and deployed runtime",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Required publication-head checks and protected delivery are pending. The full browser suite has 22 remaining failures; canonical promotion is solely integration-owner controlled."
+  ],
+  "hosted_browser_run": 42653280829,
+  "canonical_transition_applied": false
+}

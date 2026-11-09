@@ -1,0 +1,1004 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-092",
+  "issue": 93,
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/93",
+  "run_id": "web-20261109T152935Z-810dfeed71db",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T16:25:57.074310+00:00",
+  "result": "SCOPED_BROWSER_FIXTURE_RECOVERY_PASS",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "source_commit": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+    "source_tree": "08c985b4c010d61d35386597f965c8c66f3c4571",
+    "parent_commit": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "commit_url": "https://github.com/MulattoTech/MJobs/commit/cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+    "subject": "test(browser): restore fact review and scoped visit receipts",
+    "combined_patch_sha256": "ba77d7d4c5c85a64685dda9b6dd0e1db593dedd30514676730cf163bb4e7d1c5",
+    "changed_paths": [
+      {
+        "path": "tests/browser/test_fact_review.py",
+        "candidate_blob": "c5fd90b602c809cdaa4fcfb94c2ce8133dfc1909",
+        "parent_blob": "8e84396e632a4ed9322db56deb2a08057e357bb1",
+        "candidate_sha256": "8ceaeddcc8cd7ac4a64cb4b04e26d072cb3b2523bfc487b34c9512334d5133b0",
+        "observed_baseline_blob_equals_parent": true
+      },
+      {
+        "path": "tests/browser/test_matching_explanation_workflow.py",
+        "candidate_blob": "cd422b5084c3c19d5bd5aea8ca28a5e4bbfff73c",
+        "parent_blob": "db768bf02acbce06549e1f58d217cf51cf9d8abc",
+        "candidate_sha256": "28858e51286ed148075f88b202799f438474af75195442711e9a674125ef592e",
+        "observed_baseline_blob_equals_parent": true
+      }
+    ],
+    "diffstat": {
+      "files_changed": 2,
+      "insertions": 94,
+      "deletions": 8
+    },
+    "production_code_changes": false,
+    "workflow_changes": false,
+    "canonical_acceptance_file_changes": false
+  },
+  "baseline": {
+    "job_id": 129262580304,
+    "artifact_id": 13688786744,
+    "artifact_sha256": "d97193b0278b1fd9bb440a591dc0a58fc11cdf10b671ef97c04e0a687569ba3c",
+    "tests": [
+      "FactReviewBrowserTests.test_text_edit_requires_fresh_review",
+      "FactReviewBrowserTests.test_source_edit_requires_fresh_review",
+      "FactReviewBrowserTests.test_kind_edit_requires_fresh_review"
+    ],
+    "observed_outcome": "Three locator timeouts",
+    "helper": "FactReviewBrowserTests.exercise.prepare_from_ui",
+    "line_at_observed_revision": 216,
+    "old_selector": "page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()",
+    "root_cause": "The selector requires a heading inside the job button; SelectableCard renders the title in span.job-card-title and names the button using company/title spans.",
+    "product_assertions_reached_before_failure": "Fact edit/reset and persisted pending-state checks were reached. The failing job-selection step preceded document preparation and downstream download assertions.",
+    "source_bytes_match_parent": true
+  },
+  "repair": {
+    "path": "tests/browser/test_fact_review.py",
+    "protects_original_requirement": {
+      "id": "MJ-REQ-092",
+      "issue": 93,
+      "url": "https://github.com/MulattoTech/MJobs/issues/93"
+    },
+    "browser_result": "PASS",
+    "change": "Scope the job lookup to .job-list and use the button's exact company-plus-title accessible name. After activation, assert the selected detail's expected title heading and direct company eyebrow.",
+    "preserved_real_document_assertions": [
+      "Each text/source/kind edit resets verification and approval and persists the pending state across profile reload.",
+      "Verification alone does not make an unapproved edited fact eligible; explicit approval is still required.",
+      "Preparation continues through the real operation worker and checks generated document fact IDs.",
+      "TXT, DOCX and PDF downloads retain content inclusion/exclusion assertions for eligible and ineligible fact text.",
+      "Current and historical document identity/checksum assertions remain intact."
+    ],
+    "preserved_safety_and_fixture_oracles": [
+      "Local-only request gate.",
+      "Existing strict locator behavior and timeouts.",
+      "No .first(), broad regex, new retry, skip or assertion removal.",
+      "The other two demo-navigation methods remain unchanged."
+    ],
+    "independent_review_receipt": "/workspace/scratch/8a8dff07082c/fact_review_fixture_patch_review_20261109.json"
+  },
+  "review": {
+    "schema_version": 1,
+    "reviewer": "/root/integration_inventory",
+    "reviewed_at_utc": "2026-11-09T16:01:07.840845+00:00",
+    "verdict": "NO_FINDINGS_IN_BOUNDED_FIXTURE_PATCH; EXECUTION_PENDING",
+    "base_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "path": "tests/browser/test_fact_review.py",
+    "base_file_blob": "8e84396e632a4ed9322db56deb2a08057e357bb1",
+    "reviewed_worktree_file_blob": "c5fd90b602c809cdaa4fcfb94c2ce8133dfc1909",
+    "reviewed_file_sha256": "8ceaeddcc8cd7ac4a64cb4b04e26d072cb3b2523bfc487b34c9512334d5133b0",
+    "diff_sha256": "38be4deaa0a144005b408d8d3b91506b0cfd16127c3f7dbb7259ee892c223e01",
+    "scope": "FactReviewBrowserTests.exercise.prepare_from_ui; shared by text/source/kind fresh-review cases.",
+    "changes": [
+      "Replace the stale button-containing-heading lookup with the .job-list button's exact company-plus-title accessible name.",
+      "After activation, assert the selected detail has the expected visible title heading and the direct company eyebrow text."
+    ],
+    "source_basis": [
+      "SelectableCard explicitly uses aria-labelledby for company and title spans; badge/summary/footer are aria-describedby and do not change the accessible name.",
+      "main.tsx renders the selected detail as section.job-detail with direct span.eyebrow company and h2 title.",
+      "The same job-list accessible-name pattern already exists in test_uploaded_resume_comparison.py."
+    ],
+    "preserved": [
+      "All existing timeouts and strict locator behavior; no .first(), broad regex, retry, skip or assertion removal.",
+      "All fact edit/reset, persisted approval, reapproval and profile version checks.",
+      "The real preparation operation worker and generated fact-id checks.",
+      "TXT/DOCX/PDF content inclusion/exclusion and checksum assertions.",
+      "Historical document identity/checksum assertions and local-only request gate.",
+      "Other two demo-navigation methods remain unchanged."
+    ],
+    "verification": {
+      "diff_check": "PASS",
+      "python_ast_parse": "PASS",
+      "browser_execution": "NOT_RUN_BY_REVIEWER",
+      "reason": "Known cloud browser startup restriction; parent plans one existing hosted browser workflow at the eventual exact candidate."
+    },
+    "parent_reported_claim": {
+      "acquired_utc": "2026-11-09T15:57:54Z",
+      "lease_until_parent_report": "16:27 UTC (parent supplied minute precision)",
+      "independently_acquired_by_reviewer": false
+    },
+    "limits": [
+      "This static patch review does not establish downstream browser success.",
+      "Fixture repair protects MJ-REQ-092/#93, which is already PASS; it does not add to original acceptance count.",
+      "The earlier 078/110 proofs remain explicitly tested at 971 and are not relabeled as new-main execution."
+    ],
+    "mutations_by_reviewer": []
+  },
+  "hosted_browser": {
+    "workflow": {
+      "id": 42653280829,
+      "name": "Browser regression - full synthetic suite",
+      "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+      "head_branch": "web/web-20261109T152935Z-810dfeed71db/MJ-REQ-078-confidence-acceptance",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_attempt": 1,
+      "created_at": "2026-11-09T16:17:36Z",
+      "updated_at": "2026-11-09T16:24:13Z",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/42653280829"
+    },
+    "jobs": [
+      {
+        "id": 129284996043,
+        "name": "Browser shard 1",
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+        "started_at": "2026-11-09T16:17:40Z",
+        "completed_at": "2026-11-09T16:22:52Z"
+      },
+      {
+        "id": 129284996297,
+        "name": "Browser shard 0",
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+        "started_at": "2026-11-09T16:17:40Z",
+        "completed_at": "2026-11-09T16:22:23Z"
+      },
+      {
+        "id": 129284996358,
+        "name": "Browser shard 2",
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+        "started_at": "2026-11-09T16:17:40Z",
+        "completed_at": "2026-11-09T16:24:12Z"
+      },
+      {
+        "id": 129284996629,
+        "name": "Browser shard 3",
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+        "started_at": "2026-11-09T16:17:40Z",
+        "completed_at": "2026-11-09T16:23:23Z"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13690349125,
+        "name": "browser-results-0",
+        "github_digest": "sha256:6ed3aa935e52ef8bbc359729c4f822fc9976b69572881af01879796751887560",
+        "sha256": "6ed3aa935e52ef8bbc359729c4f822fc9976b69572881af01879796751887560",
+        "digest_match": true,
+        "bytes": 21629,
+        "zip_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_web-20261109T152935Z-810dfeed71db\\browser-results-0-42653280829.zip",
+        "members": [
+          {
+            "name": "browser-0.xml",
+            "sha256": "19b5cd0fdbb927dee259974846597b79c042877f27ce9abb04cb6905362d9b91",
+            "bytes": 122572,
+            "testcases": 63,
+            "counts": {
+              "PASS": 57,
+              "FAIL": 6
+            }
+          }
+        ]
+      },
+      {
+        "id": 13690663346,
+        "name": "browser-results-1",
+        "github_digest": "sha256:404ca10eb16f68a2c4e0735e17f70527ac472cc4cdeea0a20011f35905e62cbb",
+        "sha256": "404ca10eb16f68a2c4e0735e17f70527ac472cc4cdeea0a20011f35905e62cbb",
+        "digest_match": true,
+        "bytes": 28344,
+        "zip_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_web-20261109T152935Z-810dfeed71db\\browser-results-1-42653280829.zip",
+        "members": [
+          {
+            "name": "browser-1.xml",
+            "sha256": "6cb83e04379b8c39a9f76bf1585bb08fc14dee726f5e0a1acb22bedf919fd09d",
+            "bytes": 167604,
+            "testcases": 75,
+            "counts": {
+              "PASS": 67,
+              "FAIL": 8
+            }
+          }
+        ]
+      },
+      {
+        "id": 13690508963,
+        "name": "browser-results-2",
+        "github_digest": "sha256:5e5ce2e0d3302c4d75c515587cd561bbf764115f20fdc72b8414dc4b50a9f4f0",
+        "sha256": "5e5ce2e0d3302c4d75c515587cd561bbf764115f20fdc72b8414dc4b50a9f4f0",
+        "digest_match": true,
+        "bytes": 7674,
+        "zip_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_web-20261109T152935Z-810dfeed71db\\browser-results-2-42653280829.zip",
+        "members": [
+          {
+            "name": "browser-2.xml",
+            "sha256": "44597bab832cdc09302f06c5972f422958fdb5fedb3da3d89ba5ae9987fcd5e2",
+            "bytes": 34777,
+            "testcases": 100,
+            "counts": {
+              "PASS": 98,
+              "SKIP": 1,
+              "FAIL": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": 13690083790,
+        "name": "browser-results-3",
+        "github_digest": "sha256:99c4a3300d9a3e76969168b3c2a9217d7d0c6cf4c5c9b9a272ddf1cd393acd17",
+        "sha256": "99c4a3300d9a3e76969168b3c2a9217d7d0c6cf4c5c9b9a272ddf1cd393acd17",
+        "digest_match": true,
+        "bytes": 14739,
+        "zip_path": "C:\\Tools\\Dev\\MJobs-Web\\_run_web-20261109T152935Z-810dfeed71db\\browser-results-3-42653280829.zip",
+        "members": [
+          {
+            "name": "browser-3.xml",
+            "sha256": "26a0076195960e7c9dca29636902ae3d1da12a58b0bf8c18d759d583c574d70a",
+            "bytes": 85263,
+            "testcases": 64,
+            "counts": {
+              "PASS": 53,
+              "FAIL": 7,
+              "SKIP": 4
+            }
+          }
+        ]
+      }
+    ],
+    "totals": {
+      "testcases": 302,
+      "counts": {
+        "PASS": 275,
+        "FAIL": 22,
+        "SKIP": 5
+      },
+      "all_four_artifacts": true,
+      "workflow_complete": true
+    },
+    "all_nine_relevant_cases": [
+      {
+        "classname": "tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests",
+        "name": "test_settings_save_reload_and_remain_isolated_between_profiles",
+        "seconds": "11.299",
+        "result": "PASS",
+        "artifact_id": 13690663346,
+        "artifact_name": "browser-results-1",
+        "member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests",
+        "name": "test_user_can_cancel_ai_evaluation_without_persisting_partial_batch",
+        "seconds": "3.858",
+        "result": "PASS",
+        "artifact_id": 13690663346,
+        "artifact_name": "browser-results-1",
+        "member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_matching_explanation_workflow.MatchingExplanationWorkflowBrowserTests",
+        "name": "test_saved_match_explanation_scope_stale_retry_and_read_only",
+        "seconds": "3.050",
+        "result": "PASS",
+        "artifact_id": 13690663346,
+        "artifact_name": "browser-results-1",
+        "member": "browser-1.xml"
+      },
+      {
+        "classname": "tests.browser.test_company_source_view.CompanySourceBrowserTests",
+        "name": "test_personal_source_controls_persist_and_feedback_layout_remains_usable",
+        "seconds": "3.744",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_demo_completion_opens_jobs_without_intervening_navigation",
+        "seconds": "1.639",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_demo_profile_stays_read_only_until_saved_version_loads",
+        "seconds": "2.327",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_kind_edit_requires_fresh_review",
+        "seconds": "12.886",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_source_edit_requires_fresh_review",
+        "seconds": "13.277",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_text_edit_requires_fresh_review",
+        "seconds": "14.188",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      }
+    ],
+    "remaining_failed_tests": [
+      {
+        "classname": "tests.browser.test_application_review_queue.ApplicationReviewQueueBrowserTests",
+        "name": "test_unresolved_question_routes_to_review_and_saves_only_with_explicit_consent",
+        "result": "FAIL",
+        "message": "AssertionError: Locator expected to contain text 'Exact normalized match'\nActual value: Question 1Employer questionDescribe your experience managing Azure subscriptions.Saved answer matchesMatches are suggestions based on saved questions. Review the source and answer for this application before usin"
+      },
+      {
+        "classname": "tests.browser.test_cover_letter_preview.CoverLetterPreviewBrowserTests",
+        "name": "test_preview_is_bound_explained_recoverable_and_read_only",
+        "result": "FAIL",
+        "message": "AssertionError: False is not true : ['/profiles/fixture/jobs/d08a202bfa4d075e90d7ab22fcf3eb947f0d97dff445b38c78ae8e499c1acb4c/view', '/profiles/fixture/jobs/d08a202bfa4d075e90d7ab22fcf3eb947f0d97dff445b38c78ae8e499c1acb4c/cover-letter-preview', '/profiles/fixture/jobs/d08a202bfa4d075e90d7ab22fcf3eb9"
+      },
+      {
+        "classname": "tests.browser.test_job_sorting.JobSortingBrowserTests",
+        "name": "test_newest_selection_orders_connected_jobs_after_profile_reload",
+        "result": "FAIL",
+        "message": "AssertionError: Locator expected to have text 'Alpha Older Role'\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_have_text\" locator(\".job-card h2\").first with timeout 5000ms\n  - waiting for locator(\".job-card h2\").first\n\nAria snapshot:\n- complementary:\n  - link \"MJobs YOUR L"
+      },
+      {
+        "classname": "tests.browser.test_preference_weighting",
+        "name": "test_preferences_save_reload_and_show_real_persisted_contributions",
+        "result": "FAIL",
+        "message": "AssertionError: assert ([] == []\n  \n  Full diff:\n    [] and [('POST', '/p...ed-job/view')] == []\n  \n  Left contains one more item: ('POST', '/profiles/fixture/jobs/aligned-job/view')\n  \n  Full diff:\n  - []\n  + [\n  +     (\n  +         'POST',\n  +         '/profiles/fixture/jobs/aligned-job/view',\n  +"
+      },
+      {
+        "classname": "tests.browser.test_recruiter_classification.RecruiterClassificationBrowserTests",
+        "name": "test_classification_is_evidence_bound_advisory_and_never_filters_or_writes",
+        "result": "FAIL",
+        "message": "AssertionError: [('POST', '/profiles/recruiter-fixture/jobs/recruiter-direct-job/view', {}), ('POST', '/profiles/recruiter-fixture/jobs/recruiter-ambiguous-job/view', {}), ('POST', '/profiles/recruiter-fixture/jobs/recruiter-staffing-job/view', {})] is not false : [('GET', '/', {}), ('GET', '/assets"
+      },
+      {
+        "classname": "tests.browser.test_resume_tailoring_facts.ResumeTailoringFactsBrowserTests",
+        "name": "test_dropping_named_credential_is_reported_and_creates_no_tailored_version",
+        "result": "FAIL",
+        "message": "AssertionError: {'aud[424 chars]ws': 1, 'profile_recovery_history_snapshots': [871 chars]': 0} != {'aud[424 chars]ws': 0, 'profile_recovery_history_snapshots': [871 chars]': 0}\nDiff is 1585 characters long. Set self.maxDiff to None to see it."
+      },
+      {
+        "classname": "tests.browser.test_application_priority_mount.ApplicationPriorityMountedPanelBrowserTests",
+        "name": "test_mounted_panel_hides_misscoped_data_and_retries_read_only",
+        "result": "FAIL",
+        "message": "AssertionError: [('POST', '/profiles/fixture/jobs/80165bbb8e5de855b9eed139a4fff52a7838c3145b356451e92934be3f1dc482/view'), ('POST', '/profiles/fixture/jobs/0a88a5b6fb8587cc41b63d55f75e4ddda0f75fce38b8fd71be0e86111d92c89c/view'), ('POST', '/profiles/priority-panel-other/jobs/80165bbb8e5de855b9eed139a"
+      },
+      {
+        "classname": "tests.browser.test_browser_job_extraction_ui.BrowserJobExtractionUiTests",
+        "name": "test_local_capture_preview_is_reviewable_scoped_and_read_only",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: ['http://127.0.0.1:56099/profiles/fixture/[71 chars]iew'] != []\n\nFirst list contains 1 additional elements.\nFirst extra element 0:\n'http://127.0.0.1:56099/profiles/fixture/jobs/dba5289a17178c0ea19f8d512287f827b66cb865f0105c975824a62676506c4a/view'\n\n- ['http://127.0.0.1:"
+      },
+      {
+        "classname": "tests.browser.test_greenhouse_autodiscovery.GreenhouseAutodiscoveryBrowserTests",
+        "name": "test_new_aggregator_employer_review_enrollment_reload_and_pause",
+        "result": "FAIL",
+        "message": "AssertionError: Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" locator(\".job-card\").filter(has_text=\"Senior Python Engineer\") with timeout 5000ms\n  - waiting for locator(\".job-card\").filter(has_text=\"Senior Python Engineer\")\n\nAria "
+      },
+      {
+        "classname": "tests.browser.test_mock_answer_bindings.MockAnswerBindingFlowTests",
+        "name": "test_edit_invalidated_question_answer_does_not_bind",
+        "result": "FAIL",
+        "message": "AssertionError: 'UNKNOWN' != 'FAIL'\n- UNKNOWN\n+ FAIL"
+      },
+      {
+        "classname": "tests.browser.test_mock_answer_bindings.MockAnswerBindingFlowTests",
+        "name": "test_wrong_question_on_legacy_slot_id_does_not_fall_back_to_id",
+        "result": "FAIL",
+        "message": "AssertionError: 'UNKNOWN' != 'FAIL'\n- UNKNOWN\n+ FAIL"
+      },
+      {
+        "classname": "tests.browser.test_responsive_design_sustain_256.ResponsiveJobsBrowserTests",
+        "name": "test_jobs_fit_desktop_tablet_and_mobile_with_keyboard_selection",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [('POST', 'http://127.0.0.1:51406/profiles[753 chars]ew')] != []\n\nFirst list contains 10 additional elements.\nFirst extra element 0:\n('POST', 'http://127.0.0.1:51406/profiles/fixture/jobs/responsive-job-1/view')\n\nDiff is 835 characters long. Set self.maxDiff to None to "
+      },
+      {
+        "classname": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests",
+        "name": "test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [('POST', 'http://127.0.0.1:51859/profiles/fixture/jobs/selected-job/view')] != []\n\nFirst list contains 1 additional elements.\nFirst extra element 0:\n('POST', 'http://127.0.0.1:51859/profiles/fixture/jobs/selected-job/view')\n\n- [('POST', 'http://127.0.0.1:51859/profiles"
+      },
+      {
+        "classname": "tests.browser.test_source_candidate_review_panel_connected.SourceCandidateReviewPanelConnectedTests",
+        "name": "test_filters_review_retry_profile_isolation_and_durable_readback",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [{'url': 'http://127.0.0.1:64052/source-ca[748 chars]T'>}] != []\n\nFirst list contains 3 additional elements.\nFirst extra element 0:\n{'url': 'http://127.0.0.1:64052/source-candidates?profile_id=fixture', 'method': 'GET', 'failure': 'net::ERR_ABORTED', 'request': <Request"
+      },
+      {
+        "classname": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests",
+        "name": "test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [('POST', 'http://127.0.0.1:64419/profiles[102 chars]ew')] != []\n\nFirst list contains 2 additional elements.\nFirst extra element 0:\n('POST', 'http://127.0.0.1:64419/profiles/fixture/jobs/selected-job/view')\n\n+ []\n- [('POST', 'http://127.0.0.1:64419/profiles/fixture/jobs"
+      },
+      {
+        "classname": "tests.browser.test_job_risk_signals.JobRiskSignalsBrowserTests",
+        "name": "test_risk_evidence_is_limited_unknown_and_non_blocking",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [('POST', '/profiles/fixture/jobs/cfea9aac[59 chars]ew')] != []\n\nFirst list contains 1 additional elements.\nFirst extra element 0:\n('POST', '/profiles/fixture/jobs/cfea9aaccfaf29206cdd63b4fc497e4c1488aca43ab907889a8cc285b32f8619/view')\n\n+ []\n- [('POST',\n-   '/profiles/f"
+      },
+      {
+        "classname": "tests.browser.test_manual_capture_review_receipt_safety.ManualCaptureReviewReceiptSafetyTests",
+        "name": "test_failed_capture_retry_preserves_rejection_receipt_after_reload",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [('POST', 'http://127.0.0.1:53552/profiles[81 chars]ew')] != []\n\nFirst list contains 1 additional elements.\nFirst extra element 0:\n('POST', 'http://127.0.0.1:53552/profiles/fixture/jobs/1610ec75e4274acb3149543066aa3887de94c01a6c707dd9ba513089c68bf0ad/view')\n\n+ []\n- [('P"
+      },
+      {
+        "classname": "tests.browser.test_match_feedback_workflow.MatchFeedbackWorkflowBrowserTests",
+        "name": "test_categories_retry_readback_isolation_and_review_only_preferences",
+        "result": "FAIL",
+        "message": "AssertionError: Lists differ: [('POST', '/profiles/fixture/jobs/1563cbcf[375 chars]ew')] != []\n\nFirst list contains 4 additional elements.\nFirst extra element 0:\n('POST', '/profiles/fixture/jobs/1563cbcfb75c5271e2f719634094fdf937cdf944b49b5f165d05169c0f1f04ca/view')\n\n+ []\n- [('POST',\n-   '/profiles/"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_explicit_ordering_reaches_worker_and_download",
+        "result": "FAIL",
+        "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\").filter(has=get_by_role(\"heading\", name=\"Data Engineer\", exact=True))"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_responsibility_matched_summary_survives_prepare_reload_and_comparison",
+        "result": "FAIL",
+        "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\").filter(has=get_by_role(\"heading\", name=\"Data Engineer\", exact=True))"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_target_bullet_fallback_explicit_precedence_and_reload",
+        "result": "FAIL",
+        "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\").filter(has=get_by_role(\"heading\", name=\"Data Engineer\", exact=True))"
+      },
+      {
+        "classname": "tests.browser.test_skill_order.SkillOrderBrowserTests",
+        "name": "test_user_reviewed_technology_experience_rewrite_survives_reload",
+        "result": "FAIL",
+        "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\").filter(has=get_by_role(\"heading\", name=\"Data Engineer\", exact=True))"
+      }
+    ],
+    "full_receipt_sha256": "3f24f0bedfcd64a0718f8017905bc271532a368ab34a6cd621f91cd166e37a8b",
+    "full_receipt_durable_name": "browser-source-results-42653280829.json",
+    "independent_artifact_review": {
+      "sha256": "43cebb32ffe73d7527f61528543fa227ae269c11c4a58cb021d759bff7344a6a",
+      "receipt": {
+        "schema_version": 1,
+        "type": "INDEPENDENT_COMPLETE_HOSTED_BROWSER_ARTIFACT_REVIEW",
+        "reviewer": "/root/integration_inventory",
+        "reviewed_at_utc": "2026-11-09T16:26:25.022367+00:00",
+        "verdict": "NINE_NAMED_CASES_PASS; COMPLETE_WORKFLOW_FAILURE_PRESERVED",
+        "repository": "MulattoTech/MJobs",
+        "tested_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+        "reviewed_tree": "08c985b4c010d61d35386597f965c8c66f3c4571",
+        "source_parent": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run": {
+          "id": 42653280829,
+          "url": "https://github.com/MulattoTech/MJobs/actions/runs/42653280829",
+          "workflow": "Browser regression - full synthetic suite",
+          "event": "workflow_dispatch",
+          "attempt": 1,
+          "head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+          "head_branch": "web/web-20261109T152935Z-810dfeed71db/MJ-REQ-078-confidence-acceptance",
+          "status": "completed",
+          "conclusion": "failure",
+          "created_at": "2026-11-09T16:17:36Z",
+          "updated_at": "2026-11-09T16:24:13Z"
+        },
+        "method": {
+          "github": "Reviewer independently fetched run, complete artifact list and four job metadata records from GitHub.",
+          "zip_bytes": "Reviewer independently read all four existing Windows ZIPs, recomputed SHA256 and byte counts, and matched each to the corresponding GitHub artifact digest/run/head.",
+          "junit": "Parsed XML from each archive using ElementTree. PASS requires absence of failure, error and skipped elements. No missing expected target or duplicate testcase identity was found.",
+          "original_zip_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_web-20261109T152935Z-810dfeed71db",
+          "original_zip_names": [
+            "browser-results-0-42653280829.zip",
+            "browser-results-1-42653280829.zip",
+            "browser-results-2-42653280829.zip",
+            "browser-results-3-42653280829.zip"
+          ],
+          "executions_by_reviewer": 0,
+          "dispatches_by_reviewer": 0,
+          "retries_by_reviewer": 0
+        },
+        "artifacts": [
+          {
+            "shard": 0,
+            "artifact_id": 13690349125,
+            "artifact_name": "browser-results-0",
+            "zip_bytes": 21629,
+            "zip_sha256": "6ed3aa935e52ef8bbc359729c4f822fc9976b69572881af01879796751887560",
+            "github_digest": "sha256:6ed3aa935e52ef8bbc359729c4f822fc9976b69572881af01879796751887560",
+            "digest_match": true,
+            "artifact_head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+            "artifact_run_id": 42653280829,
+            "job_id": 129284996297,
+            "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42653280829/job/129284996297",
+            "job_conclusion": "failure",
+            "junit": [
+              {
+                "member": "browser-0.xml",
+                "sha256": "19b5cd0fdbb927dee259974846597b79c042877f27ce9abb04cb6905362d9b91",
+                "case_count": 63,
+                "counts": {
+                  "PASS": 57,
+                  "FAIL": 6
+                }
+              }
+            ]
+          },
+          {
+            "shard": 1,
+            "artifact_id": 13690663346,
+            "artifact_name": "browser-results-1",
+            "zip_bytes": 28344,
+            "zip_sha256": "404ca10eb16f68a2c4e0735e17f70527ac472cc4cdeea0a20011f35905e62cbb",
+            "github_digest": "sha256:404ca10eb16f68a2c4e0735e17f70527ac472cc4cdeea0a20011f35905e62cbb",
+            "digest_match": true,
+            "artifact_head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+            "artifact_run_id": 42653280829,
+            "job_id": 129284996043,
+            "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42653280829/job/129284996043",
+            "job_conclusion": "failure",
+            "junit": [
+              {
+                "member": "browser-1.xml",
+                "sha256": "6cb83e04379b8c39a9f76bf1585bb08fc14dee726f5e0a1acb22bedf919fd09d",
+                "case_count": 75,
+                "counts": {
+                  "PASS": 67,
+                  "FAIL": 8
+                }
+              }
+            ]
+          },
+          {
+            "shard": 2,
+            "artifact_id": 13690508963,
+            "artifact_name": "browser-results-2",
+            "zip_bytes": 7674,
+            "zip_sha256": "5e5ce2e0d3302c4d75c515587cd561bbf764115f20fdc72b8414dc4b50a9f4f0",
+            "github_digest": "sha256:5e5ce2e0d3302c4d75c515587cd561bbf764115f20fdc72b8414dc4b50a9f4f0",
+            "digest_match": true,
+            "artifact_head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+            "artifact_run_id": 42653280829,
+            "job_id": 129284996358,
+            "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42653280829/job/129284996358",
+            "job_conclusion": "failure",
+            "junit": [
+              {
+                "member": "browser-2.xml",
+                "sha256": "44597bab832cdc09302f06c5972f422958fdb5fedb3da3d89ba5ae9987fcd5e2",
+                "case_count": 100,
+                "counts": {
+                  "PASS": 98,
+                  "SKIP": 1,
+                  "FAIL": 1
+                }
+              }
+            ]
+          },
+          {
+            "shard": 3,
+            "artifact_id": 13690083790,
+            "artifact_name": "browser-results-3",
+            "zip_bytes": 14739,
+            "zip_sha256": "99c4a3300d9a3e76969168b3c2a9217d7d0c6cf4c5c9b9a272ddf1cd393acd17",
+            "github_digest": "sha256:99c4a3300d9a3e76969168b3c2a9217d7d0c6cf4c5c9b9a272ddf1cd393acd17",
+            "digest_match": true,
+            "artifact_head_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+            "artifact_run_id": 42653280829,
+            "job_id": 129284996629,
+            "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/42653280829/job/129284996629",
+            "job_conclusion": "failure",
+            "junit": [
+              {
+                "member": "browser-3.xml",
+                "sha256": "26a0076195960e7c9dca29636902ae3d1da12a58b0bf8c18d759d583c574d70a",
+                "case_count": 64,
+                "counts": {
+                  "PASS": 53,
+                  "FAIL": 7,
+                  "SKIP": 4
+                }
+              }
+            ]
+          }
+        ],
+        "complete_junit_totals": {
+          "testcases": 302,
+          "passed": 275,
+          "failed": 22,
+          "errors": 0,
+          "skipped": 5,
+          "all_four_shards_inspected": true,
+          "nine_target_cases_are_subset_of_passed": true
+        },
+        "target_cases": [
+          {
+            "nodeid": "tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests::test_settings_save_reload_and_remain_isolated_between_profiles",
+            "result": "PASS",
+            "seconds": "11.299",
+            "shard": 1,
+            "member": "browser-1.xml",
+            "artifact_id": 13690663346
+          },
+          {
+            "nodeid": "tests.browser.test_ai_task_settings.AITaskSettingsBrowserTests::test_user_can_cancel_ai_evaluation_without_persisting_partial_batch",
+            "result": "PASS",
+            "seconds": "3.858",
+            "shard": 1,
+            "member": "browser-1.xml",
+            "artifact_id": 13690663346
+          },
+          {
+            "nodeid": "tests.browser.test_matching_explanation_workflow.MatchingExplanationWorkflowBrowserTests::test_saved_match_explanation_scope_stale_retry_and_read_only",
+            "result": "PASS",
+            "seconds": "3.050",
+            "shard": 1,
+            "member": "browser-1.xml",
+            "artifact_id": 13690663346
+          },
+          {
+            "nodeid": "tests.browser.test_company_source_view.CompanySourceBrowserTests::test_personal_source_controls_persist_and_feedback_layout_remains_usable",
+            "result": "PASS",
+            "seconds": "3.744",
+            "shard": 2,
+            "member": "browser-2.xml",
+            "artifact_id": 13690508963
+          },
+          {
+            "nodeid": "tests.browser.test_fact_review.FactReviewBrowserTests::test_demo_completion_opens_jobs_without_intervening_navigation",
+            "result": "PASS",
+            "seconds": "1.639",
+            "shard": 2,
+            "member": "browser-2.xml",
+            "artifact_id": 13690508963
+          },
+          {
+            "nodeid": "tests.browser.test_fact_review.FactReviewBrowserTests::test_demo_profile_stays_read_only_until_saved_version_loads",
+            "result": "PASS",
+            "seconds": "2.327",
+            "shard": 2,
+            "member": "browser-2.xml",
+            "artifact_id": 13690508963
+          },
+          {
+            "nodeid": "tests.browser.test_fact_review.FactReviewBrowserTests::test_kind_edit_requires_fresh_review",
+            "result": "PASS",
+            "seconds": "12.886",
+            "shard": 2,
+            "member": "browser-2.xml",
+            "artifact_id": 13690508963
+          },
+          {
+            "nodeid": "tests.browser.test_fact_review.FactReviewBrowserTests::test_source_edit_requires_fresh_review",
+            "result": "PASS",
+            "seconds": "13.277",
+            "shard": 2,
+            "member": "browser-2.xml",
+            "artifact_id": 13690508963
+          },
+          {
+            "nodeid": "tests.browser.test_fact_review.FactReviewBrowserTests::test_text_edit_requires_fresh_review",
+            "result": "PASS",
+            "seconds": "14.188",
+            "shard": 2,
+            "member": "browser-2.xml",
+            "artifact_id": 13690508963
+          }
+        ],
+        "failed_cases": [
+          {
+            "nodeid": "tests.browser.test_application_review_queue.ApplicationReviewQueueBrowserTests::test_unresolved_question_routes_to_review_and_saves_only_with_explicit_consent",
+            "result": "FAIL",
+            "shard": 0,
+            "member": "browser-0.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_cover_letter_preview.CoverLetterPreviewBrowserTests::test_preview_is_bound_explained_recoverable_and_read_only",
+            "result": "FAIL",
+            "shard": 0,
+            "member": "browser-0.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_job_sorting.JobSortingBrowserTests::test_newest_selection_orders_connected_jobs_after_profile_reload",
+            "result": "FAIL",
+            "shard": 0,
+            "member": "browser-0.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_preference_weighting::test_preferences_save_reload_and_show_real_persisted_contributions",
+            "result": "FAIL",
+            "shard": 0,
+            "member": "browser-0.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_recruiter_classification.RecruiterClassificationBrowserTests::test_classification_is_evidence_bound_advisory_and_never_filters_or_writes",
+            "result": "FAIL",
+            "shard": 0,
+            "member": "browser-0.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_resume_tailoring_facts.ResumeTailoringFactsBrowserTests::test_dropping_named_credential_is_reported_and_creates_no_tailored_version",
+            "result": "FAIL",
+            "shard": 0,
+            "member": "browser-0.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_application_priority_mount.ApplicationPriorityMountedPanelBrowserTests::test_mounted_panel_hides_misscoped_data_and_retries_read_only",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_browser_job_extraction_ui.BrowserJobExtractionUiTests::test_local_capture_preview_is_reviewable_scoped_and_read_only",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_greenhouse_autodiscovery.GreenhouseAutodiscoveryBrowserTests::test_new_aggregator_employer_review_enrollment_reload_and_pause",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_mock_answer_bindings.MockAnswerBindingFlowTests::test_edit_invalidated_question_answer_does_not_bind",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_mock_answer_bindings.MockAnswerBindingFlowTests::test_wrong_question_on_legacy_slot_id_does_not_fall_back_to_id",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_responsive_design_sustain_256.ResponsiveJobsBrowserTests::test_jobs_fit_desktop_tablet_and_mobile_with_keyboard_selection",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_role_scoring_profile_reload_match.RoleScoringProfileReloadMatchBrowserTests::test_reload_explains_real_match_without_changing_other_search_or_eligibility",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_source_candidate_review_panel_connected.SourceCandidateReviewPanelConnectedTests::test_filters_review_retry_profile_isolation_and_durable_readback",
+            "result": "FAIL",
+            "shard": 1,
+            "member": "browser-1.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_role_scoring_selected_search_explanation_flow.RoleScoringSelectedSearchExplanationBrowserTests::test_editor_readback_and_job_explanation_follow_the_selected_saved_search",
+            "result": "FAIL",
+            "shard": 2,
+            "member": "browser-2.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_job_risk_signals.JobRiskSignalsBrowserTests::test_risk_evidence_is_limited_unknown_and_non_blocking",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_manual_capture_review_receipt_safety.ManualCaptureReviewReceiptSafetyTests::test_failed_capture_retry_preserves_rejection_receipt_after_reload",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_match_feedback_workflow.MatchFeedbackWorkflowBrowserTests::test_categories_retry_readback_isolation_and_review_only_preferences",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_skill_order.SkillOrderBrowserTests::test_explicit_ordering_reaches_worker_and_download",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_skill_order.SkillOrderBrowserTests::test_responsibility_matched_summary_survives_prepare_reload_and_comparison",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_skill_order.SkillOrderBrowserTests::test_target_bullet_fallback_explicit_precedence_and_reload",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          },
+          {
+            "nodeid": "tests.browser.test_skill_order.SkillOrderBrowserTests::test_user_reviewed_technology_experience_rewrite_survives_reload",
+            "result": "FAIL",
+            "shard": 3,
+            "member": "browser-3.xml"
+          }
+        ],
+        "skipped_cases": [
+          {
+            "nodeid": "tests.browser.test_manual_auth_departed_recovery.ManualAuthDepartedRecoveryTests::test_api_departure_closed_tree_recovery_reload_then_explicit_retry",
+            "result": "SKIP",
+            "shard": 2,
+            "reason": "Native Windows creator-independent recovery"
+          },
+          {
+            "nodeid": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests::test_mounted_api_closes_original_tree_then_allows_separate_explicit_retry",
+            "result": "SKIP",
+            "shard": 3,
+            "reason": "Native isolated Windows host"
+          },
+          {
+            "nodeid": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests::test_mounted_prelaunch_cancellation_confirms_native_rollback_and_releases_capacity",
+            "result": "SKIP",
+            "shard": 3,
+            "reason": "Native isolated Windows host"
+          },
+          {
+            "nodeid": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests::test_native_sign_in_persists_for_separate_worker_dry_run_without_replay",
+            "result": "SKIP",
+            "shard": 3,
+            "reason": "Native isolated Windows host"
+          },
+          {
+            "nodeid": "tests.browser.test_manual_auth_isolated.ManualAuthIsolatedBrowserTests::test_saved_attempt_private_host_observer_closure_and_held_capacity",
+            "result": "SKIP",
+            "shard": 3,
+            "reason": "Native isolated Windows host"
+          }
+        ],
+        "source_bindings": [
+          {
+            "path": "tests/browser/test_fact_review.py",
+            "git_blob": "c5fd90b602c809cdaa4fcfb94c2ce8133dfc1909",
+            "coverage": "Five test methods PASS, including the three corrected shared-helper fact-edit journeys."
+          },
+          {
+            "path": "tests/browser/test_matching_explanation_workflow.py",
+            "git_blob": "cd422b5084c3c19d5bd5aea8ca28a5e4bbfff73c",
+            "coverage": "The corrected explicit-visit/read-only matching-explanation journey PASS."
+          },
+          {
+            "path": "tests/browser/test_company_source_view.py",
+            "git_blob": "e10322347e1cd3b55a61d27082c4d80330bb998b",
+            "coverage": "Mounted source confidence/status and persisted controls case PASS."
+          },
+          {
+            "path": "tests/browser/test_ai_task_settings.py",
+            "git_blob": "ed523f2f4984037f0a76073b08f6cea0bd986e18",
+            "coverage": "Mounted policy save/reload/isolation and cancellation cases PASS."
+          }
+        ],
+        "acceptance_effect": {
+          "MJ-REQ-078": "Fresh exact-published-source mounted company-source browser evidence supports the previously reviewed explicit confidence/status criterion proposal.",
+          "MJ-REQ-110": "Fresh exact-published-source mounted AI Settings and cancellation browser evidence supports the previously reviewed per-batch funnel proposal.",
+          "MJ-REQ-092": "The corrected fixture now executes all three fact-edit review-reset/document-content/history journeys successfully. The two existing demo cases also pass. This is regression recovery, not a new original requirement.",
+          "MJ-REQ-114": "The corrected matching-explanation fixture passes with its four fixed profile/job visit receipts, retry/refresh immutability and other write bans. This is a scoped regression result; no independent umbrella promotion.",
+          "canonical_transition_applied": false,
+          "original_requirement_delta_by_this_receipt": 0
+        },
+        "supersession": {
+          "prior_pending_receipt": "mjreq078-110-public-source-independent-addendum-810d.json",
+          "prior_pending_receipt_sha256": "1263eafde82f36e355402fc8aa36a7173f08f15c601c13455c2ac46e37ebb466",
+          "update": "Only its new-hosted-browser PENDING state is superseded by this completed exact-source review. The prior receipt remains immutable.",
+          "historical_run": 42646926759,
+          "historical_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+          "history": "Keep the earlier workflow FAILURE, four target-regression failures and local Chromium startup block as history. The new result applies only to this tested public revision."
+        },
+        "limits": [
+          "All four shard jobs and the complete workflow concluded FAILURE. The 22 failed and five skipped cases remain in this receipt.",
+          "The nine named passing cases are a subset of 275 PASS cases, not nine additional tests.",
+          "The focused 109-test/12-subtest execution and historical independent probes remain separate evidence scopes; do not aggregate overlapping counts.",
+          "Provider responses are controlled synthetic fixtures. No live/paid inference, production deployment, real employer workflow or fresh PostgreSQL verification is established.",
+          "The AI Settings browser intercepts application preparation; actual AI-reviewed document-worker behavior is separately covered by the focused integration suite.",
+          "The confidence browser does not explicitly assert its numeric percentage; numeric validation and thresholds are covered by the separately reviewed source/API/probe evidence.",
+          "No new browser run, retry, source change, canonical acceptance write, claim operation or GitHub review was performed by this reviewer."
+        ],
+        "parent_receipt_comparison": {
+          "path": "browser-source-results-final-42653280829.json",
+          "sha256": "3f24f0bedfcd64a0718f8017905bc271532a368ab34a6cd621f91cd166e37a8b",
+          "comparison": "Independent full counts and all target identities agree; original ZIPs and GitHub metadata were read directly, not inferred from this parent receipt."
+        }
+      }
+    },
+    "fixture_target_cases": [
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_demo_completion_opens_jobs_without_intervening_navigation",
+        "seconds": "1.639",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_demo_profile_stays_read_only_until_saved_version_loads",
+        "seconds": "2.327",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_kind_edit_requires_fresh_review",
+        "seconds": "12.886",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_source_edit_requires_fresh_review",
+        "seconds": "13.277",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      },
+      {
+        "classname": "tests.browser.test_fact_review.FactReviewBrowserTests",
+        "name": "test_text_edit_requires_fresh_review",
+        "seconds": "14.188",
+        "result": "PASS",
+        "artifact_id": 13690508963,
+        "artifact_name": "browser-results-2",
+        "member": "browser-2.xml"
+      }
+    ]
+  },
+  "canonical_acceptance_delta": 0,
+  "canonical_transition_applied": false,
+  "limits": [
+    "The full browser workflow remains FAILURE: 22 other failed cases and 5 skips remain explicit.",
+    "This fixture recovery does not newly certify the full parent requirement or production deployment.",
+    "No workflow, product source, timeouts, retries or skip policy was changed."
+  ],
+  "latest_tested_source_sha": "cc0739e3c47f1eab372ef6f9dabb1cc920c17bf0",
+  "updated_at_utc": "2026-11-09T16:31:10.644286+00:00"
+}
