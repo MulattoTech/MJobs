@@ -105,6 +105,32 @@ def _read_policy(store, config: Mapping) -> dict:
         _raise_policy_error(getattr(error, "code", "RETENTION_POLICY_READ_FAILED"))
 
 
+def _cleanup_control(config: Mapping, policy: Mapping | None) -> dict:
+    """Disclose permission at this preview's snapshot, not a sweep outcome.
+
+    Use the original configuration: the copy passed to the preview deliberately
+    disables deletion. A configured rule or historical receipt is not consent.
+    """
+    if policy is None:
+        allowed = config["prune_enabled"] and not config["dry_run"]
+        return {
+            "source": "SERVER_CONFIGURATION",
+            "state": "ALLOWED" if allowed else "SERVER_DISABLED",
+            "policy_revision": None,
+        }
+    if not policy["pruning_allowed"]:
+        state = "SERVER_DISABLED"
+    elif policy["requires_review"]:
+        state = "REVIEW_REQUIRED"
+    else:
+        state = "ALLOWED" if policy["enabled"] else "DISABLED"
+    return {
+        "source": "PERSISTED_POLICY",
+        "state": state,
+        "policy_revision": policy["revision"],
+    }
+
+
 def _parse_update(payload: object) -> tuple[int, str, bool, dict[str, int]]:
     if not isinstance(payload, dict) or set(payload) != {
             "expected_revision", "expected_config_fingerprint", "enabled",
@@ -198,6 +224,7 @@ def create_transient_retention_router(*, store=None, environ=None, engine=None) 
                 })
         return {
             "policy": public_rules,
+            "cleanup_control": _cleanup_control(config, policy),
             "preview": preview,
             "last_sweep": read_saved_summary(config),
         }

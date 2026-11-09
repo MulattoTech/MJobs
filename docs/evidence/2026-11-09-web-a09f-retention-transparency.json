@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "model_id": "gpt-6-astra",
+  "recorded_utc": "2026-11-09T13:36:21.272284+00:00",
+  "requirement": "MJ-REF-042",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/426",
+  "slice": "Effective retention cleanup permission and preview transparency",
+  "source_commit": "e339f155d20e94f44e936df3602e261e9a9b351a",
+  "base_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "changed_source_files": [
+    "apps/api/transient_retention.py",
+    "apps/web/src/feature-connections.test.tsx",
+    "apps/web/src/feature-connections.tsx",
+    "apps/web/src/transient-retention.test.tsx",
+    "apps/web/src/transient-retention.tsx",
+    "tests/integration/test_retention_transparency.py"
+  ],
+  "source_blobs": {
+    "apps/api/transient_retention.py": "16564b52c885e2774843cefe1dbefb9dcb389daf",
+    "apps/web/src/feature-connections.test.tsx": "a52d650050e8a483e8c89d4b0225a2e1022ea5da",
+    "apps/web/src/feature-connections.tsx": "f196021174fdd5c3cf31f82d0df5d3230659d9c8",
+    "apps/web/src/transient-retention.test.tsx": "6696e6a93d2ac491ca2c32addb80a18fdd8ea09a",
+    "apps/web/src/transient-retention.tsx": "79b2613ce9b4947c3172f95e28f966e7c2efee81",
+    "tests/integration/test_retention_transparency.py": "e6e629de87074c8f9c43699890aff8e58a81c2a1"
+  },
+  "environment": {
+    "execution": "Isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "dependencies": "requirements.lock + .github/test-requirements.txt; npm ci locked apps/web/package-lock.json",
+    "fixtures": "Synthetic temporary SQLite databases and managed transient files only",
+    "user_pc_builds_tests": 0
+  },
+  "behavior": [
+    "The existing GET retention preview exposes cleanup_control with bounded source, state and policy_revision only.",
+    "Permission is derived from the original parsed server config and the same validated saved-policy snapshot used by the read-only preview.",
+    "Configured rules and age thresholds are separate from ALLOWED, DISABLED, REVIEW_REQUIRED, SERVER_DISABLED or legacy UNKNOWN permission.",
+    "Blocked scans have unavailable counts; partial scan counts remain partial observations. A recorded sweep does not establish current permission or schedule liveness.",
+    "Existing optional bounded deletion UI also requires explicit ALLOWED permission and a complete OK preview; no new deletion action or endpoint is added."
+  ],
+  "contract": {
+    "cleanup_control": {
+      "source": [
+        "PERSISTED_POLICY",
+        "SERVER_CONFIGURATION"
+      ],
+      "state": [
+        "ALLOWED",
+        "DISABLED",
+        "REVIEW_REQUIRED",
+        "SERVER_DISABLED"
+      ],
+      "policy_revision": "Nonnegative safe integer for persisted policy; null for server configuration; zero cannot establish ALLOWED/DISABLED persisted consent."
+    },
+    "legacy": "Missing new field yields unknown permission, not inferred enabled. Malformed fields fail closed."
+  },
+  "baseline": {
+    "sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "backend": "New regressions against original API: 14 failed assertions/subtests, 3 passed; exit 1. No cleanup_control field.",
+    "frontend": "New regressions against original frontend: 26 failed, 2 passed; exit 1. Rule existence incorrectly inferred permission and ignored blocked/partial scan limits."
+  },
+  "executed_checks": [
+    {
+      "sha": "e339f155d20e94f44e936df3602e261e9a9b351a",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/integration/test_retention_transparency.py",
+        "tests/integration/test_retention_policy.py",
+        "tests/integration/test_transient_retention.py",
+        "tests/integration/test_transient_retention_receipt_safety.py",
+        "tests/unit/test_retention_policy.py"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-09T13:32:40.769929+00:00",
+      "output": "................................                     [100%]\n32 passed, 20 subtests passed in 2.76s\n"
+    },
+    {
+      "sha": "e339f155d20e94f44e936df3602e261e9a9b351a",
+      "command": [
+        "apps/web/node_modules/.bin/vitest",
+        "run",
+        "--root",
+        "apps/web",
+        "src/feature-connections.test.tsx",
+        "src/transient-retention.test.tsx",
+        "--coverage.enabled=false",
+        "--maxWorkers=1"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-09T13:32:45.011042+00:00",
+      "output": "\n RUN  v5.0.3 /workspace/scratch/27c234d715d8/mjobs/apps/web\n\n\n Test Files  2 passed (2)\n      Tests  39 passed (39)\n   Start at  07:32:45\n   Duration  902ms (environment 37%, tests 30%, import 19%, transform 13%, worker 1%)\n\n"
+    },
+    {
+      "sha": "e339f155d20e94f44e936df3602e261e9a9b351a",
+      "command": [
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-09T13:32:46.224993+00:00",
+      "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> mjobs-web@0.1.0 build\n> npm run typecheck && vite build\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> mjobs-web@0.1.0 typecheck\n> tsc --noEmit\n\nvite v8.3.3 building client environment for production...\ntransforming...\n\u2713 142 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.41 kB \u2502 gzip:   0.29 kB\ndist/assets/index-BYoKyum1.css   12.09 kB \u2502 gzip:   3.35 kB\ndist/assets/index-3wH4cAP8.js   995.59 kB \u2502 gzip: 269.51 kB\n\n\u2713 built in 297ms\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+    },
+    {
+      "sha": "e339f155d20e94f44e936df3602e261e9a9b351a",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "tests/integration/test_retention_transparency.py"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-09T13:32:48.066387+00:00",
+      "output": "All checks passed!\n"
+    },
+    {
+      "sha": "e339f155d20e94f44e936df3602e261e9a9b351a",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-11-09T13:32:48.098953+00:00",
+      "output": ""
+    }
+  ],
+  "governance_checks": {
+    "catalogue": "PASS",
+    "progress_validate": "PASS",
+    "progress_dashboard": "CURRENT",
+    "reference_provenance": "PASS",
+    "commit_provenance": "PASS, six source files"
+  },
+  "independent_review": {
+    "schema_version": 1,
+    "reviewed_by": "independent ChatGPT-Web subagent /root/pr_scout",
+    "actual_model": "gpt-6-astra",
+    "recorded_at_utc": "2026-11-09T13:34:41.787Z",
+    "source_commit": "e339f155d20e94f44e936df3602e261e9a9b351a",
+    "compared_base": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "review_scope": "MJ-REF-042 retention cleanup-permission and preview disclosure; read-only API and mounted React consumer",
+    "conclusion": "NO_SCOPED_BLOCKERS",
+    "findings": [],
+    "checked_contracts": [
+      "Original server flags and the same validated policy snapshot drive cleanup_control.",
+      "Server ceilings precede missing/stale consent; valid disabled consent stays disabled; revision0 cannot be allowed.",
+      "Store-absent behavior reports server configuration and null policy revision without inventing persisted consent.",
+      "Configured rule visibility is separate from cleanup permission.",
+      "Blocked and partial previews remain visible as unavailable or observed counts; legacy server permission remains unknown.",
+      "Malformed refresh clears stale allowed permission; unsupported cleanup callbacks remain hidden.",
+      "New fields are bounded path-free enums/revision only; GET never authorizes or executes deletion.",
+      "Historical sweeps do not override current permission and are labeled recorded, not automatic."
+    ],
+    "checks": [
+      {
+        "command": ".venv/bin/python -B -m pytest -q -p no:cacheprovider tests/integration/test_retention_transparency.py tests/integration/test_retention_policy.py",
+        "chunk_id": "c18e38",
+        "wall_time_seconds": 2.009483559,
+        "exit_code": 0,
+        "original_token_count": 28,
+        "output": ".............                                                   [100%]\n13 passed, 9 subtests passed in 1.38s\n"
+      },
+      {
+        "command": "npm --prefix apps/web test -- --maxWorkers=1 src/feature-connections.test.tsx src/transient-retention.test.tsx -t 'mounted retention disclosure|blocked preview|partial observed|legacy|withholds an offered cleanup token'",
+        "chunk_id": "f090f9",
+        "wall_time_seconds": 1.736988449,
+        "exit_code": 0,
+        "original_token_count": 273,
+        "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> mjobs-web@0.1.0 test\n> vitest run --maxWorkers=1 src/feature-connections.test.tsx src/transient-retention.test.tsx -t mounted retention disclosure|blocked preview|partial observed|legacy|withholds an offered cleanup token\n\n\n RUN  v5.0.3 /workspace/scratch/27c234d715d8/mjobs/apps/web\n      Coverage enabled with v8\n\n\n Test Files  2 passed (2)\n      Tests  7 passed | 32 skipped (39)\n   Start at  07:33:18\n   Duration  1.23s (environment 38%, tests 24%, import 20%, transform 11%, worker 7%)\n\n    Isolate  2 workers spawned \u00b7 ~300ms startup each (spawn + environment, per file)\n             at least ~300ms faster with isolate: false \u2014 reuses workers across files instead of one per file\n\n % Coverage report from v8\n\n=============================== Coverage summary ===============================\nStatements   : 0% ( 0/34 )\nBranches     : 0% ( 0/49 )\nFunctions    : 0% ( 0/14 )\nLines        : 0% ( 0/30 )\n================================================================================\n",
+        "note": "7 passed; 32 intentionally filtered tests were not executed by this reviewer. Do not add overlapping reviewer counts to author counts."
+      },
+      {
+        "command": ".venv/bin/python -B - < independent source below",
+        "source": "import json, os, subprocess\nfrom pathlib import Path\nfrom unittest.mock import patch\nfrom fastapi import FastAPI\nfrom fastapi.testclient import TestClient\nfrom sqlalchemy import select\nfrom apps.api.main import create_app\nfrom apps.api.transient_retention import create_transient_retention_router\nfrom packages.persistence import models as m\nfrom services.privacy.retention_policy import read_retention_policy, save_retention_policy\nfrom services.privacy.transient_retention import run_transient_retention\nfrom tests.integration.test_retention_transparency import RetentionTransparencyTests\nfrom workers.transient_retention import CONFIG_ENV\n\ntarget = \"e339f155d20e94f44e936df3602e261e9a9b351a\"\npaths = [\"apps/api/transient_retention.py\", \"apps/web/src/feature-connections.tsx\", \"apps/web/src/transient-retention.tsx\", \"tests/integration/test_retention_transparency.py\", \"apps/web/src/feature-connections.test.tsx\", \"apps/web/src/transient-retention.test.tsx\"]\nassert not subprocess.check_output([\"git\",\"diff\",target,\"--\",*paths], text=True).strip()\nfixture = RetentionTransparencyTests(\"test_configured_rule_without_saved_consent_requires_review_and_writes_nothing\")\nfixture.setUp()\nresults = []\ntry:\n    output = fixture.root / \"output\"\n    output.mkdir()\n    app = create_app(fixture.store, \"http://127.0.0.1:1\", output, operation_mode=\"PERSONAL\")\n    with patch.dict(os.environ, {CONFIG_ENV: json.dumps(fixture.config)}):\n        with TestClient(app) as client:\n            with fixture.store.engine.connect() as connection:\n                audit_before = connection.execute(select(m.audit)).all()\n            data_before = fixture.artifact.read_bytes()\n            response = client.get(\"/retention/preview\")\n            assert response.status_code == 200\n            assert response.headers[\"cache-control\"] == \"no-store\"\n            assert response.json()[\"cleanup_control\"] == {\"source\":\"PERSISTED_POLICY\",\"state\":\"REVIEW_REQUIRED\",\"policy_revision\":0}\n            assert str(fixture.root) not in response.text and fixture.artifact.name not in response.text\n            with fixture.store.engine.connect() as connection:\n                assert connection.execute(select(m.audit)).all() == audit_before\n            assert fixture.artifact.read_bytes() == data_before and not fixture.receipt.exists()\n            results.append(\"mounted missing-consent GET: no-store, path-free, no audit/artifact/receipt mutation\")\n            with patch.dict(os.environ, {CONFIG_ENV:\"private-config-error-canary\"}):\n                error = client.get(\"/retention/preview\")\n                assert error.status_code == 503 and error.headers[\"cache-control\"] == \"no-store\"\n                assert \"private-config-error-canary\" not in error.text\n                assert \"cleanup_control\" not in error.json()\n                results.append(\"mounted malformed-config 503: no-store, sanitized, no permission\")\n\n    fixture._save(True)\n    changed = False\n    def concurrent_policy_change(root, rules, *, allowed_roots, dry_run):\n        global changed\n        assert dry_run is True\n        if not changed:\n            current = read_retention_policy(fixture.store, fixture.config)\n            save_retention_policy(fixture.store, fixture.config,\n                expected_revision=current[\"revision\"],\n                expected_config_fingerprint=current[\"config_fingerprint\"],\n                enabled=False, max_age_days_by_rule={\"screenshots\":30})\n            changed = True\n        return run_transient_retention(root, rules, allowed_roots=allowed_roots, dry_run=True)\n    concurrent_app = FastAPI()\n    concurrent_app.include_router(create_transient_retention_router(\n        store=fixture.store, environ=fixture.environment, engine=concurrent_policy_change))\n    with patch(\"apps.api.transient_retention.read_retention_policy\", wraps=read_retention_policy) as api_read:\n        with TestClient(concurrent_app) as client:\n            first = client.get(\"/retention/preview\")\n            second = client.get(\"/retention/preview\")\n            assert first.status_code == second.status_code == 200\n            assert first.json()[\"cleanup_control\"] == {\"source\":\"PERSISTED_POLICY\",\"state\":\"ALLOWED\",\"policy_revision\":1}\n            assert second.json()[\"cleanup_control\"] == {\"source\":\"PERSISTED_POLICY\",\"state\":\"DISABLED\",\"policy_revision\":2}\n            assert api_read.call_count == 2\n            assert first.json()[\"preview\"][\"removed_count\"] == second.json()[\"preview\"][\"removed_count\"] == 0\n            assert fixture.artifact.read_bytes() == data_before and not fixture.receipt.exists()\n            results.append(\"simulated concurrent policy writer: one policy read per GET, immutable rev1 snapshot then rev2 refresh; no deletion/receipt\")\n    assert not subprocess.check_output([\"git\",\"diff\",target,\"--\",*paths], text=True).strip()\n    print(json.dumps({\"tested_source_commit\":target,\"independent_probes\":\"PASS\",\"cases\":results}, indent=2))\nfinally:\n    fixture.tearDown()\n",
+        "chunk_id": "85cf1a",
+        "wall_time_seconds": 2.334190882,
+        "exit_code": 0,
+        "original_token_count": 105,
+        "output": "{\n  \"tested_source_commit\": \"e339f155d20e94f44e936df3602e261e9a9b351a\",\n  \"independent_probes\": \"PASS\",\n  \"cases\": [\n    \"mounted missing-consent GET: no-store, path-free, no audit/artifact/receipt mutation\",\n    \"mounted malformed-config 503: no-store, sanitized, no permission\",\n    \"simulated concurrent policy writer: one policy read per GET, immutable rev1 snapshot then rev2 refresh; no deletion/receipt\"\n  ]\n}\n"
+      },
+      {
+        "command": "Exact-commit byte comparison and git diff --check",
+        "chunk_id": "9d9030",
+        "wall_time_seconds": 3.6837e-05,
+        "exit_code": 0,
+        "original_token_count": 360,
+        "output": "{\n  \"observed_head\": \"e339f155d20e94f44e936df3602e261e9a9b351a\",\n  \"status_porcelain\": \"\",\n  \"source_matches_exact_commit\": true,\n  \"files\": [\n    {\n      \"path\": \"apps/api/transient_retention.py\",\n      \"sha256\": \"013b4215482b6bb21769312782afd003ee5f7a6f1d20d4d6b62012e374572d5a\",\n      \"git_blob\": \"16564b52c885e2774843cefe1dbefb9dcb389daf\"\n    },\n    {\n      \"path\": \"apps/web/src/feature-connections.test.tsx\",\n      \"sha256\": \"804a3dd70d5eeeed5a8540c5082a64576fdd54fb7297bb153c99b13df84e954e\",\n      \"git_blob\": \"a52d650050e8a483e8c89d4b0225a2e1022ea5da\"\n    },\n    {\n      \"path\": \"apps/web/src/feature-connections.tsx\",\n      \"sha256\": \"5742fdd3011a8300fe2ecf286db0a24d1a25daa31a562aa2894d114d05538bca\",\n      \"git_blob\": \"f196021174fdd5c3cf31f82d0df5d3230659d9c8\"\n    },\n    {\n      \"path\": \"apps/web/src/transient-retention.test.tsx\",\n      \"sha256\": \"5156ed80e43996196cea10ea4b23b77f66e206eede1bad066849ec6e11bf7143\",\n      \"git_blob\": \"6696e6a93d2ac491ca2c32addb80a18fdd8ea09a\"\n    },\n    {\n      \"path\": \"apps/web/src/transient-retention.tsx\",\n      \"sha256\": \"29e3a5d62688789c6ff10256e1cdc188a81f03a000f3ca9c150850779a4684fc\",\n      \"git_blob\": \"79b2613ce9b4947c3172f95e28f966e7c2efee81\"\n    },\n    {\n      \"path\": \"tests/integration/test_retention_transparency.py\",\n      \"sha256\": \"aaed1ca0c638e4dd659432f910c85bd28f2b7da93f33fbdf0150196a7c21dd50\",\n      \"git_blob\": \"e6e629de87074c8f9c43699890aff8e58a81c2a1\"\n    }\n  ]\n}\n"
+      }
+    ],
+    "limitations": [
+      "Static source review plus focused SQLite/API and jsdom execution; no real Chromium journey independently run.",
+      "No full reference-requirement PASS, full regression suite, production behavior, deployment or scheduled sweep liveness claimed.",
+      "No repository source edits, commits, GitHub writes, or user-PC commands by this reviewer."
+    ]
+  },
+  "criterion_ledger": [
+    {
+      "criterion": "Bounded stable data/API contract for the retention disclosure slice",
+      "result": "PASS",
+      "evidence": "cleanup_control projection + API and UI contract regressions"
+    },
+    {
+      "criterion": "Preserve privacy, local-first preview, consent and submission boundaries",
+      "result": "PASS for this slice",
+      "evidence": "Path-free response, unchanged files/audit/receipts on GET, corrupt and stale consent denied, no external application/network action introduced"
+    },
+    {
+      "criterion": "Automated tests and exact-revision evidence",
+      "result": "PASS for this slice",
+      "evidence": "32 backend tests +20 subtests,39 frontend tests,production web build; independent review on source commit"
+    },
+    {
+      "criterion": "Canonical reference matrix/completion-report update",
+      "result": "NOT_RUN",
+      "reason": "Reserved to authorized integration owner; worker does not change canonical acceptance"
+    },
+    {
+      "criterion": "Independent implementation and provenance",
+      "result": "PASS",
+      "evidence": "Original changes to existing MJobs contracts; no third-party code/assets copied"
+    }
+  ],
+  "acceptance": {
+    "new_full_MJ_REF_PASS": 0,
+    "canonical_MJ_REF_042": "NOT_RUN, unchanged",
+    "slice_proposal": "PARTIAL only, pending protected integration",
+    "MJ_REQ_171": "PARTIAL, unchanged",
+    "MJ_REQ_175": "historical PASS, not independently reaccepted",
+    "MJ_REQ_170": "historical PASS, no acceptance transition"
+  },
+  "separate_program_counts": {
+    "MJ_REF": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36,
+      "total": 59
+    },
+    "MJ_REQ": {
+      "PASS": 183,
+      "PARTIAL": 82,
+      "NOT_RUN": 101,
+      "total": 366
+    },
+    "basis": "Historical recorded main labels, not fresh whole-requirement verification"
+  },
+  "limitations": [
+    "Full REF042 data-flow/recipient inventory, broad PII protection and credentials/session isolation acceptance remain unproved by this slice.",
+    "Real Chromium user journey, full suite, PostgreSQL fixture, protected integration and production rollout were not run locally.",
+    "Configuration permission is a snapshot and does not certify current worker/scheduler liveness or completed deletion.",
+    "Historical last-sweep missing/invalid counters still normalize to zero; this pre-existing behavior is outside this slice.",
+    "Direct raw Ruff on the existing API module reports four pre-existing import/broad-exception findings; new test module is Ruff-clean. No privacy catch boundary was weakened."
+  ],
+  "rollback": "Revert this slice after normal review; additive response metadata and UI only, no migration or stored policy mutation."
+}

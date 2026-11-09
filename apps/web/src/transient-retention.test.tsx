@@ -21,6 +21,8 @@ const snapshot: RetentionSnapshot = {
     { category: 'rotated_logs', eligibleCount: 1, eligibleBytes: 4096 },
   ],
   lastSweep: { status: 'SUCCEEDED', completedAt: '2026-10-10T16:00:00Z', removedCount: 5, removedBytes: 7680 },
+  cleanupControl: { source: 'PERSISTED_POLICY', state: 'ALLOWED', policyRevision: 2 },
+  previewStatus: 'OK',
 };
 
 describe('transient retention panel', () => {
@@ -69,6 +71,39 @@ describe('transient retention panel', () => {
 
     expect(html).not.toContain('Delete listed temporary data');
     expect(html).toContain('Application history and submitted application records are never included.');
+  });
+
+  it('keeps legacy direct snapshots readable without treating old enabled flags as permission', () => {
+    const {cleanupControl: _control, previewStatus: _status, ...legacy} = snapshot;
+    const html = renderToStaticMarkup(<TransientRetention status="ready" snapshot={legacy}/>);
+    expect(html).toContain('Configured · 7 days');
+    expect(html).toContain('Cleanup permission: Unknown');
+    expect(html).toContain('Preview status: Unknown');
+    expect(html).not.toContain('Enabled ·');
+    expect(html).toContain('Last recorded sweep');
+    expect(html).not.toContain('Last automatic sweep');
+  });
+
+  it('withholds an offered cleanup token unless both permission and preview completion are known', () => {
+    const cleanup = {
+      supported: true, previewId: 'preview-42', maxAgeDays: 30, maxItems: 10,
+      maxBytes: 10240, eligibleCount: 7, eligibleBytes: 7680, onApply: vi.fn(),
+    };
+    const changes: Partial<RetentionSnapshot>[] = [
+      {cleanupControl: undefined},
+      {cleanupControl: {source:'PERSISTED_POLICY',state:'DISABLED',policyRevision:2}},
+      {cleanupControl: {source:'PERSISTED_POLICY',state:'REVIEW_REQUIRED',policyRevision:0}},
+      {cleanupControl: {source:'SERVER_CONFIGURATION',state:'SERVER_DISABLED',policyRevision:null}},
+      {previewStatus: undefined},
+      {previewStatus: 'BLOCKED'},
+      {previewStatus: 'PARTIAL'},
+      {preview: snapshot.preview.map((row,index) => index === 0 ? {...row,available:false} : row)},
+    ];
+    for (const change of changes) {
+      const html = renderToStaticMarkup(<TransientRetention status="ready" snapshot={{...snapshot,...change}} cleanup={cleanup}/>);
+      expect(html).not.toContain('Delete listed temporary data');
+    }
+    expect(cleanup.onApply).not.toHaveBeenCalled();
   });
 
   it('applies only the explicit bounded preview token supplied by the API', () => {
