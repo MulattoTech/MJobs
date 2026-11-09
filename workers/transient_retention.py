@@ -387,7 +387,9 @@ def run_with_config(
     except Exception:
         return _failure("SWEEP_FAILED", dry_run=effective_dry_run)
     summary = sanitize_summary(result)
-    if may_prune and summary["status"] == "OK":
+    # A completed sweep can remove files before a later deletion fails. Retain
+    # those counts and errors instead of leaving the previous receipt current.
+    if may_prune and summary["status"] in {"OK", "PARTIAL"}:
         if not _summary_destination_safe(path):
             return _receipt_failure(summary, "SUMMARY_PATH_UNSAFE")
         try:
