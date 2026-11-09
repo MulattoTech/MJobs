@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "agent": "ChatGPT-Web",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T17:01:50.075008+00:00",
+  "exact_tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "canonical_status": "PROPOSAL_ONLY; no canonical acceptance matrix or counter changed by this worker.",
+  "hosted_execution": {
+    "id": 42647745364,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364",
+    "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "event": "push",
+    "branch": "main",
+    "result": "SUCCESS",
+    "workflow": ".github/workflows/integration.yml",
+    "commands": [
+      "python -m tools.ci.run_shard --suite integration --index 0 --count 3",
+      "python -m tools.ci.run_shard --suite integration --index 1 --count 3",
+      "python -m tools.ci.run_shard --suite integration --index 2 --count 3"
+    ],
+    "environment": "Existing GitHub-hosted ubuntu-24.04 workflow with Python3.12, Chromium, SQLite and disposable PostgreSQL17/Redis7 services; fictional profiles and controlled local mock provider.",
+    "artifacts": [
+      {
+        "id": 13689925030,
+        "name": "integration-results-1",
+        "sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13689925030",
+        "digest_verified": true
+      },
+      {
+        "id": 13689895623,
+        "name": "integration-results-0",
+        "sha256": "fbfffb780ff0cc81d9d803ddf4fe6cdb5cfacd51a8c8a708d86935451fcd51f0",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13689895623",
+        "digest_verified": true
+      },
+      {
+        "id": 13688379510,
+        "name": "integration-results-2",
+        "sha256": "501d11ab535bf8d8e12990b0deec182680150b17c3b267962f01b4b13aa7f7b7",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13688379510",
+        "digest_verified": true
+      }
+    ],
+    "verification": "Downloaded archive digests matched primary GitHub metadata; selected exact JUnit nodes independently parsed and matched to this source revision."
+  },
+  "execution_attribution": "Existing exact-f3 hosted execution. This verification did not dispatch or rerun a test workload. Selected cases can overlap adjacent requirement ledgers and are not additive new executions.",
+  "scope": "The supported production queue-backed controlled application flow. No live external ATS submission, universal native-provider behavior, deployment or automatic browser takeover is claimed.",
+  "proposed_result": "PASS",
+  "no_runtime_changes": true,
+  "acceptance_authority": "The integration steward must independently approve and record any canonical transition.",
+  "requirement_id": "MJ-REQ-139",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/140",
+  "criterion_ledger": [
+    {
+      "criterion": "NAVIGATE",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 724,
+      "operation": "Starts a durable attempt phase, transitions to FILLING, opens the allowlisted route in Chromium, then completes the phase.",
+      "durable_assertion": "NAVIGATE:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "DETECT_FORM",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 731,
+      "operation": "Inspects the actual page for authentication or intervention/CAPTCHA markers before completing detection; blocked paths retain their safety stops.",
+      "durable_assertion": "DETECT_FORM:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "UPLOAD_RESUME",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 748,
+      "operation": "Uploads verified prepared resume and cover letter documents through actual browser file inputs before completing the phase.",
+      "durable_assertion": "UPLOAD_RESUME:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "FILL_CONTACT",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 766,
+      "operation": "Fills the name and email controls; an injected failure after the actual email fill separately proves durable FILL_CONTACT:FAILED.",
+      "durable_assertion": "FILL_CONTACT:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "FILL_LOCATION",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 773,
+      "operation": "Selects country and handles supported country-specific controls, stopping for review on unknown required fields, then completes the phase.",
+      "durable_assertion": "FILL_LOCATION:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "ANSWER_STANDARD",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 829,
+      "operation": "Fills or checks approved standard role/document responses before completing the phase.",
+      "durable_assertion": "ANSWER_STANDARD:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "ANSWER_CUSTOM",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 858,
+      "operation": "Fills the application reference and approved custom fixture answer and records consent before completing the phase.",
+      "durable_assertion": "ANSWER_CUSTOM:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "VALIDATE",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 865,
+      "operation": "Requires the actual review form validity check before marking validation complete and entering READY_TO_SUBMIT.",
+      "durable_assertion": "VALIDATE:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "SUBMIT",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 883,
+      "operation": "Runs submission authorization, clicks the local mock submission control once, records the mock submission, then completes the phase.",
+      "durable_assertion": "SUBMIT:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    },
+    {
+      "criterion": "VERIFY_CONFIRMATION",
+      "result": "PASS",
+      "writer_path": "services/applications/mock_adapter.py",
+      "start_step_line": 889,
+      "operation": "Waits for the local confirmation marker, validates the fixture receipt, transitions to CONFIRMED, and completes verification.",
+      "durable_assertion": "VERIFY_CONFIRMATION:COMPLETED",
+      "proof_node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "assertion_scope": "Exact ordered ten-item list read from application_attempts.steps after Store disposal and reopening, and again from the mounted application-detail API."
+    }
+  ],
+  "durability": {
+    "table": "application_attempts",
+    "column": "steps",
+    "writer": "apply_mock.start_step/finish_step use SQLAlchemy transactions and row locks around the persisted JSON list. STARTED is committed before each phase action, then replaced with COMPLETED/FAILED.",
+    "readback": "The core success case disposes the original engine, opens a new Store on the same SQLite file, reads the exact ordered ten-item attempt list, then reads the same list through TestClient(create_app(...)) application detail.",
+    "failure": "The interrupted-contact case performs the real Locator.fill and then raises; after reopening the Store it observes prior completed phases and FILL_CONTACT:FAILED, application-attempt state REVIEW_REQUIRED, and no mock submission receipt.",
+    "distinction": "applications.trace is the older coarse state-transition list. The complete ten-phase evidence is application_attempts.steps, not a claim that all ten labels appear in applications.trace.",
+    "optional_phase": "UPLOAD_SUPPORTING_DOCUMENTS is an additive phase when supporting attachments exist; the original ten remain present in order."
+  },
+  "privacy": {
+    "current_writer": "All start_step call arguments are fixed source literals; persisted attempt steps contain only a phase and status. The core success test excludes synthetic profile name, email, and answer text from the actual saved step list.",
+    "failure": "The interrupted-contact test excludes profile name, email, and the injected private sentinel from persisted steps. finish_attempt maps exception types to safe codes without recording exception messages.",
+    "defense_in_depth": "The mounted attempt-history endpoint allowlists phase/status pairs, returns 404 for a different profile, rejects POST with 405, hides hostile stored strings, and leaves audit row count unchanged in the selected executed supporting test.",
+    "scope_limit": "Privacy conclusions concern trace/history fields and safe error codes. They do not assert that the full application response contains no authorized profile/documents data; the older application-detail attempts serializer is not claimed to sanitize arbitrary legacy-corrupted rows."
+  },
+  "consumer_chain": [
+    {
+      "path": "apps/web/src/main.tsx",
+      "connection": "The mounted application details include MockRunControls and ApplicationAttemptHistory; legacy Attempts also renders selectedApp.attempts[].steps. UI execution is static source connection evidence here."
+    },
+    {
+      "path": "apps/web/src/mock-run-client.ts",
+      "connection": "Calls the profile/application scoped mock-run route."
+    },
+    {
+      "path": "apps/api/main.py",
+      "connection": "POST mock-run rejects non-FIXTURE mode and non-MOCK targets, checks profile ownership, and queues APPLY_MOCK. create_app mounts the read-only attempt-history router."
+    },
+    {
+      "path": "services/applications/run_requests.py",
+      "connection": "queue_mock_run asserts FIXTURE workspace, validates profile/application/request identity and input snapshot, and persists the APPLY_MOCK worker operation."
+    },
+    {
+      "path": "workers/tasks.py",
+      "connection": "execute_operation handles APPLY_MOCK, validates request/resume binding, and invokes the same imported services.applications.mock_adapter.apply_mock function reviewed and exercised by the core tests."
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "connection": "The real Playwright browser implementation owns phase persistence; only allowlisted fixture HTTP requests continue. It is reachable from supported mounted API/worker code, not an orphan helper."
+    },
+    {
+      "path": "apps/api/application_attempt_history.py",
+      "connection": "create_application_attempt_history_router is mounted by create_app and calls read_attempt_history with the profile/application scope."
+    }
+  ],
+  "selected_cases": [
+    {
+      "classname": "tests.integration.test_application_pipeline.ApplicationStepTraceTests",
+      "name": "test_interrupted_contact_phase_is_persisted_as_failed_without_private_values",
+      "node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_interrupted_contact_phase_is_persisted_as_failed_without_private_values",
+      "time_seconds": 2.398,
+      "result": "PASS",
+      "issues": [],
+      "artifact_id": 13689895623,
+      "archive_sha256": "fbfffb780ff0cc81d9d803ddf4fe6cdb5cfacd51a8c8a708d86935451fcd51f0",
+      "xml_file": "integration-0.xml",
+      "evidence_role": "core_requirement_browser_execution"
+    },
+    {
+      "classname": "tests.integration.test_application_pipeline.ApplicationStepTraceTests",
+      "name": "test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "node": "tests.integration.test_application_pipeline.ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen",
+      "time_seconds": 2.267,
+      "result": "PASS",
+      "issues": [],
+      "artifact_id": 13689895623,
+      "archive_sha256": "fbfffb780ff0cc81d9d803ddf4fe6cdb5cfacd51a8c8a708d86935451fcd51f0",
+      "xml_file": "integration-0.xml",
+      "evidence_role": "core_requirement_browser_execution"
+    },
+    {
+      "classname": "tests.integration.test_application_attempt_history.AttemptHistoryTests",
+      "name": "test_identity_snapshot_and_completion_survive_new_store",
+      "node": "tests.integration.test_application_attempt_history.AttemptHistoryTests::test_identity_snapshot_and_completion_survive_new_store",
+      "time_seconds": 1.73,
+      "result": "PASS",
+      "issues": [],
+      "artifact_id": 13689925030,
+      "archive_sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+      "xml_file": "integration-1.xml",
+      "evidence_role": "supporting_history_safety"
+    },
+    {
+      "classname": "tests.integration.test_application_attempt_history.AttemptHistoryTests",
+      "name": "test_history_endpoint_is_read_only_scoped_and_hides_untrusted_steps",
+      "node": "tests.integration.test_application_attempt_history.AttemptHistoryTests::test_history_endpoint_is_read_only_scoped_and_hides_untrusted_steps",
+      "time_seconds": 0.787,
+      "result": "PASS",
+      "issues": [],
+      "artifact_id": 13689925030,
+      "archive_sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+      "xml_file": "integration-1.xml",
+      "evidence_role": "supporting_history_safety"
+    },
+    {
+      "classname": "tests.integration.test_application_attempt_history.AttemptHistoryTests",
+      "name": "test_failures_are_sanitized_and_require_an_explicit_new_request",
+      "node": "tests.integration.test_application_attempt_history.AttemptHistoryTests::test_failures_are_sanitized_and_require_an_explicit_new_request",
+      "time_seconds": 0.624,
+      "result": "PASS",
+      "issues": [],
+      "artifact_id": 13689925030,
+      "archive_sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+      "xml_file": "integration-1.xml",
+      "evidence_role": "supporting_history_safety"
+    },
+    {
+      "classname": "tests.integration.test_application_attempt_history.AttemptHistoryTests",
+      "name": "test_first_completion_is_immutable",
+      "node": "tests.integration.test_application_attempt_history.AttemptHistoryTests::test_first_completion_is_immutable",
+      "time_seconds": 0.638,
+      "result": "PASS",
+      "issues": [],
+      "artifact_id": 13689925030,
+      "archive_sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+      "xml_file": "integration-1.xml",
+      "evidence_role": "supporting_history_safety"
+    }
+  ],
+  "selected_test_summary": {
+    "PASS": 6,
+    "FAIL": 0,
+    "ERROR": 0,
+    "SKIP": 0,
+    "duplicate_selected_nodes": 0,
+    "core_browser_cases": 2,
+    "supporting_history_cases": 4
+  },
+  "source_integrity": [
+    {
+      "path": "AGENTS.md",
+      "git_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "sha256": "4d0da3ede2e4e45c9284de78e6b4af32617690b503aae7a53c07ebdd6f3bce3e",
+      "bytes": 6943,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "docs/spec/areas/application_automation.md",
+      "git_blob": "e04d99826dd22dc350330d46f8004b682d66fa9f",
+      "sha256": "03a6a2e93e46aa29aebfda85ccd644f0e0ada7490a802727d0160947603e433e",
+      "bytes": 8983,
+      "matches_tested_revision": true
+    },
+    {
+      "path": ".github/workflows/integration.yml",
+      "git_blob": "285b101923ea94535e39baf6bc541d9bc578c2db",
+      "sha256": "4637dbbbd01c4ad1a435f223c2d56b19098d77862ff7543f637f04477ff62217",
+      "bytes": 5429,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "tools/ci/run_shard.py",
+      "git_blob": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+      "sha256": "a2fab4988b66a759d4832d5262b4c312051df3acfc22c2bbfae5e29b51cc0d8f",
+      "bytes": 1659,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "requirements.lock",
+      "git_blob": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+      "sha256": "0d2b46f83633cea05c38e2c09f7ca1be4c675423e3b93e30edd722d0b373ef1e",
+      "bytes": 104,
+      "matches_tested_revision": true
+    },
+    {
+      "path": ".github/test-requirements.txt",
+      "git_blob": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+      "sha256": "ad2cacc636d387bc4c9094eb949a33c0d28b4ebdca12039a46a25bf47436a1e8",
+      "bytes": 331,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "packages/persistence/models.py",
+      "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76",
+      "bytes": 44803,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215",
+      "bytes": 80862,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "git_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6",
+      "bytes": 50952,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "services/applications/attempt_history.py",
+      "git_blob": "43ffc9d15563913f3f27f5d8dd34df24a8f48795",
+      "sha256": "a0e185302c18c3b0af6c340d060ca9701ed42ecaa28ca0919e8d5385852d4aec",
+      "bytes": 21620,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "services/applications/run_requests.py",
+      "git_blob": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+      "sha256": "ab78660766ac9dafa3b99e493f5a4c70a7e51e327ee880b1879554f16bc132e3",
+      "bytes": 10775,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "services/applications/controlled_dry_run.py",
+      "git_blob": "c1f27b8da9e505355f77d838ed04659a87f704bd",
+      "sha256": "4f93d6526451b12ae770101c70bc8e56be131d1c499d8bb8812d5fc7729f7ba0",
+      "bytes": 27046,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "workers/tasks.py",
+      "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55",
+      "bytes": 43240,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "apps/api/main.py",
+      "git_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8",
+      "bytes": 161511,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "apps/api/application_attempt_history.py",
+      "git_blob": "940ee21ba9c351af44bb907c434dd595205e4eac",
+      "sha256": "6f8503bb6700cc4c2b5dbfd52c5abd9d16236ac49aac18dbc25bb6669c5775c2",
+      "bytes": 681,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "git_blob": "615b163e2197bfa2f7bffae6fe3650f42d7b9c96",
+      "sha256": "82417ccccdbc97b3e1bbe050b42747d6a52b5e24deffc77873ac184f991d63ca",
+      "bytes": 255990,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "apps/web/src/mock-run-client.ts",
+      "git_blob": "83a7e7b5f9f19f6136f3faf272814076f9aa29e5",
+      "sha256": "57c28852ad0f6932c10a962314a051857369ca12b571121cba4d3790f0c2122f",
+      "bytes": 6004,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "apps/web/src/mock-run-controls.tsx",
+      "git_blob": "8f4752ab9bed37b39c9c23bd5ed7f1bfe1d4d161",
+      "sha256": "e55b903da0a773febfb96b44e00bfdad74b6b9015c948e7cef0fc4ef30344fa4",
+      "bytes": 9677,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "apps/web/src/application-attempt-history.tsx",
+      "git_blob": "8905ab98ad07de7c25038090178a0626ec444139",
+      "sha256": "189a0d48b0ae4aa7269b0b458e9d4f252e3bc178fb26caf649645e8828f0ed79",
+      "bytes": 5569,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "fixtures/mock_server.py",
+      "git_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+      "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7",
+      "bytes": 19697,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "tests/integration/test_application_pipeline.py",
+      "git_blob": "85373ba6ddb67481ad9522310e969fc251b45fae",
+      "sha256": "6a58c39c96db6cc7cfb542137d68f9228afad063a06437b34980ba2023584516",
+      "bytes": 23174,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "tests/integration/test_application_attempt_history.py",
+      "git_blob": "55b141cf99f020c5eb8f0b10a135dca2f0274532",
+      "sha256": "944f37f432995fef846a2fa03770e262c16c1c5c435c013c55c022b1fa665961",
+      "bytes": 10656,
+      "matches_tested_revision": true
+    },
+    {
+      "path": "tests/browser/test_application_pipeline.py",
+      "git_blob": "442f7be9ced786e4aa67b8c48d7882720ca86d99",
+      "sha256": "c337a2736f19dbae64d15171dd7633a3ce074a3d174d7a9f096ed1bb951b13ff",
+      "bytes": 39621,
+      "matches_tested_revision": true
+    }
+  ],
+  "safety_gates": {
+    "preserved_by_read_only_review": [
+      "FIXTURE-only execution API",
+      "MOCK target restriction",
+      "configured origin allowlist and blocked external browser requests",
+      "prepared-document integrity checks",
+      "approval/policy gate before submit",
+      "dry-run stops before SUBMIT and VERIFY_CONFIRMATION",
+      "authentication and CAPTCHA review stops",
+      "stable request identity and single attempt ownership",
+      "read-only profile-scoped history"
+    ],
+    "native_adapter_boundary": "services/applications/controlled_dry_run.py is a separate review-only native-provider flow that does not submit externally. Its debug phase variable is not the durable all-ten attempt path and is not counted as proof of universal native-adapter trace parity.",
+    "coverage_limits": [
+      "The contact interruption is one exercised failure boundary, not a test of every possible phase failure or abrupt process crash.",
+      "The success path proves all ten ordered phases and durable API readback for the supported mock flow.",
+      "Existing external-submission restrictions remain in effect; this review authorizes no external application submission."
+    ]
+  },
+  "recommendation": {
+    "original_phase_criteria": "All ten original phase labels are durably recorded and exercised in order by the supported controlled MOCK/FIXTURE application execution flow. Each criterion has executed hosted evidence, not code-presence alone.",
+    "recommended_acceptance": "Eligible for original MJ-REQ-139 acceptance steward review with the supported-flow boundary explicit.",
+    "canonical_state_changed": false,
+    "runtime_or_test_edits": false,
+    "remaining_literal_phase_criterion_gaps": [],
+    "external_ats_claim": "No universal external ATS/native-adapter submission or live-employer confirmation claim is made."
+  },
+  "private_source_ledger": {
+    "filename": "step139-source-verification.json",
+    "sha256": "37689f64f6cb35819aaa761ad264d00d63238bfa9134cf85cd9e526af65f30c7"
+  },
+  "independent_review": {
+    "file": "step139-independent-review.json",
+    "sha256": "851744acfe970119e9b591292fecbe7739fac41ef1f41b7bf5c6f25113eaae79",
+    "reviewer": "/root/next_original_acceptance",
+    "verdict": "PASS_NO_PUBLICATION_BLOCKER"
+  },
+  "limits": [
+    "Selected execution uses SQLite and a controlled mock ATS.",
+    "The broader integration run includes unrelated skipped cases; only the six selected nodes are claimed non-skipped.",
+    "All ten phase labels are asserted as an exact durable ordered list after Store reopen and through mounted API readback; wider external/native adapter coverage is not claimed.",
+    "SPA UI connections were checked from source; these selected cases execute the controlled ATS browser and mounted API, not a fresh SPA journey.",
+    "The exercised interrupted-phase boundary is contact filling; exhaustive failure injection for every phase is not claimed."
+  ]
+}

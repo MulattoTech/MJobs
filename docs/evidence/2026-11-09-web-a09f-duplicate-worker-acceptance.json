@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131754Z-a09f7fd22182",
+  "agent": "ChatGPT-Web",
+  "model": "gpt-6-astra",
+  "recorded_at_utc": "2026-11-09T17:01:50.075008+00:00",
+  "exact_tested_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+  "canonical_status": "PROPOSAL_ONLY; no canonical acceptance matrix or counter changed by this worker.",
+  "hosted_execution": {
+    "id": 42647745364,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364",
+    "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "event": "push",
+    "branch": "main",
+    "result": "SUCCESS",
+    "workflow": ".github/workflows/integration.yml",
+    "commands": [
+      "python -m tools.ci.run_shard --suite integration --index 0 --count 3",
+      "python -m tools.ci.run_shard --suite integration --index 1 --count 3",
+      "python -m tools.ci.run_shard --suite integration --index 2 --count 3"
+    ],
+    "environment": "Existing GitHub-hosted ubuntu-24.04 workflow with Python3.12, Chromium, SQLite and disposable PostgreSQL17/Redis7 services; fictional profiles and controlled local mock provider.",
+    "artifacts": [
+      {
+        "id": 13689925030,
+        "name": "integration-results-1",
+        "sha256": "644f2fa62a7c0ae980752c008c7cd13d1f162d722be8d014dc16d4eb2299e61a",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13689925030",
+        "digest_verified": true
+      },
+      {
+        "id": 13689895623,
+        "name": "integration-results-0",
+        "sha256": "fbfffb780ff0cc81d9d803ddf4fe6cdb5cfacd51a8c8a708d86935451fcd51f0",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13689895623",
+        "digest_verified": true
+      },
+      {
+        "id": 13688379510,
+        "name": "integration-results-2",
+        "sha256": "501d11ab535bf8d8e12990b0deec182680150b17c3b267962f01b4b13aa7f7b7",
+        "head_sha": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+        "run_id": 42647745364,
+        "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/42647745364/artifacts/13688379510",
+        "digest_verified": true
+      }
+    ],
+    "verification": "Downloaded archive digests matched primary GitHub metadata; selected exact JUnit nodes independently parsed and matched to this source revision."
+  },
+  "execution_attribution": "Existing exact-f3 hosted execution. This verification did not dispatch or rerun a test workload. Selected cases can overlap adjacent requirement ledgers and are not additive new executions.",
+  "scope": "The supported production queue-backed controlled application flow. No live external ATS submission, universal native-provider behavior, deployment or automatic browser takeover is claimed.",
+  "proposed_result": "PASS",
+  "no_runtime_changes": true,
+  "acceptance_authority": "The integration steward must independently approve and record any canonical transition.",
+  "requirement_id": "MJ-REQ-145",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/146",
+  "criterion_ledger": [
+    {
+      "criterion": "Prevent Worker A and Worker B from submitting the same requisition concurrently.",
+      "criterion_id": "MJ-REQ-145-C1",
+      "executed_nodes": [
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_two_real_workers_submit_once_and_reviewed_retry",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_public_submit_request_runs_real_worker_against_local_mock_fixture",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_terminal_request_replay_never_reopens_operation",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_ambiguous_and_confirmed_applications_do_not_admit_new_browser_work"
+      ],
+      "limits": [
+        "Submission target is the controlled local mock ATS with fictional profiles. This is actual production worker/adapter execution against a fixture provider, not proof of live external ATS submission."
+      ],
+      "observed_contract": [
+        "Two distinct real Python worker subprocesses race at the real start_attempt boundary with automation concurrency explicitly set to 2. The synchronization wrapper calls the original admission implementation.",
+        "The actual worker and Chromium adapter produce one COMPLETED operation and one BLOCKED operation with APPLICATION_ROUTE_IN_PROGRESS, exactly one persisted browser attempt, one mock provider receipt, and one HTTP submit.",
+        "Replaying the blocked operation does not submit. Only an explicitly reviewed new intent for the other synthetic profile may later produce a second receipt. A confirmed application does not admit a new submission.",
+        "The same real-worker submit-once contract passed on SQLite and an isolated disposable PostgreSQL schema."
+      ],
+      "production_paths": [
+        "workers/tasks.py",
+        "services/applications/mock_adapter.py",
+        "services/applications/attempt_history.py",
+        "services/applications/run_requests.py"
+      ],
+      "status": "PASS"
+    },
+    {
+      "criterion": "Use database locks to serialize admission and preserve the physical owner.",
+      "criterion_id": "MJ-REQ-145-C2",
+      "executed_nodes": [
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_independent_connections_race_and_restart_cannot_steal_route",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_parallel_reservation_and_restart",
+        "tests.integration.test_fleet_t09_reciprocal_fence::test_running_physical_attempt_blocks_manual_admission_after_reopen",
+        "tests.integration.test_fleet_t09_reciprocal_fence_postgres::test_running_physical_attempt_blocks_manual_after_postgres_reopen",
+        "tests.integration.test_fleet_t09_reciprocal_fence::test_concurrent_physical_and_manual_admission_has_exactly_one_owner[simultaneous]",
+        "tests.integration.test_fleet_t09_reciprocal_fence::test_concurrent_physical_and_manual_admission_has_exactly_one_owner[physical_locked]",
+        "tests.integration.test_fleet_t09_reciprocal_fence::test_concurrent_physical_and_manual_admission_has_exactly_one_owner[manual_locked]",
+        "tests.integration.test_fleet_t09_reciprocal_fence_postgres::test_postgres_concurrent_admission_has_one_owner[simultaneous]",
+        "tests.integration.test_fleet_t09_reciprocal_fence_postgres::test_postgres_concurrent_admission_has_one_owner[physical_locked]",
+        "tests.integration.test_fleet_t09_reciprocal_fence_postgres::test_postgres_concurrent_admission_has_one_owner[manual_locked]"
+      ],
+      "limits": [
+        "PostgreSQL tests create isolated schemas from current SQLAlchemy metadata. This verifies real PostgreSQL lock behavior, not every historical migration upgrade path."
+      ],
+      "observed_contract": [
+        "SQLite uses BEGIN IMMEDIATE; PostgreSQL uses a shared application_automation advisory transaction lock plus application and route row locks.",
+        "Independent connections racing for the same route admit exactly one owner. Store reopen and mutable application route changes cannot steal the frozen route.",
+        "Physical-attempt versus manual-session races admit one owner in simultaneous, physical-lock-first and manual-lock-first schedules on both backends. Independent applications remain available."
+      ],
+      "production_paths": [
+        "workers/operations.py::_lock",
+        "services/applications/attempt_history.py::start_attempt",
+        "services/applications/run_requests.py::queue_mock_run"
+      ],
+      "status": "PASS"
+    },
+    {
+      "criterion": "Use database unique constraints for durable application, route and task identities.",
+      "criterion_id": "MJ-REQ-145-C3",
+      "executed_nodes": [
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_concurrent_double_click_is_one_atomic_admission",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_duplicate_user_request_and_database_reopen_keep_one_operation",
+        "tests.integration.test_spine.SpineTests::test_concurrent_preparation_preserves_one_application_and_document_hashes",
+        "tests.integration.test_spine.SpineTests::test_preparation_provenance_and_idempotency_survive_restart",
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_two_real_workers_submit_once_and_reviewed_retry"
+      ],
+      "limits": [
+        "The reviewed evidence combines exact schema inspection with executed concurrent admission/preparation outcomes. No fresh direct-SQL duplicate-insert or constraint-removal mutation test was run."
+      ],
+      "observed_contract": [
+        "The exact tested model blob declares database primary keys and the listed unique constraints. SQLite setup migrates the real Store; PostgreSQL setup creates that actual metadata in a disposable schema.",
+        "Concurrent duplicate user requests preserve one durable operation, and concurrent preparation preserves one application and the same document hashes. Reopening preserves identities and provenance.",
+        "The submit race preserves one physical attempt and receipt on both databases."
+      ],
+      "production_paths": [
+        "packages/persistence/models.py::table",
+        "packages/persistence/models.py::routes",
+        "packages/persistence/models.py::applications",
+        "packages/persistence/models.py::application_route_choices",
+        "packages/persistence/models.py::operations",
+        "packages/persistence/models.py::attempts",
+        "services/documents/generate.py"
+      ],
+      "schema_contract": {
+        "all_table_ids": "PRIMARY KEY id, including worker operations and application attempts",
+        "application_route_choices": [
+          "application_id",
+          "underlying_key"
+        ],
+        "application_routes": [
+          "company_id",
+          "provider",
+          "tenant",
+          "requisition"
+        ],
+        "applications": [
+          "job_id",
+          "profile_id"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "criterion": "Use task idempotency keys bound to immutable input.",
+      "criterion_id": "MJ-REQ-145-C4",
+      "executed_nodes": [
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_duplicate_user_request_and_database_reopen_keep_one_operation",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_concurrent_double_click_is_one_atomic_admission",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_request_id_cannot_switch_from_review_to_submission",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_terminal_request_replay_never_reopens_operation",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_request_identity_is_strict_bounded_and_not_normalized",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_queued_input_change_is_rejected_before_execution",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_route_rewrite_cannot_silently_change_a_reviewed_run",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_api_admission_lookup_and_profile_scope_are_durable",
+        "tests.integration.test_fleet_t09_attempt_admission_api.FleetT09AttemptAdmissionApiTests::test_concurrent_public_replay_and_interrupted_attempt_readback_after_reopen",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_cancellation_after_submit_reservation_requires_receipt_reconciliation",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_cancelled_queue_replay_remains_cancelled_and_never_calls_adapter",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_changed_inputs_block_worker_before_adapter_or_network",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_dead_letter_before_browser_admission_retries_same_operation_identity",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_dead_letter_retry_cannot_compete_with_a_new_reviewed_intent",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_expired_lease_cannot_steal_unfinished_browser_reservation",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_expired_operation_without_browser_admission_can_retry_with_same_key",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_failed_browser_request_requires_new_reviewed_intent_not_dead_letter_replay",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_frozen_snapshot_is_checked_again_at_physical_admission",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_tampered_queue_contract_fails_closed",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_unknown_contract_version_cannot_fall_back_to_legacy_execution"
+      ],
+      "observed_contract": [
+        "A validated profile/application/caller request ID derives a deterministic durable operation ID; the operation identity derives a stable physical attempt ID.",
+        "The frozen fingerprint covers route ID/provider/tenant/requisition/URL hash, profile and document revisions, document hashes, supporting-document selection and submit mode.",
+        "Duplicate and lost-response readback return the same saved operation after reopen. Mode changes, route/input changes, unknown contract versions and tampered snapshots fail closed.",
+        "Lease expiry or dead-letter retry before physical admission may reuse the same intent, but unfinished physical attempts, cancelled intents, failed attempts requiring review, and competing new intent cannot replay into a duplicate browser action."
+      ],
+      "production_paths": [
+        "services/applications/run_requests.py::_identifier",
+        "services/applications/run_requests.py::queue_mock_run",
+        "services/applications/run_requests.py::read_mock_run",
+        "services/applications/attempt_history.py::attempt_id_for_request",
+        "services/applications/attempt_history.py::input_snapshot",
+        "workers/tasks.py",
+        "apps/api/main.py"
+      ],
+      "status": "PASS"
+    },
+    {
+      "criterion": "Use application-route identity for reservation and duplicate suppression.",
+      "criterion_id": "MJ-REQ-145-C5",
+      "executed_nodes": [
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_completed_replay_does_not_reacquire_route_held_by_another_application",
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_independent_connections_race_and_restart_cannot_steal_route",
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_other_routes_remain_available_and_unknown_legacy_owner_fails_closed",
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_receipt_recovery_releases_only_proven_fenced_confirmed_owner",
+        "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_completed_replay_while_other_application_owns_route",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_independent_routes_and_unknown_legacy_owner",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_parallel_reservation_and_restart",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_receipt_recovery_and_ambiguous_owner",
+        "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_two_real_workers_submit_once_and_reviewed_retry",
+        "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_route_rewrite_cannot_silently_change_a_reviewed_run",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_frozen_snapshot_is_checked_again_at_physical_admission",
+        "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_expired_lease_cannot_steal_unfinished_browser_reservation"
+      ],
+      "limits": [
+        "Provider-wide canonicalization variants are the separately owned MJ-REQ-146 lane. This proof covers ownership by the already established route identity; it does not claim a new universal canonicalization implementation."
+      ],
+      "observed_contract": [
+        "The route schema binds company/provider/tenant/requisition. The immutable STARTED receipt records the reviewed route identity and fingerprint. Admission checks that durable receipt rather than trusting today's mutable application pointer.",
+        "Different application rows sharing one route compete for a single physical owner; different routes remain available. Reopen, changed application route pointers and completed-intent replay cannot reacquire or free another owner's route.",
+        "Unknown legacy ownership fails closed. A submit-then-crash stays SUBMISSION_UNCONFIRMED and blocks the route until read-only receipt reconciliation proves the old worker was fenced; a bare CONFIRMED label or missing recovery proof is insufficient."
+      ],
+      "production_paths": [
+        "packages/persistence/models.py::routes",
+        "services/applications/attempt_history.py::input_snapshot",
+        "services/applications/attempt_history.py::_assert_route_available",
+        "services/applications/attempt_history.py::_confirmed_recovery_released",
+        "services/applications/confirmation_recovery.py"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "selected_test_summary": {
+    "ERROR": 0,
+    "FAIL": 0,
+    "PASS": 56,
+    "SKIP": 0,
+    "additional_spine_cases": 2,
+    "duplicate_selected_nodes": 0,
+    "existing_hosted_execution": true,
+    "fresh_local_test_execution": false,
+    "requested_module_cases": 54,
+    "requested_modules": 8,
+    "total_selected_cases": 56
+  },
+  "limits": {
+    "automatic_takeover": "Not implemented or claimed. Fail-closed ownership and explicit read-only reconciliation are preserved; automatic takeover is not a criterion in the authoritative original MJ-REQ-145 text.",
+    "backend_only_subset_note": "Admission/replay/fencing checks avoid Chromium but use loopback TCP fixture seeding; the full test_application_run_requests module includes a browser-based public-submit test.",
+    "decisive_existing_test_requirements": [
+      "Disposable loopback Uvicorn HTTP fixture",
+      "Two real Python worker subprocesses",
+      "Playwright Chromium persistent context",
+      "SQLite; separate PostgreSQL variant requires disposable MJOBS_TEST_POSTGRES_URL"
+    ],
+    "external_applications": "NONE; synthetic local fixture receipts only.",
+    "fresh_tests_this_verification": "NOT_RUN_BY_INSTRUCTION; reuse existing exact-head hosted executions.",
+    "hosted_backend_results": {
+      "PostgreSQL": "PASS, including actual two-worker Chromium submit-once test; no selected PostgreSQL node skipped",
+      "SQLite": "PASS, including actual two-worker Chromium submit-once test"
+    },
+    "hosted_services": "Existing workflow provides PostgreSQL 17, Redis 7, Chromium and disposable recovery databases. The decisive route test does not depend on user-workstation compute.",
+    "live_external_ATS_submission": "NOT_RUN and not enabled; all receipts and HTTP submissions in the executed cases are from a local synthetic mock ATS.",
+    "local_browser": "NOT_RUN; cloud browser restrictions were not bypassed.",
+    "local_postgresql": "NOT_RUN; no local disposable database was provisioned.",
+    "postgres_migration_scope": "Real PostgreSQL concurrency is proven in isolated current-metadata schemas. Historical schema migration compatibility is not claimed by these nodes.",
+    "related_requirement_boundary": "No new MJ-REQ-146 route-canonicalization claim, edit or acceptance decision.",
+    "workstation_compute": "NOT_RUN"
+  },
+  "recommendation": {
+    "canonical_owner": "integration steward 0d9f; root owns publication coordination",
+    "full_original_criterion_result": "PASS",
+    "new_tests_needed_for_original_criteria": false,
+    "rationale": "Every explicit original issue criterion is mapped to tested production admission/worker behavior. Actual SQLite and PostgreSQL worker races demonstrate the prevention outcome; immutable keys, database locks/constraints and frozen route ownership are connected to that execution. The earlier unconfigured PostgreSQL proof gap is resolved by an existing exact-f3 hosted execution.",
+    "recommended_canonical_action": "Canonical steward may promote original MJ-REQ-145 from PARTIAL to PASS using this exact-head executed proof and all five criterion rows; this reviewer has not changed canonical status or counters.",
+    "scope": "Acceptance of application idempotency for the supported queue-backed controlled submission path and durable ownership mechanism. It does not certify external ATS provider coverage, deployment readiness, universal provider route canonicalization, or automatic browser takeover.",
+    "unproven_extension_rule": "If a future acceptance interpretation adds live external ATS submission or provider-wide canonicalization to MJ-REQ-145 itself, retain that added scope as NOT_RUN/PARTIAL rather than citing this fixture proof as live coverage."
+  },
+  "source_integrity": [
+    {
+      "path": ".github/test-requirements.txt",
+      "git_blob": "c8ff3572358b98e7868e7cbab801c6cd614c07b5",
+      "sha256": "ad2cacc636d387bc4c9094eb949a33c0d28b4ebdca12039a46a25bf47436a1e8"
+    },
+    {
+      "path": ".github/workflows/integration.yml",
+      "git_blob": "285b101923ea94535e39baf6bc541d9bc578c2db",
+      "sha256": "4637dbbbd01c4ad1a435f223c2d56b19098d77862ff7543f637f04477ff62217"
+    },
+    {
+      "path": "AGENTS.md",
+      "git_blob": "debc0742990216276a6d23070d7b70614707ddb4",
+      "sha256": "4d0da3ede2e4e45c9284de78e6b4af32617690b503aae7a53c07ebdd6f3bce3e"
+    },
+    {
+      "path": "apps/api/main.py",
+      "git_blob": "c172440c68bca5884f1dfd183315a429771f617d",
+      "sha256": "22dd7a96210b8cd8a4fe34977a87ff3886ce9abe0635024d139b39a475b7abe8"
+    },
+    {
+      "path": "docs/AI_AGENT_CONTINUITY.md",
+      "git_blob": "3ed7c83436026d6cecb4a1d1feaf4dcc5c3f0371",
+      "sha256": "7850113a1a434e09207a9c6d96e79ebbdb6e471a835e9939435e0dc4df5a0423"
+    },
+    {
+      "path": "docs/spec/areas/application_automation.md",
+      "git_blob": "e04d99826dd22dc350330d46f8004b682d66fa9f",
+      "sha256": "03a6a2e93e46aa29aebfda85ccd644f0e0ada7490a802727d0160947603e433e"
+    },
+    {
+      "path": "docs/spec/source/MJobs_Startup_Prompt.original.md",
+      "git_blob": "b3ac43fc254f30427bdd71ecc406a1146303ee66",
+      "sha256": "1cf94181ae4b8e599063ada219759cb39b766f9d1bb7d860b99f4bb58adc0998"
+    },
+    {
+      "path": "fixtures/mock_server.py",
+      "git_blob": "08c4bb7dda458bcf1cd851d1d64092045f084a50",
+      "sha256": "6f0f05bbbfb0fcfd8a4dbcd5104714de55897e2147f50843d4c5ec5ec55226f7"
+    },
+    {
+      "path": "packages/persistence/models.py",
+      "git_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+      "sha256": "20560cf706229185ea01347e62846018d6247fa01bb6d4966c50b4a7c5504f76"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "git_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "sha256": "3eea1fa1cacb703e08644562d09c68ab29b6b4336c2c6c21be3a48dc2b083215"
+    },
+    {
+      "path": "planning/CAPABILITY_MATRIX.json",
+      "git_blob": "715ebb1660a64611de380467cd1d85cc3750e331",
+      "sha256": "cbc3750a59cda7ce19b3e495ddbb6b84e224715e1c1a2413263f8072f2f6fd55"
+    },
+    {
+      "path": "planning/REQUIREMENT_INDEX.json",
+      "git_blob": "3f2e3cddde70c2486e92cc9f2f20620a3ec5b1db",
+      "sha256": "f31b37521a50ba70a9929aa8d235314b9b4433485e55edd2a2bca87b7bb349f4"
+    },
+    {
+      "path": "requirements.lock",
+      "git_blob": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+      "sha256": "0d2b46f83633cea05c38e2c09f7ca1be4c675423e3b93e30edd722d0b373ef1e"
+    },
+    {
+      "path": "services/applications/attempt_history.py",
+      "git_blob": "43ffc9d15563913f3f27f5d8dd34df24a8f48795",
+      "sha256": "a0e185302c18c3b0af6c340d060ca9701ed42ecaa28ca0919e8d5385852d4aec"
+    },
+    {
+      "path": "services/applications/confirmation_recovery.py",
+      "git_blob": "364d2b1d92d5fad0b0fe917dcf2843aec3fce08d",
+      "sha256": "d59ce7d828492a09ac803c20543cc16a3f11f9030c4d90d9e1116c61ba562b79"
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "git_blob": "bb8e33210da0d873dd2c9488f4f82996476265b4",
+      "sha256": "e3b720efdb4c6a9e9a6f101157e22781e3e458afc3d195dfdb57a590df0b2aa6"
+    },
+    {
+      "path": "services/applications/run_requests.py",
+      "git_blob": "0ec750d07d7e82d25803f132fd9ee9245bc3a67b",
+      "sha256": "ab78660766ac9dafa3b99e493f5a4c70a7e51e327ee880b1879554f16bc132e3"
+    },
+    {
+      "path": "services/dedupe/routes.py",
+      "git_blob": "a398e98ef13e8e5568796cc2e769fa72d2778528",
+      "sha256": "17fbc795cf12eb044c1e045e53db5ce979a9f4e7b7857fdca7d46ec71e121ada"
+    },
+    {
+      "path": "services/documents/generate.py",
+      "git_blob": "f2245628b5574b1bf29621ca84da07212e27f503",
+      "sha256": "a85bd87a27f18ee4c28379d4d3d2013d8ee03c9199285f58603e5cf4b8bce03a"
+    },
+    {
+      "path": "tests/integration/test_application_run_requests.py",
+      "git_blob": "a3dc65bc75557afeddee02aebbd52c6b2221c236",
+      "sha256": "a04ae41498c3a9a0a637d7058f485e92005b6d14ec49e3305efe1f80cdc752ef"
+    },
+    {
+      "path": "tests/integration/test_fleet_t09_attempt_admission_api.py",
+      "git_blob": "40648fd768f6ad42867dea6d78e2f5f797dada3a",
+      "sha256": "57fa31b78cbd3f4ac38cb1a952506e6080aa53effde775be92e8a82ffc3b90d5"
+    },
+    {
+      "path": "tests/integration/test_fleet_t09_operation_fence.py",
+      "git_blob": "4413ff670ea562e829d7784bb56c7f8936271d34",
+      "sha256": "7d70d629e383ffb00f07aa2b4df2a952268daafade7ff753bb201d5e3983e76a"
+    },
+    {
+      "path": "tests/integration/test_fleet_t09_reciprocal_fence.py",
+      "git_blob": "2c8484b13d79c4ec75a5b21ca0211a1098b27d30",
+      "sha256": "15a30673b35a306ef672b4560e2f52dde1d2a5c3c456cd14ea3bb3cc33f31791"
+    },
+    {
+      "path": "tests/integration/test_fleet_t09_reciprocal_fence_postgres.py",
+      "git_blob": "de16f89de7101bb289a2bd8c447554bfaaa164e7",
+      "sha256": "e74b4146f3f1b5acdd97d95238303b963c62711ccbd88bcec36037f6e5f93a7e"
+    },
+    {
+      "path": "tests/integration/test_route_attempt_concurrency.py",
+      "git_blob": "5e67a0d85939947cd398baf75829d40ab5a75dbb",
+      "sha256": "f9b6dbbbf4ba9decfaffb844eec1ab133963cde74d2af8c436d29b097b16c107"
+    },
+    {
+      "path": "tests/integration/test_route_attempt_concurrency_postgres.py",
+      "git_blob": "faa115e00b6692a81c7a134e1ac18eb4d0454fc2",
+      "sha256": "e4dc08f856d0a6f5ed33271cf9622891a80f7a6c8dc2c7635ded5d65305b659d"
+    },
+    {
+      "path": "tests/integration/test_spine.py",
+      "git_blob": "555f5f26ba6f79ee38306e287ae3778ab825c405",
+      "sha256": "4c7f018237cb976c3bcf0640db30d20dec15744a598d2c6a2602ed3ae0ab7184"
+    },
+    {
+      "path": "tests/integration/test_worker_attempt_identity.py",
+      "git_blob": "1542aae1fc571b30c1d13eeb7db1ed277486fbb4",
+      "sha256": "f5cdf50e898acc1179f2417a756b2f9f80b26b4f843fa65bcf410afb2ca59918"
+    },
+    {
+      "path": "tools/ci/run_shard.py",
+      "git_blob": "1bc6c3699866a9b48bfce24d2308a2fdd87fd5d1",
+      "sha256": "a2fab4988b66a759d4832d5262b4c312051df3acfc22c2bbfae5e29b51cc0d8f"
+    },
+    {
+      "path": "workers/operations.py",
+      "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+      "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+    },
+    {
+      "path": "workers/tasks.py",
+      "git_blob": "347951cd467220a9c228c43a41b644c9212c8326",
+      "sha256": "4c4bc97cf702185a5106551088bfb0da16270e8da5dbf2490df653b5c8083b55"
+    }
+  ],
+  "private_source_ledger": {
+    "filename": "concurrency145-verification.json",
+    "sha256": "b9283443b6ebe30cacfb34f489d58d35f2b673e31c7ba7111812ee5685a8773a"
+  },
+  "independent_review": {
+    "file": "concurrency145-independent-review.json",
+    "sha256": "09bf9fe1e2a115608f338392bfc9f382e9dfecd8488c80ae6e621ba29683a9e1",
+    "reviewer": "/root/publication_scout",
+    "verdict": "NO_SCOPED_BLOCKERS"
+  },
+  "safety_preservation": {
+    "executed_nodes": [
+      "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_personal_mode_rejects_explicit_admission_and_recovery",
+      "tests.integration.test_application_run_requests.ApplicationRunRequestTests::test_ambiguous_and_confirmed_applications_do_not_admit_new_browser_work",
+      "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_expired_lease_cannot_steal_unfinished_browser_reservation",
+      "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests::test_cancellation_after_submit_reservation_requires_receipt_reconciliation",
+      "tests.integration.test_route_attempt_concurrency.RouteAttemptConcurrencyTests::test_receipt_recovery_releases_only_proven_fenced_confirmed_owner",
+      "tests.integration.test_route_attempt_concurrency_postgres.RouteAttemptPostgreSQLTests::test_receipt_recovery_and_ambiguous_owner",
+      "tests.integration.test_fleet_t09_operation_fence.FleetT09OperationFenceTests::test_cancelled_or_cancel_requested_owner_cannot_reserve_attempt"
+    ],
+    "observations": [
+      "PERSONAL mode continues to reject explicit fixture admission and recovery.",
+      "A missing lease is not proof that a browser stopped. Automatic takeover remains disabled.",
+      "Ambiguous provider side effects require read-only receipt reconciliation. No blind retry or new external submission was enabled."
+    ],
+    "status": "PASS"
+  }
+}
