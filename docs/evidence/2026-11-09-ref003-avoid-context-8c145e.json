@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T031106Z-8c145eb40c10",
+  "requirement": "MJ-REF-003",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/373",
+  "slice": "Reject avoid-list matches in projected AI resume context before provider admission",
+  "recorded_utc": "2026-11-09T03:47:18.288921+00:00",
+  "implementation_commit": "33ec994c2009f7f0d977e7e776fe40e6dd2bf94b",
+  "tested_commit": "33ec994c2009f7f0d977e7e776fe40e6dd2bf94b",
+  "tested_tree": "5ff01d09537854c50c44793f3ee9940655d71911",
+  "environment": "Python3.12.14 Linux; isolated workspace; repository pinned requirements; temporary SQLite; injected capturing provider only",
+  "source_manifest": {
+    "services/documents/ai_resume.py": "81de72f0d0c7a323e0603b4761824f54275ee075f773fb3d890e7e483d5f11c2",
+    "tests/integration/test_ai_resume_avoid_context.py": "cce73ad10b765be0888387d542f42878b60f6d1acb7d416b51b02f937672bd10",
+    "services/documents/AREA.md": "57e606960003778244c09a8e0e09823371a7b2906792687a116fdf76943deab0"
+  },
+  "baseline": {
+    "production_source_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "new_regression_suite_result": "10 failed, 3 passed",
+    "exit_code": 1,
+    "started_utc": "2026-11-09T03:32:08.574414+00:00",
+    "completed_utc": "2026-11-09T03:32:11.848734+00:00",
+    "interpretation": "Unchanged main source admits avoided terms from selected approved fact fields and bounded target-job fields to an injected capturing provider. No real provider was used."
+  },
+  "checks": [
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_ai_resume_avoid_context.py",
+        "tests/integration/test_ai_resume_fact_trace.py",
+        "tests/unit/test_avoid_list.py",
+        "--tb=short"
+      ],
+      "started_utc": "2026-11-09T03:42:10.337226+00:00",
+      "completed_utc": "2026-11-09T03:42:17.312884+00:00",
+      "exit_code": 0,
+      "output": "......................................             [100%]\n38 passed, 22 subtests passed in 6.10s\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.commit_provenance",
+        "--commit",
+        "HEAD"
+      ],
+      "started_utc": "2026-11-09T03:42:17.312921+00:00",
+      "completed_utc": "2026-11-09T03:42:17.352819+00:00",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 2 source files\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.reference_provenance"
+      ],
+      "started_utc": "2026-11-09T03:42:17.352835+00:00",
+      "completed_utc": "2026-11-09T03:42:17.378152+00:00",
+      "exit_code": 0,
+      "output": "Reference provenance validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.catalogue"
+      ],
+      "started_utc": "2026-11-09T03:42:17.378165+00:00",
+      "completed_utc": "2026-11-09T03:42:17.425453+00:00",
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.progress",
+        "validate"
+      ],
+      "started_utc": "2026-11-09T03:42:17.425528+00:00",
+      "completed_utc": "2026-11-09T03:42:17.463529+00:00",
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/1580de3f8783/mjobs-venv/bin/python",
+        "-m",
+        "tools.verification.progress_dashboard",
+        "--check"
+      ],
+      "started_utc": "2026-11-09T03:42:17.463543+00:00",
+      "completed_utc": "2026-11-09T03:42:17.514368+00:00",
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_utc": "2026-11-09T03:42:17.514383+00:00",
+      "completed_utc": "2026-11-09T03:42:17.517980+00:00",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "independent_review": {
+    "reviewer": "ChatGPT subagent /root/pr_readiness, independent of patch author /root/acceptance_scout",
+    "method": "Static diff, test, source-hash, contract and consumer review",
+    "result": "READY_WITH_LIMITATIONS; no blocking findings; AREA documentation correction applied",
+    "independent_test_execution": "NOT_RUN",
+    "source_hashes_verified": true
+  },
+  "criterion_evidence": [
+    {
+      "criterion": 2,
+      "status": "PARTIAL",
+      "verified_slice_status": "PASS",
+      "verified": "Each dynamic field projected into AI resume context is checked with the existing normalized avoid-list validator before JSON serialization, provider construction, REQUESTED receipt or draft write. Matching selected fact identifiers, kinds, text, target title and bounded target description fail closed.",
+      "regressions": [
+        "Matching fields reject before provider factory and leave profile, job, audit and generated documents unchanged.",
+        "Newlines, quotation marks, backslashes, composed and decomposed Unicode, and fullwidth variants cannot hide matches through JSON encoding.",
+        "Unselected facts, private/source metadata and text outside the existing projection bounds do not cause spurious rejection.",
+        "Separate fields do not synthesize an avoided phrase.",
+        "Provider-introduced avoided terms remain blocked at final reviewed preparation."
+      ],
+      "remaining": "This evidence covers the AI resume generation path only; all document kinds and the complete browser journey have not been re-certified at this revision."
+    },
+    {
+      "criteria": "Other MJ-REF-003 acceptance criteria",
+      "status": "NOT_RUN",
+      "reason": "The historical whole-reference PASS label is not re-certified or promoted by this scoped change."
+    }
+  ],
+  "behavior": {
+    "admission": "Block the requested generation if a projected field matches; do not silently omit approved facts or rewrite source data.",
+    "serialization": "Validate raw projected fields individually before encoding; fixed structural keys and instructions are not user fact content.",
+    "privacy": "Avoid-list preferences are used locally for validation and are not copied into provider prompts.",
+    "existing_guards": "Explicit fact selection, consent, stale profile/job fences and final-output avoid-list validation remain in force."
+  },
+  "limits": [
+    "No real AI provider, connected browser journey, external submission or production deployment was exercised.",
+    "Full suites, PostgreSQL/Redis fixtures, web production build and browser tests NOT_RUN locally; exact final PR head hosted checks tracked separately.",
+    "Canonical reference and original capability matrices are unchanged. No full requirement PASS promotion.",
+    "The final evidence-only commit preserves the tested source hashes; its exact-head receipt is recorded in the PR and run checkpoint."
+  ],
+  "safety": {
+    "schema_or_migration_change": false,
+    "provider_calls": "Injected capturing test provider only; prohibited-input cases reject before construction",
+    "external_application_submission": "OFF",
+    "production_deployment": "UNCHANGED"
+  },
+  "rollback": "Revert this bounded PR; no data migration or persistent format change."
+}
