@@ -418,7 +418,10 @@
           "attempt": 2,
           "receipt_provenance": "Executed and transferred by root; exact checkout HEAD verified by root and recorded in receipt."
         }
-      ]
+      ],
+      "result_scope": "These criterion results apply to delivered main f3db88aa. The subsequent fixed candidate has separate passing deterministic/live evidence but is not yet delivered.",
+      "candidate_status": "FIXED_CANDIDATE_VERIFIED; PUBLICATION_AND_DELIVERY_PENDING",
+      "candidate_evidence": "remotive_fixed_candidate_followup and current_publication_status"
     }
   ],
   "executed_checks": [
@@ -635,7 +638,8 @@
     "provider_docs_url": "https://github.com/remotive-com/remote-jobs-api/blob/main/README.md",
     "existing_test_gap": "tests/integration/test_remotive.py never invokes search(limit=...).",
     "bounded_remedy_candidate": "After existing malformed-row filtering, cap returned accepted items to limit when not None, preserving order, query parameters, one GET, unlimited behavior and complete_inventory=False. Add a focused excess-results fixture and unlimited/invalid-limit controls.",
-    "ownership": "No fix authored: runtime services/discovery/sources/** is under a legacy active claim; root must coordinate with that owner before edits."
+    "ownership": "No fix authored: runtime services/discovery/sources/** is under a legacy active claim; root must coordinate with that owner before edits.",
+    "snapshot_role": "Historical defect and ownership observation on unchanged main f3db88aa. The original failure remains valid for that delivered revision; root later recovered ownership and verified a separate fixed candidate."
   },
   "related_unresolved_gate": {
     "pr": 987,
@@ -694,7 +698,8 @@
     "remotive_runtime_ownership_recovered_by_root": true,
     "remotive_fix_evidence": "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json",
     "remotive_fix_state": "UNCOMMITTED_WORKING_TREE; meaningful baseline failure and fixed 82-test PASS; independent review, commit, fresh live decision and protected delivery pending.",
-    "claim_recovery_note": "The original ownership blocker in remotive_limit_finding describes the earlier observation and was subsequently resolved by root's audited verified-orphan recovery."
+    "claim_recovery_note": "The original ownership blocker in remotive_limit_finding describes the earlier observation and was subsequently resolved by root's audited verified-orphan recovery.",
+    "snapshot_role": "Historical 18:03 pre-commit follow-up, superseded for current candidate status by remotive_fixed_candidate_followup and current_publication_status; retained without reinterpreting its original outcomes."
   },
   "remotive_fixed_candidate_followup": {
     "tested_revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
@@ -739,5 +744,40 @@
     "main_original_failure_preserved": true,
     "closure_eligible_on_delivered_main": false,
     "next_action": "Publish minimal reviewed fix, pass required hosted checks, integrate through sole owner, then verify delivered applicability."
+  },
+  "current_publication_status": {
+    "source_test_revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+    "publication_review_revision": "05831c81f7c77ed6f866d8e0ee9e2f108007c21e",
+    "runtime_and_test_blobs_unchanged_from_verified_revision": true,
+    "candidate_deterministic_result": "82 tests PASS; zero failures/errors/skips",
+    "candidate_live_result": "PASS; limit=3 returned 3; all nine metadata assertions passed",
+    "fixed_candidate_evidence": "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json#committed_candidate",
+    "current_evidence_reconciliation": "ROOT_REVIEWED_FOR_PUBLICATION_COMMIT; original failures and historical snapshots retained",
+    "publication": "PENDING",
+    "hosted_candidate_checks": "NOT_RUN",
+    "protected_integration": "NOT_RUN",
+    "delivered_main_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "delivered_main_remotive_failure_preserved": true,
+    "issue_308_state": "CLOSED_COMPLETED",
+    "issue_309_state": "OPEN_PENDING_DELIVERY",
+    "canonical_acceptance_changed": false,
+    "remaining_blockers": [
+      "The reviewed Remotive candidate awaits publication and required exact-publication-head hosted checks; those checks are NOT_RUN.",
+      "Protected integration and delivered-source applicability verification remain pending; #309 stays open.",
+      "PR987's separate hosted cancellation timing failure remains unresolved and unwaived; this result-limit repair does not establish scheduler acceptance."
+    ],
+    "recorded_at_utc": "2026-11-09T20:42:41.380753+00:00"
+  },
+  "updated_at_utc": "2026-11-09T20:43:48.973678+00:00",
+  "reviewed_scanner_dependency": {
+    "path": ".gitleaksignore",
+    "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+    "review_url": "https://github.com/MulattoTech/MJobs/pull/1006#pullrequestreview-5829689648",
+    "proof_url": "https://github.com/MulattoTech/MJobs/blob/d71d1b545771de421ba06db79557206e01677814/docs/evidence/2026-11-09-web-810d-reviewed-history-fingerprints.json",
+    "scope": "Reuse the exact five reviewed public Git identifier fingerprints after foreign owner release and own atomic path claim. All existing rules and all-ref scan coverage remain. No new exception or gate weakening.",
+    "claim_key": "web:web-20261109T173838Z-82ee9dc5ccd8:scanner-common-reuse",
+    "claim_acquired_utc": "2026-11-09T20:41:40.789910+00:00",
+    "candidate_hosted_result": "NOT_RUN"
   }
 }
