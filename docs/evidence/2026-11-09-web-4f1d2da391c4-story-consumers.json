@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-002-IMPORTED-STORY-CONSUMERS-4F1D",
+  "run_id": "web-20261109T131824Z-4f1d2da391c4",
+  "created_utc": "2026-11-09T13:39:07.544334+00:00",
+  "requirement_id": "MJ-REF-002",
+  "issue": 372,
+  "reviewed_pr": 977,
+  "production_sha": "a796ffb478833fbcf87ff79892b6047108336226",
+  "current_main_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "added_test_git_blob": "295457ccbde1bf11968fbb46e4248eef3ed8590b",
+  "production_files_modified": false,
+  "canonical_result": "PARTIAL",
+  "canonical_acceptance_modified": false,
+  "scope_result": "PASS",
+  "acceptance_proposal": "All five literal issue criteria have fresh executed evidence at the PR977 production revision. Integration owner must reconcile prerequisite basis and final integrated revision before canonical promotion. This is not current-main/deployed/full-product PASS.",
+  "criteria": [
+    {
+      "criterion": "Structured story/accomplishment/bullet entities tied to approved CareerFacts",
+      "result": "PASS",
+      "evidence": "All three imported kinds; missing, duplicate, unverified, unapproved, low-confidence, unsourced, foreign and stale facts rejected by story/import tests."
+    },
+    {
+      "criterion": "Provenance, verification, version and allowed uses",
+      "result": "PASS",
+      "evidence": "Exact fact fingerprints and immutable revision identity; explicit approval; profile/use/currentness fences; stale expected revisions; imported origin/review survive Store/API reconstruction."
+    },
+    {
+      "criterion": "Document generation selects pool records without rewriting canonical facts",
+      "result": "PASS",
+      "evidence": "Actual HTTP import/review and production prepare create real resume and cover-letter DOCX/PDF/TXT with exact story_refs and text hash; all fact rows/profile remain unchanged; pending/superseded use produces no durable output."
+    },
+    {
+      "criterion": "Answer/interview consumers cite the same story records",
+      "result": "PASS",
+      "evidence": "Answer export records provenance-only exact revision/fact citations and OFF; interview pack references the same imported revision and fact; both survive reopen and later pending edits."
+    },
+    {
+      "criterion": "Import/edit/version tests",
+      "result": "PASS",
+      "evidence": "Strict bounded atomic import; replay idempotency; append-only pending revision2; old/new new-use denial; historical artifacts/citations remain available and unchanged after two Store/API reconstructions."
+    }
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_career_story_bank.py tests/unit/test_career_story_bank_staleness.py tests/unit/test_career_story_import.py tests/unit/test_career_story_selection.py tests/unit/test_interview_preparation.py tests/integration/test_career_story_bank.py tests/integration/test_career_story_bank_durable_readback.py tests/integration/test_career_story_bank_revision_conflict.py tests/integration/test_career_story_selection_api.py tests/integration/test_career_story_import_api.py tests/integration/test_application_answer_story_citation_export.py tests/integration/test_interview_preparation_api.py tests/integration/test_imported_story_consumer_journey.py --tb=short --junitxml=story-criterion-suite.xml",
+      "production_sha": "a796ffb478833fbcf87ff79892b6047108336226",
+      "test_overlay_git_blob": "295457ccbde1bf11968fbb46e4248eef3ed8590b",
+      "result": "PASS",
+      "tests_passed": 53,
+      "subtests_passed": 34,
+      "skipped": 0,
+      "exit_code": 0,
+      "duration_seconds": 12.02
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_imported_story_consumer_journey.py --tb=short",
+      "result": "PASS",
+      "tests_passed": 1,
+      "skipped": 0,
+      "duration_seconds": 3.79,
+      "note": "Included in the 53-method union; not added to the unique total."
+    },
+    {
+      "command": "Independent inline Python wrapper denies socket.socket.connect/connect_ex and socket.getaddrinfo while invoking pytest on the new module",
+      "result": "PASS",
+      "tests_passed": 1,
+      "duration_seconds": 2.95,
+      "exit_code": 0,
+      "network_attempts": {
+        "connect": 0,
+        "connect_ex": 0,
+        "getaddrinfo": 0
+      },
+      "note": "Independent overlapping rerun; not added to unique total."
+    }
+  ],
+  "initial_failure": {
+    "classification": "fixture setup error",
+    "description": "First synthetic job lacked responsibility excerpt required by existing cover-letter contract. Corrected only synthetic description; production and test assertions unchanged."
+  },
+  "environment": {
+    "platform": "isolated ChatGPT Linux workspace",
+    "python": "3.12.14",
+    "dependencies": "repository-pinned application requirements",
+    "database": "real temporary SQLite",
+    "api": "in-process FastAPI TestClient",
+    "documents": "real DOCX/PDF/TXT rendering and hashes",
+    "application_submission": "OFF"
+  },
+  "independent_review": {
+    "reviewer": "foundation_scout (separate agent from story test author)",
+    "result": "No blocking test-proof defect found",
+    "test_blob": "295457ccbde1bf11968fbb46e4248eef3ed8590b",
+    "executed_network_guard": true,
+    "human_approval": false
+  },
+  "prerequisites": {
+    "basis": "Issue overlap IDs and matrix prerequisite-pass policy",
+    "historically_recorded_pass": [
+      "MJ-REQ-092",
+      "MJ-REQ-093",
+      "MJ-REQ-103",
+      "MJ-REQ-269"
+    ],
+    "complete_current_recertification": "NOT_RUN",
+    "note": "Applicable approved-fact, profile/currentness and read-only consumer boundaries exercised; do not infer entire prerequisite acceptance from historical labels."
+  },
+  "not_run": [
+    "Connected browser UI",
+    "PostgreSQL concurrent import",
+    "Deployed runtime/Cloudflare rollout",
+    "Fresh OS process restart (Store/API reconstruction tested)",
+    "PDF visual-layout inspection (real PDF generation and hash validation tested)",
+    "Complete original-prerequisite recertification",
+    "Full MJ-REF-008 interview preparation acceptance"
+  ],
+  "publication": {
+    "state": "PREPARED_NOT_PUBLISHED",
+    "mode": "verification branch and existing PR977 review evidence only; no duplicate feature PR",
+    "blocker": "Automatic approval review requires direct chat authorization before public publication; no alternate transport attempted"
+  },
+  "next_action": "After direct authorization, publish this verifier branch and attach scoped evidence to PR977; integration owner should preserve the new test when integrating PR977 and revalidate the final integrated revision."
+}

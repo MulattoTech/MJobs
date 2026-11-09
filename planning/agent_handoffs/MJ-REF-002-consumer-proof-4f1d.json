@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-002-consumer-proof-4f1d",
+  "objective": "Verify imported story approval and immutable reuse through document answer and interview consumers",
+  "owner": "web-20261109T131824Z-4f1d2da391c4",
+  "branch": "web/web-20261109T131824Z-4f1d2da391c4/MJ-REF-002-consumer-proof",
+  "head_sha": "a796ffb478833fbcf87ff79892b6047108336226",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "After direct publication authorization publish this test/evidence branch and attach the exact-head scoped criterion ledger to PR977; integration owner must reconcile prerequisites and final integrated revision before canonical promotion",
+  "created_at": "2026-11-09T13:39:07.580231+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "PR977 production a796ffb478833fbcf87ff79892b6047108336226 plus test blob295457ccbde1bf11968fbb46e4248eef3ed8590b: 53 tests plus34 subtests PASS; independent full journey rerun PASS with zero network attempts",
+      "result": "PASS"
+    },
+    {
+      "command": "Browser, PostgreSQL concurrent import, deployed runtime, complete original prerequisites, PDF visual layout, full MJ-REF-008",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Public publication requires direct chat authorization after automatic approval review rejection; canonical acceptance remains PARTIAL"
+  ]
+}
