@@ -2,18 +2,18 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from uuid import uuid4
 
 from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
-from services.career_profile.story_bank import _present_all, _require_profile
+from services.career_profile.story_bank import StoryBankError, _present_all, _require_profile
 from services.normalization.jobs import canonical_job_view
 
 
 MAX_SELECTED_STORIES = 50
-_TOKEN = re.compile(r"[a-z0-9]+", re.IGNORECASE)
 
 
 class InterviewPreparationError(ValueError):
@@ -116,14 +116,42 @@ def _linked_fact_texts(profile: dict, story: dict) -> list[str]:
             and isinstance(fact.get("text"), str)]
 
 
+def _identifier_character(character: str) -> bool:
+    return (character.isalnum() or character in "_+#"
+            or unicodedata.category(character).startswith("M"))
+
+
+def _matches_topic(topic: str, text: str) -> bool:
+    """Match a complete literal identifier or ordered phrase, not qualifications."""
+    normalized = unicodedata.normalize("NFC", " ".join(text.split())).casefold()
+    for match in re.finditer(re.escape(topic), normalized):
+        start, end = match.span()
+        if start and (_identifier_character(normalized[start - 1])
+                      or normalized[start - 1] == "."
+                      or (unicodedata.category(normalized[start - 1]) == "Pd" and start > 1
+                          and _identifier_character(normalized[start - 2]))):
+            continue
+        if end < len(normalized):
+            following = normalized[end]
+            if _identifier_character(following):
+                continue
+            # An internal dot belongs to an identifier (Node.js); a final
+            # sentence period does not turn evidence for Java into a mismatch.
+            if (following == "." and end + 1 < len(normalized)
+                    and _identifier_character(normalized[end + 1])):
+                continue
+        return True
+    return False
+
+
 def _has_topic_evidence(topic: str, profile: dict, stories: list[dict]) -> bool:
-    topic_tokens = {token.casefold() for token in _TOKEN.findall(topic)}
+    topic = unicodedata.normalize("NFC", " ".join(topic.split())).casefold()
+    if not topic:
+        return False
     for story in stories:
-        source_text = " ".join([story["title"], story["text"], *_linked_fact_texts(profile, story)]).casefold()
-        if topic.casefold() in source_text:
-            return True
-        story_tokens = {token.casefold() for token in _TOKEN.findall(source_text)}
-        if topic_tokens and topic_tokens.issubset(story_tokens):
+        # Do not assemble a phrase from unrelated fields or linked facts.
+        sources = [story["title"], story["text"], *_linked_fact_texts(profile, story)]
+        if any(_matches_topic(topic, source) for source in sources):
             return True
     return False
 
@@ -213,7 +241,10 @@ def _build_content(profile_id: str, profile: dict, job: dict, job_fingerprint: s
 
 
 def _eligible_stories(connection, store, profile_id: str, selected_ids: list[str]) -> tuple[dict, list[dict]]:
-    profile = _require_profile(store, profile_id, connection, lock=True)
+    try:
+        profile = _require_profile(store, profile_id, connection, lock=True)
+    except StoryBankError as error:
+        raise InterviewPreparationError(error.code, error.status_code, str(error)) from None
     all_stories = _present_all(connection, profile_id, profile)
     eligible = {
         story["story_id"]: story for story in all_stories
@@ -249,12 +280,13 @@ def _present_pack(row: dict) -> dict:
 
 def create_interview_prep_pack(store, profile_id: str, job_id: str,
                                selected_story_revision_ids: list[str]) -> dict:
-    """Create or return the immutable current pack for this exact input tuple."""
+    """Reuse identical current content, preserving older packs when policy changes."""
     selected_ids = _validate_request(profile_id, job_id, selected_story_revision_ids)
     with store.engine.begin() as connection:
         profile, stories = _eligible_stories(connection, store, profile_id, selected_ids)
         job = _job_for_profile(connection, job_id)
         job_fingerprint = identity("interview-job-v1", _job_projection(job))
+        content = _build_content(profile_id, profile, job, job_fingerprint, stories, selected_ids)
         existing = [dict(row) for row in connection.execute(
             select(m.interview_prep_packs).where(
                 m.interview_prep_packs.c.profile_id == profile_id,
@@ -265,10 +297,12 @@ def create_interview_prep_pack(store, profile_id: str, job_id: str,
             latest = existing[0]
             if (latest["profile_version"] == profile["version"]
                     and latest["job_fingerprint"] == job_fingerprint
-                    and list(latest["selected_story_revision_ids"]) == selected_ids):
+                    and list(latest["selected_story_revision_ids"]) == selected_ids
+                    and all(latest[field] == content[field] for field in (
+                        "questions", "talking_points", "star_prompts", "missing_evidence", "export_text"
+                    ))):
                 return _present_pack(latest)
         next_version = max((row["pack_version"] for row in existing), default=0) + 1
-        content = _build_content(profile_id, profile, job, job_fingerprint, stories, selected_ids)
         row = {
             "id": str(uuid4()),
             "profile_id": profile_id,

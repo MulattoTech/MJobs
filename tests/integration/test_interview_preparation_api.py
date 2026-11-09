@@ -189,6 +189,45 @@ class InterviewPreparationApiTests(unittest.TestCase):
             rows = connection.execute(select(m.interview_prep_packs)).all()
         self.assertEqual(rows, [])
 
+    def test_missing_profile_post_returns_sanitized_404_without_mutating_state(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.applications, {
+                "id": "existing-prep-application", "job_id": self.job_id,
+                "route_id": "interview-prep-route", "profile_id": "fixture",
+                "profile_version": self.store.profile("fixture")["version"],
+                "state": "PREPARED", "target": "LOCAL", "fact_ids": [], "trace": {},
+                "document_version": 1, "confirmation": None,
+                "created_at": "2026-10-09T10:00:00Z", "submitted_at": None,
+            })
+
+        def snapshot():
+            with self.store.engine.connect() as connection:
+                return {
+                    table.name: [dict(row) for row in connection.execute(
+                        select(table).order_by(table.c.id)
+                    ).mappings()]
+                    for table in (m.profiles, m.applications, m.documents,
+                                  m.interview_prep_packs, m.audit)
+                }
+
+        before = snapshot()
+        self.assertEqual(before[m.interview_prep_packs.name], [])
+        app = FastAPI()
+        app.include_router(create_interview_preparation_router(self.store))
+        with TestClient(app, raise_server_exceptions=False) as client:
+            for selected_ids in ([], [self.story_one["story_id"]]):
+                with self.subTest(selected_story_revision_ids=selected_ids):
+                    response = client.post(
+                        f"/profiles/missing/jobs/{self.job_id}/interview-prep-packs",
+                        json={"selected_story_revision_ids": selected_ids},
+                    )
+                    self.assertEqual(snapshot(), before,
+                                     "missing-profile POST must not alter durable state")
+                    self.assertEqual(response.status_code, 404, response.text)
+                    self.assertEqual(response.json(), {
+                        "detail": {"code": "INTERVIEW_PREPARATION_PROFILE_NOT_FOUND"},
+                    })
+
     def test_missing_profile_or_job_is_not_created_as_a_pack(self):
         missing_profile = self.client.get(
             f"/profiles/missing/jobs/{self.job_id}/interview-prep-packs",
