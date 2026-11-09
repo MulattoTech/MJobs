@@ -47,7 +47,7 @@ def _validate_request(profile_id: str, job_id: str,
 
 def _job_for_profile(connection, job_id: str) -> dict:
     row = connection.execute(
-        select(m.jobs, m.companies.c.name.label("company_name"))
+        select(m.jobs, m.companies.c.name.label("company"))
         .join(m.companies, m.jobs.c.company_id == m.companies.c.id)
         .where(m.jobs.c.id == job_id)
     ).mappings().one_or_none()

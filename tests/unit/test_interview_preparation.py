@@ -349,6 +349,28 @@ class InterviewPreparationTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, "STORY_NOT_SELECTABLE")
 
+    def test_company_name_is_grounded_in_export_and_versions_changed_context(self):
+        first = create_interview_prep_pack(
+            self.store, "prep-owner", "prep-job", [self.story["story_id"]]
+        )
+        self.assertIn("at Example Systems\n", first["export_text"])
+
+        with self.store.engine.begin() as connection:
+            connection.execute(m.companies.update().where(m.companies.c.id == "prep-company")
+                               .values(name="Revised Systems"))
+        changed = create_interview_prep_pack(
+            self.store, "prep-owner", "prep-job", [self.story["story_id"]]
+        )
+        self.assertIn("at Revised Systems\n", changed["export_text"])
+        self.assertEqual(changed["pack_version"], first["pack_version"] + 1)
+        self.assertNotEqual(changed["job_fingerprint"], first["job_fingerprint"])
+        self.assertEqual(get_interview_prep_pack(
+            self.store, "prep-owner", "prep-job", first["pack_id"]
+        ), first)
+        self.assertEqual(create_interview_prep_pack(
+            self.store, "prep-owner", "prep-job", [self.story["story_id"]]
+        ), changed)
+
     def test_profile_or_job_context_change_appends_a_new_pack_version(self):
         first = create_interview_prep_pack(self.store, "prep-owner", "prep-job", [])
         with self.store.engine.begin() as connection:
