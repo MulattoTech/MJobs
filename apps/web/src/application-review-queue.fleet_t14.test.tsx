@@ -39,9 +39,9 @@ describe('fleet T14 partial application review queue recovery', () => {
     />);
 
     expect(html).toContain('0 known blockers');
-    expect(html).toContain('No successfully read applications currently need question review');
+    expect(html).toContain('No successfully read applications currently need review');
     expect(html).toContain('queue is incomplete');
-    expect(html).not.toContain('No saved applications currently need question review');
+    expect(html).not.toContain('No saved applications currently need review');
 
     const loadingHtml = renderToStaticMarkup(<ApplicationReviewQueue
       profileId="profile-a"
@@ -50,8 +50,8 @@ describe('fleet T14 partial application review queue recovery', () => {
       loading
       loadError
     />);
-    expect(loadingHtml).toContain('Loading saved application preflight details');
+    expect(loadingHtml).toContain('Loading saved application review details');
     expect(loadingHtml).toContain('Some saved application details could not be read');
-    expect(loadingHtml).not.toContain('No saved applications currently need question review');
+    expect(loadingHtml).not.toContain('No saved applications currently need review');
   });
 });

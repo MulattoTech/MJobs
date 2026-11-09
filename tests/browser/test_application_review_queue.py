@@ -244,7 +244,7 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     page.get_by_label("Active profile").select_option("other-profile")
                     page.get_by_role("button", name="Review Queue", exact=False).click()
                     isolated_queue = page.get_by_role("region", name="Application review queue")
-                    expect(isolated_queue).to_contain_text("No saved applications currently need question review.")
+                    expect(isolated_queue).to_contain_text("No saved applications currently need review.")
                     expect(isolated_queue).not_to_contain_text(job["company"])
                     self.assertFalse(outside)
                     self.assertFalse(errors, errors)
