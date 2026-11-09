@@ -18,7 +18,7 @@ The statements in the original report that the probes were “not added to the r
 
 ## Minimal publication bundle
 
-Publish these seven UTF-8 files together in the root agent's claimed run-specific `docs/evidence/` directory. Preserve the six pre-existing execution files byte for byte.
+Publish these seven UTF-8 files together in the root agent's claimed run-specific `docs/evidence/` directory. The probe, receipt, source identities and two logs are preserved byte for byte. Publication removes one redundant blank line at the end of the review report; its substantive content is unchanged. The original report remains available in the execution directory.
 
 | File | Purpose |
 | --- | --- |
@@ -30,7 +30,7 @@ Publish these seven UTF-8 files together in the root agent's claimed run-specifi
 | `affected-exact-source.log` | Successful six-module repository test output |
 | `independent.log` | Successful independent probe output |
 
-The minimal bundle omits the original environment inventory, GitHub metadata snapshot, JUnit XML and preliminary dependency-collection logs. The unchanged receipt/report retain references to those supplementary execution artifacts. Their presence is not required to run the published probes or verify the six preserved files. Do not rewrite the historical receipt to remove those references. All probe identities and records are fictional; the bundle contains no credentials or real applicant records. Original cloud scratch paths are historical command context, not rerun prerequisites.
+The minimal bundle omits the original environment inventory, GitHub metadata snapshot, JUnit XML and preliminary dependency-collection logs. The unchanged receipt/report retain references to those supplementary execution artifacts. Their presence is not required to run the published probes or verify the five unchanged execution files and the normalized report. Do not rewrite the historical receipt to remove those references. All probe identities and records are fictional; the bundle contains no credentials or real applicant records. Original cloud scratch paths are historical command context, not rerun prerequisites.
 
 ### Verify the preserved artifacts
 
@@ -42,7 +42,7 @@ from pathlib import Path
 import hashlib
 
 expected = {
-    "review.md": "14b1f04d6e441947143adb65a5bae69fe8676e9fb64bc3797c7878abf1e0d67c",
+    "review.md": "cb9a541c10e1c0740705b637263acd225da32e1985d49200710a25d50025a5ac",
     "receipt.json": "9abbbe6c76a58b80bc044e0a828862a8fcf4de27e862ee9d7194feed69e75a9f",
     "test_ref008_independent.py": "7d0b1c98774e3f3d236d9f37d2807f737217154aaa685f15fee8c83f945a7ba2",
     "source-hashes.json": "160ee9a8bb08af5331156c679c1a0edc49a07df5837732829bafed8dd9f646a6",
@@ -60,6 +60,8 @@ PY
 ```
 
 This guide's identity is established by its publication Git commit; it does not contain a recursive hash of itself.
+
+The original report SHA-256 was `14b1f04d6e441947143adb65a5bae69fe8676e9fb64bc3797c7878abf1e0d67c`; the table above verifies the publication copy after the single trailing blank line was removed. This formatting change does not alter the tested source, probes, logs, receipt or test results.
 
 ## Portable rerun
 
@@ -151,4 +153,3 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$REF008_TARGET" \
 Recorded result to reproduce: **7 passed, 62 subtests passed, exit 0**. The original successful runs each emitted one TestClient deprecation warning about future HTTPX2 use; timings are not acceptance assertions.
 
 Keep new rerun reports separate from the preserved evidence. These instructions adapt the already executed commands to portable paths; preparing this guide did not rerun the suites, change their historical results, or execute the additional NOT_RUN checks.
-

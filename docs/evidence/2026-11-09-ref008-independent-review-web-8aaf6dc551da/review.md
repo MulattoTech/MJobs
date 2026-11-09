@@ -113,4 +113,3 @@ The PR author's broader validation claims were not counted as this review's own 
 | Machine-readable receipt | `9abbbe6c76a58b80bc044e0a828862a8fcf4de27e862ee9d7194feed69e75a9f` |
 
 `receipt.json` records exact argument arrays, exit codes, source identity, environment limitations and evidence hashes. `source-hashes.json` records SHA-256 and Git blob IDs for the examined service/router/requirements/test files. `github-context.json` records the issue criteria and freshly read PR head metadata.
-
