@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MJobs Mission Control — Launch & Release Tracker</title>
   <link rel="stylesheet" href="/static/mission.css?v=6">
-  <link rel="stylesheet" href="/static/progress_history.css?v=1">
+  <link rel="stylesheet" href="/static/progress_history.css?v=2">
   <link rel="stylesheet" href="/static/delivery_ledger.css?v=1">
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="stylesheet" href="/static/fleet-runtime.css">
+  <link rel="stylesheet" href="/static/fleet-runtime.css?v=2">
   <link rel="stylesheet" href="/static/fleet-theme.css?v=1">
 </head>
 <body>
@@ -33,14 +33,23 @@
     <div class="mission-heading"><div><h2>Feature Development Studio</h2><p>Guided intake, evidence-aware specifications, and safe draft export.</p></div><a href="/static/feature-studio.html">Open Feature Studio →</a></div>
     <p>Local pilot only: no autonomous agent execution or GitHub mutations from the form.</p>
   </section>
-  <section class="panel" id="externalCodexSprint" aria-label="Observed external Codex P0 P1 sprint">
+  <section class="panel" id="externalCodexSprint" aria-label="Recent Codex activity and workspace changes">
     <div class="mission-heading">
-      <div><h2>Active Codex sprint and subagents</h2>
-        <p>Read-only observation of externally launched P0/P1 campaigns; these processes are not owned by Mission Control.</p>
+      <div><h2>Recent Codex activity and workspace changes</h2>
+        <p>Local Codex/CLI session observations and worktree changes only. ChatGPT Web Pro delivery is tracked in the GitHub development panel below; local session counts do not measure it.</p>
       </div>
       <span class="sync-pill" id="externalSprintStatus">Discovering...</span>
     </div>
-    <div id="externalSprintContent" aria-live="polite">Looking for an active Codex campaign...</div>
+    <div id="externalSprintContent" aria-live="polite">Reading current workspace and session observations...</div>
+  </section>
+  <section class="panel" id="developmentActivity" aria-label="MJobs GitHub development delivery">
+    <div class="mission-heading">
+      <div><h2>Development activity (GitHub)</h2>
+        <p>ChatGPT Web Pro and other GitHub-delivered work, separate from local Codex sessions and verified requirement acceptance.</p></div>
+      <a id="developmentHubLink" href="https://fleet.m-techlabs.com/#development-delivery">Fleet Overview activity</a>
+    </div>
+    <span id="developmentRefreshTime" class="sync-pill" role="status">Reading GitHub delivery...</span>
+    <div id="developmentActivityContent" aria-live="polite">Checking the read-only Fleet Hub activity source.</div>
   </section>
   <section class="panel" id="releaseTracker" aria-label="Live MJobs release acceptance">
     <div class="mission-heading">
@@ -350,10 +359,10 @@
   </div>
 </dialog>
 
-<script src="/static/fleet-runtime.js"></script>
-<script src="/static/app.js"></script>
-<script src="/static/progress_history_ui.js?v=1"></script>
-<script src="/static/mission.js?v=8"></script>
+<script src="/static/fleet-runtime.js?v=2"></script>
+<script src="/static/app.js?v=2"></script>
+<script src="/static/progress_history_ui.js?v=3"></script>
+<script src="/static/mission.js?v=10"></script>
 <script src="/static/history.js?v=1"></script>
 <script src="/static/delivery_ledger.js?v=1"></script>
 </body>

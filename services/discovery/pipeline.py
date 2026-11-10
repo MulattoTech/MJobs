@@ -161,6 +161,12 @@ def mock_skill_evidence(row, title, description):
 
 
 def discover(store, mock_origin, profile_id, check=None, profile_version=None, *, capture_only=False):
+    """Cooperatively stop work without committing an interrupted job batch.
+
+    Job, posting, match, lifecycle and completion-audit writes share the final
+    transaction. Earlier company/source enrollment remains a separate durable
+    step, so a stopped batch can be retried against already discovered sources.
+    """
     profile = store.profile(profile_id, profile_version)
     client = MockClient(mock_origin, check=check)
     try:
@@ -168,6 +174,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
         sources = {}
         all_rows = [("mock-board", row) for row in aggregator]
         for row in aggregator:
+            client.check()
             company_website = row.get("company_website") or ""
             company_name = row.get("company") or ""
             candidate = {
@@ -227,8 +234,10 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
         with store.engine.begin() as connection:
             client.check()
             for company_id, source in sources.items():
+                client.check()
                 upsert(connection, m.companies, {"id": company_id, "name": source["company"], "domain": source["domain"]})
             for source, row in all_rows:
+                client.check()
                 company_id = identity(row["company_website"])
                 if not client.allowed(row["application_url"]):
                     raise ValueError("External mock application URL blocked")
@@ -312,9 +321,13 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
                     record_match_scored(connection, profile_id, job_id, profile["version"])
                     upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
                         "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
+            client.check()
             store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {
                 "sources": len(sources), "raw_postings": len(all_rows),
                 "source_capabilities": fixture_source_capabilities().as_dict()})
+            # Keep the final control check inside the transaction: raising after
+            # context exit would report a stop while retaining committed jobs.
+            client.check()
         if capture_only:
             return {"job_ids": sorted(captured_job_ids), "postings_captured": len(all_rows)}
         return store.jobs(profile_id)

@@ -654,6 +654,12 @@ def execute_operation(operation_id, *, registry_module=None,
             terminal_payload = {"state": state, "error": error,
                                 "attempt_count": int(operation["attempt_count"]),
                                 "error_category": canonical_error_category}
+            if operation["kind"] == "COMPANY_DISCOVER":
+                terminal_payload["company_discovery_budget"] = {
+                    "stop_reason": error or state,
+                    "budget_consumed_ms": max(
+                        0, int(round((time.monotonic() - started_at) * 1000))),
+                }
             if collection_budget is not None and collection_started_at is not None:
                 terminal_payload["collection_budget"] = {
                     "stop_reason": collection_stop_reason or state,
