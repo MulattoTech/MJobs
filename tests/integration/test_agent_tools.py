@@ -299,6 +299,87 @@ class AgentToolBoundaryTests(unittest.TestCase):
         self.assertEqual(result["state"], "LIMIT_REACHED")
         self.assertEqual(result["stop_reason"], "PAGE_BUDGET_REQUIRED")
 
+    def test_review_proposal_stops_before_any_later_tool_dispatch(self):
+        runtime = self.runtime("job_match")
+        proposal_call = {"name": "set_job_disposition", "arguments": {
+            "job_id": "job-one", "disposition": "SAVED"}}
+        later_call = {"name": "read_profile_context", "arguments": {
+            "requested_paths": ["facts.python.text"]}}
+
+        # Excess queued work must not replace the first terminal review outcome.
+        with patch.object(self.registry, "invoke", wraps=self.registry.invoke) as invoke:
+            result = runtime.run([proposal_call] + [later_call] * 21)
+
+        self.assertEqual(invoke.call_count, 1)
+        self.assertEqual(result["state"], "REVIEW_REQUIRED")
+        self.assertEqual(result["stop_reason"], "REVIEW_REQUIRED")
+        self.assertEqual(len(result["steps"]), 1)
+        self.assertEqual(read_job_tracking(self.store, "fixture", "job-one")["disposition"], "ACTIVE")
+        reopened = Store(self.url)
+        try:
+            trace = read_agent_trace(reopened, result["run_id"])
+        finally:
+            reopened.engine.dispose()
+        self.assertEqual(trace["terminal"]["state"], "REVIEW_REQUIRED")
+        self.assertEqual(trace["terminal"]["step_count"], 1)
+        self.assertEqual(len(trace["steps"]), 1)
+        self.assertNotIn(PROFILE["email"], json.dumps(trace))
+        self.assertNotIn("Python", json.dumps(trace))
+
+        # Stopping dispatch must preserve the existing exact-proposal review path.
+        reviewed = runtime.review(
+            result["run_id"], result["steps"][0]["proposal_id"],
+            proposal_call["name"], proposal_call["arguments"],
+            ReviewDecision(reviewer_id="local-user", approved=True))
+        self.assertEqual(reviewed["result_code"], "EXECUTED")
+        self.assertEqual(read_job_tracking(self.store, "fixture", "job-one")["disposition"], "SAVED")
+
+    def test_page_permit_checks_deadline_before_starting_another_fetch(self):
+        from services.agents import runtime as runtime_module
+
+        class Clock:
+            now = 10.0
+
+            def __call__(self):
+                return self.now
+
+        class Request(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            value: str
+
+        class Response(BaseModel):
+            model_config = ConfigDict(strict=True, extra="forbid")
+            pages: list[str]
+
+        clock = Clock()
+        fetched = []
+
+        def fetch_pages(args, context):
+            for page in range(2):
+                context.consume_page()
+                fetched.append(page)
+                clock.now += 0.6
+            return {"pages": ["private-page"]}
+
+        registry = ToolRegistry()
+        registry.register(AgentTool(
+            "fetch_pages", "Fetch pages within the host deadline", ToolClass.READ,
+            Request, Response, fetch_pages))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture", task="job_match")
+        with patch.object(runtime_module.time, "monotonic", clock):
+            result = runtime.run(
+                [{"name": "fetch_pages", "arguments": {"value": "private-input"}}],
+                max_duration_ms=500, max_pages=5)
+
+        self.assertEqual(fetched, [0])
+        self.assertEqual(result["state"], "LIMIT_REACHED")
+        self.assertEqual(result["stop_reason"], "TIME_BUDGET_EXHAUSTED")
+        self.assertEqual(result["pages_consumed"], 1)
+        trace = read_agent_trace(self.store, result["run_id"])
+        self.assertEqual(trace["terminal"]["pages_consumed"], 1)
+        self.assertEqual(trace["terminal"]["budget_consumed_ms"], 600)
+        self.assertNotIn("private-", json.dumps(trace))
+
     def test_explicit_escape_outcomes_are_terminal_results(self):
         class Request(BaseModel):
             model_config = ConfigDict(strict=True, extra="forbid")
@@ -306,7 +387,7 @@ class AgentToolBoundaryTests(unittest.TestCase):
         class Response(BaseModel):
             model_config = ConfigDict(strict=True, extra="forbid")
             value: str
-        for outcome in ("AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"):
+        for outcome in ("AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED", "REVIEW_REQUIRED"):
             with self.subTest(outcome=outcome):
                 registry = ToolRegistry()
                 registry.register(AgentTool("read_value", "Read value", ToolClass.READ,
@@ -316,8 +397,12 @@ class AgentToolBoundaryTests(unittest.TestCase):
                 runtime = AgentRuntime(self.store, registry, profile_id="fixture",
                                        task="resume_tailor")
 
-                result = runtime.run([{"name": "read_value", "arguments": {"value": "safe"}}])
+                result = runtime.run([
+                    {"name": "read_value", "arguments": {"value": "safe"}},
+                    {"name": "unregistered_after_stop", "arguments": {}},
+                ])
 
+                self.assertEqual(len(result["steps"]), 1)
                 self.assertEqual(result["state"], outcome)
                 trace = read_agent_trace(self.store, result["run_id"])
                 self.assertEqual(trace["terminal"]["stop_reason"], outcome)

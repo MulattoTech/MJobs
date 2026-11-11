@@ -12,8 +12,13 @@ exposed to a model, or external application submission.
   context and records trace metadata in the existing append-only audit table.
 - Page-reading handlers must declare `max_pages` for the run and call
   `AgentToolContext.consume_page()` immediately before each page fetch. The
-  host grants no permit without an explicit limit, denies fetches after the
-  limit, and persists only the declared limit and consumed count.
+  host checks the run deadline before granting a permit, grants no permit
+  without an explicit limit, denies fetches after either budget is exhausted,
+  and persists only the declared limit and consumed count. A synchronous fetch
+  already in progress remains cooperative and is not forcibly interrupted.
+- A review proposal or explicit `REVIEW_REQUIRED` outcome terminates dispatch
+  immediately. No later queued tool call or diagnostic attempt runs until a
+  separate authorized action; the exact-proposal review path remains available.
 - `AgentRuntime.review` revalidates the exact proposal, requires a human review
   decision, applies the registered deterministic policy, then executes a
   side-effect handler at most once.

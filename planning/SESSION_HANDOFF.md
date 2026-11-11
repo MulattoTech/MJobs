@@ -526,3 +526,12 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
+
+
+## Web MJ-REF-033 terminal dispatch and elapsed page admission — 2026-11-07
+
+Run `web-20261107T192718Z-9a399d59d3db`, isolated branch `web/web-20261107T192718Z-9a399d59d3db/ref033-stop-contract`, base `971ba931418fc271e7a652e27c288e1776448b6d`, source `81abf3d8d9eec6a7d8e97a0d977a0c913e7ef4ee`. Review proposals now stop dispatch immediately; explicit REVIEW_REQUIRED remains terminal through trace writing and diagnostic reruns; page permits check elapsed budget before another fetch. Existing approval gates and sanitized trace schemas remain enforced.
+
+Exact-source verification: 51 focused tests passed, 0 skips. The three new regressions failed against the old implementation (2 failures, 1 error). Independent diff review found no blocking scoped issues. Catalogue, progress, dashboard, reference provenance, diff and commit provenance checks passed. Full `pytest -q tests/unit` stopped in collection on Windows because `infra/deploy/host_update.py` imports Linux `fcntl`; this is FAIL/blocked environment, not a suite pass. Browser journey and frontend build are NOT_RUN for this backend slice.
+
+Evidence: `docs/evidence/2026-11-07-ref033-terminal-page-contract.json`, with exact implementation tree and Git-blob input hashes. MJ-REF-033 remains PARTIAL; canonical matrices unchanged. PR_ONLY: no main push, merge, deployment, paid provider call, or real application submission. Next: publish the reviewed PR, inspect required CI on its actual head, then leave integration to the authorized owner. Full entrypoint/browser acceptance remains separate. Temporary lease is released at the publication stop; successors must recheck live ownership.

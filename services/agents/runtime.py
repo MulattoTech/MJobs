@@ -26,7 +26,7 @@ MAX_RUN_DURATION_MS = 120_000
 MAX_RUN_PAGES = 100
 MAX_DIAGNOSTIC_SLICE_STEPS = 5
 MAX_PRIOR_RUN_BINDINGS = 16
-_ESCAPE_OUTCOMES = {"AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"}
+_ESCAPE_OUTCOMES = {"AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED", "REVIEW_REQUIRED"}
 
 
 @dataclass(frozen=True)
@@ -314,6 +314,7 @@ class AgentRuntime:
             if proposal_id:
                 state = "REVIEW_REQUIRED"
                 stop_reason = "REVIEW_REQUIRED"
+                break
             if time.monotonic() >= deadline:
                 state = "LIMIT_REACHED"
                 stop_reason = "TIME_BUDGET_EXHAUSTED"

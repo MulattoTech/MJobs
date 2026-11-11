@@ -78,7 +78,7 @@ class DiagnosticSliceTests(unittest.TestCase):
             self.assertNotIn("observed-b", json.dumps(trace))
 
     def test_terminal_escape_outcomes_stop_further_diagnostic_attempts(self):
-        for outcome in ("AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED"):
+        for outcome in ("AUTH_REQUIRED", "NOT_AVAILABLE", "SOURCE_CHANGED", "REVIEW_REQUIRED"):
             with self.subTest(outcome=outcome):
                 invocations = []
 
