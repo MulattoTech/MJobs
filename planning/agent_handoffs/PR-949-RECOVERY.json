@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "task_id": "PR-949-RECOVERY",
+  "objective": "Isolate TLS fixture collection before operation creation without altering measured recovery contract",
+  "owner": "mjobs-2",
+  "branch": "ao/pr949-recovery/continuation",
+  "head_sha": "16949c6891cddc06d2ca48eb93851ae244b6c1d9",
+  "routing_state": "VERIFY",
+  "next_action": "Primary exact-head review and serial existingPR949 publication slot; new-head hosted gates required, no broad rerun",
+  "created_at": "2026-11-06T05:57:59.433696+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "Source16949c6891cddc06d2ca48eb93851ae244b6c1d9 merges98d37f6b and main6a47f56204462da1aea5ba59ff8a5f88346d05cd. Testblob8f1240ffb3b325d38db89fad59970a0e48e88041 tested pre-evidence treeb9824672816a210657d4e2f89516d56e28adeeea. One pinned Windows normal+controls batchUTC2026-11-06T05:56:13Z-05:56:33Z CPU19-33%,process snapshot109node6python:3tests/all6subcases PASS11.019s;setup78-203ms before operation;Azure deadline313ms/cancel234ms;observer/privacy/exception cleanup PASS;exactly1expected delayed-worker900ms failure;callback list and enabledGC/thresholds unchanged",
+      "result": "PASS"
+    },
+    {
+      "command": "Catalogue/progress/dashboard/whitespace/source provenance PASS;Ruff10baseline findings unchanged;shared/canonical files inherit reviewed main,no authored product changes",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh hosted validation and native review; full MJ-REQ-004/MJ-REQ-008 acceptance; merge/deployment unauthorized",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Hosted98d37f6b job127730469141 FAIL1042.8ms:peer297ms,owned-worker gen2GC298.092-1037.243ms duration739.151ms,no drops. GC interval explains delay;collected-object origin unproved. Fixture-isolation correction,not production latency fix. All prior failed/negative-control receipts retained.",
+    "Separate hosted Greenhouse connect engagement failure belongs to mjobs-4;not changed here. Publication requires primary serial slot;PR952 frozen."
+  ]
+}

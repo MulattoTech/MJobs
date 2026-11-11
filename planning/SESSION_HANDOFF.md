@@ -1,5 +1,47 @@
 # MJobs checkpoint — boundaries, scheduling and verified test matrix, 2026-11-02
 
+## Mission Control freshness repair — 2026-11-06
+
+User requested correction of stale Mission/Fleet observations. Isolated branch:
+`fix/mission-control-freshness-20261106`, based on clean canonical main
+`fe7042676ffa0d1db530ce8b8eab80975a6e4be8`. No publication or main integration
+was performed; other worktrees and active chats were preserved.
+
+- Replaced the October 14 recovery-campaign card with recent Codex metadata and
+  live Git status from registered MJobs workspaces. Activity does not establish
+  that a process is running. Unknown counters remain unknown; full changed-file
+  counts are separate from the shortened filename preview.
+- Bounded coverage: logs modified in the last 24 hours, at most 160 files from
+  the last 90 UTC date folders, 256 KiB per file, and 12 inspected workspaces with
+  a six-second Git-status budget. Limits and unavailable status are reported.
+- Full read timestamps, canonical source path, refresh failure state, no-store
+  responses and versioned Fleet assets prevent old views from appearing current.
+- Local live readback found 53 recent session records and 12 sampled workspaces,
+  including one with 57 uncommitted paths. These are observations, not completed
+  features or active-agent counts. Acceptance remains 183/366 originals and 19/59
+  references; catalogue, progress validation and dashboard currentness passed.
+- Executed affected dashboard/API/history/proxy/observer suite: 135 tests and 59
+  subtests passed. After observer lint cleanup: 53 tests and 31 subtests passed.
+  The asset revision passed 12 UI tests. Observer/new-test Ruff, JavaScript syntax,
+  diff checks and commit provenance passed. Broader pre-existing dashboard lint
+  findings remain. Full unit collection is BLOCKED_ENVIRONMENT on Windows by
+  the unavailable `fcntl` import in `infra/deploy/host_update.py`; hosted checks
+  and whole-product release validation are NOT_RUN.
+- Installed local observer at `http://127.0.0.1:18729/`; port 8729 was not serving
+  this dashboard. Browser verification confirmed recent observations and the
+  explicit offline-snapshot notice. The installed `source-manifest.json` records
+  its exact source revision and all 32 file hashes. Previous runtime is preserved
+  at `C:\Tools\AO-Fleet-Control\mission-runtime-backup-20261106T113000Z`.
+- Remaining operational gap: AO daemon port 3001 is unavailable. Fleet port 8787
+  serves a preserved October 30 snapshot, not live agent health. Existing AO chat
+  hosts remain present, and the disabled safe-start task guards against recovery
+  while recoverable work exists. No daemon recovery, dispatcher change, worker
+  termination, quota change, or real application submission was performed.
+
+Next useful action is a separately reconciled AO-daemon recovery that preserves
+the existing chat hosts and pending work. Do not relabel legacy snapshot sessions
+as current, bypass the safe-start guard, or infer acceptance from merged fixes.
+
 ## Mission UI continuation — 2026-11-05
 
 User-authorized continuation of the unified Fleet workspace rollout, tracked in

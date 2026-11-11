@@ -98,6 +98,8 @@ class MissionControlTests(unittest.TestCase):
         self.assertEqual(progress["reference"]["accepted_percent"], 50.0)
         self.assertEqual(progress["release_readiness"], "UNKNOWN")
         self.assertFalse(progress["checkpoint_current"])
+        self.assertEqual(progress["source_root"], str(self.root.resolve()))
+        self.assertIn("no-store", response.headers.get("cache-control", ""))
         self.assertFalse((self.root / "docs" / "PROGRESS_CARD.json").exists())
 
     def test_progress_unavailable_hides_backend_diagnostics_and_recovers(self):

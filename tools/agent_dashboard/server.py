@@ -14,12 +14,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .supervisor import AgentSupervisor, LANES
-from .external_sprints import current_round3
+from .external_sprints import current_activity, current_round3
 from .observability import windows_process_snapshot, read_codex_rate_limits
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
 from .progress_history import ProgressHistory
+from .campaign_progress import campaign_progress
 from .delivery_ledger import DeliveryLedger
+from .development_activity import read_development_activity
 from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
 from tools.feature_studio.validate import validate_spec
 
@@ -58,6 +60,13 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
         TrustedHostMiddleware,
         allowed_hosts=["127.0.0.1", "localhost", "testserver"],
     )
+    @app.middleware("http")
+    async def fresh_observations(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.startswith(("/api/", "/static/")):
+            response.headers["Cache-Control"] = "no-store"
+        return response
+
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
     app.state.supervisor = supervisor
     mission = MissionControl(supervisor)
@@ -151,6 +160,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
         mission.require_token(request, mission.token)
         return mission.refresh_models()
 
+    @app.get("/api/development-activity")
+    def development_activity():
+        """Show GitHub delivery without changing canonical acceptance or local sessions."""
+        return read_development_activity()
+
     @app.get("/api/progress")
     def release_progress():
         response = mission.progress()
@@ -160,6 +174,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
             except (ValueError, OSError, KeyError):
                 response["history_capture"] = {"created": False, "error": "history capture unavailable"}
         return response
+
+    @app.get("/api/progress/campaigns")
+    def campaign_progress_endpoint():
+        """Read recorded campaign evidence without changing acceptance."""
+        return campaign_progress(repo)
 
     @app.get("/api/progress/history")
     def progress_timeline(limit: int = Query(default=120, ge=1, le=500)):
@@ -286,8 +305,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
             processes = supervisor._cached_telemetry(
                 "processes", 2.5, windows_process_snapshot,
             )
-            return current_round3(repo, processes=processes)
-        observed = supervisor._cached_telemetry("external_round3", 8.0, inspect)
+            return current_activity(repo, processes=processes)
+        observed = supervisor._cached_telemetry("external_activity", 8.0, inspect)
         if not observed.get("available"):
             return observed
         # The account quota belongs to the account, not a particular Codex agent.

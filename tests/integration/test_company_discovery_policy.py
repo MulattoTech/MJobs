@@ -3,13 +3,14 @@ import copy
 import os
 import tempfile
 import threading
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import httpx
 from pydantic import ValidationError
-from sqlalchemy import delete, event, select, update
+from sqlalchemy import delete, event, select, text, update
 
 from packages.domain.profile import JobPreferences
 from packages.persistence import models as m
@@ -91,6 +92,162 @@ class CompanyDiscoveryPolicyTests(unittest.TestCase):
             self.store, source or self.source, "fixture",
             transport=httpx.MockTransport(response),
         )
+
+    def test_parked_intent_rebinds_to_current_version_of_same_profile(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        self.assertEqual(original["state"], "NEEDS_ORIGIN_REVIEW")
+        self.assertIsNone(original["operation_id"])
+        self.assertIsNone(original["authorization"])
+
+        updated_profile = self.save_profile(
+            minimum_match_for_discovery=55, priority_match_for_discovery=96,
+        )
+        self.assertNotEqual(updated_profile["version"], original["profile_version"])
+        with self.store.engine.begin() as connection:
+            self.assertEqual(record_discovery_request(
+                connection, original["trigger_job_id"], updated_profile,
+                explicit_reason="USER_PREFERRED_COMPANY",
+            ), original["id"])
+        with self.store.engine.connect() as connection:
+            renewed = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audit = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all()
+        self.assertEqual(renewed["profile_id"], original["profile_id"])
+        self.assertEqual(renewed["profile_version"], updated_profile["version"])
+        self.assertEqual(renewed["revision"], original["revision"] + 1)
+        self.assertEqual(renewed["created_at"], original["created_at"])
+        self.assertEqual(renewed["source_snapshot"], original["source_snapshot"])
+        self.assertEqual(renewed["state"], "NEEDS_ORIGIN_REVIEW")
+        self.assertIsNone(renewed["operation_id"])
+        self.assertEqual(renewed["domain_evidence"], [])
+        self.assertEqual(len(audit), 1)
+
+        with self.store.engine.begin() as connection:
+            record_discovery_request(
+                connection, original["trigger_job_id"], updated_profile,
+                explicit_reason="USER_PREFERRED_COMPANY",
+            )
+        with self.store.engine.connect() as connection:
+            repeated = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            repeat_audit_count = len(connection.execute(select(m.audit.c.id).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all())
+        self.assertEqual(repeated["revision"], renewed["revision"])
+        self.assertEqual(repeat_audit_count, 1)
+
+    def test_different_profile_cannot_rebind_or_add_reasons_to_parked_intent(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+
+        other = copy.deepcopy(PROFILE)
+        other.update(id="other-synthetic", name="Other Synthetic", email="other@example.invalid")
+        self.store.save_profile(other)
+        with self.store.engine.begin() as connection:
+            incoming = record_discovery_request(
+                connection, original["trigger_job_id"], self.store.profile("other-synthetic"),
+                explicit_reason="USER_PREFERRED_COMPANY",
+            )
+        self.assertIsNone(incoming)
+        with self.store.engine.connect() as connection:
+            retained = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        for key in ("profile_id", "profile_version", "revision", "candidate_id", "trigger_job_id",
+                    "reasons", "highest_match_score", "created_at", "state", "operation_id"):
+            self.assertEqual(retained[key], original[key], key)
+
+    def test_stale_profile_snapshot_cannot_create_new_intent(self):
+        self.collect()
+        stale_profile = self.store.profile("fixture")
+        with self.store.engine.begin() as connection:
+            request = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            connection.execute(delete(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == request["id"]))
+        self.save_profile(priority_match_for_discovery=97)
+        with self.store.engine.begin() as connection:
+            result = record_discovery_request(
+                connection, request["trigger_job_id"], stale_profile,
+                explicit_reason="USER_PREFERRED_COMPANY",
+            )
+        self.assertIsNone(result)
+        self.assertEqual(self.store.count("company_discovery_requests"), 0)
+
+    def test_stale_profile_snapshot_cannot_restore_previous_request_version(self):
+        self.collect()
+        stale_profile = self.store.profile("fixture")
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active_profile = self.save_profile(priority_match_for_discovery=97)
+        with self.store.engine.begin() as connection:
+            record_discovery_request(connection, original["trigger_job_id"], active_profile,
+                                     explicit_reason="USER_PREFERRED_COMPANY")
+        with self.store.engine.connect() as connection:
+            before = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        with self.store.engine.begin() as connection:
+            rejected = record_discovery_request(
+                connection, original["trigger_job_id"], stale_profile,
+                explicit_reason="USER_PREFERRED_COMPANY",
+            )
+        self.assertIsNone(rejected)
+        with self.store.engine.connect() as connection:
+            after = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        self.assertEqual(after, before)
+
+    def test_profile_change_never_replays_an_authorized_queued_request(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        receipt = approve_discovery_request(
+            self.store, original["id"], "https://employer.example/", original["revision"],
+        )
+        with self.store.engine.connect() as connection:
+            queued = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == receipt["operation_id"])).mappings().one())
+        active_profile = self.save_profile(priority_match_for_discovery=97)
+        with self.store.engine.begin() as connection:
+            record_discovery_request(connection, original["trigger_job_id"], active_profile,
+                                     explicit_reason="USER_PREFERRED_COMPANY")
+        with self.store.engine.connect() as connection:
+            retained = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            retained_operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == receipt["operation_id"])).mappings().one())
+        for key in ("profile_id", "profile_version", "revision", "candidate_id",
+                    "authorization", "selected_website", "domain_evidence", "operation_id", "state"):
+            self.assertEqual(retained[key], queued[key], key)
+        self.assertEqual(retained_operation, operation)
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_profile_renewal_audit_and_binding_roll_back_together(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active_profile = self.save_profile(priority_match_for_discovery=97)
+        with self.assertRaisesRegex(RuntimeError, "synthetic rollback"):
+            with self.store.engine.begin() as connection:
+                record_discovery_request(connection, original["trigger_job_id"], active_profile,
+                                         explicit_reason="USER_PREFERRED_COMPANY")
+                raise RuntimeError("synthetic rollback")
+        with self.store.engine.connect() as connection:
+            unchanged = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audits = connection.execute(select(m.audit.c.id).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all()
+        self.assertEqual(unchanged, original)
+        self.assertEqual(audits, [])
+
+        with self.store.engine.begin() as connection:
+            record_discovery_request(connection, original["trigger_job_id"], active_profile,
+                                     explicit_reason="USER_PREFERRED_COMPANY")
+        with self.store.engine.connect() as connection:
+            renewed = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        self.assertEqual(renewed["profile_version"], active_profile["version"])
+        self.assertEqual(renewed["revision"], original["revision"] + 1)
 
     def test_disabled_policy_prevents_new_profile_discovery_requests(self):
         self.save_profile(company_discovery_enabled=False)
@@ -416,6 +573,163 @@ class CompanyDiscoveryPolicyPostgresTests(CompanyDiscoveryPolicyTests):
     )
     _new_store = _Fixture._new_store
     _drop_schema = _Fixture._drop_schema
+
+    def test_profile_update_after_validation_waits_for_renewal_commit(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active = self.save_profile(priority_match_for_discovery=97)
+        checked, release, writer_entered, writer_finished = (threading.Event() for _ in range(4))
+        local = threading.local()
+        backend = {}
+
+        def before_execute(connection, cursor, statement, parameters, context, executemany):
+            if (getattr(local, "role", None) == "writer"
+                    and statement.startswith(f"UPDATE {m.profiles.name}") and not writer_entered.is_set()):
+                backend["writer"] = connection.execute(text("SELECT pg_backend_pid()")).scalar_one()
+                writer_entered.set()
+
+        def after_execute(connection, cursor, statement, parameters, context, executemany):
+            if getattr(local, "role", None) != "renewal":
+                return
+            if "FROM company_discovery_requests" in statement and "FOR UPDATE" in statement:
+                local.request_locked = True
+            if (getattr(local, "request_locked", False) and f"SELECT {m.profiles.name}.version" in statement
+                    and not checked.is_set()):
+                checked.set()
+                if not release.wait(5):
+                    raise AssertionError("Synthetic renewal validation was not released")
+
+        def renew():
+            local.role = "renewal"
+            with self.store.engine.begin() as connection:
+                backend["renewal"] = connection.execute(text("SELECT pg_backend_pid()")).scalar_one()
+                return record_discovery_request(connection, original["trigger_job_id"], active,
+                                                explicit_reason="USER_PREFERRED_COMPANY")
+
+        def update_profile():
+            local.role = "writer"
+            try:
+                return self.save_profile(priority_match_for_discovery=98)
+            finally:
+                writer_finished.set()
+
+        event.listen(self.store.engine, "before_cursor_execute", before_execute)
+        event.listen(self.store.engine, "after_cursor_execute", after_execute)
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                renewal = pool.submit(renew)
+                try:
+                    self.assertTrue(checked.wait(5), "Renewal did not reach its post-request version check")
+                    writer = pool.submit(update_profile)
+                    self.assertTrue(writer_entered.wait(5), "Profile writer did not attempt its row update")
+                    blockers = []
+                    deadline = time.monotonic() + 5
+                    with self.store.engine.connect() as observer:
+                        while time.monotonic() < deadline and not writer_finished.is_set():
+                            blockers = observer.execute(text("SELECT pg_blocking_pids(:pid)"),
+                                                        {"pid": backend["writer"]}).scalar_one()
+                            if backend["renewal"] in blockers:
+                                break
+                            time.sleep(.01)
+                    self.assertIn(backend["renewal"], blockers,
+                                  "Profile update escaped the validated renewal transaction")
+                    self.assertFalse(writer_finished.is_set())
+                finally:
+                    release.set()
+                self.assertEqual(renewal.result(timeout=5), original["id"])
+                latest = writer.result(timeout=5)
+        finally:
+            release.set()
+            event.remove(self.store.engine, "before_cursor_execute", before_execute)
+            event.remove(self.store.engine, "after_cursor_execute", after_execute)
+
+        with self.store.engine.connect() as connection:
+            renewed = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audits = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all()
+        self.assertEqual(renewed["profile_version"], active["version"])
+        self.assertEqual(renewed["revision"], original["revision"] + 1)
+        self.assertEqual(len(audits), 1)
+        self.assertEqual(self.store.profile("fixture")["version"], latest["version"])
+        self.assertNotEqual(latest["version"], active["version"])
+
+    def test_profile_writer_lock_rejects_renewal_without_partial_rebinding(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active = self.save_profile(priority_match_for_discovery=97)
+
+        def renew():
+            with self.store.engine.begin() as connection:
+                return record_discovery_request(connection, original["trigger_job_id"], active,
+                                                explicit_reason="USER_PREFERRED_COMPANY")
+
+        # The same non-key UPDATE used by save_profile's compare-and-lock.
+        with self.store.engine.begin() as writer:
+            writer.execute(update(m.profiles).where(m.profiles.c.id == active["id"]).values(
+                version=active["version"]))
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                contender = pool.submit(renew)
+                with self.assertRaisesRegex(ValueError, "^DISCOVERY_PROFILE_CHANGED$"):
+                    contender.result(timeout=6)
+        with self.store.engine.connect() as connection:
+            retained = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audits = connection.execute(select(m.audit.c.id).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all()
+        self.assertEqual(retained, original)
+        self.assertEqual(audits, [])
+        self.assertEqual(renew(), original["id"])
+
+    def test_locked_job_defers_profile_renewal_without_losing_original_intent(self):
+        self.collect()
+        with self.store.engine.connect() as connection:
+            original = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+        active_profile = self.save_profile(priority_match_for_discovery=97)
+        locked = threading.Event()
+        release = threading.Event()
+
+        def hold_job_update_lock():
+            with self.store.engine.begin() as connection:
+                connection.execute(select(m.jobs.c.id).where(
+                    m.jobs.c.id == original["trigger_job_id"]).with_for_update()).scalar_one()
+                locked.set()
+                if not release.wait(5):
+                    raise AssertionError("Synthetic job lock was not released")
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            owner = pool.submit(hold_job_update_lock)
+            try:
+                self.assertTrue(locked.wait(5), "Owner did not lock the job")
+                with self.store.engine.begin() as connection:
+                    result = record_discovery_request(
+                        connection, original["trigger_job_id"], active_profile,
+                        explicit_reason="USER_PREFERRED_COMPANY",
+                    )
+                self.assertEqual(result, original["id"])
+                with self.store.engine.connect() as connection:
+                    waiting = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+                self.assertEqual(waiting, original)
+            finally:
+                release.set()
+            owner.result(timeout=5)
+
+        with self.store.engine.begin() as connection:
+            record_discovery_request(connection, original["trigger_job_id"], active_profile,
+                                     explicit_reason="USER_PREFERRED_COMPANY")
+        with self.store.engine.connect() as connection:
+            renewed = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            audit_count = len(connection.execute(select(m.audit.c.id).where(
+                m.audit.c.entity_id == original["id"],
+                m.audit.c.action == "COMPANY_DISCOVERY_REQUEST_PROFILE_RENEWED",
+            )).scalars().all())
+        self.assertEqual(renewed["profile_version"], active_profile["version"])
+        self.assertEqual(renewed["revision"], original["revision"] + 1)
+        self.assertEqual(audit_count, 1)
 
     def test_promotion_and_worker_claim_serialize_without_replacing_the_claim(self):
         self._assert_promotion_claim_order("promote")
