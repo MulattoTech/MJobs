@@ -1,0 +1,198 @@
+"""Native provider-shaped fixture routes stay local and bind durable receipts."""
+import hashlib
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from fixtures.mock_server import create_mock_app
+
+RESUME = b"%PDF-1.4\nsynthetic resume\n%%EOF"
+COVER_LETTER = b"%PDF-1.4\nsynthetic cover letter\n%%EOF"
+APP_ID = "fixture-native-application-0001"
+REQUEST_ID = "fixture-native-request-0001"
+
+
+def contract_hash(client, provider="greenhouse"):
+    response = client.get(f"/ats/native/{provider}/B/questions")
+    assert response.status_code == 200, response.text
+    return response.json()["contract_sha256"]
+
+
+def post_form(client, *, provider="greenhouse", request_id=REQUEST_ID,
+              application_id=APP_ID, contract_sha=None, resume=RESUME,
+              cover=COVER_LETTER, review_sha="a" * 64, **changes):
+    if contract_sha is None:
+        contract_sha = contract_hash(client, provider)
+    fields = {
+        "name": "Alex Fixture",
+        "email": "alex@example.test",
+        "country": "United States",
+        "remote": "yes",
+        "fixture_question": "Controlled fictional test application.",
+        "application_id": application_id,
+        "request_id": request_id,
+        "contract_sha256": contract_sha,
+        "review_sha256": review_sha,
+    }
+    fields.update(changes)
+    files = {
+        "resume": ("resume.pdf", resume, "application/pdf"),
+        "cover_letter": ("cover-letter.pdf", cover, "application/pdf"),
+    }
+    return client.post(f"/ats/native/{provider}/B/submit", data=fields, files=files)
+
+
+class NativeMockATSFixtureTests(unittest.TestCase):
+    def test_native_personas_are_exact_pairs_and_change_the_contract_digest(self):
+        for provider in ("greenhouse", "lever"):
+            with self.subTest(provider=provider), TestClient(create_mock_app(scenario="native-" + provider)) as client:
+                metadata = client.get(f"/ats/native/{provider}/B/questions").json()
+                old_contract = {"provider": provider, "requisition": "B",
+                    "template_version": "native-form-v1", "questions": metadata["questions"],
+                    "fields": ["name", "email", "country", "remote", "resume", "cover_letter", "fixture_question"]}
+                old_hash = hashlib.sha256(json.dumps(old_contract, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                self.assertNotEqual(metadata["contract_sha256"], old_hash)
+                self.assertEqual(post_form(client, provider=provider, contract_sha=old_hash).status_code, 409)
+                rejected = (
+                    ("Alex Fixture", "onboarding@example.invalid"),
+                    ("Synthetic Onboarding Applicant", "alex@example.test"),
+                    ("Unrecognized Applicant", "applicant@example.com"),
+                    ("Synthetic Onboarding Applicant", "other@example.invalid"),
+                )
+                for name, email in rejected:
+                    response = post_form(client, provider=provider, name=name, email=email)
+                    self.assertEqual(response.status_code, 422, response.text)
+                self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), {"status": "not_found"})
+                for index, (name, email) in enumerate((
+                        ("Alex Fixture", "alex@example.test"),
+                        ("Synthetic Onboarding Applicant", "onboarding@example.invalid"))):
+                    response = post_form(client, provider=provider, name=name, email=email,
+                                         application_id=f"allowed-persona-{index}")
+                    self.assertEqual(response.status_code, 200, response.text)
+
+    def test_native_scenario_exposes_one_accessible_form_and_question_contract(self):
+        with TestClient(create_mock_app(scenario="native-greenhouse")) as client:
+            page = client.get("/ats/native/greenhouse/B")
+            self.assertEqual(page.status_code, 200)
+            self.assertEqual(page.text.count("<form"), 1)
+            self.assertNotIn("<script", page.text.lower())
+            self.assertNotIn("<iframe", page.text.lower())
+            for label in ("Name", "Email", "Country", "Remote role", "Resume",
+                          "Cover letter", "Approved fixture answer"):
+                self.assertIn(f'aria-label="{label}"', page.text)
+            self.assertIn('aria-label="Country" name="country" type="text" required', page.text)
+            self.assertIn('aria-label="Remote role" name="remote" type="text" required', page.text)
+            self.assertIn('action="/ats/native/greenhouse/B/submit"', page.text)
+            self.assertIn("Submit owned fixture", page.text)
+
+            questions = client.get("/ats/native/greenhouse/B/questions")
+            old_questions = client.get("/ats/questions/B")
+            self.assertEqual(questions.status_code, 200)
+            self.assertEqual(questions.json()["questions"], old_questions.json()["questions"])
+            self.assertEqual(questions.json()["template_version"], "native-form-v1")
+            self.assertEqual(len(questions.json()["contract_sha256"]), 64)
+
+    def test_routes_are_opt_in_and_provider_scoped(self):
+        with TestClient(create_mock_app()) as baseline:
+            self.assertEqual(baseline.get("/ats/native/greenhouse/B").status_code, 404)
+        with TestClient(create_mock_app(scenario="native-greenhouse")) as client:
+            self.assertEqual(client.get("/ats/native/lever/B").status_code, 404)
+            self.assertEqual(client.get("/ats/native/greenhouse/C").status_code, 404)
+            jobs = client.get("/ats/example/jobs").json()["jobs"]
+            self.assertEqual([row["source_job_id"] for row in jobs], ["employer-A", "employer-B"])
+            self.assertTrue(jobs[0]["application_url"].endswith("/ats/apply/A"))
+            self.assertTrue(jobs[1]["application_url"].endswith("/ats/native/greenhouse/B"))
+
+    def test_unknown_scenario_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "Unknown fictional fixture scenario"):
+            create_mock_app(scenario="native-workday")
+
+    def test_valid_submission_binds_files_and_survives_fixture_restart(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_path = Path(temp) / "receipts.json"
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as client:
+                response = post_form(client)
+                self.assertEqual(response.status_code, 200, response.text)
+                receipt = client.get(f"/ats/receipts/{APP_ID}").json()
+                self.assertEqual(receipt["native_provider"], "greenhouse")
+                self.assertEqual(receipt["request_id"], REQUEST_ID)
+                self.assertEqual(receipt["contract_sha256"], contract_hash(client))
+                self.assertEqual(receipt["review_sha256"], "a" * 64)
+                self.assertEqual(receipt["resume_sha256"], hashlib.sha256(RESUME).hexdigest())
+                self.assertEqual(receipt["cover_letter_sha256"], hashlib.sha256(COVER_LETTER).hexdigest())
+                self.assertEqual(receipt["submission_count"], 1)
+
+                replay = post_form(client)
+                self.assertEqual(replay.status_code, 200, replay.text)
+                self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), receipt)
+                changed_binding = post_form(client, request_id="another-request")
+                self.assertEqual(changed_binding.status_code, 409)
+                changed_review = post_form(client, review_sha="b" * 64)
+                self.assertEqual(changed_review.status_code, 409)
+                legacy_replay = client.post("/ats/submit/B", data={
+                    "application_id": APP_ID,
+                    "answer": "Controlled fictional test application.",
+                    "confirmed": "on",
+                })
+                self.assertEqual(legacy_replay.status_code, 409)
+                self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), receipt)
+
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as restarted:
+                self.assertEqual(restarted.get(f"/ats/receipts/{APP_ID}").json(), receipt)
+                self.assertEqual(post_form(restarted).status_code, 200)
+                self.assertEqual(restarted.get(f"/ats/receipts/{APP_ID}").json(), receipt)
+            self.assertEqual(len(json.loads(receipt_path.read_text(encoding="utf-8"))), 1)
+
+    def test_missing_fields_wrong_profile_values_invalid_pdf_and_stale_bindings_reject(self):
+        with TestClient(create_mock_app(scenario="native-greenhouse")) as client:
+            missing = {
+                "name": "", "email": "", "country": "", "remote": "",
+                "fixture_question": "", "request_id": "", "application_id": "",
+            }
+            self.assertEqual(post_form(client, **missing).status_code, 422)
+            self.assertEqual(post_form(client, email="other@example.test").status_code, 422)
+            self.assertEqual(post_form(client, country="Canada").status_code, 422)
+            self.assertEqual(post_form(client, fixture_question="unapproved answer").status_code, 422)
+            self.assertEqual(post_form(client, review_sha="").status_code, 422)
+            self.assertEqual(post_form(client, review_sha="A" * 64).status_code, 422)
+            self.assertEqual(post_form(client, review_sha="a" * 63).status_code, 422)
+            self.assertEqual(post_form(client, resume=b"not a pdf").status_code, 422)
+            self.assertEqual(post_form(client, cover=b"not a pdf").status_code, 422)
+            self.assertEqual(post_form(client, contract_sha="0" * 64).status_code, 409)
+            self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json(), {"status": "not_found"})
+
+    def test_conflicting_existing_receipt_identity_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_path = Path(temp) / "receipts.json"
+            receipt_path.write_text(json.dumps({APP_ID: {
+                "application_id": APP_ID, "requisition": "A", "receipt": "MOCK-existing",
+            }}), encoding="utf-8")
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as client:
+                response = post_form(client)
+                self.assertEqual(response.status_code, 409)
+                self.assertEqual(client.get(f"/ats/receipts/{APP_ID}").json()["receipt"], "MOCK-existing")
+
+    def test_native_provider_binding_conflicts_in_both_directions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            receipt_path = Path(temp) / "receipts.json"
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as greenhouse:
+                self.assertEqual(post_form(greenhouse).status_code, 200)
+
+            with TestClient(create_mock_app(receipt_path, scenario="native-lever")) as lever:
+                self.assertEqual(post_form(lever, provider="lever").status_code, 409)
+                self.assertEqual(post_form(
+                    lever, provider="lever", application_id="fixture-native-application-0002",
+                    request_id="fixture-native-request-0002").status_code, 200)
+
+            with TestClient(create_mock_app(receipt_path, scenario="native-greenhouse")) as greenhouse:
+                reverse = post_form(
+                    greenhouse, application_id="fixture-native-application-0002",
+                    request_id="fixture-native-request-0002")
+                self.assertEqual(reverse.status_code, 409)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -371,6 +371,8 @@ def read_attempt_history(store, profile_id, application_id):
         event_ids.extend(identity(UPLOAD_ACTION, row["id"]) for row in rows[:100])
         events = {row["id"]: row["payload"] for row in connection.execute(
             select(m.audit.c.id, m.audit.c.payload).where(m.audit.c.id.in_(event_ids))).mappings()}
+        from services.applications.owned_ats_execution import read_native_reviews
+        native_reviews = read_native_reviews(connection, application_id, [row["id"] for row in rows[:100]])
         result = []
         for row in rows[:100]:
             started = events.get(_event_id(STARTED, row["id"]), {})
@@ -392,6 +394,7 @@ def read_attempt_history(store, profile_id, application_id):
                 "mode": snapshot.get("mode"), "steps": steps,
                 "legacy_metadata": not bool(started),
                 "verified_uploads": events.get(identity(UPLOAD_ACTION, row["id"]), {}).get("documents", []),
+                "native_fixture": native_reviews.get(row["id"]),
             })
     return {"profile_id": profile_id, "application_id": application_id,
             "attempts": result, "has_more": len(rows) > 100,

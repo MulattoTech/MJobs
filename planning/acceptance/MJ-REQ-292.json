@@ -1,0 +1,3133 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-292",
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/293",
+  "baseline_commit": "7caf4e380bc8b5dc75024895ab400e770015a3ec",
+  "updated_at_utc": "2026-11-06T20:46:01.345347+00:00",
+  "umbrella_result": "PARTIAL",
+  "scoreboard": {
+    "total": 60,
+    "verified_pass": 0,
+    "PARTIAL": 53,
+    "FAIL": 0,
+    "NOT_RUN": 7,
+    "BLOCKED": 0
+  },
+  "specification": {
+    "working": "docs/spec/areas/delivery_control.md",
+    "original": "docs/spec/source/MJobs_Startup_Prompt.original.md",
+    "original_lines": [
+      7659,
+      7725
+    ]
+  },
+  "acceptance_policy": "PASS requires observed numbered acceptance on exact source with artifact hashes; historical or adjacent tests do not promote rows. Review, protected integration and whole-contract readiness remain separate.",
+  "steps": [
+    {
+      "number": 1,
+      "phase": "A",
+      "original_requirement": "Start the full stack.",
+      "expected_observable_result": "All required isolated Compose service processes start, migrations complete and readiness succeeds.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "All required isolated Compose service processes start, migrations complete and readiness succeeds. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Single owned Compose startup; ten long-running services healthy, migration exit0, no preexisting project resources. Runtime preflight passed. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 2,
+      "phase": "A",
+      "original_requirement": "Open the dashboard.",
+      "expected_observable_result": "The real React dashboard opens through the tested API service.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "The real React dashboard opens through the tested API service. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Dashboard landing screen is visible in the browser. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 3,
+      "phase": "A",
+      "original_requirement": "Complete first-run setup.",
+      "expected_observable_result": "First-run wizard finishes and the saved setup survives reload.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "First-run wizard finishes and the saved setup survives reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+        "evidence_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+        "command": "python -m cli.acceptance_campaign --evidence-dir outputs/mjreq292-native-ea58d86af3f3/journey --startup-receipt outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json --build-receipt outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json --source-setup --monitoring --stop-after-ui",
+        "observed_result": "Producer PASS in an incomplete candidate run: First-run configuration, saved search, and current-version fact decisions were reloaded. Independent EF sanitized projection retains checks; journey wrapper failed continuity validation, source unmerged, so ledger remains PARTIAL.",
+        "executed_at_utc": "2026-11-06T14:39:48.477702-06:00",
+        "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 4,
+      "phase": "A",
+      "original_requirement": "Upload my resume.",
+      "expected_observable_result": "Synthetic PDF and DOCX resume import succeeds through UI/API and persists original bytes.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "Synthetic PDF and DOCX resume import succeeds through UI/API and persists original bytes. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Synthetic resume was uploaded and extracted through the UI. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 5,
+      "phase": "A",
+      "original_requirement": "Review extracted career information.",
+      "expected_observable_result": "Extracted suggestions are displayed unapproved with source identity.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "Extracted suggestions are displayed unapproved with source identity. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Extracted suggestions remain pending until reviewed and approved. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 6,
+      "phase": "A",
+      "original_requirement": "Correct any parsing errors.",
+      "expected_observable_result": "A deliberately wrong extracted fact is corrected, explicitly reviewed and read back after reload.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "A deliberately wrong extracted fact is corrected, explicitly reviewed and read back after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: An extracted fact was corrected and saved as an unapproved pending fact. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 7,
+      "phase": "A",
+      "original_requirement": "Save the verified career profile.",
+      "expected_observable_result": "Only explicitly verified facts persist in the selected career profile.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "Only explicitly verified facts persist in the selected career profile. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Only the explicitly reviewed synthetic Python and SQL facts are approved. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 8,
+      "phase": "A",
+      "original_requirement": "Create a remote IT search profile.",
+      "expected_observable_result": "A saved remote IT search belongs to the same profile and survives reload.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "tests/browser/test_first_run_wizard.py",
+        "tests/browser/test_profile_import.py",
+        "services/career_profile/durable_extraction.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase A connected assertions plus focused negative regressions",
+      "required_integration_validation": "A saved remote IT search belongs to the same profile and survives reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Remote IT and Data Engineer searches were saved through the Sources UI. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "operation_id": "82cc897387c4000d8998fb74587b9b91273ec36915a0c651f05dc5c5de562ab0",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "3a8f0ce6-ade0-4700-a76a-2a3516431be3"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 9,
+      "phase": "B",
+      "original_requirement": "Enable several job sources.",
+      "expected_observable_result": "At least two intended job sources are enabled and read back.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Actual configuration of both designated public sources under owned isolated containment remains unverified.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "At least two intended job sources are enabled and read back. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The fixture does not expose multiple enabled job sources. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 10,
+      "phase": "B",
+      "original_requirement": "Run discovery.",
+      "expected_observable_result": "Discovery completes through real queued workers using the saved search.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Discovery completes through real queued workers using the saved search. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Fixture discovery completed and search-scoped jobs were read back. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "operation_id": "82cc897387c4000d8998fb74587b9b91273ec36915a0c651f05dc5c5de562ab0",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "3a8f0ce6-ade0-4700-a76a-2a3516431be3"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 11,
+      "phase": "B",
+      "original_requirement": "See real discovered jobs.",
+      "expected_observable_result": "Authorized read-only public sources produce independently observed real jobs; fixture data is insufficient.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Actual read-only public collection and visible real-source provenance remain unverified in this connected run.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Authorized read-only public sources produce independently observed real jobs; fixture data is insufficient. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: Synthetic fixture discovery does not prove real-provider jobs. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "operation_id": "82cc897387c4000d8998fb74587b9b91273ec36915a0c651f05dc5c5de562ab0",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "3a8f0ce6-ade0-4700-a76a-2a3516431be3"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 12,
+      "phase": "B",
+      "original_requirement": "Search them.",
+      "expected_observable_result": "A search changes the visible result set with correct matching and exclusion.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "A search changes the visible result set with correct matching and exclusion. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Text search narrowed the visible fixture job list. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 13,
+      "phase": "B",
+      "original_requirement": "Filter them.",
+      "expected_observable_result": "Selected filters constrain the visible results as specified.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Selected filters constrain the visible results as specified. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Job title filter retained only the requested fixture title. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 14,
+      "phase": "B",
+      "original_requirement": "Sort by match.",
+      "expected_observable_result": "Visible result order agrees with calculated match scores and deterministic ties.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Visible result order agrees with calculated match scores and deterministic ties. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Visible fixture jobs follow the match-score order from readback. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 15,
+      "phase": "B",
+      "original_requirement": "See salary where available.",
+      "expected_observable_result": "Available salary values and provenance are shown without fabricated data.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Actual scalar salary data is present in the API but missing in the current job-detail UI; narrow UI correction and connected recheck pending.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Available salary values and provenance are shown without fabricated data. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: Fixture salary fields or the salary-filtered list are unavailable. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 16,
+      "phase": "B",
+      "original_requirement": "See remote restrictions.",
+      "expected_observable_result": "Known remote eligibility and restrictions are visible and consistent with source evidence.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Actual read-only public collection and visible real-source provenance remain unverified in this connected run.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Known remote eligibility and restrictions are visible and consistent with source evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: Remote type and location are shown; fixture data does not state employer remote restrictions. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 17,
+      "phase": "B",
+      "original_requirement": "See duplicate source counts.",
+      "expected_observable_result": "Canonical result displays the correct number of distinct source postings.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Canonical result displays the correct number of distinct source postings. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The job card and readback expose the same duplicate posting count. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 18,
+      "phase": "B",
+      "original_requirement": "Open a canonical job.",
+      "expected_observable_result": "Selected canonical job opens with the same identity used in following phases.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Selected canonical job opens with the same identity used in following phases. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The canonical fixture job opened in the detail panel. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 19,
+      "phase": "B",
+      "original_requirement": "See every known source copy.",
+      "expected_observable_result": "Every known posting/source copy is visible with preserved provenance.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Every known posting/source copy is visible with preserved provenance. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Every known fixture source copy is listed in the job detail. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 20,
+      "phase": "B",
+      "original_requirement": "See the preferred authoritative source.",
+      "expected_observable_result": "Preferred authoritative source is visible and justified by current source evidence.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Preferred authoritative source is visible and justified by current source evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The verified employer ATS route is visibly preferred and persists on readback. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 21,
+      "phase": "B",
+      "original_requirement": "See its application route.",
+      "expected_observable_result": "Selected application destination and route are visible for the canonical job.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Selected application destination and route are visible for the canonical job. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The selected verified employer route is visible as a saved application link. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 22,
+      "phase": "B",
+      "original_requirement": "See an explainable match score.",
+      "expected_observable_result": "Score and contributing/missing verified facts explain the match.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/discovery/sources/collect.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py",
+        "tests/browser/test_matching_explanation_workflow.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "rey_ui_observations",
+      "exclusive_source_ownership": [
+        "cli/ui_e2e.py",
+        "cli/ui_e2e_jobs_journey.py",
+        "tests/unit/test_ui_e2e_acceptance_observations.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase B connected assertions plus focused negative regressions",
+      "required_integration_validation": "Score and contributing/missing verified facts explain the match. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The selected job score and requirement explanation are visible. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 23,
+      "phase": "C",
+      "original_requirement": "Encounter an employer not already monitored.",
+      "expected_observable_result": "An imported employer is initially unmonitored and produces a distinct discovery intent.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "An imported employer is initially unmonitored and produces a distinct discovery intent. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 24,
+      "phase": "C",
+      "original_requirement": "See company discovery run automatically.",
+      "expected_observable_result": "The eligible unseen employer triggers real company-discovery execution without manually substituting a source.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "The eligible unseen employer triggers real company-discovery execution without manually substituting a source. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 25,
+      "phase": "C",
+      "original_requirement": "See the official company domain identified.",
+      "expected_observable_result": "Official domain is corroborated through independent admissible evidence.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Official employer domain has not been corroborated in this connected run; fixture flywheel bypasses public official-domain acquisition. Bounded native-job discovery enhancement and actual proof pending.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "Official domain is corroborated through independent admissible evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: Official employer domain remains unverified in this fixture. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 26,
+      "phase": "C",
+      "original_requirement": "See the career site identified.",
+      "expected_observable_result": "Official careers location is identified with preserved evidence.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "Official careers location is identified with preserved evidence. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 27,
+      "phase": "C",
+      "original_requirement": "See the ATS identified where possible.",
+      "expected_observable_result": "Supported ATS identity is established where evidence permits; ambiguity fails safely.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "Supported ATS identity is established where evidence permits; ambiguity fails safely. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 28,
+      "phase": "C",
+      "original_requirement": "See the employer enrolled as a direct source.",
+      "expected_observable_result": "Eligible employer becomes a direct source with durable identity and correct controls.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "Eligible employer becomes a direct source with durable identity and correct controls. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 29,
+      "phase": "C",
+      "original_requirement": "See all current employer openings enumerated.",
+      "expected_observable_result": "All current openings within the supported provider listing are enumerated without truncation.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "All current openings within the supported provider listing are enumerated without truncation. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 30,
+      "phase": "C",
+      "original_requirement": "See an employer-only relevant job that was not in the original aggregator.",
+      "expected_observable_result": "A qualifying direct-employer job absent from the original aggregator is discovered.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "A qualifying direct-employer job absent from the original aggregator is discovered. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 31,
+      "phase": "C",
+      "original_requirement": "See duplicate employer/aggregator postings merge correctly.",
+      "expected_observable_result": "Overlapping employer/aggregator copies merge into one canonical job without provenance loss.",
+      "implementation_references": [
+        "services/company_discovery/requests.py",
+        "services/company_discovery/domain_acquisition.py",
+        "services/company_discovery/flywheel.py",
+        "tests/integration/test_e2e_acceptance_workflow_slice.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "obiwan_employer",
+      "exclusive_source_ownership": [
+        "services/company_discovery/domain_acquisition.py",
+        "tests/unit/test_official_domain_sameas.py",
+        "tests/integration/test_official_domain_sameas.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_NARROW_PREREQUISITE",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase C connected assertions plus focused negative regressions",
+      "required_integration_validation": "Overlapping employer/aggregator copies merge into one canonical job without provenance loss. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Connected fixture employer evidence verified. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "22a984430cf4d3e9042128f52be520e42ee591e439f7aac1894cd5116feabd44",
+          "operation_id": "e20061170524e06af54124a97f4c1b026e4b8f9aa4e4996b070b55ed39a84bba",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae",
+          "request_id": "afe027e4-f9a9-49ab-9e49-c4be41d7e2be"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 32,
+      "phase": "D",
+      "original_requirement": "Save or shortlist a strong match.",
+      "expected_observable_result": "A strong match is saved or shortlisted and remains saved after reload.",
+      "implementation_references": [
+        "tests/integration/test_e2e_resume_comparison_criterion34.py",
+        "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
+        "cli/ui_e2e.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "ahsoka_documents",
+      "exclusive_source_ownership": [
+        "tests/browser/test_journey_document_provenance.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "required_integration_validation": "A strong match is saved or shortlisted and remains saved after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The selected Data Engineer job was saved and read back. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 33,
+      "phase": "D",
+      "original_requirement": "Generate a truthful tailored resume.",
+      "expected_observable_result": "Tailored resume uses verified facts only and preserves base/version provenance.",
+      "implementation_references": [
+        "tests/integration/test_e2e_resume_comparison_criterion34.py",
+        "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
+        "cli/ui_e2e.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
+      "responsible_agent": "ahsoka_documents",
+      "exclusive_source_ownership": [
+        "tests/browser/test_journey_document_provenance.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "required_integration_validation": "Tailored resume uses verified facts only and preserves base/version provenance. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Tailored resume contains only selected approved facts and preserves approved cover-letter facts. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "document_ids": [
+            "document-05",
+            "document-06"
+          ],
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 34,
+      "phase": "D",
+      "original_requirement": "Compare it to the base resume.",
+      "expected_observable_result": "Comparison displays actual differences between the selected base and tailored resume versions.",
+      "implementation_references": [
+        "tests/integration/test_e2e_resume_comparison_criterion34.py",
+        "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
+        "cli/ui_e2e.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
+      "responsible_agent": "ahsoka_documents",
+      "exclusive_source_ownership": [
+        "tests/browser/test_journey_document_provenance.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "required_integration_validation": "Comparison displays actual differences between the selected base and tailored resume versions. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The UI compared immutable generated base and tailored resume versions. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "document_ids": [
+            "document-03",
+            "document-04"
+          ],
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 35,
+      "phase": "D",
+      "original_requirement": "Generate a unique cover letter.",
+      "expected_observable_result": "Cover letter is specific to the selected job and distinct from a different job letter without invented facts.",
+      "implementation_references": [
+        "tests/integration/test_e2e_resume_comparison_criterion34.py",
+        "tests/integration/test_e2e_unique_cover_letter_criterion35.py",
+        "cli/ui_e2e.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
+      "responsible_agent": "ahsoka_documents",
+      "exclusive_source_ownership": [
+        "tests/browser/test_journey_document_provenance.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_VERIFICATION",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase D connected assertions plus focused negative regressions",
+      "required_integration_validation": "Cover letter is specific to the selected job and distinct from a different job letter without invented facts. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Distinct job-specific cover letters match the persisted A and B application records. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "document_id": "cover-letter-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 36,
+      "phase": "E",
+      "original_requirement": "Prepare an application.",
+      "expected_observable_result": "Application preparation persists the correct profile/job and document revision pins.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Application preparation persists the correct profile/job and document revision pins. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The selected B application was prepared and read back with its profile and job pins. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "30463e3397f7a3bf8d556d47c44a7f1d41395e61b4747ebd8e0ad9de58e604d2",
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 37,
+      "phase": "E",
+      "original_requirement": "See the application route selected.",
+      "expected_observable_result": "Prepared application shows the correct selected route.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent review; current diagnostic source is unmerged and the run stopped at document provenance.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Prepared application shows the correct selected route. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ff5ecfc200de75507280df87e0c86612bd258e98",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ff5ecfc2.json",
+        "evidence_sha256": "dc886a08e035fa54b0b1a444065e341a5f3c2986ed17f012a944e64e2802996d",
+        "command": "python -m cli.acceptance_journey --base-url http://127.0.0.1:18736 --project-name mjobs-fixture-ff5ecfc200de --port 18736 --run-id mjreq292-ff5ecfc200de-native-greenhouse-01 --evidence-dir outputs/mjreq292-native-ff5ecfc200de-journey --build-receipt <owned-build-receipt> --startup-receipt outputs/mjreq292-native-ff5ecfc200de/startup-receipt.json --monitoring --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The displayed application route matched the selected route readback for B. Independent whole-journey review and protected merged-source verification remain incomplete.",
+        "executed_at_utc": "2026-11-06T12:43:01.980312+00:00",
+        "run_id": "mjreq292-ff5ecfc200de-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "30463e3397f7a3bf8d556d47c44a7f1d41395e61b4747ebd8e0ad9de58e604d2",
+          "job_id": "9e0abddab52d66c7ac71216822d93122e7d7d0a35610b75c47c3866598bb585b",
+          "profile_id": "541c99cb-dd83-41a3-997d-d881ce03d5ae"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 38,
+      "phase": "E",
+      "original_requirement": "Have the correct ATS adapter selected.",
+      "expected_observable_result": "Supported adapter selection matches the route and provider identity.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Supported adapter selection matches the route and provider identity. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The selected route and fixture-only adapter were rechecked during the local attempt. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 39,
+      "phase": "E",
+      "original_requirement": "Open the application in Playwright.",
+      "expected_observable_result": "Playwright opens the controlled application form with the selected adapter.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Playwright opens the controlled application form with the selected adapter. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The local browser attempt navigated to and detected the selected native fixture form. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: playwright_form_opened.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 40,
+      "phase": "E",
+      "original_requirement": "Have contact fields filled.",
+      "expected_observable_result": "Contact fields contain the intended verified applicant values.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Contact fields contain the intended verified applicant values. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The native attempt filled and read back contact fields from the current profile. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: contact_fields_match_verified_profile, contact_fields_readback_verified.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 41,
+      "phase": "E",
+      "original_requirement": "Have resume uploaded.",
+      "expected_observable_result": "The intended resume artifact is uploaded and its digest matches the selected version.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "The intended resume artifact is uploaded and its digest matches the selected version. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The verified browser resume bytes matched the selected persisted B resume document. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: resume_sha256_matches, resume_upload_matches_document.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "document_id": "document-02",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 42,
+      "phase": "E",
+      "original_requirement": "Have cover letter uploaded if applicable.",
+      "expected_observable_result": "Applicable cover-letter upload matches the intended document version and digest.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Applicable cover-letter upload matches the intended document version and digest. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The verified browser cover-letter bytes matched the selected persisted B cover letter. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: cover_letter_sha256_matches, cover_letter_upload_matches_document.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "document_id": "document-03",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 43,
+      "phase": "E",
+      "original_requirement": "Have approved questions answered.",
+      "expected_observable_result": "Previously approved exact-question answers populate appropriate fields.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Previously approved exact-question answers populate appropriate fields. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The native attempt filled and validated the exact reviewed answers; values stay hidden. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: approved_answers_readback_verified.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 44,
+      "phase": "E",
+      "original_requirement": "Have an uncertain question stop for review.",
+      "expected_observable_result": "Unknown/ambiguous/sensitive/unapproved question stops for review before submission.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Unknown/ambiguous/sensitive/unapproved question stops for review before submission. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The uncertain required answer paused the local attempt before any submit step. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 45,
+      "phase": "E",
+      "original_requirement": "Approve/correct it.",
+      "expected_observable_result": "Explicit human review/correction produces a fresh question-bound approval.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact62c diagnostic run stopped after uncertain-answer approval at a stale-profile fact-rejection response; subsequent execution and recovery remain incomplete.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Explicit human review/correction produces a fresh question-bound approval. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "62c85c9d4adcae1414c11119b783d2ade215301d",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-62c85c9d.json",
+        "evidence_sha256": "b1d3c54ac07cdfdc5106c0b6a57c3a38ee1876655318c2b2ef83b50ef665dc30",
+        "command": "python run_connected_public.py --root <owned-frozen-62c-worktree> --evidence-dir outputs/mjreq292-native-62c85c9d4adc-journey --startup-receipt outputs/mjreq292-native-62c85c9d4adc/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The user confirmed an answer for the paused required question and persisted it in the profile. Independent EF source/hash/privacy review supports PARTIAL only; the connected run failed and is unmerged.",
+        "executed_at_utc": "2026-11-06T18:16:57.672500+00:00",
+        "run_id": "mjreq292-62c85c9d4adc-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-B",
+          "job_id": "job-B",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 46,
+      "phase": "E",
+      "original_requirement": "Resume the application.",
+      "expected_observable_result": "Application resumes using the reviewed state and rejects stale approvals.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Application resumes using the reviewed state and rejects stale approvals. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The reviewed application used a current reprepare after stale preflight evidence was rejected. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 47,
+      "phase": "E",
+      "original_requirement": "Validate the entire form.",
+      "expected_observable_result": "All current form fields, uploads and applicant pins are validated together.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "All current form fields, uploads and applicant pins are validated together. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The current form preflight and generated documents were pinned to the selected B profile revision. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 48,
+      "phase": "E",
+      "original_requirement": "In dry-run, stop before actual external submission.",
+      "expected_observable_result": "DRY_RUN produces zero external submission requests and stops safely.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "DRY_RUN produces zero external submission requests and stops safely. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: The dry-run receipt and attempt trace were persisted without an external post. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 49,
+      "phase": "E",
+      "original_requirement": "Against the local mock ATS, submit.",
+      "expected_observable_result": "Only the owned local mock receives the deliberate submission.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Only the owned local mock receives the deliberate submission. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PARTIAL: The owned local mock received one explicitly approved submission operation. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: external_submission_absent. Original external_submission_absent UI check is false and remains preserved: it expected a submit button that is hidden after confirmation. Independent Mace readback found target MOCK, external submission disabled, exact fixture confirmation and one receipt; repaired safety-copy observer still requires a fresh connected run.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 50,
+      "phase": "E",
+      "original_requirement": "Detect confirmation.",
+      "expected_observable_result": "A bounded authoritative mock confirmation is detected exactly once.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "A bounded authoritative mock confirmation is detected exactly once. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: A scoped fixture confirmation was reconciled once to the selected B application. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 51,
+      "phase": "E",
+      "original_requirement": "Persist application history.",
+      "expected_observable_result": "Application history and confirmed receipt persist and remain idempotent.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Complete this behavior in the continuous journey on protected merged source with independent whole-journey review. The exact705 diagnostic failed at tracking; preserve the producer checks, including false UI readbacks, until the repaired observation path is rerun.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Application history and confirmed receipt persist and remain idempotent. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "70595258e4cac188d641629298a5ee4e8131a45c",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-70595258.json",
+        "evidence_sha256": "cc3685dbeffe088bc8379a985f582e1c4b3bc66f2d00725ba94dd0957633467f",
+        "command": "python run_connected_public.py --root <owned-frozen-705-worktree> --evidence-dir outputs/mjreq292-native-70595258e4ca-journey --startup-receipt outputs/mjreq292-native-70595258e4ca/startup-receipt.json --build-receipt <owned-build-receipt> --source-setup --stop-after-ui",
+        "observed_result": "Incomplete run producer observation PASS: Repeating the same local request returned its completed receipt without a second submission. Independent EF projection and R2 policy review support PARTIAL only; run failed and source is unmerged. Original diagnostic checks remain in the referenced projection; false checks: none.",
+        "executed_at_utc": "2026-11-06T13:11:11.99988-06:00",
+        "run_id": "mjreq292-70595258e4ca-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 52,
+      "phase": "E",
+      "original_requirement": "See the application on the tracker.",
+      "expected_observable_result": "Tracker shows the same application and confirmed state after reload.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Tracker shows the same application and confirmed state after reload. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+        "evidence_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+        "command": "python -m cli.acceptance_campaign --evidence-dir outputs/mjreq292-native-ea58d86af3f3/journey --startup-receipt outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json --build-receipt outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json --source-setup --monitoring --stop-after-ui",
+        "observed_result": "Producer PASS in an incomplete candidate run: The selected B application tracking status persisted through a browser reload. Independent EF sanitized projection retains checks; journey wrapper failed continuity validation, source unmerged, so ledger remains PARTIAL.",
+        "executed_at_utc": "2026-11-06T14:39:48.477702-06:00",
+        "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 53,
+      "phase": "E",
+      "original_requirement": "See all relevant audit events.",
+      "expected_observable_result": "Relevant audit events are complete, ordered, scoped and privacy-safe.",
+      "implementation_references": [
+        "cli/ui_e2e.py",
+        "services/applications/mock_adapter.py",
+        "tests/browser/test_full_application_e2e_213.py",
+        "tests/browser/test_application_upload_integrity.py"
+      ],
+      "status": "PARTIAL",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-11-durable-onboarding.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Repeat this observed behavior in the complete connected journey on exact protected merged source, with independent whole-journey evidence review. The ea58 UI producer completed but wrapper validation failed on historical discovery identity; no acceptance PASS is claimed.",
+      "responsible_agent": "vader_ats_flow",
+      "exclusive_source_ownership": [
+        "services/applications/owned_ats_fixture.py",
+        "tests/unit/test_owned_ats_fixture.py",
+        "tests/browser/test_owned_ats_fixture.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_PREREQUISITE_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase E connected assertions plus focused negative regressions",
+      "required_integration_validation": "Relevant audit events are complete, ordered, scoped and privacy-safe. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": "ea58d86af3f3f64db92f57dfd53317dd615183ae",
+        "evidence_artifact": "docs/evidence/2026-11-06-mjreq292-connected-diagnostic-ea58d86a.json",
+        "evidence_sha256": "3747fab2f5d5ee295cb092bfc0abe92da8f6444caf9718ba33e9a765f500f9a3",
+        "command": "python -m cli.acceptance_campaign --evidence-dir outputs/mjreq292-native-ea58d86af3f3/journey --startup-receipt outputs/mjreq292-native-ea58d86af3f3/startup-receipt.json --build-receipt outputs/mjreq292-native-ea58d86af3f3/frontend-build-receipt.json --source-setup --monitoring --stop-after-ui",
+        "observed_result": "Producer PASS in an incomplete candidate run: The B audit timeline shows submission, confirmation and reported tracking with redacted values. Independent EF sanitized projection retains checks; journey wrapper failed continuity validation, source unmerged, so ledger remains PARTIAL.",
+        "executed_at_utc": "2026-11-06T14:39:48.477702-06:00",
+        "run_id": "mjreq292-ea58d86af3f3-native-greenhouse-01",
+        "evidence_kind": "CONTROLLED_FIXTURE",
+        "continuity": {
+          "application_id": "application-01",
+          "job_id": "job-02",
+          "profile_id": "profile-01"
+        }
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/973",
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 54,
+      "phase": "F",
+      "original_requirement": "Restart the stack.",
+      "expected_observable_result": "All owned required services actually stop/restart with persistent test volumes retained.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "All owned required services actually stop/restart with persistent test volumes retained. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 55,
+      "phase": "F",
+      "original_requirement": "Confirm jobs remain.",
+      "expected_observable_result": "Complete same-profile canonical jobs and every source copy match fresh version3 pre-restart inventory.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "Complete same-profile canonical jobs and every source copy match fresh version3 pre-restart inventory. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 56,
+      "phase": "F",
+      "original_requirement": "Confirm company sources remain.",
+      "expected_observable_result": "Enrolled company source identities/configuration persist after restart.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "Enrolled company source identities/configuration persist after restart. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 57,
+      "phase": "F",
+      "original_requirement": "Confirm documents remain.",
+      "expected_observable_result": "Original and generated documents, versions and exact download hashes survive restart.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "Original and generated documents, versions and exact download hashes survive restart. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 58,
+      "phase": "F",
+      "original_requirement": "Confirm applications remain.",
+      "expected_observable_result": "Application, history, attempt and confirmation identities survive restart without duplicate receipt.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "Application, history, attempt and confirmation identities survive restart without duplicate receipt. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 59,
+      "phase": "F",
+      "original_requirement": "Confirm scheduler resumes.",
+      "expected_observable_result": "Real scheduler resumes and naturally admits the expected due task.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "Real scheduler resumes and naturally admits the expected due task. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    },
+    {
+      "number": 60,
+      "phase": "F",
+      "original_requirement": "Confirm company monitoring resumes.",
+      "expected_observable_result": "Company monitoring resumes through actual RQ workers for the same source/profile, advances schedule and does not duplicate work.",
+      "implementation_references": [
+        "cli/compose_recovery.py",
+        "tests/integration/test_company_monitoring_recovery.py"
+      ],
+      "status": "NOT_RUN",
+      "evidence_of_existing_behavior": [
+        {
+          "artifact": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        },
+        {
+          "artifact": "docs/evidence/2026-11-03-webpro-642e4b-recovery-inventory/v3-source-execution.json",
+          "classification": "HISTORICAL_SCOPED_NOT_CURRENT_ACCEPTANCE"
+        }
+      ],
+      "missing_behavior": "Join full service restart, complete v3 job inventory, documents/application readback and naturally due monitoring to this same journey. Existing monitoring requires PERSONAL, whereas mock application journey requires FIXTURE.",
+      "responsible_agent": "han_recovery",
+      "exclusive_source_ownership": [
+        "services/company_discovery/fixture_monitoring.py",
+        "apps/api/fixture_company_monitoring.py",
+        "services/discovery/pipeline.py",
+        "services/discovery/scheduler.py",
+        "tests/integration/test_fixture_company_monitoring.py"
+      ],
+      "ownership_status": "EXCLUSIVE_ISOLATED_IMPLEMENTATION_SHARED_DISPATCH_PENDING",
+      "required_automated_test": "python -m cli.acceptance_journey (under implementation); numbered phase F connected assertions plus focused negative regressions",
+      "required_integration_validation": "Company monitoring resumes through actual RQ workers for the same source/profile, advances schedule and does not duplicate work. Use the same isolated full-stack journey identities; record exact source and sanitized evidence.",
+      "verification": {
+        "tested_commit": null,
+        "evidence_artifact": null,
+        "evidence_sha256": null,
+        "command": null,
+        "observed_result": null,
+        "executed_at_utc": null,
+        "run_id": null,
+        "evidence_kind": null,
+        "continuity": {}
+      },
+      "review": {
+        "status": "NOT_RUN",
+        "evidence_artifact": null
+      },
+      "merge": {
+        "status": "NOT_MERGED",
+        "pr_url": null,
+        "integrated_commit": null
+      }
+    }
+  ]
+}

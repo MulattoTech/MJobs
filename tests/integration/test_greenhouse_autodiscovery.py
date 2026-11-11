@@ -63,13 +63,13 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
         self.requests.append('https://boards-api.greenhouse.io/v1/boards/' + adapter.tenant + suffix)
         return {'name': 'Provider display name'} if not suffix else {'jobs': self.jobs}
 
-    def discover(self):
+    def discover(self, *, execute=None):
         queued = queue_company_discovery(self.store, self.candidate, 'USER_ADDED_COMPANY',
                                           profile_id='fixture', public=True)
         self.assertEqual(queued['status'], 'QUEUED', queued)
         with patch.dict(os.environ, self.env), patch.object(PublicCompanyClient, '_request_once', lambda client, url, deadline: self.page(client, url, deadline)), \
                 patch.object(Greenhouse, '_get', lambda adapter, suffix, params=None: self.board(adapter, suffix, params)):
-            result = execute_operation(queued['operation_id'])
+            result = (execute or execute_operation)(queued['operation_id'])
         return result
 
     def test_verified_ats_enrollment_import_reload_and_recurring_collection(self):
@@ -242,7 +242,48 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
             pay_input_ranges=[{'currency_type': 'USD', 'min_cents': 17000000, 'max_cents': 19000000}]))
         record_company_domain(self.store, original['company_id'], 'employer.example',
                               'FIRST_PARTY_JOB_LINK', ['corroborated original employer posting'])
-        result = self.discover()
+        def execute_in_dispatch_order(normal_operation_id):
+            from workers.operations import CATEGORY_KINDS, _browser_capacity_held
+
+            with self.store.engine.connect() as connection:
+                priority_rows = list(connection.execute(select(m.operations).where(
+                    m.operations.c.kind == 'COMPANY_DISCOVER',
+                    m.operations.c.state == 'QUEUED',
+                    m.operations.c.params['dispatch_priority'].as_string() == 'HIGH',
+                )).mappings())
+            self.assertEqual(len(priority_rows), 1, 'Expected one genuine aggregator bootstrap operation')
+            high_priority = dict(priority_rows[0])
+            self.assertEqual(high_priority['params']['aggregator_bootstrap'],
+                             'AGGREGATOR_BOOTSTRAP_PENDING_V1')
+
+            # RQ may deliver the normal operation first, but claim must defer it
+            # without consuming an attempt while the real HIGH bootstrap is queued.
+            deferred = execute_operation(normal_operation_id)
+            self.assertEqual(deferred['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
+            with self.store.engine.connect() as connection:
+                normal = dict(connection.execute(select(m.operations).where(
+                    m.operations.c.id == normal_operation_id)).mappings().one())
+                active = connection.execute(select(m.operations.c.id).where(
+                    m.operations.c.kind.in_(CATEGORY_KINDS['company_discovery']),
+                    _browser_capacity_held()).limit(1)).scalar_one_or_none()
+            self.assertEqual((normal['state'], normal['attempt_count']), ('QUEUED', 0))
+            self.assertIsNone(active, 'Priority deferral must not represent occupied category capacity')
+
+            # Execute the actual queued bootstrap with this test's controlled
+            # PublicCompanyClient/Greenhouse fixture. Its terminal outcome (the
+            # fixture intentionally does not invent extra employer evidence)
+            # releases priority; never edit operation state or cancel it here.
+            high_result = execute_operation(high_priority['id'])
+            with self.store.engine.connect() as connection:
+                high = dict(connection.execute(select(m.operations).where(
+                    m.operations.c.id == high_priority['id'])).mappings().one())
+            self.assertNotIn(high['state'], {'QUEUED', 'RUNNING'}, high_result)
+            self.assertEqual(high_result['status'], high['state'])
+            self.assertGreater(high['attempt_count'], 0)
+
+            return execute_operation(normal_operation_id)
+
+        result = self.discover(execute=execute_in_dispatch_order)
         self.assertEqual(result['status'], 'COMPLETED', result)
         self.assertEqual(self.store.count('companies'), 1)
         self.assertEqual(self.store.count('canonical_jobs'), 2)

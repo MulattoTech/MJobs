@@ -9,6 +9,38 @@ from services.applications.upload_integrity import snapshot_bytes
 
 
 class GreenhouseApplicationAdapterBrowserTests(unittest.TestCase):
+    def test_native_validation_with_worker_deadline_uses_real_browser_api(self):
+        class BudgetCheck:
+            def __call__(self):
+                pass
+
+            def remaining_seconds(self):
+                return 3.5
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.set_content('''<form>
+                    <input name="email" aria-label="Email" type="email" required>
+                    <input name="resume" aria-label="Resume" type="file" required>
+                </form>''')
+                adapter = GreenhouseApplicationAdapter()
+                check = BudgetCheck()
+                analysis = adapter.analyze_page(page, check=check)
+                self.assertEqual(adapter.validate_page(page, analysis, check=check), {
+                    "status": "REVIEW_REQUIRED", "reason": "FORM_FIELDS_INVALID",
+                })
+                page.get_by_label("Email", exact=True).fill("synthetic@example.invalid")
+                analysis = adapter.analyze_page(page, check=check)
+                self.assertEqual(adapter.validate_page(page, analysis, check=check), {
+                    "status": "PASS", "reason": None,
+                })
+                self.assertEqual(page.locator('input[type="file"]').evaluate(
+                    "node => node.files.length"), 0)
+            finally:
+                browser.close()
+
     def test_required_fields_must_be_valid_before_fixture_upload(self):
         html = """<!doctype html><html><body><form id="application">
           <input id="candidate-email" name="email" aria-label="Email" type="email" required>

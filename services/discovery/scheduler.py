@@ -240,9 +240,11 @@ def schedule_due_sources(store, at=None):
         })
     saved_searches = schedule_due_search_profiles(store, at)
     from services.company_discovery.monitoring import schedule_company_sources
+    from services.company_discovery.fixture_monitoring import schedule_fixture_sources
     return {"scheduled": scheduled, "skipped": skipped, "checked_at": at.isoformat(),
             "saved_searches": saved_searches,
-            "company_sources": schedule_company_sources(store, at)}
+            "company_sources": schedule_company_sources(store, at),
+            "fixture_company_sources": schedule_fixture_sources(store, os.environ.get("MJOBS_MOCK_ORIGIN", ""), at)}
 
 
 def run_transient_retention_if_configured(environ=None, *, runner=None, store=None):
