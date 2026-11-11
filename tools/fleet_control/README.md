@@ -3,12 +3,12 @@
 Controller source and tests are maintained in `MulattoTech/Fleet-Control-Hub`.
 Do not recreate a second controller here. This application is a project managed by that hub.
 
-The migration preserves existing state directories, port numbers, quota guards, and project scope.
+The migration preserves existing state directories, quota guards, and project scope while consolidating native fleet controls into port 4320. Legacy listeners on 8787 and 18729 are retired; port 18726 remains an optional Mission-only evidence service.
 See https://github.com/MulattoTech/Fleet-Control-Hub/tree/main/packages for source.
 
 ## Manual MJobs startup after synchronized work
 
-The native fleet operator console is at `http://127.0.0.1:4320/fleet/` (direct controller fallback: `http://127.0.0.1:8787/`). The retired port 18729 is not a dependency. Opening or refreshing either console must not launch agents.
+The native fleet operator console is at `http://127.0.0.1:4320/fleet/`. No separate 8787 or 18729 listener is required. Opening or refreshing the console must not launch agents.
 
 1. Update the canonical MJobs `main` worktree using a fast-forward-only pull and check that outstanding PRs, branch ownership, and preserved session mappings are reconciled. Do **not** erase the saved fleet or overwrite live runtime state during synchronization.
 2. On the **Start MJobs** card, review the live allowance and the separately editable **Start / new-task reserve (%)** and **Emergency auto-stop cutoff (%)** fields. **Save limits** persists policy without starting anything.
