@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-015",
+  "objective": "Enforce provider admission and honest usage/cost telemetry",
+  "owner": "ChatGPT-Web/web-20261107T192718Z-9a399d59d3db",
+  "branch": "web/web-20261107T192718Z-9a399d59d3db/ref015-telemetry",
+  "head_sha": "96512e4464d58e040ac42d568203276d371148d9",
+  "routing_state": "VERIFY",
+  "next_action": "Publish reviewed PR and verify exact-head hosted Linux checks; preserve full requirement PARTIAL",
+  "created_at": "2026-11-07T20:08:46.102265+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "96512e4464d58e040ac42d568203276d371148d9: 41 Python tests/98 subtests, 5 dashboard tests, targeted TypeScript, independent review and validators",
+      "result": "PASS"
+    },
+    {
+      "command": "Full unit suite on Windows; connected browser telemetry journey; hosted CI before publication",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Full local web build FAIL due missing cached test dependencies/types; dashboard remains unmounted"
+  ]
+}

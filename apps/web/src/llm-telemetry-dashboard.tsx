@@ -7,6 +7,8 @@ export type ProviderTelemetry = {
   total_calls: number;
   total_tokens: number;
   total_cost_usd: number;
+  unknown_usage_calls?: number;
+  unknown_cost_calls?: number;
   error_rate: number;
 };
 
@@ -18,6 +20,8 @@ export type TaskUsage = {
   total_completion_tokens: number;
   total_tokens: number;
   total_cost_usd: number;
+  unknown_usage_calls?: number;
+  unknown_cost_calls?: number;
   avg_latency_ms: number;
 };
 
@@ -28,10 +32,13 @@ export type AttemptRecord = {
   model: string;
   latency_ms: number;
   status: 'SUCCESS' | 'FAILED' | 'RATE_LIMITED' | 'FALLBACK' | 'BUDGET_STOP';
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
-  estimated_cost: number;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
+  estimated_cost: number | null;
+  usage_provenance?: "PROVIDER_REPORTED" | "PARTIAL" | "UNAVAILABLE" | "NOT_SENT";
+  cost_provenance?: "PRICE_TABLE_ESTIMATE" | "LOCAL_ZERO" | "UNAVAILABLE" | "NOT_SENT";
+  request_sent?: boolean;
   fallback_reason?: string | null;
   error_code?: string | null;
   timestamp_utc: string;
@@ -47,6 +54,8 @@ export type LLMTelemetryDashboardProps = {
   totalCompletionTokens?: number;
   totalTokens?: number;
   totalCostUsd?: number;
+  unknownUsageCalls?: number;
+  unknownCostCalls?: number;
   budgetCeilingUsd?: number | null;
   budgetRemainingUsd?: number | null;
   budgetWarningTriggered?: boolean;
@@ -65,6 +74,8 @@ export function LLMTelemetryDashboard({
   totalCompletionTokens = 0,
   totalTokens = 0,
   totalCostUsd = 0.0,
+  unknownUsageCalls = 0,
+  unknownCostCalls = 0,
   budgetCeilingUsd = 10.0,
   budgetRemainingUsd = 10.0,
   budgetWarningTriggered = false,
@@ -103,17 +114,17 @@ export function LLMTelemetryDashboard({
             </span>
           )}
           <span
-            className={`status ${budgetWarningTriggered ? 'warn' : 'good'}`}
+            className={`status ${budgetWarningTriggered || unknownCostCalls > 0 ? 'warn' : 'good'}`}
             data-testid="total-cost-status"
           >
-            Cost: ${totalCostUsd.toFixed(4)}
+            Known cost: ${totalCostUsd.toFixed(4)}
           </span>
         </div>
       </div>
 
       <p className="description">
-        MJobs monitors all AI operations in real time: tracking provider attempt chains, fallbacks,
-        concurrency limits, and token cost provenance. Zero prompt text or candidate PII is stored.
+        Recorded AI attempts show provider, model, latency, known token use, and estimated cost.
+        Unknown usage or pricing is labeled below. Prompt text and candidate PII are not stored here.
       </p>
 
       {/* KPI Cards */}
@@ -137,14 +148,14 @@ export function LLMTelemetryDashboard({
           }}
         >
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)' }}>
-            ESTIMATED SPEND
+            KNOWN ESTIMATED SPEND
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }} data-testid="kpi-total-cost">
-            ${totalCostUsd.toFixed(4)}
+            ${totalCostUsd.toFixed(4)}{unknownCostCalls > 0 ? ` + ${unknownCostCalls} unknown` : ""}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             {budgetCeilingUsd != null
-              ? `Budget: $${budgetCeilingUsd.toFixed(2)} ($${(budgetRemainingUsd ?? 0).toFixed(2)} left)`
+              ? `Budget: $${budgetCeilingUsd.toFixed(2)} ($${(budgetRemainingUsd ?? 0).toFixed(2)} ${unknownCostCalls > 0 ? "known-cost headroom; unknown costs excluded" : "left"})`
               : 'Unlimited'}
           </div>
           {budgetCeilingUsd != null && (
@@ -183,7 +194,7 @@ export function LLMTelemetryDashboard({
             TOKEN CONSUMPTION
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }} data-testid="kpi-total-tokens">
-            {totalTokens.toLocaleString()}
+            {totalTokens.toLocaleString()}{unknownUsageCalls > 0 ? ` + ${unknownUsageCalls} unknown calls` : ""}
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             Prompt: {totalPromptTokens.toLocaleString()} • Completion: {totalCompletionTokens.toLocaleString()}
@@ -293,8 +304,8 @@ export function LLMTelemetryDashboard({
                         {p.active_concurrency} / {p.concurrency_limit}
                       </td>
                       <td style={{ padding: '0.5rem' }}>{p.total_calls}</td>
-                      <td style={{ padding: '0.5rem' }}>{p.total_tokens.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>${p.total_cost_usd.toFixed(4)}</td>
+                      <td style={{ padding: '0.5rem' }}>{p.total_tokens.toLocaleString()}{p.unknown_usage_calls ? ` + ${p.unknown_usage_calls} unknown` : ""}</td>
+                      <td style={{ padding: '0.5rem' }}>${p.total_cost_usd.toFixed(4)}{p.unknown_cost_calls ? ` + ${p.unknown_cost_calls} unknown` : ""}</td>
                       <td style={{ padding: '0.5rem' }}>
                         <span className={`status ${p.error_rate === 0 ? 'good' : 'bad'}`}>
                           {(p.error_rate * 100).toFixed(1)}%
@@ -338,8 +349,8 @@ export function LLMTelemetryDashboard({
                       <td style={{ padding: '0.5rem' }}>
                         {t.successful_calls}/{t.total_calls} ok
                       </td>
-                      <td style={{ padding: '0.5rem' }}>{t.total_tokens.toLocaleString()}</td>
-                      <td style={{ padding: '0.5rem' }}>${t.total_cost_usd.toFixed(4)}</td>
+                      <td style={{ padding: '0.5rem' }}>{t.total_tokens.toLocaleString()}{t.unknown_usage_calls ? ` + ${t.unknown_usage_calls} unknown` : ""}</td>
+                      <td style={{ padding: '0.5rem' }}>${t.total_cost_usd.toFixed(4)}{t.unknown_cost_calls ? ` + ${t.unknown_cost_calls} unknown` : ""}</td>
                       <td style={{ padding: '0.5rem' }}>{t.avg_latency_ms.toFixed(0)} ms</td>
                     </tr>
                   ))
@@ -387,8 +398,8 @@ export function LLMTelemetryDashboard({
                           {a.status}
                         </span>
                       </td>
-                      <td style={{ padding: '0.5rem' }}>{a.total_tokens}</td>
-                      <td style={{ padding: '0.5rem' }}>${a.estimated_cost.toFixed(4)}</td>
+                      <td style={{ padding: '0.5rem' }}>{a.request_sent === false ? "Not sent" : a.total_tokens ?? "Unknown"}</td>
+                      <td style={{ padding: '0.5rem' }}>{a.request_sent === false ? "Not sent" : a.estimated_cost == null ? "Unknown" : `$${a.estimated_cost.toFixed(4)}`}</td>
                       <td style={{ padding: '0.5rem', color: 'var(--muted)' }}>
                         {a.fallback_reason || a.error_code || '—'}
                       </td>

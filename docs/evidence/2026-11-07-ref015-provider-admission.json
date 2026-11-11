@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-015-PROVIDER-ADMISSION-20261107",
+  "issue": 385,
+  "requirement_id": "MJ-REF-015",
+  "result": "PARTIAL",
+  "run_id": "web-20261107T192718Z-9a399d59d3db",
+  "input_sha256_domain": "Git blob bytes at implementation_commit",
+  "acceptance": {
+    "production_provider_admission": "PASS - OpenAI-compatible and Azure transports acquire process-local global/provider slots before networking; rejected admission sends no request.",
+    "queued_cancellation_and_slot_cleanup": "PASS - queued cancellation returns its stable code promptly without leaking a slot or releasing another call's slot.",
+    "settled_cost_before_readmission": "PASS - parse and cost settlement remain inside the slot; at cap 1 a queued call cannot pass a newly exhausted configured budget. The default singleton has no implicit budget ceiling.",
+    "honest_usage_and_cost": "PASS - missing token counts and unknown model prices remain null; pre-transport rejection is NOT_SENT with known zero usage/cost; sent failures retain unknown metadata.",
+    "aggregate_known_lower_bounds": "PASS - global/provider/task totals preserve known partial token counts and expose unknown call counters.",
+    "dashboard_component": "PASS - component renders unknown values and NOT_SENT provenance. This is component-level evidence, not a mounted application dashboard.",
+    "full_requirement": "PARTIAL - persistence, cross-process accounting, per-task/provider budgets, rate limits, actual billing provenance, fallback correlation, and connected dashboard integration remain incomplete."
+  },
+  "environment": {
+    "os": "Windows 11",
+    "database": "synthetic/local fixtures",
+    "browser": "NOT_RUN",
+    "external_network": "Mock transports and local synthetic fixtures only",
+    "application_submission": "OFF",
+    "production_credentials": "NOT_USED",
+    "heavy_build": "Own exclusive heavy.lock held for full build with free RAM >=16 GiB; lock and temporary dependency junction released."
+  },
+  "limitations": [
+    "Caps and accounting are process-local and reset with the process.",
+    "Unknown-priced calls cannot enforce actual spend caps. Configured caps use known estimates; already-in-flight calls can overshoot without cost reservation.",
+    "No implicit default spend cap; application-level budget configuration remains future work.",
+    "The dashboard remains unmounted; no live analytics UI completion is claimed.",
+    "Historical price-table estimates are not actual billing evidence.",
+    "Full local web build failed because cached test dependencies/types are missing. Hosted checks on the publication head remain separate.",
+    "Canonical matrices unchanged; no whole-requirement PASS, merge, deployment, or real application submission."
+  ],
+  "next_gap": "Verify exact-head hosted CI, then separately own persistent/configurable accounting and connected UI integration.",
+  "hosted_checks": "NOT_RUN - PR not yet published at evidence creation",
+  "recorded_at_utc": "2026-11-07T20:08:45.403257+00:00",
+  "implementation_commit": "96512e4464d58e040ac42d568203276d371148d9",
+  "implementation_tree": "b71af297826c10566a4331667e4e62ecc89e53b5",
+  "branch": "web/web-20261107T192718Z-9a399d59d3db/ref015-telemetry",
+  "input_sha256": {
+    "services/ai/telemetry.py": "6e1ff432cb4fe2a0af5a7a3289db5846a284cb6568529f10987f62408f9771c0",
+    "services/ai/providers/__init__.py": "57c900c2386beeb364024e01fa4a0dc6bb79ee60cb7d43635c5414a39592dab9",
+    "services/ai/providers/openai_compatible.py": "f806a14c9c76e0fc0a33bcf3016793caaeb9598283a3730d2d82f746f82f4f5c",
+    "services/ai/providers/azure_openai.py": "e6bc77267f8169beddc842ec77db6590ba2300bd478b2c9f3c2084a500d9a878",
+    "apps/web/src/llm-telemetry-dashboard.tsx": "dfe2e59248a15aa7869dd1020e314bab1ccd7ee25555b5c165312b10eca83ceb",
+    "apps/web/src/llm-telemetry-dashboard.test.tsx": "b4ede4340cc60d5aeed5d07917d2aa84748c10deb36ac39f124cf4568c3acceb",
+    "tests/unit/test_llm_telemetry.py": "d92c0df028ec00f5bc496b3422ba10e9727f69217050da4fbaf98d5c09c1bbbb",
+    "tests/unit/test_llm_telemetry_provider_admission.py": "88d7e6dfb349f95ca7d1541cccca3614a0b33dd7eee54ac58294e0cff9776b0a"
+  },
+  "validation": [
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_llm_telemetry.py",
+        "tests/unit/test_llm_telemetry_provider_admission.py",
+        "tests/unit/test_ai_providers.py",
+        "tests/unit/test_azure_openai_provider.py",
+        "tests/unit/test_ai_provider_transport.py",
+        "tests/unit/test_ai_response_deadline.py",
+        "tests/integration/test_llm_telemetry_integration.py"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\9a399d59-ref015-telemetry",
+      "exit_code": 0,
+      "result": "PASS - 41 tests and 98 subtests; 6.85 seconds."
+    },
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": [
+        "cmd",
+        "/c",
+        "C:\\Tools\\Dev\\MJobs-Web\\9a399d59-ref015-telemetry\\apps\\web\\node_modules\\.bin\\vitest.cmd",
+        "run",
+        "src/llm-telemetry-dashboard.test.tsx",
+        "--no-coverage",
+        "--no-cache",
+        "--no-fsModuleCache",
+        "--no-file-parallelism"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\9a399d59-ref015-telemetry\\apps\\web",
+      "exit_code": 0,
+      "result": "PASS - 5 dashboard component tests."
+    },
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": [
+        "cmd",
+        "/c",
+        "C:\\Tools\\Dev\\MJobs-Web\\9a399d59-ref015-telemetry\\apps\\web\\node_modules\\.bin\\tsc.cmd",
+        "--ignoreConfig",
+        "--noEmit",
+        "--skipLibCheck",
+        "--strict",
+        "--target",
+        "ES2022",
+        "--lib",
+        "ES2022,DOM,DOM.Iterable",
+        "--module",
+        "ESNext",
+        "--moduleResolution",
+        "Bundler",
+        "--jsx",
+        "react-jsx",
+        "src/llm-telemetry-dashboard.tsx",
+        "src/llm-telemetry-dashboard.test.tsx"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\9a399d59-ref015-telemetry\\apps\\web",
+      "exit_code": 0,
+      "result": "PASS - targeted strict TypeScript check."
+    },
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": [
+        "cmd",
+        "/c",
+        "npm",
+        "--prefix",
+        "apps/web",
+        "run",
+        "build"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\9a399d59-ref015-telemetry",
+      "exit_code": 1,
+      "result": "FAIL - cached test dependencies @testing-library/dom, jsdom, and Node types are missing; typecheck stops before Vite build."
+    },
+    {
+      "revision": "source-equivalent working tree before source commit",
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS - 8 source files"
+    },
+    {
+      "revision": "source-equivalent working tree before source commit",
+      "command": "Independent telemetry_review source/test review; pytest telemetry/admission modules; pytest OpenAI-compatible/Azure provider modules",
+      "result": "PASS - no remaining blocking findings. Reviewer independently executed 13 tests/10 subtests and 19 tests/10 subtests, overlapping the focused suite."
+    },
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": "python -m pytest -q tests/unit",
+      "result": "NOT_RUN on this branch - same-base Windows collection already blocked by Linux fcntl in infra/deploy/host_update.py during REF033 validation."
+    },
+    {
+      "revision": "96512e4464d58e040ac42d568203276d371148d9",
+      "command": "Connected-browser telemetry journey",
+      "result": "NOT_RUN - existing dashboard component remains unmounted."
+    }
+  ]
+}

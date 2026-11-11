@@ -12,7 +12,10 @@ from typing import Callable, Mapping
 import httpx
 
 from services.ai.providers import AIProviderError, ProviderCapabilities
-from services.ai.telemetry import get_default_telemetry_engine
+from services.ai.telemetry import (
+    AIAdmissionCancelledError, AIBudgetExceededError, AIConcurrencyLimitError,
+    get_default_telemetry_engine,
+)
 from services.ai.providers.endpoint_security import secure_base_url
 from services.ai.providers.transport import _shutdown_response_socket, request_guard
 
@@ -137,106 +140,135 @@ class OpenAICompatibleProvider:
         start_time = time.monotonic()
         client = None
 
+        engine = get_default_telemetry_engine()
         try:
-            client = self._client_factory(
-                trust_env=False,
-                timeout=httpx.Timeout(float(timeout_seconds)),
-            )
-            with client, request_guard(client, deadline=start_time + float(timeout_seconds),
-                                       cancellation_event=cancellation_event) as guard:
-                with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False,
-                                   extensions={"trace": guard.trace}) as response:
-                    guard.bind_response(response)
+            with engine.acquire_slot(
+                self.name, task, timeout_seconds=float(timeout_seconds),
+                cancellation_event=cancellation_event,
+            ):
+                try:
+                    client = self._client_factory(
+                        trust_env=False,
+                        timeout=httpx.Timeout(float(timeout_seconds)),
+                    )
+                    with client, request_guard(client, deadline=start_time + float(timeout_seconds),
+                                               cancellation_event=cancellation_event) as guard:
+                        with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False,
+                                           extensions={"trace": guard.trace}) as response:
+                            guard.bind_response(response)
+                            if cancellation_event is not None and cancellation_event.is_set():
+                                _shutdown_response_socket(response)
+                                raise AIProviderError("AI_PROVIDER_CANCELLED")
+                            if not 200 <= response.status_code < 300:
+                                raise AIProviderError("AI_PROVIDER_HTTP_ERROR")
+                            body = bytearray()
+                            for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                                if cancellation_event is not None and cancellation_event.is_set():
+                                    raise AIProviderError("AI_PROVIDER_CANCELLED")
+                                if len(body) + len(chunk) > MAX_RESPONSE_BYTES:
+                                    raise AIProviderError("AI_PROVIDER_RESPONSE_TOO_LARGE")
+                                body.extend(chunk)
+                            if cancellation_event is not None and cancellation_event.is_set():
+                                raise AIProviderError("AI_PROVIDER_CANCELLED")
+                except AIProviderError as error:
                     if cancellation_event is not None and cancellation_event.is_set():
-                        _shutdown_response_socket(response)
-                        raise AIProviderError("AI_PROVIDER_CANCELLED")
-                    if not 200 <= response.status_code < 300:
-                        raise AIProviderError("AI_PROVIDER_HTTP_ERROR")
-                    body = bytearray()
-                    for chunk in response.iter_bytes(chunk_size=64 * 1024):
-                        if cancellation_event is not None and cancellation_event.is_set():
-                            raise AIProviderError("AI_PROVIDER_CANCELLED")
-                        if len(body) + len(chunk) > MAX_RESPONSE_BYTES:
-                            raise AIProviderError("AI_PROVIDER_RESPONSE_TOO_LARGE")
-                        body.extend(chunk)
+                        raise AIProviderError("AI_PROVIDER_CANCELLED") from None
+                    raise error
+                except httpx.TimeoutException:
                     if cancellation_event is not None and cancellation_event.is_set():
-                        raise AIProviderError("AI_PROVIDER_CANCELLED")
-        except AIProviderError as error:
-            if cancellation_event is not None and cancellation_event.is_set():
-                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
-            raise error
-        except httpx.TimeoutException:
-            if cancellation_event is not None and cancellation_event.is_set():
-                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
-            raise AIProviderError("AI_PROVIDER_TIMEOUT") from None
-        except httpx.TransportError:
-            if cancellation_event is not None and cancellation_event.is_set():
-                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
-            raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
-        except Exception:
-            if cancellation_event is not None and cancellation_event.is_set():
-                raise AIProviderError("AI_PROVIDER_CANCELLED") from None
-            raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
+                        raise AIProviderError("AI_PROVIDER_CANCELLED") from None
+                    raise AIProviderError("AI_PROVIDER_TIMEOUT") from None
+                except httpx.TransportError:
+                    if cancellation_event is not None and cancellation_event.is_set():
+                        raise AIProviderError("AI_PROVIDER_CANCELLED") from None
+                    raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
+                except Exception:
+                    if cancellation_event is not None and cancellation_event.is_set():
+                        raise AIProviderError("AI_PROVIDER_CANCELLED") from None
+                    raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
 
-        latency_ms = (time.monotonic() - start_time) * 1000
+                latency_ms = (time.monotonic() - start_time) * 1000
 
-        if cancellation_event is not None and cancellation_event.is_set():
-            raise AIProviderError("AI_PROVIDER_CANCELLED")
+                if cancellation_event is not None and cancellation_event.is_set():
+                    raise AIProviderError("AI_PROVIDER_CANCELLED")
 
-        try:
-            envelope = json.loads(
-                body.decode("utf-8"),
-                object_pairs_hook=_unique_object,
-                parse_constant=_reject_constant,
-            )
-            if not isinstance(envelope, dict):
-                raise ValueError("response must be a JSON object")
+                try:
+                    envelope = json.loads(
+                        body.decode("utf-8"),
+                        object_pairs_hook=_unique_object,
+                        parse_constant=_reject_constant,
+                    )
+                    if not isinstance(envelope, dict):
+                        raise ValueError("response must be a JSON object")
 
-            choices = envelope.get("choices")
-            if not isinstance(choices, list) or len(choices) == 0:
-                raise ValueError("missing choices in response")
+                    choices = envelope.get("choices")
+                    if not isinstance(choices, list) or len(choices) == 0:
+                        raise ValueError("missing choices in response")
 
-            first_choice = choices[0]
-            if not isinstance(first_choice, dict):
-                raise ValueError("choice must be an object")
+                    first_choice = choices[0]
+                    if not isinstance(first_choice, dict):
+                        raise ValueError("choice must be an object")
 
-            message = first_choice.get("message")
-            if not isinstance(message, dict):
-                raise ValueError("choice message must be an object")
+                    message = first_choice.get("message")
+                    if not isinstance(message, dict):
+                        raise ValueError("choice message must be an object")
 
-            content = message.get("content")
-            if not isinstance(content, str) or not content.strip():
-                raise ValueError("message content must be a non-empty string")
+                    content = message.get("content")
+                    if not isinstance(content, str) or not content.strip():
+                        raise ValueError("message content must be a non-empty string")
 
-            # Extract token usage telemetry safely if provided
-            usage = envelope.get("usage")
-            prompt_tokens = 0
-            completion_tokens = 0
-            if isinstance(usage, dict):
-                p_tok = usage.get("prompt_tokens")
-                c_tok = usage.get("completion_tokens")
-                if isinstance(p_tok, int) and p_tok >= 0:
-                    prompt_tokens = p_tok
-                if isinstance(c_tok, int) and c_tok >= 0:
-                    completion_tokens = c_tok
+                    # Extract token usage telemetry safely if provided
+                    usage = envelope.get("usage")
+                    prompt_tokens = None
+                    completion_tokens = None
+                    if isinstance(usage, dict):
+                        p_tok = usage.get("prompt_tokens")
+                        c_tok = usage.get("completion_tokens")
+                        if type(p_tok) is int and p_tok >= 0:
+                            prompt_tokens = p_tok
+                        if type(c_tok) is int and c_tok >= 0:
+                            completion_tokens = c_tok
 
+                    try:
+                        engine = get_default_telemetry_engine()
+                        engine.record_attempt(
+                            task=task,
+                            provider=self.name,
+                            model=model,
+                            latency_ms=latency_ms,
+                            status="SUCCESS",
+                            prompt_tokens=prompt_tokens,
+                            completion_tokens=completion_tokens,
+                        )
+                    except Exception:
+                        pass  # Telemetry failure should never break inference
+
+                    return content.strip()
+                except Exception:
+                    raise AIProviderError("AI_PROVIDER_RESPONSE_INVALID") from None
+
+        except (AIAdmissionCancelledError, AIBudgetExceededError, AIConcurrencyLimitError, AIProviderError) as error:
+            if isinstance(error, AIBudgetExceededError):
+                code, status = "AI_PROVIDER_BUDGET_EXCEEDED", "BUDGET_STOP"
+            elif isinstance(error, AIConcurrencyLimitError):
+                code, status = "AI_PROVIDER_CONCURRENCY_LIMIT", "RATE_LIMITED"
+            elif isinstance(error, AIAdmissionCancelledError):
+                code, status = "AI_PROVIDER_CANCELLED", "FAILED"
+            else:
+                code, status = error.code, "FAILED"
             try:
-                engine = get_default_telemetry_engine()
                 engine.record_attempt(
-                    task=task,
-                    provider=self.name,
-                    model=model,
-                    latency_ms=latency_ms,
-                    status="SUCCESS",
-                    prompt_tokens=prompt_tokens,
-                    completion_tokens=completion_tokens,
+                    task=task, provider=self.name, model=model,
+                    latency_ms=(time.monotonic() - start_time) * 1000,
+                    status=status, error_code=code,
+                    request_sent=not isinstance(
+                        error, (AIAdmissionCancelledError, AIBudgetExceededError, AIConcurrencyLimitError)
+                    ),
                 )
             except Exception:
-                pass  # Telemetry failure should never break inference
+                pass
+            raise AIProviderError(code) from None
 
-            return content.strip()
-        except Exception:
-            raise AIProviderError("AI_PROVIDER_RESPONSE_INVALID") from None
 
 
 __all__ = ["OpenAICompatibleProvider"]

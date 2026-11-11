@@ -116,6 +116,53 @@ describe('LLMTelemetryDashboard', () => {
     expect(html).toContain('$0.75 left');
   });
 
+  it('marks unknown usage and cost instead of presenting zero', () => {
+    const html = renderToStaticMarkup(
+      <LLMTelemetryDashboard
+        totalCalls={1}
+        totalTokens={0}
+        totalCostUsd={0}
+        unknownUsageCalls={1}
+        unknownCostCalls={1}
+        recentAttempts={[{
+          attempt_id: 'unknown-1',
+          task: 'scoring',
+          provider: 'azure-openai',
+          model: 'unpriced-deployment',
+          latency_ms: 50,
+          status: 'SUCCESS',
+          prompt_tokens: null,
+          completion_tokens: null,
+          total_tokens: null,
+          estimated_cost: null,
+          usage_provenance: 'UNAVAILABLE',
+          cost_provenance: 'UNAVAILABLE',
+          timestamp_utc: '2026-11-07T00:00:00Z',
+        }]}
+      />
+    );
+    expect(html).toContain('1 unknown calls');
+    expect(html).toContain('1 unknown');
+    expect(html).toContain('Unknown');
+    expect(html).not.toContain('$0.0000</td>');
+  });
+
+  it('labels rejected calls as not sent', () => {
+    const html = renderToStaticMarkup(
+      <LLMTelemetryDashboard recentAttempts={[{
+        ...sampleAttempts[0],
+        request_sent: false,
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+        estimated_cost: 0,
+        usage_provenance: 'NOT_SENT',
+        cost_provenance: 'NOT_SENT',
+      }]} />
+    );
+    expect(html).toContain('Not sent');
+  });
+
   it('handles empty state without crashes', () => {
     const html = renderToStaticMarkup(<LLMTelemetryDashboard />);
 
