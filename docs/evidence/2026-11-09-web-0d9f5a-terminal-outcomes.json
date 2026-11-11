@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REF-033",
+  "issue": 403,
+  "run_id": "web-20261109T132018Z-0d9f5a0511ab",
+  "recorded_at_utc": "2026-11-09T13:32:20.197325+00:00",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "implementation_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+  "tested_sha": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+  "result": "PARTIAL",
+  "verified_slice_result": "PASS",
+  "full_requirement_promoted": false,
+  "objective": "Preserve the actual rejected or failed terminal outcome when an oversized requested batch has an unused tail.",
+  "behavior": {
+    "before": "Requested length over 20 overwrote early REJECTED or FAILED with LIMIT_REACHED / STEP_BUDGET_EXHAUSTED.",
+    "after": "Only an otherwise completed permitted prefix can be relabeled as step exhaustion. Error results retain existing terminal state/reason and precise step code.",
+    "unchanged": [
+      "20-step cap",
+      "tool validation and handler admission",
+      "human-review proposal gate",
+      "trace schema and value-free persistence",
+      "diagnostic-only reruns",
+      "external application submission remains disabled"
+    ]
+  },
+  "baseline": {
+    "implementation_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "new_test_blob": "751a3519fcd43705ac1b940a56e9578f4499c329",
+    "command": "python -m pytest -q tests/integration/test_agent_terminal_precedence.py",
+    "exit_code": 1,
+    "regression_subcases_failed": 12,
+    "positive_boundary_subcases_passed": 3,
+    "junit_sha256": "7287719d6883680eab9d06561347b7fca07e40e77ed46e4b40a7f7c40a640baa"
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_agent_terminal_precedence.py tests/integration/test_agent_tools.py tests/integration/test_agent_diagnostic_reruns.py tests/unit/test_agent_acceptance.py",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc",
+      "exit_code": 0,
+      "tests_passed": 36,
+      "subtests_passed": 41,
+      "skipped": 0,
+      "duration_seconds": 2.81,
+      "junit_sha256": "2971d5fe81240536fba6578dfb78e4222b428c06988eb720f3c282c0e293fb82"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "exit_code": 0,
+      "output": "Catalogue validation: PASS",
+      "timestamp_utc": "2026-11-09T13:31:40.225751+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "exit_code": 0,
+      "output": "Progress journal validation: PASS",
+      "timestamp_utc": "2026-11-09T13:31:40.263389+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "exit_code": 0,
+      "output": "Progress dashboard: CURRENT",
+      "timestamp_utc": "2026-11-09T13:31:40.317984+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.reference_provenance",
+      "exit_code": 0,
+      "output": "Reference provenance validation: PASS",
+      "timestamp_utc": "2026-11-09T13:31:40.351008+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "exit_code": 0,
+      "output": "PASS: provenance complete for 2 source files",
+      "timestamp_utc": "2026-11-09T13:31:40.393151+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "output": "",
+      "timestamp_utc": "2026-11-09T13:31:40.398815+00:00",
+      "tested_sha": "e76a3c6f767cf8707c174b2ca1bd0cdf00f717cc"
+    },
+    {
+      "command": "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python -B -m pytest -q -p no:cacheprovider tests/integration/test_agent_terminal_precedence.py tests/integration/test_agent_tools.py tests/integration/test_agent_diagnostic_reruns.py tests/unit/test_agent_acceptance.py tests/unit/test_secret_scan_sustain_176.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/pr994-combined-9a89.xml --tb=short",
+      "tested_sha": "9a89f85a291f777f6ba90378ffb8dbbfda1461db",
+      "exit_code": 0,
+      "tests_passed": 62,
+      "subtests_passed": 52,
+      "skipped": 0,
+      "duration_seconds": 39.02,
+      "junit_sha256": "a17b218b5b0d90d7e94aa2664dc1593638e2bca398ed35a3d7272f371fec5a34"
+    },
+    {
+      "command": "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python -B -m pytest -q -p no:cacheprovider tests/integration/test_agent_terminal_precedence.py tests/integration/test_agent_tools.py tests/integration/test_agent_diagnostic_reruns.py tests/unit/test_agent_acceptance.py tests/unit/test_secret_scan_sustain_176.py tests/integration/test_source_adapter_connect_cancellation.py --junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/pr994-combined-82fa.xml --tb=short",
+      "tested_sha": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "exit_code": 0,
+      "tests_passed": 62,
+      "subtests_passed": 52,
+      "skipped": 0,
+      "duration_seconds": 38.343,
+      "junit_sha256": "a64d855218b050aed456eb9663999ba0233b161eafcd1eed36a9ebc2a25141b8"
+    }
+  ],
+  "assertions": [
+    "UNKNOWN_TOOL, INVALID_ARGUMENTS and ARGUMENTS_TOO_LARGE retain REJECTED; no invalid handler dispatch.",
+    "TOOL_FAILED, INVALID_TOOL_RESULT and RESULT_TOO_LARGE retain FAILED.",
+    "Each error occurs at the first and twentieth allowed positions with a 21-call request.",
+    "Unused tail is never dispatched; precise failed-step code survives a fresh SQLite Store reopen.",
+    "19 and 20 successful calls remain COMPLETED; 21 requested successful calls execute only 20 and report STEP_BUDGET_EXHAUSTED.",
+    "Raw argument, exception and output canaries and profile email remain absent from durable traces."
+  ],
+  "independent_review": {
+    "reviewer": "Separate ChatGPT-Web terminal_review agent",
+    "result": "No actionable scoped blocker",
+    "reviewed_blobs": {
+      "services/agents/runtime.py": "9ffa5bd957f979def6c4e2d4980d8dd6e772b125",
+      "tests/integration/test_agent_terminal_precedence.py": "751a3519fcd43705ac1b940a56e9578f4499c329"
+    },
+    "candidate_regressions": "3 tests and 15 subtests PASS",
+    "independent_probes": "2 tests PASS: six explicit escape/budget reasons with oversized tails; prior-slice later handler failure remains diagnostic-only. Root repeated both probes at implementation_sha.",
+    "probe_sha256": "7fe10ed113fe6b25397c02e0757e555f7a76201db00215d7b4c21808be0c98b7",
+    "scope": "Scoped source review, not protected approval, full acceptance, or permission to merge."
+  },
+  "criterion_ledger": [
+    {
+      "criterion": 1,
+      "result": "PARTIAL",
+      "evidence": "Existing bounded local runtime behavior and declared budget regressions pass. Complete browser/worker deadline and cancellation contracts are not established by this change."
+    },
+    {
+      "criterion": 2,
+      "result": "PARTIAL",
+      "evidence": "Existing explicit escapes retain precedence in independent probes. Pending PR975 supplies separate REVIEW_REQUIRED and terminal proposal corrections; it is not included or asserted integrated."
+    },
+    {
+      "criterion": 3,
+      "result": "NOT_RUN",
+      "evidence": "Full collection output criterion is outside this slice; selected existing acceptance unit regressions pass without establishing all worker count/tail/empty behavior."
+    },
+    {
+      "criterion": 4,
+      "result": "PASS",
+      "scope": "Synthetic local AgentRuntime diagnostic and prior-slice journeys at tested_sha",
+      "evidence": "Focused diagnostic suites and independent failure probe preserve bounded retries and DIAGNOSTIC_ONLY, never treating agreement as correctness."
+    },
+    {
+      "criterion": 5,
+      "result": "PARTIAL",
+      "verified_slice": "PASS: actual early termination reason, executed step count and bounded consumption survive reopen, including first and twentieth failures.",
+      "remaining": "Broader worker/browser loops, cancellation, and collection contracts remain separate acceptance work."
+    }
+  ],
+  "original_prerequisites": {
+    "MJ-REQ-004": "Historical PARTIAL; no full promotion",
+    "MJ-REQ-139": "Historical PARTIAL; no full promotion",
+    "MJ-REQ-160": "Historical PARTIAL; no full promotion",
+    "MJ-REQ-227": "Historical PASS; not freshly reverified as a dependency gate"
+  },
+  "parallel_coordination": {
+    "backend": "tools.coordination.lane_coordination claims_lock and atomic claims replacement on MulattoTechBox",
+    "claim_key": "web:web-20261109T132018Z-0d9f5a0511ab:MJ-REF-033-terminal-outcomes",
+    "collision_review": "All 32 open PR filenames inspected. Runtime also touched by PR975 and PR983 on separate logic; no branch takeover. Shared runtime path exclusively claimed for this session.",
+    "compatibility": [
+      {
+        "pr": 975,
+        "head": "422551182c1ee0e5191696d23c33f763bdbc6052",
+        "scope": "Explicit escapes/proposal break and page admission; independent logical compatibility review."
+      },
+      {
+        "pr": 983,
+        "head": "bb18b3137d0d160a57209dd4eb1c01b91e23f019",
+        "scope": "Review audit result in _reserve_review; independent logical compatibility review."
+      }
+    ]
+  },
+  "environment": {
+    "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.12.14",
+    "SQLAlchemy": "2.1.1",
+    "pydantic": "2.13.5",
+    "pytest": "9.0.3",
+    "database": "Temporary SQLite, real Store and reopened durable readback",
+    "host": "Isolated cloud workspace; no tests/builds/process swarm on MulattoTechBox"
+  },
+  "not_run": [
+    "Full local unit suite",
+    "PostgreSQL/Redis service integration",
+    "Browser/production end-to-end",
+    "Hosted checks for final publication head are pending",
+    "Protected integration and production deployment"
+  ],
+  "acceptance_programs_unchanged": {
+    "MJ-REF": {
+      "total": 59,
+      "historical_PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36,
+      "fresh_full_requirement_PASS": 0
+    },
+    "MJ-REQ": {
+      "total": 366,
+      "historical_PASS": 183,
+      "PARTIAL": 82,
+      "NOT_RUN": 101,
+      "fresh_full_requirement_PASS": 0
+    }
+  },
+  "rollback": "Revert this dedicated feature-branch change through the protected PR workflow; no migration or data rewrite.",
+  "integration_authority": "USER_APPROVED_PROTECTED_INTEGRATION_AND_VERIFIED_ACCEPTANCE",
+  "updated_at_utc": "2026-11-09T15:56:33.655755+00:00",
+  "historical_scanner_dependency": {
+    "failed_head": "720c660de314bcc55cae1eb41ee4d4932e4aeab7",
+    "failed_job": "https://github.com/MulattoTech/MJobs/actions/runs/42627477299/job/129194876071",
+    "finding_count": 1,
+    "classification": "VERIFIED_NON_SECRET_SOURCE_CHECKSUM",
+    "immutable_fingerprint": "20fea5e07086c8180beff97f5307e0ef3ce2aa89:docs/evidence/2026-11-07-ref002-bounded-story-import.json:generic-api-key:45",
+    "reviewer": "ChatGPT-Web independent terminal_review",
+    "source_commit": "951ab7d7d48a2982a4508e2a57d1822e3a0249e3",
+    "source_path": "tests/integration/test_career_story_import_api.py",
+    "source_git_blob": "041d88d73e750be8b1e923d10688ea66fb9cd6cd",
+    "source_bytes": 5844,
+    "recomputed_sha256": "bcdb8e13663f81eaad52cfdbefe40ae3a3a3ac7476307219c58e90e72a6af2c3",
+    "raw_byte_hash_matches_evidence": true,
+    "unchanged_exception_source": "a796ffb478833fbcf87ff79892b6047108336226",
+    "ignore_git_blob": "e9591c3b04952b1752c020f5df909483227c3edd",
+    "added_lines": 4,
+    "proof_sha256": "b290198b51cbe766142d0c65a3a5895392aca6d9016a5b599a55938b3507e5a2",
+    "scope": "Exactly one immutable historical commit/path/rule/line fingerprint. Existing scanner --all, rules, workflows and required gates retained.",
+    "fresh_scanner_result": "NOT_RUN before followup publication; inspect required hosted check on resulting exact head."
+  },
+  "runtime_compatibility": {
+    "result": "SCOPED_COMPATIBILITY_PASS",
+    "base_commit": "971ba931418fc271e7a652e27c288e1776448b6d",
+    "application_order": [
+      {
+        "pr": 975,
+        "head": "422551182c1ee0e5191696d23c33f763bdbc6052"
+      },
+      {
+        "pr": 983,
+        "head": "bb18b3137d0d160a57209dd4eb1c01b91e23f019"
+      },
+      {
+        "pr": 994,
+        "head": "720c660de314bcc55cae1eb41ee4d4932e4aeab7"
+      }
+    ],
+    "method": "Each exact main-to-head diff applied with git apply --index --3way --whitespace=error in a new disposable cloud checkout.",
+    "manual_conflict_resolutions": 0,
+    "combined_tree": "b1ca71dbd0299258581c010601a117d393f04aad",
+    "runtime_blob": "34581ba0d9fe200229e1006ae5ceea5cfd9e5406",
+    "validation": "41 passed, 47 subtests passed in 3.47s",
+    "command": [
+      "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_agent_tools.py",
+      "tests/integration/test_agent_diagnostic_reruns.py",
+      "tests/integration/test_agent_review_decisions.py",
+      "tests/integration/test_agent_terminal_precedence.py",
+      "tests/unit/test_agent_acceptance.py",
+      "--junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/runtime-compatibility-junit.xml"
+    ],
+    "junit_sha256": "46d6880eab8f18db6324a037e25f2b3673fb9a51cd20cd136840242865b9a550",
+    "proof_sha256": "7d28e28d9a3274e6e75bb856c9d7b67bf2a4f3e30b0f0f481258eda0caf3b21e",
+    "scope": "The three exact PR diffs combine without textual conflicts and pass focused agent runtime, diagnostic, review, terminal outcome and collection acceptance regressions. This is not full requirement acceptance, a hosted-check result, or merge/deployment authorization."
+  },
+  "owned_ci_fixture_correction": {
+    "exact_source_commit": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+    "integrated_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "path": "tests/integration/test_source_adapter_connect_cancellation.py",
+    "tested_blob": "1f43f88bf0b75b1f3b6d139fcd5f3087fbb7270c",
+    "tested_sha256": "888c68168cf9cb4916564233f5786240187ddfca5c1b610e10b81e573171455a",
+    "proven_gap": "Greenhouse requests execute in real pool threads outside the old outer-worker-only prepared SSL context scope.",
+    "change": "Mark only pool threads created by the owned outer worker via real executor initializer, preserving unrelated callers and argument guards; require actual prepared context use by Greenhouse.",
+    "unchanged_limits": {
+      "operation_deadline_seconds": 0.8,
+      "tcp_entry_completion_oracle_seconds": 1.0,
+      "cancel_service_response_seconds": 0.35,
+      "cancel_transport_settlement_seconds": 0.35
+    },
+    "positive_and_negative_controls": [
+      "real executor and initializer preservation",
+      "same-name unrelated executor exclusion",
+      "old outer-worker-only scope rejected after healthy HTTP completion",
+      "1.1-second prepared setup outside operation deadline",
+      "cold SSL setup charged to original deadline with no socket",
+      "real pre-SSL expiry does not open connection"
+    ],
+    "production_transport_unchanged": true,
+    "hosted_stall_root_cause": "Not established beyond the demonstrated fixture ownership gap. Historical original failure and diagnostic evidence remain valid.",
+    "combined_execution": {
+      "schema_version": 1,
+      "exact_commit": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "tree": "4be99e2a3673fdb864349c1d60f9139bcf42edcc",
+      "base_main": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+      "command": [
+        "/workspace/scratch/c6c2741e5c8e/mjobs-test-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/integration/test_agent_terminal_precedence.py",
+        "tests/integration/test_agent_tools.py",
+        "tests/integration/test_agent_diagnostic_reruns.py",
+        "tests/unit/test_agent_acceptance.py",
+        "tests/unit/test_secret_scan_sustain_176.py",
+        "tests/integration/test_source_adapter_connect_cancellation.py",
+        "--junitxml=/workspace/scratch/c6c2741e5c8e/run-0d9f5a/pr994-combined-82fa.xml",
+        "--tb=short"
+      ],
+      "cwd": "/workspace/scratch/c6c2741e5c8e/mjobs-0d9f5a",
+      "started_at_utc": "2026-11-09T15:55:21.932306+00:00",
+      "duration_seconds": 44.907,
+      "returncode": 0,
+      "junit_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "114",
+          "time": "38.343",
+          "timestamp": "2026-11-09T09:55:22.338658-06:00",
+          "hostname": "3500872d9821"
+        }
+      ],
+      "junit_sha256": "a64d855218b050aed456eb9663999ba0233b161eafcd1eed36a9ebc2a25141b8",
+      "log_sha256": "411300f934c8d0c081031c48411aa695cd1d60b69d7e624554dc7a46594806a8",
+      "head_after": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "uncommitted_paths": [
+        "docs/evidence/2026-11-09-web-0d9f5a-terminal-outcomes.json",
+        "planning/agent_handoffs/MJ-REF-033-terminal-0d9f5a.json"
+      ],
+      "pytest_summary": "62 passed, 1 warning, 52 subtests passed in 38.34s",
+      "note": "Only own evidence/handoff JSON are unstaged; source/test tree is exact committed82fa. Prior9a89 had same tree with incomplete UTC trailer; fixed before publication; original receipt preserved."
+    },
+    "combined_count": {
+      "passed": 62,
+      "subtests_passed": 52,
+      "failures": 0,
+      "skipped": 0
+    },
+    "pr960_compatibility": {
+      "head": "c3a9d12b72e3b3b67b320c965455444a8f9c570c",
+      "static_result": "Two additive textual overlaps; retain both class-start tests and both observations after ssl_context_uses.append. No overlapping behavioral change.",
+      "combined_runtime_execution": "NOT_RUN",
+      "receipt_sha256": "79a7cb48cc48e4c9cf8f5d31dba8b111e12c35651515e15a8bcfcc8c69745367"
+    },
+    "acceptance_promotion": false,
+    "unpublished_provenance_correction": {
+      "initial_object": "9a89f85a291f777f6ba90378ffb8dbbfda1461db",
+      "corrected_object": "82fa368400a8119077cd3dce720a6e5e4304de7f",
+      "identical_tree": "4be99e2a3673fdb864349c1d60f9139bcf42edcc",
+      "reason": "UTC-Date date-only trailer rejected by repository validator; corrected to full UTC timestamp before branch publication. Prior unreferenced object and original receipt preserved; no published history rewritten.",
+      "fresh_corrected_commit_execution": "62 tests and 52 subtests passed, zero failures/skips",
+      "provenance": "PASS: provenance complete for 1 source file"
+    }
+  }
+}
