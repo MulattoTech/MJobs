@@ -8,7 +8,7 @@ See https://github.com/MulattoTech/Fleet-Control-Hub/tree/main/packages for sour
 
 ## Manual MJobs startup after synchronized work
 
-The dashboard at `http://127.0.0.1:18729/fleet/` is an operator console. Opening or refreshing it must not launch agents.
+The native fleet operator console is at `http://127.0.0.1:4320/fleet/` (direct controller fallback: `http://127.0.0.1:8787/`). The retired port 18729 is not a dependency. Opening or refreshing either console must not launch agents.
 
 1. Update the canonical MJobs `main` worktree using a fast-forward-only pull and check that outstanding PRs, branch ownership, and preserved session mappings are reconciled. Do **not** erase the saved fleet or overwrite live runtime state during synchronization.
 2. On the **Start MJobs** card, review the live allowance and the separately editable **Start / new-task reserve (%)** and **Emergency auto-stop cutoff (%)** fields. **Save limits** persists policy without starting anything.
