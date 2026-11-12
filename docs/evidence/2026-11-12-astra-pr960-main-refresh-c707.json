@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-11-12T19:35:19.689223+00:00",
+  "session_id": "GPT6-ASTRA-PRO-20261112T192834Z-MJOBS-INTEGRATION-c707",
+  "requirement": "MJ-REQ-004",
+  "pull_request": 960,
+  "scope": "Refresh existing TCP/TLS cleanup PR onto current protected main; no production source change beyond the reviewed PR.",
+  "parents": {
+    "original_pr_head": "5b7bdee1d24432e0f69480f926b3aa8f4e213128",
+    "current_main": "75b2393d11b73c36dc3da984588669563eb0b760"
+  },
+  "precommit_tested_tree": "39f5ce3b2c8e2fe82c1c9851298d141b67b54648",
+  "source_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+  "diagnostic_test_blob": "f2ed3411afdd1bc44ece2ee0bee55fde61643129",
+  "verification": {
+    "command": "python -B -m pytest -q -p no:cacheprovider -o faulthandler_timeout=60 --tb=short tests/unit/test_source_http_tls_cleanup.py tests/integration/test_source_http_tls_cleanup.py tests/integration/test_source_http_socket_budget.py tests/integration/test_source_adapter_connect_cancellation.py tests/unit/test_source_http_tcp_cleanup.py tests/integration/test_source_http_tcp_cleanup.py",
+    "primary_tests": 56,
+    "subtests": 40,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_seconds": 100.85,
+    "junit_sha256": "fb99ab2159088c8d2dcabfc1538e541619040c2f3ada8adf996a9d5990bedc1d",
+    "junit_suites": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "96",
+        "time": "100.854",
+        "timestamp": "2026-11-12T13:31:33.928979-06:00",
+        "hostname": "MulattoTechBox"
+      }
+    ],
+    "catalogue": "PASS",
+    "progress_validation": "PASS",
+    "progress_dashboard": "CURRENT",
+    "diff_check": "PASS",
+    "independent_static_review": "No blocking source regression; reviewed all 11 original PR paths and current-main changes.",
+    "attribution": "Executed on the merged working tree before this evidence/handoff-only addition. Exact published commit, hosted gates and protected merge are recorded separately after publication."
+  },
+  "preservation": {
+    "current_main_changes": "No overlap with the 11 PR paths; incoming main changes preserved unchanged.",
+    "historical_worktrees": "Preserved",
+    "canonical_acceptance": "Unchanged; MJ-REQ-004 remains PARTIAL"
+  },
+  "pending": [
+    "Exact published-head verification",
+    "Five fresh protected hosted checks",
+    "Protected merge",
+    "Guarded migration rehearsal before production rollout"
+  ],
+  "deployment": {
+    "deployed_sha": "6a47f56204462da1aea5ba59ff8a5f88346d05cd",
+    "external_submission_enabled": false,
+    "dispatch": "paused",
+    "current_main_migration_change": "Automatic updater refuses rollout pending offline guarded review; no deployment claimed."
+  }
+}

@@ -526,3 +526,12 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
+
+## Astra current-main integration refresh - PR960 c707
+
+- UTC: 2026-11-12T19:35:19.689223+00:00; session: GPT6-ASTRA-PRO-20261112T192834Z-MJOBS-INTEGRATION-c707. Dylan explicitly authorized transfer of the unreleased November10 MJobs integration claim; private coordination issue76 records the transfer and sole root ownership.
+- Existing PR960 head 5b7bdee1d24432e0f69480f926b3aa8f4e213128 merged cleanly with main 75b2393d11b73c36dc3da984588669563eb0b760; all reviewed production/test blobs and incoming main changes remain intact. Original historical worktrees are preserved.
+- Precommit merged tree39f5ce3b2c8e2fe82c1c9851298d141b67b54648: six focused transport modules passed56 primary tests and40 subtests, zero failures/errors/skips,100.85s. Catalogue/progress validation PASS; dashboard CURRENT; diff check PASS; independent static review found no blocker.
+- Evidence: docs/evidence/2026-11-12-astra-pr960-main-refresh-c707.json. This addition records the precommit proof accurately; fresh published-head verification, protected hosted gates and merge remain pending.
+- MJ-REQ-004 remains PARTIAL; canonical original/reference acceptance unchanged. Production is still6a47f562 with real submissions disabled and dispatch paused. Automatic rollout is blocked by a new migration and requires a separately reviewed guarded rehearsal/rollback proof.
+- Next: publish this same candidate tree by fast-forwarding the existing PR branch with an expected-head lease, earn fresh protected checks, recheck ownership/head/base/reviews, merge normally, then integrate the separate SQLite low-rate mitigation.
