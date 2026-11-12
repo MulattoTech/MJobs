@@ -526,3 +526,15 @@ Next: execute affected tests on actual proposed merge, obtain fresh independent 
 - Executed focused current-base verification: 287 passed, 284 subtests passed in 23.33s. Earlier182/243/one-skip PostgreSQL/SQLite proof remains separately attributed; independent salary review12/20PASS is complete.
 - Evidence: docs/evidence/2026-11-05-web-58c1462f-combined-main-c6-refresh.md and JSON. Normal existing-PR publication requires full candidate preflight. Fresh hosted checks, protected merge and deployment remain pending; original/reference/TalentHop acceptance unchanged.
 - Release global integration after publication; four scoped claims stay with this active continuation. No heavy/browser slot or live test resource used.
+
+
+## Astra current-main SQLite preparation — 2026-11-12 / 13b3
+
+- Owner: `GPT6-ASTRA-PRO-20261112T165932Z-FLEET-WATCHDOG-13b3-MJOBS-PREP`; preparation only, not the protected MJobs integration owner.
+- Base: `75b2393d11b73c36dc3da984588669563eb0b760`; branch: `astra/sqlite-current-main-20261112-13b3`.
+- Preserved both historical candidates/worktrees. Ported the identical bounded low-rate probe-concurrency mitigation from `46d7ceab6473e954d7fc632fcefe03aa4469194b` / `46944cd12c8ced008d8e610777aa03cee542b33c` into this isolated current-main candidate.
+- Effective client concurrency respects both configured concurrency and possible request overlap. The persisted policy, durable rate reservation, request/operation deadlines, 100 ms control-read budget and fail-closed behavior are unchanged.
+- Fresh baseline RED: all four candidate concurrency subcases fail against unchanged main. Candidate working-tree verification: 39 tests + 11 subtests PASS, zero failures/errors/skips, 63.96 seconds, Python 3.12.10 on Windows. Covers 15/60 RPM real loopback TLS, receipt replay/reopen, cancellation/stall behavior and real SQLite fail-closed negative paths.
+- Source/test blob identities, commands, run timestamps, exact limits and overlap review: `docs/evidence/2026-11-12-astra-sqlite-low-rate-13b3.json`. The owner records final-commit qualification separately; precommit results are not mislabeled exact-commit executions.
+- Next safe action: confirmed single integrator reviews this local candidate, reconciles #968's disjoint public-client retry hunk, and earns fresh required hosted checks before any protected integration. The November 10 integration claim remains unresolved by this preparation lane.
+- No PR/main mutation, hosted rerun, production change, live dispatch, canonical acceptance promotion, full-shard PASS or general SQLite-contention elimination is claimed. MJ-REQ-004 remains PARTIAL.
