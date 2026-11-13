@@ -1,0 +1,1508 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-017.F07",
+  "parent_requirement": "MJ-REQ-017",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/317",
+  "provider": "arbeitnow",
+  "created_at_utc": "2026-11-13T03:41:53.118008+00:00",
+  "repository": "MulattoTech/MJobs",
+  "owner_run": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+  "branch": "web/p6-arbeitnow-20261113-4dae",
+  "implementation_source_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+  "implementation_source_tree": "5693ecfe68a0d6f3243775c5e12bedadb83c3e96",
+  "base_sha": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+  "source_was_clean": true,
+  "routing_state": "VERIFY",
+  "delivery_state": {
+    "implemented": true,
+    "locally_verified": true,
+    "hosted_check_verified": false,
+    "integrated": false,
+    "deployed": false,
+    "formally_accepted": false,
+    "canonical_acceptance_changed": false
+  },
+  "capabilities": {
+    "strategy": "PUBLIC_JSON",
+    "supported": [
+      "DISCOVERY",
+      "REMOTE_METADATA",
+      "APPLICATION_REDIRECT"
+    ],
+    "unsupported": [
+      "JOB_DETAIL",
+      "SALARY_METADATA",
+      "APPLICATION_SUBMISSION",
+      "APPLICATION_STATUS",
+      "COMPLETE_INVENTORY",
+      "ABSENCE_BASED_CLOSURE"
+    ],
+    "request_endpoint": "https://www.arbeitnow.com/api/job-board-api",
+    "latest_pages_per_search": 1,
+    "maximum_response_bytes": 5000000,
+    "maximum_items": 1000,
+    "complete_inventory": false
+  },
+  "criteria": [
+    {
+      "criterion": 1,
+      "text": "Declare exact capabilities supported rather than implying unsupported behavior.",
+      "local_evidence": "PASS",
+      "references": [
+        "services/discovery/sources/arbeitnow.py",
+        "tests/unit/test_arbeitnow_source.py",
+        "docs/sources/ARBEITNOW.md"
+      ]
+    },
+    {
+      "criterion": 2,
+      "text": "Add deterministic fixtures/contract tests.",
+      "local_evidence": "PASS",
+      "references": [
+        "tests/fixtures/arbeitnow.json",
+        "tests/unit/test_arbeitnow_source.py",
+        "tests/unit/test_arbeitnow_provenance.py",
+        "tests/integration/test_arbeitnow.py",
+        "tests/unit/test_source_adapter_contract_223.py"
+      ]
+    },
+    {
+      "criterion": 3,
+      "text": "Perform bounded live read-only validation where appropriate and safe.",
+      "local_evidence": "PASS",
+      "reference": "live_readonly_validation"
+    },
+    {
+      "criterion": 4,
+      "text": "Record limitations and last-tested evidence.",
+      "local_evidence": "PASS",
+      "references": [
+        "docs/sources/ARBEITNOW.md",
+        "this evidence manifest"
+      ]
+    },
+    {
+      "criterion": 5,
+      "text": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+      "local_evidence": "PASS",
+      "references": [
+        "fixed official public endpoint and default verified TLS transport",
+        "independent source review",
+        "no credentials, redirects, response-selected destinations or page crawling"
+      ]
+    }
+  ],
+  "backend_verification": {
+    "result": "PASS",
+    "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "source_tree": "b5409269292d06784280739907d4465c0fd83972",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\backend-tests-17a14da4.xml",
+      "tests/unit/test_arbeitnow_source.py",
+      "tests/integration/test_arbeitnow.py",
+      "tests/unit/test_arbeitnow_provenance.py",
+      "tests/unit/test_company_source_capabilities.py",
+      "tests/unit/test_company_source_contract_sustain_224.py",
+      "tests/unit/test_extension_point_contracts.py",
+      "tests/unit/test_source_adapter_contract_223.py",
+      "tests/unit/test_ai_prompt_versioning.py::PersistedPromptProvenanceTests",
+      "tests/integration/test_company_source_view.py::CompanySourceViewTests"
+    ],
+    "started_at": "2026-11-13T03:32:41.423322+00:00",
+    "ended_at": "2026-11-13T03:33:06.161591+00:00",
+    "exit_code": 0,
+    "counts": {
+      "passed": 193,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 68
+    },
+    "environment": "MULATTOTECHBOX; cached project Python; synthetic HTTP fixtures; isolated temporary SQLite; real in-process API clients; no PostgreSQL or Redis",
+    "log_name": "backend-tests-17a14da4.log",
+    "log_sha256": "4a21d2da00a3fba93900111fcc3373b8a309831481e983c3fb2ed7f752f94e14"
+  },
+  "frontend_build": {
+    "result": "PASS",
+    "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "source_tree": "b5409269292d06784280739907d4465c0fd83972",
+    "command": [
+      "cmd",
+      "/c",
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "build"
+    ],
+    "started_at": "2026-11-13T03:33:12.627782+00:00",
+    "ended_at": "2026-11-13T03:33:14.296582+00:00",
+    "exit_code": 0,
+    "counts": {
+      "exit_success": 1
+    },
+    "environment": "MULATTOTECHBOX; repository lockfile; Node v27.0.0-alpha.0.0.0; npm12.2.2; TypeScript7.0.2 and Vite8.3.3; scoped offline install",
+    "log_name": "frontend-build-17a14da4.log",
+    "log_sha256": "dccffcfaffce3c2b555a14de21864fbe2d81d338d42eb0d589bf274d62bce9a0"
+  },
+  "browser_verification": {
+    "result": "PASS",
+    "source_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+    "source_tree": "5693ecfe68a0d6f3243775c5e12bedadb83c3e96",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\browser-cf68318a.xml",
+      "tests/browser/test_arbeitnow_source_enrollment.py"
+    ],
+    "started_at": "2026-11-13T03:37:44.222443+00:00",
+    "ended_at": "2026-11-13T03:37:52.475076+00:00",
+    "exit_code": 0,
+    "counts": {
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "environment": "Actual built React UI, Uvicorn/API and Chromium; synthetic fixture profile and owned temporary SQLite; loopback-only route interception; zero external requests; browser version not captured",
+    "log_name": "browser-cf68318a.log",
+    "log_sha256": "cd41ccc6592d73b9d08da32c8d57caa1fded0e16af435d6ee8a7a751d2648c8e"
+  },
+  "browser_behaviors": [
+    "Correct provider option and no employer-tenant fields",
+    "Real PUT/GET source enrollment and exact declared capabilities",
+    "Reload preserves visible Jobs supplied by Arbeitnow credit linking to https://www.arbeitnow.com/",
+    "Disable preserves source identity and persists disabled state",
+    "No canonical jobs, worker operations or applications created",
+    "No external requests or page errors"
+  ],
+  "build_artifact_sha256": {
+    "apps/web/dist/index.html": "44c920ca5aad4a38339b8ee6e2bf02c9fe272462f02f528abb33da4e6f8c9fed",
+    "apps/web/dist/assets/index-BBtMCqNP.js": "281df8272db11f9d15b0f32f102a026d3f81955d60701ddfa533d219975bde3f",
+    "apps/web/dist/assets/index-BYoKyum1.css": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539"
+  },
+  "source_equivalence": {
+    "backend_success_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "qualification_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+    "production_diff_between_backend_and_qualification": [],
+    "only_intervening_change": "Browser invariant uses SQLAlchemy models' physical table names; no product or backend-test change",
+    "frontend_tree_at_build_and_browser": "bf5f56e7af5a116fd095dc5efb0fd6f425df8550",
+    "live_provider_blob_at_live_and_qualification": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+    "discovery_tree_at_live_and_qualification": "44e0d4693bac172f1a3fbba700f226d964bb5c64"
+  },
+  "live_readonly_validation": {
+    "schema_version": 1,
+    "requirement": "MJ-REQ-017.F07",
+    "repository": "MulattoTech/MJobs",
+    "head": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+    "tree": "947aa88623b63e2e44d3ac6c30e87ad60e10b3d2",
+    "provider_blob": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+    "provider_sha256": "d3c28db8114d27f5d91d6e05027a9f12d2ba8de743bd4432ff03f9b4500fcfd1",
+    "started_at": "2026-11-13T03:19:19.411410+00:00",
+    "endpoint": "https://www.arbeitnow.com/api/job-board-api",
+    "method": "GET",
+    "search_invocations": 1,
+    "configuration": {
+      "tenant": "default",
+      "request_timeout_seconds": 20,
+      "rate_limit_per_minute": 6,
+      "concurrency": 1
+    },
+    "environment": "MULATTOTECHBOX / project venv Python / direct production SourceTransport / no injected fixture transport",
+    "database": "none",
+    "persistence_performed": false,
+    "external_applications": false,
+    "raw_response_published": false,
+    "source_status_before": "",
+    "result": "PASS",
+    "received": 300,
+    "normalized": 300,
+    "normalization_failures": [],
+    "source_health": "HEALTHY",
+    "complete_inventory": false,
+    "all_provider_urls_preserved": true,
+    "all_manual_only": true,
+    "all_possibly_active": true,
+    "observed_listing_hosts": {
+      "www.arbeitnow.com": 100,
+      "www.arbeitnow.co.uk": 50,
+      "www.arbeitnow.fr": 50,
+      "www.arbeitnow.ch": 50,
+      "www.arbeitnow.nl": 50
+    },
+    "remote_flag_true_count": 20,
+    "identity_set_sha256": "b0de790d34fc4e9f6ba02dd764cc26e929f1b3e3ce3a6029e948e4fc10824745",
+    "ended_at": "2026-11-13T03:19:24.184653+00:00",
+    "source_status_after": "",
+    "runner_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "runner_arguments": [
+      "-X",
+      "utf8",
+      "-B",
+      "-c",
+      "inline recorded MTerm program"
+    ],
+    "exact_provider_invocation": "adapter = Arbeitnow(request_timeout=20, rate_limit=6, concurrency=1); batch = adapter.search(); adapter.normalize(item.raw) for each returned SourceItem",
+    "mterm_process_id": 14308,
+    "database_and_profile_used": false,
+    "followed_listing_or_pagination_links": false
+  },
+  "review": {
+    "backend_commit": "c0a3e4ac0cb43ce55deda3de4473aed7d7ea6343",
+    "combined_source_commit": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "combined_source_tree": "b5409269292d06784280739907d4465c0fd83972",
+    "reviewer": "/root/integration_coordination",
+    "reviewed_at": "2026-11-13T03:31:46Z",
+    "result": "No blocking source findings; approved for qualification",
+    "independent_original_defect_probes": {
+      "passed": 4,
+      "failed": 0
+    },
+    "final_metadata_and_browser_test_delta_review": {
+      "creation_time_state": "PENDING",
+      "completed_result": "APPROVED_FOR_PUBLICATION_AND_HOSTED_QUALIFICATION",
+      "reviewer": "/root/integration_coordination",
+      "reviewed_head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+      "receipt": "final-review-86cafb5c.json",
+      "receipt_sha256": "56aeae5add043f4baf874822e1d22204097b0eb5ac688b9a2d2015e93892a359",
+      "later_main_refresh_review": {
+        "head": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "reviewer": "/root/p6_readonly",
+        "result": "PASS_FOR_HOSTED_QUALIFICATION",
+        "receipt": "final-review-d3aacf43.json",
+        "receipt_sha256": "478d6486321ab248542ac12a3643de6e4528b18fa716279dcb35f10c19fe3dd9"
+      }
+    }
+  },
+  "prior_failures_preserved": [
+    {
+      "source_sha": "c0a3e4ac0cb43ce55deda3de4473aed7d7ea6343",
+      "result": "1 failed,153 passed,55 subtests passed",
+      "cause": "New API test used nonexistent m.worker_operations model alias",
+      "repair_commit": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+      "resolved_by": "193-test combined pass",
+      "receipt": "backend-tests-c0a3e4ac.json"
+    },
+    {
+      "source_sha": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+      "result": "1 failed,99 passed,121 subtests passed",
+      "cause": "Registry-wide fixture did not yet include the newly registered adapter",
+      "repair_commit": "593aa1074b559965fcf7c1f0e113990e0bfd9071",
+      "resolved_by": "Corrected fixture/provenance27-test pass and later193-test combined pass",
+      "receipt": "compatibility-existing.json"
+    },
+    {
+      "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+      "result": "1 browser test failed",
+      "cause": "Final no-side-effect assertion used logical jobs instead of physical canonical_jobs table",
+      "repair_commit": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+      "resolved_by": "1 real browser test passed with all original assertions intact",
+      "receipt": "browser-17a14da4.json"
+    }
+  ],
+  "integrity_verification": {
+    "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "results": {
+      "catalogue": "PASS",
+      "progress_validate": "PASS",
+      "progress_dashboard_check": "CURRENT",
+      "agent_skills": "PASS",
+      "reference_provenance": "PASS",
+      "commit_provenance": "PASS for all source commits through cf68318a"
+    },
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Latest page only; incomplete and changing coverage across European regional sites",
+    "No salary/detail/direct submission/application status/expiration guarantee",
+    "Provider remote flag does not establish US/worldwide/country eligibility",
+    "Shared geography parser does not normalize every country; original location text remains preserved",
+    "Application URLs remain aggregator options; no new trusted-board, verified employer or ATS authority",
+    "No live production enrollment or deployment; live normalization used no database",
+    "SQLite fixture proof does not substitute for protected PostgreSQL/Redis integration checks",
+    "Standalone browser test is not automatically selected by the PR's explicit connected-acceptance list; local actual-browser proof is recorded here"
+  ],
+  "remaining_gates": [
+    "Validate the actual stock handoff history and bind the final two-file metadata-only successor to operational head 9fff before publication.",
+    "Bind the exact two-file metadata-only successor and its source-equivalence limits through immutable review and fresh existing-PR 1019 operator/admission evidence.",
+    "Publish through one ordinary owned branch update and earn all required hosted checks on the exact new head. Historical 91bb: 15/15 and 5/5 PASS does not qualify 9fff or its successor.",
+    "Use the verified sole steward for protected F07 integration, then satisfy applicable integrated/runtime and deployment criteria and the designated canonical acceptance review. No acceptance or deployment promotion is recorded here."
+  ],
+  "coordination": {
+    "ui_original_commit": "64819d7d650ed60759d38d0da97f714272999f49",
+    "ui_integrated_commit": "b954747e2ff6446f41c2fb8a0276b455e29d0943",
+    "ui_owner": "ca95dbc6",
+    "ui_transfer_journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6842849783",
+    "open_ownership_blocker": null,
+    "ownership_resolution": {
+      "date": "2026-11-13",
+      "transfer_id": "05c3941245414035b80185d84b2b05c1",
+      "sole_steward_run": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6843931256",
+      "scope": "Exactly three prior steward/canonical claims transferred after explicit user authorization; unrelated old claims unchanged."
+    }
+  },
+  "artifacts": {
+    "private_run_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+    "raw_live_job_data_committed": false,
+    "all_observed_browser_processes_absent": true
+  },
+  "official_references": [
+    "https://www.arbeitnow.com/blog/job-board-api",
+    "https://documenter.getpostman.com/view/18545278/UVJbJdKh",
+    "https://www.arbeitnow.com/api/job-board-api",
+    "https://www.arbeitnow.com/",
+    "https://www.arbeitnow.com/terms"
+  ],
+  "last_updated_at_utc": "2026-11-13T12:34:46Z",
+  "current_qualification": {
+    "source_head": "9fff078746046ae9828a63bd96485d082a3835a5",
+    "core_arbeitnow_source_unchanged_from_prior_qualification": true,
+    "required_gates_at_prior_published_d3": [
+      {
+        "id": 131698938967,
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579639/job/131698938967",
+        "started_at": "2026-11-13T04:55:43Z",
+        "completed_at": "2026-11-13T04:55:46Z"
+      },
+      {
+        "id": 131693590588,
+        "name": "CI / required",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579832/job/131693590588",
+        "started_at": "2026-11-13T04:39:58Z",
+        "completed_at": "2026-11-13T04:40:00Z"
+      },
+      {
+        "id": 131692451477,
+        "name": "CodeQL",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/runs/131692451477",
+        "started_at": "2026-11-13T04:36:34Z",
+        "completed_at": "2026-11-13T04:36:37Z"
+      },
+      {
+        "id": 131692284894,
+        "name": "Security / secret scan",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579843/job/131692284894",
+        "started_at": "2026-11-13T04:36:08Z",
+        "completed_at": "2026-11-13T04:36:21Z"
+      },
+      {
+        "id": 131692284816,
+        "name": "Repository / policy and docs",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579832/job/131692284816",
+        "started_at": "2026-11-13T04:36:07Z",
+        "completed_at": "2026-11-13T04:36:21Z"
+      },
+      {
+        "id": 131692284805,
+        "name": "Python / unit and integrity",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579832/job/131692284805",
+        "started_at": "2026-11-13T04:36:07Z",
+        "completed_at": "2026-11-13T04:39:56Z"
+      },
+      {
+        "id": 131692284423,
+        "name": "Web / Vitest and production build",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579832/job/131692284423",
+        "started_at": "2026-11-13T04:36:07Z",
+        "completed_at": "2026-11-13T04:36:42Z"
+      },
+      {
+        "id": 131692284248,
+        "name": "Dependencies / introduced vulnerabilities",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579658/job/131692284248",
+        "started_at": "2026-11-13T04:36:06Z",
+        "completed_at": "2026-11-13T04:36:13Z"
+      },
+      {
+        "id": 131692284159,
+        "name": "Integration / shard 2",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579639/job/131692284159",
+        "started_at": "2026-11-13T04:36:07Z",
+        "completed_at": "2026-11-13T04:51:52Z"
+      },
+      {
+        "id": 131692284151,
+        "name": "Integration / shard 1",
+        "status": "completed",
+        "conclusion": "failure",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579639/job/131692284151",
+        "started_at": "2026-11-13T04:36:07Z",
+        "completed_at": "2026-11-13T04:51:30Z"
+      },
+      {
+        "id": 131692284095,
+        "name": "Disposable Compose / mock end-to-end",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579586/job/131692284095",
+        "started_at": "2026-11-13T04:36:07Z",
+        "completed_at": "2026-11-13T04:43:36Z"
+      },
+      {
+        "id": 131692283937,
+        "name": "Integration / shard 0",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366579639/job/131692283937",
+        "started_at": "2026-11-13T04:36:06Z",
+        "completed_at": "2026-11-13T04:55:41Z"
+      },
+      {
+        "id": 131692272400,
+        "name": "Analyze (python)",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366574638/job/131692272400",
+        "started_at": "2026-11-13T04:36:05Z",
+        "completed_at": "2026-11-13T04:37:06Z"
+      },
+      {
+        "id": 131692272370,
+        "name": "Analyze (actions)",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366574638/job/131692272370",
+        "started_at": "2026-11-13T04:36:05Z",
+        "completed_at": "2026-11-13T04:36:44Z"
+      },
+      {
+        "id": 131692272125,
+        "name": "Analyze (javascript-typescript)",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "d3aacf43315ec952a3d474e6981a5b0b5ed482d4",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43366574638/job/131692272125",
+        "started_at": "2026-11-13T04:36:05Z",
+        "completed_at": "2026-11-13T04:37:10Z"
+      }
+    ],
+    "diagnostic_evidence": "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
+    "diagnostic_local": "16 PASS,0 failure/error/skip at exact test02b1957f",
+    "new_published_head_gates": "Historical published predecessor 91bb: 15/15 checks and 5/5 required contexts PASS at 2026-11-13T09:53:31.567Z. Local 9fff and any future two-file metadata successor: NOT_RUN/NOT_PUBLISHED; fresh exact-head hosted qualification remains required.",
+    "integration_acceptance": "NOT_RUN",
+    "integrated_main": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+    "diagnostic_current_main": "16 PASS,0 failures/errors/skips at53d with actualStoreab3a3729; prior d3/ff2 proof andhostedfailure retained",
+    "native_integrity": "Seven saved catalogue/progress/dashboard/provenance/whitespace commands PASS at53d; no separate handoff-schema command is attributed to that receipt.",
+    "current_main_source_review": {
+      "reviewed_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+      "reviewer": "/root/campaign_review",
+      "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "scope": "Current-main merge, coreF07 source equivalence, exactincoming5b2blobs andactualcurrentStore16-case receipt/integrity; diagnostic author status disclosed",
+      "independent_diagnostic_source_review": {
+        "reviewer": "/root/integration_coordination",
+        "blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+        "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS"
+      },
+      "final_published_head_operator_binding": "Completed6df publication/readback is recorded separately; its actual required results are now known below. A later metadata successor still requires fresh independent final review and operator admission.",
+      "creation_time_final_published_head_operator_binding": "Separate private receipt and PR publication readback; required hosted gates remain pending"
+    },
+    "creation_time_new_published_head_gates": "NOT_RUN",
+    "published_head_qualification": {
+      "head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "tree": "acaeb9976bd8e76efca91997a0a2b56d5ec87112",
+      "tested_pull_request_merge": "2f37eddb3a8d214880a5f0cebdf35efc2b930b5a",
+      "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "observed_at": "2026-11-13T05:58:52.546Z",
+      "source_receipt": {
+        "name": "f07-6df-required-checks-final.json",
+        "bytes": 4018,
+        "sha256": "2ac81c5762390cd02b251a6cdbc94d47c66a893f886d350c5a7c46b34395f96e"
+      },
+      "required_context_count": 5,
+      "required_contexts_passed": 4,
+      "all_required_contexts_passed": false,
+      "checks": [
+        {
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131720502760,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131720502760"
+        },
+        {
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131715367972,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131715367972"
+        },
+        {
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713614671,
+          "details_url": "https://github.com/MulattoTech/MJobs/runs/131713614671"
+        },
+        {
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713471731,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131713471731"
+        },
+        {
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713471536,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131713471536"
+        },
+        {
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713471234,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131713471234"
+        },
+        {
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470300,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131713470300"
+        },
+        {
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470212,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173984/job/131713470212"
+        },
+        {
+          "name": "Dependencies / introduced vulnerabilities",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470175,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174117/job/131713470175"
+        },
+        {
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470081,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131713470081"
+        },
+        {
+          "name": "Security / secret scan",
+          "status": "completed",
+          "conclusion": "failure",
+          "id": 131713469769,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174001/job/131713469769"
+        },
+        {
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713469742,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131713469742"
+        },
+        {
+          "name": "Analyze (actions)",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713466426,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373170734/job/131713466426"
+        },
+        {
+          "name": "Analyze (javascript-typescript)",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713466257,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373170734/job/131713466257"
+        },
+        {
+          "name": "Analyze (python)",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713466024,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373170734/job/131713466024"
+        }
+      ],
+      "interpretation": "All three Integration shards and the PostgreSQL/Redis aggregate, CI / required, Dependencies and Disposable Compose passed at published6df. Security failed on exactly two historical ntfy event-key findings. These are actual published-head results; they do not qualify the later scanner/evidence successor.",
+      "prior_d3_failure_retained": true,
+      "historical_failure_cause": "UNKNOWN",
+      "production_cancellation_fix_claimed": false
+    },
+    "scanner_prerequisite": {
+      "f07_failed_head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "f07_failed_merge": "2f37eddb3a8d214880a5f0cebdf35efc2b930b5a",
+      "failed_run_id": 43373174001,
+      "failed_job_id": 131713469769,
+      "failed_job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174001/job/131713469769",
+      "redacted_artifact_id": 14013591508,
+      "redacted_artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174001/artifacts/14013591508",
+      "artifacts": [
+        {
+          "name": "f07-6df4-secret-candidates.json",
+          "bytes": 3395,
+          "sha256": "8e28c70202140f538837d400c9c9fb272748424b02d58bf357ec9a0291c65006"
+        },
+        {
+          "name": "f07-6df4-secret-candidates.zip",
+          "bytes": 1127,
+          "sha256": "dfecfd21a3e50beb6f52f9de3f95111f47fca2f9de18593d829b1ddcbd5ff54f"
+        },
+        {
+          "name": "ci-f07-secret-scan-6df4fd24.log",
+          "bytes": 41362,
+          "sha256": "e5120d9fbaedbf921cfcae0f6f1cd437dab751183445de1e0dceeefc7406d90a"
+        }
+      ],
+      "finding_count": 2,
+      "findings": [
+        {
+          "RuleID": "generic-api-key",
+          "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+          "File": "docs/evidence/2026-11-13-ntfy-delivery.json",
+          "StartLine": 489,
+          "EndLine": 489,
+          "Commit": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+          "Fingerprint": "3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:489",
+          "Tags": []
+        },
+        {
+          "RuleID": "generic-api-key",
+          "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+          "File": "docs/evidence/2026-11-13-ntfy-delivery.json",
+          "StartLine": 502,
+          "EndLine": 502,
+          "Commit": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+          "Fingerprint": "3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:502",
+          "Tags": []
+        }
+      ],
+      "classification": "The independent ntfy owner disposition identifies both findings as recomputable synthetic event identifiers, not authentication credentials.",
+      "owner_source_commit": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+      "owner_source_parent": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+      "owner_source_tree": "3df27c7fe433ce3bb85e1fcd07c8f157ea97b21b",
+      "exact_source_files": [
+        {
+          "path": ".gitleaksignore",
+          "git_blob": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+          "bytes": 34307,
+          "sha256": "d2a725ea1e5efa13d80ce8f7ad422a1621c8cfcca346aab73d6d39942fde4e81"
+        },
+        {
+          "path": "docs/evidence/2026-11-13-ntfy-scanner-disposition.json",
+          "git_blob": "db132b02dfae64de3793ff1edf47eb18c181aefb",
+          "bytes": 3875,
+          "sha256": "b780d0fb957e27949e622da02663013cb49461e87ffb85fefd429d33fcc044e5"
+        }
+      ],
+      "same_ignore_parent_blob": "6b32be9091c12e6eafdf6b4620403f73c68864f9",
+      "change_scope": "Only two exact commit/path/rule/line exceptions and their disposition record; no scanner policy/version/workflow, product source or rewritten history.",
+      "owner_final_patch_review_sha256": "dd51a532cf38d60e5620f597e57242b0753763277834b30f4896fd5798854a4f",
+      "classification_review": {
+        "reviewer": "/root/campaign_review under distinct owner run WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+        "receipt": "ntfy-scanner-independent-disposition-3c2764.json",
+        "receipt_sha256": "7b36c22f907d3ab4f1dae71d89fc79e02da6e647e01768fb64af6ed9a95108cb",
+        "this_draft_preparer_performed_that_review": false
+      },
+      "release_journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6845514576",
+      "release_journal_created_at": "2026-11-13T06:01:54Z",
+      "owner_shared_scope_state_at_journal": "RELEASED",
+      "hosted_owner_successor": {
+        "head": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+        "source_url": "https://api.github.com/repos/MulattoTech/MJobs/commits/9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324/check-runs?per_page=100",
+        "observed_by_draft_preparer": true,
+        "observation_recorded_at_utc": "2026-11-13T06:25:36.972Z",
+        "checks": [
+          {
+            "id": 131727860911,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / PostgreSQL and Redis",
+            "status": "completed",
+            "conclusion": "failure",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131727860911",
+            "started_at": "2026-11-13T06:17:33Z",
+            "completed_at": "2026-11-13T06:17:35Z"
+          },
+          {
+            "id": 131721226742,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Security / secret scan",
+            "status": "completed",
+            "conclusion": "success",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590909/job/131721226742",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T05:59:43Z"
+          },
+          {
+            "id": 131721226395,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / shard 1",
+            "status": "completed",
+            "conclusion": "failure",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226395",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T06:15:22Z"
+          },
+          {
+            "id": 131721226354,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / shard 2",
+            "status": "completed",
+            "conclusion": "success",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226354",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T06:17:31Z"
+          },
+          {
+            "id": 131721225981,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / shard 0",
+            "status": "completed",
+            "conclusion": "failure",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721225981",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T06:14:42Z"
+          }
+        ],
+        "security_result": "PASS",
+        "integration_aggregate_result": "FAIL",
+        "integration_shards_failed": [
+          0,
+          1
+        ],
+        "scope": "Security job131721226742 passed on9ef. Its separate ntfy Integration shards0/1 and aggregate failed; no claim that all ntfy gates passed or that any later F07 head is qualified."
+      },
+      "actual_f07_adoption": {
+        "head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+        "tree": "0c6210d8ca6599b8762e4f5c5253cf092da94133",
+        "observed_at": "2026-11-13T06:23:42.1800740Z",
+        "worktree_clean": true,
+        "only_changed_paths_from_6df": [
+          ".gitleaksignore",
+          "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+        ],
+        "source_files_match_owner_blobs": true,
+        "executable_source_changed": false,
+        "receipt": {
+          "name": "scanner-adoption-complete.json",
+          "bytes": 3494,
+          "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+        },
+        "scanner_scope_release": "Parent recorded immediate release of the fresh adoption claim; no claim mutation performed by this draft."
+      },
+      "future_metadata_successor": {
+        "head": null,
+        "tree": null,
+        "status": "FINAL_METADATA_PREPARED_IMMUTABLE_BINDING_RECORDED_SEPARATELY",
+        "hosted_checks": "NOT_RUN",
+        "publication": "NOT_RUN",
+        "binding_requirement": "Root must bind the later metadata commit, exact executable equivalence, review/operator admission and new published-head checks separately."
+      }
+    },
+    "executable_source_binding": {
+      "tested_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+      "tested_tree": "765dc1672a15b2355e96021ba3067ae3d3c3a1cd",
+      "published_head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "published_tree": "acaeb9976bd8e76efca91997a0a2b56d5ec87112",
+      "assembled_scanner_head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+      "assembled_scanner_tree": "0c6210d8ca6599b8762e4f5c5253cf092da94133",
+      "metadata_only_delta_53d_to_6df": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
+        "planning/agent_handoffs/MJ-REQ-017.F07.json"
+      ],
+      "scanner_only_delta_6df_to_e890": [
+        ".gitleaksignore",
+        "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+      ],
+      "verified_core_blobs": [
+        {
+          "path": "services/discovery/sources/arbeitnow.py",
+          "tested53d": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+          "published6df": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61"
+        },
+        {
+          "path": "tests/integration/test_mock_discovery_request_bounds.py",
+          "tested53d": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+          "published6df": "02b1957f95223a295796b60cba2a0b5129d6aa02"
+        },
+        {
+          "path": "services/discovery/sources/http_transport.py",
+          "tested53d": "9b67f712daf745f996455fa3c82415d5439323dd",
+          "published6df": "9b67f712daf745f996455fa3c82415d5439323dd"
+        },
+        {
+          "path": "packages/persistence/store.py",
+          "tested53d": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "published6df": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f"
+        },
+        {
+          "path": "workers/operations.py",
+          "tested53d": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+          "published6df": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4"
+        }
+      ],
+      "scope": "Actual local runtime remains bound to53d and exact02b1 diagnostic source;6df has actual hosted results; e890 incorporates only the exact scanner pair. No new local browser, live source or test execution was performed for these drafts."
+    },
+    "published_final_review": {
+      "head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "receipt": {
+        "name": "final-review-6df4fd24.json",
+        "bytes": 24663,
+        "sha256": "001cd67cf173c7f3f3b7d7739d2c39de7a3c90c05a682042e94006267bb5a589"
+      },
+      "reviewer": "/root/campaign_review",
+      "reviewer_is_diagnostic_author": true,
+      "scope": "Source/main/evidence consistency with diagnostic-author status disclosed; independent diagnostic source approval remains attributed to /root/integration_coordination.",
+      "publication_readback": {
+        "name": "publication-update1019-readback-6df4fd24.json",
+        "bytes": 6628,
+        "sha256": "51d5729af3c1d088ad44c36093a864da43dd9933231fe7ca3fa40f68e894a16d"
+      }
+    },
+    "metadata_update_preparation": {
+      "prepared_at_utc": "2026-11-13T06:25:36.972Z",
+      "prepared_by": "/root/campaign_review",
+      "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+      "preparer_is_f07_diagnostic_author": true,
+      "preparer_is_owner_scanner_classification_reviewer": false,
+      "new_independent_approval_claimed": false,
+      "tracked_files_changed_by_preparer": false,
+      "new_tests_or_live_requests": false,
+      "scope": "Private evidence/handoff/PR-body drafts only; final root adoption/review/publication remains separate.",
+      "historical_scope_note": "This remains the preparer's private-draft provenance; root adoption and independent draft review are recorded separately."
+    },
+    "creation_time_native_integrity_wording": "Catalogue/progress/dashboard/handoff/provenance/whitespace PASS at53d",
+    "native_handoff_validation": {
+      "result": "PASS",
+      "method": "tools.agent_context.validate_checkpoint(candidate_handoff)",
+      "validator_source_blob": "743792a5a586ef991afa557876e1478394ca5f68",
+      "candidate_handoff_sha256": "9181998c7c31cac0ae8795af19a9470642377767b3c6fa6bfb2f1d5ec6dfaf60",
+      "validated_at_utc": "2026-11-13T06:45:01.259983+00:00",
+      "errors": [],
+      "scope": "Actual native validation of final candidate handoff bytes before commit; distinct from the earlier static inspection and seven-command53d integrity receipt."
+    },
+    "root_metadata_adoption": {
+      "at_utc": "2026-11-13T06:45:01.259983+00:00",
+      "base_head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+      "changed_paths": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "planning/agent_handoffs/MJ-REQ-017.F07.json"
+      ],
+      "independent_draft_review": {
+        "reviewer": "/root/p6_readonly",
+        "result": "PASS_SCOPED_WITH_FINALIZATION_NOTES",
+        "receipt": {
+          "name": "independent-review-f07-metadata-e890b9d4.json",
+          "bytes": 16243,
+          "sha256": "1eb19365410c2efa00e1ea8899e69230db0db07da31b5302ba51538018f78937"
+        }
+      },
+      "reviewed_drafts": [
+        {
+          "name": "f07-source-evidence-next.json",
+          "bytes": 41347,
+          "sha256": "9c12e7b72b7d1baddb60eebe88844fe0ea14d08c1a71d1d46ef24e818fdd28b1"
+        },
+        {
+          "name": "f07-handoff-next.json",
+          "bytes": 5161,
+          "sha256": "2f3df28c8df87d98441b5b331772b9d416c991780f3965f0fe559a1824d4c518"
+        }
+      ],
+      "completed_finalization_notes": [
+        "Removed current private-draft adoption instructions while retaining historical preparer state.",
+        "Distinguished actual native handoff validation from seven-command53d native integrity.",
+        "Retained the original private summary; its two copied -06:00 timestamps represent the same instants as the actual+00:00 adoption receipt. Exact original strings are recorded in the private final candidate."
+      ]
+    },
+    "historical_current_summaries": [
+      {
+        "recorded_at_utc": "2026-11-13T09:10:40.294083+00:00",
+        "fields": {
+          "source_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+          "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+          "new_published_head_gates": "Published6df:4/5 required contexts PASS; Security FAIL on two historical ntfy event identifiers. Final scanner/evidence successor:NOT_RUN."
+        },
+        "scope": "Earlier executable/diagnostic/scanner qualification remains attached to its original embedded heads."
+      },
+      {
+        "recorded_at_utc": "2026-11-13T12:34:46Z",
+        "fields": {
+          "source_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+          "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+          "new_published_head_gates": "Future post-frontend metadata successor: NOT_RUN. Published 28911160 retains its original 14/15 total and 4/5 required outcomes, with the one public-metadata-digest Security failure preserved."
+        },
+        "scope": "Previous current-field snapshot; its embedded f056/53d and older hosted/scanner results retain their original execution scope."
+      }
+    ],
+    "merged_frontend": {
+      "status": "PASS",
+      "tested_source_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+      "tested_source_tree": "e0e8c4de040ac519ccfebf05d1034be9d278c854",
+      "tested_web_tree": "c78ef6db85b42674b2007e9b1f16b3360c4a7531",
+      "incorporated_protected_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "run_started_at_utc": "2026-11-13T08:51:17.132610+00:00",
+      "run_finished_at_utc": "2026-11-13T08:55:05.832527+00:00",
+      "overall_elapsed_seconds": 228.687,
+      "result_receipt": {
+        "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+        "bytes": 198551,
+        "sha256": "1b6b391544c207dafef70dc1cf9941dad41a47647f7ed1edc4e290ed29b0b1a0"
+      },
+      "controller": {
+        "name": "merged-frontend-qualification-controller-v3.py",
+        "bytes": 36968,
+        "sha256": "fe2fa7fec8cb58a4282008cebe72abcc7f931df98501e0a9792b26efff963a2d"
+      },
+      "ready_manifest": {
+        "name": "merged-frontend-manifest-7db8d97a-f056e9c5-ready.json",
+        "bytes": 60818,
+        "sha256": "4f48be067ee152779ff6ab0a45764c3fdae54390d0743356fe9f215847267d62"
+      },
+      "source_before_after_equal": true,
+      "dependencies_before_after_equal": true,
+      "raw_checkout_and_committed_git_identities_bound_separately": true,
+      "all_owned_process_cleanup_proven": true,
+      "resource_disposition": {
+        "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/resource-disposition.json",
+        "bytes": 483,
+        "sha256": "cab956e4522788f3b75d51dc20191a2f3eb9187edc1d594a55a01050298c1d53"
+      },
+      "resource_status": "RELEASED",
+      "build": {
+        "name": "f07-build",
+        "status": "PASS",
+        "logical_command": [
+          "C:\\WINDOWS\\system32\\cmd.exe",
+          "/d",
+          "/c",
+          "npm",
+          "--prefix",
+          "apps/web",
+          "run",
+          "build"
+        ],
+        "elapsed_seconds": 1.89,
+        "returncode": 0,
+        "executed_argv_reference": {
+          "receipt": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+          "json_pointer": "/phases/3/executed_argv"
+        },
+        "execution_mechanism": "Retained OwnedProcess with private Python logging wrapper; pytest uses runpy. Logical arguments are not relabeled as a different executed shell invocation.",
+        "log": {
+          "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f07-build/console.log",
+          "bytes": 911,
+          "sha256": "f2ec5b6997a74d2d7eece1d1fa2071b47b6119335f39c1250dcce2776562c1a1"
+        },
+        "build_artifact_sha256": {
+          "assets/index-2382Njgh.js": "57e03cb97d9bc8ac5543af2e64b2b496934ed6f6ec0377cf7a7af6971ca9c589",
+          "assets/index-BYoKyum1.css": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539",
+          "index.html": "748c625fce7a89e35108c93da23a4d5791aff114da2a6216c15224c2b1d277c6"
+        },
+        "nonblocking_observation": "Existing Vite chunk-size warning; build exited 0.",
+        "cleanup": {
+          "status": "PASS",
+          "retained_job_active_members": 0,
+          "original_host_signaled": true,
+          "temporary_fixture_cleanup": "PASS"
+        }
+      },
+      "browser": {
+        "name": "f07-browser",
+        "status": "PASS",
+        "logical_command": [
+          "-q",
+          "-s",
+          "-p",
+          "no:cacheprovider",
+          "--tb=short",
+          "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88\\f07-browser\\junit.xml",
+          "--basetemp=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88\\f07-browser\\temp\\pytest",
+          "tests/browser/test_arbeitnow_source_enrollment.py"
+        ],
+        "elapsed_seconds": 7.609,
+        "returncode": 0,
+        "executed_argv_reference": {
+          "receipt": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+          "json_pointer": "/phases/4/executed_argv"
+        },
+        "execution_mechanism": "Retained OwnedProcess with private Python logging wrapper; pytest uses runpy. Logical arguments are not relabeled as a different executed shell invocation.",
+        "log": {
+          "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f07-browser/console.log",
+          "bytes": 22,
+          "sha256": "1eeea2a7644dc56ae1e4758c5ed387d031dd48e93deabd1c1ff9fbd97e321662"
+        },
+        "junit_artifact": {
+          "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f07-browser/junit.xml",
+          "bytes": 438,
+          "sha256": "79db0c9c4b7b4c61c88f2856fc74963089c1e994786d189547fa157a7efd6e8a"
+        },
+        "counts": {
+          "tests": 1,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "cleanup": {
+          "status": "PASS",
+          "retained_job_active_members": 0,
+          "original_host_signaled": true,
+          "temporary_fixture_cleanup": "PASS"
+        }
+      },
+      "shared_desktop_activity_unit_proof": {
+        "result": "PASS_SOURCE_EQUIVALENT_COMPONENTS",
+        "executed_lane": "f06",
+        "executed_head": "7db8d97a0afd7cf711ee3176ff97a63c3b85e048",
+        "f07_unit_execution": false,
+        "compared_files": [
+          "apps/web/src/desktop-notification-provider.ts",
+          "apps/web/src/desktop-notification-provider.test.ts",
+          "apps/web/src/desktop-notifications.tsx",
+          "apps/web/src/desktop-notifications.test.tsx",
+          "apps/web/src/operation-notifications.tsx",
+          "apps/web/src/operation-notifications.test.tsx",
+          "apps/web/package.json",
+          "apps/web/package-lock.json",
+          "apps/web/vite.config.ts",
+          "apps/web/tsconfig.json"
+        ],
+        "source_before_after_and_dependency_pins_unchanged": true,
+        "scope": "28 unit cases executed once on F06; their exact imported component/config and installed dependency identities match F07. This is not a second F07 test execution.",
+        "proof": {
+          "name": "f06-vitest",
+          "status": "PASS",
+          "logical_command": [
+            "C:\\WINDOWS\\system32\\cmd.exe",
+            "/d",
+            "/c",
+            "npm",
+            "--prefix",
+            "apps/web",
+            "test",
+            "--",
+            "src/desktop-notification-provider.test.ts",
+            "src/desktop-notifications.test.tsx",
+            "src/operation-notifications.test.tsx",
+            "--maxWorkers=1",
+            "--coverage.enabled=false",
+            "--reporter=junit",
+            "--outputFile=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88\\f06-vitest\\junit.xml"
+          ],
+          "elapsed_seconds": 2.219,
+          "returncode": 0,
+          "executed_argv_reference": {
+            "receipt": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+            "json_pointer": "/phases/1/executed_argv"
+          },
+          "execution_mechanism": "Retained OwnedProcess with private Python logging wrapper; pytest uses runpy. Logical arguments are not relabeled as a different executed shell invocation.",
+          "log": {
+            "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f06-vitest/console.log",
+            "bytes": 618,
+            "sha256": "54d6980febbd1233a7694e0760effa67c50c78d93cf6205115af9e557abc5d8c"
+          },
+          "junit_artifact": {
+            "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f06-vitest/junit.xml",
+            "bytes": 32882,
+            "sha256": "2fa1fe0ee843c0ab5693b1d0ed4fd1e188acf008d2a535d3e5cca4a4533ca507"
+          },
+          "counts": {
+            "tests": 28,
+            "failure": 0,
+            "error": 0,
+            "skipped": 0
+          },
+          "cleanup": {
+            "status": "PASS",
+            "retained_job_active_members": 0,
+            "original_host_signaled": true,
+            "temporary_fixture_cleanup": "PASS"
+          }
+        }
+      },
+      "independent_actual_audit": {
+        "status": "PASS",
+        "receipt": {
+          "name": "independent-review-merged-frontend-runtime-7db8d97a-f056e9c5.json",
+          "bytes": 87590,
+          "sha256": "5d274b1d75add77b27c8822cf9935917bb58147ddcfa5a38f84a52cde11c5003",
+          "result": "PASS_SCOPED_MERGED_FRONTEND_QUALIFICATION"
+        },
+        "preparer_is_controller_and_provider_author": true,
+        "preparer_claims_independent_approval": false
+      },
+      "backend_history_reference": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+      "backend_production_paths_changed_from_reference": [],
+      "selected_backend_core_blobs_unchanged": {
+        "services/discovery/sources/arbeitnow.py": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "3d90f0581c5acbe617f22bef05236023949f1afd",
+        "services/discovery/sources/registry.py": "b5f56f14069d14eb5bf08298bcde5ecd859e18e8",
+        "packages/persistence/store.py": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "apps/api/main.py": "c172440c68bca5884f1dfd183315a429771f617d"
+      },
+      "full_changed_paths_from_historical_reference": [
+        ".gitleaksignore",
+        "apps/web/src/desktop-notification-provider.test.ts",
+        "apps/web/src/desktop-notification-provider.ts",
+        "apps/web/src/desktop-notifications.test.tsx",
+        "apps/web/src/desktop-notifications.tsx",
+        "apps/web/src/main.tsx",
+        "docs/DESKTOP_NOTIFICATIONS.md",
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-13-desktop-cancellation-diagnostics.json",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/evidence/2026-11-13-ntfy-scanner-disposition.json",
+        "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
+        "docs/evidence/2026-11-13-usajobs-scanner-disposition.json",
+        "planning/agent_handoffs/MJ-REQ-017.F07.json",
+        "planning/agent_handoffs/MJ-REQ-204.N05.json",
+        "tests/browser/test_desktop_notifications.py",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "scope_limits": [
+        "Historical backend and live-provider results keep their original revisions, dates, counts and limitations; no new provider request or backend rerun occurred in this frontend batch.",
+        "Source enrollment cases assert no jobs, operations or applications created; Desktop cases use synthetic local operations and actual native Chromium notification APIs.",
+        "No OS-visible toast, browser-closed/background delivery, external application submission, protected integration, deployment or formal acceptance is proved.",
+        "The later two-file metadata successor must be bound separately after commit; it cannot contain its own future commit SHA."
+      ],
+      "metadata_successor": {
+        "applicability": "A metadata-only successor may reuse this executed proof only after separate immutable review verifies unchanged executable/test bytes and exact source ancestry.",
+        "identity_binding": "Recorded in a separate post-commit candidate/operator receipt; no self-referential future hash belongs in this evidence.",
+        "required_hosted_checks": "NOT_RUN_ON_NEW_PUBLICATION_HEAD",
+        "protected_integration": "NOT_RUN",
+        "deployment": "NOT_RUN",
+        "formal_acceptance": "NOT_RUN"
+      },
+      "desktop_native_browser": {
+        "executed_on_f07": false,
+        "scope": "F07 has its own successful build and Arbeitnow browser case. The three Desktop native browser cases executed on F06 only; matching shared components do not make them F07 executions."
+      }
+    },
+    "scanner_payload_digest_adoption": {
+      "historical_fingerprint": "b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523",
+      "classification": "VERIFIED_NONCREDENTIAL_PUBLIC_PAYLOAD_DIGEST",
+      "disposition_path": "docs/evidence/2026-11-13-usajobs-scanner-disposition.json",
+      "ignore_blob": "7c78a37823b5c1ab05e44b740a51d90f44aa476b",
+      "disposition_blob": "5454f8fcbdd764d866d2afcab35c9d17f1b8347d",
+      "rules_workflow_version_history_scope_changed": false,
+      "historical_failed_checks_remain_failed": true,
+      "future_metadata_head_hosted_checks": "NOT_RUN",
+      "local_adoption_commit": "8040fccc741212970f990333b4240433b2d0d24a",
+      "previous_published_head": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
+      "historical_snapshot": {
+        "name": "hosted-qualification-pr1019-28911160-071935.json",
+        "bytes": 15781,
+        "sha256": "186cbd72cfa25dfd12e202cb0e0a4a70dab892bdb37d6a7048e897a29463812b"
+      },
+      "historical_failed_security_job": 131742982589,
+      "historical_predecessor_checks": {
+        "total": 15,
+        "passed": 14,
+        "required": 5,
+        "required_passed": 4,
+        "only_failed_context": "Security / secret scan"
+      }
+    },
+    "historical_proof_scope_note": "Existing diagnostic, executable_source_binding, published_head_qualification, scanner_prerequisite, review and integrity objects retain their original embedded revisions and creation-time scope. The current Desktop-merged frontend execution is separately recorded in merged_frontend; broad no-new-browser/whole-executable-equivalence wording in those preserved historical objects is not a current claim.",
+    "operational_source_scope": "source_head is the completed local source composition checkpoint. integrated_main is the protected-main input incorporated into that local branch; it does not mean F07 has been integrated into main. Actual frontend execution remains f056 and historical backend/diagnostic execution remains53d or the original embedded source anchors.",
+    "historical_published_91bb": {
+      "scope": "Historical exact published predecessor qualification; no result is attributed to the later 9fff composition or its future metadata successor.",
+      "head": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+      "tree": "e143f1bd8e438a000d348845dfca29acbd92c43c",
+      "observed_at_utc": "2026-11-13T09:53:31.567Z",
+      "checks_observed_at_utc": "2026-11-13T09:52:59.800Z",
+      "actual_main_at_observation": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "total_checks": 15,
+      "successful_checks": 15,
+      "required_context_count": 5,
+      "all_required_contexts_pass": true,
+      "github_actions_integration_id": 15368,
+      "required_contexts": [
+        {
+          "context": "CI / required",
+          "integration_id": 15368,
+          "check_run_id": 131809062110,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920239/job/131809062110",
+          "started_at": "2026-11-13T09:35:54Z",
+          "completed_at": "2026-11-13T09:35:57Z"
+        },
+        {
+          "context": "Integration / PostgreSQL and Redis",
+          "integration_id": 15368,
+          "check_run_id": 131816320765,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920182/job/131816320765",
+          "started_at": "2026-11-13T09:52:20Z",
+          "completed_at": "2026-11-13T09:52:22Z"
+        },
+        {
+          "context": "Disposable Compose / mock end-to-end",
+          "integration_id": 15368,
+          "check_run_id": 131806600878,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920236/job/131806600878",
+          "started_at": "2026-11-13T09:30:47Z",
+          "completed_at": "2026-11-13T09:39:18Z"
+        },
+        {
+          "context": "Dependencies / introduced vulnerabilities",
+          "integration_id": 15368,
+          "check_run_id": 131806600805,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920264/job/131806600805",
+          "started_at": "2026-11-13T09:30:47Z",
+          "completed_at": "2026-11-13T09:30:53Z"
+        },
+        {
+          "context": "Security / secret scan",
+          "integration_id": 15368,
+          "check_run_id": 131806600004,
+          "head_sha": "91bb3c27d56d9bb2342b471e404a66f510b03149",
+          "status": "completed",
+          "conclusion": "success",
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43401920079/job/131806600004",
+          "started_at": "2026-11-13T09:30:48Z",
+          "completed_at": "2026-11-13T09:31:01Z"
+        }
+      ],
+      "receipt": {
+        "name": "hosted-qualification-pr1019-91bb3c27-095331.json",
+        "bytes": 114333,
+        "sha256": "c1edc15e442b02eae743aa444dae3418af677c68ba08febfc90bad33903a62da"
+      },
+      "historical_failures_preserved": true
+    },
+    "current_main_composition": {
+      "result": "PASS_EXACT_LOCAL_SOURCE_COMPOSITION",
+      "operational_head": "9fff078746046ae9828a63bd96485d082a3835a5",
+      "operational_tree": "145735cf97e23d9d4b2c2ee83dde593ce5fe79d9",
+      "parents": [
+        "91bb3c27d56d9bb2342b471e404a66f510b03149",
+        "aa94183f1a57259e0d45f8c686d6a8e23a391e5c"
+      ],
+      "incoming_protected_main": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "incoming_protected_main_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+      "actual_composition_completed_at_utc": "2026-11-13T12:08:09.799330+00:00",
+      "source_scope": "A normal local merge of the already published F07 predecessor and protected main; this is not protected integration of F07 into main.",
+      "full_tree_entries": 3308,
+      "full_index_and_tree_match_approved_mode_blob_oracle": true,
+      "protected_main_paths_preserved": 33,
+      "f07_selections_preserved": 25,
+      "changed_paths_from_published_f07": [
+        "cli/notifications.py",
+        "compose.notifications.yml",
+        "docs/NOTIFICATIONS.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/evidence/2026-11-13-ntfy-ci-diagnostics.json",
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "docs/evidence/2026-11-13-public-connect-entry-diagnostics.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/agent_handoffs/MJ-REQ-204.N02.json",
+        "planning/agent_handoffs/MJ-REQ-204.N05.json",
+        "services/notifications/__init__.py",
+        "services/notifications/configuration.py",
+        "services/notifications/contract.py",
+        "services/notifications/events.py",
+        "services/notifications/journal.py",
+        "services/notifications/providers/__init__.py",
+        "services/notifications/providers/ntfy.py",
+        "services/notifications/runner.py",
+        "tests/integration/test_durable_ai_evaluation.py",
+        "tests/integration/test_mock_discovery_request_bounds.py",
+        "tests/integration/test_notification_delivery.py",
+        "tests/integration/test_ntfy_live.py",
+        "tests/unit/test_notification_configuration.py",
+        "tests/unit/test_ntfy_provider.py"
+      ],
+      "conflict_resolution": {
+        "path": "tests/integration/test_mock_discovery_request_bounds.py",
+        "prior_f07_blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+        "selected_protected_main_blob": "b622d69ced4d9a640ffced14abf86ccd88c34125",
+        "scope": "Only this expected overlap was resolved to the newer protected-main diagnostic. The historical 16-case result remains attached to 53d/02b1957f and is not relabeled as an execution of this selected blob."
+      },
+      "frontend_source_equivalence": {
+        "actually_tested_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+        "actually_tested_tree": "e0e8c4de040ac519ccfebf05d1034be9d278c854",
+        "tested_and_composed_web_tree": "c78ef6db85b42674b2007e9b1f16b3360c4a7531",
+        "complete_apps_web_subtree_equal": true,
+        "new_browser_or_build_execution": false
+      },
+      "scoped_backend_source_equivalence": {
+        "historical_backend_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+        "selected_unchanged_blobs": {
+          "services/discovery/sources/arbeitnow.py": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+          "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+          "services/discovery/sources/collect.py": "3d90f0581c5acbe617f22bef05236023949f1afd",
+          "services/discovery/sources/registry.py": "b5f56f14069d14eb5bf08298bcde5ecd859e18e8",
+          "packages/persistence/store.py": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "apps/api/main.py": "c172440c68bca5884f1dfd183315a429771f617d"
+        },
+        "all_six_selected_blobs_match_composed_tree": true,
+        "scope": "Selected production bytes only. Other incoming main changes and the newer diagnostic make this different from whole-tree equivalence or a new backend execution."
+      },
+      "command_results": {
+        "normal_merge_commands": 30,
+        "exit_zero": 29,
+        "expected_conflict_exit_one": 1,
+        "root_readonly_commands": 8,
+        "all_command_jobs_and_outer_job_finalized": true,
+        "original_generations_reconciled_absent": 42,
+        "strict_commit_provenance": "PASS"
+      },
+      "receipts": {
+        "controller": {
+          "name": "f07-main-aa94183-merge-preparation-02/attempt-01/controller-result.json",
+          "sha256": "c4639ea1fb553e6b2cf80070b46853c102d1369642c11b30bbe560754df784dc"
+        },
+        "child": {
+          "name": "f07-main-aa94183-merge-preparation-02/attempt-01/child-result.json",
+          "sha256": "05627a4453a3b607c16aae50da56d17257e112c5326460538fa3f235b12c5ed0"
+        },
+        "root_reconciliation": {
+          "name": "f07-main-aa94183-merge-preparation-02/root-readback-01/root-reconciliation.json",
+          "sha256": "d32df01729ae97dd79ac4eb2e1ef4f9ac14d7d64db7c8932e3b3f3f08d9ef5a5"
+        },
+        "independent_local_composition_review": {
+          "name": "f07-main-aa94183-merge-preparation-02/independent-actual-composition-review.json",
+          "sha256": "505f41ac274bf321c73d52e976bc60ea6d42be09c8fd31444479e3cddad74b85"
+        },
+        "oracle": {
+          "name": "f07-main-aa94183-merge-preparation-02/source-oracle.json",
+          "sha256": "544c1eea89d20843d6cf528ffa51b0a703ab0eb26ba87ecb8b183b4f9b97eeca"
+        }
+      },
+      "native_owner_checkpoint": {
+        "owner_run": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+        "completed_at_utc": "2026-11-13T12:25:02.424880+00:00",
+        "receipt": {
+          "name": "f07-main-aa94183-merge-preparation-02/actual-owner-checkpoint/checkpoint.json",
+          "sha256": "b5f584fd677fa501b3f94c5c16092a8225acb2ec5d7611a90590c3382291fbf6"
+        },
+        "full_record_readback_at_utc": "2026-11-13T12:27:26Z",
+        "eight_reviewed_updates_and_unchanged_steward": true,
+        "all_nine_native_records_matched_active": true,
+        "scope": "Native source ownership checkpoint; the stock task-handoff transfer is a separate operation."
+      },
+      "application_tests_at_operational_head": "NOT_RUN",
+      "hosted_checks_at_operational_head": "NOT_RUN",
+      "publication_at_operational_head": "NOT_RUN",
+      "f07_protected_integration": "NOT_RUN",
+      "deployment": "NOT_RUN",
+      "formal_acceptance": "NOT_RUN",
+      "canonical_acceptance_changed": false,
+      "metadata_successor": {
+        "head": null,
+        "tree": null,
+        "status": "FUTURE_METADATA_IDENTITY_UNSET_AT_PREPARATION",
+        "scope": "The later two-file metadata-only successor is bound by separate post-commit receipts. These null identity fields record preparation-time knowledge; no future SHA, transfer timestamp, new application execution or hosted result is asserted."
+      },
+      "preserved_attempt_history": {
+        "first_merge_attempt_controller": {
+          "name": "f07-main-aa94183-merge-preparation/attempt-01/controller-result.json",
+          "sha256": "be1e4bef7280546b3136c58fc645f5bcf9de461d3270d0762df351b49801aa28"
+        },
+        "first_merge_attempt_result": "Refused controller-generation handshake before tracked source mutation; original failure and its reconciliation remain preserved.",
+        "first_merge_attempt_reconciliation": {
+          "name": "f07-main-aa94183-merge-preparation/attempt-01/root-failure-generation-reconciliation.json",
+          "sha256": "dd212110584b1cd0e0d3752cf1b610edc07f50f092d7bcca7f1313c362f8d213"
+        }
+      }
+    }
+  },
+  "historical_metadata_summaries": [
+    {
+      "recorded_at_utc": "2026-11-13T09:10:40.294083+00:00",
+      "source_head_before_metadata_edit": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+      "superseded_current_fields": {
+        "remaining_gates": [
+          "Independently bind the final immutable metadata successor, exact executable equivalence and fresh publication operator metadata.",
+          "Prepare fresh existing-PR1019 operator/admission metadata and verify the exact new published head.",
+          "Run all required hosted checks on that final published head; retain6df Security failure and the separate9ef ntfy Integration failures as historical evidence.",
+          "Protected integration by the verified sole steward.",
+          "Applicable integrated runtime validation and designated canonical acceptance review; no acceptance or deployment promotion is recorded here."
+        ],
+        "last_updated_at_utc": "2026-11-13T06:45:01.259983+00:00"
+      },
+      "scope": "Preserved creation-time wording; broad whole-tree/frontend equivalence statements here are historical and do not describe the Desktop-merged source."
+    },
+    {
+      "recorded_at_utc": "2026-11-13T12:34:46Z",
+      "source_head_before_metadata_edit": "9fff078746046ae9828a63bd96485d082a3835a5",
+      "scope": "Preserve the complete prior current-field wording while recording actual local composition separately; no historical test or failed hosted result is changed.",
+      "superseded_current_fields": {
+        "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+        "remaining_gates": [
+          "Bind metadata-only applicability by separate immutable candidate/operator review while retaining the actually tested source HEAD and exact proof.",
+          "Obtain fresh ordinary existing-PR1019 update admission from the complete live PR inventory and actual native owner, then publish and verify exact remote head/body.",
+          "Earn all required hosted checks on that exact new published head; preserve the old Security failure and the narrowly adopted fingerprint disposition as separate history.",
+          "Use the sole verified steward for protected integration and any required integrated/runtime and canonical acceptance work; no deployment or acceptance promotion is recorded here."
+        ],
+        "last_updated_at_utc": "2026-11-13T09:10:40.294083+00:00"
+      }
+    }
+  ]
+}

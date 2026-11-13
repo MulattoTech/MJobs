@@ -182,7 +182,7 @@ def test_default_registries_preserve_builtin_order_and_are_read_only():
     applications = ApplicationAdapterRegistry()
 
     assert sources.providers() == (
-        "lever", "greenhouse", "remotive", "wwr", "remoteok",
+        "lever", "greenhouse", "remotive", "wwr", "remoteok", "arbeitnow",
     )
     assert applications.providers() == (
         "ashby", "bamboohr", "breezy", "generic_html", "greenhouse",

@@ -13,7 +13,7 @@ The normal flow is:
 
 An adapter must not write database state or update source-health persistence. The collector already applies those cross-provider responsibilities in one transaction path. Preserve the raw provider item and source identity so later audits can distinguish provider evidence from normalized values.
 
-At this checkout, the registry includes Greenhouse, Lever, Remotive, We Work Remotely (WWR), and Remote OK (including the **remote_ok** alias). Registry membership is an explicit allowlist; unknown provider names fail with **SOURCE_UNSUPPORTED**.
+At this checkout, the registry includes Greenhouse, Lever, Remotive, We Work Remotely (WWR), Remote OK (including the **remote_ok** alias), and Arbeitnow. Arbeitnow reads one bounded latest page of its public European jobs feed; see **docs/sources/ARBEITNOW.md** for its limits and required source credit. Registry membership is an explicit allowlist; unknown provider names fail with **SOURCE_UNSUPPORTED**.
 
 ## Adapter interface
 
