@@ -614,6 +614,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self._assert_cancel_closes_transport(OllamaProvider)
 
     def test_slow_provider_deadline_is_durable_without_partial_evaluation(self):
+        import gc
         import httpx
         import json
         import threading
@@ -622,6 +623,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         from services.ai.providers import (AIProviderError, OllamaProvider,
             OpenAICompatibleProvider, OpenAIProvider, AzureOpenAIProvider, LocalEndpointProvider)
         from services.ai.tasks import AITaskRouter
+        from services.ai.providers import transport as provider_transport
 
         for provider_type in (OllamaProvider, OpenAICompatibleProvider, OpenAIProvider,
                               AzureOpenAIProvider, LocalEndpointProvider):
@@ -632,6 +634,8 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 phase_lock = threading.Lock()
                 phase_times = {}
                 provider_error = [None]
+                gc_setup_collected = [None]
+                original_watch = provider_transport._RequestGuard.watch
 
                 def record_phase(name):
                     # Fixed call-site labels only: no request, prompt, URL or exception text.
@@ -646,7 +650,33 @@ class DurableAIEvaluationTests(unittest.TestCase):
                         'phase_seconds': snapshot, 'provider_error': provider_error[0],
                         'completed_request_count': len(calls),
                         'server_thread_alive': thread.is_alive(),
+                        'gc_setup_collected': gc_setup_collected[0],
                     }, sort_keys=True)
+
+                def watch_with_phase(guard):
+                    # Entry only: do not add a cancellation read or reset the deadline.
+                    record_phase('watcher_enter')
+                    return original_watch(guard)
+
+                class ObservedBody(httpx.SyncByteStream):
+                    def __init__(self, stream):
+                        self.stream = stream
+                        self.observed = False
+
+                    def __iter__(self):
+                        for chunk in self.stream:
+                            if chunk and not self.observed:
+                                self.observed = True
+                                record_phase('response_body_read')
+                            yield chunk
+
+                    def close(self):
+                        return self.stream.close()
+
+                def observe_response(response):
+                    record_phase('httpx_response_headers')
+                    # Preserve the actual stream, bytes, exceptions and owned close.
+                    response.stream = ObservedBody(response.stream)
 
                 answer = AIJobEvaluation(category='REVIEW', rationale='Synthetic').model_dump_json()
                 body = json.dumps({'response': answer, 'done': True} if provider_type is OllamaProvider
@@ -689,7 +719,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 transport = httpx.Client(trust_env=False, timeout=request_budget,
                     event_hooks={
                         'request': [lambda _request: record_phase('httpx_request')],
-                        'response': [lambda _response: record_phase('httpx_response_headers')],
+                        'response': [observe_response],
                     })
 
                 def client_factory(**_kwargs):
@@ -731,12 +761,23 @@ class DurableAIEvaluationTests(unittest.TestCase):
                         json={'request_id': 'slow-provider-' + provider_type.name})
                     self.assertEqual(admitted.status_code, 202, admitted.text)
                     operation_id = admitted.json()['operation_id']
-                    record_phase('worker_enter')
-                    result = self.run_worker(operation_id)
-                    record_phase('worker_return')
+                    # Match the adjacent fixture's setup hygiene. Automatic GC
+                    # remains enabled during the unchanged whole-request budget.
+                    record_phase('gc_setup_enter')
+                    gc_setup_collected[0] = gc.collect()
+                    record_phase('gc_setup_return')
+                    with patch.object(provider_transport._RequestGuard, 'watch', watch_with_phase):
+                        record_phase('worker_enter')
+                        result = self.run_worker(operation_id)
+                        record_phase('worker_return')
                     self.assertEqual(result['status'], 'BLOCKED', diagnostic())
                     self.assertEqual(result['error_category'], 'AI_ERROR', diagnostic())
                     self.assertEqual(calls, ['synthetic request'], diagnostic())
+                    self.assertEqual(provider_error[0], 'AI_PROVIDER_TIMEOUT', diagnostic())
+                    with phase_lock:
+                        observed_phases = set(phase_times)
+                    for boundary in ('request_body_read', 'httpx_response_headers', 'response_body_read'):
+                        self.assertIn(boundary, observed_phases, diagnostic())
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
                     reopened = Store(self.url)
                     self.addCleanup(reopened.engine.dispose)
