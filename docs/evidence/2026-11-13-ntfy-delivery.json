@@ -1,0 +1,714 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N02",
+  "parent_requirement": "MJ-REQ-204",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/363",
+  "recorded_at_utc": "2026-11-13T05:23:42.534911+00:00",
+  "run_id": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_sha": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+    "tested_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+    "tested_tree": "ed3475ade353519cd52b532d573cdd1f204997d4",
+    "branch": "web/20261113-2d4f/ntfy-provider",
+    "files": [
+      {
+        "path": "cli/notifications.py",
+        "git_blob": "b34823e51c650bad5b040462628c32248d1600ed",
+        "sha256": "5ae38bdd2d45c3c1812d603b8540ccdad54535ac61858dd94c8b261e0caa5144"
+      },
+      {
+        "path": "compose.notifications.yml",
+        "git_blob": "73b035ab4ca488d51316b147d8c17dc311a749fe",
+        "sha256": "b9c1027dfa59d1b1c3b4724548be4085cd0c433b71d9f0dcd570d386330bce73"
+      },
+      {
+        "path": "docs/NOTIFICATIONS.md",
+        "git_blob": "54d924d9ba2711da1cc2d3f3f806acd7b5e29751",
+        "sha256": "430e5e71dcc71207a5f3afe6f7062f728ba43087f2dbc22a5e7677d3ddeae842"
+      },
+      {
+        "path": "services/notifications/__init__.py",
+        "git_blob": "ba5ac8ed84ca6f965b63e0782ef56b425adfc08d",
+        "sha256": "32d1496e5e1e2921b376fa0d47b5a78f26ee8a9cbfb8c5b530d422a338bebe13"
+      },
+      {
+        "path": "services/notifications/configuration.py",
+        "git_blob": "15f5548dab9b643bb0810c46dd17f90f3d32db32",
+        "sha256": "41de59a5f616f2c116d472d62d37bfcd8ac81479909d32ea314a43005dec0976"
+      },
+      {
+        "path": "services/notifications/contract.py",
+        "git_blob": "c5dadb885ed24cfe1edcf30680a57b7725c3ca6e",
+        "sha256": "d23a1ccc479a78ba099095aed2e3dadbc509c360960445581eb648817e3f4dc9"
+      },
+      {
+        "path": "services/notifications/events.py",
+        "git_blob": "72ae601b29b40cd30a51b0553cb44b6f051059cb",
+        "sha256": "a6add79b656cba6ffa17e68c785531be29895eeef6e91880dd6d8b5a59e8abf4"
+      },
+      {
+        "path": "services/notifications/journal.py",
+        "git_blob": "94b19c7375d6f4b47c737e3f19bd9a7a6b8cf953",
+        "sha256": "cf31c6dc76703a7fb020fd224153e28cfe739c080595affd4bce3b8151d5f216"
+      },
+      {
+        "path": "services/notifications/providers/__init__.py",
+        "git_blob": "9acdf855482920c2eabca8b3bced4a4ba0ea4b53",
+        "sha256": "eeef4daba79198414813852c9967ed3984884dadc8e10a1ffadbe766b005aef3"
+      },
+      {
+        "path": "services/notifications/providers/ntfy.py",
+        "git_blob": "f1c88f7f02ec3045d7ff0d5f8b0adf67328ffe4b",
+        "sha256": "e42af97c02c76dc89e73c944226ae1452aee6433769edf8e279f1263a3f4fa34"
+      },
+      {
+        "path": "services/notifications/runner.py",
+        "git_blob": "a099708fc1274647146aef4448dad8334ceda9b4",
+        "sha256": "36cfc4ec3af30f3a69183a645e7c5fd6436c91c3ef3a5c2c22774b24a4bf111f"
+      },
+      {
+        "path": "tests/integration/test_notification_delivery.py",
+        "git_blob": "2ba1c8e3e20920747e072d837af7ef073d6f0b17",
+        "sha256": "b4fc7dc95ac0b8bfbbc3571d4cb484bc4e7e147ac0ebc68dc88ce598d4b9a6c8"
+      },
+      {
+        "path": "tests/integration/test_ntfy_live.py",
+        "git_blob": "e5641abfc6ed6e94741a5f1d090f7df11e974cd9",
+        "sha256": "057034565ccb801cf13191d041855aaf12a8bf63e8049f69109d7ef93353c10f"
+      },
+      {
+        "path": "tests/unit/test_notification_configuration.py",
+        "git_blob": "b4c26c3af4eecaebe7b356491b548ac4fe32e57c",
+        "sha256": "2eb533013dca87c04359f2d2090a3167f14a08b1dca1408204456034619de4c7"
+      },
+      {
+        "path": "tests/unit/test_ntfy_provider.py",
+        "git_blob": "2d350c141ba9f2bacb2935c6df8996d16a2be706",
+        "sha256": "c71748fbb8673d94399b736f9d036240ef5416c12e5b63accaad8db9921a5856"
+      }
+    ],
+    "binding": "All implementation and test bytes are committed at tested_sha. A later evidence-only commit does not acquire this run's identity or hosted-check status.",
+    "composition": {
+      "composed_sha": "88e4f292e6e4d0c670e3081d4e4740794f04ab48",
+      "main_sha": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "container_tested_sha": "4627073607b86f26596b33c5d046e12d64b6331a",
+      "notification_blobs_unchanged": 15,
+      "packaging_manifest_blobs_unchanged": 22,
+      "packaging_manifest_total": 23,
+      "equivalent_files": [
+        {
+          "path": "cli/notifications.py",
+          "proof_blob": "b34823e51c650bad5b040462628c32248d1600ed",
+          "composed_blob": "b34823e51c650bad5b040462628c32248d1600ed"
+        },
+        {
+          "path": "compose.notifications.yml",
+          "proof_blob": "73b035ab4ca488d51316b147d8c17dc311a749fe",
+          "composed_blob": "73b035ab4ca488d51316b147d8c17dc311a749fe"
+        },
+        {
+          "path": "docs/NOTIFICATIONS.md",
+          "proof_blob": "54d924d9ba2711da1cc2d3f3f806acd7b5e29751",
+          "composed_blob": "54d924d9ba2711da1cc2d3f3f806acd7b5e29751"
+        },
+        {
+          "path": "services/notifications/__init__.py",
+          "proof_blob": "ba5ac8ed84ca6f965b63e0782ef56b425adfc08d",
+          "composed_blob": "ba5ac8ed84ca6f965b63e0782ef56b425adfc08d"
+        },
+        {
+          "path": "services/notifications/configuration.py",
+          "proof_blob": "15f5548dab9b643bb0810c46dd17f90f3d32db32",
+          "composed_blob": "15f5548dab9b643bb0810c46dd17f90f3d32db32"
+        },
+        {
+          "path": "services/notifications/contract.py",
+          "proof_blob": "c5dadb885ed24cfe1edcf30680a57b7725c3ca6e",
+          "composed_blob": "c5dadb885ed24cfe1edcf30680a57b7725c3ca6e"
+        },
+        {
+          "path": "services/notifications/events.py",
+          "proof_blob": "72ae601b29b40cd30a51b0553cb44b6f051059cb",
+          "composed_blob": "72ae601b29b40cd30a51b0553cb44b6f051059cb"
+        },
+        {
+          "path": "services/notifications/journal.py",
+          "proof_blob": "94b19c7375d6f4b47c737e3f19bd9a7a6b8cf953",
+          "composed_blob": "94b19c7375d6f4b47c737e3f19bd9a7a6b8cf953"
+        },
+        {
+          "path": "services/notifications/providers/__init__.py",
+          "proof_blob": "9acdf855482920c2eabca8b3bced4a4ba0ea4b53",
+          "composed_blob": "9acdf855482920c2eabca8b3bced4a4ba0ea4b53"
+        },
+        {
+          "path": "services/notifications/providers/ntfy.py",
+          "proof_blob": "f1c88f7f02ec3045d7ff0d5f8b0adf67328ffe4b",
+          "composed_blob": "f1c88f7f02ec3045d7ff0d5f8b0adf67328ffe4b"
+        },
+        {
+          "path": "services/notifications/runner.py",
+          "proof_blob": "a099708fc1274647146aef4448dad8334ceda9b4",
+          "composed_blob": "a099708fc1274647146aef4448dad8334ceda9b4"
+        },
+        {
+          "path": "tests/integration/test_notification_delivery.py",
+          "proof_blob": "2ba1c8e3e20920747e072d837af7ef073d6f0b17",
+          "composed_blob": "2ba1c8e3e20920747e072d837af7ef073d6f0b17"
+        },
+        {
+          "path": "tests/integration/test_ntfy_live.py",
+          "proof_blob": "e5641abfc6ed6e94741a5f1d090f7df11e974cd9",
+          "composed_blob": "e5641abfc6ed6e94741a5f1d090f7df11e974cd9"
+        },
+        {
+          "path": "tests/unit/test_notification_configuration.py",
+          "proof_blob": "b4c26c3af4eecaebe7b356491b548ac4fe32e57c",
+          "composed_blob": "b4c26c3af4eecaebe7b356491b548ac4fe32e57c"
+        },
+        {
+          "path": "tests/unit/test_ntfy_provider.py",
+          "proof_blob": "2d350c141ba9f2bacb2935c6df8996d16a2be706",
+          "composed_blob": "2d350c141ba9f2bacb2935c6df8996d16a2be706"
+        },
+        {
+          "path": "infra/docker/Dockerfile",
+          "proof_blob": "87887312a93b4c5738f34ad3327b215f9fb8c203",
+          "composed_blob": "87887312a93b4c5738f34ad3327b215f9fb8c203"
+        },
+        {
+          "path": "compose.yml",
+          "proof_blob": "554b1d014f154990c018923812ab4d99a6fc46fb",
+          "composed_blob": "554b1d014f154990c018923812ab4d99a6fc46fb"
+        },
+        {
+          "path": "cli/runtime_database.py",
+          "proof_blob": "27a2860aef1832be6d3ba702e556c057e63d44ae",
+          "composed_blob": "27a2860aef1832be6d3ba702e556c057e63d44ae"
+        },
+        {
+          "path": "cli/provision_database.py",
+          "proof_blob": "6613459c88a90d2ae24f96734554a4885ddd4f76",
+          "composed_blob": "6613459c88a90d2ae24f96734554a4885ddd4f76"
+        },
+        {
+          "path": "cli/migration_precondition.py",
+          "proof_blob": "e976293576840fdab59ae4e53688f465df239b71",
+          "composed_blob": "e976293576840fdab59ae4e53688f465df239b71"
+        },
+        {
+          "path": "requirements.lock",
+          "proof_blob": "97e939f81d2ba8cb5ccefb547cc336cebece15c8",
+          "composed_blob": "97e939f81d2ba8cb5ccefb547cc336cebece15c8"
+        },
+        {
+          "path": "packages/persistence/models.py",
+          "proof_blob": "35034ca5ed00498d39ea792a83416d45704878f2",
+          "composed_blob": "35034ca5ed00498d39ea792a83416d45704878f2"
+        }
+      ],
+      "runtime_dependency_differences": [
+        {
+          "path": "packages/persistence/store.py",
+          "proof_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+          "composed_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f"
+        }
+      ],
+      "dependency_review": "Only Store.save_ai_task_settings changes: integrated PR1016 natural-key upsert, imported byte-for-byte from protected main. Operation/event read paths and schema are unchanged. PR1016 exact0541 passed all5required gates including SQLite/PostgreSQL restore regressions. The462707 image proof remains attributed to its actual source; current composed-head hosted qualification is separate.",
+      "binding": "All15 notification implementation/test/documentation blobs equal40e; final metadata-only commit will preserve the composed tree's executable files. No old test execution is relabeled as a new-head execution."
+    }
+  },
+  "delivery_state": {
+    "implemented": true,
+    "locally_verified": true,
+    "published": false,
+    "hosted_checks": "NOT_RUN",
+    "integrated": false,
+    "deployed": false,
+    "formally_accepted": false,
+    "canonical_changes": false,
+    "candidate_container_verified": true
+  },
+  "capabilities": {
+    "provider": "ntfy",
+    "execution_surface": "server",
+    "opt_in": "Disabled by default; strict private operator JSON; optional token environment or absolute token file",
+    "supported_events": "Latest observed terminal outcomes of explicitly supported profile/application/resume operations; see docs/NOTIFICATIONS.md",
+    "privacy": "Fixed generic content; no job, resume, applicant, raw operation parameter, error, or credential text in payloads",
+    "durability": "Private SQLite delivery journal; stable operation/kind/state/attempt identity; persisted activation and cursor; durable reservation before network",
+    "retries": "No automatic uncertain replay; explicit safe-rejection retry only, capped at three attempts; durable Retry-After cooldown",
+    "truth": "DELIVERED means matching server acknowledgement, not device display. Generic operation completion is not real application submission."
+  },
+  "criteria": [
+    {
+      "criterion": "Declare exact supported capabilities",
+      "result": "PASS_CANDIDATE",
+      "evidence": [
+        "services/notifications/contract.py",
+        "services/notifications/providers/ntfy.py",
+        "docs/NOTIFICATIONS.md"
+      ]
+    },
+    {
+      "criterion": "Deterministic fixtures and contract tests",
+      "result": "PASS",
+      "evidence": "92-test source-bound execution below includes strict config, disabled paths, ownership, actual producer shapes, bounded transport, safe retries and deduplication"
+    },
+    {
+      "criterion": "Bounded permitted live validation",
+      "result": "PASS_LOCAL_SINK",
+      "evidence": "Official ntfy2.37.2 actual HTTP JSON publication, acknowledgement and poll readback; synthetic owned topic only; no third-party recipient"
+    },
+    {
+      "criterion": "Limitations and last-tested evidence",
+      "result": "PASS_CANDIDATE",
+      "evidence": [
+        "docs/NOTIFICATIONS.md",
+        "this manifest"
+      ]
+    },
+    {
+      "criterion": "No anti-bot or access-control circumvention",
+      "result": "PASS_SCOPED_REVIEW",
+      "evidence": "Ordinary documented ntfy protocol, TLS validation, configured credentials, no proxy/redirect bypass; independent source reviews"
+    }
+  ],
+  "verification": {
+    "exact_candidate_suite": {
+      "source_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "dirty_before": false,
+      "started_at": "2026-11-13T03:14:24.116185+00:00",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_notification_configuration.py",
+        "tests/unit/test_ntfy_provider.py",
+        "tests/integration/test_notification_delivery.py",
+        "tests/integration/test_ntfy_live.py",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-40e-runtime.xml"
+      ],
+      "fixtures": {
+        "ntfy": "official 2.37.2 on owned loopback18963",
+        "postgres": "17.11 on owned loopback18964; isolated test schemas"
+      },
+      "exit_code": 0,
+      "ended_at": "2026-11-13T03:14:32.491049+00:00",
+      "head_after": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "dirty_after": false,
+      "log_sha256": "62f752506ac01e592f3e7e6fd5a60334da3351db274308535d47335756b3c361",
+      "xml_sha256": "8ced69555495f6cbf3d1577f34074c2f6f8c24a2f7316a152cec6456750e23d1",
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "92",
+          "time": "7.838",
+          "timestamp": "2026-11-12T21:14:24.415536-06:00",
+          "hostname": "MulattoTechBox"
+        }
+      ]
+    },
+    "runtime_versions": {
+      "ntfy_version": "ntfy version 2.37.2",
+      "ntfy_image": "binwiederhier/ntfy@sha256:e5d978c57b5a6a1095c8a74fd1cfe846dabef14369f2ff7a0d16456e727d40ec",
+      "ntfy_health": {
+        "healthy": true,
+        "role": "active"
+      },
+      "pg_version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "pg_image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f"
+    },
+    "runtime_instances": [
+      {
+        "id": "bcc95052b55a6e9158c7b4dd8839c1964527879d264f339b41364fa945521bc8",
+        "name": "/mjobs-ntfy-2d4f-sink",
+        "image": "sha256:e5d978c57b5a6a1095c8a74fd1cfe846dabef14369f2ff7a0d16456e727d40ec",
+        "ports": {
+          "80/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "18963"
+            }
+          ]
+        },
+        "memory": 134217728,
+        "nano_cpus": 250000000,
+        "OOMKilled": false
+      },
+      {
+        "id": "2389998bc3ec3929262c379abd7cad512baf24238280fd6055226a7c29154880",
+        "name": "/mjobs-ntfy-2d4f-pg",
+        "image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+        "ports": {
+          "5432/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "18964"
+            }
+          ]
+        },
+        "memory": 536870912,
+        "nano_cpus": 500000000,
+        "OOMKilled": false
+      }
+    ],
+    "test_schemas_cleaned": true,
+    "fresh_volume_uid_proof": {
+      "run_id": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "volume": "mjobs-ntfy-2d4f-volume-proof",
+      "container_id": "c964c49f9375a60fc9a95a0fac036c553d506944273633f584487a03cc73f121",
+      "image_id": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+      "scope": "fresh named volume /data population and UID10001 persistence; cached runtime image, not candidate deployment",
+      "run_1": {
+        "uid": 10001,
+        "gid": 10001,
+        "fresh": true,
+        "data_uid": 10001,
+        "file_uid": 10001
+      },
+      "run_2": {
+        "uid": 10001,
+        "gid": 10001,
+        "fresh": false,
+        "data_uid": 10001,
+        "file_uid": 10001
+      },
+      "cleanup_verified_at": "2026-11-13T03:16:18.282106+00:00",
+      "result": "PASS"
+    },
+    "private_receipts": [
+      {
+        "filename": "ntfy-40e-runtime-receipt.json",
+        "sha256": "ed8331aa1f8bfc07666515b777e47c7a303ebd19b17f2eb9dd41d9e2f993aae3"
+      },
+      {
+        "filename": "ntfy-runtime-setup.json",
+        "sha256": "1270603a3b44b310cbfbb77550ede4e8c19a6cf2fc34bf0eb03b2c72f153a83e"
+      },
+      {
+        "filename": "ntfy-volume-proof.json",
+        "sha256": "b12861fe82c12a76dccb77e7efe685bd08feef1a0d7190bd034e0ff3ca684955"
+      },
+      {
+        "filename": "ntfy-container-proof-462707/execution-receipt.json",
+        "sha256": "82c2e68317bc62dcd5f01d62d7b3b7b365d7f1e108f1de0259cebf3652949168"
+      },
+      {
+        "filename": "ntfy-container-postrun-verification-462707.json",
+        "sha256": "cfd926cf17e9bae17cb86394c504b4c4f58fae70985dc291a72b2ac382b4a019"
+      },
+      {
+        "filename": "ntfy-container-credential-cleanup-462707.json",
+        "sha256": "762f309f7a31a634662a66f7f372ecf109fb89a45e6fd65335275782be104861"
+      }
+    ],
+    "source_note": "The92-test execution is at40e with realPostgreSQL and officialntfy, zero skips. Cached-image volume proof remains separate. Actual candidateDockerfile/Compose/runtime-role/delivery/restart proof is PASS at462707. All15notificationblobs remain equal in88e; its one changed packaging dependency is the separatelyqualified Store AI-settings repair. Final-head hosted checks remain required.",
+    "candidate_container_proof": {
+      "result": "PASS",
+      "source_sha": "4627073607b86f26596b33c5d046e12d64b6331a",
+      "source_tree": "065fe95c322fefd3385f73beea61418bae4d0e40",
+      "plan_sha256": "281a00038375c25411404580ee3a5286fee4ab3e0faa1d10ed93a39c207c2f2d",
+      "source_archive_sha256": "c661899170d2c81c8ef641b591b10f4afbc74a04c0c6f404bb2797e65e72266c",
+      "runner_sha256": "827e195d3807052d3dacbfb483466dbe3d0eaeeea85a9d9bd8fb25ef43ba18b0",
+      "probe_sha256": "57da9f09f67cd09db9e72418ed3fe5f87332456435411cbf1fd02beb7b9a012e",
+      "execution_receipt_sha256": "82c2e68317bc62dcd5f01d62d7b3b7b365d7f1e108f1de0259cebf3652949168",
+      "started_at": "2026-11-13T05:15:29.235512+00:00",
+      "ended_at": "2026-11-13T05:17:33.293992+00:00",
+      "build": {
+        "seconds": 47.359,
+        "cached_steps": 7,
+        "log_sha256": "264ae434ffabf4e5055a4cbee1c38bce40929054ee865158f6cc8d6eb89376df",
+        "image_id": "sha256:340aacdf0bf92b864c6a8ba22740ec776ffc189be3b752cc305eb451c987383b",
+        "scope": "Actual repository Dockerfile from immutable Git archive; seven cache hits are reuse, not seven newly executed build steps"
+      },
+      "protocol": [
+        "Verify exact private inputs, full archive/context inventory and all23 in-image source hashes",
+        "Build normal repository Dockerfile with source/owner labels; default-disabled CLI and UID10001",
+        "Start normal Compose migration/provisioning and restricted runtime-role credential wrapper",
+        "Insert owned historical operation before activation and prove it is skipped",
+        "Start official ntfy2.37.2 in the worker namespace on literal loopback with upstream and Firebase disabled",
+        "Insert one new owned synthetic operation, require one generic message and matching server acknowledgement",
+        "Restart notification-worker retaining its journal volume and sink cache; require same event/messageID and one attempt",
+        "Require Docker health and expected entrypoint; remove only exact owned labeled resources; independently confirm names/IDs/process generations absent"
+      ],
+      "in_image_proof": {
+        "disabled": true,
+        "gid": 10001,
+        "source_files_verified": 23,
+        "uid": 10001
+      },
+      "migration": {
+        "container_id": "3a9a4aef860a2f6a139ec34a78c023d0f2b12adfdb7a9b60ff08a4a492d9c382",
+        "exit_code": 0
+      },
+      "seed": {
+        "credential_mode": "0600",
+        "credential_uid": 10001,
+        "dialect": "postgresql",
+        "inserted": "historical",
+        "runtime_role": "mjobs_runtime"
+      },
+      "initial_worker": {
+        "data_uid": 10001,
+        "gid": 10001,
+        "healthy": true,
+        "journal_uid": 10001,
+        "ready": true,
+        "status": {
+          "cooldown_seconds": 0,
+          "counts": {},
+          "deliveries": [],
+          "enabled": true,
+          "last_tick": 1794547014.8550682,
+          "provider": "ntfy"
+        },
+        "uid": 10001
+      },
+      "sink_runtime": {
+        "container_id": "dcdf86dcdf0b0e25cfdc58f54ec0db5db4b544104840497c194dec74ccf1574a",
+        "image_id": "sha256:e5d978c57b5a6a1095c8a74fd1cfe846dabef14369f2ff7a0d16456e727d40ec",
+        "upstream_disabled": true,
+        "network_mode": "container:2443f79873b190b3ed0e31e39c8c540feba3e04964dfc0ba6d71fba223afde22"
+      },
+      "event": {
+        "credential_mode": "0600",
+        "credential_uid": 10001,
+        "dialect": "postgresql",
+        "inserted": "new",
+        "runtime_role": "mjobs_runtime"
+      },
+      "first_delivery": {
+        "attempts": 1,
+        "complete": true,
+        "data_uid": 10001,
+        "event_key": "fefaf458aac19e1ba6e9f73aec37d111fc6b0df92ed4ef36fdcb834c39b32525",
+        "gid": 10001,
+        "healthy": true,
+        "journal_uid": 10001,
+        "last_tick": 1794547031.3640757,
+        "message_count": 1,
+        "message_id": "iIzMCgA5ahzg",
+        "uid": 10001
+      },
+      "restart_delivery": {
+        "attempts": 1,
+        "complete": true,
+        "data_uid": 10001,
+        "event_key": "fefaf458aac19e1ba6e9f73aec37d111fc6b0df92ed4ef36fdcb834c39b32525",
+        "gid": 10001,
+        "healthy": true,
+        "journal_uid": 10001,
+        "last_tick": 1794547048.9658751,
+        "message_count": 1,
+        "message_id": "iIzMCgA5ahzg",
+        "uid": 10001
+      },
+      "worker_runtime": {
+        "container_id": "2443f79873b190b3ed0e31e39c8c540feba3e04964dfc0ba6d71fba223afde22",
+        "image_id": "sha256:340aacdf0bf92b864c6a8ba22740ec776ffc189be3b752cc305eb451c987383b",
+        "health": "healthy",
+        "oom_killed": false,
+        "entrypoint": [
+          "python",
+          "-m",
+          "cli.runtime_database"
+        ],
+        "command": [
+          "python",
+          "-m",
+          "cli.notifications",
+          "run"
+        ],
+        "user": "mjobs",
+        "mounts": [
+          {
+            "Type": "volume",
+            "Name": "mjobs-ntfy-2d4f-container_notification-state",
+            "Destination": "/data",
+            "RW": true
+          },
+          {
+            "Type": "volume",
+            "Name": "mjobs-ntfy-2d4f-container_runtime-database",
+            "Destination": "/run/mjobs-database",
+            "RW": false
+          },
+          {
+            "Type": "bind",
+            "Name": null,
+            "Destination": "/run/mjobs-notifications",
+            "RW": false
+          }
+        ]
+      },
+      "uncertain_operations": [],
+      "cleanup": {
+        "complete": true,
+        "resources_absent": true,
+        "release_eligible": true,
+        "uncertain_operation_requires_root_reconciliation": false,
+        "claims_retained": true,
+        "errors": [],
+        "checked_at": "2026-11-13T05:17:47.252276+00:00"
+      },
+      "credential_cleanup": {
+        "generated_private_files_removed": [
+          "fixture.env",
+          "config/config.json"
+        ],
+        "exact_hash_plain_path_and_absence_verified": true,
+        "receipt_sha256": "762f309f7a31a634662a66f7f372ecf109fb89a45e6fd65335275782be104861"
+      },
+      "resource_claim": {
+        "status": "RELEASED",
+        "released_at": "2026-11-13T05:20:54.745885Z",
+        "receipt_sha256": "cbf5f674ede45d2dac5947386db0c4b2960c1f42b46d3e003f4ab19af57fba28"
+      },
+      "limitations": "Owned local candidate fixture only; no public hosted ntfy account, third-party recipient, production deployment or guaranteed device display",
+      "postrun_readback": {
+        "observed_at": "2026-11-13T05:19:36.555653+00:00",
+        "remaining_owned_resources": [],
+        "original_processes_absent": true,
+        "source_clean_at_proof_revision": true,
+        "receipt_sha256": "cfd926cf17e9bae17cb86394c504b4c4f58fae70985dc291a72b2ac382b4a019",
+        "method": "Separate fresh live Docker/process inventories outside the proof runner, performed by the same provider author/runtime executor; root separately read the execution/cleanup receipts before authorizing release"
+      }
+    }
+  },
+  "independent_reviews": [
+    {
+      "reviewer": "/root/campaign_review",
+      "scope": "configuration, provider, transport deadline, acknowledgements, privacy, disabled behavior and capability description",
+      "reviewed_sha": "e79cab2800089f93d193fff9b2232e1812a5e818",
+      "result": "PASS_SCOPED",
+      "source_equivalence": "Provider, configuration, contract, CLI and their unit-test blobs are unchanged at tested_sha. Reservation-gap documentation correction is recorded in the repair.",
+      "executed_probes": [
+        "Slow acknowledgement body crossing total deadline returns UNKNOWN/NOTIFICATION_DELIVERY_TIMEOUT and closes stream",
+        "Infinite uncompressed acknowledgement stops after17x4096-byte chunks with UNKNOWN/NOTIFICATION_ACK_TOO_LARGE and closes stream"
+      ]
+    },
+    {
+      "reviewer": "/root/coordination_review",
+      "scope": "journal, event ownership, actual producers, runner, CLI, Compose and integration tests",
+      "reviewed_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "result": "PASS_SCOPED_AFTER_REPAIR",
+      "closed_finding": "APPLY_MOCK formerly required a top-level profile_id absent from both actual producers; current frozen-snapshot and narrow legacy paths now retain owned-MOCK validation and pass actual-producer tests on SQLite/PostgreSQL"
+    },
+    {
+      "reviewer": "/root/coordination_review",
+      "scope": "Frozen private proof runner/probe ownership, cancellation, bounded I/O/deadlines, exact archive/input matching and uncertain-operation retention",
+      "reviewed_sha": "4627073607b86f26596b33c5d046e12d64b6331a",
+      "result": "PASS_SCOPED",
+      "plan_sha256": "281a00038375c25411404580ee3a5286fee4ab3e0faa1d10ed93a39c207c2f2d"
+    }
+  ],
+  "prior_failures_preserved": [
+    {
+      "stage": "uncommitted strict-configuration draft",
+      "result": "FAIL",
+      "detail": "Two URL delimiter tests failed before the intended bare-query/fragment rejection was actually applied; corrected and covered by the passing immutable suites"
+    },
+    {
+      "stage": "unpublished provenance draft179f9875",
+      "result": "FAIL",
+      "detail": "Date-only UTC-Date rejected; unpublished commit was corrected to a full timestamp before source freeze; no remote history rewrite"
+    },
+    {
+      "stage": "immutable e79 source review",
+      "result": "P2_FOUND",
+      "detail": "Both real APPLY_MOCK producer shapes excluded; repaired in40eec0a5 with positive, foreign-owner, malformed-snapshot, fingerprint and legacy-shape regressions"
+    },
+    {
+      "stage": "Docker fixture setup",
+      "result": "FAILED_ATTEMPTS",
+      "detail": "Default address pools exhausted, then internal bridge suppressed loopback published ports. Exact owned fixtures were removed; verified unused subnet10.254.77.0/28 and loopback-only ordinary bridge fixtures succeeded. No shared network was changed."
+    },
+    {
+      "stage": "Final packaging evidence/native handoff validation",
+      "result": "FAIL_METADATA_ONLY",
+      "detail": "Catalogue/progress/dashboard passed; native task validator rejected invented routing_state REVIEW. Corrected to existing VERIFY state; validation logic and all functionality assertions remain unchanged.",
+      "private_receipt": "ntfy-packaging-final-precommit-gates.json",
+      "private_receipt_sha256": "6b1c2cebc6a190dbfd313d1ac634f01a8e394c573e44cbf7509094b1a0d5ffb1"
+    }
+  ],
+  "limits_and_not_run": [
+    "No claim of full parent MJ-REQ-204 event coverage: excellent match, authentication expiry, source degradation and new-employer discovery are not implemented by this slice.",
+    "No guaranteed device display, background mobile push, exactly-once transport delivery or reconstruction of transitions entirely between polling observations.",
+    "Real external job applications remain off. Supported fixture/dry-run/review outcomes do not confirm external submission.",
+    "No third-party notification sent; public hosted ntfy/TLS/authenticated account live validation was not run. Authentication and TLS policy have deterministic coverage.",
+    "Candidate Compose image build/startup PASS at462707; final composed-head hosted checks, protected integration, production deployed workflow and formal acceptance remain NOT_RUN.",
+    "Desktop is a separate browser implementation; its pending peer descriptor does not create a backend sender or an integrated capability here."
+  ],
+  "ownership_blocker": {
+    "owner_run": "web-20261109T132018Z-0d9f5a0511ab",
+    "exact_steward_suffix": "resume-20261109T153054Z:steward",
+    "exact_canonical_suffixes": [
+      "resume-canonical-acceptance",
+      "resume-canonical-derived-support"
+    ],
+    "evidence": "Native ACTIVE claims and later17:16:59UTC Nov9 resume checkpoint all_owned_claims_released=false; earlier release predates reacquisition; no exact later release observed",
+    "required_action": "Satisfied by authorized exact transfer; normal publication, protected integration and evidence-backed acceptance gates remain",
+    "status": "RESOLVED",
+    "historical_checkpoint_at": "2026-11-13T03:20:45.700678+00:00",
+    "resolution": {
+      "resolved_at": "2026-11-13T04:25:53.757174Z",
+      "transaction_id": "05c3941245414035b80185d84b2b05c1",
+      "authorization": "User explicitly authorized exact-generation transfer of the3resumedsteward/canonical claims",
+      "journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6843931256",
+      "receipt_sha256": "6b7808fd11fd70afe0a1a1e2289e17f157425c4b820656ecde7b19173e322458",
+      "scope": "Exactly3oldclaims released with preserved history;3newownedidentities acquired atomically; unrelated records retained"
+    }
+  },
+  "acceptance": {
+    "original_before": 183,
+    "original_after": 183,
+    "original_total": 366,
+    "reference_before": 19,
+    "reference_after": 19,
+    "reference_total": 59,
+    "p6_before": 0,
+    "p6_after": 0,
+    "p6_total": 12,
+    "scope": "Canonical data at base_sha; local provider proof does not promote a canonical row"
+  },
+  "cleanup": {
+    "all_owned_docker_resources_absent": true,
+    "private_fixture_credentials_removed": true,
+    "heavy_runtime_claim": "RELEASED",
+    "verified_at": "2026-11-13T03:16:18.282106+00:00",
+    "candidate_container": {
+      "status": "RELEASED",
+      "released_at": "2026-11-13T05:20:54.745885Z",
+      "receipt_sha256": "cbf5f674ede45d2dac5947386db0c4b2960c1f42b46d3e003f4ab19af57fba28",
+      "all_owned_docker_resources_absent": true,
+      "private_fixture_credentials_removed": true,
+      "uncertain_operations": [],
+      "postrun_verified_at": "2026-11-13T05:19:36.555653+00:00"
+    }
+  },
+  "next_action": "Acquire all3nativepublicationadmissionaliases, refresh complete live inventory/duplicate/backlog review, publish one coherent ntfy PR from currentmain composition, pass required exact-head gates, protected merge, then canonicalwriter assesses all5childcriteria. Parent204 remainsNOT_RUN.",
+  "checkpoint_history": [
+    {
+      "recorded_at_utc": "2026-11-13T03:20:45.700678+00:00",
+      "manifest_revision": "fdbc5cfd0730993a229fb544b2e21b1e2f5ec334",
+      "state": "Local92-test proof with cached-image volume proof; exact resumed ownership then blocked publication",
+      "preservation": "Original source execution, failures and ownership blocker remain in this document and Git history"
+    }
+  ],
+  "execution_records": [
+    {
+      "scope": "Actual frozen candidate Dockerfile/Compose proof execution, source hashes, runtime role, delivery acknowledgement, restart deduplication, exact cleanup and process readback",
+      "reviewed_sha": "4627073607b86f26596b33c5d046e12d64b6331a",
+      "result": "PASS_RUNTIME_AND_CLEANUP",
+      "receipt_sha256": "82c2e68317bc62dcd5f01d62d7b3b7b365d7f1e108f1de0259cebf3652949168",
+      "actor": "/root/p6_review",
+      "role": "provider_author_and_runtime_executor",
+      "independent": false
+    }
+  ]
+}

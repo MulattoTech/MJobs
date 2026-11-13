@@ -11,7 +11,7 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "PRO-TEST-MATRIX-ACCEPTED-20261102",
+  "current_milestone": "WEB-20261113-2D4F-N05-DESKTOP-CANONICAL-VALIDATED",
   "current_objective": "Complete protected test-matrix publication and guarded final delivery; then resume remaining literal P0/P1 criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -2655,12 +2655,159 @@
         "git_commit": "8875db8fd46d539bcb7abcf5387e2375ef833372",
         "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json"
       }
+    },
+    {
+      "milestone_id": "WEB-20261113-2D4F-N05-DESKTOP-CANONICAL-ACCEPTANCE",
+      "timestamp": "2026-11-13T08:05:30.138717+00:00",
+      "current_phase": "Desktop N05 scoped canonical PASS candidate; root validators, independent review and protected acceptance publication pending; production not deployed",
+      "requirements": [
+        "MJ-REQ-204.N05"
+      ],
+      "source_commit": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+      "source_tree": "37861186360ebbc3cbd982f08de80dbf5357f01c",
+      "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "integration_method": "PROTECTED_PULL_REQUEST_1017",
+      "evidence_paths": [
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/DESKTOP_NOTIFICATIONS.md"
+      ],
+      "completed_steps": [
+        "Protected PR 1017 integrated published b9e8d5d4d33d3a0800cb1bae01ca08e659794348 as 1f1a578ee84554e81c76df59b28d88f008a93815 at2026-11-13T07:22:38Z.",
+        "Verified ten relevant Desktop application/test/document blobs equal tested a0de, published b9 and integrated1f1.",
+        "Root reviewed all five literal issue 366 criteria and accepted the finite open-page Desktop scope under the existing P6 activation and applicable-deployment policy.",
+        "Prepared the N05-only canonical PASS candidate with full preimages and preserved historical source, test, failure, dependency and ownership records.",
+        "Root acquired the two N05 metadata paths and acceptance branch; canonical/support scopes cover the owned acceptance worktree."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "planning/agent_handoffs/MJ-REQ-204.N05.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "outputs/job-platform-implementation-state.json"
+      ],
+      "tests_completed": [
+        "Historical a0de exact source: 28 frontend PASS (23 Desktop+5 Activity), zero failures/skips; TypeScript/Vite production build PASS.",
+        "Historical a0de exact source: 5 mounted API/native Chromium browser PASS (3 Desktop+2 Activity), zero failures/errors/skips; 3 constructor handoffs,3 show events,1 close event; external requests 0/browser API writes 0/page errors 0.",
+        "Independent immutable Desktop source review PASS; relevant source/test/document blob equivalence verified across tested, published and integrated revisions.",
+        "Published b9 exact-head CI required, PostgreSQL/Redis Integration, Disposable Compose, introduced-vulnerability and secret-scan gates all PASS; protected source merge verified."
+      ],
+      "tests_remaining": [
+        "Root must execute canonical handoff/catalogue/progress/reconcile/dashboard validations on the actual materialized candidate; no such result is claimed by this private proposal.",
+        "Independent review of the exact generated acceptance diff and counts remains pending.",
+        "Acceptance commit provenance and exact published-head protected gates remain pending; no acceptance commit or future merge SHA exists."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Owned native Chromium 153.0.8010.12 headless Notification constructor and show/close events, mounted local API and isolated synthetic SQLite; no third-party notification send."
+      ],
+      "known_errors": [
+        "Preserved initial browser source 55922d5 attempt:1 PASS /4 FAIL; React key collisions and headless-shell permission diagnosis preceded repaired a0de proof.",
+        "Preserved historical scanner failure on 60dd9d4a and separately reviewed exact public-identifier correction.",
+        "Preserved AUTHOR_FREEZE_OWNERSHIP_CHANGED final-gate decline after deliberate author release; later root adoption and successor qualification resolved it before merge."
+      ],
+      "known_limitations": [
+        "Parent204 remains NOT_RUN; queue 055 and all sibling/reference acceptance are unchanged.",
+        "Production is NOT_DEPLOYED/NOT_VERIFIED and global notifications remain default-off; production activation is not an added literal criterion for this declared child scope.",
+        "Open-page Desktop Chromium only; no claims for other browsers/mobile/closed-page service-worker push/cross-device preferences.",
+        "OS-visible toast, manual OS dismissal, whole browser/OS restart and live simultaneous two-tab race were not observed.",
+        "Browser permission was pregranted in the isolated native fixture; explicit app opt-in and permission/stale-result boundaries were covered separately.",
+        "Receipts retain 512 outcome identities and reserve before native construction; delivery is not guaranteed or retried automatically. Unsaved disable lasts only within the current tab/module.",
+        "Protected canonical acceptance publication is still pending; composing this metadata into an owned ntfy update does not accept ntfy."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1f1a578ee84554e81c76df59b28d88f008a93815",
+        "evidence_path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+      }
+    },
+    {
+      "milestone_id": "WEB-20261113-2D4F-N05-DESKTOP-CANONICAL-VALIDATED",
+      "timestamp": "2026-11-13T08:14:40.751686+00:00",
+      "current_phase": "Desktop N05 canonical candidate validated; independent final review, commit provenance and protected acceptance publication pending; production not deployed",
+      "requirements": [
+        "MJ-REQ-204.N05"
+      ],
+      "source_commit": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+      "source_tree": "37861186360ebbc3cbd982f08de80dbf5357f01c",
+      "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "integration_method": "PROTECTED_PULL_REQUEST_1017",
+      "evidence_paths": [
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/DESKTOP_NOTIFICATIONS.md"
+      ],
+      "completed_steps": [
+        "Protected PR 1017 integrated published b9e8d5d4d33d3a0800cb1bae01ca08e659794348 as 1f1a578ee84554e81c76df59b28d88f008a93815 at2026-11-13T07:22:38Z.",
+        "Verified ten relevant Desktop application/test/document blobs equal tested a0de, published b9 and integrated1f1.",
+        "Root reviewed all five literal issue 366 criteria and accepted the finite open-page Desktop scope under the existing P6 activation and applicable-deployment policy.",
+        "Prepared the N05-only canonical PASS candidate with full preimages and preserved historical source, test, failure, dependency and ownership records.",
+        "Root acquired the two N05 metadata paths and acceptance branch; canonical/support scopes cover the owned acceptance worktree.",
+        "Root actually materialized the six authored files, transferred the handoff, recorded the milestone, regenerated projections and passed all six canonical consistency checks."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "planning/agent_handoffs/MJ-REQ-204.N05.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "outputs/job-platform-implementation-state.json"
+      ],
+      "tests_completed": [
+        "Historical a0de exact source: 28 frontend PASS (23 Desktop+5 Activity), zero failures/skips; TypeScript/Vite production build PASS.",
+        "Historical a0de exact source: 5 mounted API/native Chromium browser PASS (3 Desktop+2 Activity), zero failures/errors/skips; 3 constructor handoffs,3 show events,1 close event; external requests 0/browser API writes 0/page errors 0.",
+        "Independent immutable Desktop source review PASS; relevant source/test/document blob equivalence verified across tested, published and integrated revisions.",
+        "Published b9 exact-head CI required, PostgreSQL/Redis Integration, Disposable Compose, introduced-vulnerability and secret-scan gates all PASS; protected source merge verified.",
+        "Actual root canonical sequence:10 commands exit0, 1.703 seconds; all affected source tools unchanged, exact N05-only delta/counts verified, retained Job zero and all four original process generations absent before LIGHT release."
+      ],
+      "tests_remaining": [
+        "Independent review of the exact final generated metadata diff and preserved counts.",
+        "Acceptance commit provenance and new published-head protected gates; no acceptance commit/merge is invented."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Owned native Chromium 153.0.8010.12 headless Notification constructor and show/close events, mounted local API and isolated synthetic SQLite; no third-party notification send."
+      ],
+      "known_errors": [
+        "Preserved initial browser source 55922d5 attempt:1 PASS /4 FAIL; React key collisions and headless-shell permission diagnosis preceded repaired a0de proof.",
+        "Preserved historical scanner failure on 60dd9d4a and separately reviewed exact public-identifier correction.",
+        "Preserved AUTHOR_FREEZE_OWNERSHIP_CHANGED final-gate decline after deliberate author release; later root adoption and successor qualification resolved it before merge."
+      ],
+      "known_limitations": [
+        "Parent204 remains NOT_RUN; queue 055 and all sibling/reference acceptance are unchanged.",
+        "Production is NOT_DEPLOYED/NOT_VERIFIED and global notifications remain default-off; production activation is not an added literal criterion for this declared child scope.",
+        "Open-page Desktop Chromium only; no claims for other browsers/mobile/closed-page service-worker push/cross-device preferences.",
+        "OS-visible toast, manual OS dismissal, whole browser/OS restart and live simultaneous two-tab race were not observed.",
+        "Browser permission was pregranted in the isolated native fixture; explicit app opt-in and permission/stale-result boundaries were covered separately.",
+        "Receipts retain 512 outcome identities and reserve before native construction; delivery is not guaranteed or retried automatically. Unsaved disable lasts only within the current tab/module.",
+        "Protected canonical acceptance publication is still pending; composing this metadata into an owned ntfy update does not accept ntfy."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "1f1a578ee84554e81c76df59b28d88f008a93815",
+        "evidence_path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+      },
+      "validation_source": {
+        "baseline_head": "1f1a578ee84554e81c76df59b28d88f008a93815",
+        "materialized_file_manifest_sha256": "ad5cf22a737dbdf3459b9cf43f1e2471c8acff7a0c1abd2b1a0f3edd73eb68b9",
+        "execution_receipt_sha256": "a60bf1765a60cffcd81828d86b394ab767aabd85a56f9fa650f8689154bb5e2f",
+        "dirty_canonical_inputs": true
+      }
     }
   ],
-  "current_phase": "Preserve protected909 history and reviewed171 corrections; new candidate, hosted gates and deployment pending",
+  "current_phase": "Desktop N05 canonical candidate validated; independent final review, commit provenance and protected acceptance publication pending; production not deployed",
   "last_safe_checkpoint": {
-    "git_commit": "8875db8fd46d539bcb7abcf5387e2375ef833372",
-    "evidence_path": "docs/evidence/2026-11-03-webpro-642e4b-171-refresh/preservation.json"
+    "git_commit": "1f1a578ee84554e81c76df59b28d88f008a93815",
+    "evidence_path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

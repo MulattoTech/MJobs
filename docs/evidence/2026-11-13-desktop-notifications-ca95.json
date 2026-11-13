@@ -375,12 +375,12 @@
     "Protected current-head hosted checks, verified integration stewardship and canonical acceptance ownership remain separate gates."
   ],
   "acceptance": {
-    "mj_req_204_n05": "NOT_RUN_IN_CANONICAL_MATRIX",
+    "mj_req_204_n05": "PASS_PROPOSED_IN_CANONICAL_CANDIDATE",
     "local_candidate": "IMPLEMENTED_AND_LOCALLY_VERIFIED",
-    "hosted_ci": "NOT_RUN_AT_RECORD_CREATION",
-    "integration": "NOT_MERGED",
+    "hosted_ci": "PASS_AT_EXACT_PUBLISHED_HEAD",
+    "integration": "PROTECTED_MERGED",
     "production": "NOT_DEPLOYED",
-    "formal_acceptance": "PENDING_DESIGNATED_CANONICAL_WRITER"
+    "formal_acceptance": "PROPOSED_PASS_PENDING_PROTECTED_PUBLICATION"
   },
   "evidence_date_utc": "2026-11-13T03:31:45.369754Z",
   "requirement_id": "MJ-REQ-204.N05",
@@ -411,5 +411,426 @@
     "correction": "Use requirement_id in current metadata and append only the exact historical commit/path/rule/line fingerprint. Existing ignore entries, scanner rules, checksum/version and full historical scan scope are preserved.",
     "corrected_head_scanner_result": "NOT_RUN",
     "reviewed_at": "2026-11-13T03:40:01.005228Z"
+  },
+  "acceptance_history": [
+    {
+      "recorded_at": "2026-11-13T03:31:45.369754Z",
+      "acceptance": {
+        "mj_req_204_n05": "NOT_RUN_IN_CANONICAL_MATRIX",
+        "local_candidate": "IMPLEMENTED_AND_LOCALLY_VERIFIED",
+        "hosted_ci": "NOT_RUN_AT_RECORD_CREATION",
+        "integration": "NOT_MERGED",
+        "production": "NOT_DEPLOYED",
+        "formal_acceptance": "PENDING_DESIGNATED_CANONICAL_WRITER"
+      },
+      "superseded_for_current_status_at": "2026-11-13T07:49:29.805079Z",
+      "preservation_note": "Historical record-creation state retained without changing its source/test attribution."
+    }
+  ],
+  "current_reconciliation": {
+    "recorded_at": "2026-11-13T07:49:29.805079Z",
+    "canonical_writer": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+    "requirement": "MJ-REQ-204.N05",
+    "scope_decision": "ALL_FIVE_LITERAL_CRITERIA_SATISFIED_WITH_DECLARED_LIMITS",
+    "decision_authority": "Designated root canonical writer accepted the finite criterion mapping after rereading governing execution prompt sections 8, 13, 14.",
+    "activation": "User execution prompt section 8 activates P6 implementation and delivery despite historical FUTURE/OPTIONAL wording; original IDs, criteria, priorities and denominators are unchanged.",
+    "source_test_revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+    "published_source_head": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+    "source_pr": "https://github.com/MulattoTech/MJobs/pull/1017",
+    "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+    "integrated_at": "2026-11-13T07:22:38Z",
+    "source_equivalence": {
+      "apps/web/src/main.tsx": {
+        "tested_blob": "0b5064aed9b10bda516379fe9ef3d6d6f9bfc122",
+        "published_blob": "0b5064aed9b10bda516379fe9ef3d6d6f9bfc122",
+        "integrated_blob": "0b5064aed9b10bda516379fe9ef3d6d6f9bfc122",
+        "equal": true
+      },
+      "apps/web/src/desktop-notification-provider.ts": {
+        "tested_blob": "327703260b210d7b7d98ce6e5c7c0830169806c0",
+        "published_blob": "327703260b210d7b7d98ce6e5c7c0830169806c0",
+        "integrated_blob": "327703260b210d7b7d98ce6e5c7c0830169806c0",
+        "equal": true
+      },
+      "apps/web/src/desktop-notifications.tsx": {
+        "tested_blob": "8d3a46952028401707bc00e6e24d6db82ecc0a30",
+        "published_blob": "8d3a46952028401707bc00e6e24d6db82ecc0a30",
+        "integrated_blob": "8d3a46952028401707bc00e6e24d6db82ecc0a30",
+        "equal": true
+      },
+      "apps/web/src/desktop-notification-provider.test.ts": {
+        "tested_blob": "68317290cfb146412bd2a533735abb190c0a4a07",
+        "published_blob": "68317290cfb146412bd2a533735abb190c0a4a07",
+        "integrated_blob": "68317290cfb146412bd2a533735abb190c0a4a07",
+        "equal": true
+      },
+      "apps/web/src/desktop-notifications.test.tsx": {
+        "tested_blob": "eb792e111b58a750cb7a09b2791c4f38da0baf54",
+        "published_blob": "eb792e111b58a750cb7a09b2791c4f38da0baf54",
+        "integrated_blob": "eb792e111b58a750cb7a09b2791c4f38da0baf54",
+        "equal": true
+      },
+      "apps/web/src/operation-notifications.tsx": {
+        "tested_blob": "9afd02fe97a4b2922d2bd7684be4ae5031ed9934",
+        "published_blob": "9afd02fe97a4b2922d2bd7684be4ae5031ed9934",
+        "integrated_blob": "9afd02fe97a4b2922d2bd7684be4ae5031ed9934",
+        "equal": true
+      },
+      "apps/web/src/operation-notifications.test.tsx": {
+        "tested_blob": "bb56a6d8f7334ff953fc5251d237afb6dd9e77c8",
+        "published_blob": "bb56a6d8f7334ff953fc5251d237afb6dd9e77c8",
+        "integrated_blob": "bb56a6d8f7334ff953fc5251d237afb6dd9e77c8",
+        "equal": true
+      },
+      "tests/browser/test_desktop_notifications.py": {
+        "tested_blob": "82ec7061a31cde7d2a64a7f9f00e1d9e0079b10c",
+        "published_blob": "82ec7061a31cde7d2a64a7f9f00e1d9e0079b10c",
+        "integrated_blob": "82ec7061a31cde7d2a64a7f9f00e1d9e0079b10c",
+        "equal": true
+      },
+      "tests/browser/test_operation_notifications.py": {
+        "tested_blob": "4345215383904bf1147628c6e64afb302770e50d",
+        "published_blob": "4345215383904bf1147628c6e64afb302770e50d",
+        "integrated_blob": "4345215383904bf1147628c6e64afb302770e50d",
+        "equal": true
+      },
+      "docs/DESKTOP_NOTIFICATIONS.md": {
+        "tested_blob": "0e26aefc31fa2d508e9507f93d8420e71ba50114",
+        "published_blob": "0e26aefc31fa2d508e9507f93d8420e71ba50114",
+        "integrated_blob": "0e26aefc31fa2d508e9507f93d8420e71ba50114",
+        "equal": true
+      }
+    },
+    "required_hosted_checks": [
+      {
+        "id": 131738264174,
+        "name": "CI / required",
+        "head_sha": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+        "status": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-11-13T06:45:44Z",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43380459254/job/131738264174"
+      },
+      {
+        "id": 131742528490,
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+        "status": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-11-13T06:57:21Z",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43380459297/job/131742528490"
+      },
+      {
+        "id": 131736769159,
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+        "status": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-11-13T06:47:45Z",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43380459414/job/131736769159"
+      },
+      {
+        "id": 131736769056,
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+        "status": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-11-13T06:41:43Z",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43380459316/job/131736769056"
+      },
+      {
+        "id": 131736768513,
+        "name": "Security / secret scan",
+        "head_sha": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+        "status": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-11-13T06:41:51Z",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43380459267/job/131736768513"
+      }
+    ],
+    "final_qualification_receipt": {
+      "file": "qualification-9681156b4ef84ddd852af860dfdb44b8.json",
+      "sha256": "f1d6096fd49107d0a4dc1fcc828ede769c70596f0dad5589bdfffd9e44513ea2",
+      "result": "PASS_READ_ONLY_FRESH_QUALIFICATION_NOT_MERGED",
+      "note": "The read-only qualification and actual protected merge are separate observations."
+    },
+    "criteria_decision": [
+      {
+        "criterion": "Declare exact capabilities supported rather than implying unsupported behavior.",
+        "decision": "SATISFIED_WITH_DECLARED_LIMITS",
+        "evidence": [
+          "docs/DESKTOP_NOTIFICATIONS.md",
+          "apps/web/src/desktop-notification-provider.ts"
+        ]
+      },
+      {
+        "criterion": "Add deterministic fixtures/contract tests.",
+        "decision": "SATISFIED_WITH_DECLARED_LIMITS",
+        "evidence": [
+          "apps/web/src/desktop-notification-provider.test.ts",
+          "apps/web/src/desktop-notifications.test.tsx"
+        ]
+      },
+      {
+        "criterion": "Perform bounded live read-only validation where appropriate and safe.",
+        "decision": "SATISFIED_WITH_DECLARED_LIMITS",
+        "evidence": [
+          "tests/browser/test_desktop_notifications.py",
+          "tests/browser/test_operation_notifications.py"
+        ]
+      },
+      {
+        "criterion": "Record limitations and last-tested evidence.",
+        "decision": "SATISFIED_WITH_DECLARED_LIMITS",
+        "evidence": [
+          "docs/DESKTOP_NOTIFICATIONS.md",
+          "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+        ]
+      },
+      {
+        "criterion": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+        "decision": "SATISFIED_WITH_DECLARED_LIMITS",
+        "evidence": [
+          "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+        ]
+      }
+    ],
+    "deployment_applicability": {
+      "decision": "PRODUCTION_ACTIVATION_NOT_REQUIRED_FOR_DECLARED_CHILD_CRITERIA",
+      "basis": "The literal five criteria require honest capability, deterministic contracts, bounded appropriate validation, limitations/evidence and no access-control circumvention. Actual mounted native Chromium/API proof supplies the applicable runtime evidence for this open-page scope.",
+      "production": "NOT_DEPLOYED_NOT_VERIFIED",
+      "global_notifications": "DEFAULT_OFF_UNCHANGED",
+      "no_claims": [
+        "OS-visible toast inspection",
+        "manual OS notification dismissal",
+        "whole browser or OS restart",
+        "live simultaneous multi-tab race",
+        "closed-page push",
+        "parent 204 completion"
+      ]
+    },
+    "ownership_resolution": {
+      "old_nov9_blockers": "RESOLVED_USER_AUTHORIZED_EXACT_TRANSFER",
+      "transfer_applied_at": "2026-11-13T04:25:53Z",
+      "transfer_receipt": "authorized-transfer-result.json",
+      "transfer_receipt_sha256": "6b7808fd11fd70afe0a1a1e2289e17f157425c4b820656ecde7b19173e322458",
+      "metadata_claim_key": "web:WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26:n05-canonical-metadata:5ffabe97962d4f7b85873a5d9772fb0d",
+      "metadata_acquired_at": "2026-11-13T07:39:53.111864+00:00",
+      "historical_author_claims": "Retained; root acquired the previously unowned N05 metadata paths after protected source integration."
+    },
+    "canonical_delta": {
+      "only_requirement": "MJ-REQ-204.N05",
+      "before": "NOT_RUN",
+      "proposed": "PASS",
+      "original_before": {
+        "PASS": 183,
+        "PARTIAL": 82,
+        "NOT_RUN": 101,
+        "total": 366
+      },
+      "original_proposed": {
+        "PASS": 184,
+        "PARTIAL": 82,
+        "NOT_RUN": 100,
+        "total": 366
+      },
+      "reference_unchanged": {
+        "PASS": 19,
+        "PARTIAL": 4,
+        "NOT_RUN": 36,
+        "total": 59
+      },
+      "parent204": "NOT_RUN_UNCHANGED",
+      "queue055": "QUEUED_UNCHANGED"
+    },
+    "publication": {
+      "state": "PROPOSED_CANONICAL_PASS_PENDING_INDEPENDENT_REVIEW_AND_PROTECTED_PUBLICATION",
+      "preparation_branch": "web/20261113-2d4f/n05-acceptance",
+      "planned_route": "May be composed into the next owned ntfy PR update after independent review; this acceptance refers only to already integrated N05.",
+      "acceptance_commit": null,
+      "acceptance_pr": null,
+      "acceptance_merge": null,
+      "ntfy_acceptance_changed": false
+    },
+    "validation_status": {
+      "canonical_generators": "PASS_ACTUALLY_EXECUTED",
+      "catalogue_handoff_progress_dashboard_checks": "PASS_ACTUALLY_EXECUTED",
+      "commit_provenance": "NOT_RUN_NO_ACCEPTANCE_COMMIT",
+      "acceptance_published_head_gates": "NOT_RUN_NO_ACCEPTANCE_PUBLICATION"
+    },
+    "validation_history": [
+      {
+        "recorded_at": "2026-11-13T07:49:29.805079Z",
+        "status": {
+          "canonical_generators": "NOT_RUN_FOR_THIS_PROPOSAL",
+          "catalogue_handoff_progress_dashboard_checks": "NOT_RUN_FOR_THIS_PROPOSAL",
+          "commit_provenance": "NOT_RUN_NO_ACCEPTANCE_COMMIT",
+          "acceptance_published_head_gates": "NOT_RUN_NO_ACCEPTANCE_PUBLICATION"
+        }
+      }
+    ],
+    "canonical_materialization": {
+      "recorded_at": "2026-11-13T08:14:40.751686+00:00",
+      "result": "PASS",
+      "execution_receipt_sha256": "a60bf1765a60cffcd81828d86b394ab767aabd85a56f9fa650f8689154bb5e2f",
+      "command_receipt_sha256": "9a9340221746466d16c79ead6dc02e41ab90b7ec2890f2ef4f6b3211341b10f4",
+      "input_manifest_sha256": "ad5cf22a737dbdf3459b9cf43f1e2471c8acff7a0c1abd2b1a0f3edd73eb68b9",
+      "operational_base": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "dirty_canonical_inputs_disclosed": true,
+      "commands": [
+        {
+          "name": "01-transfer",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.agent_context",
+            "transfer",
+            "--task",
+            "MJ-REQ-204.N05",
+            "--from-owner",
+            "WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0",
+            "--to-owner",
+            "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+            "--reason",
+            "User-authorized canonical stewardship and fresh exact N05 metadata ownership after protected source integration",
+            "--next-action",
+            "Validate and publish the N05-only canonical acceptance candidate through protected controls; production remains unverified"
+          ],
+          "exit_code": 0,
+          "seconds": 0.125,
+          "stdout_sha256": "344139d3e39731d1a312da8bcf5e99a1a5c049998acbc6ceaa066b87fd11087d",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "02-progress-record",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.verification.progress",
+            "record",
+            "--entry",
+            "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\desktop-n05-materialization-01\\milestone-approved.json"
+          ],
+          "exit_code": 0,
+          "seconds": 0.109,
+          "stdout_sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "03-reconcile-apply",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/mjobs_reconcile_planning.py",
+            "--apply"
+          ],
+          "exit_code": 0,
+          "seconds": 0.063,
+          "stdout_sha256": "35744033fedc79240c30138d8be6d188714c554ae7a8f729240a104cc65113c3",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "04-dashboard-write",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.verification.progress_dashboard",
+            "--write"
+          ],
+          "exit_code": 0,
+          "seconds": 0.109,
+          "stdout_sha256": "581c5ffdc30fdee1de42bf819bdd3a10a19adc41be67a9d722fcf3c6cbcd2eef",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "05-handoff-validate",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.agent_context",
+            "validate",
+            "--task",
+            "MJ-REQ-204.N05"
+          ],
+          "exit_code": 0,
+          "seconds": 0.266,
+          "stdout_sha256": "137beaecc38cfd9867e9eeed07e92e1110b27a20b770c149ac0ffebad0abd1e4",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "06-reconcile-check",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/mjobs_reconcile_planning.py"
+          ],
+          "exit_code": 0,
+          "seconds": 0.078,
+          "stdout_sha256": "0d4dbcf73f82fb3e4ebd2d8c5eca62ed3db1e8599611b5308533b26011e40d26",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "07-catalogue",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.verification.catalogue"
+          ],
+          "exit_code": 0,
+          "seconds": 0.094,
+          "stdout_sha256": "afc44cd304f45ba649562cbea23ab034dec7f06e61af43b7b17ec2e10d5706ff",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "08-progress-validate",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.verification.progress",
+            "validate"
+          ],
+          "exit_code": 0,
+          "seconds": 0.078,
+          "stdout_sha256": "901467b93720a98dd3fd6f8d3527c6294ec52e61cb3ebe6674f3ddccfe7c5e03",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "09-dashboard-check",
+          "argv": [
+            "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tools.verification.progress_dashboard",
+            "--check"
+          ],
+          "exit_code": 0,
+          "seconds": 0.094,
+          "stdout_sha256": "fa61edd53b3ca55831904215bf6b58130e7b4b1bc7c408bf9849b30e5919b8a4",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "10-diff-check",
+          "argv": [
+            "git",
+            "-C",
+            "C:\\Tools\\Dev\\MJobs-Web\\n05-acceptance-2d4f",
+            "diff",
+            "--check"
+          ],
+          "exit_code": 0,
+          "seconds": 0.062,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr_sha256": "15c4c02a6abe0ee09533fb2a374243376bb189b7bc1cf08cd034e3d0d7542139"
+        }
+      ],
+      "runtime_or_browser_reexecuted": false,
+      "publication": "PENDING"
+    }
   }
 }

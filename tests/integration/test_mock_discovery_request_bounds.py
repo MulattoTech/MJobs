@@ -359,9 +359,9 @@ class _PublicWorkerPhases:
         stack.enter_context(patch.object(engine.dialect, 'do_commit', observed_commit))
         stack.enter_context(patch.object(engine, 'dispose', self.span('store_dispose', engine.dispose)))
 
-    def describe_failed_join(self, worker):
-        # Capture only our exact Thread objects; never retain frames or locals.
-        self.record('join_failed')
+    def describe_failure(self, worker, *, phase):
+        # Fixed call-site phases; exact Thread objects, never frames or locals.
+        self.record(phase)
         frames = sys._current_frames()
         stacks = {}
         try:
@@ -378,8 +378,16 @@ class _PublicWorkerPhases:
         finally:
             frames.clear()
         self.failure_snapshot = {
+            'failure_phase': phase,
             'records': tuple(self.records),
             'stacks': stacks,
+            'worker_alive': worker.is_alive(),
+            'worker_result_count': self.worker_result_count,
+            'worker_error_types': tuple(self.worker_error_types),
+            'watcher_alive': self.watcher.is_alive() if self.watcher is not None else None,
+            'transport_unwound': self.transport_unwound,
+            'http_client_closed': self.http_client.is_closed if self.http_client is not None else None,
+            'connect_attempts': len(self.sockets),
             'open_connect_sockets': sum(sock.fileno() != -1 for sock in self.sockets),
         }
         return repr(self.failure_snapshot)
@@ -448,7 +456,8 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
 
                 worker = threading.Thread(target=execute, name='mock004-public-worker')
                 worker.start()
-                assert connecting.wait(2), 'public worker did not attempt loopback connection'
+                assert connecting.wait(2), ('public worker did not attempt loopback connection; phases='
+                                            + phases.describe_failure(worker, phase='connect_entry_failed'))
                 time.sleep(.1)
                 assert sockets and not select.select([], [sockets[-1]], [], 0)[1], 'TCP connect not pending'
                 phases.record('pending_connect_confirmed')
@@ -458,7 +467,7 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
                 worker.join(timeout=1.2)
                 phases.record('join_exit')
                 assert not worker.is_alive(), ('public fixture worker remained blocked in connect; phases='
-                                               + phases.describe_failed_join(worker))
+                                               + phases.describe_failure(worker, phase='join_failed'))
                 assert not errors and len(results) == 1
                 saved = api.get(f'/operations/{identifier}').json()
                 expected = ('CANCELLED', 'CANCEL_REQUESTED') if trigger == 'cancel' else ('DEAD_LETTERED', 'OPERATION_TIMEOUT')
@@ -487,6 +496,76 @@ def _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch, *, phases=No
 @pytest.mark.parametrize('trigger', ['cancel', 'deadline'])
 def test_public_fixture_worker_pending_connect_persists_terminal_readback(trigger, tmp_path, monkeypatch):
     _exercise_public_fixture_worker(trigger, tmp_path, monkeypatch)
+
+
+def test_public_worker_entry_diagnostic_records_pre_connect_failure(tmp_path, monkeypatch):
+    """A controlled resolver failure finishes without an observed OS connect."""
+    from sqlalchemy import select
+    from packages.persistence import models as m
+    from packages.persistence.store import Store
+    from services.discovery.sources import http_transport
+
+    phases = _PublicWorkerPhases()
+    private_message = 'controlled-private-diagnostic-value-must-not-appear'
+    original_resolve = http_transport._resolve
+    originals = (Store.__init__, http_transport._Backend.connect_tcp, MockClient.get,
+                 MockClient.close, httpx.Client.close, socket.socket, original_resolve)
+
+    def fail_before_connect(host, port, check, deadline):
+        if threading.current_thread().name != 'mock004-public-worker':
+            return original_resolve(host, port, check, deadline)
+        phases.record('controlled_pre_connect_failure')
+        raise RuntimeError(private_message)
+
+    with monkeypatch.context() as scoped:
+        scoped.setattr(http_transport, '_resolve', fail_before_connect)
+        with pytest.raises(
+            AssertionError, match='^public worker did not attempt loopback connection; phases='
+        ) as failure:
+            # Use the unchanged cancel case's existing budget. No cancellation
+            # is issued: the entry predicate fails after the controlled error.
+            _exercise_public_fixture_worker('cancel', tmp_path, scoped, phases=phases)
+
+    snapshot = phases.failure_snapshot
+    assert snapshot is not None
+    assert snapshot['failure_phase'] == 'connect_entry_failed'
+    assert not snapshot['worker_alive'] and snapshot['worker_result_count'] == 1
+    assert not snapshot['worker_error_types']
+    assert snapshot['watcher_alive'] in (None, False)
+    assert snapshot['transport_unwound'] and snapshot['http_client_closed']
+    assert snapshot['connect_attempts'] == snapshot['open_connect_sockets'] == 0
+    assert snapshot['stacks']['mock004-public-worker'] == []
+    labels = [record[0] for record in snapshot['records']]
+    assert labels.count('controlled_pre_connect_failure') == 1, snapshot
+    assert labels.count('backend_connect_RuntimeError') == 1, snapshot
+    assert labels.index('backend_connect_exit') < labels.index('mock_get_exit')
+    assert labels.index('mock_get_exit') < labels.index('store_dispose_exit')
+    assert labels.index('store_dispose_exit') < labels.index('worker_exit')
+    assert labels.index('worker_exit') < labels.index('connect_entry_failed')
+    assert 'join_enter' not in labels
+    assert len(snapshot['records']) <= 128
+    assert set(snapshot['stacks']) <= {
+        'mock004-public-worker', 'mjobs-fixture-discovery-cancellation',
+    }
+    assert all(len(frames) <= 16 for frames in snapshot['stacks'].values())
+    assert private_message not in str(failure.value)
+    assert private_message not in repr(snapshot)
+    assert phases.worker_store.engine.pool.checkedout() == 0
+    assert phases.http_client.is_closed
+    assert phases.watcher is None or not phases.watcher.is_alive()
+    assert not any(t.name == 'mjobs-fixture-discovery-cancellation' for t in threading.enumerate())
+    assert originals == (Store.__init__, http_transport._Backend.connect_tcp, MockClient.get,
+                         MockClient.close, httpx.Client.close, socket.socket, http_transport._resolve)
+
+    reopened = Store(f'sqlite:///{(tmp_path / "fixture.db").as_posix()}')
+    try:
+        with reopened.engine.connect() as connection:
+            row = connection.execute(select(
+                m.operations.c.state, m.operations.c.error, m.operations.c.attempt_count,
+            ).where(m.operations.c.id == phases.operation_id)).one()
+        assert tuple(row) == ('DEAD_LETTERED', 'RuntimeError', 1)
+    finally:
+        reopened.engine.dispose()
 
 
 def test_public_worker_phase_diagnostic_separates_terminal_commit_delay(tmp_path, monkeypatch):
