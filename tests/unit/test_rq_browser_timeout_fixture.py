@@ -203,3 +203,123 @@ class BrowserTimeoutFixtureTests(unittest.TestCase):
                         freeze, before_freeze=guard)
         guard.assert_called_once_with()
         freeze.assert_not_called()
+
+    def test_capture_browser_selects_without_any_signal(self):
+        metadata = {102: ("node", ("node", "driver")), 103: ("headless_shell", self.arguments)}
+        with patch.object(fixture, "running", return_value=True), patch.object(
+                fixture, "descendants", return_value=[self.driver, self.browser]), patch.object(
+                fixture, "process_command", side_effect=lambda owned: metadata[owned.pid]), patch.object(
+                fixture, "freeze_process") as freeze, patch.object(fixture, "signal_owned") as send:
+            self.assertEqual(self.worker.capture_browser(self.profile), self.browser)
+        self.assertEqual(self.worker.browser_driver, self.driver)
+        freeze.assert_not_called()
+        send.assert_not_called()
+
+    def stage_horse_fault(self):
+        self.worker.browser, self.worker.browser_driver = self.browser, self.driver
+        owned = [self.worker.identity, self.worker.horse, self.driver, self.browser, self.renderer]
+        self.worker.owned.clear()
+        self.worker.remember(owned)
+        return {value.pid: value for value in owned}
+
+    def test_horse_fault_signals_only_the_original_horse_pidfd(self):
+        live = self.stage_horse_fault()
+        horse = self.worker.horse
+        guard = Mock()
+
+        def send(descriptor, sig):
+            self.assertEqual((descriptor, sig), (9001, 19))
+            live[horse.pid] = replace(horse, state="T")
+
+        with patch.object(fixture, "process_identity", side_effect=live.__getitem__), patch.object(
+                fixture.os, "pidfd_open", create=True, return_value=9001) as open_pidfd, patch.object(
+                fixture.os, "close") as close, patch.object(fixture.signal, "SIGSTOP", 19, create=True), patch.object(
+                fixture.signal, "pidfd_send_signal", create=True, side_effect=send) as signal_pidfd:
+            self.assertEqual(self.worker.freeze_horse(before_freeze=guard), horse)
+        guard.assert_called_once_with()
+        open_pidfd.assert_called_once_with(horse.pid)
+        signal_pidfd.assert_called_once_with(9001, 19)
+        close.assert_called_once_with(9001)
+        self.assertEqual(live[horse.pid].state, "T")
+        self.assertTrue(all(live[value.pid].state == "S"
+                            for value in (self.worker.identity, self.driver, self.browser, self.renderer)))
+
+    def test_horse_fault_refuses_missing_admission_or_unhealthy_companions(self):
+        cases = ("no-guard", "no-driver", "unretained-horse", "horse-already-stopped", "browser-exited",
+                 "browser-stopped", "driver-reused", "parent-stopped")
+        for case in cases:
+            live = self.stage_horse_fault()
+            guard = Mock()
+            if case == "no-guard":
+                guard = None
+            elif case == "no-driver":
+                self.worker.browser_driver = None
+            elif case == "unretained-horse":
+                self.worker.owned.pop((self.worker.horse.pid, self.worker.horse.started))
+            elif case == "horse-already-stopped":
+                live[self.worker.horse.pid] = replace(self.worker.horse, state="T")
+            elif case == "browser-exited":
+                live[self.browser.pid] = replace(self.browser, state="Z")
+            elif case == "browser-stopped":
+                live[self.browser.pid] = replace(self.browser, state="T")
+            elif case == "driver-reused":
+                live[self.driver.pid] = replace(self.driver, started=999)
+            else:
+                live[self.worker.identity.pid] = replace(self.worker.identity, state="T")
+            with self.subTest(case=case), patch.object(fixture, "process_identity", side_effect=live.__getitem__), patch.object(
+                    fixture, "freeze_process") as freeze, self.assertRaises(RuntimeError):
+                self.worker.freeze_horse(before_freeze=guard)
+            freeze.assert_not_called()
+            if guard is not None:
+                guard.assert_not_called()
+
+    def test_horse_fault_rechecks_companions_after_the_readiness_guard(self):
+        for case in ("expired-gate", "driver-reused", "browser-exited"):
+            live = self.stage_horse_fault()
+
+            def guard():
+                if case == "expired-gate":
+                    raise RuntimeError("response gate expired")
+                if case == "driver-reused":
+                    live[self.driver.pid] = replace(self.driver, started=999)
+                else:
+                    live[self.browser.pid] = replace(self.browser, state="Z")
+
+            with self.subTest(case=case), patch.object(fixture, "process_identity", side_effect=live.__getitem__), patch.object(
+                    fixture, "freeze_process") as freeze, self.assertRaises(RuntimeError):
+                self.worker.freeze_horse(before_freeze=guard)
+            freeze.assert_not_called()
+
+    def test_horse_pid_reuse_between_admission_and_pidfd_check_never_signals(self):
+        live = self.stage_horse_fault()
+        horse = self.worker.horse
+
+        def opened(pid):
+            self.assertEqual(pid, horse.pid)
+            live[pid] = replace(horse, started=999)
+            return 9001
+
+        with patch.object(fixture, "process_identity", side_effect=live.__getitem__), patch.object(
+                fixture.os, "pidfd_open", create=True, side_effect=opened), patch.object(fixture.os, "close") as close, patch.object(
+                fixture.signal, "SIGSTOP", 19, create=True), patch.object(
+                fixture.signal, "pidfd_send_signal", create=True) as send, self.assertRaisesRegex(
+                RuntimeError, "identity changed; refusing signal"):
+            self.worker.freeze_horse(before_freeze=Mock())
+        send.assert_not_called()
+        close.assert_called_once_with(9001)
+
+    def test_horse_fault_does_not_qualify_an_exit_during_injection(self):
+        for case in ("horse-exited", "browser-exited"):
+            live = self.stage_horse_fault()
+
+            def freeze(owned):
+                self.assertEqual(owned, self.worker.horse)
+                if case == "horse-exited":
+                    return False
+                live[self.browser.pid] = replace(self.browser, state="Z")
+                return True
+
+            with self.subTest(case=case), patch.object(fixture, "process_identity", side_effect=live.__getitem__), patch.object(
+                    fixture, "freeze_process", side_effect=freeze) as inject, self.assertRaises(RuntimeError):
+                self.worker.freeze_horse(before_freeze=Mock())
+            inject.assert_called_once_with(self.worker.horse)

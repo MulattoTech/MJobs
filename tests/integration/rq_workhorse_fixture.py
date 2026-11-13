@@ -268,6 +268,8 @@ class OwnedWorker:
         self.process = None
         self.identity = None
         self.horse = None
+        self.browser = None
+        self.browser_driver = None
         self.worker = None
         self.children = []
         self.owned = {}
@@ -383,8 +385,9 @@ class OwnedWorker:
         self.remember([horse, *self.children])
         return executions[0]
 
-    def freeze_browser(self, profile, *, before_freeze=None):
-        """Freeze one exact Chromium root, leaving production timeout owners live."""
+    def capture_browser(self, profile):
+        """Select one exact detached Chromium root without signalling anything."""
+        self.browser = self.browser_driver = None
         if (self.identity is None or self.horse is None or self.process.poll() is not None
                 or not running(self.identity) or not running(self.horse)):
             raise RuntimeError("A live captured production workhorse is required")
@@ -419,6 +422,14 @@ class OwnedWorker:
             raise RuntimeError("Chromium root does not own the detached session under test")
         if not running(self.identity) or not running(self.horse):
             raise RuntimeError("Production timeout owner exited before browser freeze")
+        self.browser = browser
+        drivers = [child for child in self.children if child.pid == browser.parent]
+        self.browser_driver = drivers[0] if len(drivers) == 1 else None
+        return browser
+
+    def freeze_browser(self, profile, *, before_freeze=None):
+        """Freeze one exact Chromium root, leaving production timeout owners live."""
+        browser = self.capture_browser(profile)
         if before_freeze is not None:
             before_freeze()  # Recheck the response gate immediately before the signal.
         if not freeze_process(browser):
@@ -426,6 +437,39 @@ class OwnedWorker:
         if not running(self.identity) or not running(self.horse):
             raise RuntimeError("Production timeout owner exited during browser freeze")
         return browser
+
+    def freeze_horse(self, *, before_freeze):
+        """Inject one stopped-horse fault while its parent/driver/browser stay live."""
+        if not callable(before_freeze):
+            raise RuntimeError("A browser readiness/admission guard is required")
+        if (self.identity is None or self.horse is None or self.browser is None
+                or self.browser_driver is None or self.process.poll() is not None):
+            raise RuntimeError("Capture the production horse, browser and driver before interruption")
+
+        def companions():
+            for owned in (self.identity, self.browser_driver, self.browser):
+                if self.owned.get((owned.pid, owned.started)) != owned:
+                    raise RuntimeError("Timeout companion identity is not retained by this fixture")
+                snapshot = process_snapshot(owned)
+                if not snapshot["alive"] or snapshot["state"] in {"T", "t"}:
+                    raise RuntimeError("Timeout parent, driver and browser must remain live and unstopped")
+
+        def horse_ready():
+            if self.owned.get((self.horse.pid, self.horse.started)) != self.horse:
+                raise RuntimeError("Original workhorse identity is not retained by this fixture")
+            snapshot = process_snapshot(self.horse)
+            if not snapshot["alive"] or snapshot["state"] in {"T", "t"}:
+                raise RuntimeError("Original workhorse must be live and unstopped before interruption")
+
+        companions()
+        horse_ready()
+        before_freeze()
+        companions()  # Admission work must not hide a lost/reused companion.
+        horse_ready()
+        if not freeze_process(self.horse):
+            raise RuntimeError("Workhorse exited before the stopped-horse fault was established")
+        companions()
+        return self.horse
 
     def abandon(self):
         if self.horse is None:
