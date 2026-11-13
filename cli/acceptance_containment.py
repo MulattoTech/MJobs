@@ -24,6 +24,20 @@ import httpx
 from cli.acceptance_public_source import ENDPOINTS, FINGERPRINT_FIELDS, POLICY_FIELDS
 
 API_TIMEOUT_SECONDS = 15
+# The scheduler supports intervals up to 300 seconds. Allow one full interval
+# plus healthcheck propagation, without keeping a release open indefinitely.
+HEALTH_RESTORE_TIMEOUT_SECONDS = 360
+HEALTH_RESTORE_POLL_SECONDS = 5
+HEALTH_RESTORE_MAX_ATTEMPTS = 73
+READINESS_DEPENDENCIES = frozenset(
+    {"configuration", "database", "schema", "queue", "worker", "mock"}
+)
+READINESS_WORKERS = frozenset(
+    {
+        "mjobs-ai", "mjobs-application", "mjobs-company-discovery",
+        "mjobs-discovery", "mjobs-document",
+    }
+)
 PROJECT_PATTERN = re.compile(r"mjobs-fixture-[a-f0-9]{12}\Z")
 CONTAINER_ID_PATTERN = re.compile(r"[a-f0-9]{12,64}\Z")
 IMAGE_ID_PATTERN = re.compile(r"sha256:[a-f0-9]{64}\Z")
@@ -220,6 +234,7 @@ class OwnedPublicContainment:
         lease_seconds=60,
         utc_now=lambda: datetime.now(UTC),
         sleep=time.sleep,
+        monotonic=time.monotonic,
     ):
         if (
             not isinstance(project_name, str)
@@ -301,6 +316,7 @@ class OwnedPublicContainment:
         self.lease_seconds = lease_seconds
         self.utc_now = utc_now
         self.sleep = sleep
+        self.monotonic = monotonic
         self.sleep_intervals = []
         self.docker = docker or DockerCLI()
         self._injected_request = request
@@ -447,7 +463,8 @@ class OwnedPublicContainment:
         return row
 
     def _verify_container(
-        self, service, container_id, *, required_status, required_paused
+        self, service, container_id, *, required_status, required_paused,
+        allow_owned_health_lag=False,
     ):
         expected_id = self._docker_list(service)
         _require(expected_id == container_id, "PROJECT_CONTAINER_REPLACED")
@@ -474,7 +491,11 @@ class OwnedPublicContainment:
             and row.get("paused") is required_paused,
             "PROJECT_CONTAINER_STATE_CHANGED",
         )
-        _require(row.get("health") == "healthy", "PROJECT_CONTAINER_UNHEALTHY")
+        _require(
+            row.get("health") in ("healthy", "unhealthy")
+            if allow_owned_health_lag else row.get("health") == "healthy",
+            "PROJECT_CONTAINER_UNHEALTHY",
+        )
         if service == "api":
             ports = row.get("ports") or {}
             bindings = ports.get("8000/tcp")
@@ -503,7 +524,21 @@ class OwnedPublicContainment:
             )
         return row
 
-    def _verify_targets(self, *, pre_admission=False):
+    def _check_owned_pause(self, *, allow_expired_lease=False):
+        _require(
+            self._admitted and self._paused_by_us and not self._released
+            and self._original_scheduler_status == "running",
+            "OWNED_SCHEDULER_NOT_PAUSED",
+        )
+        self._check_claim_path()
+        if not allow_expired_lease:
+            _require(
+                self._lease_expiry > self._now_utc(), "CONTAINMENT_LEASE_EXPIRED"
+            )
+
+    def _verify_targets(self, *, pre_admission=False, allow_expired_lease=False):
+        if not pre_admission:
+            self._check_owned_pause(allow_expired_lease=allow_expired_lease)
         api_id = self._docker_list("api")
         scheduler_id = self._docker_list("scheduler")
         if self._api_id is not None:
@@ -512,7 +547,8 @@ class OwnedPublicContainment:
             _require(scheduler_id == self._scheduler_id, "PROJECT_SCHEDULER_REPLACED")
         self._api_id, self._scheduler_id = api_id, scheduler_id
         self._verify_container(
-            "api", api_id, required_status="running", required_paused=False
+            "api", api_id, required_status="running", required_paused=False,
+            allow_owned_health_lag=not pre_admission,
         )
         scheduler = self._inspect(scheduler_id)
         labels = scheduler.get("labels")
@@ -532,7 +568,11 @@ class OwnedPublicContainment:
             and all(labels.get(key) == value for key, value in expected.items()),
             "PROJECT_CONTAINER_LABELS_CHANGED",
         )
-        _require(scheduler.get("health") == "healthy", "PROJECT_CONTAINER_UNHEALTHY")
+        _require(
+            scheduler.get("health") == "healthy" if pre_admission
+            else scheduler.get("health") in ("healthy", "unhealthy"),
+            "PROJECT_CONTAINER_UNHEALTHY",
+        )
         if pre_admission:
             _require(
                 scheduler.get("status") == "running"
@@ -674,21 +714,7 @@ class OwnedPublicContainment:
             self._own_request_id = body["request_id"]
             self._own_profile_id = body["profile_id"]
             self._own_source_id = source_id
-        if self._injected_request is not None:
-            response = self._injected_request(method, path, **kwargs)
-        else:
-            try:
-                with httpx.Client(
-                    base_url=self.base_url,
-                    timeout=API_TIMEOUT_SECONDS,
-                    trust_env=False,
-                    follow_redirects=False,
-                ) as client:
-                    result = client.request(method, path, **kwargs)
-                    result.raise_for_status()
-                    response = result.json()
-            except Exception as error:
-                raise ContainmentError("LOOPBACK_API_REQUEST_FAILED") from error
+        _, response = self._request_json(method, path, **kwargs)
         if (
             method == "POST"
             and path.startswith("/sources/")
@@ -711,9 +737,71 @@ class OwnedPublicContainment:
     def _api_get(self, path):
         return self.request("GET", path)
 
-    def _verify_api(self):
+    def _request_json(self, method, path, **kwargs):
+        """Keep the actual HTTP status; only readiness may have a 503 body."""
+        if self._injected_request is not None:
+            result = self._injected_request(method, path, **kwargs)
+            # Existing injected JSON transports represent successful HTTP 200.
+            # Tests can return an HTTPX Response to exercise other statuses.
+            if not isinstance(result, httpx.Response):
+                return 200, result
+        else:
+            try:
+                with httpx.Client(
+                    base_url=self.base_url,
+                    timeout=API_TIMEOUT_SECONDS,
+                    trust_env=False,
+                    follow_redirects=False,
+                ) as client:
+                    result = client.request(method, path, **kwargs)
+            except Exception as error:
+                raise ContainmentError("LOOPBACK_API_REQUEST_FAILED") from error
+        try:
+            if (method, path, result.status_code) != ("GET", "/ready", 503):
+                result.raise_for_status()
+            return result.status_code, result.json()
+        except Exception as error:
+            raise ContainmentError("LOOPBACK_API_REQUEST_FAILED") from error
+
+    def _verify_readiness(self, *, allow_scheduler_pause):
+        status, body = self._request_json("GET", "/ready")
+        _require(
+            isinstance(body, dict)
+            and set(body) == {"status", "checks", "db_backend"}
+            and body.get("db_backend") == "postgresql",
+            "FIXTURE_API_READINESS_INVALID",
+        )
+        checks = body["checks"]
+        _require(
+            isinstance(checks, dict)
+            and set(checks) == READINESS_DEPENDENCIES | {"scheduler", "workers"}
+            and all(type(checks[key]) is bool for key in READINESS_DEPENDENCIES)
+            and type(checks["scheduler"]) is bool
+            and isinstance(checks["workers"], dict)
+            and set(checks["workers"]) == READINESS_WORKERS
+            and all(type(value) is bool for value in checks["workers"].values()),
+            "FIXTURE_API_READINESS_INVALID",
+        )
+        _require(
+            all(checks[key] is True for key in READINESS_DEPENDENCIES)
+            and all(value is True for value in checks["workers"].values()),
+            "FIXTURE_API_DEPENDENCY_UNHEALTHY",
+        )
+        ready = status == 200 and body["status"] == "ready" and checks["scheduler"] is True
+        scheduler_only = (
+            status == 503 and body["status"] == "degraded"
+            and checks["scheduler"] is False
+        )
+        _require(ready or scheduler_only, "FIXTURE_API_READINESS_INVALID")
+        _require(ready or allow_scheduler_pause, "FIXTURE_API_NOT_READY")
+        return ready
+
+    def _verify_api(self, *, allow_expired_lease=False):
+        owned_pause = self._admitted
+        if owned_pause:
+            self._check_owned_pause(allow_expired_lease=allow_expired_lease)
         settings = self._api_get("/settings")
-        health = self._api_get("/health")
+        health_status, health = self._request_json("GET", "/health")
         _require(
             isinstance(settings, dict)
             and settings.get("operation_mode") == "FIXTURE"
@@ -725,6 +813,18 @@ class OwnedPublicContainment:
             and health.get("external_submission_enabled") is False,
             "EXTERNAL_SUBMISSION_MUST_REMAIN_DISABLED",
         )
+        _require(
+            health_status == 200
+            and set(health) == {
+                "status", "check", "mode", "operation_mode", "external_submission_enabled"
+            }
+            and health.get("status") == "ok"
+            and health.get("check") == "liveness"
+            and health.get("mode") == "LOCAL_FIRST"
+            and health.get("operation_mode") == "FIXTURE",
+            "FIXTURE_API_LIVENESS_INVALID",
+        )
+        return self._verify_readiness(allow_scheduler_pause=owned_pause)
 
     def _active_discoveries(self):
         response = self._api_get("/operations")
@@ -1367,8 +1467,8 @@ class OwnedPublicContainment:
             "lease_expires_at": self._lease_expiry.isoformat(),
         }
 
-    def _verify_baseline(self):
-        self._verify_api()
+    def _verify_baseline(self, *, allow_expired_lease=False):
+        ready = self._verify_api(allow_expired_lease=allow_expired_lease)
         profile_id = quote(self.baseline["profile_id"], safe="")
         application_id = quote(self.baseline["application_id"], safe="")
         profile = self._api_get("/profiles/" + profile_id)
@@ -1414,6 +1514,8 @@ class OwnedPublicContainment:
             and routes[0].get("provider") == "mock-ats",
             "BASELINE_SELECTION_CHANGED",
         )
+
+        return ready
 
     def _verify_source_cleanup(self):
         rows = self._source_rows()
@@ -1472,9 +1574,10 @@ class OwnedPublicContainment:
         _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         expiry = self._lease_expiry
         while True:
-            self._verify_targets()
+            self._verify_targets(allow_expired_lease=True)
             self._check_claim_path()
             expiry = self._lease_expiry
+            self._verify_api(allow_expired_lease=True)
             self._verify_source_cleanup()
             self._verify_additional_source_cleanup()
             _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
@@ -1484,11 +1587,11 @@ class OwnedPublicContainment:
             interval = min(15.0, remaining)
             self.sleep_intervals.append(interval)
             self.sleep(interval)
-        self._verify_targets()
+        self._verify_targets(allow_expired_lease=True)
         self._check_claim_path()
         self._verify_source_cleanup()
         self._verify_additional_source_cleanup()
-        self._verify_baseline()
+        self._verify_baseline(allow_expired_lease=True)
         _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         _require(
             self._original_scheduler_status == "running" and self._paused_by_us,
@@ -1496,13 +1599,11 @@ class OwnedPublicContainment:
         )
         try:
             self.docker.unpause(self._scheduler_id)
-            self._verify_container(
-                "scheduler",
-                self._scheduler_id,
-                required_status="running",
-                required_paused=False,
-            )
+            self._wait_for_health_restoration()
             self._check_claim_path()
+            _require(
+                self._lease_expiry <= self._now_utc(), "CONTAINMENT_LEASE_NOT_EXPIRED"
+            )
             self.claim_path.unlink()
         except Exception as error:
             self._try_repause_owned_scheduler()
@@ -1512,6 +1613,45 @@ class OwnedPublicContainment:
                 "OWNED_SCHEDULER_UNPAUSE_OR_RELEASE_FAILED"
             ) from error
         self._released = True
+
+    def _wait_for_health_restoration(self):
+        """Wait only for owned pause effects, keeping every other release fence.
+
+        The operator lease has deliberately expired. Check its ownership without
+        renewing it; a fresh scheduler heartbeat and Docker healthchecks must
+        restore readiness themselves. Clock rollback cannot extend this wait.
+        """
+        deadline = self.monotonic() + HEALTH_RESTORE_TIMEOUT_SECONDS
+        for attempt in range(HEALTH_RESTORE_MAX_ATTEMPTS):
+            self._check_owned_pause(allow_expired_lease=True)
+            _require(
+                self._lease_expiry <= self._now_utc(), "CONTAINMENT_LEASE_NOT_EXPIRED"
+            )
+            rows = [
+                self._verify_container(
+                    service, container_id, required_status="running",
+                    required_paused=False, allow_owned_health_lag=True,
+                )
+                for service, container_id in (
+                    ("api", self._api_id), ("scheduler", self._scheduler_id)
+                )
+            ]
+            ready = self._verify_baseline(allow_expired_lease=True)
+            self._verify_source_cleanup()
+            self._verify_additional_source_cleanup()
+            _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
+            self._check_claim_path()
+            remaining = deadline - self.monotonic()
+            _require(remaining >= 0, "PROJECT_HEALTH_RESTORE_TIMEOUT")
+            if ready and all(row["health"] == "healthy" for row in rows):
+                return
+            _require(
+                remaining > 0 and attempt + 1 < HEALTH_RESTORE_MAX_ATTEMPTS,
+                "PROJECT_HEALTH_RESTORE_TIMEOUT",
+            )
+            interval = min(HEALTH_RESTORE_POLL_SECONDS, remaining)
+            self.sleep_intervals.append(interval)
+            self.sleep(interval)
 
     def _try_repause_owned_scheduler(self):
         """Best-effort rollback after a controlled post-unpause release failure."""

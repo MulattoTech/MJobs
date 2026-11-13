@@ -10,9 +10,15 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
+
 from cli.acceptance_containment import (
+    API_TIMEOUT_SECONDS,
     CONTAINER_INSPECT_TEMPLATE,
     FINGERPRINT_FIELDS,
+    HEALTH_RESTORE_TIMEOUT_SECONDS,
+    READINESS_DEPENDENCIES,
+    READINESS_WORKERS,
     ContainmentError,
     DockerCLI,
     OwnedPublicContainment,
@@ -71,6 +77,7 @@ class FakeDocker:
         self.pause_calls = []
         self.unpause_calls = []
         self.on_pause = lambda: None
+        self.on_unpause = lambda: None
 
     def _container(self, service, container_id):
         labels = {
@@ -115,12 +122,16 @@ class FakeDocker:
         self.pause_calls.append(container_id)
         self.rows["scheduler"]["paused"] = True
         self.rows["scheduler"]["status"] = "paused"
+        self.rows["scheduler"]["health"] = "unhealthy"
         self.on_pause()
 
     def unpause(self, container_id):
         self.unpause_calls.append(container_id)
         self.rows["scheduler"]["paused"] = False
         self.rows["scheduler"]["status"] = "running"
+        self.rows["scheduler"]["health"] = "healthy"
+        self.rows["api"]["health"] = "healthy"
+        self.on_unpause()
 
 
 class FakeAPI:
@@ -128,6 +139,18 @@ class FakeAPI:
         self.calls = []
         self.sources = []
         self.operations = []
+        self.health = {
+            "status": "ok", "check": "liveness", "mode": "LOCAL_FIRST",
+            "operation_mode": "FIXTURE", "external_submission_enabled": False,
+        }
+        self.ready_status = 200
+        self.ready = {
+            "status": "ready", "db_backend": "postgresql",
+            "checks": {
+                **dict.fromkeys(READINESS_DEPENDENCIES, True),
+                "scheduler": True, "workers": dict.fromkeys(READINESS_WORKERS, True),
+            },
+        }
         self.profile = {"id": "profile", "version": "v1"}
         self.app = {
             "id": "application",
@@ -182,7 +205,14 @@ class FakeAPI:
         if (method, path) == ("GET", "/settings"):
             return {"operation_mode": "FIXTURE", "external_submission_enabled": False}
         if (method, path) == ("GET", "/health"):
-            return {"external_submission_enabled": False}
+            return deepcopy(self.health)
+        if (method, path) == ("GET", "/ready"):
+            return httpx.Response(
+                self.ready_status, json=deepcopy(self.ready),
+                request=httpx.Request("GET", "http://127.0.0.1:18732/ready"),
+            )
+        if (method, path) == ("GET", "/company-sources"):
+            return {"company_sources": []}
         if (method, path) == ("GET", "/operations"):
             return {"operations": deepcopy(self.operations)}
         if (method, path) == ("GET", "/sources"):
@@ -233,6 +263,7 @@ class FakeAPI:
                     "kind": "DISCOVER",
                     "entity_id": "profile",
                     "state": self.collection_state,
+                    "attempt_count": 1,
                     "params": params,
                 }
             )
@@ -288,6 +319,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.clock = [0.0]
 
     def containment(self, **kwargs):
+        containment_class = kwargs.pop("containment_class", OwnedPublicContainment)
         baseline = kwargs.pop(
             "baseline",
             {
@@ -299,7 +331,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
                 "external_submission_enabled": False,
             },
         )
-        return OwnedPublicContainment(
+        return containment_class(
             project_name=PROJECT,
             base_url="http://127.0.0.1:18732",
             source_label=SOURCE_URL,
@@ -319,6 +351,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
             lease_seconds=16,
             utc_now=lambda: self.now[0],
             sleep=self._sleep,
+            monotonic=lambda: self.clock[0],
             **kwargs,
         )
 
@@ -1005,7 +1038,7 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.assertFalse(release["source_collection_exclusive"])
         self.assertNotIn("token", release)
 
-    def test_public_source_helper_runs_through_containment_then_explicit_release(self):
+    def _exercise_public_source_helper(self):
         self.api.collection_state = "COMPLETED"
         baseline = {
             "source": {"commit": REVISION},
@@ -1063,6 +1096,9 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         self.assertNotIn("token", released)
         self.assertEqual(self.docker.pause_calls, ["b" * 64])
         self.assertEqual(self.docker.unpause_calls, ["b" * 64])
+
+    def test_public_source_helper_runs_through_containment_then_explicit_release(self):
+        self._exercise_public_source_helper()
 
     def test_created_enabled_source_cannot_release_without_explicit_cleanup(self):
         containment = self.containment()
@@ -1277,6 +1313,366 @@ class OwnedPublicContainmentTests(unittest.TestCase):
         )
         self.assertEqual(self.docker.unpause_calls, ["b" * 64])
         self.assertFalse(containment.claim_path.exists())
+
+    def _scheduler_health_lag(self):
+        self.api.ready_status = 503
+        self.api.ready["status"] = "degraded"
+        self.api.ready["checks"]["scheduler"] = False
+        for row in self.docker.rows.values():
+            row["health"] = "unhealthy"
+
+    def _full_health(self):
+        self.api.ready_status = 200
+        self.api.ready["status"] = "ready"
+        self.api.ready["checks"]["scheduler"] = True
+        for row in self.docker.rows.values():
+            row["health"] = "healthy"
+
+    def test_unhealthy_or_unknown_docker_health_is_denied_before_pause(self):
+        for service in ("api", "scheduler"):
+            for health in ("unhealthy", "starting", "missing", None, True, 1, {}):
+                with self.subTest(service=service, health=health):
+                    self.docker.rows[service]["health"] = health
+                    containment = self.containment()
+                    with self.assertRaisesRegex(ContainmentError, "PROJECT_CONTAINER_UNHEALTHY"):
+                        containment("preflight", self.context())
+                    self.assertFalse(containment.claim_path.exists())
+                    self.assertEqual(self.docker.pause_calls, [])
+                    self.docker.rows[service]["health"] = "healthy"
+
+    def test_full_readiness_is_required_before_claim_or_pause(self):
+        self.api.ready_status = 503
+        self.api.ready["status"] = "degraded"
+        self.api.ready["checks"]["scheduler"] = False
+        containment = self.containment()
+        with self.assertRaisesRegex(ContainmentError, "FIXTURE_API_NOT_READY"):
+            containment("preflight", self.context())
+        self.assertFalse(containment.claim_path.exists())
+        self.assertEqual(self.docker.pause_calls, [])
+
+    def test_owned_pause_accepts_only_healthy_or_unhealthy_docker_health(self):
+        containment = self.containment()
+        self.docker.on_pause = self._scheduler_health_lag
+        self.assertTrue(containment("preflight", self.context())["scheduler_contained"])
+        for service in ("api", "scheduler"):
+            for health in ("healthy", "unhealthy"):
+                self.docker.rows[service]["health"] = health
+                self.assertTrue(containment("poll", self.context())["scheduler_contained"])
+            for health in ("starting", "missing", None, False, 1, []):
+                with self.subTest(service=service, health=health):
+                    self.docker.rows[service]["health"] = health
+                    with self.assertRaisesRegex(ContainmentError, "PROJECT_CONTAINER_UNHEALTHY"):
+                        containment("poll", self.context())
+                    self.assertTrue(containment.claim_path.exists())
+                    self.assertEqual(self.docker.unpause_calls, [])
+            self.docker.rows[service]["health"] = "unhealthy"
+
+    def test_owned_pause_requires_strict_liveness_and_fixture_mode(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        original = deepcopy(self.api.health)
+        for key, value in (
+            ("status", "degraded"), ("check", "readiness"), ("mode", "REMOTE"),
+            ("operation_mode", "PERSONAL"), ("external_submission_enabled", 0),
+            ("external_submission_enabled", True), ("unexpected", True),
+        ):
+            with self.subTest(key=key, value=value):
+                self.api.health = {**original, key: value}
+                with self.assertRaises(ContainmentError):
+                    containment("poll", self.context())
+        for key in original:
+            with self.subTest(missing=key):
+                self.api.health = {k: v for k, v in original.items() if k != key}
+                with self.assertRaises(ContainmentError):
+                    containment("poll", self.context())
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.unpause_calls, [])
+
+    def test_each_non_scheduler_dependency_and_exact_worker_is_required(self):
+        containment = self.containment()
+        self.docker.on_pause = self._scheduler_health_lag
+        containment("preflight", self.context())
+        for key in sorted(READINESS_DEPENDENCIES):
+            with self.subTest(dependency=key):
+                self.api.ready["checks"][key] = False
+                with self.assertRaisesRegex(ContainmentError, "FIXTURE_API_DEPENDENCY_UNHEALTHY"):
+                    containment("poll", self.context())
+                self.api.ready["checks"][key] = True
+        for queue in sorted(READINESS_WORKERS):
+            with self.subTest(queue=queue):
+                self.api.ready["checks"]["workers"][queue] = False
+                with self.assertRaisesRegex(ContainmentError, "FIXTURE_API_DEPENDENCY_UNHEALTHY"):
+                    containment("poll", self.context())
+                self.api.ready["checks"]["workers"][queue] = True
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.unpause_calls, [])
+
+    def test_readiness_booleans_keys_status_and_backend_are_strict(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        original = deepcopy(self.api.ready)
+        cases = []
+        for key in sorted(READINESS_DEPENDENCIES | {"scheduler"}):
+            for value in (1, "true", None):
+                body = deepcopy(original)
+                body["checks"][key] = value
+                cases.append((200, body))
+            body = deepcopy(original)
+            del body["checks"][key]
+            cases.append((200, body))
+        for queue in sorted(READINESS_WORKERS):
+            body = deepcopy(original)
+            body["checks"]["workers"][queue] = 1
+            cases.append((200, body))
+            body = deepcopy(original)
+            del body["checks"]["workers"][queue]
+            cases.append((200, body))
+        for checks in (None, [], {**original["checks"], "unexpected": True}):
+            cases.append((200, {**original, "checks": checks}))
+        for workers in ([], {**original["checks"]["workers"], "extra-queue": True}):
+            body = deepcopy(original)
+            body["checks"]["workers"] = workers
+            cases.append((200, body))
+        for key in ("status", "db_backend", "checks"):
+            cases.append((200, {k: v for k, v in original.items() if k != key}))
+        cases.extend((
+            (200, {**original, "db_backend": "sqlite"}),
+            (200, {**original, "unexpected": True}),
+            (200, {**original, "status": "degraded"}),
+            (503, original),
+            (201, original),
+        ))
+        for status, scheduler, label in ((200, False, "degraded"), (503, True, "degraded"),
+                                         (200, False, "ready"), (503, False, "ready")):
+            body = deepcopy(original)
+            body["status"] = label
+            body["checks"]["scheduler"] = scheduler
+            cases.append((status, body))
+        for index, (status, body) in enumerate(cases):
+            with self.subTest(case=index):
+                self.api.ready_status, self.api.ready = status, body
+                with self.assertRaisesRegex(ContainmentError, "FIXTURE_API_READINESS_INVALID"):
+                    containment("poll", self.context())
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.unpause_calls, [])
+
+    def test_actual_http_503_body_is_decoded_only_for_readiness(self):
+        containment = self.containment()
+        containment._injected_request = None
+        self.docker.on_pause = self._scheduler_health_lag
+        real_client = httpx.Client
+        failing_path = [None]
+        statuses = []
+
+        def handle(request):
+            path = request.url.path
+            if path == failing_path[0]:
+                return httpx.Response(503, json={"status": "degraded"})
+            body = self.api.request(request.method, path)
+            status = 200
+            if isinstance(body, httpx.Response):
+                status, body = body.status_code, body.json()
+            statuses.append((path, status))
+            return httpx.Response(status, json=body)
+
+        def client(**kwargs):
+            self.assertEqual(kwargs, {
+                "base_url": "http://127.0.0.1:18732", "timeout": API_TIMEOUT_SECONDS,
+                "trust_env": False, "follow_redirects": False,
+            })
+            return real_client(transport=httpx.MockTransport(handle), **kwargs)
+
+        with patch("cli.acceptance_containment.httpx.Client", side_effect=client):
+            proof = containment("preflight", self.context())
+            self.assertTrue(proof["scheduler_contained"])
+            self.assertIn(("/ready", 200), statuses)
+            self.assertIn(("/ready", 503), statuses)
+            for path in ("/health", "/settings", "/sources", "/readiness"):
+                with self.subTest(path=path):
+                    failing_path[0] = path
+                    with self.assertRaisesRegex(ContainmentError, "LOOPBACK_API_REQUEST_FAILED"):
+                        containment.request("GET", path)
+            failing_path[0] = None
+            self.docker.on_unpause = self._full_health
+            self.assertTrue(containment("release", self.context(cleanup_status="NOT_REQUIRED"))["released"])
+        self.assertFalse(containment.claim_path.exists())
+
+    def test_readiness_non_503_errors_and_invalid_json_fail_closed(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        for status, body in ((500, b'{}'), (302, b'{}'), (503, b'not-json')):
+            def request(method, path, **kwargs):
+                if path == "/ready":
+                    return httpx.Response(status, content=body,
+                        request=httpx.Request("GET", "http://127.0.0.1:18732/ready"))
+                return self.api.request(method, path, **kwargs)
+            containment._injected_request = request
+            with self.subTest(status=status, body=body):
+                with self.assertRaisesRegex(ContainmentError, "LOOPBACK_API_REQUEST_FAILED"):
+                    containment("poll", self.context())
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_health_exception_requires_exact_claim_and_owned_pause(self):
+        containment = self.containment()
+        self.docker.on_pause = self._scheduler_health_lag
+        containment("preflight", self.context())
+        original = containment.claim_path.read_text(encoding="utf-8")
+        for key in ("owner", "token", "project", "api_container_id", "scheduler_container_id"):
+            with self.subTest(key=key):
+                claim = json.loads(original)
+                claim[key] = "foreign"
+                containment.claim_path.write_text(json.dumps(claim), encoding="utf-8")
+                with self.assertRaisesRegex(ContainmentError, "CONTAINMENT_OWNERSHIP_CHANGED"):
+                    containment("poll", self.context())
+                containment.claim_path.write_text(original, encoding="utf-8")
+        for key, value in (("_admitted", False), ("_paused_by_us", False),
+                           ("_original_scheduler_status", "paused")):
+            with self.subTest(flag=key):
+                old = getattr(containment, key)
+                setattr(containment, key, value)
+                with self.assertRaisesRegex(ContainmentError, "OWNED_SCHEDULER_NOT_PAUSED"):
+                    containment._verify_targets()
+                setattr(containment, key, old)
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_unhealthy_owned_pause_still_checks_runtime_identity_and_state(self):
+        containment = self.containment()
+        self.docker.on_pause = self._scheduler_health_lag
+        containment("preflight", self.context())
+        original = deepcopy(self.docker.rows)
+        for service in ("api", "scheduler"):
+            for key, value in (("image_id", "sha256:" + "f" * 64), ("image_ref", "foreign"),
+                               ("working_dir", "/foreign"), ("labels", {}),
+                               ("status", "exited"), ("paused", service == "api")):
+                with self.subTest(service=service, key=key):
+                    self.docker.rows[service][key] = value
+                    with self.assertRaises(ContainmentError):
+                        containment("poll", self.context())
+                    self.docker.rows = deepcopy(original)
+        self.docker.rows["api"]["ports"]["8000/tcp"][0]["HostIp"] = "0.0.0.0"
+        with self.assertRaisesRegex(ContainmentError, "PROJECT_API_BINDING_CHANGED"):
+            containment("poll", self.context())
+        self.assertEqual(self.docker.unpause_calls, [])
+        self.assertTrue(containment.claim_path.exists())
+
+    def test_release_retains_expired_claim_until_real_readiness_and_both_health_checks_return(self):
+        containment = self.containment()
+        self.docker.on_pause = self._scheduler_health_lag
+        containment("preflight", self.context())
+        self.docker.on_unpause = self._scheduler_health_lag
+        restoration_sleeps = []
+
+        def recover(seconds):
+            self._sleep(seconds)
+            if self.docker.unpause_calls:
+                restoration_sleeps.append(seconds)
+                claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+                self.assertLessEqual(datetime.fromisoformat(claim["lease_expires_at"]), self.now[0])
+                self.assertFalse(self.docker.rows["scheduler"]["paused"])
+                if len(restoration_sleeps) == 1:
+                    self.api.ready_status = 200
+                    self.api.ready["status"] = "ready"
+                    self.api.ready["checks"]["scheduler"] = True
+                    self.docker.rows["scheduler"]["health"] = "healthy"
+                elif len(restoration_sleeps) == 2:
+                    self.docker.rows["api"]["health"] = "healthy"
+
+        containment.sleep = recover
+        released = containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertTrue(released["released"])
+        self.assertEqual(restoration_sleeps, [5, 5])
+        self.assertEqual(self.clock[0], 26)
+        self.assertFalse(containment.claim_path.exists())
+        self.assertEqual(self.docker.pause_calls, ["b" * 64])
+        self.assertEqual(self.docker.unpause_calls, ["b" * 64])
+
+    def test_release_restoration_times_out_repauses_exact_id_and_preserves_claim(self):
+        containment = self.containment()
+        self.docker.on_pause = self._scheduler_health_lag
+        containment("preflight", self.context())
+        self.docker.on_unpause = self._scheduler_health_lag
+        with self.assertRaisesRegex(ContainmentError, "PROJECT_HEALTH_RESTORE_TIMEOUT"):
+            containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertEqual(self.clock[0], 16 + HEALTH_RESTORE_TIMEOUT_SECONDS)
+        self.assertTrue(containment.claim_path.exists())
+        self.assertFalse(containment._released)
+        self.assertTrue(self.docker.rows["scheduler"]["paused"])
+        self.assertEqual(self.docker.pause_calls, ["b" * 64, "b" * 64])
+        self.assertEqual(self.docker.unpause_calls, ["b" * 64])
+
+    def test_release_attempt_ceiling_is_independent_of_wall_clock_and_monotonic_rollback(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        self.docker.on_unpause = self._scheduler_health_lag
+        restoration_sleeps = []
+        containment.monotonic = lambda: 0
+
+        def stalled_clock(seconds):
+            if self.docker.unpause_calls:
+                restoration_sleeps.append(seconds)
+                # Wall time is frozen at the intentionally expired lease.
+            else:
+                self._sleep(seconds)
+
+        containment.sleep = stalled_clock
+        with self.assertRaisesRegex(ContainmentError, "PROJECT_HEALTH_RESTORE_TIMEOUT"):
+            containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertEqual(sum(restoration_sleeps), HEALTH_RESTORE_TIMEOUT_SECONDS)
+        self.assertTrue(containment.claim_path.exists())
+        self.assertTrue(self.docker.rows["scheduler"]["paused"])
+
+    def test_non_scheduler_readiness_failure_after_unpause_aborts_without_retry(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+
+        def unrelated_failure():
+            self._scheduler_health_lag()
+            self.api.ready["checks"]["database"] = False
+
+        self.docker.on_unpause = unrelated_failure
+        with self.assertRaisesRegex(ContainmentError, "FIXTURE_API_DEPENDENCY_UNHEALTHY"):
+            containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertEqual(self.clock[0], 16)
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.pause_calls, ["b" * 64, "b" * 64])
+
+    def test_claim_drift_after_unpause_is_preserved_and_only_owned_scheduler_repaused(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+
+        def claim_drift():
+            claim = json.loads(containment.claim_path.read_text(encoding="utf-8"))
+            claim["token"] = "changed"
+            containment.claim_path.write_text(json.dumps(claim), encoding="utf-8")
+
+        self.docker.on_unpause = claim_drift
+        with self.assertRaisesRegex(ContainmentError, "CONTAINMENT_OWNERSHIP_CHANGED"):
+            containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertEqual(self.clock[0], 16)
+        self.assertEqual(json.loads(containment.claim_path.read_text())["token"], "changed")
+        self.assertEqual(self.docker.pause_calls, ["b" * 64, "b" * 64])
+
+    def test_replaced_scheduler_after_unpause_is_never_repaused_or_claim_deleted(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        self.docker.on_unpause = lambda: self.docker.containers.update(scheduler="c" * 64)
+        with self.assertRaisesRegex(ContainmentError, "PROJECT_CONTAINER_REPLACED"):
+            containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertEqual(self.clock[0], 16)
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.pause_calls, ["b" * 64])
+        self.assertEqual(self.docker.unpause_calls, ["b" * 64])
+
+    def test_api_identity_drift_after_unpause_repauses_owned_scheduler(self):
+        containment = self.containment()
+        containment("preflight", self.context())
+        self.docker.on_unpause = lambda: self.docker.rows["api"].update(image_id="sha256:" + "f" * 64)
+        with self.assertRaisesRegex(ContainmentError, "PROJECT_IMAGE_CHANGED"):
+            containment("release", self.context(cleanup_status="NOT_REQUIRED"))
+        self.assertEqual(self.clock[0], 16)
+        self.assertTrue(containment.claim_path.exists())
+        self.assertEqual(self.docker.pause_calls, ["b" * 64, "b" * 64])
 
 
 if __name__ == "__main__":

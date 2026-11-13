@@ -17,6 +17,7 @@ uncertain readback leaves the parent lease and scheduler pause in place.
 import hashlib
 import json
 import re
+from copy import deepcopy
 from urllib.parse import quote
 
 import httpx
@@ -66,6 +67,11 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
         super().__init__(*args, **kwargs)
         self._child_context = None
         self._child_frozen = None
+        self._child_observation_binding = None
+        self._child_bootstrap_callbacks_remaining = 0
+        self._child_projection_observed = False
+        self._child_verified_enrollments = {}
+        self._child_projected_enrollments = {}
         self._initial_all_sources = None
         self._initial_company_sources = None
         self._initial_company_operation_ids = None
@@ -213,6 +219,12 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
             seen_source_ids.add(item["source_id"])
             seen_company_ids.add(item["company_source_id"])
         return {
+            "parent_identity": {
+                "profile_id": profile_id, "profile_version": profile_version,
+                "source_id": source_id, "parent_operation_id": parent_id,
+                "parent_operation_attempt": parent_attempt,
+                "parent_request_id": parent_request_id,
+            },
             "children": ordered,
             "enrolled_sources": sorted(enrolled, key=lambda item: (item["source_id"], item["company_source_id"])),
             "operation_ids": sorted(row["operation_id"] for row in ordered if row["operation_id"]),
@@ -293,17 +305,64 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
         enrolled = context.get("owned_child_sources")
         _require(isinstance(operation_ids, list) and isinstance(request_ids, list)
                  and isinstance(enrolled, list), "CHILD_CONTEXT_INVALID")
-        if requested:
-            _require(operation_ids == checked["operation_ids"] and request_ids == checked["request_ids"],
+        if not requested:
+            _require(self._child_observation_binding is None
+                     and self._last_stage not in {"finalize", "cleanup", "release"}
+                     and not operation_ids and not request_ids and lineage is None and not enrolled,
                      "CHILD_CONTEXT_CHANGED")
-            if lineage is not None:
-                _require(lineage == checked["lineage_sha256"], "CHILD_CONTEXT_CHANGED")
-            if checked["complete"]:
-                _require(lineage == checked["lineage_sha256"] and enrolled == checked["enrolled_sources"],
-                         "CHILD_CONTEXT_CHANGED")
-        else:
-            _require(not operation_ids and not request_ids and lineage is None and not enrolled,
+            return
+        _require(checked["complete"] is True, "CHILD_READBACK_NOT_FINAL")
+        binding = {key: checked[key] for key in (
+            "parent_identity", "lineage_sha256", "operation_ids", "request_ids"
+        )}
+        _require(self._child_observation_binding is None
+                 or binding == self._child_observation_binding, "CHILD_CONTEXT_CHANGED")
+        current_enrollments = {
+            item["source_id"]: _canonical_digest(item) for item in checked["enrolled_sources"]
+        }
+        _require(all(current_enrollments.get(key) == value
+                     for key, value in self._child_verified_enrollments.items()),
+                 "CHILD_ENROLLMENT_CHANGED")
+
+        if lineage is None:
+            # The helper has not read its first completed child snapshot yet.
+            # It checks containment before/after that GET and each trigger-job
+            # provenance GET (at most two children). Bind our independently
+            # verified family once and admit only these bounded read callbacks.
+            _require(self._child_frozen is None and self._last_stage == "read"
+                     and not self._child_projection_observed
+                     and not operation_ids and not request_ids and not enrolled,
                      "CHILD_CONTEXT_CHANGED")
+            if self._child_observation_binding is None:
+                self._child_observation_binding = deepcopy(binding)
+                self._child_bootstrap_callbacks_remaining = 2 + 2 * len(checked["children"])
+            _require(self._child_bootstrap_callbacks_remaining > 0, "CHILD_CONTEXT_CHANGED")
+            self._child_bootstrap_callbacks_remaining -= 1
+            self._child_verified_enrollments = current_enrollments
+            return
+
+        _require(operation_ids == checked["operation_ids"]
+                 and request_ids == checked["request_ids"]
+                 and lineage == checked["lineage_sha256"], "CHILD_CONTEXT_CHANGED")
+        _require(all(isinstance(item, dict) and isinstance(item.get("source_id"), str)
+                     for item in enrolled), "CHILD_CONTEXT_INVALID")
+        projected_enrollments = {item["source_id"]: _canonical_digest(item) for item in enrolled}
+        _require(len(projected_enrollments) == len(enrolled)
+                 and all(current_enrollments.get(key) == value
+                         for key, value in projected_enrollments.items())
+                 and all(projected_enrollments.get(key) == value
+                         for key, value in self._child_projected_enrollments.items()),
+                 "CHILD_CONTEXT_CHANGED")
+        if self._child_frozen is not None or self._last_stage not in {"read", "poll"}:
+            # Cleanup and release need the complete observed enrollment set.
+            # Only read callbacks may carry a prior, unchanged projection while
+            # the helper fetches new asynchronous enrollment records.
+            _require(projected_enrollments == current_enrollments, "CHILD_CONTEXT_CHANGED")
+        self._child_observation_binding = deepcopy(binding)
+        self._child_verified_enrollments = current_enrollments
+        self._child_projected_enrollments = projected_enrollments
+        self._child_projection_observed = True
+        self._child_bootstrap_callbacks_remaining = 0
 
     def _active_discoveries_unfrozen(self):
         active_public = super()._active_discoveries()
