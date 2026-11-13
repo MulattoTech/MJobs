@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-004",
+  "issue": 5,
+  "run_id": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "created_at": "2026-11-13T03:40:07.209363Z",
+  "state": "VERIFY",
+  "scope": "Preserved effective monitoring-concurrency cap; fresh qualification after PR1016 control-read failure",
+  "source": {
+    "tested_commit": "456411e11d886ef7c4eacbaca7ebfee28391a38a",
+    "base_commit": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+    "original_change_commit": "28a57a2fa080b5e607c628de27f19d9c528be43c",
+    "published_original_branch": "astra/sqlite-current-main-20261112-13b3",
+    "adoption_branch": "web/e49a1cba/sqlite-low-rate",
+    "source_blobs": {
+      "services/company_discovery/public_client.py": {
+        "git_blob": "31a1a1ed629e4aa6b44cd37e28541b6df630ad51",
+        "git_content_sha256": "f2fdb7e3e8be07ad5964a23dd9bbe08e36468122994574e00cff0d8234f258a1"
+      },
+      "tests/unit/test_public_company_client.py": {
+        "git_blob": "1e04f3531637067130b6f02ea07b73b8a1a619f8",
+        "git_content_sha256": "e84ad0369a2ef0507196f0e8202fccb59645210601488eac074b2a697bc433fe"
+      }
+    },
+    "changes_by_this_run": "No production or test source modification; adds this fresh evidence and a scoped handoff. Original author history and original branches/worktrees are preserved."
+  },
+  "observed_failure": {
+    "pr": 1016,
+    "head": "ea4b7cb072d8419fa7363f6d9a99c8abe2c1756c",
+    "job": "https://github.com/MulattoTech/MJobs/actions/runs/43357142980/job/131661765511",
+    "node": "tests/integration/test_company_monitoring_policy_transport.py::CompanyMonitoringPolicyTransportTests::test_real_tls_floor_fifteen_rpm_five_samples_save_receipt",
+    "result": "BLOCKED / OPERATION_CONTROL_UNAVAILABLE instead of COMPLETED",
+    "diagnostic": "Two SQLite BUSY code5 reads near101ms; precise lock holder is not established",
+    "base_result": "Identical node passed on main4bf76 workflow43295156057 in30.473s. No identical target failure found in inspected failed main runs. Do not call the observed failure an established pre-existing main failure."
+  },
+  "mechanism": {
+    "policy": "15requests/minute,2second request timeout,configured concurrency2",
+    "effective_concurrency": 1,
+    "reason": "Four-second request spacing makes a second active request impossible within the two-second per-request timeout; serial sample path removes redundant rate-waiting worker and parent control polling",
+    "preserved_overlap": "At60requests/minute and2second timeout effective concurrency remains2",
+    "not_proven": "The cap is a bounded contention reduction; neither the exact failed lock holder nor elimination of every SQLITE_BUSY cause is established."
+  },
+  "fresh_verification": {
+    "source_commit": "456411e11d886ef7c4eacbaca7ebfee28391a38a",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "-o",
+      "faulthandler_timeout=60",
+      "--tb=short",
+      "tests/unit/test_public_company_client.py",
+      "tests/unit/test_operation_control_reads.py",
+      "tests/integration/test_company_monitoring_policy_transport.py",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad\\low-rate-focused-junit.xml"
+    ],
+    "started_at": "2026-11-13T03:37:39.869515Z",
+    "completed_at": "2026-11-13T03:38:44.762841Z",
+    "exit_code": 0,
+    "primary_tests": 39,
+    "passing_subtests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "pytest_seconds": 64.02,
+    "environment": "Windows/Python3.12 existing venv; owned SQLite/loopback TLS fixtures; no Docker/browser",
+    "source_clean_after": true,
+    "junit_sha256": "91871c3dd71e3e89d584cbf7b00247f8803e7fe163546a0e42f4849d998a6025",
+    "log_sha256": "16315fd3ca7377d9a3da57beaeb1fa61549425e34031c06eed8230e6201beaec",
+    "private_receipt": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad\\low-rate-focused-receipt.json"
+  },
+  "independent_review": [
+    {
+      "reviewer": "ChatGPT-Web /root/settings_fix",
+      "immutable_source": "456411e11d886ef7c4eacbaca7ebfee28391a38a",
+      "result": "APPROVED_STATIC",
+      "runtime_executed_by_reviewer": false
+    },
+    {
+      "reviewer": "ChatGPT-Web /root/coordination_inspection",
+      "immutable_source": "456411e11d886ef7c4eacbaca7ebfee28391a38a",
+      "result": "APPROVED_STATIC",
+      "runtime_executed_by_reviewer": false
+    }
+  ],
+  "unchanged_contracts": [
+    "Persisted monitoring policy",
+    "Durable request reservations",
+    "100ms control-read budget",
+    "50ms cancellation polling",
+    "SQLite journal configuration",
+    "Request/operation deadlines",
+    "Fail-closed control-read handling",
+    "Canonical acceptance"
+  ],
+  "overlap_review": {
+    "pr": 968,
+    "head": "2f3377b9b5040bf43e3f270e222b67353dbc27af",
+    "result": "Public-client request-exception classification hunk is separate from this constructor/import change; no control-error retry is introduced"
+  },
+  "limits": [
+    "Fresh focused runtime belongs to456411; subsequent adoption commit changes evidence/handoff only. Required hosted checks must pass on the actual published head.",
+    "No full hosted integration PASS, PostgreSQL-specific proof, public-provider request, deployment or full MJ-REQ-004 acceptance is claimed.",
+    "PR1016 remains blocked by its failed integration gate; this separate candidate does not retroactively change that result.",
+    "Integration-steward ownership remains unresolved."
+  ],
+  "next_action": "Pass required exact-published-head checks; confirmed sole integrator reviews and integrates normally; then refresh dependent PR1016 against newmain and earn fresh required gates."
+}
