@@ -13,6 +13,7 @@ _FILENAMES = {
     "applications": "mjobs-applications.csv",
     "profile": "mjobs-profile.json",
     "backup": "mjobs-profile-backup.json",
+    "source_metadata": "mjobs-source-metadata.json",
 }
 
 
@@ -34,12 +35,14 @@ def _service_functions():
         export_jobs_csv,
         export_profile_backup,
         export_profile_json,
+        export_source_metadata_json,
     )
     return {
         "jobs": export_jobs_csv,
         "applications": export_applications_csv,
         "profile": export_profile_json,
         "backup": export_profile_backup,
+        "source_metadata": export_source_metadata_json,
     }
 
 
@@ -132,5 +135,39 @@ def create_data_export_router(store, *, output_dir=None) -> APIRouter:
             ) from None
         normalized = _json_document(content, profile_id, "backup")
         return _attachment(normalized, "backup", "application/json")
+
+    @router.get("/profiles/{profile_id}/exports/source-metadata.json")
+    def export_source_metadata(profile_id: str):
+        from services.data_export import DataExportError
+
+        _profile_exists(store, profile_id)
+        try:
+            content = _service_functions()["source_metadata"](store, profile_id)
+        except (NoResultFound, DataExportError) as error:
+            if isinstance(error, NoResultFound) or getattr(error, "code", None) == "PROFILE_NOT_FOUND":
+                status_code, code = 404, "DATA_EXPORT_PROFILE_NOT_FOUND"
+            elif getattr(error, "code", None) == "EXPORT_TOO_LARGE":
+                status_code, code = 413, "DATA_EXPORT_TOO_LARGE"
+            else:
+                status_code, code = 500, "DATA_EXPORT_FAILED"
+            raise HTTPException(status_code=status_code, detail={"code": code}) from None
+        except Exception:
+            raise HTTPException(status_code=500, detail={"code": "DATA_EXPORT_FAILED"}) from None
+        try:
+            parsed = json.loads(content)
+            if (not isinstance(parsed, dict) or parsed.get("profile_id") != profile_id
+                    or type(parsed.get("schema_version")) is not int
+                    or parsed.get("schema_version") != 1
+                    or parsed.get("export_type") != "source_metadata"
+                    or not isinstance(parsed.get("postings"), list)):
+                raise ValueError
+        except (TypeError, ValueError, UnicodeError):
+            raise HTTPException(
+                status_code=500, detail={"code": "DATA_EXPORT_RESPONSE_INVALID"},
+            ) from None
+        response = _attachment(content, "source_metadata", "application/json")
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
 
     return router
