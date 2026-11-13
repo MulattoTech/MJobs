@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-017.S07",
+  "companion_task_ids": [
+    "MJ-REQ-017.S08"
+  ],
+  "objective": "Revalidate Remote OK and Remotive child acceptance, deliver the bounded Remotive result-limit repair, and preserve separate delivered-source and candidate results.",
+  "owner": "ChatGPT-Web /root/telemetry_scope, root-coordinated run web-20261109T173838Z-82ee9dc5ccd8",
+  "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/source-child-acceptance",
+  "head_sha": "05831c81f7c77ed6f866d8e0ee9e2f108007c21e",
+  "routing_state": "VERIFY",
+  "next_action": "Publish the committed reviewed Remotive result-limit candidate with the exact common scanner dependency; obtain exact-head required checks, then let the sole integration owner deliver through protection. Keep #309 open until delivered applicability is verified.",
+  "created_at": "2026-11-09T17:55:13.750375+00:00",
+  "requirements": [
+    "MJ-REQ-017.S07",
+    "MJ-REQ-017.S08"
+  ],
+  "tests": [
+    {
+      "command": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/integration/test_remoteok.py tests/unit/test_remoteok_salary.py tests/integration/test_remotive.py tests/integration/test_remotive_job_id_isolation.py tests/unit/test_remotive_body_deadline.py tests/unit/test_remotive_job_ids.py tests/unit/test_remotive_url_contract.py -k 'not live_bounded_search_read_only' --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/deterministic.xml",
+      "result": "PASS",
+      "summary": "85 tests +47 subtests; one live test deliberately deselected."
+    },
+    {
+      "command": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/unit/test_operation_cancellation_commit.py::OperationCancellationCommitTests::test_source_watchers_do_not_delay_their_cancellation_commit --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/cancellation-commit.xml",
+      "result": "PASS",
+      "summary": "One test +12 subtests; does not resolve PR987's separately failing hosted gate."
+    },
+    {
+      "command": "live_probe.py --provider remoteok (cloud Linux)",
+      "result": "NOT_RUN",
+      "observed_outcome": "BLOCKED at connection; one attempt preserved."
+    },
+    {
+      "command": "live_probe.py --provider remotive (cloud Linux)",
+      "result": "NOT_RUN",
+      "observed_outcome": "BLOCKED at connection; one attempt preserved."
+    },
+    {
+      "command": "live_probe.py --provider remoteok (authorized RDC exact f3db checkout)",
+      "result": "PASS",
+      "summary": "Three results; nine metadata assertions true; no writes."
+    },
+    {
+      "command": "live_probe.py --provider remotive (authorized RDC exact f3db checkout)",
+      "result": "FAIL",
+      "summary": "Twelve results for limit=3; eight other assertions true."
+    },
+    {
+      "command": "PYTHONPATH=. /workspace/scratch/8cd5b6b0e512/venv/bin/python /workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive_limit_probe.py",
+      "result": "FAIL",
+      "summary": "Deterministic excess-results regression reproduces; no network or repository mutations."
+    },
+    {
+      "command": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/unit/test_remotive_search_limit.py --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-baseline.xml",
+      "result": "FAIL",
+      "summary": "Expected failing baseline:3 failed/11 passed on unchanged Remotive runtime.",
+      "expected_failure": true
+    },
+    {
+      "command": "/workspace/scratch/8cd5b6b0e512/venv/bin/python -m pytest -q tests/unit/test_remotive_search_limit.py tests/integration/test_remotive.py tests/integration/test_remotive_job_id_isolation.py tests/unit/test_remotive_body_deadline.py tests/unit/test_remotive_job_ids.py tests/unit/test_remotive_url_contract.py --tb=short --junitxml=/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/remotive-limit-fixed.xml",
+      "result": "PASS",
+      "summary": "82 passed, zero skips, on uncommitted runtime SHA-256 e2ce300e42b49328493c73ea5c3af28d380301341ba0532f091dc539b42956ff"
+    },
+    {
+      "command": "Post-commit live Remotive probe",
+      "result": "NOT_RUN",
+      "summary": "Root alone decides the single fresh live attempt after review/commit; no repeated live calls by this worker.",
+      "historical_record": true,
+      "superseded_by": {
+        "revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+        "result": "PASS",
+        "recorded_at_utc": "2026-11-09T18:10:01.545984+00:00",
+        "evidence": "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json#committed_candidate.fixed_live"
+      }
+    },
+    {
+      "command": "Exact committedabe7f2fc:82focusedRemotive testsPASS and fixed bounded liveGET3of3 all9assertionsPASS",
+      "result": "PASS",
+      "revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+      "deterministic_command": "python -m pytest -q tests/unit/test_remotive_search_limit.py tests/integration/test_remotive.py tests/integration/test_remotive_job_id_isolation.py tests/unit/test_remotive_body_deadline.py tests/unit/test_remotive_job_ids.py tests/unit/test_remotive_url_contract.py --junitxml=remotive-fixed-exact-82ee.xml",
+      "fixed_live_evidence": "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json#committed_candidate.fixed_live"
+    }
+  ],
+  "blockers": [
+    "The reviewed Remotive candidate awaits publication and required exact-publication-head hosted checks; those checks are NOT_RUN.",
+    "Protected integration and delivered-source applicability verification remain pending; #309 stays open.",
+    "PR987's separate hosted cancellation timing failure remains unresolved and unwaived; this result-limit repair does not establish scheduler acceptance."
+  ],
+  "evidence": [
+    "docs/evidence/2026-11-09-web-82ee-source-child-acceptance.json",
+    "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json"
+  ],
+  "closure_eligibility": {
+    "MJ-REQ-017.S07": true,
+    "MJ-REQ-017.S08": false
+  },
+  "canonical_matrix_edits": false,
+  "public_mutations": false,
+  "handoff_filename_note": "Root explicitly assigned this paired handoff path; task_id names the canonical primary child and companion_task_ids preserves the second child.",
+  "updated_at": "2026-11-09T20:43:48.973678+00:00",
+  "previous_blockers": [
+    "Remotive ignores the caller result cap when upstream returns excess records.",
+    "Remotive runtime repair requires coordination with the active legacy source-owner claim.",
+    "PR987's separate hosted Remotive cancellation-commit failure remains unresolved and is not waived."
+  ],
+  "root_remoteok_closure": {
+    "state_reason": "completed",
+    "closed_at_utc": "2026-11-09T17:57:42Z",
+    "performed_by": "root coordinating agent",
+    "independent_review": "Root independently reviewed all five criteria, delivered main/source/test contracts and executed the exact-host live probe.",
+    "readback": "Independently fetched issue308 after closure; closed/completed and timestamp confirmed.",
+    "original_issue_body_preserved": true,
+    "canonical_matrix_changed": false,
+    "accepted_original_count_delta": 0,
+    "cited_preclosure_receipt_sha256": "e84269994b41f1c21c8b9fe98388418303d989855e4eee52bdf544fe22b0138d",
+    "exact_preclosure_bytes_preserved_at": "/workspace/scratch/8cd5b6b0e512/source-child-acceptance-run/source-child-acceptance-preclosure-e8426999.json"
+  },
+  "runtime_ownership_recovery": {
+    "source": "Root's explicit follow-up assignment after independently reviewed verified-orphan recovery",
+    "claim_key": "web:web-20261109T173838Z-82ee9dc5ccd8:remotive-result-limit",
+    "expires_at_utc": "2026-11-09T18:43:47Z",
+    "owned_runtime_test_evidence_paths": [
+      "services/discovery/sources/remotive.py",
+      "tests/unit/test_remotive_search_limit.py",
+      "docs/evidence/2026-11-09-web-82ee-remotive-result-limit.json"
+    ],
+    "runtime_claim_recovery": "Root reported exact-compare recovery under lock, all former owner anchors gone, main ancestry verified, no successor and independent pr_readiness acceptance. This worker did not mutate the coordination registry.",
+    "committed": false,
+    "pushed": false,
+    "merged": false,
+    "live_repeats": 0,
+    "canonical_changes": false,
+    "issue_changes_by_this_worker": false,
+    "snapshot_role": "Historical action flags from the original repair worker; these do not describe the later committed and independently verified source state."
+  },
+  "current_candidate": {
+    "repository": "MulattoTech/MJobs",
+    "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/source-child-acceptance",
+    "source_test_revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+    "publication_review_revision": "05831c81f7c77ed6f866d8e0ee9e2f108007c21e",
+    "state": "VERIFIED_SOURCE_READY_FOR_PUBLICATION",
+    "state_note": "Root reviewed the reconciled evidence and exact common scanner dependency before committing this update. Runtime and regression-test bytes remain those of the recorded verified source revision; the eventual publication SHA must be read back from GitHub. Hosted checks and protected delivery remain pending.",
+    "files": [
+      {
+        "path": "services/discovery/sources/remotive.py",
+        "git_blob_for_current_bytes": "c21376b3d54aec1a80e38d56bdbdc6d921b4ed11",
+        "sha256": "e2ce300e42b49328493c73ea5c3af28d380301341ba0532f091dc539b42956ff",
+        "bytes": 18164
+      },
+      {
+        "path": "tests/unit/test_remotive_search_limit.py",
+        "git_blob_for_current_bytes": "db3350eeb9b87952c5a7121bc46d93fe2bc463e2",
+        "sha256": "f6b0949d15771be2f74669d0623473b017e7eafa5cc1b9c4f390a2bc802cb0ce",
+        "bytes": 3388
+      }
+    ],
+    "runtime_and_test_blobs_unchanged_from_verified_revision": true,
+    "deterministic_verification": {
+      "result": "PASS",
+      "revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+      "tests": 82,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "junit_sha256": "016cb949d9a6b6e3b5253e79e22c4a5725e04158db043b86bf77d0f331aaa15b",
+      "evidence_field": "committed_candidate.exact_regression_result"
+    },
+    "fixed_live_verification": {
+      "result": "PASS",
+      "revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+      "requested_limit": 3,
+      "returned_count": 3,
+      "assertions_passed": 9,
+      "elapsed_seconds": 0.797,
+      "started_at_utc": "2026-11-09T18:07:04.313640+00:00",
+      "evidence_field": "committed_candidate.fixed_live"
+    },
+    "independent_source_review": {
+      "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviewer": "/root/privacy_scope",
+      "recorded_at_utc": "2026-11-09T18:06:20.594855+00:00",
+      "root_review": "Independent scoped PASS; source/test fingerprints match reviewed bytes; no transport or cancellation edits."
+    },
+    "publication": "PENDING",
+    "hosted_candidate_checks": "NOT_RUN",
+    "protected_integration": "NOT_RUN",
+    "issue_309_state": "OPEN_PENDING_DELIVERY",
+    "canonical_acceptance_changed": false,
+    "remaining_blockers": [
+      "The reviewed Remotive candidate awaits publication and required exact-publication-head hosted checks; those checks are NOT_RUN.",
+      "Protected integration and delivered-source applicability verification remain pending; #309 stays open.",
+      "PR987's separate hosted cancellation timing failure remains unresolved and unwaived; this result-limit repair does not establish scheduler acceptance."
+    ],
+    "recorded_at_utc": "2026-11-09T20:42:41.380753+00:00"
+  },
+  "public_mutations_scope": "No public mutations by this worker; root's verified #308 closure is explicitly recorded.",
+  "source_test_revision": "abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+  "superseded_precommit_blockers": {
+    "as_recorded_at_utc": "2026-11-09T18:10:01.547185+00:00",
+    "items": [
+      "Remotive repair is uncommitted and awaits independent review.",
+      "Fresh live validation of the repaired candidate and protected delivery are NOT_RUN.",
+      "PR987's separate hosted cancellation timing gate remains unresolved and unwaived."
+    ],
+    "superseded_by": "Exact committed abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0 verification: 82 tests PASS, fixed bounded live GET PASS, and completed independent source review. Protected delivery remains pending."
+  },
+  "historical_uncommitted_candidate": {
+    "repository": "MulattoTech/MJobs",
+    "base_revision": "f3db88aa97ef73a01ab9a1381d156213f7864fdc",
+    "branch": "web/web-20261109T173838Z-82ee9dc5ccd8/source-child-acceptance",
+    "state": "UNCOMMITTED_WORKING_TREE",
+    "tested_source_binding": "The base revision alone is not the fixed candidate. Exact tested runtime/test byte hashes below bind the uncommitted source.",
+    "baseline_runtime_sha256": "3ad86c3c73efc9af81a7dc38897ce587de5a004f8b4ddfb21622765847994cf3",
+    "files": [
+      {
+        "path": "services/discovery/sources/remotive.py",
+        "git_blob_for_current_bytes": "c21376b3d54aec1a80e38d56bdbdc6d921b4ed11",
+        "sha256": "e2ce300e42b49328493c73ea5c3af28d380301341ba0532f091dc539b42956ff",
+        "bytes": 18164
+      },
+      {
+        "path": "tests/unit/test_remotive_search_limit.py",
+        "git_blob_for_current_bytes": "db3350eeb9b87952c5a7121bc46d93fe2bc463e2",
+        "sha256": "f6b0949d15771be2f74669d0623473b017e7eafa5cc1b9c4f390a2bc802cb0ce",
+        "bytes": 3388
+      }
+    ],
+    "runtime_diff_sha256": "62406158b509bed95270eb79243f9ba2d5534347531fa0590fadefe3d780d27a",
+    "runtime_diff": "diff --git a/services/discovery/sources/remotive.py b/services/discovery/sources/remotive.py\nindex df2cab71..c21376b3 100644\n--- a/services/discovery/sources/remotive.py\n+++ b/services/discovery/sources/remotive.py\n@@ -270,6 +270,8 @@ class Remotive:\n                 domain=\"https://remotive.com\",\n             )\n             items.append(SourceItem(raw, company))\n+            if limit is not None and len(items) >= limit:\n+                break\n \n         return SearchBatch(\n             endpoint=API_URL,\n",
+    "snapshot_role": "Original pre-commit source binding; preserved for audit, superseded by current_candidate."
+  },
+  "independent_publication_review": {
+    "reviewer": "/root/remotive_publication_review",
+    "reviewed_revision": "05831c81f7c77ed6f866d8e0ee9e2f108007c21e",
+    "recorded_at_utc": "2026-11-09T20:42:41.380753+00:00",
+    "runtime_and_test_result": "NO_BLOCKING_FINDINGS; exact blobs match verified source revision abe7f2fc6c31153ae3f69c073f9e2f1dcaec50d0",
+    "evidence_finding": "Paired handoff retained stale current blockers and an uncommitted current candidate despite the later exact-commit and fixed-live PASS. Historical records are now explicitly separated from current publication state.",
+    "correction_state": "ROOT_REVIEWED_FOR_PUBLICATION_COMMIT",
+    "new_test_or_live_execution": false,
+    "root_reviewed_at_utc": "2026-11-09T20:43:48.973678+00:00"
+  },
+  "reviewed_scanner_dependency": {
+    "path": ".gitleaksignore",
+    "git_blob": "00157fca1bf41ea3e59188467df3d9957a795c8a",
+    "sha256": "9761c36481ffdc95bebc82cca8f652c7970cddf47848fdebe801c98e2bda7db1",
+    "review_url": "https://github.com/MulattoTech/MJobs/pull/1006#pullrequestreview-5829689648",
+    "proof_url": "https://github.com/MulattoTech/MJobs/blob/d71d1b545771de421ba06db79557206e01677814/docs/evidence/2026-11-09-web-810d-reviewed-history-fingerprints.json",
+    "scope": "Reuse the exact five reviewed public Git identifier fingerprints after foreign owner release and own atomic path claim. All existing rules and all-ref scan coverage remain. No new exception or gate weakening.",
+    "claim_key": "web:web-20261109T173838Z-82ee9dc5ccd8:scanner-common-reuse",
+    "claim_acquired_utc": "2026-11-09T20:41:40.789910+00:00",
+    "candidate_hosted_result": "NOT_RUN"
+  }
+}

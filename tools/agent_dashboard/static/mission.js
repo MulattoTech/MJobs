@@ -6,6 +6,7 @@
   // return link always points to the corresponding overall Fleet Overview.
   if (["localhost","127.0.0.1"].includes(location.hostname)) {
     $("#fleetOverview").href = "http://127.0.0.1:4320/";
+    $("#developmentHubLink").href = "http://127.0.0.1:4320/#development-delivery";
   }
   const safe = v => String(v ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
@@ -16,6 +17,7 @@
   const cards = new Map();
   let inflight = false;
   let progressInflight = false;
+  let developmentInflight = false;
   // Every launcher has independent preview/approval state. No agent starts merely
   // because options or prompts are previewed.
   const previewStates = new Map();
@@ -724,10 +726,39 @@
     }
   }
 
+  async function refreshDevelopmentActivity() {
+    if (developmentInflight) return;
+    developmentInflight = true;
+    const holder = $("#developmentActivityContent");
+    const status = $("#developmentRefreshTime");
+    try {
+      const data = await fetchJson("/api/development-activity", {signal: AbortSignal.timeout(6500)});
+      if (data.available !== true) {
+        status.textContent = "GitHub delivery unavailable";
+        holder.textContent = data.reason ||
+          "The Fleet Hub delivery source cannot be verified right now. This does not mean zero work.";
+        return;
+      }
+      const n = value => safe(Number(value).toLocaleString());
+      holder.innerHTML = `<div class="ledger-summary">
+        <div><small>Open MJobs pull requests</small><strong>${n(data.openTotal)}</strong></div>
+        <div><small>Drafts included in open</small><strong>${n(data.openDrafts)}</strong></div>
+        <div><small>Merged since ${safe(data.sinceUTC)} UTC</small><strong>${n(data.mergedSince)}</strong></div>
+      </div><p class="progress-disclaimer">GitHub delivery is not verified requirement acceptance
+      or proof of active AI agents. Acceptance below remains evidence-backed.</p>`;
+      status.textContent = "GitHub checked " + fmtTime(data.observedAt);
+    } catch (_) {
+      status.textContent = "GitHub delivery unavailable";
+      holder.textContent = "The Fleet Hub delivery source did not respond; no zero counts were assumed.";
+    } finally {
+      developmentInflight = false;
+    }
+  }
+
   async function refreshEverything() {
     if (inflight) return;
     inflight = true;
-    try { await Promise.all([refreshOptions(),refreshProgress(),refreshExternalSprint()]); }
+    try { await Promise.all([refreshOptions(),refreshProgress(),refreshExternalSprint(),refreshDevelopmentActivity()]); }
     catch (error) { $("#launchStatus").textContent = "Launcher temporarily unavailable: " + error.message; }
     finally { inflight = false; }
   }
@@ -737,5 +768,6 @@
   // Acceptance is inexpensive and independently guarded; launcher/process scans
   // retain their slower cadence and do not pile up behind a slow progress read.
   setInterval(() => { if (!document.hidden) refreshProgress(); }, 5000);
+  setInterval(() => { if (!document.hidden) refreshDevelopmentActivity(); }, 30000);
   setInterval(() => { if (!document.hidden) refreshEverything(); }, 11000);
 })();

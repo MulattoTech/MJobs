@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REF-042-disclosure-f390",
+  "objective": "Expose recorded job-scoring data flow in preview and saved history",
+  "owner": "web-20261109T173838Z-82ee9dc5ccd8",
+  "branch": "web/web-20261109T131810Z-f390e73add1a/MJ-REF-042-ai-data-flow",
+  "head_sha": "36689984ce32c84fcc592cb4225a50c8a4863939",
+  "routing_state": "VERIFY",
+  "next_action": "Commit and publish the completed frozen36689984 disclosure-browser and CI proof in this existing PR, then obtain required protected checks on the resulting head. Retain the exact seven unchanged source/test bindings, full-browser-suite failures and whole REF042/REQ171 limits; canonical acceptance and integration remain with the separate owner.",
+  "created_at": "2026-11-09T15:52:34.941679+00:00",
+  "requirements": [
+    "MJ-REF-042",
+    "MJ-REQ-171"
+  ],
+  "tests": [
+    {
+      "command": "Exact implementation 2970bd2: 73 Python tests and 37 subtests; 42 UI tests; production build; integrity and provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact refreshed 9e50b28881e675b985d3251b59ab6d8c742f3f8a: 10 targeted tests and 20 subtests; all seven disclosure source/test blobs unchanged",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent scoped privacy review and upstream PR988 compatibility; static PR #999 compatibility with retained limitations",
+      "result": "PASS"
+    },
+    {
+      "command": "HISTORICAL local disclosure-browser attempts: invalid pinned archive and OS socket EPERM prevented assertions; connected browser bootstrap timed out. Retained as NOT_RUN locally; superseded for the bounded journey by the exact hosted PASS below.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Common scanner dependency blob 00157fca1bf41ea3e59188467df3d9957a795c8a and SHA256 match; existing independent review and dependency exact-head passed scan inspected",
+      "result": "PASS"
+    },
+    {
+      "command": "Frozen36689984 browser run42670650376, shard0/job129346013142: explicit saved-key selection/rotation/worker/history-reload disclosure journey PASS once in5.124s,0skips; four artifact ZIP digest/size/CRC and checkout bindings verified",
+      "result": "PASS"
+    },
+    {
+      "command": "Frozen36689984 complete browser run42670650376:302primary cases=271PASS/26FAIL/5SKIP, plus46successful subtests; full workflow FAILURE remains",
+      "result": "FAIL"
+    },
+    {
+      "command": "Frozen36689984 own Security / secret scan run42668241010/job129337549295",
+      "result": "PASS"
+    },
+    {
+      "command": "Frozen36689984 Integration run42668241164: all3shards PASS; workflow FAILURE and required Integration / PostgreSQL and Redis aggregate never created; GitHub internal server error, one retry rejected403 without execution",
+      "result": "FAIL"
+    },
+    {
+      "command": "Required Integration / PostgreSQL and Redis aggregate on frozen36689984; absent job is NOT_RUN",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Required protected hosted gates on the resulting evidence-only publication head; future revision not yet published",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Frozen36689984 required integration aggregate was never created. Run42668241164 reports GitHub internal server error, correlation42a56566-391d-4e0f-b074-443e41960a38; one targeted failed-job retry was rejected403, This workflow run cannot be retried.",
+    "The full four-shard browser suite remains FAILURE:271PASS/26FAIL/5SKIP across302primary cases, plus46successful subtests. The one scoped disclosure PASS does not waive other failures.",
+    "Whole MJ-REF-042 and MJ-REQ-171 remain incomplete. Canonical states are unchanged (REF042 NOT_RUN, REQ171 PARTIAL); integration and canonical acceptance have a separate owner.",
+    "After this two-file milestone correction is committed and published, required gates must be observed on the resulting head; no future check result is claimed."
+  ],
+  "updated_at": "2026-11-09T20:59:35.099737+00:00",
+  "completed_browser_milestone": {
+    "revision": "36689984ce32c84fcc592cb4225a50c8a4863939",
+    "run_id": 42670650376,
+    "nodeid": "tests/browser/test_profile_ai_credentials.py::ProfileAICredentialBrowserTests::test_explicit_saved_key_selection_rotation_worker_and_history_reload",
+    "result": "PASS_FOR_BOUNDED_JOURNEY",
+    "seconds": 5.124,
+    "proof_receipt_sha256": "b8174522a485375fb28998e7946910ea92e4de6fc4c02df7892071e65cbbe6a8",
+    "source_binding": "All seven authored source/test blobs exactly match implementation2970bd2 and frozen36689984; detailed immutable blob/SHA256 bindings are in the paired evidence."
+  }
+}
