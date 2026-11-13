@@ -1,7 +1,6 @@
 {
   "schema_version": 1,
   "run_id": "WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0",
-  "work_key": "MJ-REQ-204.N05",
   "parent_requirement": "MJ-REQ-204",
   "issue": 366,
   "priority": "P6",
@@ -168,6 +167,11 @@
     {
       "command": "Protected integration, guarded deployment where required and formal canonical acceptance",
       "result": "NOT_RUN"
+    },
+    {
+      "command": "Security / secret scan at 60dd9d4a50506cabedddeb1cf12610d6240e1ec2",
+      "result": "FAIL",
+      "details": "One public requirement-ID metadata false positive independently verified; original failed gate retained and new exact-head gate required."
     }
   ],
   "build_assets": [
@@ -378,5 +382,34 @@
     "production": "NOT_DEPLOYED",
     "formal_acceptance": "PENDING_DESIGNATED_CANONICAL_WRITER"
   },
-  "evidence_date_utc": "2026-11-13T03:31:45.369754Z"
+  "evidence_date_utc": "2026-11-13T03:31:45.369754Z",
+  "requirement_id": "MJ-REQ-204.N05",
+  "secret_scan_review": {
+    "observed_head": "60dd9d4a50506cabedddeb1cf12610d6240e1ec2",
+    "result": "REVIEWED_PUBLIC_IDENTIFIER_FALSE_POSITIVE",
+    "workflow_run": 43359963041,
+    "job": 131670846139,
+    "job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43359963041/job/131670846139",
+    "finding_count": 1,
+    "rule": "generic-api-key",
+    "fingerprint": "60dd9d4a50506cabedddeb1cf12610d6240e1ec2:docs/evidence/2026-11-13-desktop-notifications-ca95.json:generic-api-key:4",
+    "finding_field": "work_key",
+    "public_identifier": "MJ-REQ-204.N05",
+    "immutable_evidence_blob": "b432c970c12a9c5538a0a5acb65f9fe99966439d",
+    "public_provenance": [
+      "planning/REQUIREMENT_INDEX.json",
+      "planning/ISSUE_SEED.jsonl",
+      "planning/GITHUB_ISSUE_MAP.json",
+      "https://github.com/MulattoTech/MJobs/issues/366"
+    ],
+    "redacted_artifact": {
+      "local_file": "desktop-pr1017-secret-redacted-60dd9d4a5050.json",
+      "sha256": "ecfca589d0fcdbc97b601b4cdc0ecb1039e458b24bbe557daa948dc59f9cbbd1"
+    },
+    "independent_reviewer": "/root/coordination_recovery_review",
+    "independent_conclusion": "Exact immutable bytes identify the public canonical Desktop child; no credential function is indicated.",
+    "correction": "Use requirement_id in current metadata and append only the exact historical commit/path/rule/line fingerprint. Existing ignore entries, scanner rules, checksum/version and full historical scan scope are preserved.",
+    "corrected_head_scanner_result": "NOT_RUN",
+    "reviewed_at": "2026-11-13T03:40:01.005228Z"
+  }
 }

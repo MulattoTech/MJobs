@@ -6,7 +6,7 @@
   "branch": "web/ca95dbc6/desktop-notifications",
   "head_sha": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
   "routing_state": "PARTIALLY_BLOCKED",
-  "next_action": "Publish the reviewed source/evidence candidate through native publication admission, observe exact-head required checks, then obtain verified integration/canonical ownership before protected merge and full acceptance review.",
+  "next_action": "Publish the reviewed public-identifier scanner correction to existing PR1017, observe exact current-head required checks, then obtain verified integration/canonical ownership before protected merge and full acceptance review.",
   "created_at": "2026-11-13T03:31:45.369754Z",
   "requirements": [
     "MJ-REQ-204.N05",
@@ -35,6 +35,14 @@
     },
     {
       "command": "Protected integration, guarded deployment where required and formal canonical acceptance",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Security / secret scan on60dd9d4a: one public requirement identifier false positive; reviewed exact historical fingerprint correction prepared",
+      "result": "FAIL"
+    },
+    {
+      "command": "Required hosted gates on corrected publication head",
       "result": "NOT_RUN"
     }
   ],
@@ -65,5 +73,7 @@
     "arbeitnow_ui_commit": "64819d7d650ed60759d38d0da97f714272999f49",
     "integration_by_F07_owner": "b954747e2ff6446f41c2fb8a0276b455e29d0943",
     "main_tsx_claim": "Transferred atomically to F07 owner; Desktop source frozen and further edits require reacquisition."
-  }
+  },
+  "updated_at": "2026-11-13T03:40:01.005228Z",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1017"
 }
