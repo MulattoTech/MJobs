@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-11-13T07:49:29.805079Z",
+  "timestamp": "2026-11-13T13:54:32.089277+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -4364,9 +4364,12 @@
     },
     {
       "requirement_id": "MJ-REQ-204.N02",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "docs/NOTIFICATIONS.md"
+      ],
+      "note": "Proposed scoped ntfy PASS under the five literal issue363 criteria: explicit opt-in/default-off generic owned terminal-operation notifications, declared capabilities, deterministic 92-case proof at40e, and actual stock Dockerfile/Compose/PostgreSQL/local ntfy proof at462707 with one acknowledgement and one-attempt restart deduplication. All15 notification blobs remain identical through protected main aa94183;22/23 selected package inputs match, with only the separately reviewed/protected PR1016 Store AI-settings fix. Actual d0 passed15 hosted checks and all5 required gates; PR1021 merged at aa94183 on2026-11-13T11:19:09Z. This canonical candidate remains pending its own validation, protected acceptance publication and post-refresh actual Mission Control comparison. Production is NOT_DEPLOYED/NOT_VERIFIED; parent204 and queue055 stay NOT_RUN/QUEUED. No external recipient, device display, exactly-once guarantee or full-parent coverage is claimed.",
       "priority": "P6",
       "area": "web_api_analytics",
       "category": "major-feature"

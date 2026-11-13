@@ -11,7 +11,7 @@
     "current_verified_github_state": "Source PR #875 merged at 07eab582 and pypdf security PR #876 at 25e3f259 after exact proposed-merge gates. Protected acceptance PR #877 records 43 new P1 acceptances and 92/116; its final gates and merge are pending.",
     "current_verified_at": "2026-11-01T06:31:43.869016+00:00"
   },
-  "current_milestone": "WEB-20261113-2D4F-N05-DESKTOP-CANONICAL-VALIDATED",
+  "current_milestone": "MJ-REQ-204.N02-CANONICAL-MATERIALIZATION-20261113-2d4f-01",
   "current_objective": "Complete protected test-matrix publication and guarded final delivery; then resume remaining literal P0/P1 criteria.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -2802,12 +2802,82 @@
         "execution_receipt_sha256": "a60bf1765a60cffcd81828d86b394ab767aabd85a56f9fa650f8689154bb5e2f",
         "dirty_canonical_inputs": true
       }
+    },
+    {
+      "completed_steps": [
+        "Reviewed the five literal issue363 criteria against the existing source-bound test/runtime evidence and current P6 activation.",
+        "Verified actual protected PR1021 source integration at aa94183 and source-head d0 hosted15/five-required gates from immutable receipts.",
+        "Prepared the private N02-only six-file templates with complete historical preservation; actual tracked materialization and validation are recorded separately only after execution.",
+        "Actual worktree/source contexts and one stock same-owner handoff were independently verified; exact transfer history and all prior canonical histories are preserved.",
+        "Applied the six independently reviewed payloads exactly and completed stock planning reconcile --apply plus dashboard --write with exit0; the seven canonical validators and protected acceptance/view gates remain pending at this recorded instant."
+      ],
+      "current_phase": "N02 source delivery is protected-integrated; this scoped canonical candidate awaits its own validation, protected acceptance publication and actual post-refresh view comparison.",
+      "evidence_paths": [
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "docs/NOTIFICATIONS.md"
+      ],
+      "files_added": [],
+      "files_modified": [
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/GITHUB_ISSUE_MAP.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/LABELS.json",
+        "planning/PR_QUEUE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/agent_handoffs/MJ-REQ-204.N02.json"
+      ],
+      "integrated_main": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c",
+      "integration_method": "PROTECTED_PULL_REQUEST_1021",
+      "known_errors": [
+        "Preserve the original strict-configuration, provenance, producer-scope, fixture setup and metadata-routing failures in the existing ntfy evidence.",
+        "Preserve all hosted CI failures including6b Integration slow-body oracle and the subsequent test-only repair/focused positive+controlled-negative proof in the separate diagnostics history. A future new-head hosted pass does not erase those outcomes.",
+        "Preserve prior canonical01 branch-rebind refusal and canonical03 immediate generation-check refusal plus its later additive original-generation reconciliation; no unchanged rerun or false all-green original controller claim."
+      ],
+      "known_limitations": [
+        "Parent204 staysNOT_RUN; queue055 staysQUEUED; other children and all59 reference statuses remain unchanged.",
+        "Default-off operator configuration, generic owned terminal events only; no full parent coverage, device display, exactly-once guarantee, real application submission or full polling-transition reconstruction.",
+        "Historical execution stays attributed to40e/462707. One Store dependency change is explicitly from the separately reviewed/integrated5b2 source.",
+        "Production remainsNOT_DEPLOYED/NOT_VERIFIED. Actual canonical acceptance/publication is not yet claimed."
+      ],
+      "last_safe_checkpoint": {
+        "evidence_path": "docs/evidence/2026-11-13-ntfy-delivery.json",
+        "git_commit": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c"
+      },
+      "live_integrations_tested": [
+        "Historical synthetic owned official ntfy2.37.2 and PostgreSQL17.11 only, including stock worker through normal runtime database wrapper. No third-party recipient or public account send."
+      ],
+      "migrations_applied": [],
+      "milestone_id": "MJ-REQ-204.N02-CANONICAL-MATERIALIZATION-20261113-2d4f-01",
+      "requirements": [
+        "MJ-REQ-204.N02"
+      ],
+      "source_commit": "d0a64b172ebcf30b8257d3b0a86af9f8922976c1",
+      "source_tree": "2abad32508bb850351e1dfa950a2b75cecbd8094",
+      "tests_completed": [
+        "Historical exact40e provider suite:92PASS, zero failures/errors/skips, actual owned PostgreSQL17.11 and official local ntfy2.37.2.",
+        "Historical exact462707 stock Dockerfile/Compose proof:23in-image hashes, normal guarded migration/restricted role, UID/GID10001 and0600 runtime credentials, historical exclusion, one actual acknowledgement, one-attempt restart dedupe, health and exact cleanup.",
+        "Read-only d0 source equivalence and existing Store5b2 review/gate/merge receipt hashes verified; this is not new d0 runtime execution.",
+        "Actual source head d0 hosted15 checks and all5 required gates passed; PR1021 protected merge aa94183 is confirmed by actual receipts. These are not tests at a future acceptance head."
+      ],
+      "tests_remaining": [
+        "Run the seven canonical validators exactly once and preserve their actual outcomes; no PASS is an input assumption.",
+        "Independent final generated diff/count/provenance review and current-head protected acceptance publication remain pending.",
+        "After accepted integration and primary refresh, complete the approved actual Mission Control comparison for every priority/area and both separate denominators.",
+        "Production deployment and public authenticated/TLS/device validation remain NOT_VERIFIED and are not inferred from the local-sink proof."
+      ],
+      "timestamp": "2026-11-13T14:39:58.971617+00:00",
+      "binding_note": "This actual milestone was recorded after successful exact-byte application and both stock generators. It does not claim later validator, protected acceptance or actual view outcomes."
     }
   ],
-  "current_phase": "Desktop N05 canonical candidate validated; independent final review, commit provenance and protected acceptance publication pending; production not deployed",
+  "current_phase": "N02 source delivery is protected-integrated; this scoped canonical candidate awaits its own validation, protected acceptance publication and actual post-refresh view comparison.",
   "last_safe_checkpoint": {
-    "git_commit": "1f1a578ee84554e81c76df59b28d88f008a93815",
-    "evidence_path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+    "evidence_path": "docs/evidence/2026-11-13-ntfy-delivery.json",
+    "git_commit": "aa94183f1a57259e0d45f8c686d6a8e23a391e5c"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
