@@ -89,7 +89,7 @@ Run the provider and collector boundary from the repository root:
 
 ```text
 python -m pytest -q tests/unit/test_arbeitnow_source.py tests/unit/test_arbeitnow_provenance.py tests/integration/test_arbeitnow.py
-python -m pytest -q tests/unit/test_company_source_capabilities.py tests/unit/test_company_source_contract_sustain_224.py tests/unit/test_extension_point_contracts.py
+python -m pytest -q tests/unit/test_company_source_capabilities.py tests/unit/test_company_source_contract_sustain_224.py tests/unit/test_extension_point_contracts.py tests/unit/test_source_adapter_contract_223.py
 git diff --check
 ```
 
