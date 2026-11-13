@@ -38,8 +38,26 @@ PROOF = {
 
 
 class SourceSetupBrowserTests(unittest.TestCase):
+    def test_unsupported_primary_fails_before_browser_or_owner_calls(self):
+        def forbidden(*args, **kwargs):
+            self.fail("Unsupported provider reached an execution boundary")
+        for provider in ("remoteok", "greenhouse", "", None):
+            with self.subTest(provider=provider), self.assertRaisesRegex(
+                    ValueError, "PUBLIC_PRIMARY_PROVIDER_UNSUPPORTED"):
+                compose_owned_public_containment(forbidden,
+                    base_url="http://127.0.0.1:18700", baseline=BASELINE,
+                    acceptance_run_id="unsupported-primary", artifact_path=Path("unused.json"),
+                    primary_provider=provider, request=forbidden,
+                    execution_scope="CONTROLLED_TRANSPORT")
+
     def test_preexisting_extra_is_preserved_and_setup_fails_closed(self):
-        existing = {"id": "operator-source", "provider": "remotive", "tenant": "default",
+        self._exercise_preexisting_extra_is_preserved_and_setup_fails_closed("wwr", "remotive")
+
+    def test_remotive_primary_preexisting_extra_is_preserved_and_setup_fails_closed(self):
+        self._exercise_preexisting_extra_is_preserved_and_setup_fails_closed("remotive", "wwr")
+
+    def _exercise_preexisting_extra_is_preserved_and_setup_fails_closed(self, primary_provider, extra_provider):
+        existing = {"id": "operator-source", "provider": extra_provider, "tenant": "default",
             "name": "default", "enabled": False}
         writes = []
 
@@ -57,16 +75,23 @@ class SourceSetupBrowserTests(unittest.TestCase):
                 lambda *_: dict(PROOF),
                 base_url="http://127.0.0.1:18700", baseline=BASELINE,
                 acceptance_run_id="step9-preexisting-extra", runtime_identity=RUNTIME,
-                artifact_path=artifact_path, request=request, execution_scope="CONTROLLED_TRANSPORT",
+                artifact_path=artifact_path,
+                **({"primary_provider": primary_provider} if primary_provider != "wwr" else {}), request=request, execution_scope="CONTROLLED_TRANSPORT",
                 utc_now=lambda: datetime.fromisoformat(STAMP),
             )
             with self.assertRaisesRegex(ValueError, "EXTRA_SOURCE_MUST_BE_ABSENT"):
-                wrapped("preflight", {"provider": "wwr", "base_url": "http://127.0.0.1:18700"})
+                wrapped("preflight", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700"})
             self.assertEqual(writes, [])
             self.assertFalse(artifact_path.exists())
             self.assertEqual(existing["enabled"], False)
 
     def test_extra_public_source_is_observed_then_disabled_before_release(self):
+        self._exercise_extra_public_source_is_observed_then_disabled_before_release("wwr", "remotive")
+
+    def test_remotive_primary_extra_public_source_is_observed_then_disabled_before_release(self):
+        self._exercise_extra_public_source_is_observed_then_disabled_before_release("remotive", "wwr")
+
+    def _exercise_extra_public_source_is_observed_then_disabled_before_release(self, primary_provider, extra_provider):
         rows = []
         calls = []
 
@@ -117,7 +142,7 @@ class SourceSetupBrowserTests(unittest.TestCase):
                             return dict(PROOF)
 
                         def assert_binding(self, binding):
-                            if binding.get("provider") != "remotive" or binding.get("tenant") != "default":
+                            if binding.get("provider") != extra_provider or binding.get("tenant") != "default":
                                 raise AssertionError(binding)
                             if binding.get("source_id") is None:
                                 if (binding.get("enabled_policy_sha256") is not None
@@ -132,10 +157,10 @@ class SourceSetupBrowserTests(unittest.TestCase):
                                 raise AssertionError(binding)
 
                         def bind_additional_source(self, *, policy, primary_context):
-                            if policy["provider"] != "remotive" or policy["tenant"] != "default":
+                            if policy["provider"] != extra_provider or policy["tenant"] != "default":
                                 raise AssertionError(policy)
                             source_events.append(("bind", dict(policy)))
-                            return {"additional_source_absent": True, "provider": "remotive",
+                            return {"additional_source_absent": True, "provider": extra_provider,
                                 "tenant": "default", "lease_expires_at": PROOF["lease_expires_at"],
                                 "lease_model": "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS"}
 
@@ -157,30 +182,31 @@ class SourceSetupBrowserTests(unittest.TestCase):
                         acceptance_run_id="step9-browser-contract",
                         runtime_identity=RUNTIME,
                         artifact_path=artifact_path,
+                        **({"primary_provider": primary_provider} if primary_provider != "wwr" else {}),
                         request=request,
                         page=page,
                         execution_scope="CONTROLLED_TRANSPORT",
                         utc_now=lambda: datetime.fromisoformat(STAMP),
                     )
-                    wrapped("preflight", {"provider": "wwr", "base_url": "http://127.0.0.1:18700"})
-                    self.assertEqual([row["provider"] for row in rows], ["remotive"])
+                    wrapped("preflight", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700"})
+                    self.assertEqual([row["provider"] for row in rows], [extra_provider])
 
                     primary_policy = {
-                        "provider": "wwr", "tenant": "default", "enabled": True,
+                        "provider": primary_provider, "tenant": "default", "enabled": True,
                         "poll_interval": 604800, "concurrency": 1, "request_timeout": 10,
                         "rate_limit": 1, "jitter_seconds": 0,
                     }
                     request("PUT", "/sources", json=primary_policy)
-                    primary = next(row for row in rows if row["provider"] == "wwr")
-                    wrapped("dispatch", {"provider": "wwr", "base_url": "http://127.0.0.1:18700",
+                    primary = next(row for row in rows if row["provider"] == primary_provider)
+                    wrapped("dispatch", {"provider": primary_provider, "base_url": "http://127.0.0.1:18700",
                         "source_id": primary["id"], "source_policy_sha256": _policy_sha(primary)})
-                    extra = next(row for row in rows if row["provider"] == "remotive")
+                    extra = next(row for row in rows if row["provider"] == extra_provider)
                     self.assertFalse(extra["enabled"])
                     self.assertIsNone(extra["last_attempt"])
                     self.assertIsNone(extra["last_success"])
                     self.assertEqual(extra["jobs_seen"], 0)
 
-                    release_context = {"provider": "wwr", "base_url": "http://127.0.0.1:18700",
+                    release_context = {"provider": primary_provider, "base_url": "http://127.0.0.1:18700",
                         "cleanup_status": "RESTORED_DISABLED"}
                     wrapped("release", release_context)
                     artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
@@ -188,6 +214,9 @@ class SourceSetupBrowserTests(unittest.TestCase):
                     self.assertEqual(artifact["acceptance_observations"][0]["step"], 9)
                     self.assertEqual(artifact["acceptance_observations"][0]["evidence_kind"], "PUBLIC_READ_ONLY")
                     self.assertEqual(artifact["acceptance_observations"][0]["status"], "NOT_RUN")
+                    self.assertEqual(artifact["primary"]["provider"], primary_provider)
+                    self.assertEqual(artifact["owned_extra"]["provider"], extra_provider)
+                    self.assertEqual(artifact["release_receipt"]["binding"]["extra_provider"], extra_provider)
                     self.assertEqual(artifact["owned_extra"]["source_id"], extra["id"])
                     self.assertEqual(artifact["owned_extra"]["disabled"], True)
                     self.assertEqual(artifact["extra_collection_operation_ids"], [])

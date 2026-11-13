@@ -2,7 +2,7 @@
 
 The command consumes operator-produced startup and frontend-build receipts; it
 does not provision a stack or edit acceptance ledgers. Running the command opts
-into the existing WWR public-read-only campaign. Step 9 setup and monitoring
+into a supported public-read-only campaign (WWR by default). Step 9 setup and monitoring
 remain separate explicit flags. Real employer application submission stays
 disabled by the journey's fixture contract.
 
@@ -32,12 +32,14 @@ def build_parser():
                         help="Operator-recorded frontend build receipt for the same source and immutable image")
     parser.add_argument("--source-label", default="https://github.com/MulattoTech/MJobs")
     parser.add_argument("--lease-seconds", type=int, default=120)
+    parser.add_argument("--public-source-provider", choices=("wwr", "remotive"), default="wwr",
+                        help="Use one supported public source for this run; never retry or switch providers automatically")
     parser.add_argument("--resume", action="store_true",
                         help="Resume only a valid checkpoint in the same evidence directory")
     parser.add_argument("--stop-after-ui", action="store_true",
                         help="Stop after the connected UI segment; do not enter public collection")
     parser.add_argument("--source-setup", action="store_true",
-                        help="Explicitly observe step 9 and disable only the extra Remotive source before WWR collection")
+                        help="Observe step 9 with the other supported source, then disable it before primary collection")
     parser.add_argument("--monitoring", action="store_true",
                         help="Explicitly include same-profile natural fixture monitoring and restart observations")
     parser.add_argument("--validate-only", action="store_true",
@@ -62,6 +64,8 @@ def _inside(path, parent):
 
 def validate_plan(args, *, journey=None, root=None):
     """Validate exact local inputs only; this function makes no runtime calls."""
+    if args.public_source_provider not in {"wwr", "remotive"}:
+        raise ValueError("Unsupported public source provider")
     if journey is None:
         from cli import acceptance_journey as journey
     root = (Path(root) if root is not None else ROOT).resolve(strict=True)
@@ -139,7 +143,7 @@ def validate_plan(args, *, journey=None, root=None):
         "startup": startup, "build": build, "source": source,
         "run_id": run_id, "target": target, "project": project,
         "port": port, "origin": origin, "image_id": image_id,
-        "compose_files": compose_files,
+        "compose_files": compose_files, "public_source_provider": args.public_source_provider,
     }
 
 
@@ -166,16 +170,17 @@ def _lazy_containment(plan, args, journey, source_setup):
     root, directory = plan["root"], plan["evidence_dir"]
     source, run_id, target = plan["source"], plan["run_id"], plan["target"]
     project, origin, compose_files = plan["project"], plan["origin"], plan["compose_files"]
+    provider = plan["public_source_provider"]
 
     class LazyOwnedContainment:
         def __init__(self):
             self.instance = None
 
         def __call__(self, stage, context):
-            if (context.get("provider") != "wwr"
+            if (context.get("provider") != provider
                     or context.get("acceptance_run_id") != run_id
                     or context.get("base_url") != origin):
-                raise ValueError("Public callback identity differs from the fixed WWR plan")
+                raise ValueError("Public callback identity differs from the selected provider plan")
             if self.instance is None:
                 if stage != "preflight":
                     raise ValueError("Containment must begin at the first helper preflight")
@@ -187,7 +192,7 @@ def _lazy_containment(plan, args, journey, source_setup):
                         or ui_reference.get("sha256") != ui_sha
                         or report.get("source") != source or report.get("run_id") != run_id
                         or report.get("target") != target
-                        or report.get("public_source_provider") != "wwr"
+                        or report.get("public_source_provider") != provider
                         or report.get("monitoring") is not bool(args.monitoring)
                         or baseline.get("source") != source
                         or baseline.get("acceptance_run_id") != run_id
@@ -236,7 +241,7 @@ def _lazy_containment(plan, args, journey, source_setup):
                 if source_setup is not None:
                     self.instance = source_setup.compose_owned_public_containment(
                         owned, base_url=origin, baseline=owned_baseline,
-                        acceptance_run_id=run_id,
+                        acceptance_run_id=run_id, primary_provider=provider,
                         artifact_path=directory / "public-source-setup.json",
                         runtime_identity={key: runtime[key]
                                           for key in ("source_manifest_sha256", "images")},
@@ -257,7 +262,7 @@ def run_campaign(args, *, journey=None):
         "command": [sys.executable, "-m", "cli.acceptance_campaign", *sys.argv[1:]],
         "source_setup": args.source_setup,
         "monitoring": args.monitoring,
-        "public_source_provider": "wwr",
+        "public_source_provider": plan["public_source_provider"],
         "source_commit": plan["source"]["commit"],
         "run_id": plan["run_id"], "image_id": plan["image_id"],
         "startup_receipt": str(plan["startup_path"]),
@@ -292,7 +297,7 @@ def run_campaign(args, *, journey=None):
         project_name=plan["project"], port=plan["port"], run_id=plan["run_id"],
         resume=args.resume, stop_after_ui=args.stop_after_ui,
         startup_receipt=plan["startup_path"], build_receipt=plan["build_path"],
-        public_source_provider="wwr", public_source_preflight=preflight,
+        public_source_provider=plan["public_source_provider"], public_source_preflight=preflight,
         monitoring=args.monitoring,
     )
     print(json.dumps({

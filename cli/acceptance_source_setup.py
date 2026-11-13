@@ -1,9 +1,9 @@
 """Contained UI-only setup and proof for the optional step 9 source observation.
 
 The wrapper composes around an operator-owned public-source containment callback.
-It adds one absent Remotive policy through the local Sources UI, observes it beside
-the primary We Work Remotely policy at first dispatch, then disables only the
-source it created before the primary helper can collect anything.
+It adds the other supported provider through the local Sources UI, observes it
+beside the selected primary at first dispatch, then disables only the source it
+created before the primary helper can collect anything.
 """
 from datetime import datetime, timezone
 import hashlib
@@ -32,6 +32,15 @@ POLICY = {
     "rate_limit": 1,
     "jitter_seconds": 0,
 }
+
+
+def source_setup_extra_provider(primary_provider):
+    """Allow exactly the two existing public sources, in opposite roles."""
+    if primary_provider == "wwr":
+        return "remotive"
+    if primary_provider == "remotive":
+        return "wwr"
+    raise SourceSetupError("PUBLIC_PRIMARY_PROVIDER_UNSUPPORTED")
 
 
 def _sha(value):
@@ -72,6 +81,7 @@ def _source_rows(request):
 
 def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                                      acceptance_run_id, artifact_path,
+                                     primary_provider=PRIMARY_PROVIDER,
                                      runtime_identity=None, request=None, page=None,
                                      execution_scope="LIVE_PUBLIC_READ_ONLY",
                                      utc_now=lambda: datetime.now(timezone.utc)):
@@ -81,6 +91,8 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
     tests. Production callers omit it, so the wrapper uses an isolated HTTPX
     client. The UI route guard admits only same-origin GETs and PUT /sources.
     """
+    extra_provider = source_setup_extra_provider(primary_provider)
+    policy = {**POLICY, "provider": extra_provider}
     origin = _loopback_origin(base_url)
     if (execution_scope not in {"LIVE_PUBLIC_READ_ONLY", "CONTROLLED_TRANSPORT"}
             or (request is not None or page is not None)
@@ -128,7 +140,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self._write_count = 0
 
         def _call_owned(self, stage, context):
-            if (not isinstance(context, dict) or context.get("provider") != PRIMARY_PROVIDER
+            if (not isinstance(context, dict) or context.get("provider") != primary_provider
                     or not isinstance(context.get("base_url"), str)
                     or context["base_url"].rstrip("/") != origin
                     or context.get("acceptance_run_id") not in {None, acceptance_run_id}):
@@ -136,14 +148,14 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             owner_context = dict(context)
             if self.additional_declared:
                 owner_context["additional_source"] = ({
-                    "provider": EXTRA_PROVIDER,
+                    "provider": extra_provider,
                     "tenant": "default",
                     "source_id": self.extra_id,
                     "enabled_policy_sha256": self.enabled_policy_sha,
                     "disabled_policy_sha256": self.disabled_policy_sha,
                     "enabled": self.extra_enabled,
                 } if self.extra_id is not None else {
-                    "provider": EXTRA_PROVIDER,
+                    "provider": extra_provider,
                     "tenant": "default",
                     "source_id": None,
                     "enabled_policy_sha256": None,
@@ -229,10 +241,10 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 "profile_id": baseline["profile_id"],
                 "application_id": baseline["application_id"],
                 "job_id": baseline["selected_application_job_id"],
-                "primary_provider": PRIMARY_PROVIDER,
+                "primary_provider": primary_provider,
                 "primary_source_id": self.primary["source_id"],
                 "primary_policy_sha256": self.primary["policy_sha256"],
-                "extra_provider": EXTRA_PROVIDER,
+                "extra_provider": extra_provider,
                 "extra_source_id": self.extra_id,
                 "extra_enabled_policy_sha256": self.enabled_policy_sha,
                 "extra_disabled_policy_sha256": self.disabled_policy_sha,
@@ -293,11 +305,11 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 if execution_scope == "LIVE_PUBLIC_READ_ONLY":
                     raise SourceSetupError("ADDITIONAL_SOURCE_CONTAINMENT_UNAVAILABLE")
                 return
-            proof = binder(policy=dict(POLICY), primary_context=dict(context))
+            proof = binder(policy=dict(policy), primary_context=dict(context))
             if (execution_scope == "LIVE_PUBLIC_READ_ONLY"
                     and (not isinstance(proof, dict)
                          or proof.get("additional_source_absent") is not True
-                         or proof.get("provider") != EXTRA_PROVIDER
+                         or proof.get("provider") != extra_provider
                          or proof.get("tenant") != "default"
                          or proof.get("lease_model") != "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS")):
                 raise SourceSetupError("ADDITIONAL_SOURCE_ABSENCE_NOT_CONFIRMED")
@@ -306,7 +318,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 "verification_scope": ("LIVE_OWNER_API" if execution_scope == "LIVE_PUBLIC_READ_ONLY"
                                        else "CONTROLLED_TRANSPORT"),
                 "verified": execution_scope == "LIVE_PUBLIC_READ_ONLY",
-                "provider": EXTRA_PROVIDER, "tenant": "default",
+                "provider": extra_provider, "tenant": "default",
                 "source_id": None, "enabled_policy_sha256": None,
                 "disabled_policy_sha256": None, "enabled": False,
                 "lease_model": proof.get("lease_model") if isinstance(proof, dict) else None,
@@ -337,7 +349,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     body = request.post_data_json
                 except Exception:
                     body = None
-                expected = dict(POLICY)
+                expected = dict(policy)
                 if self.extra_id is not None:
                     expected["enabled"] = False
                 allowed = isinstance(body, dict) and body == expected
@@ -373,15 +385,15 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     or health.get("external_submission_enabled") is not False):
                 raise SourceSetupError("SOURCE_SETUP_FIXTURE_MODE_REQUIRED")
             before = self._with_lease(context, lambda: _source_rows(request))
-            if any(row.get("provider") == EXTRA_PROVIDER and row.get("tenant") == "default"
+            if any(row.get("provider") == extra_provider and row.get("tenant") == "default"
                    for row in before):
                 raise SourceSetupError("EXTRA_SOURCE_MUST_BE_ABSENT")
-            self.policy_checks.append({"stage": "preflight_absent", "provider": EXTRA_PROVIDER,
-                "tenant": "default", "present": False, "expected_policy": dict(POLICY),
+            self.policy_checks.append({"stage": "preflight_absent", "provider": extra_provider,
+                "tenant": "default", "present": False, "expected_policy": dict(policy),
                 "policy": None})
             page_obj = self._open_sources(context)
             self._with_lease(context, lambda: page_obj.get_by_label("Source provider", exact=True)
-                             .select_option(EXTRA_PROVIDER))
+                             .select_option(extra_provider))
             self._with_lease(context, lambda: page_obj.get_by_label("Interval (minutes)", exact=True)
                              .fill("10080"))
             self._with_lease(context, lambda: page_obj.get_by_label("Request timeout (seconds)", exact=True)
@@ -392,20 +404,20 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self._with_lease(context, lambda: page_obj.get_by_label("Schedule jitter (seconds)", exact=True)
                              .fill("0"))
             still_absent = self._with_lease(context, lambda: _source_rows(request))
-            if any(row.get("provider") == EXTRA_PROVIDER and row.get("tenant") == "default"
+            if any(row.get("provider") == extra_provider and row.get("tenant") == "default"
                    for row in still_absent):
                 raise SourceSetupError("EXTRA_SOURCE_APPEARED_BEFORE_CREATE")
-            self.policy_checks.append({"stage": "immediately_before_create", "provider": EXTRA_PROVIDER,
-                "tenant": "default", "present": False, "expected_policy": dict(POLICY),
+            self.policy_checks.append({"stage": "immediately_before_create", "provider": extra_provider,
+                "tenant": "default", "present": False, "expected_policy": dict(policy),
                 "policy": None})
             self._call_owned("read", context)
             page_obj.get_by_role("button", name="Add source", exact=True).click()
             page_obj.get_by_text("Source saved. Create a search profile below to enable scheduled discovery.",
                                  exact=True).wait_for(state="visible", timeout=5000)
             rows = _source_rows(request)
-            matches = [row for row in rows if row.get("provider") == EXTRA_PROVIDER
+            matches = [row for row in rows if row.get("provider") == extra_provider
                        and row.get("tenant") == "default"]
-            if len(matches) != 1 or any(matches[0].get(key) != value for key, value in POLICY.items()):
+            if len(matches) != 1 or any(matches[0].get(key) != value for key, value in policy.items()):
                 raise SourceSetupError("EXTRA_SOURCE_CONFIGURATION_UNCONFIRMED")
             source = matches[0]
             if source.get("last_attempt") is not None or source.get("last_success") is not None \
@@ -417,7 +429,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.enabled_policy_sha = self._source_policy_sha(source)
             self.policy_checks.append({"stage": "created_enabled", "source_id": self.extra_id,
                 "policy_sha256": self.enabled_policy_sha, "enabled": True,
-                "expected_policy": dict(POLICY), "policy": _policy_projection(source)})
+                "expected_policy": dict(policy), "policy": _policy_projection(source)})
             self.extra_enabled = True
             if callable(getattr(owned_containment, "additional_source", None)):
                 self._additional_event("created", context, enabled=True)
@@ -465,7 +477,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_CHANGED")
             self.policy_checks.append({"stage": "before_disable", "source_id": self.extra_id,
                 "policy_sha256": self.enabled_policy_sha, "enabled": True,
-                "expected_policy": dict(POLICY), "policy": _policy_projection(current)})
+                "expected_policy": dict(policy), "policy": _policy_projection(current)})
             page_obj = self._page()
             card_text = f"{current.get('provider')} / {current.get('tenant')}"
             section = page_obj.locator("section.panel").filter(has_text=card_text)
@@ -492,7 +504,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             self.disabled_policy_sha = self._source_policy_sha(disabled)
             self.policy_checks.append({"stage": "disabled_readback", "source_id": self.extra_id,
                 "policy_sha256": self.disabled_policy_sha, "enabled": False,
-                "expected_policy": {**POLICY, "enabled": False},
+                "expected_policy": {**policy, "enabled": False},
                 "policy": _policy_projection(disabled)})
             if self.disabled_policy_sha == self.enabled_policy_sha:
                 raise SourceSetupError("EXTRA_SOURCE_POLICY_TRANSITION_INVALID")
@@ -505,7 +517,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
         def _observe_and_disable(self, context):
             if self.observation is not None:
                 return
-            if context.get("provider") != PRIMARY_PROVIDER:
+            if context.get("provider") != primary_provider:
                 raise SourceSetupError("PRIMARY_PROVIDER_MISMATCH")
             primary_id = context.get("source_id")
             primary_hash = context.get("source_policy_sha256")
@@ -517,7 +529,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
             nav = page_obj.get_by_role("navigation", name="Main navigation")
             self._with_lease(context, lambda: nav.get_by_role("button", name="Sources", exact=True).click())
             rows = self._with_lease(context, lambda: _source_rows(request))
-            primary_rows = [row for row in rows if row.get("provider") == PRIMARY_PROVIDER
+            primary_rows = [row for row in rows if row.get("provider") == primary_provider
                             and row.get("tenant") == "default"]
             extra_rows = [row for row in rows if row.get("id") == self.extra_id]
             if (len(primary_rows) != 1 or len(extra_rows) != 1
@@ -539,9 +551,9 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     break
             enabled_providers = {row.get("provider") for row in rows if row.get("enabled") is True}
             multiple = (len(rows) >= 2 and sum(row.get("enabled") is True for row in rows) >= 2
-                        and len(enabled_providers) >= 2 and PRIMARY_PROVIDER in enabled_providers
-                        and EXTRA_PROVIDER in enabled_providers)
-            self.primary = {"provider": PRIMARY_PROVIDER, "source_id": primary_id,
+                        and len(enabled_providers) >= 2 and primary_provider in enabled_providers
+                        and extra_provider in enabled_providers)
+            self.primary = {"provider": primary_provider, "source_id": primary_id,
                             "policy_sha256": primary_hash}
             self.observation = {
                 "step": 9,
@@ -587,7 +599,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                 "job_id": baseline["selected_application_job_id"],
                 "primary": self.primary,
                 "owned_extra": {
-                    "provider": EXTRA_PROVIDER,
+                    "provider": extra_provider,
                     "source_id": self.extra_id,
                     "enabled_policy_sha256": self.enabled_policy_sha,
                     "disabled_policy_sha256": self.disabled_policy_sha,
@@ -645,7 +657,7 @@ def compose_owned_public_containment(owned_containment, *, base_url, baseline,
                     raise SourceSetupError("EXTRA_SOURCE_RELEASE_GUARD_FAILED")
                 self.policy_checks.append({"stage": "release", "source_id": self.extra_id,
                     "policy_sha256": self.disabled_policy_sha, "enabled": False,
-                    "expected_policy": {**POLICY, "enabled": False},
+                    "expected_policy": {**policy, "enabled": False},
                     "policy": _policy_projection(matches[0])})
                 try:
                     if self.extra_bound:

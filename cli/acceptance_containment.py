@@ -331,6 +331,7 @@ class OwnedPublicContainment:
         # Optional second source is admitted independently from the primary
         # provider. It is a cooperative operator fence, not a server-side lock.
         self._additional_policy = None
+        self._additional_primary_provider = None
         self._additional_state = None
         self._additional_source = None
         self._additional_enabled_digest = None
@@ -854,7 +855,7 @@ class OwnedPublicContainment:
 
     def _additional_source_readback(self, *, state):
         _require(self._additional_policy is not None, "ADDITIONAL_SOURCE_NOT_BOUND")
-        rows = self._provider_rows("remotive", "default")
+        rows = self._provider_rows(self._additional_policy["provider"], "default")
         if state == "ABSENT":
             _require(not rows, "ADDITIONAL_SOURCE_APPEARED_BEFORE_CREATE")
             return None
@@ -886,22 +887,21 @@ class OwnedPublicContainment:
         )
         return source
 
-    @staticmethod
-    def _expected_remotive_capabilities():
-        # Reuse the registered local adapter's deterministic metadata; never
-        # accept an unknown capability projection from the UI/API response.
-        from services.discovery.sources.remotive import Remotive
+    def _expected_additional_capabilities(self):
+        # The pair is allowlisted at binding. Read deterministic local metadata;
+        # never trust a capability projection supplied by the UI/API response.
+        from services.discovery.sources.registry import source_adapter
 
-        return Remotive(
-            request_timeout=10, rate_limit=1, concurrency=1
-        ).capabilities().as_dict()
+        return source_adapter(self._additional_policy).capabilities().as_dict()
 
     def _validate_additional_callback_context(self, context):
         if self._additional_policy is None:
             return
         value = context.get("additional_source")
         _require(isinstance(value, dict), "ADDITIONAL_SOURCE_CONTEXT_REQUIRED")
-        common = value.get("provider") == "remotive" and value.get("tenant") == "default"
+        common = (context.get("provider") == self._additional_primary_provider
+                  and value.get("provider") == self._additional_policy["provider"]
+                  and value.get("tenant") == "default")
         _require(common, "ADDITIONAL_SOURCE_CONTEXT_INVALID")
         if self._additional_state == "ABSENT":
             _require(
@@ -925,7 +925,7 @@ class OwnedPublicContainment:
         self._additional_source_readback(state=self._additional_state)
 
     def bind_additional_source(self, *, policy, primary_context):
-        """Bind Remotive/default absence under the current local operator lease.
+        """Bind the complementary source absence under the local operator lease.
 
         The API has no CAS. This method detects changes; safe use also requires
         the operator lease to exclude concurrent source-policy writers.
@@ -933,7 +933,11 @@ class OwnedPublicContainment:
         _require(self._admitted and self._paused_by_us, "CONTAINMENT_PREFLIGHT_REQUIRED")
         _require(self._additional_policy is None, "ADDITIONAL_SOURCE_ALREADY_BOUND")
         _require(isinstance(primary_context, dict), "SOURCE_SCOPE_CHANGED")
-        _require(primary_context.get("provider") == "wwr", "SOURCE_SCOPE_CHANGED")
+        from cli.acceptance_source_setup import source_setup_extra_provider
+
+        primary_provider = primary_context.get("provider")
+        _require(primary_provider in ENDPOINTS and primary_provider == self._provider, "SOURCE_SCOPE_CHANGED")
+        extra_provider = source_setup_extra_provider(primary_provider)
         self._verify_targets()
         self._ensure_lease()
         self._verify_api()
@@ -941,7 +945,7 @@ class OwnedPublicContainment:
         self._capture_collection_identity(primary_context)
         _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
         expected = {
-            "provider": "remotive",
+            "provider": extra_provider,
             "tenant": "default",
             "enabled": True,
             "poll_interval": 604800,
@@ -951,19 +955,20 @@ class OwnedPublicContainment:
             "jitter_seconds": 0,
         }
         _require(policy == expected, "ADDITIONAL_SOURCE_POLICY_UNSAFE")
-        _require(not self._provider_rows("remotive", "default"), "ADDITIONAL_SOURCE_ALREADY_PRESENT")
+        _require(not self._provider_rows(extra_provider, "default"), "ADDITIONAL_SOURCE_ALREADY_PRESENT")
         self._additional_policy = dict(expected)
+        self._additional_primary_provider = primary_provider
         self._additional_state = "ABSENT"
         return {
             "additional_source_absent": True,
-            "provider": "remotive",
+            "provider": extra_provider,
             "tenant": "default",
             "lease_expires_at": self._lease_expiry.isoformat(),
             "lease_model": "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS",
         }
 
     def additional_source(self, stage, context):
-        """Validate and latch the UI-created Remotive row and its one-way disable."""
+        """Validate and latch the complementary source and its one-way disable."""
         stages = {"created", "before_disable", "disabled", "check", "release"}
         _require(stage in stages and isinstance(context, dict), "ADDITIONAL_SOURCE_STAGE_INVALID")
         _require(self._additional_policy is not None, "ADDITIONAL_SOURCE_NOT_BOUND")
@@ -971,7 +976,7 @@ class OwnedPublicContainment:
         self._ensure_lease()
         self._verify_api()
         primary = {key: context[key] for key in ("provider", "base_url", "acceptance_run_id", "source_id", "source_policy_sha256", "newly_created", "collection_operation_id", "collection_request_id", "lease_required_until") if key in context}
-        _require(primary.get("provider") == "wwr", "SOURCE_SCOPE_CHANGED")
+        _require(primary.get("provider") == self._additional_primary_provider, "SOURCE_SCOPE_CHANGED")
         self._source_policy(primary, "read")
         self._capture_collection_identity(primary)
         _require(not self._active_discoveries(), "ACTIVE_COLLECTION_EXISTS")
@@ -982,10 +987,10 @@ class OwnedPublicContainment:
             enabled_digest = context.get("additional_enabled_policy_sha256")
             _require(isinstance(source_id, str) and source_id, "ADDITIONAL_SOURCE_IDENTITY_INVALID")
             _require(isinstance(enabled_digest, str) and re.fullmatch(r"[a-f0-9]{64}", enabled_digest), "ADDITIONAL_SOURCE_FINGERPRINT_INVALID")
-            rows = self._provider_rows("remotive", "default")
+            rows = self._provider_rows(self._additional_policy["provider"], "default")
             _require(len(rows) == 1, "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
             source = rows[0]
-            expected_capabilities = self._expected_remotive_capabilities()
+            expected_capabilities = self._expected_additional_capabilities()
             _require(source.get("id") == source_id, "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
             _require(
                 all(source.get(key) == value for key, value in self._additional_policy.items())
@@ -1013,7 +1018,7 @@ class OwnedPublicContainment:
             _require(isinstance(disabled_digest, str) and re.fullmatch(r"[a-f0-9]{64}", disabled_digest), "ADDITIONAL_SOURCE_FINGERPRINT_INVALID")
             expected = dict(self._additional_source)
             expected["enabled"] = False
-            rows = self._provider_rows("remotive", "default")
+            rows = self._provider_rows(self._additional_policy["provider"], "default")
             _require(len(rows) == 1 and rows[0].get("id") == self._additional_source["id"], "ADDITIONAL_SOURCE_IDENTITY_CHANGED")
             source = rows[0]
             _require(self._policy_digest(source) == self._policy_digest(expected) == disabled_digest, "ADDITIONAL_SOURCE_POLICY_CHANGED")

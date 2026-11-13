@@ -135,6 +135,7 @@ def test_monitoring_and_source_setup_are_explicit_options():
     assert parsed.source_setup is False
     assert parsed.resume is False
     assert parsed.stop_after_ui is False
+    assert parsed.public_source_provider == "wwr"
 
     explicit = campaign.build_parser().parse_args([
         "--evidence-dir", "outputs/run", "--startup-receipt", "outputs/startup.json",
@@ -143,6 +144,25 @@ def test_monitoring_and_source_setup_are_explicit_options():
     ])
     assert explicit.monitoring and explicit.source_setup
     assert explicit.resume and explicit.stop_after_ui
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_campaign_accepts_only_explicit_supported_public_providers(provider):
+    parsed = campaign.build_parser().parse_args([
+        "--evidence-dir", "outputs/run", "--startup-receipt", "outputs/startup.json",
+        "--build-receipt", "outputs/build.json", "--public-source-provider", provider,
+    ])
+    assert parsed.public_source_provider == provider
+
+
+@pytest.mark.parametrize("provider", ["remoteok", "greenhouse", "https://example.test", ""])
+def test_campaign_rejects_unsupported_public_provider_before_execution(provider):
+    with pytest.raises(SystemExit) as failure:
+        campaign.build_parser().parse_args([
+            "--evidence-dir", "outputs/run", "--startup-receipt", "outputs/startup.json",
+            "--build-receipt", "outputs/build.json", "--public-source-provider", provider,
+        ])
+    assert failure.value.code == 2
 
 
 def test_validate_only_checks_receipts_without_runtime_or_journey_calls(tmp_path, monkeypatch, capsys):
@@ -224,7 +244,7 @@ def _bind_public_artifacts(journey, plan, *, application=None):
     }
     journey.report = {
         "source": plan["source"], "run_id": plan["run_id"], "target": plan["target"],
-        "public_source_provider": "wwr", "monitoring": False,
+        "public_source_provider": plan["public_source_provider"], "monitoring": False,
         "segments": {"ui": {"status": "COMPLETE", "artifact": "ui.json", "sha256": "2" * 64}},
         "runtime_checks": {"ui": {"after": runtime}},
     }
@@ -287,8 +307,10 @@ def _patch_public_boundaries(monkeypatch, application):
     return calls
 
 
-def test_containment_is_lazy_and_binds_the_exact_confirmed_mock_application(tmp_path, monkeypatch):
-    args, journey, plan = _prepared_plan(tmp_path, monkeypatch)
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_containment_is_lazy_and_binds_the_exact_confirmed_mock_application(tmp_path, monkeypatch, provider):
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch,
+        flags=("--public-source-provider", provider))
     _bind_public_artifacts(journey, plan)
     calls = _patch_public_boundaries(monkeypatch, {
         "id": "application-1", "profile_id": "profile-1", "target": "MOCK",
@@ -299,12 +321,12 @@ def test_containment_is_lazy_and_binds_the_exact_confirmed_mock_application(tmp_
     assert calls["http"] == calls["docker"] == 0
     assert calls["constructed"] == []
 
-    wrong = {"provider": "remotive", "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
+    wrong = {"provider": "remotive" if provider == "wwr" else "wwr", "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
     with pytest.raises(ValueError, match="identity"):
         callback("preflight", wrong)
     assert calls["http"] == 0
 
-    context = {"provider": "wwr", "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
+    context = {"provider": provider, "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
     assert callback("preflight", context) == {"released": True}
     assert calls["path"] == "/profiles/profile-1/applications/application-1"
     assert calls["docker"] == 1
@@ -335,9 +357,11 @@ def test_public_admission_rejects_nonconfirmed_or_mismatched_application_before_
     assert calls["constructed"] == []
 
 
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
 def test_source_setup_wrapper_receives_validated_runtime_and_same_mock_baseline(
-        tmp_path, monkeypatch):
-    args, journey, plan = _prepared_plan(tmp_path, monkeypatch, flags=("--source-setup",))
+        tmp_path, monkeypatch, provider):
+    args, journey, plan = _prepared_plan(tmp_path, monkeypatch,
+        flags=("--source-setup", "--public-source-provider", provider))
     _bind_public_artifacts(journey, plan)
     calls = _patch_public_boundaries(monkeypatch, {
         "id": "application-1", "profile_id": "profile-1", "target": "MOCK",
@@ -353,17 +377,19 @@ def test_source_setup_wrapper_receives_validated_runtime_and_same_mock_baseline(
             return owned
 
     callback = campaign._lazy_containment(plan, args, journey, SourceSetup)
-    context = {"provider": "wwr", "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
+    context = {"provider": provider, "acceptance_run_id": plan["run_id"], "base_url": plan["origin"]}
     callback("preflight", context)
     assert len(source_setup_calls) == 1
     _, kwargs = source_setup_calls[0]
+    assert kwargs["primary_provider"] == provider
     assert kwargs["baseline"]["selected_application_route_id"] == "route-1"
     assert kwargs["runtime_identity"] == {
         "source_manifest_sha256": "a" * 64, "images": {"api": IMAGE_ID},
     }
 
 
-def test_normal_launch_forwards_resume_stop_and_explicit_monitoring(tmp_path, monkeypatch, capsys):
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_normal_launch_forwards_resume_stop_and_explicit_monitoring(tmp_path, monkeypatch, capsys, provider):
     # run_campaign intentionally prepares process environment for the connected
     # journey. This unit test calls it in-process, so isolate and restore those
     # CLI-only settings before later Compose tests inspect the checkout.
@@ -379,15 +405,24 @@ def test_normal_launch_forwards_resume_stop_and_explicit_monitoring(tmp_path, mo
     callback = object()
     monkeypatch.setattr(campaign, "_lazy_containment", lambda *args: callback)
     args = _args(tmp_path / "outputs" / "campaign", startup_path, build_path,
-                 "--resume", "--stop-after-ui", "--monitoring")
+                 "--resume", "--stop-after-ui", "--monitoring", "--public-source-provider", provider)
 
     assert campaign.run_campaign(args, journey=journey) == 2
     called = journey.run_calls[0]
     assert called["resume"] is True
     assert called["stop_after_ui"] is True
     assert called["monitoring"] is True
-    assert called["public_source_provider"] == "wwr"
+    assert called["public_source_provider"] == provider
     assert called["public_source_preflight"] is callback
     assert called["startup_receipt"] == startup_path.resolve()
     assert called["build_receipt"] == build_path.resolve()
     assert len(capsys.readouterr().out.splitlines()) == 2
+
+
+
+@pytest.mark.parametrize("provider", ["remoteok", "", None])
+def test_validate_plan_rejects_bypassed_parser_provider_before_receipt_or_runtime(tmp_path, provider):
+    args = _args(tmp_path, tmp_path / "missing-startup", tmp_path / "missing-build")
+    args.public_source_provider = provider
+    with pytest.raises(ValueError, match="Unsupported public source provider"):
+        campaign.validate_plan(args, journey=FakeJourney({}, {}))

@@ -515,12 +515,12 @@ def test_asset_manifest_paths_cannot_escape_the_owned_origin():
         client.assert_not_called()
 
 
-def public_artifact():
+def public_artifact(provider="wwr"):
     row = observation(11)
     row.update(evidence_kind="PUBLIC_READ_ONLY", checks=[
         {"name": "same_profile_public_readonly_jobs_observed", "passed": True}])
     return {**IDENTITY, "timestamp": journey.utc_now(), "source": SOURCE,
-            "acceptance_run_id": RUN_ID, "result": "PASS", "provider": "wwr",
+            "acceptance_run_id": RUN_ID, "result": "PASS", "provider": provider,
             "collection_operation_id": "collection-op", "collection_request_id": "collection-request", "source_id": "public-source",
             "source_policy_sha256": "7" * 64,
             "profile_version": 1,
@@ -1413,15 +1413,17 @@ def test_public_release_cannot_use_missing_or_malformed_policy_identity(policy_h
 
 
 def source_setup_artifact(state, public):
-    policy = {"provider": "remotive", "tenant": "default", "enabled": True, "poll_interval": 604800,
+    primary_provider = public["provider"]
+    extra_provider = {"wwr": "remotive", "remotive": "wwr"}[primary_provider]
+    policy = {"provider": extra_provider, "tenant": "default", "enabled": True, "poll_interval": 604800,
         "concurrency": 1, "request_timeout": 10, "rate_limit": 1, "jitter_seconds": 0}
-    projection = {**policy, "id": "extra-remotive", "strategy": "HTTP", "capabilities": ["DISCOVER"]}
+    projection = {**policy, "id": "extra-" + extra_provider, "strategy": "HTTP", "capabilities": ["DISCOVER"]}
     artifact = {"schema_version": 2, "result": "PASS", "timestamp": journey.utc_now(), "source": SOURCE,
         "acceptance_run_id": RUN_ID, "target_origin": TARGET["base_url"], "profile_id": state["profile_id"],
         "application_id": state["application_id"], "job_id": state["selected_application_job_id"],
         "runtime_identity": {key: RUNTIME[key] for key in ("source_manifest_sha256", "images")},
-        "primary": {"provider": "wwr", "source_id": public["source_id"], "policy_sha256": public["source_policy_sha256"]},
-        "owned_extra": {"provider": "remotive", "source_id": "extra-remotive", "enabled_policy_sha256": journey.digest(projection),
+        "primary": {"provider": primary_provider, "source_id": public["source_id"], "policy_sha256": public["source_policy_sha256"]},
+        "owned_extra": {"provider": extra_provider, "source_id": "extra-" + extra_provider, "enabled_policy_sha256": journey.digest(projection),
                         "disabled_policy_sha256": journey.digest({**projection, "enabled": False}), "disabled": True},
         "extra_collection_operation_ids": [],
         "extra_operation_readback_sha256": journey.digest([]),
@@ -1433,7 +1435,7 @@ def source_setup_artifact(state, public):
     expiry = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
     binding = {"acceptance_run_id": RUN_ID, "target_origin": TARGET["base_url"],
         "profile_id": state["profile_id"], "application_id": state["application_id"],
-        "job_id": state["selected_application_job_id"], "primary_provider": "wwr",
+        "job_id": state["selected_application_job_id"], "primary_provider": primary_provider,
         "primary_source_id": primary["source_id"], "primary_policy_sha256": primary["policy_sha256"],
         "extra_source_id": extra["source_id"], "extra_enabled_policy_sha256": extra["enabled_policy_sha256"],
         "extra_disabled_policy_sha256": extra["disabled_policy_sha256"], "extra_enabled": False}
@@ -1454,10 +1456,10 @@ def source_setup_artifact(state, public):
                        lease_expires_at=None, receipt=release)
         primary_checks.append(row)
     owner_checks = [{"stage": "bind_absent", "verified": True, "verification_scope": "LIVE_OWNER_API",
-        "provider": "remotive", "tenant": "default", "source_id": None,
+        "provider": extra_provider, "tenant": "default", "source_id": None,
         "enabled_policy_sha256": None, "disabled_policy_sha256": None, "enabled": False,
         "lease_expires_at": expiry, "lease_model": "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS",
-        "receipt": {"additional_source_absent": True, "provider": "remotive", "tenant": "default",
+        "receipt": {"additional_source_absent": True, "provider": extra_provider, "tenant": "default",
             "lease_expires_at": expiry, "lease_model": "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS"}}]
     for stage, enabled in (("created", True), ("check", True), ("before_disable", True),
                            ("disabled", False), ("check", False), ("release", False)):
@@ -1469,7 +1471,7 @@ def source_setup_artifact(state, public):
                 "additional_source_enabled": enabled, "lease_expires_at": expiry}})
     artifact.update(trust_boundary={"target": "ISOLATED_LOCAL_FIXTURE",
         "source_policy_ownership": "OPERATOR_COOPERATIVE_EXCLUSIVE", "source_policy_atomic_cas": False},
-        extra_policy_readbacks=[{"stage": stage, "provider": "remotive", "tenant": "default", "present": False,
+        extra_policy_readbacks=[{"stage": stage, "provider": extra_provider, "tenant": "default", "present": False,
                                  "expected_policy": policy, "policy": None}
             for stage in ("preflight_absent", "immediately_before_create")] + [
                 {"stage": stage, "source_id": extra["source_id"], "enabled": enabled,
@@ -1483,7 +1485,7 @@ def source_setup_artifact(state, public):
                 "created_before_primary_collection", "disabled_before_primary_collection", "release")],
         additional_owner_checks=owner_checks, primary_containment_checks=primary_checks,
         release_receipt={"released": True, "receipt": release,
-            "binding": {**binding, "extra_provider": "remotive", "owner": "fixture-owner",
+            "binding": {**binding, "extra_provider": extra_provider, "owner": "fixture-owner",
                         "token_sha256": "7" * 64, "lease_expires_at": expiry,
                         "project": TARGET["project_name"], "scheduler_container_id": RUNTIME["containers"]["scheduler"]},
             "additional_owner_release": copy.deepcopy(owner_checks[-1])})
@@ -1500,8 +1502,9 @@ def source_setup_controlled(artifact):
     return artifact
 
 
-def test_source_setup_requires_same_run_ui_source_policy_and_cleanup():
-    state, public = baseline(), public_artifact()
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_source_setup_requires_same_run_ui_source_policy_and_cleanup(provider):
+    state, public = baseline(), public_artifact(provider)
     artifact = source_setup_artifact(state, public)
     row = journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
     assert row["step"] == 9 and row["status"] == "PASS"
@@ -1523,9 +1526,11 @@ def test_source_setup_rejects_legacy_receipt_without_owned_release_history():
     "operations-bool", "operations-nonempty", "operations-digest", "owner-missing", "owner-scope", "owner-order",
     "owner-policy", "owner-unverified", "owner-receipt", "primary-missing", "primary-owner", "primary-token",
     "primary-lease", "primary-disabled", "primary-stage", "primary-source", "release-missing", "release-false",
-    "release-scheduler", "release-project", "release-contained", "release-extra", "release-binding", "release-raw"])
-def test_source_setup_v2_requires_ordered_ownership_and_release_receipts(change):
-    state, public = baseline(), public_artifact()
+    "release-scheduler", "release-project", "release-contained", "release-extra", "release-binding", "release-raw", "absence-provider", "owner-provider",
+    "owner-receipt-provider", "primary-provider", "release-extra-provider", "release-primary-provider"])
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_source_setup_v2_requires_ordered_ownership_and_release_receipts(change, provider):
+    state, public = baseline(), public_artifact(provider)
     artifact = source_setup_artifact(state, public)
     if change == "schema-bool": artifact["schema_version"] = True
     if change == "trust-missing": artifact.pop("trust_boundary")
@@ -1561,13 +1566,20 @@ def test_source_setup_v2_requires_ordered_ownership_and_release_receipts(change)
     if change == "release-extra": artifact["release_receipt"]["additional_owner_release"]["enabled"] = True
     if change == "release-binding": artifact["release_receipt"]["binding"]["token_sha256"] = "a" * 64
     if change == "release-raw": artifact["primary_containment_checks"][-1]["receipt"] = {}
+    if change == "absence-provider": artifact["extra_policy_readbacks"][0]["provider"] = provider
+    if change == "owner-provider": artifact["additional_owner_checks"][0]["provider"] = provider
+    if change == "owner-receipt-provider": artifact["additional_owner_checks"][0]["receipt"]["provider"] = provider
+    if change == "primary-provider": artifact["primary_containment_checks"][1]["primary_provider"] = artifact["owned_extra"]["provider"]
+    if change == "release-extra-provider": artifact["release_receipt"]["binding"]["extra_provider"] = provider
+    if change == "release-primary-provider": artifact["release_receipt"]["binding"]["primary_provider"] = artifact["owned_extra"]["provider"]
     with pytest.raises(ValueError):
         journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
 
 
-@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "job", "runtime", "primary", "policy", "enabled-extra", "same-source", "missing-cleanup", "extra-operation", "operation-digest", "stale", "checks", "fixture-kind", "wrong-step"])
-def test_source_setup_rejects_unbound_or_unclean_evidence(change):
-    state, public = baseline(), public_artifact()
+@pytest.mark.parametrize("change", ["run", "source", "profile", "application", "job", "runtime", "primary", "policy", "enabled-extra", "same-source", "missing-cleanup", "extra-operation", "operation-digest", "stale", "checks", "fixture-kind", "wrong-step", "primary-provider", "same-provider", "unknown-extra", "unknown-primary"])
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_source_setup_rejects_unbound_or_unclean_evidence(change, provider):
+    state, public = baseline(), public_artifact(provider)
     artifact = source_setup_artifact(state, public)
     if change == "run": artifact["acceptance_run_id"] = "other-run"
     if change == "source": artifact["source"] = {**SOURCE, "commit": "b" * 40}
@@ -1586,6 +1598,10 @@ def test_source_setup_rejects_unbound_or_unclean_evidence(change):
     if change == "checks": artifact["acceptance_observations"][0]["checks"][0]["passed"] = False
     if change == "fixture-kind": artifact["acceptance_observations"][0]["evidence_kind"] = "CONTROLLED_FIXTURE"
     if change == "wrong-step": artifact["acceptance_observations"][0]["step"] = 11
+    if change == "primary-provider": artifact["primary"]["provider"] = artifact["owned_extra"]["provider"]
+    if change == "same-provider": artifact["owned_extra"]["provider"] = provider
+    if change == "unknown-extra": artifact["owned_extra"]["provider"] = "remoteok"
+    if change == "unknown-primary": public["provider"] = artifact["primary"]["provider"] = "remoteok"
     with pytest.raises(ValueError):
         journey.validate_source_setup_artifact(artifact, state, public, TARGET, RUNTIME)
 
@@ -1638,10 +1654,11 @@ def test_optional_source_setup_joins_only_after_successful_release(tmp_path, set
 
 
 @pytest.mark.parametrize("execution_scope,expected_status", [("LIVE_PUBLIC_READ_ONLY", "PASS"), ("CONTROLLED_TRANSPORT", "NOT_RUN")])
-def test_actual_source_setup_publisher_schema_joins_without_relabeling(tmp_path, execution_scope, expected_status):
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_actual_source_setup_publisher_schema_joins_without_relabeling(tmp_path, execution_scope, expected_status, provider):
     """Use the real serializer, not a duplicate fixture envelope; no HTTP/browser execution."""
     producer = pytest.importorskip("cli.acceptance_source_setup")
-    state, public = baseline(), public_artifact()
+    state, public = baseline(), public_artifact(provider)
     sample = source_setup_artifact(state, public)
     if execution_scope == "CONTROLLED_TRANSPORT":
         source_setup_controlled(sample)
@@ -1654,7 +1671,7 @@ def test_actual_source_setup_publisher_schema_joins_without_relabeling(tmp_path,
         client.return_value.request.side_effect = no_request
         wrapped = producer.compose_owned_public_containment(lambda *_: None,
             base_url=TARGET["base_url"], baseline=state, acceptance_run_id=RUN_ID,
-            artifact_path=path, runtime_identity=sample["runtime_identity"], execution_scope=execution_scope,
+            artifact_path=path, primary_provider=provider, runtime_identity=sample["runtime_identity"], execution_scope=execution_scope,
             **({"request": no_request} if execution_scope == "CONTROLLED_TRANSPORT" else {}))
         composed = wrapped.composed if execution_scope == "LIVE_PUBLIC_READ_ONLY" else wrapped
         composed.primary = sample["primary"]

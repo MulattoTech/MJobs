@@ -709,6 +709,12 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
             or boundary.get("source_policy_atomic_cas") is not False):
         raise ValueError("Source setup requires the explicit cooperative ownership boundary")
     extra, primary = artifact["owned_extra"], artifact["primary"]
+    from cli.acceptance_source_setup import source_setup_extra_provider
+
+    primary_provider = primary["provider"]
+    extra_provider = source_setup_extra_provider(primary_provider)
+    if extra.get("provider") != extra_provider:
+        raise ValueError("Source setup providers are not the exact supported pair")
     live = artifact["result"] != "NOT_RUN"
 
     def history(key, minimum, maximum):
@@ -719,9 +725,9 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
         return rows
 
     policies = history("extra_policy_readbacks", 6, 6)
-    expected_policy = {"provider": "remotive", "tenant": "default", "enabled": True,
+    expected_policy = {"provider": extra_provider, "tenant": "default", "enabled": True,
         "poll_interval": 604800, "concurrency": 1, "request_timeout": 10, "rate_limit": 1, "jitter_seconds": 0}
-    expected_policies = [{"stage": stage, "provider": "remotive", "tenant": "default", "present": False}
+    expected_policies = [{"stage": stage, "provider": extra_provider, "tenant": "default", "present": False}
         for stage in ("preflight_absent", "immediately_before_create")]
     expected_policies.extend({"stage": stage, "source_id": extra["source_id"], "enabled": enabled,
         "policy_sha256": extra["enabled_policy_sha256" if enabled else "disabled_policy_sha256"]}
@@ -761,7 +767,7 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
         raise ValueError("Source setup containment history lacks the single completed lifecycle")
     binding = {"acceptance_run_id": artifact["acceptance_run_id"], "target_origin": target["base_url"],
         "profile_id": baseline["profile_id"], "application_id": baseline["application_id"],
-        "job_id": baseline["selected_application_job_id"], "primary_provider": "wwr"}
+        "job_id": baseline["selected_application_job_id"], "primary_provider": primary_provider}
     flags = ("scheduler_contained", "source_policy_exclusive", "source_collection_exclusive")
     owner, token = checks[0].get("owner"), checks[0].get("token_sha256")
     if (not isinstance(owner, str) or not owner or len(owner) > 200
@@ -822,11 +828,11 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
         if _instant(row.get("lease_expires_at")) <= _instant(checks[0]["checked_at"]):
             raise ValueError("Source setup additional owner lease is stale")
         if index == 0:
-            if (row.get("provider") != "remotive" or row.get("tenant") != "default" or row.get("source_id") is not None
+            if (row.get("provider") != extra_provider or row.get("tenant") != "default" or row.get("source_id") is not None
                     or row.get("enabled") is not False or row.get("enabled_policy_sha256") is not None
                     or row.get("disabled_policy_sha256") is not None
                     or receipt.get("additional_source_absent") is not True
-                    or receipt.get("provider") != "remotive" or receipt.get("tenant") != "default"
+                    or receipt.get("provider") != extra_provider or receipt.get("tenant") != "default"
                     or row.get("lease_model") != "LOCAL_OPERATOR_CLAIM_NO_SERVER_SIDE_CAS"
                     or receipt.get("lease_model") != row.get("lease_model")):
                 raise ValueError("Source setup additional owner did not bind an absent source")
@@ -843,7 +849,7 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
     release = artifact.get("release_receipt", {})
     raw = release.get("receipt", {})
     final_binding = {**binding, "primary_source_id": primary["source_id"], "primary_policy_sha256": primary["policy_sha256"],
-        "extra_provider": "remotive", "extra_source_id": extra["source_id"],
+        "extra_provider": extra_provider, "extra_source_id": extra["source_id"],
         "extra_enabled_policy_sha256": extra["enabled_policy_sha256"],
         "extra_disabled_policy_sha256": extra["disabled_policy_sha256"], "extra_enabled": False,
         "owner": owner, "token_sha256": token, "lease_expires_at": checks[-2]["lease_expires_at"],
@@ -861,6 +867,10 @@ def _validate_source_setup_release_history(artifact, baseline, target, runtime):
 
 def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
     """Join optional source configuration proof after successful containment release."""
+    from cli.acceptance_source_setup import source_setup_extra_provider
+
+    primary_provider = public.get("provider")
+    extra_provider = source_setup_extra_provider(primary_provider)
     if (type(artifact.get("schema_version")) is not int or artifact["schema_version"] != 2
             or artifact.get("result") not in {"PASS", "PARTIAL", "NOT_RUN"}
             or artifact.get("source") != baseline["source"]
@@ -871,13 +881,13 @@ def validate_source_setup_artifact(artifact, baseline, public, target, runtime):
             or artifact.get("job_id") != baseline.get("selected_application_job_id")
             or validate_runtime_identity(artifact.get("runtime_identity")) != {
                 key: runtime[key] for key in ("source_manifest_sha256", "images")}
-            or artifact.get("primary") != {"provider": "wwr", "source_id": public["source_id"],
+            or artifact.get("primary") != {"provider": primary_provider, "source_id": public["source_id"],
                                             "policy_sha256": public["source_policy_sha256"]}
-            or public.get("provider") != "wwr" or artifact.get("extra_collection_operation_ids") != []
+            or artifact.get("extra_collection_operation_ids") != []
             or artifact.get("extra_operation_readback_sha256") != digest([])):
         raise ValueError("Source setup identity differs from its connected public run")
     extra = artifact.get("owned_extra", {})
-    if (extra.get("provider") != "remotive" or extra.get("disabled") is not True
+    if (extra.get("provider") != extra_provider or extra.get("disabled") is not True
             or not isinstance(extra.get("source_id"), str) or not SAFE_ID.fullmatch(extra["source_id"])
             or extra["source_id"] == public["source_id"]
             or any(not isinstance(extra.get(key), str) or re.fullmatch(r"[a-f0-9]{64}", extra[key]) is None
