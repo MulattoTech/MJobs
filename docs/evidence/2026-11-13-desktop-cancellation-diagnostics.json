@@ -1,0 +1,997 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N05",
+  "related_requirements": [
+    "MJ-REQ-004",
+    "MJ-REQ-179"
+  ],
+  "issue": "https://github.com/MulattoTech/MJobs/issues/366",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1017",
+  "purpose": "Bounded cancellation-phase diagnostics, genuine SQLite premature-reader controls, and a negative-only commit-entry handshake; no production cancellation fix is claimed.",
+  "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "source": {
+    "previous_publication_head": "f564ef52747f4734e1c8245a09add33d9093ff1a",
+    "authored_diagnostic_commit": "ce43385378845aaf1efbe496a925ff0bcb6ff4ae",
+    "authored_diagnostic_parent": "f564ef52747f4734e1c8245a09add33d9093ff1a",
+    "authored_diagnostic_paths": [
+      "tests/unit/test_operation_cancellation_commit.py"
+    ],
+    "qualification_commit": "ac4d4b4295d04e4e6425c0ab5a9c74909d8149bf",
+    "qualification_tree": "d7566af9cadba2738bf33bc12d6ae221e372e78d",
+    "tested_worktree_dirty": false,
+    "source_identity_unchanged_during_qualification": true,
+    "test_path": "tests/unit/test_operation_cancellation_commit.py",
+    "test_blob": "14ad43e9d70532dc9043cee24af426963ffb7308",
+    "test_sha256": "e051a47252564d5eadee3694b5e27761dca7eb7f8eb9ff5f6532b3ddba3e370e",
+    "qualification_production_blobs": {
+      "packages/persistence/store.py": {
+        "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+      },
+      "workers/operations.py": {
+        "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+        "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+      },
+      "services/audit_history.py": {
+        "git_blob": "3c70db5d2782088be261ba7fba854e9c7ff55de6",
+        "sha256": "838e98719b2a950cdf4c4d7dc070dfe03a7343fd8461045bfedc0fe82a2e4b63"
+      }
+    },
+    "current_main_merge": {
+      "commit": "ac4d4b4295d04e4e6425c0ab5a9c74909d8149bf",
+      "parents": [
+        "ce43385378845aaf1efbe496a925ff0bcb6ff4ae",
+        "5b2e306144ca39fff1c199e1b0c215efe18f6fc1"
+      ],
+      "main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "incoming_exact": {
+        "docs/evidence/2026-11-13-web-e49a-ai-settings-restored-identity.json": {
+          "main": "52e3889dace78e34a9c0c16dd1c53fb372aa94aa",
+          "candidate": "52e3889dace78e34a9c0c16dd1c53fb372aa94aa"
+        },
+        "docs/evidence/2026-11-13-web-e49a-settings-monitoring-composition.json": {
+          "main": "ecfdde180ee40e3c3886316611eca970f4b4e096",
+          "candidate": "ecfdde180ee40e3c3886316611eca970f4b4e096"
+        },
+        "packages/persistence/store.py": {
+          "main": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "candidate": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f"
+        },
+        "planning/agent_handoffs/MJ-REQ-109-e49a.json": {
+          "main": "ee692367ad7203ae62035207d7bca3273eee7dd5",
+          "candidate": "ee692367ad7203ae62035207d7bca3273eee7dd5"
+        },
+        "tests/integration/test_ai_task_settings_restored_identity.py": {
+          "main": "162f1e9eeaeef053d8657f31c730bf7f8b18c54f",
+          "candidate": "162f1e9eeaeef053d8657f31c730bf7f8b18c54f"
+        }
+      },
+      "all_five_incoming_paths_match_main": true,
+      "frontend_tree": "bec2f782466c2604c0ddfe8acb14b46398f2b415",
+      "frontend_tree_unchanged_from_previous_publication": true,
+      "candidate_receipt": {
+        "path": "desktop-handshake-current-main-candidate.json",
+        "bytes": 1446,
+        "sha256": "ed9a44e63f39f34b507595bf1aeda6e7468a0f202ace24e4d44bfb218aa0b726"
+      },
+      "candidate_receipt_runtime_not_run_was_recorded_before_the_subsequent_actual_qualification": true
+    },
+    "store_provenance": {
+      "authored_source_commit_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "previous_publication_blob": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8",
+      "qualified_main_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+      "change_origin": "Protected main 5b2e3061 (PR1016), imported exactly by merge ac4d4b42.",
+      "equivalence_limit": "Source commit ce4338537 retains the older Store; the actual ac4d4b42 qualification exercises the imported current-main Store. No production equivalence between those two Store blobs is asserted."
+    },
+    "unchanged_workers_and_audit_helper": true,
+    "source_author_changed_production_files": false,
+    "desktop_application_tested_head": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+    "prior_desktop_application_evidence": "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+    "binding": "This receipt binds the actual clean ac4d4b42 execution. Applying this evidence will create a later metadata commit; its final identity, independent final review and publication must be bound separately."
+  },
+  "diagnostic_contract": {
+    "original_test_methods_preserved": 9,
+    "maximum_phase_records": 96,
+    "strict_elapsed_bound_seconds": 0.35,
+    "reader_trap_wait_seconds": 0.5,
+    "original_timer_and_thread_start_order_preserved": true,
+    "actual_sql_and_dbapi_calls_preserved": true,
+    "bounded_phase_context_in_latency_and_premature_read_failures": true,
+    "original_premature_read_reason_retained_as_final_suffix": true,
+    "clocks_replaced": false,
+    "sql_results_mocked": false,
+    "production_files_changed": false,
+    "original_nine_method_bodies_ast_identical_to_d61335b5": true,
+    "production_files_changed_scope": "The authored diagnostic change ce4338537 touches only the test file. The assembled candidate also imports an unrelated protected-main Store change exactly.",
+    "negative_only_commit_entry_handshake": {
+      "enabled_for_original_positive_cases": false,
+      "maximum_wait_seconds": 2,
+      "actual_entry_event_separate_from_commit_or_writer_exit_wakeup": true,
+      "entry_signal_boundary": "Owned writer dialect do_commit wrapper, immediately before the original DBAPI callable.",
+      "hold_start": "The existing 0.5-second reader trap starts after observed actual commit-wrapper entry.",
+      "missing_commit_error": "NEGATIVE_CONTROL_COMMIT_ENTRY_TIMEOUT",
+      "writer_exit_before_commit_error": "NEGATIVE_CONTROL_WRITER_EXITED_BEFORE_COMMIT",
+      "writer_exit_and_cleanup_release_without_faking_commit_entry": true,
+      "timeout_is_fixture_prerequisite_not_positive_latency_SLO": true
+    },
+    "delayed_negative_control": {
+      "requested_real_precommit_delay_seconds": 0.6,
+      "placement": "Before the original audit/commit path, with genuine time.sleep and unchanged SQL/results/clocks.",
+      "requires_observed_commit_entry_after_old_half_second_window": true
+    },
+    "additional_observation": {
+      "snapshot_helper": "Pass through the existing helper only if already loaded in sys.modules; no eager application import or cache warming.",
+      "sqlalchemy_before_execute": "Record clause type only, without compiling/stringifying SQL or retaining parameters.",
+      "gc_callback": "Record start/stop generation markers in the same bounded deque; no collection, disablement or threshold change.",
+      "cleanup": "ExitStack restores wrappers/listeners and removes the exact GC callback; reader release, owned joins and cancellation registration cleanup remain bounded."
+    }
+  },
+  "local_runs": [
+    {
+      "stage": "initial_instrumentation",
+      "result": "PASS",
+      "test_blob": "e2984dc33b8b8848e81d970c98a8cd8ae6548267",
+      "test_sha256": "9fa42f3c194d39700e3a98f21e9994bb5f0bcf319301da5eb714acfb6f573fb3",
+      "started_at": "2026-11-13T04:28:26.469825+00:00",
+      "finished_at": "2026-11-13T04:28:31.513609+00:00",
+      "counts": {
+        "tests_passed": 9,
+        "subtests_passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\cancellation-diagnostic-initial.xml",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "source_unchanged": true,
+      "exit_code": 0,
+      "receipt": "cancellation-diagnostic-initial.json",
+      "receipt_sha256": "e183387d54d106f812737c05d6548fa9b01662dade1410e57b7215cb4fea13c9",
+      "log": "cancellation-diagnostic-initial.log",
+      "log_sha256": "7f7ac77e7cf8a897609d5c2bc17147face980ad4eeb8997caddd9243bed6eb83",
+      "junit": "cancellation-diagnostic-initial.xml",
+      "junit_sha256": "1488fd6fe05b4602e690b7054805d0841f49f4b6177ba5fe9d1d51a0170eba45",
+      "historical": true,
+      "artifacts": [
+        {
+          "path": "cancellation-diagnostic-initial.json",
+          "bytes": 2416,
+          "sha256": "e183387d54d106f812737c05d6548fa9b01662dade1410e57b7215cb4fea13c9"
+        },
+        {
+          "path": "cancellation-diagnostic-initial.log",
+          "bytes": 96,
+          "sha256": "7f7ac77e7cf8a897609d5c2bc17147face980ad4eeb8997caddd9243bed6eb83"
+        },
+        {
+          "path": "cancellation-diagnostic-initial.xml",
+          "bytes": 1901,
+          "sha256": "1488fd6fe05b4602e690b7054805d0841f49f4b6177ba5fe9d1d51a0170eba45"
+        }
+      ],
+      "junit_reporting": {
+        "reported_tests": 33,
+        "testcase_elements": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suite_seconds": 4.611,
+        "timestamp": "2026-11-12T22:28:26.799631-06:00",
+        "hostname": "MulattoTechBox",
+        "count_interpretation": "JUnit reported_tests includes subtests; testcase_elements counts test methods."
+      },
+      "source_scope": "Earlier dirty e32 worktree and exact historical source/production identities; not a qualification of the later handshake or current-main Store."
+    },
+    {
+      "stage": "final_with_negative_control",
+      "result": "PASS",
+      "test_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+      "test_sha256": "9847965618501136069e044762db6f14b9429b369631062aa68ec34cce0894c9",
+      "started_at": "2026-11-13T04:44:33.562025+00:00",
+      "finished_at": "2026-11-13T04:44:39.504411+00:00",
+      "counts": {
+        "tests_passed": 10,
+        "subtests_passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\cancellation-diagnostic-negativecontrol.xml",
+        "-s",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "source_unchanged": true,
+      "exit_code": 0,
+      "receipt": "cancellation-diagnostic-negativecontrol.json",
+      "receipt_sha256": "c8e93eaffdf9db2b402f8426bace67626d22095656d41c9175ea76e76cc76e62",
+      "log": "cancellation-diagnostic-negativecontrol.log",
+      "log_sha256": "337e12b713239f5e33e6a32d7a69170bec21cf0ef607e5b69f8f3fcded39998a",
+      "junit": "cancellation-diagnostic-negativecontrol.xml",
+      "junit_sha256": "5402adcf2a7b6181a1e3fe13892be355ee1b1063a15c33830816a98bf51d3121",
+      "historical": true,
+      "artifacts": [
+        {
+          "path": "cancellation-diagnostic-negativecontrol.json",
+          "bytes": 5606,
+          "sha256": "c8e93eaffdf9db2b402f8426bace67626d22095656d41c9175ea76e76cc76e62"
+        },
+        {
+          "path": "cancellation-diagnostic-negativecontrol.log",
+          "bytes": 59686,
+          "sha256": "337e12b713239f5e33e6a32d7a69170bec21cf0ef607e5b69f8f3fcded39998a"
+        },
+        {
+          "path": "cancellation-diagnostic-negativecontrol.xml",
+          "bytes": 2095,
+          "sha256": "5402adcf2a7b6181a1e3fe13892be355ee1b1063a15c33830816a98bf51d3121"
+        }
+      ],
+      "junit_reporting": {
+        "reported_tests": 34,
+        "testcase_elements": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suite_seconds": 5.536,
+        "timestamp": "2026-11-12T22:44:33.877862-06:00",
+        "hostname": "MulattoTechBox",
+        "count_interpretation": "JUnit reported_tests includes subtests; testcase_elements counts test methods."
+      },
+      "source_scope": "Earlier dirty e32 worktree and exact historical source/production identities; not a qualification of the later handshake or current-main Store."
+    },
+    {
+      "stage": "negative_only_handshake_on_actual_current_main",
+      "result": "PASS",
+      "qualification_commit": "ac4d4b4295d04e4e6425c0ab5a9c74909d8149bf",
+      "qualification_tree": "d7566af9cadba2738bf33bc12d6ae221e372e78d",
+      "dirty_source": false,
+      "test_blob": "14ad43e9d70532dc9043cee24af426963ffb7308",
+      "test_sha256": "e051a47252564d5eadee3694b5e27761dca7eb7f8eb9ff5f6532b3ddba3e370e",
+      "started_at": "2026-11-13T05:39:23.203589+00:00",
+      "finished_at": "2026-11-13T05:39:31.587283+00:00",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-s",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "-rs",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\desktop-handshake-ac4d4b42.xml",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "counts": {
+        "tests_passed": 12,
+        "subtests_passed": 24,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "console_seconds": 7.84,
+      "console_summary": "12 passed, 24 subtests passed in 7.84s",
+      "junit_reporting": {
+        "reported_tests": 36,
+        "testcase_elements": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suite_seconds": 7.844,
+        "timestamp": "2026-11-12T23:39:23.642279-06:00",
+        "hostname": "MulattoTechBox",
+        "count_interpretation": "JUnit reported_tests includes subtests; testcase_elements counts test methods."
+      },
+      "source_before": {
+        "tests/unit/test_operation_cancellation_commit.py": {
+          "git_blob": "14ad43e9d70532dc9043cee24af426963ffb7308",
+          "sha256": "e051a47252564d5eadee3694b5e27761dca7eb7f8eb9ff5f6532b3ddba3e370e"
+        },
+        "packages/persistence/store.py": {
+          "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+        },
+        "workers/operations.py": {
+          "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+          "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+        },
+        "services/audit_history.py": {
+          "git_blob": "3c70db5d2782088be261ba7fba854e9c7ff55de6",
+          "sha256": "838e98719b2a950cdf4c4d7dc070dfe03a7343fd8461045bfedc0fe82a2e4b63"
+        }
+      },
+      "source_after": {
+        "tests/unit/test_operation_cancellation_commit.py": {
+          "git_blob": "14ad43e9d70532dc9043cee24af426963ffb7308",
+          "sha256": "e051a47252564d5eadee3694b5e27761dca7eb7f8eb9ff5f6532b3ddba3e370e"
+        },
+        "packages/persistence/store.py": {
+          "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+        },
+        "workers/operations.py": {
+          "git_blob": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+          "sha256": "ce902b66d1a1c0456529c4d139af363cb5b2fe9f5eac32918965dc72a7ad48de"
+        },
+        "services/audit_history.py": {
+          "git_blob": "3c70db5d2782088be261ba7fba854e9c7ff55de6",
+          "sha256": "838e98719b2a950cdf4c4d7dc070dfe03a7343fd8461045bfedc0fe82a2e4b63"
+        }
+      },
+      "source_unchanged": true,
+      "exit_code": 0,
+      "child_finished": true,
+      "execution_owner": "/root",
+      "evidence_preparer_executed_additional_tests": false,
+      "receipt": "desktop-handshake-ac4d4b42.json",
+      "log": "desktop-handshake-ac4d4b42.log",
+      "junit": "desktop-handshake-ac4d4b42.xml",
+      "artifacts": [
+        {
+          "path": "desktop-handshake-ac4d4b42.json",
+          "bytes": 3036,
+          "sha256": "bb33a9540d503a777263e9fe304c3d196bc4476830b01d66b4b9834789de64f2"
+        },
+        {
+          "path": "desktop-handshake-ac4d4b42.log",
+          "bytes": 75818,
+          "sha256": "19a04a6d23103038880fb726211690ba919aa0cbfd10e396e875adcfc61dbf96"
+        },
+        {
+          "path": "desktop-handshake-ac4d4b42.xml",
+          "bytes": 2469,
+          "sha256": "6ea6455f533ad88ce0fc7aed231736cb026e949f7702f20b08d3bedfdce92998"
+        }
+      ],
+      "platform": "Windows / MULATTOTECHBOX",
+      "scope_limit": "This focused Windows qualification is not a hosted Linux run or proof of the cause of the historical hosted delays."
+    }
+  ],
+  "negative_control": {
+    "qualified_fixture_blob": "14ad43e9d70532dc9043cee24af426963ffb7308",
+    "operation_kind": "DISCOVER",
+    "thread_name": "mjobs-synthetic-execution",
+    "mechanism": "The execution thread performs the real durable SELECT. The after-cursor hook waits for the separate actual commit-entry event before its existing half-second hold. Owned dialect wrappers pass through genuine DBAPI calls.",
+    "phase_clock": "Relative time.monotonic() wall time and time.thread_time() per-thread CPU time, printed to six decimals; observations are retained as reported.",
+    "no_new_positive_latency_bound": true,
+    "bounded_handshake_seconds": 2,
+    "cases": [
+      {
+        "test": "test_execution_thread_negative_control_detects_a_premature_sqlite_read",
+        "result": "PASS",
+        "premature_reads": 1,
+        "checked_out_connections_after": 0,
+        "observed_relative_phase_records": [
+          {
+            "label": "premature_read",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "poll_acknowledged",
+            "thread": "MainThread",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "premature_read_released",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.531,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "request_exit",
+            "thread": "MainThread",
+            "wall_seconds": 0.563,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "dbapi_commit_enter",
+            "thread": "MainThread",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "negative_control_commit_observed",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "dbapi_commit_exit",
+            "thread": "MainThread",
+            "wall_seconds": 0.563,
+            "thread_cpu_seconds": 0.0
+          }
+        ],
+        "assertions_source": "14ad43e9d70532dc9043cee24af426963ffb7308",
+        "evidence": "desktop-handshake-ac4d4b42.log and XML",
+        "required_failure_suffix": "Local polling acquired a read lock during its cancellation transaction",
+        "expected_specific_premature_read_failure_observed": true,
+        "unique_required_events_per_label_and_thread": true,
+        "required_order": "premature_read <= dbapi_commit_enter < premature_read_released <= dbapi_commit_exit",
+        "overlap_assertions": "PASS",
+        "observed_dbapi_commit_wrapper_span_seconds": 0.547
+      },
+      {
+        "test": "test_execution_thread_negative_control_releases_on_writer_abort",
+        "result": "PASS",
+        "premature_reads": 1,
+        "checked_out_connections_after": 0,
+        "observed_relative_phase_records": [
+          {
+            "label": "premature_read",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.015,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "poll_acknowledged",
+            "thread": "MainThread",
+            "wall_seconds": 0.015,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "premature_read_released",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.015,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "request_exit",
+            "thread": "MainThread",
+            "wall_seconds": 0.015,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "NEGATIVE_CONTROL_WRITER_EXITED_BEFORE_COMMIT",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.015,
+            "thread_cpu_seconds": 0.0
+          }
+        ],
+        "assertions_source": "14ad43e9d70532dc9043cee24af426963ffb7308",
+        "evidence": "desktop-handshake-ac4d4b42.log and XML",
+        "expected_failure": "NEGATIVE_CONTROL_WRITER_EXITED_BEFORE_COMMIT",
+        "commit_entry_events": 0,
+        "reader_release_and_zero_connections_assertions": "PASS"
+      },
+      {
+        "test": "test_execution_thread_negative_control_survives_precommit_delay",
+        "result": "PASS",
+        "premature_reads": 1,
+        "checked_out_connections_after": 0,
+        "observed_relative_phase_records": [
+          {
+            "label": "premature_read",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "poll_acknowledged",
+            "thread": "MainThread",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "premature_read_released",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 1.125,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "request_exit",
+            "thread": "MainThread",
+            "wall_seconds": 1.157,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "dbapi_commit_enter",
+            "thread": "MainThread",
+            "wall_seconds": 0.61,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "negative_control_commit_observed",
+            "thread": "mjobs-synthetic-execution",
+            "wall_seconds": 0.61,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "dbapi_commit_exit",
+            "thread": "MainThread",
+            "wall_seconds": 1.157,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "negative_precommit_delay_enter",
+            "thread": "MainThread",
+            "wall_seconds": 0.016,
+            "thread_cpu_seconds": 0.0
+          },
+          {
+            "label": "negative_precommit_delay_exit",
+            "thread": "MainThread",
+            "wall_seconds": 0.61,
+            "thread_cpu_seconds": 0.0
+          }
+        ],
+        "assertions_source": "14ad43e9d70532dc9043cee24af426963ffb7308",
+        "evidence": "desktop-handshake-ac4d4b42.log and XML",
+        "required_failure_suffix": "Local polling acquired a read lock during its cancellation transaction",
+        "expected_specific_premature_read_failure_observed": true,
+        "unique_required_events_per_label_and_thread": true,
+        "required_order": "premature_read <= dbapi_commit_enter < premature_read_released <= dbapi_commit_exit",
+        "overlap_assertions": "PASS",
+        "observed_dbapi_commit_wrapper_span_seconds": 0.547,
+        "requested_real_precommit_delay_seconds": 0.6,
+        "observed_delay_marker_span_seconds": 0.594,
+        "observed_reader_to_commit_entry_seconds": 0.594,
+        "old_half_second_window_exceeded": true
+      }
+    ],
+    "interpretation_limit": "Wrapper entry/exit and a held real reader prove the asserted overlap for these executions; they do not identify the cause of any historical Linux delay."
+  },
+  "historical_hosted_failures": [
+    {
+      "pr": 1017,
+      "head": "e32f0b2687172402455e44ea07a79a26597300b7",
+      "tested_merge": "4d9675880339d7084167b12611c7adfeab5c1107",
+      "run_id": 43360674713,
+      "job_id": 131673162464,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/43360674713/job/131673162464",
+      "fixture_blob": "d61335b53abd9f9f1f26e9bc9ccc44ec7f11289a",
+      "subtest": {
+        "kind": "DISCOVER",
+        "watcher": "mjobs-wwr-cancellation"
+      },
+      "result": "FAIL",
+      "elapsed_seconds": 1.048089245999961,
+      "strict_bound_seconds": 0.35,
+      "counts": {
+        "failed": 1,
+        "passed": 3986,
+        "skipped": 54,
+        "subtests_passed": 4639
+      },
+      "finding": "Latency failed after durable row/audit, watcher shutdown/errors, and no-premature-read assertions. The timer also included fixture patch setup and thread creation. The delayed phase is UNKNOWN."
+    },
+    {
+      "pr": 987,
+      "head": "b3109c95e81fc8db1d53baaef6aeaa1776f23034",
+      "tested_merge": "528d8457bb5d7e6a0abadb90e9cd8d6035cde132",
+      "run_id": 42561554310,
+      "job_id": 128978869671,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/42561554310/job/128978869671",
+      "fixture_blob": "7258e821c41d632adcb2036d41b08fadc01f369d",
+      "subtest": {
+        "kind": "COMPANY_SOURCE_REFRESH",
+        "watcher": "mjobs-remotive-cancellation"
+      },
+      "result": "FAIL",
+      "elapsed_seconds": 0.9033297459999972,
+      "strict_bound_seconds": 0.35,
+      "counts": {
+        "failed": 1,
+        "passed": 3927,
+        "skipped": 54,
+        "subtests_passed": 4579
+      },
+      "observed_relative_seconds": {
+        "staged": 0.901,
+        "audit_entered": 0.901,
+        "watcher_check": 0.902,
+        "poll_entered": 0.902,
+        "poll_acknowledged": 0.902,
+        "audit_finished": 0.902,
+        "request_finished": 0.903,
+        "wait_finished": 0.903
+      },
+      "finding": "The observer was ready before the timer, but nearly all delay preceded staging. Identical worker/Store blobs were verified at both tested merges; a common cause with PR1017 is not established."
+    },
+    {
+      "pr": 1017,
+      "head": "f564ef52747f4734e1c8245a09add33d9093ff1a",
+      "tested_merge": "c78795421cba84781ea3cf4c0f9c93066546bdae",
+      "base_main_at_execution": "e70c08f5c4037122acb5be0a30237fa483ddafcf",
+      "run_id": 43369839593,
+      "job_id": 131702778116,
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/43369839593/job/131702778116",
+      "fixture_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+      "test": "test_execution_thread_negative_control_detects_a_premature_sqlite_read",
+      "result": "FAIL",
+      "failure_type": "Negative-control overlap prerequisite, not an original positive latency assertion.",
+      "failed_predicate": "dbapi_commit_enter < premature_read_released",
+      "failure_message": "AssertionError: 0.96037 not less than 0.60688",
+      "counts": {
+        "failed": 1,
+        "passed": 3987,
+        "skipped": 54,
+        "warnings": 1,
+        "subtests_passed": 4644,
+        "console_seconds": 241.47
+      },
+      "original_nine_positive_methods_passed": true,
+      "required_contexts_at_this_head": {
+        "observed_at": "2026-11-13T05:35:12.950Z",
+        "passed": 4,
+        "total": 5,
+        "checks": [
+          {
+            "name": "CI / required",
+            "status": "completed",
+            "conclusion": "failure",
+            "id": 131704437568,
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43369839593/job/131704437568",
+            "started_at": "2026-11-13T05:11:24Z",
+            "completed_at": "2026-11-13T05:11:26Z"
+          },
+          {
+            "name": "Integration / PostgreSQL and Redis",
+            "status": "completed",
+            "conclusion": "success",
+            "id": 131708445112,
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43369839536/job/131708445112",
+            "started_at": "2026-11-13T05:22:40Z",
+            "completed_at": "2026-11-13T05:22:42Z"
+          },
+          {
+            "name": "Dependencies / introduced vulnerabilities",
+            "status": "completed",
+            "conclusion": "success",
+            "id": 131702777919,
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43369839561/job/131702777919",
+            "started_at": "2026-11-13T05:06:46Z",
+            "completed_at": "2026-11-13T05:06:53Z"
+          },
+          {
+            "name": "Security / secret scan",
+            "status": "completed",
+            "conclusion": "success",
+            "id": 131702777724,
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43369839647/job/131702777724",
+            "started_at": "2026-11-13T05:06:45Z",
+            "completed_at": "2026-11-13T05:06:56Z"
+          },
+          {
+            "name": "Disposable Compose / mock end-to-end",
+            "status": "completed",
+            "conclusion": "success",
+            "id": 131702777700,
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43369839567/job/131702777700",
+            "started_at": "2026-11-13T05:06:46Z",
+            "completed_at": "2026-11-13T05:15:41Z"
+          }
+        ]
+      },
+      "observed_relative_phase_records": [
+        {
+          "label": "premature_read",
+          "thread": "mjobs-synthetic-execution",
+          "wall_seconds": 0.004177,
+          "thread_cpu_seconds": 0.001666
+        },
+        {
+          "label": "poll_acknowledged",
+          "thread": "MainThread",
+          "wall_seconds": 0.004201,
+          "thread_cpu_seconds": 0.00248
+        },
+        {
+          "label": "premature_read_released",
+          "thread": "mjobs-synthetic-execution",
+          "wall_seconds": 0.60688,
+          "thread_cpu_seconds": 0.001933
+        },
+        {
+          "label": "sql_INSERT_audit_enter",
+          "thread": "MainThread",
+          "wall_seconds": 0.960115,
+          "thread_cpu_seconds": 0.956267
+        },
+        {
+          "label": "dbapi_commit_enter",
+          "thread": "MainThread",
+          "wall_seconds": 0.96037,
+          "thread_cpu_seconds": 0.956521
+        },
+        {
+          "label": "dbapi_commit_exit",
+          "thread": "MainThread",
+          "wall_seconds": 0.961406,
+          "thread_cpu_seconds": 0.956821
+        }
+      ],
+      "observed_pre_insert_gap": {
+        "start": "poll_acknowledged@MainThread",
+        "end": "sql_INSERT_audit_enter@MainThread",
+        "wall_seconds": 0.955914,
+        "thread_cpu_seconds": 0.953787,
+        "cause": "UNKNOWN",
+        "boundary_limit": "The interval includes phase-observer bookkeeping and the pre-cursor audit/SQLAlchemy path. The available trace does not place the whole interval inside Store._audit or identify a responsible component.",
+        "audit_helper_source_fact": "For CANCELLATION_REQUESTED the existing snapshot helper returns the unchanged empty payload before application lookup or label-redaction/snapshot work."
+      },
+      "observed_dbapi_commit_wrapper_span_seconds": 0.001036,
+      "finding": "The reader released before actual commit-wrapper entry. The original negative control correctly rejected absent overlap; the later change repairs its timing premise without claiming a production latency fix.",
+      "artifacts": [
+        {
+          "path": "ci-desktop-unit-f564ef52.log",
+          "bytes": 61388,
+          "sha256": "a73469da383612e50c7dafbf74d65a43d179b1f29fb4e1c82bb3307fbff51b6b"
+        },
+        {
+          "path": "desktop-f564-required-checks-final.json",
+          "bytes": 5299,
+          "sha256": "09a94154e799215de6d5e5dea85cc16ee7d41d7606e99bc5732a5e6d7de51c00"
+        }
+      ]
+    }
+  ],
+  "review": {
+    "evidence_preparer": "/root/integration_coordination",
+    "preparer_is_diagnostic_implementation_author": true,
+    "scope": "Read-only consistency review of saved qualification, logs, JUnit, independent source review, current immutable identities and incoming-main equality; preparation of private evidence and PR-body proposals only.",
+    "additional_tests_or_application_imports": false,
+    "provider_requests": false,
+    "tracked_source_changes": false,
+    "independent_test_source_review": {
+      "reviewer": "/root/campaign_review",
+      "implementation_author": "/root/integration_coordination",
+      "reviewer_is_implementation_author": false,
+      "status": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "recorded_at_utc": "2026-11-13T05:36:28.831Z",
+      "test_blob": "14ad43e9d70532dc9043cee24af426963ffb7308",
+      "test_sha256": "e051a47252564d5eadee3694b5e27761dca7eb7f8eb9ff5f6532b3ddba3e370e",
+      "reviewed_base_head": "f564ef52747f4734e1c8245a09add33d9093ff1a",
+      "reviewed_dirty_exact_source": true,
+      "blocking_findings": [],
+      "receipt": {
+        "path": "independent-review-desktop-14ad43e9.json",
+        "bytes": 13594,
+        "sha256": "b6925858553060cf8ee695450be5d413f50e12820f62d94379fc7009800b15a0"
+      },
+      "scope_limit": "This independent review preceded source commit ce4338537 and the current-main merge. It reviewed exact test blob14ad and noted the then-pending current-main Store qualification; that subsequent qualification is separately recorded above."
+    },
+    "author_separation": "The preparer authored the diagnostic test change and does not claim independent approval of it. The cited campaign review was performed by another agent; root performed the recorded focused execution.",
+    "final_immutable_review_binding": "The clean dfc3adb1 evidence successor has separate independent approval recorded above. This later metadata successor corrects its clock label and records the exact released scanner dependency; the final successor identity, equivalence and publication operator approval are bound by a separate private receipt.",
+    "independent_final_dfc_review": {
+      "status": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviewer": "/root/campaign_review",
+      "reviewed_head": "dfc3adb1cdb429b349b12dbd3a3acbcdc917ffcb",
+      "reviewed_tree": "c18e12c84400eb38dc99b39daf8263e7c9346d65",
+      "receipt": {
+        "name": "independent-final-review-desktop-dfc3adb1.json",
+        "bytes": 40059,
+        "sha256": "55b2b7c4d9496a9cd063d0c39d4d7504802289d0e9d64ac405ddd35fbbd231e1"
+      },
+      "blocking_findings": [],
+      "nonblocking_D1": {
+        "finding": "Current phase_clock label named perf_counter while the actual test uses time.monotonic() and time.thread_time().",
+        "disposition": "Corrected this label only; recorded timing observations and executable source unchanged."
+      }
+    }
+  },
+  "interpretation": {
+    "diagnostic_locally_qualified": true,
+    "hosted_latency_root_cause": "UNKNOWN",
+    "production_fix_claimed": false,
+    "historical_hosted_failures_resolved": false,
+    "full_desktop_acceptance_claimed": false,
+    "canonical_acceptance_changed": false,
+    "current_main_focused_qualification": "PASS",
+    "current_main_handshake_locally_qualified": true,
+    "historical_f564_required_checks": "4/5 PASS; CI / required FAIL on the prior unsynchronized negative control.",
+    "hosted_pre_insert_cpu_gap_cause": "UNKNOWN",
+    "new_candidate_hosted_qualification": "NOT_RUN"
+  },
+  "remaining_gates": [
+    "Bind and independently verify this final metadata/scanner successor against the approved dfc3adb1 evidence and unchanged ac4d4b42 executable source.",
+    "Prepare fresh authenticated operator/publication metadata and admission for the ordinary existing PR1017 update from the recorded f564 publication head.",
+    "Run required hosted qualification on the new final published head. The f564 results are historical and do not qualify the new candidate.",
+    "Have the designated steward perform protected integration and the applicable Desktop acceptance review; retain any failure and diagnose from measured evidence."
+  ],
+  "private_artifact_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "recorded_at": "2026-11-13T05:52:51.957886+00:00",
+  "historical_source_bindings": [
+    {
+      "through_published_head": "f564ef52747f4734e1c8245a09add33d9093ff1a",
+      "manifest_blob": "3f5bd3e516cb2395f1108a1d63f9c5f56412c328",
+      "manifest_sha256": "4cf24d3ad330e3836b1a465708898de99e304c11d7879dab122dda15eb102512",
+      "recorded_at": "2026-11-13T04:56:28.031644+00:00",
+      "source": {
+        "base_head": "e32f0b2687172402455e44ea07a79a26597300b7",
+        "base_tree": "c1199005d9225112ce0cdb71fccd43fcd314c61b",
+        "tested_worktree_dirty": true,
+        "qualification_commit": null,
+        "branch": "web/cancellation-diagnostics-20261113-4dae",
+        "path": "tests/unit/test_operation_cancellation_commit.py",
+        "final_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+        "final_sha256": "9847965618501136069e044762db6f14b9429b369631062aa68ec34cce0894c9",
+        "production_blobs": {
+          "workers/operations.py": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+          "packages/persistence/store.py": "ff2b53380d923dfabfcda9cca8e04dbcce0364e8"
+        },
+        "production_equivalent_at": [
+          "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+          "e32f0b2687172402455e44ea07a79a26597300b7",
+          "e70c08f5c4037122acb5be0a30237fa483ddafcf"
+        ],
+        "binding": "Tests ran over dirty base e32 with source hashes preserved. Source commit7642c8e3 and current-main merge3d483e3f contain the exact final test blob and unchanged worker/Store blobs; no test rerun on those commit identities is claimed.",
+        "source_commit_after_qualification": "7642c8e3df9d7d05122aa9d1a10823cce87b49bd",
+        "refreshed_source_head": "3d483e3f0e75d2b0751165db1df13ba9f0b55ec4",
+        "integrated_main": "e70c08f5c4037122acb5be0a30237fa483ddafcf",
+        "desktop_application_source": {
+          "tested_head": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+          "apps_web_tree": "bec2f782466c2604c0ddfe8acb14b46398f2b415",
+          "refreshed_apps_web_tree": "bec2f782466c2604c0ddfe8acb14b46398f2b415",
+          "unchanged": true,
+          "evidence": "docs/evidence/2026-11-13-desktop-notifications-ca95.json"
+        },
+        "main_refresh": "All eight incoming main blobs were adopted exactly, including canonical SESSION_HANDOFF and .gitleaksignore. This imports the protected public-client prerequisite without claiming it fixes the cancellation latency."
+      }
+    }
+  ],
+  "historical_negative_controls": [
+    {
+      "fixture_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+      "local_run": "cancellation-diagnostic-negativecontrol",
+      "proof": {
+        "test": "test_execution_thread_negative_control_detects_a_premature_sqlite_read",
+        "operation_kind": "DISCOVER",
+        "thread_name": "mjobs-synthetic-execution",
+        "mechanism": "Non-watcher name executes the genuine durable SQL read; the existing after-cursor hook holds that read while the actual writer attempts its commit.",
+        "required_failure_suffix": "Local polling acquired a read lock during its cancellation transaction",
+        "failure_message_phase_records_verified": true,
+        "premature_reads": 1,
+        "checked_out_connections_after": 0,
+        "observed_relative_seconds": {
+          "premature_read": 0,
+          "dbapi_commit_enter": 0,
+          "premature_read_released": 0.5,
+          "dbapi_commit_exit": 0.531
+        },
+        "observed_dbapi_commit_span_seconds": 0.531,
+        "required_order": "premature_read <= dbapi_commit_enter < premature_read_released <= dbapi_commit_exit",
+        "overlap_assertions": "PASS",
+        "new_fixed_timing_bound": false
+      },
+      "limit": "This earlier local overlap proof does not supersede the later f564 hosted failure."
+    }
+  ],
+  "review_history": [
+    {
+      "through_published_head": "f564ef52747f4734e1c8245a09add33d9093ff1a",
+      "review": {
+        "agent": "/root/integration_coordination",
+        "reviewer_is_test_implementation_author": true,
+        "scope": "Read-only source and receipt consistency review; no additional tests.",
+        "result": "No material inconsistency found in the frozen test source and local evidence.",
+        "verified": "Receipt/log/JUnit hashes, exact source identities before/after, original nine method ASTs, preserved helper assertion expressions, unchanged production blobs, negative-control phase ordering, AST compilation without execution and whitespace.",
+        "independent_final_candidate_review": "PENDING",
+        "independent_test_source_review": {
+          "reviewer": "/root/campaign_review",
+          "reviewed_blob": "9e84ed1bc937d9d48a9129a5c8ef495e78ef87b5",
+          "result": "No blocking finding; original timing, actual SQL, negative control and cleanup preserved"
+        }
+      },
+      "final_consistency_receipt": {
+        "path": "final-review-f564ef52.json",
+        "bytes": 10629,
+        "sha256": "64b374d511f6b7328ba9f2038bb1db53ead06862b03c0a38c7cf53a4e01ff38f"
+      }
+    }
+  ],
+  "evidence_preparation": {
+    "source": "Saved local receipts and read-only git/file inspection; no fresh hosted/provider request or runtime execution.",
+    "worktree_head_observed": "ac4d4b4295d04e4e6425c0ab5a9c74909d8149bf",
+    "worktree_clean_observed": true,
+    "observed_at": "2026-11-13T05:52:51.957886+00:00",
+    "source_transfer_receipt": {
+      "path": "desktop-handshake-transfer.json",
+      "bytes": 591,
+      "sha256": "d1a5cf2f10d47b6d08b835a82453e8c59ae8dcec3d778f0513c87a6441aff32e"
+    },
+    "private_outputs": [
+      "desktop-diagnostics-evidence-proposed.json",
+      "desktop-pr-body-next.md"
+    ]
+  },
+  "desktop_application_component_evidence": {
+    "path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+    "git_blob": "5f6b01c104fb716d5debc428df2c76e773a539d3",
+    "bytes": 19328,
+    "sha256": "bd39f1fea5962a3c35761a4178e26cc0482e056ca62e3a19f72409da6cd27580",
+    "original_source_test_revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+    "original_source_tree": "6ff7ba1c874a6a6b84738bbd0762d2f6340af1e9",
+    "current_candidate_component_blobs_identical_to_original_tested_source": {
+      "apps/web/src/main.tsx": "0b5064aed9b10bda516379fe9ef3d6d6f9bfc122",
+      "apps/web/src/desktop-notification-provider.ts": "327703260b210d7b7d98ce6e5c7c0830169806c0",
+      "apps/web/src/desktop-notifications.tsx": "8d3a46952028401707bc00e6e24d6db82ecc0a30",
+      "apps/web/src/desktop-notification-provider.test.ts": "68317290cfb146412bd2a533735abb190c0a4a07",
+      "apps/web/src/desktop-notifications.test.tsx": "eb792e111b58a750cb7a09b2791c4f38da0baf54",
+      "tests/browser/test_desktop_notifications.py": "82ec7061a31cde7d2a64a7f9f00e1d9e0079b10c",
+      "tests/browser/test_operation_notifications.py": "4345215383904bf1147628c6e64afb302770e50d",
+      "docs/DESKTOP_NOTIFICATIONS.md": "0e26aefc31fa2d508e9507f93d8420e71ba50114"
+    },
+    "current_candidate_apps_web_tree": "bec2f782466c2604c0ddfe8acb14b46398f2b415",
+    "qualification_summary": {
+      "frontend_tests_passed": 28,
+      "new_desktop_cases": 23,
+      "existing_activity_cases": 5,
+      "typescript_vite_build": "PASS",
+      "actual_mounted_api_browser_cases_passed": 5,
+      "browser_failures": 0,
+      "browser_errors": 0,
+      "browser_skips": 0,
+      "external_requests": 0,
+      "browser_api_writes": 0,
+      "page_errors": 0,
+      "native_constructor_handoffs": 3,
+      "browser_show_events": 3
+    },
+    "scope": "Opt-in open-page Desktop activity notifications with profile-isolated snapshots, native permission, bounded coordinated receipts and private-safe fixed content.",
+    "limitations": [
+      "Native construction and browser show events were observed; OS-visible Windows toast was not inspected.",
+      "No live simultaneous two-tab race was run; native Web Lock use and deterministic serialization contracts were verified.",
+      "Browser permission was pregranted in the isolated browser context; gesture-only permission request and stale-result races were verified deterministically.",
+      "Open-page desktop Chromium 153.0.8010.12 only; other browsers, mobile, closed-page service-worker push and cross-device preferences are not claimed.",
+      "Receipts retain512 outcome identities and are persisted before native construction; at-most-once attempts are bounded, and delivery is not guaranteed or retried automatically.",
+      "An unsaved Disable is suppressed within this tab/module lifetime; other tabs or a reload cannot inherit a preference that failed to persist.",
+      "Only generic operation terminal outcomes are supported; the parent requirement potential match/authentication-expiry events remain separate.",
+      "This browser execution surface is implemented in apps/web; common server-provider catalogue metadata is coordinated with the independent ntfy lane. No server Desktop sender exists.",
+      "Global MJOBS_NOTIFICATIONS_ENABLED remains off by default; no production setting, migration or deployment changed.",
+      "Protected current-head hosted checks, verified integration stewardship and canonical acceptance ownership remain separate gates."
+    ],
+    "binding_limit": "The original component runs occurred at a0de7db5 and are retained as such. Current frontend and the eight independently reviewed application/browser-test/documentation blobs are identical. No new frontend/build/browser execution at ac4d4b42 is claimed; subsequent backend/main changes are separately bound and hosted/final acceptance remains required."
+  },
+  "scanner_dependency_adoption": {
+    "source_commit": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+    "local_adoption_commit": "6df0e06fc53c258411987de731439a99c318a550",
+    "local_adoption_tree": "7a34e15d097462df151721f995e7c2b703572d5c",
+    "paths": [
+      ".gitleaksignore",
+      "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+    ],
+    "exact_blobs": {
+      ".gitleaksignore": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+      "docs/evidence/2026-11-13-ntfy-scanner-disposition.json": "db132b02dfae64de3793ff1edf47eb18c181aefb"
+    },
+    "receipt": {
+      "name": "scanner-adoption-complete.json",
+      "bytes": 3494,
+      "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+    },
+    "scope": "Two historical synthetic ntfy event-identifier fingerprints only; no scanner policy, workflow, application or diagnostic-test change.",
+    "shared_claim_disposition": "RELEASED_AFTER_THREE_EXACT_ADOPTIONS",
+    "fresh_desktop_hosted_scan": "NOT_RUN"
+  },
+  "metadata_updated_at_utc": "2026-11-13T06:24:02.750929+00:00"
+}

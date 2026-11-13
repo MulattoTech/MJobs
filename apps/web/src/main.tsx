@@ -102,6 +102,7 @@ import { DataExport } from './data-export';
 import { SourceRelationshipGraph } from './source-relationship-graph';
 import { RetentionConnected } from './feature-connections';
 import { OperationNotifications } from './operation-notifications';
+import { DesktopNotifications } from './desktop-notifications';
 import { OperationProgressConnected } from './operation-progress-connected';
 import { ApplicationRehearsal } from './application-rehearsal';
 import { ControlledApplicationDryRun } from './controlled-application-dry-run';
@@ -352,6 +353,7 @@ function App() {
   const [ops,setOps] = useState<Operation[]>([]);
   const [notificationsEnabled,setNotificationsEnabled] = useState(false);
   const [notificationReadError,setNotificationReadError] = useState(false);
+  const [desktopNotificationSnapshot,setDesktopNotificationSnapshot] = useState<{profileId:string;operations:Operation[]}|null>(null);
   const [opsProfileId,setOpsProfileId] = useState<string|null>(null);
   const [deadLetters,setDeadLetters] = useState<Operation[]>([]);
   const [deadLetterCount,setDeadLetterCount] = useState(0);
@@ -782,6 +784,7 @@ function App() {
   useEffect(() => {const sequence=++editorSequence.current;++appSequence.current;profileBaselineRef.current=null;localStorage.setItem('mjobs-profile',profileId);setApplicationLoading(null);setSearchProfiles([]);clearSearchScheduleDrafts();setSelectedSearchProfileId('');setJobSourceId('');setApplicationPipelineStatus('');setApplicationCapability('');setDetail(null);setSelectedApp(null);setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setDocs([]);setResumes([]);setApps([]);setOps([]);setCompanySources([]);setAITaskSettings(defaultAITaskSettings());setAITaskFallbacks({});setAISettingsLoading(!!profileId);void refresh(profileId).catch(e=>setError(String(e)));if(profileId){void api<Profile>('/profiles/'+encodeURIComponent(profileId)).then(p=>{if(sequence===editorSequence.current&&p.id===profileRef.current){const loaded={...p,contact:p.contact||{},preferences:p.preferences||{},facts:(p.facts||[]).map(f=>({...f,id:f.fact_id||f.id}))};setEditor(loaded);profileBaselineRef.current=loaded;}}).catch(e=>setError(String(e)));void api<{resumes:Resume[]}>('/profiles/'+encodeURIComponent(profileId)+'/resumes').then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current)setResumes(r.resumes);}).catch(e=>setError(String(e)));void api<{tasks:AITaskSettings;fallback_capabilities:AITaskFallbacks}>(`/profiles/${encodeURIComponent(profileId)}/ai-task-settings`).then(r=>{if(sequence===editorSequence.current&&profileId===profileRef.current){setAITaskSettings(r.tasks);setAITaskFallbacks(r.fallback_capabilities);}}).catch(e=>setError(String(e))).finally(()=>{if(sequence===editorSequence.current)setAISettingsLoading(false);});}else setAISettingsLoading(false);},[profileId]);
   useEffect(()=>{
     setNotificationReadError(false);
+    setDesktopNotificationSnapshot(null);
     if(!notificationsEnabled||!profileId)return;
     const selected=profileId;const controller=new AbortController();
     let disposed=false;let timer:ReturnType<typeof setTimeout>|undefined;
@@ -791,6 +794,7 @@ function App() {
           `/operations?profile_id=${encodeURIComponent(selected)}`,{signal:controller.signal});
         if(!disposed&&profileRef.current===selected){
           setOps(response.operations);setOpsProfileId(selected);setNotificationReadError(false);
+          setDesktopNotificationSnapshot({profileId:selected,operations:response.operations});
         }
       } catch {
         if(!disposed&&profileRef.current===selected)setNotificationReadError(true);
@@ -1597,7 +1601,8 @@ function App() {
       <div className="safety">Real applications require your own manual review and submission. This workspace cannot submit to an external employer.</div>
       {error&&<div role="alert" className="alert"><strong>Action needs attention</strong><p>{error}</p></div>}
       {notice&&<div role="status" className="notice">{notice}</div>}
-      {profileId&&opsProfileId===profileId&&<OperationNotifications key={profileId} profileId={profileId} enabled={notificationsEnabled} operations={ops} loadError={notificationReadError}/>}
+      {profileId&&opsProfileId===profileId&&<OperationNotifications key={`activity:${profileId}`} profileId={profileId} enabled={notificationsEnabled} operations={ops} loadError={notificationReadError}/>}
+      {profileId&&desktopNotificationSnapshot?.profileId===profileId&&<DesktopNotifications key={`desktop:${profileId}`} profileId={profileId} enabled={notificationsEnabled} operations={desktopNotificationSnapshot.operations} loadError={notificationReadError}/>}
       {busy&&<div role="status" className="notice">{busy}… {activeOp&&<button className="quiet" onClick={()=>void api('/operations/'+activeOp+'/cancel',{method:'POST'}).then(()=>setNotice('Cancellation requested.')).catch(e=>setError(String(e)))}>Cancel operation</button>}</div>}
       {tab==='Review Queue'&&<ApplicationReviewQueue applications={reviewQueueApplications} profileId={profileId} loading={reviewQueueLoading} loadError={reviewQueueLoadError} onReview={applicationId=>void showApp(applicationId).catch(e=>setError(String(e)))}/>}
       {tab==='Pipeline'&&<PipelineWorkbench profileId={profileId} onOpenApplication={id=>void showApp(id).catch(e=>setError(String(e)))}/>}
