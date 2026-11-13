@@ -169,6 +169,15 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                 }))
 
     def test_analyze_page_attaches_value_free_control_visibility_evidence(self):
+        evaluations = []
+
+        class BudgetCheck:
+            def __call__(self):
+                pass
+
+            def remaining_seconds(self):
+                return 3.5
+
         class Locator:
             def __init__(self, selector):
                 self.selector = selector
@@ -176,7 +185,8 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
             def count(self):
                 return 0
 
-            def evaluate_all(self, script, **kwargs):
+            def evaluate(self, script, arg=None, *, timeout=None):
+                evaluations.append((self.selector, timeout))
                 return [{
                     "user_visible": True,
                     "user_editable": True,
@@ -198,7 +208,8 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
         }]}
         with patch("services.applications.adapters.teamtailor.analyze_form_page",
                    return_value=analysis):
-            result = self.adapter.analyze_page(Page())
+            result = self.adapter.analyze_page(Page(), check=BudgetCheck())
+        self.assertEqual(evaluations, [("form", 3500)])
         self.assertEqual(result["fields"][0]["user_visible"], True)
         self.assertEqual(result["fields"][0]["user_editable"], True)
         self.assertFalse(self.adapter.requires_human_review(result))
@@ -231,7 +242,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     def count(self):
                         return 0
 
-                    def evaluate_all(self, script, **kwargs):
+                    def evaluate(self, script, arg=None, *, timeout=None):
                         return [state]
 
                 class Page:
@@ -344,7 +355,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     def count(self):
                         return 0
 
-                    def evaluate_all(self, script, **kwargs):
+                    def evaluate(self, script, arg=None, *, timeout=None):
                         self.script = script
                         return [state]
 
