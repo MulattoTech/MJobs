@@ -626,14 +626,25 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                 _require(_source(read, provider) is None, 'SOURCE_APPEARED_DURING_PREFLIGHT')
                 policy = dict(provider=provider, tenant='default', enabled=True, poll_interval=604800,
                     concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0)
+                from services.discovery.sources.registry import source_adapter
+                capabilities = source_adapter(policy).capabilities()
                 contained('enable')
                 enable_attempted = True
                 configured = request('PUT', '/sources', json=policy)
+                _require(isinstance(configured, dict) and isinstance(configured.get('id'), str)
+                    and SAFE_ID.fullmatch(configured['id']) is not None, 'SOURCE_CONFIGURATION_CHANGED')
                 owned_source = configured['id']
+                expected_fingerprint = _policy_fingerprint(dict(id=owned_source, **policy,
+                    strategy=capabilities.strategy.value, capabilities=capabilities.as_dict()))
+                # This is a requested constraint, not an observed source receipt.
+                # The owner independently checks it on both guarded reads; only
+                # the exact returned projection can authorize cleanup or dispatch.
+                evidence.update(source_id=owned_source, source_policy_sha256=expected_fingerprint)
                 source = _source(read, provider)
                 _require(source is not None and source['id'] == owned_source
-                    and all(source[key] == value for key, value in policy.items()), 'SOURCE_CONFIGURATION_CHANGED')
-                fingerprint = _policy_fingerprint(source)
+                    and all(source[key] == value for key, value in policy.items())
+                    and _policy_fingerprint(source) == expected_fingerprint, 'SOURCE_CONFIGURATION_CHANGED')
+                fingerprint = expected_fingerprint
             _require(source['enabled'] is True, 'SOURCE_DISABLED')
             now = utc_now()
             _require(not source.get('backoff_until') or _timestamp(source['backoff_until']) <= now, 'SOURCE_BACKOFF')

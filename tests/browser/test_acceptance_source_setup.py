@@ -2,16 +2,19 @@ import hashlib
 import json
 import tempfile
 import unittest
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import Mock
 
+import pytest
 from playwright.sync_api import sync_playwright
 
 from cli.acceptance_source_setup import _policy_sha, compose_owned_public_containment
 from cli.acceptance_public_source import _validate_lease_continuity
 from packages.persistence.store import identity
 from services.discovery.sources.registry import source_adapter
+from tests.unit import test_acceptance_containment as owner_fixtures
 
 
 _TEST_NOW = datetime.now(timezone.utc)
@@ -480,6 +483,199 @@ def _route_ui_request(route, rows):
                       body=rows_update_from_ui(request.post_data, rows))
     else:
         route.abort()
+
+
+class _PublicSetupAPI(owner_fixtures.FakeAPI):
+    """Controlled transport shared by independent producer and owner reads."""
+
+    def __init__(self, provider, *, mutate_created=None, mutate_readback=None):
+        super().__init__()
+        from cli.acceptance_public_source import ENDPOINTS
+
+        self.provider = provider
+        self.collection_state = "COMPLETED"
+        self.mutate_created = mutate_created
+        self.mutate_readback = mutate_readback
+        self.creation_read_seen = False
+        self.public["attributes"].update(provider=provider, source_endpoint=ENDPOINTS[provider])
+        self.public["postings"][0]["source"] = ENDPOINTS[provider]
+
+    def request(self, method, path, **kwargs):
+        if (method, path) != ("PUT", "/sources"):
+            return super().request(method, path, **kwargs)
+        self.calls.append((method, path, deepcopy(kwargs)))
+        policy = kwargs["json"]
+        old = next((row for row in self.sources if row["provider"] == policy["provider"]
+                    and row["tenant"] == policy["tenant"]), None)
+        configured = _configured_source(policy, previous=old)
+        configured["backoff_until"] = old.get("backoff_until") if old else None
+        if policy["provider"] == self.provider:
+            configured["id"] = "public-source"
+        returned_id = configured["id"]
+        if old is None:
+            self.sources.append(configured)
+            if policy["provider"] == self.provider and self.mutate_created is not None:
+                self.mutate_created(configured)
+        else:
+            old.clear()
+            old.update(configured)
+        # The inherited controlled collection mutates the primary row only.
+        self.sources.sort(key=lambda row: row["provider"] != self.provider)
+        return {"id": returned_id}
+
+    def producer_request(self, method, path, **kwargs):
+        result = self.request(method, path, **kwargs)
+        if ((method, path) == ("GET", "/sources") and not self.creation_read_seen
+                and any(row.get("id") == "public-source" for row in self.sources)):
+            self.creation_read_seen = True
+            if self.mutate_readback is not None:
+                self.mutate_readback(result)
+        return result
+
+
+def _run_public_setup_join(tmp_path, provider, **api_options):
+    """Run real producers/owner/serializer; every transport and job is controlled."""
+    from cli.acceptance_public_source import child_containment_context, run
+
+    fixture = owner_fixtures.OwnedPublicContainmentTests(methodName="runTest")
+    fixture.setUp()
+    try:
+        fixture.api = api = _PublicSetupAPI(provider, **api_options)
+        confirmation = {"application_id": "application", "receipt": "controlled-mock", "submission_count": 1}
+        api.app["confirmation"] = confirmation
+        baseline = {
+            "source": {"commit": owner_fixtures.REVISION, "tree": owner_fixtures.TREE,
+                "working_tree_diff_sha256": "e" * 64, "working_tree_status_sha256": "e" * 64},
+            "profile_id": "profile", "application_id": "application",
+            "operation_id": "baseline-operation", "request_id": "baseline-request",
+            "profile_version": "v1", "selected_application_job_id": "fixture-job",
+            "selected_application_route_id": "fixture-route", "confirmation": confirmation,
+            "timestamp": fixture.now[0].isoformat(), "external_submission_enabled": False,
+        }
+        owner = fixture.containment(baseline=baseline)
+        origin = "http://127.0.0.1:18732"
+        runtime = {"source_manifest_sha256": "e" * 64, "images": {"api": owner_fixtures.IMAGE_ID}}
+        target = {"base_url": origin, "port": 18732, "project_name": owner_fixtures.PROJECT}
+        callback_trace = []
+        setup_path = tmp_path / "public-source-setup.json"
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+
+                def route_request(route):
+                    request = route.request
+                    if request.url == origin + "/" and request.method == "GET":
+                        route.fulfill(status=200, content_type="text/html", body=_sources_ui())
+                    elif request.url == origin + "/sources" and request.method in {"GET", "PUT"}:
+                        options = {"json": request.post_data_json} if request.method == "PUT" else {}
+                        value = api.request(request.method, "/sources", **options)
+                        route.fulfill(status=200, content_type="application/json", body=json.dumps(value))
+                    else:
+                        route.abort()
+
+                page.route("**/*", route_request)
+                composed = compose_owned_public_containment(owner, base_url=origin, baseline=baseline,
+                    acceptance_run_id="controlled-public-setup-join", primary_provider=provider,
+                    runtime_identity=runtime, artifact_path=setup_path, request=api.request, page=page,
+                    execution_scope="CONTROLLED_TRANSPORT", utc_now=lambda: fixture.now[0])
+
+                def traced_owner(stage, context):
+                    callback_trace.append({"stage": stage, "source_id": context.get("source_id"),
+                        "source_policy_sha256": context.get("source_policy_sha256")})
+                    return composed(stage, context)
+
+                public = run(origin, baseline, tmp_path / "public.json",
+                    acceptance_run_id="controlled-public-setup-join", provider=provider,
+                    containment_preflight=traced_owner, request=api.producer_request,
+                    execution_scope="CONTROLLED_TRANSPORT", utc_now=lambda: fixture.now[0])
+                if public["result"] == "PASS":
+                    composed("release", {"provider": provider, "base_url": origin,
+                        "acceptance_run_id": public["acceptance_run_id"], "newly_created": True,
+                        "cleanup_status": public["cleanup"]["status"], **child_containment_context(public),
+                        **{key: public[key] for key in ("source_id", "source_policy_sha256",
+                            "collection_operation_id", "collection_request_id")}})
+                setup = json.loads(setup_path.read_text()) if setup_path.exists() else None
+                trace = {"execution_scope": "CONTROLLED_TRANSPORT", "callback_trace": callback_trace,
+                    "public_result": public["result"], "source_setup_published": setup is not None}
+                (tmp_path / "callback-trace.json").write_text(json.dumps(trace, indent=2) + "\n")
+                return {"public": public, "setup": setup, "baseline": baseline, "target": target,
+                    "runtime": {**runtime, "containers": {"scheduler": "b" * 64}},
+                    "callback_trace": callback_trace, "calls": deepcopy(api.calls),
+                    "claim_retained": owner.claim_path.exists(), "paused": fixture.docker.rows["scheduler"]["paused"]}
+            finally:
+                browser.close()
+    finally:
+        fixture.doCleanups()
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_public_creation_history_joins_actual_setup_and_journey(tmp_path, provider):
+    from cli.acceptance_journey import validate_source_setup_artifact
+
+    observed = _run_public_setup_join(tmp_path, provider)
+    public, setup = observed["public"], observed["setup"]
+    assert public["result"] == "PASS", public
+    assert setup is not None and setup["result"] == "NOT_RUN"
+    assert public["cleanup"]["status"] == "RESTORED_DISABLED"
+    assert observed["claim_retained"] is False and observed["paused"] is False
+    # No seeded serializer/history and no controlled-to-live relabeling.
+    row = validate_source_setup_artifact(setup, observed["baseline"], public,
+        observed["target"], observed["runtime"])
+    assert row["status"] == "NOT_RUN"
+    created_reads = [row for row in observed["callback_trace"] if row["source_id"] is not None][:2]
+    assert [row["stage"] for row in created_reads] == ["read", "read"]
+    assert all(row["source_policy_sha256"] == public["source_policy_sha256"] for row in created_reads)
+    assert all(row["primary_policy_sha256"] == public["source_policy_sha256"]
+        for row in setup["primary_containment_checks"] if row["primary_source_id"] is not None)
+    assert sum(path.endswith("/collect") for _, path, _ in observed["calls"]) == 1
+    for field, value in (("primary_source_id", "foreign-source"), ("primary_policy_sha256", None),
+                         ("primary_policy_sha256", "f" * 64)):
+        changed = deepcopy(setup)
+        bound = next(row for row in changed["primary_containment_checks"] if row["primary_source_id"] is not None)
+        bound[field] = value
+        with pytest.raises(ValueError, match="primary policy changed"):
+            validate_source_setup_artifact(changed, observed["baseline"], public,
+                observed["target"], observed["runtime"])
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+@pytest.mark.parametrize("field,value", [("rate_limit", 2), ("capabilities", {}),
+                                         ("id", "foreign-source")])
+def test_created_primary_drift_is_rejected_by_real_owner_before_dispatch(tmp_path, provider, field, value):
+    observed = _run_public_setup_join(tmp_path, provider,
+        mutate_created=lambda row: row.update({field: value}))
+    public = observed["public"]
+    assert public["result"] == "FAIL"
+    assert public["cleanup"]["status"] == "PRESERVED_OWNERSHIP_CHANGED"
+    assert observed["claim_retained"] is True and observed["paused"] is True
+    assert observed["setup"] is None
+    bound = [row for row in observed["callback_trace"] if row["source_id"] is not None]
+    assert bound[0]["stage"] == "read" and bound[0]["source_policy_sha256"] == public["source_policy_sha256"]
+    assert not any(row["stage"] == "dispatch" for row in observed["callback_trace"])
+    assert not any(path.endswith("/collect") for _, path, _ in observed["calls"])
+    primary_writes = [options["json"] for method, path, options in observed["calls"]
+                      if method == "PUT" and path == "/sources" and options["json"]["provider"] == provider]
+    assert len(primary_writes) == 1 and primary_writes[0]["enabled"] is True
+
+
+@pytest.mark.parametrize("provider", ["wwr", "remotive"])
+def test_forged_producer_readback_cannot_replace_owner_verified_creation_constraint(tmp_path, provider):
+    def forge(response):
+        primary = next(row for row in response["sources"] if row["provider"] == provider)
+        primary["capabilities"] = {}
+
+    observed = _run_public_setup_join(tmp_path, provider, mutate_readback=forge)
+    public = observed["public"]
+    assert public["result"] == "FAIL" and public["error_code"] == "SOURCE_CONFIGURATION_CHANGED"
+    assert public["cleanup"]["status"] == "PRESERVED_POLICY_CHANGED"
+    assert observed["claim_retained"] is True and observed["paused"] is True
+    assert observed["setup"] is None
+    assert not any(row["stage"] == "dispatch" for row in observed["callback_trace"])
+    assert not any(path.endswith("/collect") for _, path, _ in observed["calls"])
+    primary_writes = [options["json"] for method, path, options in observed["calls"]
+                      if method == "PUT" and path == "/sources" and options["json"]["provider"] == provider]
+    assert len(primary_writes) == 1 and primary_writes[0]["enabled"] is True
 
 
 def _sources_ui():

@@ -219,11 +219,12 @@ class FakeAPI:
             return {"sources": deepcopy(self.sources)}
         if (method, path) == ("PUT", "/sources"):
             if not self.sources:
+                capabilities = source_adapter(kwargs["json"]).capabilities()
                 self.sources = [
                     {
                         "id": "public-source",
-                        "strategy": "FEED",
-                        "capabilities": {"direct_application": False},
+                        "strategy": capabilities.strategy.value,
+                        "capabilities": capabilities.as_dict(),
                         "last_attempt": None,
                         "last_success": None,
                         "backoff_until": None,

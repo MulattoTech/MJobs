@@ -11,6 +11,7 @@ import unittest
 from unittest.mock import patch
 
 from cli.acceptance_public_source import run, _digest
+from services.discovery.sources.registry import source_adapter
 
 
 STAMP = '2026-11-06T12:00:00+00:00'
@@ -50,10 +51,12 @@ class ControlledAPI:
                 id='public-posting', source='https://weworkremotely.com/remote-jobs.rss',
                 fetched_at=STAMP, raw=raw, snapshots=[dict(id='snapshot', sha256=checksum, retrieved_at=STAMP)])])
 
-    def configured(self, enabled=True):
-        self.source = dict(id='public-source', provider='wwr', tenant='default', enabled=enabled,
-            poll_interval=604800, concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0,
-            strategy='FEED', capabilities={'direct_application': False}, last_attempt=None,
+    def configured(self, enabled=True, provider='wwr'):
+        policy = dict(provider=provider, tenant='default', enabled=enabled, poll_interval=604800,
+            concurrency=1, request_timeout=10, rate_limit=1, jitter_seconds=0)
+        capabilities = source_adapter(policy).capabilities()
+        self.source = dict(id='public-source', **policy,
+            strategy=capabilities.strategy.value, capabilities=capabilities.as_dict(), last_attempt=None,
             last_success=None, backoff_until=None, health_status='NOT_CHECKED', jobs_seen=0)
         return self.source
 
@@ -71,7 +74,7 @@ class ControlledAPI:
             return {'sources': [deepcopy(self.source)] if self.source else []}
         if (method, path) == ('PUT', '/sources'):
             if self.source is None:
-                self.configured()
+                self.configured(provider=kwargs['json']['provider'])
             self.source.update(kwargs['json'])
             return {'id': 'public-source'}
         if (method, path) == ('POST', '/sources/public-source/collect'):
@@ -844,6 +847,84 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertEqual(result['cleanup']['status'], 'ENABLE_UNCONFIRMED_PRESERVE_CONTAINMENT')
         self.assertTrue(self.api.source['enabled'])
         self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
+
+    def test_created_policy_constraint_precedes_reads_without_constructing_http_clients(self):
+        from cli.acceptance_public_source import _policy_fingerprint
+
+        contexts, created = [], {}
+        original = self.api.request
+
+        def transport(method, path, **kwargs):
+            value = original(method, path, **kwargs)
+            if method == 'PUT' and kwargs['json']['enabled'] is True:
+                created.update(deepcopy(self.api.source))
+            return value
+
+        def containment(stage, context):
+            contexts.append((stage, deepcopy(context)))
+            if context['source_id'] is not None:
+                self.assertEqual(context['source_policy_sha256'], _policy_fingerprint(created))
+            return deepcopy(PROOF)
+
+        self.api.request = transport
+        with patch('httpx.Client', side_effect=AssertionError('metadata must not create a client')) as client:
+            with patch('httpx.AsyncClient', side_effect=AssertionError('metadata must not create a client')) as async_client:
+                result = self.observe(containment_preflight=containment)
+        self.assertEqual(result['result'], 'PASS', result)
+        client.assert_not_called()
+        async_client.assert_not_called()
+        bound = [(stage, context) for stage, context in contexts if context['source_id'] is not None]
+        self.assertEqual([stage for stage, _ in bound[:2]], ['read', 'read'])
+        self.assertTrue(all(context['newly_created'] is True for _, context in bound))
+        self.assertEqual(result['source_policy_sha256'], _policy_fingerprint(created))
+
+    def test_malformed_creation_identity_preserves_ambiguous_enable_without_dispatch(self):
+        for response in (None, [], {}, {'id': None}, {'id': ''}, {'id': 1}, {'id': True},
+                         {'id': []}, {'id': '../source'}, {'id': 'a' * 129}):
+            with self.subTest(response=response):
+                self.api = ControlledAPI()
+                original = self.api.request
+
+                def malformed(method, path, **kwargs):
+                    value = original(method, path, **kwargs)
+                    return deepcopy(response) if method == 'PUT' else value
+
+                self.api.request = malformed
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'SOURCE_CONFIGURATION_CHANGED')
+                self.assertEqual(result['cleanup']['status'], 'ENABLE_UNCONFIRMED_PRESERVE_CONTAINMENT')
+                self.assertNotIn('source_id', result)
+                self.assertTrue(self.api.source['enabled'])
+                self.assertEqual(sum(method == 'PUT' for method, _, _ in self.api.calls), 1)
+                self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
+
+    def test_unverified_creation_readback_never_authorizes_cleanup_or_dispatch(self):
+        changes = [('id', 'foreign-source'), ('strategy', 'API'), ('capabilities', {}),
+                   ('enabled', 1), ('concurrency', True), ('request_timeout', 11), ('rate_limit', 2)]
+        for field, value in changes:
+            with self.subTest(field=field):
+                self.api = ControlledAPI()
+                original = self.api.request
+                changed = False
+
+                def readback(method, path, **kwargs):
+                    nonlocal changed
+                    response = original(method, path, **kwargs)
+                    if (method, path) == ('GET', '/sources') and self.api.source and not changed:
+                        changed = True
+                        response['sources'][0][field] = value
+                    return response
+
+                self.api.request = readback
+                result = self.observe()
+                self.assertTrue(changed)
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertEqual(result['error_code'], 'SOURCE_CONFIGURATION_CHANGED')
+                self.assertEqual(result['cleanup']['status'], 'PRESERVED_POLICY_CHANGED')
+                self.assertTrue(self.api.source['enabled'])
+                self.assertEqual(sum(method == 'PUT' for method, _, _ in self.api.calls), 1)
+                self.assertFalse(any(path.endswith('/collect') for _, path, _ in self.api.calls))
 
     def test_disabled_source_is_not_reenabled_or_reconfigured(self):
         self.api.configured(enabled=False)
