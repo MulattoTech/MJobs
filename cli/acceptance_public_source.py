@@ -33,6 +33,17 @@ CHECK = 'same_profile_public_readonly_jobs_observed'
 API_TIMEOUT_SECONDS = 15
 LEASE_CONTINUITY_MAX_CHECKS = 128
 LEASE_CONTINUITY_MAX_RECORDS = 16
+SAFE_CONTAINMENT_ERROR_CODES = frozenset({
+    'CHILD_READBACK_PARENT_STATE_INVALID', 'CHILD_READBACK_NOT_FINAL',
+    'CHILD_PARENT_OPERATION_MISSING', 'CHILD_PARENT_OPERATION_CHANGED',
+    'CHILD_PARENT_NOT_AUTHORIZED', 'CHILD_PARENT_ATTEMPT_CHANGED',
+    'CHILD_PARENT_PROFILE_VERSION_INVALID', 'CHILD_PARENT_IDENTITY_CHANGED',
+    'CHILD_IDENTITY_CHANGED', 'CHILD_CONTEXT_CHANGED', 'CHILD_OPERATION_CHANGED',
+    'CHILD_READBACK_DIGEST_INVALID', 'CHILD_LINEAGE_DIGEST_INVALID',
+    'CHILD_ENROLLMENT_CHANGED', 'CHILD_SNAPSHOT_NOT_STABLE',
+    'UNOWNED_COMPANY_DISCOVERY_EXISTS', 'CONTAINMENT_OWNERSHIP_CHANGED',
+    'CONTAINMENT_LEASE_EXPIRED', 'CONTAINMENT_LEASE_TOO_SHORT',
+})
 CHILD_FIELDS = ('request_id', 'revision', 'company_id', 'company_source_id', 'profile_id',
     'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt',
     'trigger_job_id', 'candidate_id', 'posting_id', 'snapshot_id', 'snapshot_sha256',
@@ -579,7 +590,14 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
                             callback_started_at=callback_started_at.isoformat(), checked_at=now.isoformat(),
                             lease_expires_at=expires.isoformat(), witness=witness, sha256=_digest(witness)))
                 ownership, lease_expiry = current, expires
-            except Exception:
+            except Exception as error:
+                # Imported only at runtime: containment also imports this module.
+                # Never persist arbitrary exception text, payloads or credentials.
+                from cli.acceptance_containment import ContainmentError
+                if (type(error) is ContainmentError and len(error.args) == 1
+                        and type(error.args[0]) is str and error.args[0] in SAFE_CONTAINMENT_ERROR_CODES):
+                    evidence.setdefault('containment_failure', dict(schema_version=1,
+                        stage=stage, error_class='ContainmentError', code=error.args[0]))
                 containment_lost = True
                 raise
             evidence['containment'] = dict(owner=proof['owner'], token_sha256=_digest(proof['token']),

@@ -20,8 +20,9 @@ from workers.dispatch import enqueue_operation
 
 class LocalAPI:
     """Real API/storage except the selected fixture app and no-service health."""
-    def __init__(self, store, output_dir):
+    def __init__(self, store, output_dir, *, health_request):
         self.store = store
+        self.health_request = health_request
         self.client = TestClient(create_app(store, 'http://127.0.0.1:8081', output_dir,
                                            operation_mode='FIXTURE'))
         self.calls = []
@@ -30,8 +31,9 @@ class LocalAPI:
 
     def request(self, method, path, **kwargs):
         self.calls.append((method, path, deepcopy(kwargs)))
-        if method == 'GET' and path in {'/health', '/settings'}:
-            return dict(operation_mode='FIXTURE', external_submission_enabled=False)
+        if method == 'GET' and path in {'/health', '/settings', '/ready'}:
+            # Explicit controlled health; child routes below use real API/storage.
+            return self.health_request(method, path, **kwargs)
         if method == 'GET' and path == '/profiles/fixture/applications/application':
             return deepcopy(self.app)
         if method == 'GET' and path == '/jobs/fixture-job':
@@ -56,7 +58,7 @@ def joined(request):
     original_parent = AggregatorBootstrapCollectionTests.parent_operation
 
     def begin_parent(case, **kwargs):
-        api = LocalAPI(case.store, boundary.root / 'outputs' / 'api')
+        api = LocalAPI(case.store, boundary.root / 'outputs' / 'api', health_request=boundary.api.request)
         state['api'] = api
         boundary.api = api
         baseline = dict(profile_id='fixture', profile_version=case.store.profile('fixture')['version'],

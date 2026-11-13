@@ -51,6 +51,7 @@ ENROLLED_SOURCE_FIELDS = {
 SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 SHA256 = re.compile(r"[a-f0-9]{64}\Z")
 MAX_INVENTORY_ROWS = 10000
+MAX_CHILD_SNAPSHOT_ATTEMPTS = 3
 
 
 def _canonical_digest(value):
@@ -66,6 +67,8 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._child_context = None
+        self._child_parent_binding = None
+        self._child_last_checked = None
         self._child_frozen = None
         self._child_observation_binding = None
         self._child_bootstrap_callbacks_remaining = 0
@@ -247,7 +250,10 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
         return rows
 
     def _operations(self):
-        return self._rows(self._api_get("/operations"), "operations", "OPERATIONS_RESPONSE_INVALID")
+        rows = self._rows(self._api_get("/operations"), "operations", "OPERATIONS_RESPONSE_INVALID")
+        # This endpoint caps its inventory at 100; a full page is not complete.
+        _require(len(rows) < 100, "OPERATIONS_INVENTORY_INCOMPLETE")
+        return rows
 
     def _parent_operation(self, operations):
         parent_id = self._own_operation_id
@@ -263,38 +269,147 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
                  "CHILD_PARENT_OPERATION_CHANGED")
         return parent
 
-    def _current_children(self, context, *, require_complete=False):
-        operations = self._operations()
-        parent = self._parent_operation(operations)
-        _require(parent is not None, "CHILD_PARENT_OPERATION_MISSING")
-        state = parent.get("state")
-        _require(state in {"RUNNING", "COMPLETED"}, "CHILD_PARENT_NOT_AUTHORIZED")
-        attempt = context.get("collection_operation_attempt")
-        if attempt is None:
+    @staticmethod
+    def _forward_child_state(before_state, before_attempt, after_state, after_attempt):
+        """Allow observed worker progress, never a terminal rollback or retry reset."""
+        _require(type(before_attempt) is int and type(after_attempt) is int
+                 and 0 <= before_attempt <= after_attempt, "CHILD_OPERATION_CHANGED")
+        _require(type(before_state) is str and type(after_state) is str
+                 and before_state in CHILD_TERMINAL | ACTIVE_COLLECTION_STATES
+                 and after_state in CHILD_TERMINAL | ACTIVE_COLLECTION_STATES,
+                 "CHILD_OPERATION_CHANGED")
+        if before_state in CHILD_TERMINAL:
+            _require(after_state == before_state and after_attempt == before_attempt,
+                     "CHILD_OPERATION_CHANGED")
+        # Active worker samples can omit intermediate RETRY_WAIT/QUEUED states.
+        # This observes the same operation's existing retry lifecycle; it never
+        # starts a retry. Exact fresh state/attempt agreement is still required.
+
+    def _child_operation_snapshot(self, operations, checked, *, before):
+        """Compare exact joins first; a later dynamic snapshot may need another read."""
+        agrees = True
+        for child in checked["children"]:
+            if child["operation_id"] is None:
+                continue
+            matches = [row for row in operations if row.get("id") == child["operation_id"]]
+            if before and not matches:
+                # A child can be created after the preceding inventory snapshot.
+                continue
+            _require(len(matches) == 1, "CHILD_OPERATION_CHANGED")
+            operation = matches[0]
+            params = operation.get("params")
+            _require(operation.get("kind") == "COMPANY_DISCOVER"
+                     and operation.get("entity_id") == child["company_id"]
+                     and isinstance(params, dict)
+                     and params.get("discovery_request_id") == child["request_id"]
+                     and type(params.get("discovery_request_revision")) is int
+                     and params["discovery_request_revision"] == child["revision"]
+                     and params.get("profile_id") == child["profile_id"]
+                     and params.get("profile_version") == child["profile_version"],
+                     "CHILD_OPERATION_CHANGED")
+            old = (operation.get("state"), operation.get("attempt_count"))
+            new = (child["state"], child["operation_attempt"])
+            self._forward_child_state(*(old + new if before else new + old))
+            agrees = agrees and old == new
+        return agrees
+
+    def _child_snapshot_progress(self, previous, current):
+        if previous is None:
+            return
+        _require(previous["parent_identity"] == current["parent_identity"], "CHILD_IDENTITY_CHANGED")
+        _require(not previous["complete"] or current["complete"], "CHILD_READBACK_PARENT_STATE_INVALID")
+        rows = {row["request_id"]: row for row in current["children"]}
+        if previous["complete"]:
+            _require(previous["lineage_sha256"] == current["lineage_sha256"], "CHILD_CONTEXT_CHANGED")
+        for old in previous["children"]:
+            new = rows.get(old["request_id"])
+            _require(new is not None and all(old[key] == new[key] for key in CHILD_FIELDS
+                                            if key not in CHILD_DYNAMIC), "CHILD_CONTEXT_CHANGED")
+            self._forward_child_state(old["state"], old["operation_attempt"],
+                                      new["state"], new["operation_attempt"])
+        enrolled = {item["source_id"]: item for item in current["enrolled_sources"]}
+        _require(all(enrolled.get(item["source_id"]) == item for item in previous["enrolled_sources"]),
+                 "CHILD_ENROLLMENT_CHANGED")
+
+    def _current_children(self, context, *, require_complete=False, operations=None):
+        """Reconcile at most three child snapshots with fresh exact operation rows.
+
+        The API endpoints each have their own database snapshot. A parent or
+        child may advance between them; no stale snapshot grants authority.
+        Only a validated family agreeing with a subsequent inventory is usable.
+        Every read remains under the actual nonexpired owned lease.
+        """
+        def inventory():
+            self._ensure_lease()
+            rows = self._operations()
+            self._ensure_lease()
+            return rows
+
+        def parent_snapshot(rows, binding):
+            parent = self._parent_operation(rows)
+            _require(parent is not None, "CHILD_PARENT_OPERATION_MISSING")
+            _require(parent.get("state") in {"RUNNING", "COMPLETED"}, "CHILD_PARENT_NOT_AUTHORIZED")
             attempt = parent.get("attempt_count")
-        _require(type(attempt) is int and attempt >= 1 and parent.get("attempt_count") == attempt,
-                 "CHILD_PARENT_ATTEMPT_CHANGED")
-        params = parent["params"]
-        profile_version = params.get("profile_version")
-        _require(isinstance(profile_version, str) and profile_version,
-                 "CHILD_PARENT_PROFILE_VERSION_INVALID")
-        profile_id = self._own_profile_id
-        path = "/profiles/" + quote(profile_id, safe="") + "/sources/" + quote(self._own_source_id, safe="")
+            _require(type(attempt) is int and attempt >= 1, "CHILD_PARENT_ATTEMPT_CHANGED")
+            expected_attempt = context.get("collection_operation_attempt")
+            _require(expected_attempt is None or (type(expected_attempt) is int and attempt == expected_attempt),
+                     "CHILD_PARENT_ATTEMPT_CHANGED")
+            version = parent["params"].get("profile_version")
+            _require(isinstance(version, str) and version
+                     and self.baseline.get("profile_version", version) == version,
+                     "CHILD_PARENT_PROFILE_VERSION_INVALID")
+            identity = (attempt, version)
+            _require(binding is None or identity == binding, "CHILD_PARENT_IDENTITY_CHANGED")
+            return parent, identity
+
+        self._ensure_lease()
+        operations = inventory() if operations is None else operations
+        parent, binding = parent_snapshot(operations, self._child_parent_binding)
+        previous = self._child_last_checked
+        seen_company_ids = set()
+        path = "/profiles/" + quote(self._own_profile_id, safe="") + "/sources/" + quote(self._own_source_id, safe="")
         path += "/collections/" + quote(self._own_operation_id, safe="") + "/children"
-        raw = self.request("GET", path, params={"attempt": attempt})
-        checked = self._validate_children_response(
-            raw,
-            profile_id=profile_id,
-            profile_version=profile_version,
-            source_id=self._own_source_id,
-            parent_id=self._own_operation_id,
-            parent_attempt=attempt,
-            parent_request_id=self._own_request_id,
-            require_complete=require_complete,
-            expected_parent_state=state,
-        )
-        self._validate_child_context(context, checked)
-        return checked, parent, operations
+        for index in range(MAX_CHILD_SNAPSHOT_ATTEMPTS):
+            self._ensure_lease()
+            raw = self.request("GET", path, params={"attempt": binding[0]})
+            self._ensure_lease()
+            checked = self._validate_children_response(
+                raw, profile_id=self._own_profile_id, profile_version=binding[1],
+                source_id=self._own_source_id, parent_id=self._own_operation_id,
+                parent_attempt=binding[0], parent_request_id=self._own_request_id,
+                require_complete=False,
+            )
+            self._child_snapshot_progress(previous, checked)
+            _require(parent["state"] != "COMPLETED" or checked["complete"],
+                     "CHILD_READBACK_PARENT_STATE_INVALID")
+            self._child_operation_snapshot(operations, checked, before=True)
+            fresh = inventory()
+            fresh_parent, _ = parent_snapshot(fresh, binding)
+            _require(not checked["complete"] or fresh_parent["state"] == "COMPLETED",
+                     "CHILD_READBACK_PARENT_STATE_INVALID")
+            agrees = self._child_operation_snapshot(fresh, checked, before=False)
+            owned_ids = set(checked["operation_ids"])
+            baseline = self._initial_company_operation_ids or set()
+            for row in [*operations, *fresh]:
+                if row.get("kind") == "COMPANY_DISCOVER":
+                    _require(isinstance(row.get("id"), str), "UNOWNED_COMPANY_DISCOVERY_EXISTS")
+                    if row["id"] not in baseline:
+                        seen_company_ids.add(row["id"])
+                    elif row.get("state") in ACTIVE_COLLECTION_STATES:
+                        _require(row["id"] in owned_ids, "UNOWNED_COMPANY_DISCOVERY_EXISTS")
+            unbound = seen_company_ids - owned_ids
+            _require(not unbound or not checked["complete"], "UNOWNED_COMPANY_DISCOVERY_EXISTS")
+            if agrees and not unbound and checked["complete"] == (fresh_parent["state"] == "COMPLETED"):
+                _require(not require_complete or checked["complete"], "CHILD_READBACK_NOT_FINAL")
+                # Consume the caller's bootstrap budget only once per callback,
+                # after all independent snapshots have been reconciled.
+                self._validate_child_context(context, checked)
+                self._child_parent_binding = binding
+                self._child_last_checked = deepcopy(checked)
+                return checked, fresh_parent, fresh
+            _require(index + 1 < MAX_CHILD_SNAPSHOT_ATTEMPTS, "CHILD_SNAPSHOT_NOT_STABLE")
+            previous, operations, parent = checked, fresh, fresh_parent
+        raise ContainmentError("CHILD_SNAPSHOT_NOT_STABLE")
 
     def _validate_child_context(self, context, checked):
         requested = context.get("child_discovery_requested")
@@ -373,37 +488,22 @@ class OwnedPublicSourceContainment(OwnedPublicContainment):
                 if row.get("kind") == "COMPANY_DISCOVER" and isinstance(row.get("id"), str)
             }
         parent = self._parent_operation(operations)
-        active_children = [
-            row for row in operations
-            if row.get("kind") == "COMPANY_DISCOVER" and row.get("state") in ACTIVE_COLLECTION_STATES
-        ]
-        if not active_children:
-            known_child_ids = set()
-            if parent is not None and parent.get("state") in {"RUNNING", "COMPLETED"}:
-                known_child_ids = self._current_children(self._child_context or {},
-                    require_complete=parent.get("state") == "COMPLETED")[0]["operation_ids"]
-            self._reject_unowned_company_operations(operations, known_child_ids)
-            return active_public
-        if self._child_frozen is not None:
-            checked = self._child_frozen
-        elif parent is not None and parent.get("state") in {"RUNNING", "COMPLETED"} and self._child_context is not None:
-            checked, _, _ = self._current_children(self._child_context, require_complete=parent.get("state") == "COMPLETED")
-        else:
-            raise ContainmentError("UNOWNED_COMPANY_DISCOVERY_EXISTS")
-        children = {row["operation_id"]: row for row in checked["children"] if row["operation_id"]}
-        self._reject_unowned_company_operations(operations, set(children))
-        for operation in active_children:
-            child = children.get(operation.get("id"))
-            _require(child is not None and operation.get("entity_id") == child["company_id"],
-                     "UNOWNED_COMPANY_DISCOVERY_EXISTS")
-            params = operation.get("params")
-            _require(isinstance(params, dict)
-                     and params.get("discovery_request_id") == child["request_id"]
-                     and params.get("discovery_request_revision") == child["revision"]
-                     and params.get("profile_id") == child["profile_id"]
-                     and params.get("profile_version") == child["profile_version"],
-                     "CHILD_OPERATION_CHANGED")
-            _require(operation.get("state") == child["state"], "CHILD_OPERATION_CHANGED")
+        owned_ids = set()
+        if parent is not None and parent.get("state") in {"RUNNING", "COMPLETED"}:
+            checked, _, operations = self._current_children(
+                self._child_context or {}, require_complete=parent["state"] == "COMPLETED",
+                operations=operations,
+            )
+            owned_ids = set(checked["operation_ids"])
+        self._reject_unowned_company_operations(operations, owned_ids)
+        for operation in operations:
+            if operation.get("state") not in ACTIVE_COLLECTION_STATES:
+                continue
+            if operation.get("kind") == "COMPANY_DISCOVER":
+                _require(operation.get("id") in owned_ids, "UNOWNED_COMPANY_DISCOVERY_EXISTS")
+            elif operation.get("kind") == "DISCOVER" and operation.get("id") != self._own_operation_id:
+                # The first base inventory can also predate a foreign collection.
+                active_public.append(operation)
         return active_public
 
     def _reject_unowned_company_operations(self, operations, owned_ids):
