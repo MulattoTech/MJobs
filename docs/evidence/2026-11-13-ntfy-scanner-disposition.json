@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N02",
+  "recorded_at_utc": "2026-11-13T05:56:02.067841+00:00",
+  "source_sha": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+  "result": "TWO_SYNTHETIC_EVENT_DIGEST_FALSE_POSITIVES",
+  "failed_check": {
+    "name": "Security / secret scan",
+    "run_id": 43372932072,
+    "job_id": 131712692737,
+    "artifact_id": 14013591100,
+    "artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/43372932072/artifacts/14013591100",
+    "artifact_zip_sha256": "2219b0c62ddc0acc8ae73686d3a5d79879bcc739c4ab2c546dc97ca56db9fb0d",
+    "candidate_count": 2,
+    "original_failure_preserved": true
+  },
+  "affected_findings": [
+    {
+      "Commit": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+      "File": "docs/evidence/2026-11-13-ntfy-delivery.json",
+      "RuleID": "generic-api-key",
+      "StartLine": 489,
+      "Fingerprint": "3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:489"
+    },
+    {
+      "Commit": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+      "File": "docs/evidence/2026-11-13-ntfy-delivery.json",
+      "RuleID": "generic-api-key",
+      "StartLine": 502,
+      "Fingerprint": "3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:502"
+    }
+  ],
+  "derivation": {
+    "function": "services/notifications/events.py:event_from_row",
+    "source_blob": "72ae601b29b40cd30a51b0553cb44b6f051059cb",
+    "evidence_blob": "091faab6ce451b5725c8e64ee577354f4bf9772c",
+    "synthetic_row": [
+      "ntfy-container-proof-new",
+      "DISCOVER",
+      "COMPLETED",
+      1
+    ],
+    "serialization": "json.dumps(row_identity, separators=(',', ':'), ensure_ascii=True).encode()",
+    "digest": "hashlib.sha256(serialized_identity).hexdigest()",
+    "matches_first_and_restart_delivery": true,
+    "matches_private_execution_receipt_and_both_verified_probe_logs": true,
+    "purpose": "Stable journal primary key and delivery deduplication for a synthetic operation; no credential input.",
+    "credential_separation": "The provider separately reads its authorization token. The event identity is not an authentication credential; outgoing ntfy JSON contains only topic, title and generic message.",
+    "source_identity": "The event derivation bytes are unchanged between the actually built 4627073607b86f26596b33c5d046e12d64b6331a archive/context and published 3c2764 source."
+  },
+  "independent_review": {
+    "reviewer": "ChatGPT Web independent subagent /root/campaign_review under WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+    "result": "APPROVED_TWO_EXACT_HISTORICAL_FINGERPRINTS",
+    "receipt_filename": "ntfy-scanner-independent-disposition-3c2764.json",
+    "receipt_sha256": "7b36c22f907d3ab4f1dae71d89fc79e02da6e647e01768fb64af6ed9a95108cb",
+    "checks": [
+      "Independently recomputed both published values from the four nonsecret synthetic fields.",
+      "Verified exact source, archive and extracted build-context bytes.",
+      "Verified runner, probe, plan, execution receipt and two verification-log hashes against published evidence.",
+      "Verified separate credential handling and event-identity use.",
+      "Verified unchanged scanner policy, version, workflow and full-history --all/--redact invocation."
+    ]
+  },
+  "change_scope": {
+    "ignore_file": ".gitleaksignore",
+    "added_fingerprints": 2,
+    "only_exact_commit_file_rule_line_exceptions": true,
+    "scanner_rules_version_workflow_unchanged": true,
+    "history_rewritten": false,
+    "application_source_changed": false
+  },
+  "validation_scope": {
+    "local": "Deterministic independent derivation, exact two-line exception review, JSON parse and diff checks.",
+    "hosted_successor_check": "NOT_RUN",
+    "prior_failed_check_remains_recorded": true,
+    "acceptance_change": false
+  }
+}

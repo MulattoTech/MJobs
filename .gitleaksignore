@@ -352,3 +352,9 @@ aff0b891e66d885956fc0e7c7a9ac5d0c71b5f45:docs/evidence/2026-11-09-req111-structu
 # Peer disposition: e32f0b2687172402455e44ea07a79a26597300b7.
 # Review: docs/evidence/2026-11-13-web-e49a-scanner-identifier-disposition.json.
 60dd9d4a50506cabedddeb1cf12610d6240e1ec2:docs/evidence/2026-11-13-desktop-notifications-ca95.json:generic-api-key:4
+
+# Recomputed synthetic notification event digests; not credentials.
+# Proof: docs/evidence/2026-11-13-ntfy-scanner-disposition.json.
+# Exactly two historical findings; scanner policy and other findings remain active.
+3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:489
+3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:502
