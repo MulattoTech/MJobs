@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-017.F07",
+  "parent_requirement": "MJ-REQ-017",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/317",
+  "provider": "arbeitnow",
+  "created_at_utc": "2026-11-13T03:41:53.118008+00:00",
+  "repository": "MulattoTech/MJobs",
+  "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "branch": "web/p6-arbeitnow-20261113-4dae",
+  "implementation_source_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+  "implementation_source_tree": "5693ecfe68a0d6f3243775c5e12bedadb83c3e96",
+  "base_sha": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+  "source_was_clean": true,
+  "routing_state": "VERIFY",
+  "delivery_state": {
+    "implemented": true,
+    "locally_verified": true,
+    "hosted_check_verified": false,
+    "integrated": false,
+    "deployed": false,
+    "formally_accepted": false,
+    "canonical_acceptance_changed": false
+  },
+  "capabilities": {
+    "strategy": "PUBLIC_JSON",
+    "supported": [
+      "DISCOVERY",
+      "REMOTE_METADATA",
+      "APPLICATION_REDIRECT"
+    ],
+    "unsupported": [
+      "JOB_DETAIL",
+      "SALARY_METADATA",
+      "APPLICATION_SUBMISSION",
+      "APPLICATION_STATUS",
+      "COMPLETE_INVENTORY",
+      "ABSENCE_BASED_CLOSURE"
+    ],
+    "request_endpoint": "https://www.arbeitnow.com/api/job-board-api",
+    "latest_pages_per_search": 1,
+    "maximum_response_bytes": 5000000,
+    "maximum_items": 1000,
+    "complete_inventory": false
+  },
+  "criteria": [
+    {
+      "criterion": 1,
+      "text": "Declare exact capabilities supported rather than implying unsupported behavior.",
+      "local_evidence": "PASS",
+      "references": [
+        "services/discovery/sources/arbeitnow.py",
+        "tests/unit/test_arbeitnow_source.py",
+        "docs/sources/ARBEITNOW.md"
+      ]
+    },
+    {
+      "criterion": 2,
+      "text": "Add deterministic fixtures/contract tests.",
+      "local_evidence": "PASS",
+      "references": [
+        "tests/fixtures/arbeitnow.json",
+        "tests/unit/test_arbeitnow_source.py",
+        "tests/unit/test_arbeitnow_provenance.py",
+        "tests/integration/test_arbeitnow.py",
+        "tests/unit/test_source_adapter_contract_223.py"
+      ]
+    },
+    {
+      "criterion": 3,
+      "text": "Perform bounded live read-only validation where appropriate and safe.",
+      "local_evidence": "PASS",
+      "reference": "live_readonly_validation"
+    },
+    {
+      "criterion": 4,
+      "text": "Record limitations and last-tested evidence.",
+      "local_evidence": "PASS",
+      "references": [
+        "docs/sources/ARBEITNOW.md",
+        "this evidence manifest"
+      ]
+    },
+    {
+      "criterion": 5,
+      "text": "Never add anti-bot/access-control circumvention to make the integration appear supported.",
+      "local_evidence": "PASS",
+      "references": [
+        "fixed official public endpoint and default verified TLS transport",
+        "independent source review",
+        "no credentials, redirects, response-selected destinations or page crawling"
+      ]
+    }
+  ],
+  "backend_verification": {
+    "result": "PASS",
+    "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "source_tree": "b5409269292d06784280739907d4465c0fd83972",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\backend-tests-17a14da4.xml",
+      "tests/unit/test_arbeitnow_source.py",
+      "tests/integration/test_arbeitnow.py",
+      "tests/unit/test_arbeitnow_provenance.py",
+      "tests/unit/test_company_source_capabilities.py",
+      "tests/unit/test_company_source_contract_sustain_224.py",
+      "tests/unit/test_extension_point_contracts.py",
+      "tests/unit/test_source_adapter_contract_223.py",
+      "tests/unit/test_ai_prompt_versioning.py::PersistedPromptProvenanceTests",
+      "tests/integration/test_company_source_view.py::CompanySourceViewTests"
+    ],
+    "started_at": "2026-11-13T03:32:41.423322+00:00",
+    "ended_at": "2026-11-13T03:33:06.161591+00:00",
+    "exit_code": 0,
+    "counts": {
+      "passed": 193,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "subtests_passed": 68
+    },
+    "environment": "MULATTOTECHBOX; cached project Python; synthetic HTTP fixtures; isolated temporary SQLite; real in-process API clients; no PostgreSQL or Redis",
+    "log_name": "backend-tests-17a14da4.log",
+    "log_sha256": "4a21d2da00a3fba93900111fcc3373b8a309831481e983c3fb2ed7f752f94e14"
+  },
+  "frontend_build": {
+    "result": "PASS",
+    "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "source_tree": "b5409269292d06784280739907d4465c0fd83972",
+    "command": [
+      "cmd",
+      "/c",
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "build"
+    ],
+    "started_at": "2026-11-13T03:33:12.627782+00:00",
+    "ended_at": "2026-11-13T03:33:14.296582+00:00",
+    "exit_code": 0,
+    "counts": {
+      "exit_success": 1
+    },
+    "environment": "MULATTOTECHBOX; repository lockfile; Node v27.0.0-alpha.0.0.0; npm12.2.2; TypeScript7.0.2 and Vite8.3.3; scoped offline install",
+    "log_name": "frontend-build-17a14da4.log",
+    "log_sha256": "dccffcfaffce3c2b555a14de21864fbe2d81d338d42eb0d589bf274d62bce9a0"
+  },
+  "browser_verification": {
+    "result": "PASS",
+    "source_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+    "source_tree": "5693ecfe68a0d6f3243775c5e12bedadb83c3e96",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\browser-cf68318a.xml",
+      "tests/browser/test_arbeitnow_source_enrollment.py"
+    ],
+    "started_at": "2026-11-13T03:37:44.222443+00:00",
+    "ended_at": "2026-11-13T03:37:52.475076+00:00",
+    "exit_code": 0,
+    "counts": {
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "environment": "Actual built React UI, Uvicorn/API and Chromium; synthetic fixture profile and owned temporary SQLite; loopback-only route interception; zero external requests; browser version not captured",
+    "log_name": "browser-cf68318a.log",
+    "log_sha256": "cd41ccc6592d73b9d08da32c8d57caa1fded0e16af435d6ee8a7a751d2648c8e"
+  },
+  "browser_behaviors": [
+    "Correct provider option and no employer-tenant fields",
+    "Real PUT/GET source enrollment and exact declared capabilities",
+    "Reload preserves visible Jobs supplied by Arbeitnow credit linking to https://www.arbeitnow.com/",
+    "Disable preserves source identity and persists disabled state",
+    "No canonical jobs, worker operations or applications created",
+    "No external requests or page errors"
+  ],
+  "build_artifact_sha256": {
+    "apps/web/dist/index.html": "44c920ca5aad4a38339b8ee6e2bf02c9fe272462f02f528abb33da4e6f8c9fed",
+    "apps/web/dist/assets/index-BBtMCqNP.js": "281df8272db11f9d15b0f32f102a026d3f81955d60701ddfa533d219975bde3f",
+    "apps/web/dist/assets/index-BYoKyum1.css": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539"
+  },
+  "source_equivalence": {
+    "backend_success_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "qualification_sha": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+    "production_diff_between_backend_and_qualification": [],
+    "only_intervening_change": "Browser invariant uses SQLAlchemy models' physical table names; no product or backend-test change",
+    "frontend_tree_at_build_and_browser": "bf5f56e7af5a116fd095dc5efb0fd6f425df8550",
+    "live_provider_blob_at_live_and_qualification": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+    "discovery_tree_at_live_and_qualification": "44e0d4693bac172f1a3fbba700f226d964bb5c64"
+  },
+  "live_readonly_validation": {
+    "schema_version": 1,
+    "requirement": "MJ-REQ-017.F07",
+    "repository": "MulattoTech/MJobs",
+    "head": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+    "tree": "947aa88623b63e2e44d3ac6c30e87ad60e10b3d2",
+    "provider_blob": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+    "provider_sha256": "d3c28db8114d27f5d91d6e05027a9f12d2ba8de743bd4432ff03f9b4500fcfd1",
+    "started_at": "2026-11-13T03:19:19.411410+00:00",
+    "endpoint": "https://www.arbeitnow.com/api/job-board-api",
+    "method": "GET",
+    "search_invocations": 1,
+    "configuration": {
+      "tenant": "default",
+      "request_timeout_seconds": 20,
+      "rate_limit_per_minute": 6,
+      "concurrency": 1
+    },
+    "environment": "MULATTOTECHBOX / project venv Python / direct production SourceTransport / no injected fixture transport",
+    "database": "none",
+    "persistence_performed": false,
+    "external_applications": false,
+    "raw_response_published": false,
+    "source_status_before": "",
+    "result": "PASS",
+    "received": 300,
+    "normalized": 300,
+    "normalization_failures": [],
+    "source_health": "HEALTHY",
+    "complete_inventory": false,
+    "all_provider_urls_preserved": true,
+    "all_manual_only": true,
+    "all_possibly_active": true,
+    "observed_listing_hosts": {
+      "www.arbeitnow.com": 100,
+      "www.arbeitnow.co.uk": 50,
+      "www.arbeitnow.fr": 50,
+      "www.arbeitnow.ch": 50,
+      "www.arbeitnow.nl": 50
+    },
+    "remote_flag_true_count": 20,
+    "identity_set_sha256": "b0de790d34fc4e9f6ba02dd764cc26e929f1b3e3ce3a6029e948e4fc10824745",
+    "ended_at": "2026-11-13T03:19:24.184653+00:00",
+    "source_status_after": "",
+    "runner_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "runner_arguments": [
+      "-X",
+      "utf8",
+      "-B",
+      "-c",
+      "inline recorded MTerm program"
+    ],
+    "exact_provider_invocation": "adapter = Arbeitnow(request_timeout=20, rate_limit=6, concurrency=1); batch = adapter.search(); adapter.normalize(item.raw) for each returned SourceItem",
+    "mterm_process_id": 14308,
+    "database_and_profile_used": false,
+    "followed_listing_or_pagination_links": false
+  },
+  "review": {
+    "backend_commit": "c0a3e4ac0cb43ce55deda3de4473aed7d7ea6343",
+    "combined_source_commit": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "combined_source_tree": "b5409269292d06784280739907d4465c0fd83972",
+    "reviewer": "/root/integration_coordination",
+    "reviewed_at": "2026-11-13T03:31:46Z",
+    "result": "No blocking source findings; approved for qualification",
+    "independent_original_defect_probes": {
+      "passed": 4,
+      "failed": 0
+    },
+    "final_metadata_and_browser_test_delta_review": "PENDING"
+  },
+  "prior_failures_preserved": [
+    {
+      "source_sha": "c0a3e4ac0cb43ce55deda3de4473aed7d7ea6343",
+      "result": "1 failed,153 passed,55 subtests passed",
+      "cause": "New API test used nonexistent m.worker_operations model alias",
+      "repair_commit": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+      "resolved_by": "193-test combined pass",
+      "receipt": "backend-tests-c0a3e4ac.json"
+    },
+    {
+      "source_sha": "0ea6cd305a1e1e117df909f8e6ba1b5ab25a1672",
+      "result": "1 failed,99 passed,121 subtests passed",
+      "cause": "Registry-wide fixture did not yet include the newly registered adapter",
+      "repair_commit": "593aa1074b559965fcf7c1f0e113990e0bfd9071",
+      "resolved_by": "Corrected fixture/provenance27-test pass and later193-test combined pass",
+      "receipt": "compatibility-existing.json"
+    },
+    {
+      "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+      "result": "1 browser test failed",
+      "cause": "Final no-side-effect assertion used logical jobs instead of physical canonical_jobs table",
+      "repair_commit": "cf68318a974bbcb9fe02d26fc57511ee1097fa99",
+      "resolved_by": "1 real browser test passed with all original assertions intact",
+      "receipt": "browser-17a14da4.json"
+    }
+  ],
+  "integrity_verification": {
+    "source_sha": "17a14da430eac9f5e9d9a9f7f1cd8f798101f048",
+    "results": {
+      "catalogue": "PASS",
+      "progress_validate": "PASS",
+      "progress_dashboard_check": "CURRENT",
+      "agent_skills": "PASS",
+      "reference_provenance": "PASS",
+      "commit_provenance": "PASS for all source commits through cf68318a"
+    },
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Latest page only; incomplete and changing coverage across European regional sites",
+    "No salary/detail/direct submission/application status/expiration guarantee",
+    "Provider remote flag does not establish US/worldwide/country eligibility",
+    "Shared geography parser does not normalize every country; original location text remains preserved",
+    "Application URLs remain aggregator options; no new trusted-board, verified employer or ATS authority",
+    "No live production enrollment or deployment; live normalization used no database",
+    "SQLite fixture proof does not substitute for protected PostgreSQL/Redis integration checks",
+    "Standalone browser test is not automatically selected by the PR's explicit connected-acceptance list; local actual-browser proof is recorded here"
+  ],
+  "remaining_gates": [
+    "Final evidence/browser-delta independent review",
+    "Fresh publication admission and exact published-head readback",
+    "Required hosted checks on final published head",
+    "Protected integration by verified integration steward",
+    "Applicable integrated/runtime validation and designated canonical acceptance review"
+  ],
+  "coordination": {
+    "ui_original_commit": "64819d7d650ed60759d38d0da97f714272999f49",
+    "ui_integrated_commit": "b954747e2ff6446f41c2fb8a0276b455e29d0943",
+    "ui_owner": "ca95dbc6",
+    "ui_transfer_journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6842849783",
+    "open_ownership_blocker": "Nov9 resumed integration-steward/canonical acceptance claims remain unresolved; no merge or canonical mutation authorized by this candidate"
+  },
+  "artifacts": {
+    "private_run_directory": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+    "raw_live_job_data_committed": false,
+    "all_observed_browser_processes_absent": true
+  },
+  "official_references": [
+    "https://www.arbeitnow.com/blog/job-board-api",
+    "https://documenter.getpostman.com/view/18545278/UVJbJdKh",
+    "https://www.arbeitnow.com/api/job-board-api",
+    "https://www.arbeitnow.com/",
+    "https://www.arbeitnow.com/terms"
+  ]
+}
