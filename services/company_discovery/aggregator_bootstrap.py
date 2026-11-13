@@ -22,7 +22,9 @@ from bs4 import BeautifulSoup
 from services.company_discovery.application_links import _title
 from services.company_discovery.domain_acquisition import corroborated_job_page, _apply_page_url
 from services.company_discovery.fetch_policy import bounded_get
-from services.company_discovery.public_client import MAX_RESPONSE_BYTES, PublicCompanyClient, PublicFetchError, _parse_url
+from services.company_discovery.public_client import (
+    MAX_RESPONSE_BYTES, MIN_REQUEST_INTERVAL, PublicCompanyClient, PublicFetchError, _parse_url,
+)
 
 
 POLICY_FIELDS = ('id', 'provider', 'tenant', 'strategy', 'capabilities', 'enabled',
@@ -52,6 +54,12 @@ def normalized_projection(normalized):
 
 class _Rejected(ValueError):
     pass
+
+
+class BootstrapRateBudgetIncompatible(PublicFetchError):
+    """An authorized source rate cannot fit even the minimum proof read chain."""
+    def __init__(self):
+        super().__init__('BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE')
 
 
 def _url(value):
@@ -180,6 +188,17 @@ class _Budget:
         self.next_request = stamp + wait + delay
         return wait
 
+    def require_rate_window(self, policy):
+        self.guard()
+        # Every successful receipt needs the native API document and an
+        # independent employer document. Each fresh origin first reads robots:
+        # at least four HTTP starts, with three shared rate intervals. Listing,
+        # apply, redirect and response time may need more; this lower bound is
+        # only a rejection of impossible policy, never a promise of completion.
+        minimum_spacing = max(MIN_REQUEST_INTERVAL, 60.0 / policy.rate_limit)
+        if time.monotonic() + 3 * minimum_spacing >= self.deadline:
+            raise BootstrapRateBudgetIncompatible()
+
     def guard(self):
         try:
             self.check()
@@ -235,12 +254,14 @@ def _unique_json(pairs):
 
 def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapshot, *,
                               source_policy, check, client_factory=None, budget=None):
-    """Return generated observations or None; preserve caller cancellation.
+    """Return observations or None; preserve cancellation and infeasible rate errors.
 
     Call only after staged COMPANY_DISCOVER authorization. Every origin gets a
     separate same-origin public client under one deadline/request/byte budget.
     This receipt does not authorize writes. A caller must recheck its saved DB
     bindings before persisting it and run normal domain/enrollment guards.
+    Valid inputs whose inherited rate cannot fit the minimum proof chain raise
+    BootstrapRateBudgetIncompatible before client creation or public requests.
     """
     tracker = _Budget(budget or BootstrapBudget(), check)
     try:
@@ -267,6 +288,7 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                 or _url(source['endpoint']).hostname != AGGREGATORS[source['provider']]
                 or profile_policy.get('company_discovery_enabled', True) is not True):
             return None
+        tracker.require_rate_window(read_policy)
         # Hash all immutable inputs before reading; callbacks must not mutate
         # them between authorization and receipt construction.
         inputs_hash = canonical_digest([raw, projection, source, policy, profile_id, version, profile_policy])
@@ -365,7 +387,9 @@ def corroborate_aggregator_job(raw, normalized, source_snapshot, profile_snapsho
                            'reserved_or_received_bytes': tracker.bytes, **tracker.limits.__dict__}}
             receipt['sha256'] = canonical_digest(receipt)
             return receipt
-    except (PublicFetchError, ValueError, KeyError, TypeError, AttributeError, RecursionError):
+    except (PublicFetchError, ValueError, KeyError, TypeError, AttributeError, RecursionError) as error:
         if tracker.cancelled is not None:
             raise tracker.cancelled
+        if isinstance(error, BootstrapRateBudgetIncompatible):
+            raise
         return None

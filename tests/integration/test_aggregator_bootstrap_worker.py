@@ -214,7 +214,7 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             return {'name': self.company}
         return {'jobs': [dict(self.native_job)]}
 
-    def _execute(self, *, mutate=None, operation_mode='FIXTURE'):
+    def _execute(self, *, mutate=None, operation_mode='FIXTURE', rate_aware_wire=None):
         if mutate:
             mutate()
         output = self.output_dir / 'outputs'
@@ -233,11 +233,77 @@ class AggregatorBootstrapWorkerTests(unittest.TestCase):
             return real_resolver(*args, client_factory=BudgetedPublicClient, **kwargs)
 
         with patch.dict(os.environ, env), \
-             patch.object(PublicCompanyClient, '_request_once', self._public_request), \
+             patch.object(PublicCompanyClient, '_request_once', rate_aware_wire or self._public_request), \
              patch.object(Greenhouse, '_get', self._greenhouse_board), \
              patch('services.company_discovery.aggregator_workflow.corroborate_aggregator_job',
                    controlled_resolver):
             return execute_operation(self.request['operation_id'])
+
+    def test_impossible_inherited_rate_is_persisted_blocked_without_egress_or_retry(self):
+        from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
+
+        case = AggregatorBootstrapCollectionTests()
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(case.tearDown)
+        raw = case.rows[0]
+        self.assertEqual((raw['title'], raw['company_name']), (self.title, self.company))
+        raw['description'] += '<p><a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a></p>'
+        with case.store.engine.begin() as connection:
+            connection.execute(update(m.job_sources).where(
+                m.job_sources.c.id == case.source_id).values(rate_limit=1))
+        case.collect(**case.parent_operation())
+        self.case = case
+        with case.store.engine.connect() as connection:
+            self.request = dict(connection.execute(select(m.company_discovery_requests)).mappings().one())
+            before_source = dict(connection.execute(select(m.job_sources)).mappings().one())
+            before_raw = list(connection.execute(select(m.posting_snapshots.c.raw)).scalars())
+        clock = [100.0]
+        created = []
+        original_init = BudgetedPublicClient.__init__
+
+        def create(client, *args, **kwargs):
+            created.append(args[0])
+            original_init(client, *args, **kwargs)
+
+        def sleep(seconds):
+            clock[0] += seconds
+
+        def wire(client, url, deadline):
+            client._check()
+            client._wait(deadline)
+            client._budget()
+            return self._public_request(url, deadline)
+
+        with patch('services.company_discovery.aggregator_bootstrap.time.monotonic', lambda: clock[0]), \
+             patch('services.company_discovery.aggregator_bootstrap.time.sleep', sleep), \
+             patch.object(BudgetedPublicClient, '__init__', create):
+            outcome = self._execute(rate_aware_wire=wire)
+        self.assertEqual(outcome['status'], 'BLOCKED', outcome)
+        self.assertEqual(outcome['error_category'], 'BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE', outcome)
+        self.assertEqual(created, [])
+        self.assertEqual(self.network, [])
+        with case.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == self.request['operation_id'])).mappings().one()
+            request = connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == self.request['id'])).mappings().one()
+            self.assertEqual(operation['state'], 'BLOCKED')
+            self.assertEqual(operation['error'], 'BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE')
+            self.assertEqual(operation['attempt_count'], 1)
+            self.assertEqual(operation['retry_count'], 0)
+            self.assertIsNone(operation['next_attempt_at'])
+            self.assertEqual(operation['recovery_metadata'], {'action': 'MANUAL_REVIEW'})
+            self.assertEqual(request['authorization'], 'AGGREGATOR_BOOTSTRAP_PENDING')
+            self.assertEqual(request['domain_evidence'], self.request['domain_evidence'])
+            self.assertEqual(dict(connection.execute(select(m.job_sources)).mappings().one()), before_source)
+            self.assertEqual(list(connection.execute(select(m.posting_snapshots.c.raw)).scalars()), before_raw)
+            self.assertEqual(list(connection.execute(select(m.company_domains)).mappings()), [])
+            self.assertEqual(list(connection.execute(select(m.company_sources).where(
+                m.company_sources.c.provider == 'greenhouse')).mappings()), [])
+            self.assertEqual(list(connection.execute(select(m.audit).where(m.audit.c.action.in_([
+                'COMPANY_DISCOVERY_AGGREGATOR_BOOTSTRAP_VERIFIED', 'COMPANY_DOMAIN_ACQUIRED',
+                'COMPANY_SOURCE_DISCOVERED']))).mappings()), [])
 
     def test_worker_revalidates_resolves_persists_domain_then_enrolls_source(self):
         outcome = self._execute()

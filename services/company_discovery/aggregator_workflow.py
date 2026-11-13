@@ -1,6 +1,6 @@
 """Execute staged aggregator-to-native discovery in the company worker only."""
 from services.company_discovery.aggregator_bootstrap import (
-    BootstrapBudget, corroborate_aggregator_job,
+    BootstrapBudget, BootstrapRateBudgetIncompatible, corroborate_aggregator_job,
 )
 from services.company_discovery.domain_acquisition import acquire_official_domain_from_aggregator_bootstrap
 from services.company_discovery.domains import normalize_domain
@@ -45,11 +45,17 @@ def execute_aggregator_bootstrap(store, operation, *, check, total_timeout,
         kwargs = {}
         if resolver_client_factory is not None:
             kwargs['client_factory'] = resolver_client_factory
-        receipt = corroborate_aggregator_job(
-            context['raw'], context['normalized'], context['source_snapshot'],
-            context['profile_snapshot'], source_policy=context['source_policy'],
-            check=authorized_check,
-            budget=BootstrapBudget(timeout_seconds=timeout_seconds), **kwargs)
+        try:
+            receipt = corroborate_aggregator_job(
+                context['raw'], context['normalized'], context['source_snapshot'],
+                context['profile_snapshot'], source_policy=context['source_policy'],
+                check=authorized_check,
+                budget=BootstrapBudget(timeout_seconds=timeout_seconds), **kwargs)
+        except BootstrapRateBudgetIncompatible:
+            # Preserve cancellation/revocation precedence, then let the worker
+            # persist this fixed non-retryable diagnostic without proof writes.
+            authorized_check()
+            raise
         if receipt is None:
             raise PublicFetchError('COMPANY_DOMAIN_CORROBORATION_REQUIRED')
         authorized_check()

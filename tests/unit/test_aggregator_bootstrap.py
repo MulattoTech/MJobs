@@ -62,6 +62,123 @@ def resolve(values=None, responses=None, **kwargs):
     return result, seen
 
 
+class _RateClock:
+    def __init__(self):
+        self.current = 100.0
+
+    def monotonic(self):
+        return self.current
+
+    def sleep(self, seconds):
+        self.current += seconds
+
+
+def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, trace=None):
+    """Replace socket reads and time, retaining production rate reservations/waits."""
+    raw, normalized, source, policy, profile = values
+    clock = clock or _RateClock()
+    trace = trace if trace is not None else {}
+    trace.update(clients=[], requests=[])
+    responses = pages()
+
+    def factory(url, **kwargs):
+        trace['clients'].append(url)
+        return subject.BudgetedPublicClient(url, **kwargs)
+
+    def wire(client, url, deadline):
+        client._check()
+        client._wait(deadline)
+        client._budget()
+        trace['requests'].append((url, clock.monotonic()))
+        if url.endswith('/robots.txt'):
+            return httpx.Response(200, text='User-agent: *\nAllow: /', request=httpx.Request('GET', url))
+        return responses[url]
+
+    with patch.object(subject.time, 'monotonic', clock.monotonic), \
+         patch.object(subject.time, 'sleep', clock.sleep), \
+         patch.object(PublicCompanyClient, '_request_once', wire):
+        return subject.corroborate_aggregator_job(raw, normalized, source, profile,
+            source_policy=policy, check=check or (lambda: None),
+            client_factory=factory, budget=budget)
+
+
+@pytest.mark.parametrize('rate,seconds', [(1, 30), (6, 30), (15, 12)])
+def test_impossible_rate_window_is_explicit_before_any_client_or_egress(rate, seconds):
+    values = inputs()
+    values[3]['rate_limit'] = rate
+    trace = {}
+    with pytest.raises(PublicFetchError, match='^BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE$'):
+        resolve_with_real_rate_gate(values, budget=subject.BootstrapBudget(timeout_seconds=seconds), trace=trace)
+    assert trace == {'clients': [], 'requests': []}
+
+
+@pytest.mark.parametrize('rate', [7, 15, 60])
+def test_compatible_rate_window_keeps_real_cross_origin_waits(rate):
+    values = inputs()
+    values[3]['rate_limit'] = rate
+    trace = {}
+    proof = resolve_with_real_rate_gate(values, trace=trace)
+    assert proof['execution_scope'] == 'CONTROLLED_TRANSPORT'
+    assert proof['source_policy_sha256'] == subject.canonical_digest(values[3])
+    assert len(trace['clients']) == 2 and len(trace['requests']) == 4
+    assert [url for url, _ in trace['requests']] == [
+        'https://boards-api.greenhouse.io/robots.txt', NATIVE,
+        'https://example.com/robots.txt', EMPLOYER]
+    stamps = [stamp for _, stamp in trace['requests']]
+    assert all(second - first >= 60.0 / rate - 1e-9 for first, second in zip(stamps, stamps[1:]))
+    assert stamps[-1] - stamps[0] < proof['budget']['timeout_seconds']
+
+
+def test_authorization_time_consumes_the_rate_window_without_restarting_deadline():
+    values = inputs()
+    values[3]['rate_limit'] = 15
+    clock, trace = _RateClock(), {}
+    checks = 0
+
+    def check():
+        nonlocal checks
+        checks += 1
+        if checks == 1:
+            clock.sleep(18)
+
+    with pytest.raises(PublicFetchError, match='^BOOTSTRAP_RATE_BUDGET_INCOMPATIBLE$'):
+        resolve_with_real_rate_gate(values, clock=clock, check=check, trace=trace)
+    assert trace == {'clients': [], 'requests': []}
+
+
+@pytest.mark.parametrize('invalid', ['disabled_profile', 'source_binding', 'malformed_hint'])
+def test_invalid_inputs_keep_precedence_over_rate_diagnostic(invalid):
+    values = inputs()
+    values[3]['rate_limit'] = 1
+    if invalid == 'disabled_profile':
+        values[4]['preferences'] = {'company_discovery': {'company_discovery_enabled': False}}
+    elif invalid == 'source_binding':
+        values[2]['collector_source_id'] = 'different-source'
+    else:
+        values[0]['link'] = 'https://other.example/job'
+    trace = {}
+    assert resolve_with_real_rate_gate(values, trace=trace) is None
+    assert trace == {'clients': [], 'requests': []}
+
+
+def test_authorization_loss_takes_precedence_over_impossible_rate_window():
+    values = inputs()
+    values[3]['rate_limit'] = 1
+    trace, checks = {}, 0
+    failure = PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
+
+    def check():
+        nonlocal checks
+        checks += 1
+        if checks == 2:
+            raise failure
+
+    with pytest.raises(PublicFetchError) as observed:
+        resolve_with_real_rate_gate(values, check=check, trace=trace)
+    assert observed.value is failure
+    assert trace == {'clients': [], 'requests': []}
+
+
 def test_exact_native_response_and_reciprocal_employer_produce_bound_receipt():
     values = inputs()
     original = copy.deepcopy(values)
