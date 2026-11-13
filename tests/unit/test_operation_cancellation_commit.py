@@ -64,7 +64,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
         watcher_errors = []
         wait_results = []
         active_attempts = []
-        # Bounded observations only: retain the original timer and thread order.
+        # Bounded observations only: retain the phase origin and thread order.
         phase_records = deque(maxlen=96)
         recording = False
         original_staging = operations._stage_operation_cancellation
@@ -272,6 +272,9 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     patch.object(local, "stage", side_effect=observe_stage), \
                     patch.object(self.store, "_audit", side_effect=gated_audit):
                 record_phase("patches_ready")
+                # Keep setup/GC in the trace, but exclude mock construction
+                # from the cancellation request and outcome-check budget.
+                request_started = time.monotonic()
                 if rollback:
                     with self.assertRaisesRegex(
                             rollback_error, "^SYNTHETIC_AUDIT_FAILURE$") as raised:
@@ -284,7 +287,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     "Local cancellation outcome was not resolved after transaction exit",
                 )
                 self.assertEqual(active_attempts[-1].committed, not rollback)
-                elapsed = time.monotonic() - started
+                elapsed = time.monotonic() - request_started
                 record_phase("measurement_exit")
                 writer_finished.set()
                 watcher.join(2)
