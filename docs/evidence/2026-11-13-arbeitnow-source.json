@@ -341,11 +341,10 @@
     "Standalone browser test is not automatically selected by the PR's explicit connected-acceptance list; local actual-browser proof is recorded here"
   ],
   "remaining_gates": [
-    "Independently bind the final immutable metadata successor, exact executable equivalence and fresh publication operator metadata.",
-    "Prepare fresh existing-PR1019 operator/admission metadata and verify the exact new published head.",
-    "Run all required hosted checks on that final published head; retain6df Security failure and the separate9ef ntfy Integration failures as historical evidence.",
-    "Protected integration by the verified sole steward.",
-    "Applicable integrated runtime validation and designated canonical acceptance review; no acceptance or deployment promotion is recorded here."
+    "Bind metadata-only applicability by separate immutable candidate/operator review while retaining the actually tested source HEAD and exact proof.",
+    "Obtain fresh ordinary existing-PR1019 update admission from the complete live PR inventory and actual native owner, then publish and verify exact remote head/body.",
+    "Earn all required hosted checks on that exact new published head; preserve the old Security failure and the narrowly adopted fingerprint disposition as separate history.",
+    "Use the sole verified steward for protected integration and any required integrated/runtime and canonical acceptance work; no deployment or acceptance promotion is recorded here."
   ],
   "coordination": {
     "ui_original_commit": "64819d7d650ed60759d38d0da97f714272999f49",
@@ -373,9 +372,9 @@
     "https://www.arbeitnow.com/",
     "https://www.arbeitnow.com/terms"
   ],
-  "last_updated_at_utc": "2026-11-13T06:45:01.259983+00:00",
+  "last_updated_at_utc": "2026-11-13T09:10:40.294083+00:00",
   "current_qualification": {
-    "source_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+    "source_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
     "core_arbeitnow_source_unchanged_from_prior_qualification": true,
     "required_gates_at_prior_published_d3": [
       {
@@ -531,9 +530,9 @@
     ],
     "diagnostic_evidence": "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
     "diagnostic_local": "16 PASS,0 failure/error/skip at exact test02b1957f",
-    "new_published_head_gates": "Published6df:4/5 required contexts PASS; Security FAIL on two historical ntfy event identifiers. Final scanner/evidence successor:NOT_RUN.",
+    "new_published_head_gates": "Future post-frontend metadata successor: NOT_RUN. Published 28911160 retains its original 14/15 total and 4/5 required outcomes, with the one public-metadata-digest Security failure preserved.",
     "integration_acceptance": "NOT_RUN",
-    "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+    "integrated_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
     "diagnostic_current_main": "16 PASS,0 failures/errors/skips at53d with actualStoreab3a3729; prior d3/ff2 proof andhostedfailure retained",
     "native_integrity": "Seven saved catalogue/progress/dashboard/provenance/whitespace commands PASS at53d; no separate handoff-schema command is attributed to that receipt.",
     "current_main_source_review": {
@@ -962,6 +961,304 @@
         "Distinguished actual native handoff validation from seven-command53d native integrity.",
         "Retained the original private summary; its two copied -06:00 timestamps represent the same instants as the actual+00:00 adoption receipt. Exact original strings are recorded in the private final candidate."
       ]
+    },
+    "historical_current_summaries": [
+      {
+        "recorded_at_utc": "2026-11-13T09:10:40.294083+00:00",
+        "fields": {
+          "source_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+          "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+          "new_published_head_gates": "Published6df:4/5 required contexts PASS; Security FAIL on two historical ntfy event identifiers. Final scanner/evidence successor:NOT_RUN."
+        },
+        "scope": "Earlier executable/diagnostic/scanner qualification remains attached to its original embedded heads."
+      }
+    ],
+    "merged_frontend": {
+      "status": "PASS",
+      "tested_source_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+      "tested_source_tree": "e0e8c4de040ac519ccfebf05d1034be9d278c854",
+      "tested_web_tree": "c78ef6db85b42674b2007e9b1f16b3360c4a7531",
+      "incorporated_protected_main": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "run_started_at_utc": "2026-11-13T08:51:17.132610+00:00",
+      "run_finished_at_utc": "2026-11-13T08:55:05.832527+00:00",
+      "overall_elapsed_seconds": 228.687,
+      "result_receipt": {
+        "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+        "bytes": 198551,
+        "sha256": "1b6b391544c207dafef70dc1cf9941dad41a47647f7ed1edc4e290ed29b0b1a0"
+      },
+      "controller": {
+        "name": "merged-frontend-qualification-controller-v3.py",
+        "bytes": 36968,
+        "sha256": "fe2fa7fec8cb58a4282008cebe72abcc7f931df98501e0a9792b26efff963a2d"
+      },
+      "ready_manifest": {
+        "name": "merged-frontend-manifest-7db8d97a-f056e9c5-ready.json",
+        "bytes": 60818,
+        "sha256": "4f48be067ee152779ff6ab0a45764c3fdae54390d0743356fe9f215847267d62"
+      },
+      "source_before_after_equal": true,
+      "dependencies_before_after_equal": true,
+      "raw_checkout_and_committed_git_identities_bound_separately": true,
+      "all_owned_process_cleanup_proven": true,
+      "resource_disposition": {
+        "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/resource-disposition.json",
+        "bytes": 483,
+        "sha256": "cab956e4522788f3b75d51dc20191a2f3eb9187edc1d594a55a01050298c1d53"
+      },
+      "resource_status": "RELEASED",
+      "build": {
+        "name": "f07-build",
+        "status": "PASS",
+        "logical_command": [
+          "C:\\WINDOWS\\system32\\cmd.exe",
+          "/d",
+          "/c",
+          "npm",
+          "--prefix",
+          "apps/web",
+          "run",
+          "build"
+        ],
+        "elapsed_seconds": 1.89,
+        "returncode": 0,
+        "executed_argv_reference": {
+          "receipt": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+          "json_pointer": "/phases/3/executed_argv"
+        },
+        "execution_mechanism": "Retained OwnedProcess with private Python logging wrapper; pytest uses runpy. Logical arguments are not relabeled as a different executed shell invocation.",
+        "log": {
+          "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f07-build/console.log",
+          "bytes": 911,
+          "sha256": "f2ec5b6997a74d2d7eece1d1fa2071b47b6119335f39c1250dcce2776562c1a1"
+        },
+        "build_artifact_sha256": {
+          "assets/index-2382Njgh.js": "57e03cb97d9bc8ac5543af2e64b2b496934ed6f6ec0377cf7a7af6971ca9c589",
+          "assets/index-BYoKyum1.css": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539",
+          "index.html": "748c625fce7a89e35108c93da23a4d5791aff114da2a6216c15224c2b1d277c6"
+        },
+        "nonblocking_observation": "Existing Vite chunk-size warning; build exited 0.",
+        "cleanup": {
+          "status": "PASS",
+          "retained_job_active_members": 0,
+          "original_host_signaled": true,
+          "temporary_fixture_cleanup": "PASS"
+        }
+      },
+      "browser": {
+        "name": "f07-browser",
+        "status": "PASS",
+        "logical_command": [
+          "-q",
+          "-s",
+          "-p",
+          "no:cacheprovider",
+          "--tb=short",
+          "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88\\f07-browser\\junit.xml",
+          "--basetemp=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88\\f07-browser\\temp\\pytest",
+          "tests/browser/test_arbeitnow_source_enrollment.py"
+        ],
+        "elapsed_seconds": 7.609,
+        "returncode": 0,
+        "executed_argv_reference": {
+          "receipt": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+          "json_pointer": "/phases/4/executed_argv"
+        },
+        "execution_mechanism": "Retained OwnedProcess with private Python logging wrapper; pytest uses runpy. Logical arguments are not relabeled as a different executed shell invocation.",
+        "log": {
+          "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f07-browser/console.log",
+          "bytes": 22,
+          "sha256": "1eeea2a7644dc56ae1e4758c5ed387d031dd48e93deabd1c1ff9fbd97e321662"
+        },
+        "junit_artifact": {
+          "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f07-browser/junit.xml",
+          "bytes": 438,
+          "sha256": "79db0c9c4b7b4c61c88f2856fc74963089c1e994786d189547fa157a7efd6e8a"
+        },
+        "counts": {
+          "tests": 1,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0
+        },
+        "cleanup": {
+          "status": "PASS",
+          "retained_job_active_members": 0,
+          "original_host_signaled": true,
+          "temporary_fixture_cleanup": "PASS"
+        }
+      },
+      "shared_desktop_activity_unit_proof": {
+        "result": "PASS_SOURCE_EQUIVALENT_COMPONENTS",
+        "executed_lane": "f06",
+        "executed_head": "7db8d97a0afd7cf711ee3176ff97a63c3b85e048",
+        "f07_unit_execution": false,
+        "compared_files": [
+          "apps/web/src/desktop-notification-provider.ts",
+          "apps/web/src/desktop-notification-provider.test.ts",
+          "apps/web/src/desktop-notifications.tsx",
+          "apps/web/src/desktop-notifications.test.tsx",
+          "apps/web/src/operation-notifications.tsx",
+          "apps/web/src/operation-notifications.test.tsx",
+          "apps/web/package.json",
+          "apps/web/package-lock.json",
+          "apps/web/vite.config.ts",
+          "apps/web/tsconfig.json"
+        ],
+        "source_before_after_and_dependency_pins_unchanged": true,
+        "scope": "28 unit cases executed once on F06; their exact imported component/config and installed dependency identities match F07. This is not a second F07 test execution.",
+        "proof": {
+          "name": "f06-vitest",
+          "status": "PASS",
+          "logical_command": [
+            "C:\\WINDOWS\\system32\\cmd.exe",
+            "/d",
+            "/c",
+            "npm",
+            "--prefix",
+            "apps/web",
+            "test",
+            "--",
+            "src/desktop-notification-provider.test.ts",
+            "src/desktop-notifications.test.tsx",
+            "src/operation-notifications.test.tsx",
+            "--maxWorkers=1",
+            "--coverage.enabled=false",
+            "--reporter=junit",
+            "--outputFile=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88\\f06-vitest\\junit.xml"
+          ],
+          "elapsed_seconds": 2.219,
+          "returncode": 0,
+          "executed_argv_reference": {
+            "receipt": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+            "json_pointer": "/phases/1/executed_argv"
+          },
+          "execution_mechanism": "Retained OwnedProcess with private Python logging wrapper; pytest uses runpy. Logical arguments are not relabeled as a different executed shell invocation.",
+          "log": {
+            "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f06-vitest/console.log",
+            "bytes": 618,
+            "sha256": "54d6980febbd1233a7694e0760effa67c50c78d93cf6205115af9e557abc5d8c"
+          },
+          "junit_artifact": {
+            "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/f06-vitest/junit.xml",
+            "bytes": 32882,
+            "sha256": "2fa1fe0ee843c0ab5693b1d0ed4fd1e188acf008d2a535d3e5cca4a4533ca507"
+          },
+          "counts": {
+            "tests": 28,
+            "failure": 0,
+            "error": 0,
+            "skipped": 0
+          },
+          "cleanup": {
+            "status": "PASS",
+            "retained_job_active_members": 0,
+            "original_host_signaled": true,
+            "temporary_fixture_cleanup": "PASS"
+          }
+        }
+      },
+      "independent_actual_audit": {
+        "status": "PASS",
+        "receipt": {
+          "name": "independent-review-merged-frontend-runtime-7db8d97a-f056e9c5.json",
+          "bytes": 87590,
+          "sha256": "5d274b1d75add77b27c8822cf9935917bb58147ddcfa5a38f84a52cde11c5003",
+          "result": "PASS_SCOPED_MERGED_FRONTEND_QUALIFICATION"
+        },
+        "preparer_is_controller_and_provider_author": true,
+        "preparer_claims_independent_approval": false
+      },
+      "backend_history_reference": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+      "backend_production_paths_changed_from_reference": [],
+      "selected_backend_core_blobs_unchanged": {
+        "services/discovery/sources/arbeitnow.py": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+        "services/discovery/sources/http_transport.py": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "services/discovery/sources/collect.py": "3d90f0581c5acbe617f22bef05236023949f1afd",
+        "services/discovery/sources/registry.py": "b5f56f14069d14eb5bf08298bcde5ecd859e18e8",
+        "packages/persistence/store.py": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "apps/api/main.py": "c172440c68bca5884f1dfd183315a429771f617d"
+      },
+      "full_changed_paths_from_historical_reference": [
+        ".gitleaksignore",
+        "apps/web/src/desktop-notification-provider.test.ts",
+        "apps/web/src/desktop-notification-provider.ts",
+        "apps/web/src/desktop-notifications.test.tsx",
+        "apps/web/src/desktop-notifications.tsx",
+        "apps/web/src/main.tsx",
+        "docs/DESKTOP_NOTIFICATIONS.md",
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-13-desktop-cancellation-diagnostics.json",
+        "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+        "docs/evidence/2026-11-13-ntfy-scanner-disposition.json",
+        "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
+        "docs/evidence/2026-11-13-usajobs-scanner-disposition.json",
+        "planning/agent_handoffs/MJ-REQ-017.F07.json",
+        "planning/agent_handoffs/MJ-REQ-204.N05.json",
+        "tests/browser/test_desktop_notifications.py",
+        "tests/unit/test_operation_cancellation_commit.py"
+      ],
+      "scope_limits": [
+        "Historical backend and live-provider results keep their original revisions, dates, counts and limitations; no new provider request or backend rerun occurred in this frontend batch.",
+        "Source enrollment cases assert no jobs, operations or applications created; Desktop cases use synthetic local operations and actual native Chromium notification APIs.",
+        "No OS-visible toast, browser-closed/background delivery, external application submission, protected integration, deployment or formal acceptance is proved.",
+        "The later two-file metadata successor must be bound separately after commit; it cannot contain its own future commit SHA."
+      ],
+      "metadata_successor": {
+        "applicability": "A metadata-only successor may reuse this executed proof only after separate immutable review verifies unchanged executable/test bytes and exact source ancestry.",
+        "identity_binding": "Recorded in a separate post-commit candidate/operator receipt; no self-referential future hash belongs in this evidence.",
+        "required_hosted_checks": "NOT_RUN_ON_NEW_PUBLICATION_HEAD",
+        "protected_integration": "NOT_RUN",
+        "deployment": "NOT_RUN",
+        "formal_acceptance": "NOT_RUN"
+      },
+      "desktop_native_browser": {
+        "executed_on_f07": false,
+        "scope": "F07 has its own successful build and Arbeitnow browser case. The three Desktop native browser cases executed on F06 only; matching shared components do not make them F07 executions."
+      }
+    },
+    "scanner_payload_digest_adoption": {
+      "historical_fingerprint": "b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523",
+      "classification": "VERIFIED_NONCREDENTIAL_PUBLIC_PAYLOAD_DIGEST",
+      "disposition_path": "docs/evidence/2026-11-13-usajobs-scanner-disposition.json",
+      "ignore_blob": "7c78a37823b5c1ab05e44b740a51d90f44aa476b",
+      "disposition_blob": "5454f8fcbdd764d866d2afcab35c9d17f1b8347d",
+      "rules_workflow_version_history_scope_changed": false,
+      "historical_failed_checks_remain_failed": true,
+      "future_metadata_head_hosted_checks": "NOT_RUN",
+      "local_adoption_commit": "8040fccc741212970f990333b4240433b2d0d24a",
+      "previous_published_head": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
+      "historical_snapshot": {
+        "name": "hosted-qualification-pr1019-28911160-071935.json",
+        "bytes": 15781,
+        "sha256": "186cbd72cfa25dfd12e202cb0e0a4a70dab892bdb37d6a7048e897a29463812b"
+      },
+      "historical_failed_security_job": 131742982589,
+      "historical_predecessor_checks": {
+        "total": 15,
+        "passed": 14,
+        "required": 5,
+        "required_passed": 4,
+        "only_failed_context": "Security / secret scan"
+      }
+    },
+    "historical_proof_scope_note": "Existing diagnostic, executable_source_binding, published_head_qualification, scanner_prerequisite, review and integrity objects retain their original embedded revisions and creation-time scope. The current Desktop-merged frontend execution is separately recorded in merged_frontend; broad no-new-browser/whole-executable-equivalence wording in those preserved historical objects is not a current claim."
+  },
+  "historical_metadata_summaries": [
+    {
+      "recorded_at_utc": "2026-11-13T09:10:40.294083+00:00",
+      "source_head_before_metadata_edit": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+      "superseded_current_fields": {
+        "remaining_gates": [
+          "Independently bind the final immutable metadata successor, exact executable equivalence and fresh publication operator metadata.",
+          "Prepare fresh existing-PR1019 operator/admission metadata and verify the exact new published head.",
+          "Run all required hosted checks on that final published head; retain6df Security failure and the separate9ef ntfy Integration failures as historical evidence.",
+          "Protected integration by the verified sole steward.",
+          "Applicable integrated runtime validation and designated canonical acceptance review; no acceptance or deployment promotion is recorded here."
+        ],
+        "last_updated_at_utc": "2026-11-13T06:45:01.259983+00:00"
+      },
+      "scope": "Preserved creation-time wording; broad whole-tree/frontend equivalence statements here are historical and do not describe the Desktop-merged source."
     }
-  }
+  ]
 }

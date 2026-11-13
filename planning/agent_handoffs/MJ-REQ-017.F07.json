@@ -4,9 +4,9 @@
   "objective": "Deliver and formally accept a bounded Arbeitnow niche-source adapter with exact capabilities, deterministic contracts, safe live readback and user-visible configuration",
   "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
   "branch": "web/p6-arbeitnow-20261113-4dae",
-  "head_sha": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+  "head_sha": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
   "routing_state": "VERIFY",
-  "next_action": "Bind the final metadata-only successor and independent operator review, obtain fresh ordinary existing-PR1019 publication admission, then earn all exact new-head required checks before sole-steward integration and acceptance.",
+  "next_action": "Use separate immutable candidate/operator receipts to bind metadata-only applicability to actually frontend-tested f056e9c5f01fcf259026424272a22dcb07a3b8bc, obtain fresh ordinary existing-PR 1019 update admission, then earn exact new-head hosted checks and sole-steward protected integration. Acceptance and deployment remain separate.",
   "created_at": "2026-11-13T03:41:53.261607+00:00",
   "requirements": [
     "MJ-REQ-017.F07"
@@ -67,19 +67,35 @@
     {
       "command": "Separate owner9ef Security job131721226742:PASS; scoped scanner prerequisite only. Its ntfy Integration shards0/1 and aggregate FAILED and do not qualify F07",
       "result": "PASS"
+    },
+    {
+      "command": "Exact clean f056e9c5f01fcf259026424272a22dcb07a3b8bc: TypeScript and Vite production build PASS, exit0, 1.89s; distinct current web tree and build assets retained in merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json.",
+      "result": "PASS"
+    },
+    {
+      "command": "Source-equivalent shared Desktop/Activity unit proof:28 cases actually PASS on F06 7db8d97a0afd7cf711ee3176ff97a63c3b85e048; matching component/config/dependency pins verified for F07, with no second F07 execution. Original assertions/timers unchanged; exact command/JUnit/log retained.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact clean f056e9c5f01fcf259026424272a22dcb07a3b8bc: actual mounted loopback browser 1 cases PASS,0 failures/errors/skips, 7.609s. Arbeitnow enrollment on F07's own merged entrypoint; Desktop native cases ran on F06 only. Retained Job0/original-host signaled, temporary fixtures removed and heavy reservation released.",
+      "result": "PASS"
+    },
+    {
+      "command": "Final post-frontend metadata successor: fresh exact-head hosted qualification, protected integration, deployment and formal acceptance remain NOT_RUN; historical published 289111609b1ea75c7d19b2d784c0820acbd53c1c Security failure is retained with exact payload-digest disposition adopted locally at 8040fccc741212970f990333b4240433b2d0d24a.",
+      "result": "NOT_RUN"
     }
   ],
   "blockers": [
-    "Published6df has4/5 required contexts PASS and Security FAIL on exactly two historical ntfy findings. The exact scanner correction is adopted at e890; final immutable/operator publication binding and new-head hosted qualification remain separate.",
-    "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved. The old d3 deadline failure and unknown cause remain historical evidence."
+    "Required hosted checks on the final newly published head, protected integration, applicable integrated/runtime validation, deployment and formal acceptance remain separate gates.",
+    "The actual frontend proof does not establish an OS-visible toast, closed-page delivery or an external application flow."
   ],
-  "updated_at": "2026-11-13T06:45:01.259983+00:00",
+  "updated_at": "2026-11-13T09:10:40.294083+00:00",
   "historical_blockers": [
     "Prior d3 exact-head Integration failed public worker deadline completion; diagnostic source is locally qualified, new-head hosted qualification remains required.",
     "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved."
   ],
   "tested_executable_head_sha": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
-  "published_head_sha": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+  "published_head_sha": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
   "scanner_adoption": {
     "head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
     "tree": "0c6210d8ca6599b8762e4f5c5253cf092da94133",
@@ -96,9 +112,60 @@
     "source_equivalence": "Only the two scanner files differ from6df; all executable bytes retain53d equivalence."
   },
   "future_metadata_successor": {
-    "head_sha": null,
-    "hosted_checks": "NOT_RUN",
-    "publication": "NOT_RUN",
-    "binding_note": "The final metadata-only commit and source equivalence are recorded after commit in separate review/publication receipts; no self-referential commit identity is asserted here."
+    "applicability": "Metadata-only successor proof requires separate immutable executable/source-equivalence review.",
+    "hosted_checks": "NOT_RUN_ON_NEW_PUBLICATION_HEAD",
+    "identity_binding": "Separate post-commit candidate/operator receipt; source head_sha here is the actually tested merged frontend."
+  },
+  "historical_metadata_summaries": [
+    {
+      "recorded_at_utc": "2026-11-13T09:10:40.294083+00:00",
+      "source_head_before_metadata_edit": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+      "fields": {
+        "head_sha": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+        "published_head_sha": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+        "next_action": "Bind the final metadata-only successor and independent operator review, obtain fresh ordinary existing-PR1019 publication admission, then earn all exact new-head required checks before sole-steward integration and acceptance.",
+        "updated_at": "2026-11-13T06:45:01.259983+00:00",
+        "blockers": [
+          "Published6df has4/5 required contexts PASS and Security FAIL on exactly two historical ntfy findings. The exact scanner correction is adopted at e890; final immutable/operator publication binding and new-head hosted qualification remain separate.",
+          "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved. The old d3 deadline failure and unknown cause remain historical evidence."
+        ],
+        "future_metadata_successor": {
+          "head_sha": null,
+          "hosted_checks": "NOT_RUN",
+          "publication": "NOT_RUN",
+          "binding_note": "The final metadata-only commit and source equivalence are recorded after commit in separate review/publication receipts; no self-referential commit identity is asserted here."
+        }
+      },
+      "tests_prefix_preserved_count": 14
+    }
+  ],
+  "published_head_observation_scope": "Predecessor observed by root through authenticated GitHub at 2026-11-13 08:53 UTC; fresh API verification is required before publication. This is not the future metadata candidate.",
+  "tested_executable_head_scope": "Historical backend/diagnostic executable anchor only; current merged frontend execution is separately bound in current_frontend_qualification.",
+  "source_binding_note": "head_sha identifies the actual current merged frontend execution. Historical backend/live/diagnostic entries retain their own original source anchors and are not reruns at this head. The final metadata-only successor is identified separately after commit, avoiding a self-referential commit hash.",
+  "current_frontend_qualification": {
+    "tested_head": "f056e9c5f01fcf259026424272a22dcb07a3b8bc",
+    "tested_tree": "e0e8c4de040ac519ccfebf05d1034be9d278c854",
+    "web_tree": "c78ef6db85b42674b2007e9b1f16b3360c4a7531",
+    "result_receipt": {
+      "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+      "bytes": 198551,
+      "sha256": "1b6b391544c207dafef70dc1cf9941dad41a47647f7ed1edc4e290ed29b0b1a0"
+    },
+    "independent_actual_audit": {
+      "status": "PASS",
+      "receipt": {
+        "name": "independent-review-merged-frontend-runtime-7db8d97a-f056e9c5.json",
+        "bytes": 87590,
+        "sha256": "5d274b1d75add77b27c8822cf9935917bb58147ddcfa5a38f84a52cde11c5003",
+        "result": "PASS_SCOPED_MERGED_FRONTEND_QUALIFICATION"
+      },
+      "preparer_is_controller_and_provider_author": true,
+      "preparer_claims_independent_approval": false
+    },
+    "historical_backend_reference": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+    "source_evidence": "docs/evidence/2026-11-13-arbeitnow-source.json",
+    "future_metadata_hosted_checks": "NOT_RUN",
+    "historical_execution_scope_note": "Original test entries retain their original source and creation-time scope; former whole-tree-equivalence or NOT_RUN statements are not current claims.",
+    "metadata_successor_identity_binding": "Separate immutable post-commit candidate/operator receipt; no pending self-referential hash."
   }
 }
