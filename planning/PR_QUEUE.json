@@ -4660,10 +4660,23 @@
       "depends_on": [
         "MJ-PR-055"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-144-mj-req-204-n05-notification-provider-desktop",
-      "draft_until_verified": true,
-      "notes": "Independent provider PR. Declare only capabilities actually verified."
+      "status": "INTEGRATED_PASS",
+      "branch": "web/ca95dbc6/desktop-notifications",
+      "draft_until_verified": false,
+      "notes": "Independent Desktop child source is protected-integrated by PR 1017. All five literal issue 366 criteria are satisfied within the documented open-page/native browser scope. The user execution prompt sections 8, 13, 14 activates P6 delivery and requires deployment where literal/applicable; production activation is not an additional criterion for this bounded child. Preserve dependency 055 as traceability: the required browser/common prerequisite is fulfilled for this child, while parent 204 remains NOT_RUN and queue 055 remains QUEUED. Tested source a0de and all prior failures remain source-bound. Canonical acceptance publication is pending; it may be composed into the next owned ntfy PR update after independent review, without promoting ntfy or any other child.",
+      "previous_planned_branch": "codex/mj-pr-144-mj-req-204-n05-notification-provider-desktop",
+      "pr_number": 1017,
+      "pr_url": "https://github.com/MulattoTech/MJobs/pull/1017",
+      "pr_state": "MERGED",
+      "candidate": "b9e8d5d4d33d3a0800cb1bae01ca08e659794348",
+      "integration_commit": "1f1a578ee84554e81c76df59b28d88f008a93815",
+      "integration_method": "PROTECTED_PULL_REQUEST",
+      "integrated_at": "2026-11-13T07:22:38Z",
+      "evidence_path": "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+      "scope_complete": true,
+      "scope_result": "PASS",
+      "acceptance_publication_status": "PROPOSED_PASS_PENDING_PROTECTED_PUBLICATION",
+      "acceptance_preparation_branch": "web/20261113-2d4f/n05-acceptance"
     },
     {
       "id": "MJ-PR-145",

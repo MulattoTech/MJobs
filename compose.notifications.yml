@@ -1,0 +1,44 @@
+# Optional ntfy delivery. Load explicitly alongside compose.yml.
+# No additional service starts unless the notifications profile is enabled.
+services:
+  notification-worker:
+    image: ${MJOBS_IMAGE:-mjobs-local:spine}
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile
+    init: true
+    entrypoint: [python, -m, cli.runtime_database]
+    command: [python, -m, cli.notifications, run]
+    profiles: [notifications]
+    restart: "on-failure:5"
+    cpus: 0.25
+    mem_limit: 256m
+    environment:
+      MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
+      MJOBS_NOTIFICATION_CONFIG: /run/mjobs-notifications/config.json
+      MJOBS_NTFY_TOKEN: ${MJOBS_NTFY_TOKEN:-}
+    volumes:
+      - runtime-database:/run/mjobs-database:ro
+      - notification-state:/data
+      - type: bind
+        source: ${MJOBS_NOTIFICATION_CONFIG_DIR:?Set a private notification configuration directory}
+        target: /run/mjobs-notifications
+        read_only: true
+        bind:
+          create_host_path: false
+    networks: [private, source-egress]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "2"
+    healthcheck:
+      test: [CMD, python, -m, cli.notifications, health]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+volumes:
+  notification-state:
