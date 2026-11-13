@@ -11,6 +11,7 @@ import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
 
@@ -105,9 +106,9 @@ class ArbeitnowSourceEnrollmentBrowserTests(unittest.TestCase):
                     self.assertEqual(rows[0]["id"], source["id"])
                     self.assertEqual(rows[0]["provider"], "arbeitnow")
                     self.assertFalse(rows[0]["enabled"])
-                    self.assertEqual(store.count("jobs"), 0)
-                    self.assertEqual(store.count("worker_operations"), 0)
-                    self.assertEqual(store.count("applications"), 0)
+                    self.assertEqual(store.count(m.jobs.name), 0)
+                    self.assertEqual(store.count(m.operations.name), 0)
+                    self.assertEqual(store.count(m.applications.name), 0)
                     self.assertEqual(external, [])
                     self.assertEqual(page_errors, [])
                     context.close()
