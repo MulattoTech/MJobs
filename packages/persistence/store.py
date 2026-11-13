@@ -377,6 +377,9 @@ class Store:
             raise ValueError("AI_TASK_CONFIG_INVALID")
         timestamp = now()
         with self.engine.begin() as connection:
+            insert = {"postgresql": postgres_insert, "sqlite": sqlite_insert}.get(connection.dialect.name)
+            if insert is None:
+                raise ValueError("Unsupported persistence backend")
             current_rows = connection.execute(
                 select(m.ai_task_settings.c.task, m.ai_task_settings.c.provider,
                        m.ai_task_settings.c.model)
@@ -394,14 +397,18 @@ class Store:
                 effective_current = current.get(
                     task, {"provider": "disabled", "model": None})
                 changed = changed or selection != effective_current
-                upsert(connection, m.ai_task_settings, {
-                    "id": identity(profile_id, task),
-                    "profile_id": profile_id,
-                    "task": task,
-                    "provider": selection["provider"],
-                    "model": selection["model"],
-                    "updated_at": timestamp,
-                }, replace=True)
+                statement = insert(m.ai_task_settings).values(
+                    id=identity(profile_id, task), profile_id=profile_id, task=task,
+                    provider=selection["provider"], model=selection["model"],
+                    updated_at=timestamp,
+                )
+                # Restores remap row IDs. The logical setting is still identified
+                # by profile/task; preserve its existing ID when saving again.
+                connection.execute(statement.on_conflict_do_update(
+                    index_elements=[m.ai_task_settings.c.profile_id, m.ai_task_settings.c.task],
+                    set_={"provider": selection["provider"], "model": selection["model"],
+                          "updated_at": timestamp},
+                ))
             if changed:
                 self._audit(connection, profile_id, "SETTING_CHANGED", {})
         return self.ai_task_settings(profile_id)

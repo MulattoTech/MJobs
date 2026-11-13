@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "run_id": "web-20261109T131825Z-4b3185c66c15",
+  "model_id": "unknown",
+  "recorded_utc": "2026-11-09T13:57:18.365967+00:00",
+  "requirement": "MJ-REF-036",
+  "issue": 406,
+  "pr": 988,
+  "scope": "Repair recognized unsafe URLs used as object keys in source metadata projection/export",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "previous_published_head": "34541e482cf81a1e1e2951ebf85e3dbff8f9218e",
+  "implementation_sha": "ee7cc1f6da9b69c309fcf75195460b57413b863d",
+  "reviewed_source_blobs": {
+    "services/normalization/source_metadata.py": "544950c0b957a5f10bb096509a1a8c818a7166fc",
+    "tests/unit/test_source_metadata.py": "3a9ee772b81f83db2ed74b659530028f05e91b44",
+    "tests/integration/test_job_source_metadata.py": "c13d7f1804294662deabd6a5603d5ad74f6c6feb"
+  },
+  "review_reference": "https://github.com/MulattoTech/MJobs/pull/988#pullrequestreview-5826616426",
+  "ownership": {
+    "previous_run": "web-20261109T031048Z-b789251ab0cf",
+    "previous_checkpoint": "final-checkpoint.json: CHECKPOINTED_STOP, task claim released, fresh claim permitted",
+    "fresh_atomic_claim": true,
+    "workstation_compute_slots": 0,
+    "integration_authority": "PR_ONLY"
+  },
+  "finding": {
+    "priority": "P2",
+    "description": "The dictionary branch filtered reserved names but skipped the URL predicate on keys; a query/userinfo/fragment/HTML URL key entered the new export with COMPLETE and zero unsafe omissions. Identical URLs as values were omitted.",
+    "independent_confirmation": "Independent peer review, this run independent reviewer, and root mounted-API reproduction on the previous head",
+    "baseline_regression": {
+      "source_sha": "34541e482cf81a1e1e2951ebf85e3dbff8f9218e",
+      "new_test_source_sha": "ee7cc1f6da9b69c309fcf75195460b57413b863d",
+      "command": "python -m pytest -q tests/unit/test_source_metadata.py::SourceMetadataTests::test_unsafe_url_keys_are_omitted_without_losing_safe_neighbors tests/integration/test_job_source_metadata.py::JobSourceMetadataTests::test_reopened_export_and_job_metadata_omit_unsafe_url_keys",
+      "exit_code": 1,
+      "result": "Four failed unit subtests and one failed mounted-API test; parent unit method displayed as passed by pytest subtest accounting",
+      "seconds": 1.83
+    }
+  },
+  "correction": {
+    "behavior": "Run the existing bounded unsafe-URL predicate on structurally valid dictionary keys after reserved-name filtering. Omit the complete entry and increment unsafe_urls; keep public URL-key neighbors and raw storage unchanged.",
+    "changed_runtime_lines": 3,
+    "schema_or_migration_change": false,
+    "network_or_submission_side_effects": false
+  },
+  "validation": {
+    "environment": "Isolated Linux workspace, Python3.12.14, pytest9.0.3, pinned project dependencies; temporary SQLite fixtures; no host builds/tests",
+    "exact_source_sha": "ee7cc1f6da9b69c309fcf75195460b57413b863d",
+    "command": "python -m pytest -q tests/unit/test_source_metadata.py tests/integration/test_job_source_metadata.py tests/unit/test_job_normalization.py tests/unit/test_normalization_contract.py tests/unit/test_dedupe_policy.py tests/unit/test_dedupe_signals.py tests/integration/test_source_value_integrity.py tests/integration/test_user_read_models.py tests/unit/test_data_export.py tests/unit/test_data_export_bounds.py tests/integration/test_data_export_flow.py tests/integration/test_remotive.py",
+    "exit_code": 0,
+    "tests_passed": 108,
+    "subtests_passed": 50,
+    "skipped": 0,
+    "seconds": 17.26,
+    "feature_working_tree_run": {
+      "tests_passed": 23,
+      "subtests_passed": 38,
+      "seconds": 4.3
+    },
+    "validators": [
+      {
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "tools.verification.catalogue"
+        ],
+        "exit_code": 0,
+        "stdout": "Catalogue validation: PASS\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "tools.verification.progress",
+          "validate"
+        ],
+        "exit_code": 0,
+        "stdout": "Progress journal validation: PASS\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "tools.verification.progress_dashboard",
+          "--check"
+        ],
+        "exit_code": 0,
+        "stdout": "Progress dashboard: CURRENT\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "tools.verification.reference_provenance"
+        ],
+        "exit_code": 0,
+        "stdout": "Reference provenance validation: PASS\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "tools.verification.commit_provenance",
+          "--commit",
+          "HEAD"
+        ],
+        "exit_code": 0,
+        "stdout": "PASS: provenance complete for 3 source files\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/workspace/scratch/11cf817acfbe/.venv-mjobs/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "--select",
+          "E9,F63,F7,F82",
+          "services/normalization/source_metadata.py",
+          "tests/unit/test_source_metadata.py",
+          "tests/integration/test_job_source_metadata.py"
+        ],
+        "exit_code": 0,
+        "stdout": "All checks passed!\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ]
+  },
+  "independent_fix_review": {
+    "result": "PASS for scoped correction",
+    "source_identity": "Executed before commit; Git blobs match implementation_sha above",
+    "probe_seconds": 1.01,
+    "verified": [
+      "Original two-URL-key counterexample persisted and reopened through mounted metadata export and job-detail",
+      "Both unsafe entries omitted; no synthetic canary in new export",
+      "PARTIAL; unsafe_urls exactly2; only UNSAFE_URLS_OMITTED",
+      "Safe public URL-key neighbor preserves Unicode,false,0,null",
+      "Original raw input, job-detail raw projection, and entire fixture database unchanged"
+    ],
+    "human_approval": false
+  },
+  "criteria": [
+    {
+      "number": 1,
+      "status": "SCOPED_PASS",
+      "evidence": "Existing version1 envelope and focused read tests pass; no version change"
+    },
+    {
+      "number": 2,
+      "status": "NOT_RUN_IN_THIS_SLICE",
+      "evidence": "Canonical-field provenance is separate PR978; no combined revision tested"
+    },
+    {
+      "number": 3,
+      "status": "SCOPED_PASS",
+      "evidence": "Actual mounted job-detail projection and profile metadata download honor key omission policy after durable reopen"
+    },
+    {
+      "number": 4,
+      "status": "PARTIAL",
+      "evidence": "Eligible unknown keys/values round-trip; unsafe entries deliberately omitted with explicit state and original raw data preserved"
+    },
+    {
+      "number": 5,
+      "status": "SCOPED_PASS",
+      "evidence": "Existing synthetic Remotive extension test passes without adapter changes"
+    }
+  ],
+  "not_run": [
+    "New hosted checks after publication; previous15 successful checks belong only to old head",
+    "Feature-specific PostgreSQL execution; authored integration fixtures use SQLite",
+    "Authenticated public browser and deployment journeys",
+    "Full combined PR978+PR988 requirement acceptance"
+  ],
+  "residual_limits": [
+    "Selective key/URL policy is not a universal sensitive-prose detector",
+    "Individual stored raw JSON rows are decoded before projection bounds apply",
+    "New projection is computed from durable raw data, not separately persisted historical normalization revisions",
+    "The original backup/restore metadata contract is unchanged"
+  ],
+  "canonical_acceptance_changed": false,
+  "fresh_full_requirement_pass": 0,
+  "rollback": "Protected scoped revert after authorized integration; no migration or stored-data mutation to undo"
+}
