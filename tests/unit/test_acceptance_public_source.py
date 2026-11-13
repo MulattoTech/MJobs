@@ -32,6 +32,9 @@ class ControlledAPI:
         self.children_complete = True
         self.child_polls = 0
         self.after_child_poll = lambda: None
+        self.enrolled_sources = []
+        self.domain_proofs = {}
+        self.domain_response_transform = lambda value: value
         self.profile = dict(id='profile', version=VERSION)
         self.app = dict(id='app', profile_id='profile', job_id='fixture-job', route_id='fixture-route',
             target='MOCK', state='CONFIRMED', confirmation={'receipt': 'mock-only'})
@@ -86,12 +89,30 @@ class ControlledAPI:
             value = dict(schema_version=1, profile_id='profile', profile_version=VERSION,
                 source_id='public-source', parent_operation_id='public-operation', parent_operation_attempt=1,
                 parent_request_id=self.params['request_id'], complete=self.children_complete, limit=2,
-                children=deepcopy(self.children), enrolled_sources=[])
+                children=deepcopy(self.children), enrolled_sources=deepcopy(self.enrolled_sources))
             value['lineage_sha256'] = _digest([{key: val for key, val in row.items()
                 if key not in {'state', 'authorization', 'reason', 'operation_attempt', 'operation_sha256'}}
                 for row in sorted(value['children'], key=lambda item: item['request_id'])])
             value['sha256'] = _digest(value)
+            self.last_children = deepcopy(value)
             return value
+        if (method, path) == ('GET', '/profiles/profile/sources/public-source/collections/public-operation/domain-proofs'):
+            assert kwargs.get('params') == {'attempt': 1}
+            assert self.source['enabled'] is True
+            collection = deepcopy(self.last_children)
+            value = {key: collection[key] for key in ('schema_version', 'profile_id', 'profile_version',
+                'source_id', 'parent_operation_id', 'parent_operation_attempt', 'parent_request_id', 'complete', 'limit')}
+            value.update(collection_lineage_sha256=collection['lineage_sha256'],
+                collection_readback_sha256=collection['sha256'], observations=[])
+            for child in collection['children']:
+                proof = deepcopy(self.domain_proofs.get(child['request_id']))
+                enrolled = [{key: row[key] for key in ('source_id', 'company_source_id', 'operation_id',
+                    'request_id', 'audit_id', 'audit_sha256', 'pending_sha256', 'receipt_sha256', 'envelope_sha256')}
+                    for row in collection['enrolled_sources'] if row['request_id'] == child['request_id']]
+                value['observations'].append(dict(child=child, status='AVAILABLE' if proof else 'UNAVAILABLE',
+                    reason=None if proof else 'BOOTSTRAP_RECEIPT_NOT_PERSISTED', proof=proof, enrolled_sources=enrolled))
+            value['sha256'] = _digest(value)
+            return self.domain_response_transform(value)
         if (method, path) == ('POST', '/operations/public-operation/cancel'):
             return {'cancel_requested': True}
         if (method, path) == ('GET', '/jobs'):
@@ -142,6 +163,184 @@ class PublicSourceObservationTests(unittest.TestCase):
             authorization='AGGREGATOR_BOOTSTRAP_PENDING', reason=None, operation_attempt=1,
             operation_sha256='a' * 64, pending_sha256='b' * 64)
 
+    def domain_fixture(self, *, enrolled=False):
+        """Controlled API metadata; it never represents a public HTTP observation."""
+        child = self.child('COMPLETED')
+        self.api.children = [child]
+        source = self.api.configured()
+        self.api.source = None
+        proof = dict(company_id='company', request_id='child-request', request_revision=2,
+            operation_id='child-operation', domain_id='domain', domain='acme.example',
+            domain_verification_method='FIRST_PARTY_JOB_LINK', domain_evidence_sha256='1' * 64,
+            corroboration_method='AGGREGATOR_NATIVE_BOOTSTRAP_V1', execution_scope='CONTROLLED_TRANSPORT',
+            execution_scope_basis='PERSISTED_RECEIPT_METADATA',
+            native=dict(provider='greenhouse', tenant='acme', job_id='1001',
+                native_response_sha256='2' * 64, native_json_sha256='3' * 64),
+            pending_sha256=child['pending_sha256'], receipt_sha256='4' * 64,
+            envelope_sha256='5' * 64, raw_sha256=child['snapshot_sha256'], normalized_sha256='6' * 64,
+            source_snapshot_sha256=_digest(dict(company_id='company', provider='wwr', tenant='default',
+                endpoint='https://weworkremotely.com/remote-jobs.rss', collector_source_id='public-source')),
+            source_policy_sha256=_digest({key: source[key] for key in ('id', 'provider', 'tenant', 'strategy',
+                'capabilities', 'enabled', 'request_timeout', 'rate_limit', 'concurrency')}),
+            employer_response_sha256='7' * 64, apply_response_sha256=None, audit_id='domain-audit',
+            audit_sha256='8' * 64, acquired_at=STAMP)
+        proof['sha256'] = _digest(proof)
+        self.api.domain_proofs[child['request_id']] = proof
+        if enrolled:
+            policy = {key: source[key] for key in ('id', 'provider', 'tenant', 'enabled', 'poll_interval',
+                'concurrency', 'request_timeout', 'rate_limit', 'jitter_seconds', 'strategy', 'capabilities')}
+            policy.update(id='native-source', provider='greenhouse', tenant='acme', strategy='API')
+            self.api.enrolled_sources = [dict(source_id='native-source', company_source_id='native-company-source',
+                operation_id=child['operation_id'], request_id=child['request_id'], policy=policy,
+                policy_sha256=_digest(policy), audit_id='enrollment-audit', audit_sha256='9' * 64,
+                pending_sha256=proof['pending_sha256'], receipt_sha256=proof['receipt_sha256'],
+                envelope_sha256=proof['envelope_sha256'])]
+        return proof
+
+    def test_domain_metadata_is_captured_once_before_cleanup_and_stays_controlled(self):
+        expected = self.domain_fixture()
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        capture = result['domain_proof_readback']
+        self.assertEqual(capture['status'], 'CAPTURED')
+        self.assertEqual(capture['basis'], 'PERSISTED_RECEIPT_METADATA')
+        response = capture['response']
+        self.assertEqual(response['observations'][0]['proof'], expected)
+        self.assertEqual(capture['response_sha256'], response['sha256'])
+        self.assertEqual(response['collection_readback_sha256'], result['child_discovery']['readback_sha256'])
+        self.assertNotEqual(expected['source_policy_sha256'], result['source_policy_sha256'])
+        domain_calls = [i for i, (_, path, _) in enumerate(self.api.calls) if path.endswith('/domain-proofs')]
+        self.assertEqual(len(domain_calls), 1)
+        disabled = [i for i, (method, path, kwargs) in enumerate(self.api.calls)
+                    if method == 'PUT' and path == '/sources' and kwargs['json']['enabled'] is False]
+        self.assertTrue(disabled and domain_calls[0] < disabled[0])
+        self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+        self.assertEqual(result['execution_scope'], 'CONTROLLED_TRANSPORT')
+        self.assertEqual([(row['step'], row['status']) for row in result['acceptance_observations']], [(11, 'NOT_RUN')])
+        self.assertEqual(result['selected_application_job_id'], 'fixture-job')
+        self.assertNotIn('acceptance_observations', response)
+        self.assertFalse(self.api.source['enabled'])
+        self.assertEqual(json.loads(self.path.read_text()), result)
+
+    def test_domain_metadata_retains_missing_proof_without_promoting_it(self):
+        self.api.children = [self.child('COMPLETED')]
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        capture = result['domain_proof_readback']
+        self.assertEqual(capture['status'], 'CAPTURED')
+        observation = capture['response']['observations'][0]
+        self.assertEqual(observation['status'], 'UNAVAILABLE')
+        self.assertEqual(observation['reason'], 'BOOTSTRAP_RECEIPT_NOT_PERSISTED')
+        self.assertIsNone(observation['proof'])
+        self.assertEqual([row['step'] for row in result['acceptance_observations']], [11])
+
+    def test_domain_metadata_joins_exact_enrolled_source_receipts(self):
+        self.domain_fixture(enrolled=True)
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        row = result['domain_proof_readback']['response']['observations'][0]
+        self.assertEqual(row['enrolled_sources'][0]['source_id'], 'native-source')
+        self.assertEqual(row['enrolled_sources'][0]['receipt_sha256'], row['proof']['receipt_sha256'])
+        self.assertNotIn('policy', row['enrolled_sources'][0])
+
+    def test_changed_domain_metadata_is_rejected_even_with_recomputed_hashes(self):
+        changes = [
+            (('profile_id',), 'other-profile'), (('profile_version',), '0' * 64),
+            (('source_id',), 'other-source'), (('parent_operation_id',), 'other-operation'),
+            (('parent_operation_attempt',), True), (('parent_request_id',), 'other-request'),
+            (('collection_lineage_sha256',), '0' * 64), (('collection_readback_sha256',), '0' * 64),
+            (('observations', 0, 'child', 'company_id'), 'other-company'),
+            (('observations', 0, 'child', 'operation_attempt'), True),
+            (('observations', 0, 'proof', 'company_id'), 'other-company'),
+            (('observations', 0, 'proof', 'request_id'), 'other-request'),
+            (('observations', 0, 'proof', 'request_revision'), True),
+            (('observations', 0, 'proof', 'operation_id'), 'other-operation'),
+            (('observations', 0, 'proof', 'pending_sha256'), '0' * 64),
+            (('observations', 0, 'proof', 'raw_sha256'), '0' * 64),
+            (('observations', 0, 'proof', 'source_snapshot_sha256'), '0' * 64),
+            (('observations', 0, 'proof', 'source_policy_sha256'), '0' * 64),
+            (('observations', 0, 'proof', 'receipt_sha256'), '0' * 64),
+            (('observations', 0, 'proof', 'native', 'tenant'), 'another-tenant'),
+            (('observations', 0, 'proof', 'execution_scope'), 'LIVE_PUBLIC_READ_ONLY'),
+            (('observations', 0, 'proof', 'execution_scope_basis'), 'VERIFIED_PUBLIC_HTTP'),
+            (('observations', 0, 'proof', 'domain'), 'https://acme.example/private'),
+            (('observations', 0, 'proof', 'apply_response_sha256'), 'not-a-hash'),
+            (('observations', 0, 'proof', 'acquired_at'), '2026-11-06T12:00:00'),
+            (('observations', 0, 'enrolled_sources', 0, 'request_id'), 'different-request'),
+            (('observations', 0, 'proof', 'private_html'), 'PRIVATE_MARKER'),
+            (('observations', 0, 'proof', 'native', 'url'), 'PRIVATE_MARKER'),
+            (('private_payload',), 'PRIVATE_MARKER'),
+        ]
+        for keys, replacement in changes:
+            with self.subTest(field=keys):
+                self.api = ControlledAPI()
+                self.domain_fixture(enrolled=True)
+                def mutate(value):
+                    target = value
+                    for key in keys[:-1]:
+                        target = target[key]
+                    target[keys[-1]] = replacement
+                    proof = value['observations'][0]['proof']
+                    proof['sha256'] = _digest({key: val for key, val in proof.items() if key != 'sha256'})
+                    value['sha256'] = _digest({key: val for key, val in value.items() if key != 'sha256'})
+                    return value
+                self.api.domain_response_transform = mutate
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL', result)
+                self.assertEqual(result['domain_proof_readback']['status'], 'FAIL')
+                self.assertIsNone(result['domain_proof_readback']['response'])
+                self.assertNotIn('PRIVATE_MARKER', json.dumps(result))
+                self.assertFalse(self.api.source['enabled'])
+                self.assertEqual(sum(path.endswith('/collect') for _, path, _ in self.api.calls), 1)
+
+    def test_domain_response_or_proof_checksum_and_duplicate_rows_fail_closed(self):
+        for change in ('response-hash', 'proof-hash', 'duplicate', 'missing', 'unavailable-with-proof'):
+            with self.subTest(change=change):
+                self.api = ControlledAPI()
+                self.domain_fixture()
+                def corrupt(value):
+                    if change == 'missing':
+                        return None
+                    if change == 'response-hash':
+                        value['sha256'] = '0' * 64
+                        return value
+                    if change == 'proof-hash':
+                        value['observations'][0]['proof']['sha256'] = '0' * 64
+                    if change == 'duplicate':
+                        value['observations'] *= 2
+                    if change == 'unavailable-with-proof':
+                        value['observations'][0].update(status='UNAVAILABLE', reason='BOOTSTRAP_RECEIPT_NOT_PERSISTED')
+                    value['sha256'] = _digest({key: val for key, val in value.items() if key != 'sha256'})
+                    return value
+                self.api.domain_response_transform = corrupt
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL', result)
+                self.assertIsNone(result['domain_proof_readback']['response'])
+                self.assertFalse(self.api.source['enabled'])
+                self.assertEqual(sum(path.endswith('/domain-proofs') for _, path, _ in self.api.calls), 1)
+
+    def test_domain_read_containment_loss_preserves_source_and_does_not_save_response(self):
+        self.domain_fixture()
+        lost = [False]
+        def readback(value):
+            lost[0] = True
+            return value
+        self.api.domain_response_transform = readback
+        result = self.observe(containment_preflight=lambda *_: dict(PROOF, scheduler_contained=not lost[0]))
+        self.assertEqual(result['result'], 'FAIL')
+        self.assertEqual(result['error_code'], 'SCHEDULER_CONTAINMENT_REQUIRED')
+        self.assertIsNone(result['domain_proof_readback']['response'])
+        self.assertEqual(result['cleanup']['status'], 'PRESERVED_OWNERSHIP_CHANGED')
+        self.assertTrue(self.api.source['enabled'])
+
+    def test_controlled_domain_capture_cannot_satisfy_live_journey_validator(self):
+        from cli.acceptance_journey import validate_public_artifact
+        self.domain_fixture()
+        result = self.observe()
+        self.assertEqual(result['domain_proof_readback']['status'], 'CAPTURED')
+        with self.assertRaisesRegex(ValueError, 'Same-profile public observation'):
+            validate_public_artifact(result, BASELINE, 'wwr', 'campaign')
+
     def test_exact_child_finishes_while_source_and_lease_remain_active(self):
         self.api.children = [self.child()]
         def advance():
@@ -164,6 +363,9 @@ class PublicSourceObservationTests(unittest.TestCase):
         result = self.observe(containment_preflight=contain)
         self.assertEqual(result['child_discovery']['status'], 'NOT_RUN')
         self.assertEqual(result['child_discovery']['children'], [])
+        self.assertEqual(result['domain_proof_readback']['status'], 'NOT_RUN')
+        self.assertEqual(result['domain_proof_readback']['reason'], 'NO_CURRENT_COLLECTION_CHILDREN')
+        self.assertFalse(any(path.endswith('/domain-proofs') for _, path, _ in self.api.calls))
         final_contexts = [context for stage, context in contexts if stage in {'finalize', 'cleanup'}]
         self.assertTrue(final_contexts)
         self.assertTrue(all(context['child_discovery_requested'] is True for context in final_contexts))
@@ -185,6 +387,9 @@ class PublicSourceObservationTests(unittest.TestCase):
         result = self.observe(child_timeout_seconds=2, monotonic=lambda: next(ticks), sleep=lambda _: None)
         self.assertEqual(result['child_discovery']['status'], 'BLOCKED')
         self.assertEqual(result['child_discovery']['reason'], 'CHILD_DISCOVERY_TIMEOUT')
+        self.assertEqual(result['domain_proof_readback']['status'], 'NOT_RUN')
+        self.assertEqual(result['domain_proof_readback']['reason'], 'CHILDREN_NOT_SETTLED')
+        self.assertFalse(any(path.endswith('/domain-proofs') for _, path, _ in self.api.calls))
         self.assertFalse(self.api.source['enabled'])
 
     def test_child_lineage_or_incomplete_response_is_never_admitted(self):

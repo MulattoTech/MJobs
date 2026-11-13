@@ -39,6 +39,16 @@ CHILD_FIELDS = ('request_id', 'revision', 'company_id', 'company_source_id', 'pr
 CHILD_DYNAMIC = {'state', 'authorization', 'reason', 'operation_attempt', 'operation_sha256'}
 CHILD_TERMINAL = TERMINAL | {'NEEDS_ORIGIN_REVIEW', 'DISMISSED'}
 SAFE_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z')
+DOMAIN_POLICY_FIELDS = ('id', 'provider', 'tenant', 'strategy', 'capabilities', 'enabled',
+                        'request_timeout', 'rate_limit', 'concurrency')
+DOMAIN_ENROLLMENT_FIELDS = ('source_id', 'company_source_id', 'operation_id', 'request_id',
+    'audit_id', 'audit_sha256', 'pending_sha256', 'receipt_sha256', 'envelope_sha256')
+DOMAIN_PROOF_HASH_FIELDS = ('domain_evidence_sha256', 'pending_sha256', 'receipt_sha256',
+    'envelope_sha256', 'raw_sha256', 'normalized_sha256', 'source_snapshot_sha256',
+    'source_policy_sha256', 'employer_response_sha256', 'audit_sha256', 'sha256')
+DOMAIN_UNAVAILABLE_REASONS = {'DISCOVERY_OPERATION_UNAVAILABLE', 'DOMAIN_CORROBORATION_UNAVAILABLE',
+    'BOOTSTRAP_RECEIPT_NOT_PERSISTED', 'OFFICIAL_DOMAIN_NOT_ACQUIRED',
+    'DOMAIN_ACQUISITION_AUDIT_UNAVAILABLE'}
 
 
 class ObservationError(ValueError):
@@ -306,6 +316,117 @@ def _observe_children(read, evidence, selection, source, *, timeout_seconds, pol
     progress.update(status='BLOCKED', reason='CHILD_DISCOVERY_TIMEOUT')
 
 
+def _validate_domain_proof(proof, child, source, evidence, enrolled):
+    fields = set(DOMAIN_PROOF_HASH_FIELDS) | {'company_id', 'request_id', 'request_revision',
+        'operation_id', 'domain_id', 'domain', 'domain_verification_method', 'corroboration_method',
+        'execution_scope', 'execution_scope_basis', 'native', 'apply_response_sha256',
+        'audit_id', 'acquired_at'}
+    _require(isinstance(proof, dict) and set(proof) == fields, 'DOMAIN_PROOF_RECORD_INVALID')
+    for key in DOMAIN_PROOF_HASH_FIELDS:
+        _require(isinstance(proof[key], str) and re.fullmatch(r'[a-f0-9]{64}', proof[key]),
+                 'DOMAIN_PROOF_RECORD_INVALID')
+    _require(proof['sha256'] == _digest({key: value for key, value in proof.items() if key != 'sha256'}),
+             'DOMAIN_PROOF_RECORD_INVALID')
+    for key in ('company_id', 'request_id', 'operation_id'):
+        _require(isinstance(proof[key], str) and proof[key] == child[key], 'DOMAIN_PROOF_LINEAGE_CHANGED')
+    _require(type(proof['request_revision']) is int and proof['request_revision'] == child['revision']
+        and proof['pending_sha256'] == child['pending_sha256']
+        and proof['raw_sha256'] == child['snapshot_sha256'], 'DOMAIN_PROOF_LINEAGE_CHANGED')
+    expected_source = dict(company_id=child['company_id'], provider=source['provider'],
+        tenant=source['tenant'], endpoint=evidence['endpoint'], collector_source_id=source['id'])
+    # Bootstrap receipts deliberately hash a narrower policy projection than the
+    # collector's complete policy fingerprint; never compare the two digests.
+    _require(proof['source_snapshot_sha256'] == _digest(expected_source)
+        and proof['source_policy_sha256'] == _digest({key: source[key] for key in DOMAIN_POLICY_FIELDS}),
+        'DOMAIN_PROOF_LINEAGE_CHANGED')
+    for key in ('domain_id', 'audit_id'):
+        _require(isinstance(proof[key], str) and SAFE_ID.fullmatch(proof[key]), 'DOMAIN_PROOF_RECORD_INVALID')
+    domain = proof['domain']
+    _require(isinstance(domain, str) and len(domain) <= 253 and '.' in domain
+        and all(re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', label)
+                for label in domain.split('.')), 'DOMAIN_PROOF_RECORD_INVALID')
+    _require(isinstance(proof['domain_verification_method'], str)
+        and re.fullmatch(r'[A-Z][A-Z0-9_]{0,99}', proof['domain_verification_method'])
+        and proof['corroboration_method'] == 'AGGREGATOR_NATIVE_BOOTSTRAP_V1'
+        and proof['execution_scope'] in {'CONTROLLED_TRANSPORT', 'PUBLIC_READ_ONLY'}
+        and proof['execution_scope_basis'] == 'PERSISTED_RECEIPT_METADATA',
+        'DOMAIN_PROOF_RECORD_INVALID')
+    _require(isinstance(proof['acquired_at'], str), 'DOMAIN_PROOF_RECORD_INVALID')
+    _timestamp(proof['acquired_at'])
+    apply_hash = proof['apply_response_sha256']
+    _require(apply_hash is None or isinstance(apply_hash, str) and re.fullmatch(r'[a-f0-9]{64}', apply_hash),
+             'DOMAIN_PROOF_RECORD_INVALID')
+    native = proof['native']
+    _require(isinstance(native, dict) and set(native) == {'provider', 'tenant', 'job_id',
+        'native_response_sha256', 'native_json_sha256'} and native['provider'] == 'greenhouse',
+        'DOMAIN_PROOF_RECORD_INVALID')
+    for key in ('tenant', 'job_id'):
+        _require(isinstance(native[key], str) and SAFE_ID.fullmatch(native[key]), 'DOMAIN_PROOF_RECORD_INVALID')
+    for key in ('native_response_sha256', 'native_json_sha256'):
+        _require(isinstance(native[key], str) and re.fullmatch(r'[a-f0-9]{64}', native[key]),
+                 'DOMAIN_PROOF_RECORD_INVALID')
+    for row in enrolled:
+        _require(all(row[key] == proof[key] for key in ('pending_sha256', 'receipt_sha256', 'envelope_sha256')),
+                 'DOMAIN_PROOF_LINEAGE_CHANGED')
+        full = next(item for item in evidence['child_discovery']['enrolled_sources']
+                    if item['source_id'] == row['source_id'])
+        _require(full['policy']['provider'] == native['provider'] and full['policy']['tenant'] == native['tenant'],
+                 'DOMAIN_PROOF_LINEAGE_CHANGED')
+
+
+def _observe_domain_proofs(read, evidence, source):
+    """Capture one settled DB readback before cleanup, without acceptance credit.
+
+    Receipt execution_scope is preserved metadata, not independent public HTTP
+    evidence or a join to the separately selected fictional employer.
+    """
+    progress = evidence['domain_proof_readback']
+    children = evidence['child_discovery']
+    if not children['children']:
+        progress['reason'] = 'NO_CURRENT_COLLECTION_CHILDREN'
+        return
+    if not all(row['state'] in CHILD_TERMINAL for row in children['children']):
+        progress['reason'] = 'CHILDREN_NOT_SETTLED'
+        return
+    progress.update(status='FAIL', reason='DOMAIN_PROOF_READBACK_NOT_VALIDATED')
+    path = '/profiles/' + quote(evidence['profile_id'], safe='') + '/sources/' + quote(source['id'], safe='')
+    path += '/collections/' + quote(evidence['collection_operation_id'], safe='') + '/domain-proofs'
+    result = read('GET', path, params={'attempt': evidence['collection_operation_attempt']})
+    fields = {'schema_version', 'profile_id', 'profile_version', 'source_id', 'parent_operation_id',
+        'parent_operation_attempt', 'parent_request_id', 'complete', 'limit',
+        'collection_lineage_sha256', 'collection_readback_sha256', 'observations', 'sha256'}
+    _require(isinstance(result, dict) and set(result) == fields
+        and type(result['schema_version']) is int and result['schema_version'] == 1
+        and result['complete'] is True and type(result['limit']) is int and result['limit'] == 2
+        and result['sha256'] == _digest({key: value for key, value in result.items() if key != 'sha256'}),
+        'DOMAIN_PROOF_READBACK_INVALID')
+    for key in ('profile_id', 'profile_version', 'source_id', 'parent_operation_id', 'parent_operation_attempt'):
+        _require(type(result[key]) is type(children[key]) and result[key] == children[key],
+                 'DOMAIN_PROOF_LINEAGE_CHANGED')
+    _require(result['parent_request_id'] == evidence['collection_request_id']
+        and result['collection_lineage_sha256'] == children['lineage_sha256']
+        and result['collection_readback_sha256'] == children['readback_sha256'],
+        'DOMAIN_PROOF_LINEAGE_CHANGED')
+    observations = result['observations']
+    _require(isinstance(observations, list) and len(observations) == len(children['children']) <= 2,
+             'DOMAIN_PROOF_READBACK_INVALID')
+    for row, child in zip(observations, children['children']):
+        _require(isinstance(row, dict) and set(row) == {'child', 'status', 'reason', 'proof', 'enrolled_sources'}
+            and isinstance(row['child'], dict) and _digest(row['child']) == _digest(child),
+            'DOMAIN_PROOF_LINEAGE_CHANGED')
+        enrolled = [{key: item[key] for key in DOMAIN_ENROLLMENT_FIELDS}
+                    for item in children['enrolled_sources'] if item['request_id'] == child['request_id']]
+        _require(isinstance(row['enrolled_sources'], list) and _digest(row['enrolled_sources']) == _digest(enrolled),
+                 'DOMAIN_PROOF_LINEAGE_CHANGED')
+        if row['status'] == 'UNAVAILABLE':
+            _require(row['proof'] is None and row['reason'] in DOMAIN_UNAVAILABLE_REASONS,
+                     'DOMAIN_PROOF_RECORD_INVALID')
+        else:
+            _require(row['status'] == 'AVAILABLE' and row['reason'] is None, 'DOMAIN_PROOF_RECORD_INVALID')
+            _validate_domain_proof(row['proof'], child, source, evidence, enrolled)
+    progress.update(status='CAPTURED', reason=None, response=deepcopy(result), response_sha256=result['sha256'])
+
+
 def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
         containment_preflight, request=None, execution_scope='LIVE_PUBLIC_READ_ONLY',
         timeout_seconds=90, child_timeout_seconds=90, poll_interval=.25, monotonic=time.monotonic, sleep=time.sleep,
@@ -351,6 +472,8 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
         endpoint=ENDPOINTS[provider], external_submission_enabled=False,
         observed_real_job_ids=[], observations=[], cleanup={'status': 'NOT_REQUIRED'},
         child_discovery={'status': 'NOT_RUN', 'reason': 'PARENT_COLLECTION_NOT_COMPLETED', 'children': [], 'enrolled_sources': []},
+        domain_proof_readback={'status': 'NOT_RUN', 'reason': 'PARENT_COLLECTION_NOT_COMPLETED',
+            'basis': 'PERSISTED_RECEIPT_METADATA', 'response': None, 'response_sha256': None},
         inventory_scope='AT_MOST_FIVE_CURRENT_COLLECTION_JOBS',
         limitations=['Observed public jobs are distinct from the selected mock application.',
                     'No real application form or submission is exercised.',
@@ -487,6 +610,7 @@ def run(base_url, baseline, evidence_path, *, acceptance_run_id, provider='wwr',
             evidence['observed_real_job_ids'] = sorted(row['job_id'] for row in evidence['observations'])
             _observe_children(read, evidence, initial_selection, source, timeout_seconds=child_timeout_seconds,
                               poll_interval=poll_interval, monotonic=monotonic, sleep=sleep)
+            _observe_domain_proofs(read, evidence, source)
             _require(read('GET', '/health').get('external_submission_enabled') is False,
                      'EXTERNAL_SUBMISSION_SETTING_CHANGED')
             contained('finalize')
