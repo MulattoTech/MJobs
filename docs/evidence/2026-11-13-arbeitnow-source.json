@@ -341,11 +341,11 @@
     "Standalone browser test is not automatically selected by the PR's explicit connected-acceptance list; local actual-browser proof is recorded here"
   ],
   "remaining_gates": [
-    "Final current-main immutable candidate review and separate publication metadata",
-    "Fresh existing-PR1019 admission and exact published-head readback",
-    "Required hosted checks on the final published head, including diagnosed prior Integration failure",
-    "Protected integration by the verified sole steward",
-    "Applicable integrated runtime validation and designated canonical acceptance review"
+    "Independently bind the final immutable metadata successor, exact executable equivalence and fresh publication operator metadata.",
+    "Prepare fresh existing-PR1019 operator/admission metadata and verify the exact new published head.",
+    "Run all required hosted checks on that final published head; retain6df Security failure and the separate9ef ntfy Integration failures as historical evidence.",
+    "Protected integration by the verified sole steward.",
+    "Applicable integrated runtime validation and designated canonical acceptance review; no acceptance or deployment promotion is recorded here."
   ],
   "coordination": {
     "ui_original_commit": "64819d7d650ed60759d38d0da97f714272999f49",
@@ -373,7 +373,7 @@
     "https://www.arbeitnow.com/",
     "https://www.arbeitnow.com/terms"
   ],
-  "last_updated_at_utc": "2026-11-13T05:25:31.989185+00:00",
+  "last_updated_at_utc": "2026-11-13T06:45:01.259983+00:00",
   "current_qualification": {
     "source_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
     "core_arbeitnow_source_unchanged_from_prior_qualification": true,
@@ -531,11 +531,11 @@
     ],
     "diagnostic_evidence": "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
     "diagnostic_local": "16 PASS,0 failure/error/skip at exact test02b1957f",
-    "new_published_head_gates": "NOT_RUN",
+    "new_published_head_gates": "Published6df:4/5 required contexts PASS; Security FAIL on two historical ntfy event identifiers. Final scanner/evidence successor:NOT_RUN.",
     "integration_acceptance": "NOT_RUN",
     "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
     "diagnostic_current_main": "16 PASS,0 failures/errors/skips at53d with actualStoreab3a3729; prior d3/ff2 proof andhostedfailure retained",
-    "native_integrity": "Catalogue/progress/dashboard/handoff/provenance/whitespace PASS at53d",
+    "native_integrity": "Seven saved catalogue/progress/dashboard/provenance/whitespace commands PASS at53d; no separate handoff-schema command is attributed to that receipt.",
     "current_main_source_review": {
       "reviewed_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
       "reviewer": "/root/campaign_review",
@@ -546,7 +546,422 @@
         "blob": "02b1957f95223a295796b60cba2a0b5129d6aa02",
         "result": "PASS_SCOPED_NO_BLOCKING_FINDINGS"
       },
-      "final_published_head_operator_binding": "Separate private receipt and PR publication readback; required hosted gates remain pending"
+      "final_published_head_operator_binding": "Completed6df publication/readback is recorded separately; its actual required results are now known below. A later metadata successor still requires fresh independent final review and operator admission.",
+      "creation_time_final_published_head_operator_binding": "Separate private receipt and PR publication readback; required hosted gates remain pending"
+    },
+    "creation_time_new_published_head_gates": "NOT_RUN",
+    "published_head_qualification": {
+      "head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "tree": "acaeb9976bd8e76efca91997a0a2b56d5ec87112",
+      "tested_pull_request_merge": "2f37eddb3a8d214880a5f0cebdf35efc2b930b5a",
+      "integrated_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+      "observed_at": "2026-11-13T05:58:52.546Z",
+      "source_receipt": {
+        "name": "f07-6df-required-checks-final.json",
+        "bytes": 4018,
+        "sha256": "2ac81c5762390cd02b251a6cdbc94d47c66a893f886d350c5a7c46b34395f96e"
+      },
+      "required_context_count": 5,
+      "required_contexts_passed": 4,
+      "all_required_contexts_passed": false,
+      "checks": [
+        {
+          "name": "Integration / PostgreSQL and Redis",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131720502760,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131720502760"
+        },
+        {
+          "name": "CI / required",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131715367972,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131715367972"
+        },
+        {
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713614671,
+          "details_url": "https://github.com/MulattoTech/MJobs/runs/131713614671"
+        },
+        {
+          "name": "Integration / shard 1",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713471731,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131713471731"
+        },
+        {
+          "name": "Integration / shard 2",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713471536,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131713471536"
+        },
+        {
+          "name": "Integration / shard 0",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713471234,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174497/job/131713471234"
+        },
+        {
+          "name": "Web / Vitest and production build",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470300,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131713470300"
+        },
+        {
+          "name": "Disposable Compose / mock end-to-end",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470212,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173984/job/131713470212"
+        },
+        {
+          "name": "Dependencies / introduced vulnerabilities",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470175,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174117/job/131713470175"
+        },
+        {
+          "name": "Repository / policy and docs",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713470081,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131713470081"
+        },
+        {
+          "name": "Security / secret scan",
+          "status": "completed",
+          "conclusion": "failure",
+          "id": 131713469769,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174001/job/131713469769"
+        },
+        {
+          "name": "Python / unit and integrity",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713469742,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373173865/job/131713469742"
+        },
+        {
+          "name": "Analyze (actions)",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713466426,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373170734/job/131713466426"
+        },
+        {
+          "name": "Analyze (javascript-typescript)",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713466257,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373170734/job/131713466257"
+        },
+        {
+          "name": "Analyze (python)",
+          "status": "completed",
+          "conclusion": "success",
+          "id": 131713466024,
+          "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373170734/job/131713466024"
+        }
+      ],
+      "interpretation": "All three Integration shards and the PostgreSQL/Redis aggregate, CI / required, Dependencies and Disposable Compose passed at published6df. Security failed on exactly two historical ntfy event-key findings. These are actual published-head results; they do not qualify the later scanner/evidence successor.",
+      "prior_d3_failure_retained": true,
+      "historical_failure_cause": "UNKNOWN",
+      "production_cancellation_fix_claimed": false
+    },
+    "scanner_prerequisite": {
+      "f07_failed_head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "f07_failed_merge": "2f37eddb3a8d214880a5f0cebdf35efc2b930b5a",
+      "failed_run_id": 43373174001,
+      "failed_job_id": 131713469769,
+      "failed_job_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174001/job/131713469769",
+      "redacted_artifact_id": 14013591508,
+      "redacted_artifact_url": "https://github.com/MulattoTech/MJobs/actions/runs/43373174001/artifacts/14013591508",
+      "artifacts": [
+        {
+          "name": "f07-6df4-secret-candidates.json",
+          "bytes": 3395,
+          "sha256": "8e28c70202140f538837d400c9c9fb272748424b02d58bf357ec9a0291c65006"
+        },
+        {
+          "name": "f07-6df4-secret-candidates.zip",
+          "bytes": 1127,
+          "sha256": "dfecfd21a3e50beb6f52f9de3f95111f47fca2f9de18593d829b1ddcbd5ff54f"
+        },
+        {
+          "name": "ci-f07-secret-scan-6df4fd24.log",
+          "bytes": 41362,
+          "sha256": "e5120d9fbaedbf921cfcae0f6f1cd437dab751183445de1e0dceeefc7406d90a"
+        }
+      ],
+      "finding_count": 2,
+      "findings": [
+        {
+          "RuleID": "generic-api-key",
+          "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+          "File": "docs/evidence/2026-11-13-ntfy-delivery.json",
+          "StartLine": 489,
+          "EndLine": 489,
+          "Commit": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+          "Fingerprint": "3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:489",
+          "Tags": []
+        },
+        {
+          "RuleID": "generic-api-key",
+          "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+          "File": "docs/evidence/2026-11-13-ntfy-delivery.json",
+          "StartLine": 502,
+          "EndLine": 502,
+          "Commit": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+          "Fingerprint": "3c2764de131628f0ddf93886a6806a9fae11eba2:docs/evidence/2026-11-13-ntfy-delivery.json:generic-api-key:502",
+          "Tags": []
+        }
+      ],
+      "classification": "The independent ntfy owner disposition identifies both findings as recomputable synthetic event identifiers, not authentication credentials.",
+      "owner_source_commit": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+      "owner_source_parent": "3c2764de131628f0ddf93886a6806a9fae11eba2",
+      "owner_source_tree": "3df27c7fe433ce3bb85e1fcd07c8f157ea97b21b",
+      "exact_source_files": [
+        {
+          "path": ".gitleaksignore",
+          "git_blob": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+          "bytes": 34307,
+          "sha256": "d2a725ea1e5efa13d80ce8f7ad422a1621c8cfcca346aab73d6d39942fde4e81"
+        },
+        {
+          "path": "docs/evidence/2026-11-13-ntfy-scanner-disposition.json",
+          "git_blob": "db132b02dfae64de3793ff1edf47eb18c181aefb",
+          "bytes": 3875,
+          "sha256": "b780d0fb957e27949e622da02663013cb49461e87ffb85fefd429d33fcc044e5"
+        }
+      ],
+      "same_ignore_parent_blob": "6b32be9091c12e6eafdf6b4620403f73c68864f9",
+      "change_scope": "Only two exact commit/path/rule/line exceptions and their disposition record; no scanner policy/version/workflow, product source or rewritten history.",
+      "owner_final_patch_review_sha256": "dd51a532cf38d60e5620f597e57242b0753763277834b30f4896fd5798854a4f",
+      "classification_review": {
+        "reviewer": "/root/campaign_review under distinct owner run WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+        "receipt": "ntfy-scanner-independent-disposition-3c2764.json",
+        "receipt_sha256": "7b36c22f907d3ab4f1dae71d89fc79e02da6e647e01768fb64af6ed9a95108cb",
+        "this_draft_preparer_performed_that_review": false
+      },
+      "release_journal": "https://github.com/MulattoTech/M-TechLabs/issues/76#issuecomment-6845514576",
+      "release_journal_created_at": "2026-11-13T06:01:54Z",
+      "owner_shared_scope_state_at_journal": "RELEASED",
+      "hosted_owner_successor": {
+        "head": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+        "source_url": "https://api.github.com/repos/MulattoTech/MJobs/commits/9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324/check-runs?per_page=100",
+        "observed_by_draft_preparer": true,
+        "observation_recorded_at_utc": "2026-11-13T06:25:36.972Z",
+        "checks": [
+          {
+            "id": 131727860911,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / PostgreSQL and Redis",
+            "status": "completed",
+            "conclusion": "failure",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131727860911",
+            "started_at": "2026-11-13T06:17:33Z",
+            "completed_at": "2026-11-13T06:17:35Z"
+          },
+          {
+            "id": 131721226742,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Security / secret scan",
+            "status": "completed",
+            "conclusion": "success",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590909/job/131721226742",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T05:59:43Z"
+          },
+          {
+            "id": 131721226395,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / shard 1",
+            "status": "completed",
+            "conclusion": "failure",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226395",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T06:15:22Z"
+          },
+          {
+            "id": 131721226354,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / shard 2",
+            "status": "completed",
+            "conclusion": "success",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226354",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T06:17:31Z"
+          },
+          {
+            "id": 131721225981,
+            "head_sha": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+            "name": "Integration / shard 0",
+            "status": "completed",
+            "conclusion": "failure",
+            "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721225981",
+            "started_at": "2026-11-13T05:59:33Z",
+            "completed_at": "2026-11-13T06:14:42Z"
+          }
+        ],
+        "security_result": "PASS",
+        "integration_aggregate_result": "FAIL",
+        "integration_shards_failed": [
+          0,
+          1
+        ],
+        "scope": "Security job131721226742 passed on9ef. Its separate ntfy Integration shards0/1 and aggregate failed; no claim that all ntfy gates passed or that any later F07 head is qualified."
+      },
+      "actual_f07_adoption": {
+        "head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+        "tree": "0c6210d8ca6599b8762e4f5c5253cf092da94133",
+        "observed_at": "2026-11-13T06:23:42.1800740Z",
+        "worktree_clean": true,
+        "only_changed_paths_from_6df": [
+          ".gitleaksignore",
+          "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+        ],
+        "source_files_match_owner_blobs": true,
+        "executable_source_changed": false,
+        "receipt": {
+          "name": "scanner-adoption-complete.json",
+          "bytes": 3494,
+          "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+        },
+        "scanner_scope_release": "Parent recorded immediate release of the fresh adoption claim; no claim mutation performed by this draft."
+      },
+      "future_metadata_successor": {
+        "head": null,
+        "tree": null,
+        "status": "FINAL_METADATA_PREPARED_IMMUTABLE_BINDING_RECORDED_SEPARATELY",
+        "hosted_checks": "NOT_RUN",
+        "publication": "NOT_RUN",
+        "binding_requirement": "Root must bind the later metadata commit, exact executable equivalence, review/operator admission and new published-head checks separately."
+      }
+    },
+    "executable_source_binding": {
+      "tested_head": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+      "tested_tree": "765dc1672a15b2355e96021ba3067ae3d3c3a1cd",
+      "published_head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "published_tree": "acaeb9976bd8e76efca91997a0a2b56d5ec87112",
+      "assembled_scanner_head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+      "assembled_scanner_tree": "0c6210d8ca6599b8762e4f5c5253cf092da94133",
+      "metadata_only_delta_53d_to_6df": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json",
+        "planning/agent_handoffs/MJ-REQ-017.F07.json"
+      ],
+      "scanner_only_delta_6df_to_e890": [
+        ".gitleaksignore",
+        "docs/evidence/2026-11-13-ntfy-scanner-disposition.json"
+      ],
+      "verified_core_blobs": [
+        {
+          "path": "services/discovery/sources/arbeitnow.py",
+          "tested53d": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61",
+          "published6df": "b4ee1f6cf2cc737a23c4abb3360d4356254f8f61"
+        },
+        {
+          "path": "tests/integration/test_mock_discovery_request_bounds.py",
+          "tested53d": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+          "published6df": "02b1957f95223a295796b60cba2a0b5129d6aa02"
+        },
+        {
+          "path": "services/discovery/sources/http_transport.py",
+          "tested53d": "9b67f712daf745f996455fa3c82415d5439323dd",
+          "published6df": "9b67f712daf745f996455fa3c82415d5439323dd"
+        },
+        {
+          "path": "packages/persistence/store.py",
+          "tested53d": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+          "published6df": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f"
+        },
+        {
+          "path": "workers/operations.py",
+          "tested53d": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4",
+          "published6df": "2ecaf5e9f95a5bdb877babf6aa9a2d9a6fa49ba4"
+        }
+      ],
+      "scope": "Actual local runtime remains bound to53d and exact02b1 diagnostic source;6df has actual hosted results; e890 incorporates only the exact scanner pair. No new local browser, live source or test execution was performed for these drafts."
+    },
+    "published_final_review": {
+      "head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+      "receipt": {
+        "name": "final-review-6df4fd24.json",
+        "bytes": 24663,
+        "sha256": "001cd67cf173c7f3f3b7d7739d2c39de7a3c90c05a682042e94006267bb5a589"
+      },
+      "reviewer": "/root/campaign_review",
+      "reviewer_is_diagnostic_author": true,
+      "scope": "Source/main/evidence consistency with diagnostic-author status disclosed; independent diagnostic source approval remains attributed to /root/integration_coordination.",
+      "publication_readback": {
+        "name": "publication-update1019-readback-6df4fd24.json",
+        "bytes": 6628,
+        "sha256": "51d5729af3c1d088ad44c36093a864da43dd9933231fe7ca3fa40f68e894a16d"
+      }
+    },
+    "metadata_update_preparation": {
+      "prepared_at_utc": "2026-11-13T06:25:36.972Z",
+      "prepared_by": "/root/campaign_review",
+      "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+      "preparer_is_f07_diagnostic_author": true,
+      "preparer_is_owner_scanner_classification_reviewer": false,
+      "new_independent_approval_claimed": false,
+      "tracked_files_changed_by_preparer": false,
+      "new_tests_or_live_requests": false,
+      "scope": "Private evidence/handoff/PR-body drafts only; final root adoption/review/publication remains separate.",
+      "historical_scope_note": "This remains the preparer's private-draft provenance; root adoption and independent draft review are recorded separately."
+    },
+    "creation_time_native_integrity_wording": "Catalogue/progress/dashboard/handoff/provenance/whitespace PASS at53d",
+    "native_handoff_validation": {
+      "result": "PASS",
+      "method": "tools.agent_context.validate_checkpoint(candidate_handoff)",
+      "validator_source_blob": "743792a5a586ef991afa557876e1478394ca5f68",
+      "candidate_handoff_sha256": "9181998c7c31cac0ae8795af19a9470642377767b3c6fa6bfb2f1d5ec6dfaf60",
+      "validated_at_utc": "2026-11-13T06:45:01.259983+00:00",
+      "errors": [],
+      "scope": "Actual native validation of final candidate handoff bytes before commit; distinct from the earlier static inspection and seven-command53d integrity receipt."
+    },
+    "root_metadata_adoption": {
+      "at_utc": "2026-11-13T06:45:01.259983+00:00",
+      "base_head": "e890b9d4b0fe4e923d7d89b24b6085d4f5e0a4aa",
+      "changed_paths": [
+        "docs/evidence/2026-11-13-arbeitnow-source.json",
+        "planning/agent_handoffs/MJ-REQ-017.F07.json"
+      ],
+      "independent_draft_review": {
+        "reviewer": "/root/p6_readonly",
+        "result": "PASS_SCOPED_WITH_FINALIZATION_NOTES",
+        "receipt": {
+          "name": "independent-review-f07-metadata-e890b9d4.json",
+          "bytes": 16243,
+          "sha256": "1eb19365410c2efa00e1ea8899e69230db0db07da31b5302ba51538018f78937"
+        }
+      },
+      "reviewed_drafts": [
+        {
+          "name": "f07-source-evidence-next.json",
+          "bytes": 41347,
+          "sha256": "9c12e7b72b7d1baddb60eebe88844fe0ea14d08c1a71d1d46ef24e818fdd28b1"
+        },
+        {
+          "name": "f07-handoff-next.json",
+          "bytes": 5161,
+          "sha256": "2f3df28c8df87d98441b5b331772b9d416c991780f3965f0fe559a1824d4c518"
+        }
+      ],
+      "completed_finalization_notes": [
+        "Removed current private-draft adoption instructions while retaining historical preparer state.",
+        "Distinguished actual native handoff validation from seven-command53d native integrity.",
+        "Retained the original private summary; its two copied -06:00 timestamps represent the same instants as the actual+00:00 adoption receipt. Exact original strings are recorded in the private final candidate."
+      ]
     }
   }
 }
