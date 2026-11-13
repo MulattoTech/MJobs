@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N02",
+  "record_type": "required_hosted_check_failure_diagnostics",
+  "recorded_at_utc": "2026-11-13T06:43:08.288081+00:00",
+  "source_base": "9ef56e1da6c35dbe8fbdc18e9adb0e90fbd2c324",
+  "protected_main_at_failure": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+  "historical_failure": {
+    "run": 43375590745,
+    "cause": "UNDETERMINED",
+    "jobs": [
+      {
+        "job": 131721225981,
+        "test": "tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_slow_provider_deadline_is_durable_without_partial_evaluation",
+        "subcase": "openai",
+        "observed": "BLOCKED/AI_ERROR assertions passed; completed request-body observations were empty instead of one synthetic request. Later durable readback assertions were not reached for this subcase.",
+        "passed": 913,
+        "skipped": 9,
+        "subtests_passed": 677,
+        "failed": 1,
+        "log_sha256": "97fc2db78fe1c2e1b1dc8cfac3736d3855284928e5da1bea72adefc6715733a6",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721225981"
+      },
+      {
+        "job": 131721226395,
+        "test": "tests/integration/test_mock_discovery_request_bounds.py::test_public_fixture_worker_pending_connect_persists_terminal_readback[deadline]",
+        "observed": "connecting.wait(2) returned false before the pending-connect, join and durable-readback assertions.",
+        "passed": 1061,
+        "skipped": 17,
+        "subtests_passed": 532,
+        "failed": 1,
+        "log_sha256": "accd64ceebd09d49299fc1c9f2eb117243f9c7e0ee8485d73c6d840608c56868",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/43375590745/job/131721226395",
+        "ownership": "Separate F07 owner; not changed by this diagnostic commit."
+      }
+    ],
+    "static_triage_sha256": "338cde939543b52fd9f8394b412681696b0450a6856c2575fdc4faff3ed4ee8d",
+    "interpretation": "The compared tests, execution paths, dependency lock and workflow match main at the failure. This does not establish a cause, a flaky test, or absence of indirect effects."
+  },
+  "change": {
+    "path": "tests/integration/test_durable_ai_evaluation.py",
+    "method_count": 1,
+    "sha256": "2ca0b7a41c77a295c0515e2081de0d65ad1d1d9a3208718d9d331c635438febb",
+    "diff_sha256": "4b1ebed6fd5869e6d0609b7bc4f786d0fd33315b4fdd7166b6d51ab865aba55f",
+    "original_assertion_operand_pairs_unchanged": 9,
+    "request_budget_seconds": 1.0,
+    "body_trickle_seconds": 0.02,
+    "server_poll_seconds": 0.01,
+    "cleanup_join_seconds": 2,
+    "new_diagnostics": "Fixed phase names, monotonic elapsed seconds, fixed provider names, allowlisted provider error, completed request count and server-thread liveness. No request, prompt, credential, endpoint or arbitrary exception text.",
+    "production_changed": false,
+    "workflow_or_retry_changed": false,
+    "test_budget_or_expected_result_changed": false
+  },
+  "focused_verification": {
+    "source_state": "Exact base9ef plus the single diagnostic test edit; later evidence metadata was not present during execution.",
+    "positive": {
+      "tests_run": 1,
+      "subtests": [
+        {
+          "provider": "ollama",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai-compatible",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai",
+          "status": "PASS"
+        },
+        {
+          "provider": "azure-openai",
+          "status": "PASS"
+        },
+        {
+          "provider": "local",
+          "status": "PASS"
+        }
+      ],
+      "failure_count": 0,
+      "error_count": 0,
+      "skipped_count": 0
+    },
+    "controlled_negative": {
+      "tests_run": 1,
+      "subtests": [
+        {
+          "provider": "ollama",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai-compatible",
+          "status": "PASS"
+        },
+        {
+          "provider": "openai",
+          "status": "FAIL",
+          "diagnostic": {
+            "clock": "monotonic",
+            "completed_request_count": 0,
+            "phase_seconds": {
+              "client_factory": 1.329,
+              "provider_error": 1.329,
+              "provider_generate_enter": 0.235,
+              "queue_enter": 0.204,
+              "server_thread_started": 0.0,
+              "worker_enter": 0.219,
+              "worker_return": 1.344
+            },
+            "provider": "openai",
+            "provider_error": "AI_PROVIDER_TIMEOUT",
+            "server_thread_alive": true
+          },
+          "failure_type": "AssertionError",
+          "oracle": "exact_one_request_assertion"
+        },
+        {
+          "provider": "azure-openai",
+          "status": "PASS"
+        },
+        {
+          "provider": "local",
+          "status": "PASS"
+        }
+      ],
+      "failure_count": 1,
+      "error_count": 0,
+      "skipped_count": 0
+    },
+    "negative_control_injection": "Only OpenAI's existing client factory was delayed by1.1 seconds in the private proof. The unchanged production guard using the test's1-second budget refused before HTTPX request/handler entry. The proof requires the exact frozen source file/method/traceback line of the original one-request assertion.",
+    "negative_control_conclusion": "The original request-count oracle still rejects missing POSTs and the new diagnostic identifies this deliberately induced pre-stream timeout. It does not reproduce or explain the historical CI failure.",
+    "controller_elapsed_seconds": 16.969,
+    "proof_elapsed_seconds": 15.5,
+    "remaining_created_threads": [],
+    "source_unchanged": true,
+    "retained_job_zero_active_and_host_signaled": true,
+    "fresh_controller_child_launcher_readback": "ABSENT",
+    "light_claim": "RELEASED",
+    "external_provider_calls": false,
+    "actual_network": "Owned ephemeral loopback HTTP only",
+    "proof_result": "PASS_DIAGNOSTIC_BEHAVIOR_ONLY",
+    "execution_sha256": "fabe0dcdcb078c1ab2cf5421211633ceb5e43306e8d04f7011e918295fb2e220",
+    "proof_sha256": "eace1e19b34451750e99b2d3d81ef99c363726a3dcd6233369bc56c97c188bb2",
+    "log_sha256": "df3b91cc0b60cadd2ba729df572ab28784c74b703d9147b72d2e3b7d7a14e428",
+    "post_controller_readback_sha256": "f1f27e8c818c3f0eba4205ae1ed56b193dc3749c3f579a175eed648d42436c63",
+    "released_light_receipt_sha256": "e58ba47f3a2db68baf07655d458a9823938bd8e30dd91990b414cc58d7c27c81",
+    "server_handler_observations": {
+      "count": 5,
+      "type": "ConnectionAbortedError",
+      "platform": "Windows",
+      "code": 10053,
+      "phase": "Interrupted server-side trickle writes",
+      "preserved_in_log": true,
+      "interpretation": "These handler-thread traces are retained. Unittest error counts were zero; the run is not described as log-error-free."
+    }
+  },
+  "review": {
+    "static_reviewer": "/root/coordination_review",
+    "static_review_sha256": "d35339a9eea31eceb4fcabbeca2f0f7deb28da1fbcf81cf868ca450ea7e816dd",
+    "initial_control_review_finding_preserved": "The first unexecuted proof could accept a different failed assertion carrying the same diagnostics. It was held and corrected to the exact original request-count assertion before execution.",
+    "runtime_evidence_independent_review": {
+      "reviewer": "/root/campaign_review",
+      "result": "PASS_NARROW_DIAGNOSTIC_PROOF_WITH_RETAINED_HANDLER_TRACES",
+      "receipt_sha256": "67634df24864ebf4bb845c48a15d989be8b0c56ed639bf478c73ba003868f858"
+    },
+    "metadata_review": "Independent review of draft1563c22e accepted its source/claims with the handler-trace note, execution-review reference and test-budget wording correction included here."
+  },
+  "remaining": {
+    "public_worker_entry_diagnostics": "Separate owner work pending.",
+    "new_exact_head_required_checks": "NOT_RUN",
+    "protected_integration": "NOT_RUN",
+    "N02_formal_acceptance": "NOT_RUN"
+  }
+}

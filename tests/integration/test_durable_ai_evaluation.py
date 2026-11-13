@@ -617,9 +617,10 @@ class DurableAIEvaluationTests(unittest.TestCase):
         import httpx
         import json
         import threading
+        import time
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-        from services.ai.providers import (OllamaProvider, OpenAICompatibleProvider,
-            OpenAIProvider, AzureOpenAIProvider, LocalEndpointProvider)
+        from services.ai.providers import (AIProviderError, OllamaProvider,
+            OpenAICompatibleProvider, OpenAIProvider, AzureOpenAIProvider, LocalEndpointProvider)
         from services.ai.tasks import AITaskRouter
 
         for provider_type in (OllamaProvider, OpenAICompatibleProvider, OpenAIProvider,
@@ -627,17 +628,40 @@ class DurableAIEvaluationTests(unittest.TestCase):
             with self.subTest(provider=provider_type.name):
                 finish = threading.Event()
                 calls = []
+                phase_origin = time.monotonic()
+                phase_lock = threading.Lock()
+                phase_times = {}
+                provider_error = [None]
+
+                def record_phase(name):
+                    # Fixed call-site labels only: no request, prompt, URL or exception text.
+                    with phase_lock:
+                        phase_times.setdefault(name, round(time.monotonic() - phase_origin, 6))
+
+                def diagnostic():
+                    with phase_lock:
+                        snapshot = dict(phase_times)
+                    return json.dumps({
+                        'provider': provider_type.name, 'clock': 'monotonic',
+                        'phase_seconds': snapshot, 'provider_error': provider_error[0],
+                        'completed_request_count': len(calls),
+                        'server_thread_alive': thread.is_alive(),
+                    }, sort_keys=True)
+
                 answer = AIJobEvaluation(category='REVIEW', rationale='Synthetic').model_dump_json()
                 body = json.dumps({'response': answer, 'done': True} if provider_type is OllamaProvider
                     else {'choices': [{'message': {'content': answer}}]}).encode()
 
                 class Handler(BaseHTTPRequestHandler):
                     def do_POST(self):
+                        record_phase('handler_enter')
                         self.rfile.read(int(self.headers['Content-Length']))
                         calls.append('synthetic request')
+                        record_phase('request_body_read')
                         self.send_response(200)
                         self.send_header('Content-Length', str(len(body)))
                         self.end_headers()
+                        record_phase('response_headers_sent')
                         try:
                             for value in body:
                                 self.wfile.write(bytes([value]))
@@ -655,34 +679,64 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 thread = threading.Thread(target=server.serve_forever,
                     kwargs={'poll_interval': .01}, daemon=True)
                 thread.start()
+                record_phase('server_thread_started')
                 # This integration oracle needs to reach the response body.
                 # A 150 ms whole-request budget can correctly expire during
                 # loopback admission on a busy CI runner, before any POST.
                 # The trickled body takes several seconds; keep its timeout
                 # and exact one-request/persisted-failure assertions intact.
                 request_budget = 1.0
-                transport = httpx.Client(trust_env=False, timeout=request_budget)
+                transport = httpx.Client(trust_env=False, timeout=request_budget,
+                    event_hooks={
+                        'request': [lambda _request: record_phase('httpx_request')],
+                        'response': [lambda _response: record_phase('httpx_response_headers')],
+                    })
+
+                def client_factory(**_kwargs):
+                    record_phase('client_factory')
+                    return transport
+
                 provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}',
-                                         client_factory=lambda **_kwargs: transport)
+                                         client_factory=client_factory)
 
                 class ShortBudgetProvider:
                     capabilities = provider.capabilities
 
                     def generate(self, **kwargs):
                         kwargs['timeout_seconds'] = request_budget
-                        return provider.generate(**kwargs)
+                        record_phase('provider_generate_enter')
+                        try:
+                            result = provider.generate(**kwargs)
+                        except AIProviderError as error:
+                            provider_error[0] = error.code if error.code in {
+                                'AI_PROVIDER_CONFIGURATION_INVALID', 'AI_PROVIDER_CANCELLED',
+                                'AI_PROVIDER_REQUEST_INVALID', 'AI_PROVIDER_RESPONSE_INVALID',
+                                'AI_PROVIDER_RESPONSE_TOO_LARGE', 'AI_PROVIDER_TIMEOUT',
+                                'AI_PROVIDER_UNAVAILABLE', 'AI_PROVIDER_HTTP_ERROR',
+                            } else 'UNRECOGNIZED_PROVIDER_ERROR'
+                            record_phase('provider_error')
+                            raise
+                        except Exception:
+                            provider_error[0] = 'UNEXPECTED_ERROR'
+                            record_phase('provider_error')
+                            raise
+                        record_phase('provider_generate_return')
+                        return result
 
                 self.router = lambda configuration: AITaskRouter(configuration,
                     provider_factory=lambda _name: ShortBudgetProvider())
                 try:
+                    record_phase('queue_enter')
                     admitted = self.client.post('/profiles/fixture/ai-cost-plan/evaluate/queued',
                         json={'request_id': 'slow-provider-' + provider_type.name})
                     self.assertEqual(admitted.status_code, 202, admitted.text)
                     operation_id = admitted.json()['operation_id']
+                    record_phase('worker_enter')
                     result = self.run_worker(operation_id)
-                    self.assertEqual(result['status'], 'BLOCKED')
-                    self.assertEqual(result['error_category'], 'AI_ERROR')
-                    self.assertEqual(calls, ['synthetic request'])
+                    record_phase('worker_return')
+                    self.assertEqual(result['status'], 'BLOCKED', diagnostic())
+                    self.assertEqual(result['error_category'], 'AI_ERROR', diagnostic())
+                    self.assertEqual(calls, ['synthetic request'], diagnostic())
                     self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
                     reopened = Store(self.url)
                     self.addCleanup(reopened.engine.dispose)
