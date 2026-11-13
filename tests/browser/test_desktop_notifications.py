@@ -129,7 +129,8 @@ def _mounted_browser(origin):
     external, writes, errors, native_events = [], [], [], []
     fault = {"profile": None, "remaining": 0}
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        # Use full Chromium's headless mode for its actual native notification service.
+        browser = playwright.chromium.launch(headless=True, channel="chromium")
         try:
             context = browser.new_context()
             context.grant_permissions(["notifications"], origin=origin)
@@ -160,12 +161,16 @@ def _mounted_browser(origin):
             expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
             # Finish overlapping initial reads before targeting a later polling failure.
             page.wait_for_load_state("networkidle")
-            assert page.evaluate(
-                "() => isSecureContext && typeof Notification === 'function' "
-                "&& Notification.permission === 'granted' && !!navigator.locks")
+            capabilities = page.evaluate(
+                "() => ({secure: isSecureContext, notification: typeof Notification, "
+                "permission: Notification.permission, web_locks: !!navigator.locks})")
+            assert capabilities == {"secure": True, "notification": "function",
+                                    "permission": "granted", "web_locks": True}, capabilities
             yield page, native_events, fault
             _settle_delivery(page)
             print("Desktop native API evidence: " + json.dumps({
+                "launch_channel": "chromium", "browser_version": browser.version,
+                "capabilities": capabilities,
                 "constructor_handoffs": _constructs(native_events),
                 "observed_events": [event["phase"] for event in native_events
                                     if event["phase"] != "construct"],

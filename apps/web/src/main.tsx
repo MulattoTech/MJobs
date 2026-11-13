@@ -1601,8 +1601,8 @@ function App() {
       <div className="safety">Real applications require your own manual review and submission. This workspace cannot submit to an external employer.</div>
       {error&&<div role="alert" className="alert"><strong>Action needs attention</strong><p>{error}</p></div>}
       {notice&&<div role="status" className="notice">{notice}</div>}
-      {profileId&&opsProfileId===profileId&&<OperationNotifications key={profileId} profileId={profileId} enabled={notificationsEnabled} operations={ops} loadError={notificationReadError}/>}
-      {profileId&&desktopNotificationSnapshot?.profileId===profileId&&<DesktopNotifications key={profileId} profileId={profileId} enabled={notificationsEnabled} operations={desktopNotificationSnapshot.operations} loadError={notificationReadError}/>}
+      {profileId&&opsProfileId===profileId&&<OperationNotifications key={`activity:${profileId}`} profileId={profileId} enabled={notificationsEnabled} operations={ops} loadError={notificationReadError}/>}
+      {profileId&&desktopNotificationSnapshot?.profileId===profileId&&<DesktopNotifications key={`desktop:${profileId}`} profileId={profileId} enabled={notificationsEnabled} operations={desktopNotificationSnapshot.operations} loadError={notificationReadError}/>}
       {busy&&<div role="status" className="notice">{busy}… {activeOp&&<button className="quiet" onClick={()=>void api('/operations/'+activeOp+'/cancel',{method:'POST'}).then(()=>setNotice('Cancellation requested.')).catch(e=>setError(String(e)))}>Cancel operation</button>}</div>}
       {tab==='Review Queue'&&<ApplicationReviewQueue applications={reviewQueueApplications} profileId={profileId} loading={reviewQueueLoading} loadError={reviewQueueLoadError} onReview={applicationId=>void showApp(applicationId).catch(e=>setError(String(e)))}/>}
       {tab==='Pipeline'&&<PipelineWorkbench profileId={profileId} onOpenApplication={id=>void showApp(id).catch(e=>setError(String(e)))}/>}

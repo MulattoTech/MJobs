@@ -61,6 +61,6 @@ npm --prefix apps/web run build
 python -m pytest -q tests/browser/test_desktop_notifications.py tests/browser/test_operation_notifications.py
 ```
 
-The browser checks use an owned loopback API, synthetic SQLite profiles and operations, and the built application in Chromium. They exercise the native Notification constructor separately from deterministic provider/component tests. No third-party notification or real applicant data is used. A headless browser run does not certify a visibly rendered Windows toast.
+The browser checks use an owned loopback API, synthetic SQLite profiles and operations, and the built application in Chromium. They use Playwright's full Chromium channel (`channel='chromium'`) and exercise the native Notification constructor separately from deterministic provider/component tests. The inspected lightweight headless shell reported native permission denied despite a granted generic Permissions result; the test keeps the native permission requirement and uses the supported full browser without a policy override. No third-party notification or real applicant data is used. A headless browser run does not certify a visibly rendered Windows toast.
 
 API references: [Notifications API](https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API), [requestPermission](https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static), and [Web Locks API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API).
