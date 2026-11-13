@@ -123,7 +123,8 @@ class DeliveryJournal:
                    WHERE event_key=? AND status='PENDING'""",
                 (token, current_time, row["event_key"]),
             )
-            # A durable global gap also bounds concurrent workers before egress.
+            # A durable gap spaces reservations across concurrent workers. Scheduling
+            # after this transaction can still bunch actual socket writes.
             connection.execute("UPDATE metadata SET value=? WHERE key='provider_not_before'",
                                (str(current_time + 1),))
         try:

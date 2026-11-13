@@ -15,7 +15,8 @@ of these explicitly profile-owned operations:
 | Ownership | Supported operations |
 | --- | --- |
 | Profile ID is the operation entity | Discovery, document preparation, AI evaluation |
-| Owned application ID and matching profile parameter | Fixture application, application dry-run, application form review, uploaded-resume comparison |
+| Owned application ID and matching profile parameter | Application dry-run, application form review, uploaded-resume comparison |
+| Owned MOCK application; validated v1 snapshot/profile/fingerprint or exact legacy submit-only request | Fixture application |
 | Owned uploaded-resume ID and matching profile parameter | Resume extraction |
 
 States: COMPLETED, FAILED, DEAD_LETTERED, BLOCKED and CANCELLED. Unknown kinds,
@@ -91,7 +92,9 @@ python -m cli.notifications --config <private-file> retry <event-key>
 
 `run --once` scans one bounded page and sends at most one notification.
 The continuous worker polls at the configured interval. Its durable journal also
-enforces a one-second minimum request gap across instances sharing that file.
+spaces send reservations at least one second apart across instances sharing that
+file. Scheduling after reservation can bunch actual socket writes; exact network
+request spacing is not guaranteed.
 MJobs CLI status reports event hashes, attempts and fixed diagnostic codes; its
 output omits topic, server URL, tokens, provider response bodies and operation contents.
 Publishing uses ntfy's JSON POST at the server root, so ordinary HTTPX INFO request

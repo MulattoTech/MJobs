@@ -15,7 +15,8 @@ def run_once(store, config, journal, provider):
     )
     queued = journal.enqueue_page(events, expected_cursor=cursor, next_cursor=next_cursor)
     # At most one POST per tick. The journal also reserves a global one-second
-    # minimum gap across concurrent instances sharing this exact state file.
+    # admission gap across instances sharing this exact state file, not a
+    # guarantee about actual wire-request spacing under process descheduling.
     claimed = journal.claim_next()
     attempted = 0
     outcome = None

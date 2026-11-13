@@ -41,6 +41,7 @@ def stamp(clock, offset=1):
 def make_store(tmp_path):
     store = Store(f"sqlite:///{(tmp_path / 'application.db').as_posix()}")
     store.migrate()
+    store.bind_workspace_mode("FIXTURE")
     store.save_profile({"id": "fixture", "name": "Synthetic Applicant", "email": "fixture@example.test",
                         "facts": [], "answers": []})
     store.save_profile({"id": "other", "name": "Other Applicant", "email": "other@example.test",
@@ -105,6 +106,7 @@ def ownership_store(tmp_path, backend):
         })
         store = Store(scoped.render_as_string(hide_password=False))
         m.metadata.create_all(store.engine)
+        store.bind_workspace_mode("FIXTURE")
         for profile in ("fixture", "other"):
             store.save_profile({"id": profile, "name": "Synthetic Applicant",
                                 "email": profile + "@example.test", "facts": [], "answers": []})
@@ -328,3 +330,73 @@ def test_cli_status_is_private_and_retry_has_no_network_side_effect(tmp_path, ca
     assert main(["--config", str(path), "retry", event.event_key]) == 0
     assert "RETRY_QUEUED" in capsys.readouterr().out
     assert journal.status()["counts"] == {"PENDING": 1}
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+def test_mock_notifications_accept_actual_current_and_legacy_producers_only(tmp_path, backend):
+    from services.applications.run_requests import queue_mock_run
+    from services.applications.attempt_history import input_fingerprint
+    from workers.dispatch import enqueue_operation
+
+    clock = Clock()
+    with ownership_store(tmp_path, backend) as store:
+        assert store.engine.dialect.name == ("postgresql" if backend == "postgres" else "sqlite")
+        add_ownership_entities(store, clock)
+        current = queue_mock_run(store, "fixture", "app-owned", submit=False,
+                                 request_id="notification-current-producer")
+        foreign = queue_mock_run(store, "other", "app-other", submit=False,
+                                 request_id="notification-foreign-producer")
+        with store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id.in_((current["operation_id"], foreign["operation_id"])),
+            ).values(state="COMPLETED", completed_at=stamp(clock), attempt_count=1))
+        # Exact legacy API route producer: queued -> enqueue_operation, {'submit': bool}.
+        legacy = enqueue_operation(store, "APPLY_MOCK", "app-owned", {"submit": False})
+        with store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == legacy).values(
+                state="COMPLETED", completed_at=stamp(clock), attempt_count=1))
+            params = connection.execute(select(m.operations.c.params).where(
+                m.operations.c.id == current["operation_id"])).scalar_one()
+            legacy_params = connection.execute(select(m.operations.c.params).where(
+                m.operations.c.id == legacy)).scalar_one()
+        assert "profile_id" not in params
+        assert params["input_snapshot"]["profile_id"] == "fixture"
+        assert params["input_fingerprint"] == input_fingerprint(params["input_snapshot"])
+        assert legacy_params == {"submit": False}
+        wrong_snapshot = {**params["input_snapshot"], "profile_id": "other"}
+        for number, malformed in enumerate((
+            {**params, "profile_id": "other"},
+            {**params, "application_id": "app-other"},
+            {**params, "input_snapshot": wrong_snapshot,
+             "input_fingerprint": input_fingerprint(wrong_snapshot)},
+            {**params, "input_fingerprint": "0" * 64},
+            {**params, "run_contract_version": True},
+            {**params, "input_snapshot": None},
+            {"submit": False, "unexpected": "unsupported-legacy-shape"},
+            {"submit": "false"},
+            {"input_snapshot": {"profile_id": "fixture"}},
+        )):
+            add_operation(store, clock, "bad-mock-" + str(number), kind="APPLY_MOCK",
+                          entity="app-owned", params=malformed)
+        # An external application cannot be advertised as a fixture operation.
+        with store.engine.begin() as connection:
+            connection.execute(update(m.applications).where(m.applications.c.id == "app-other").values(
+                target="EXTERNAL"))
+        add_operation(store, clock, "foreign-legacy", kind="APPLY_MOCK", entity="app-other",
+                      params={"submit": False})
+        events, _ = read_event_page(store, "fixture", activated_at=stamp(clock, 0))
+        assert {event.operation_id for event in events} == {current["operation_id"], legacy}
+        assert all(event.message == "Fixture application completed. Open MJobs for details."
+                   for event in events)
+        # The ordinary runner consumes both actual producer shapes and dedupes them.
+        config = parse_config(config_data(tmp_path))
+        journal = DeliveryJournal(config, clock=clock)
+        sent = []
+        class Sender:
+            def send(self, event):
+                sent.append(event.operation_id)
+                return DeliveryResult("DELIVERED", "NOTIFICATION_SERVER_ACKNOWLEDGED", "fixture")
+        for _ in range(4):
+            run_once(store, config, journal, Sender())
+            clock.advance()
+        assert set(sent) == {current["operation_id"], legacy} and len(sent) == 2

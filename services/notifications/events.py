@@ -50,6 +50,30 @@ def event_from_row(row):
     return NotificationEvent(key, row["id"], row["kind"], row["state"], row["updated_at"], row["attempt_count"], message)
 
 
+
+def _valid_mock_scope(params, profile_id, application_id):
+    """Both production queue shapes bind to the owned MOCK application.
+
+    V1 requests also carry an immutable snapshot/fingerprint. Legacy requests
+    are deliberately limited to the API's original submit-only shape.
+    """
+    if type(params) is not dict or type(params.get("submit")) is not bool:
+        return False
+    for name, expected in (("profile_id", profile_id), ("application_id", application_id)):
+        if name in params and params[name] != expected:
+            return False
+    if not any(name in params for name in ("run_contract_version", "input_snapshot", "input_fingerprint")):
+        return set(params) == {"submit"}
+    snapshot = params.get("input_snapshot")
+    if (type(params.get("run_contract_version")) is not int or params["run_contract_version"] != 1
+            or type(snapshot) is not dict or snapshot.get("profile_id") != profile_id
+            or snapshot.get("provider") != "mock-ats"
+            or ("route_id" in params and params["route_id"] != snapshot.get("route_id"))):
+        return False
+    from services.applications.attempt_history import input_fingerprint
+    return params.get("input_fingerprint") == input_fingerprint(snapshot)
+
+
 def read_event_page(store, profile_id, *, activated_at, after_id="", limit=50):
     """A bounded stable-ID sweep; revisits rows to observe later state changes.
 
@@ -63,26 +87,34 @@ def read_event_page(store, profile_id, *, activated_at, after_id="", limit=50):
                 m.profiles.c.id == profile_id)).scalar_one_or_none() is None:
             raise NotificationError("NOTIFICATION_PROFILE_NOT_FOUND")
         applications = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
+        mock_applications = select(m.applications.c.id).where(
+            m.applications.c.profile_id == profile_id, m.applications.c.target == "MOCK")
         resumes = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
         param_profile = m.operations.c.params["profile_id"].as_string()
         scope = or_(
             and_(m.operations.c.kind.in_(PROFILE_KINDS),
                  m.operations.c.entity_id == profile_id,
                  or_(param_profile.is_(None), param_profile == profile_id)),
-            and_(m.operations.c.kind.in_(APPLICATION_KINDS),
+            and_(m.operations.c.kind.in_(set(APPLICATION_KINDS) - {"APPLY_MOCK"}),
                  m.operations.c.entity_id.in_(applications), param_profile == profile_id),
+            and_(m.operations.c.kind == "APPLY_MOCK",
+                 m.operations.c.entity_id.in_(mock_applications)),
             and_(m.operations.c.kind.in_(RESUME_KINDS),
                  m.operations.c.entity_id.in_(resumes), param_profile == profile_id),
         )
         rows = list(connection.execute(select(
             m.operations.c.id, m.operations.c.kind, m.operations.c.state, m.operations.c.updated_at,
-            m.operations.c.attempt_count,
+            m.operations.c.attempt_count, m.operations.c.params, m.operations.c.entity_id,
         ).where(
             scope, m.operations.c.state.in_(_OUTCOMES),
             func.coalesce(m.operations.c.completed_at, m.operations.c.updated_at) >= activated_at,
             m.operations.c.id > after_id,
         ).order_by(m.operations.c.id).limit(limit)).mappings())
-    events = tuple(event for row in rows if (event := event_from_row(row)) is not None)
+    events = tuple(
+        event for row in rows
+        if (row["kind"] != "APPLY_MOCK" or _valid_mock_scope(row["params"], profile_id, row["entity_id"]))
+        and (event := event_from_row(row)) is not None
+    )
     # A full page advances; a short page resets for the next sweep.
     next_cursor = rows[-1]["id"] if len(rows) == limit else ""
     return events, next_cursor
