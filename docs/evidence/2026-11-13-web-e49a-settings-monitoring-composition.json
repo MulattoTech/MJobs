@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "run_id": "WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad",
+  "requirement_id": "MJ-REQ-109",
+  "related_requirements": [
+    "MJ-REQ-004"
+  ],
+  "pr": 1016,
+  "created_at": "2026-11-13T04:09:51.866465Z",
+  "state": "VERIFY",
+  "source": {
+    "tested_commit": "690d854e7897997d9bb9054824d93ed9c99d0e48",
+    "parent_commit": "ea4b7cb072d8419fa7363f6d9a99c8abe2c1756c",
+    "donor_commit": "258bc436f35aa652923f35d5553656ec3d18865f",
+    "original_low_rate_change": "28a57a2fa080b5e607c628de27f19d9c528be43c",
+    "donor_pr": 1018,
+    "method": "Explicit source-only adoption of four exact reviewed donor blobs; no full branch merge",
+    "copied_paths": [
+      "services/company_discovery/public_client.py",
+      "tests/unit/test_public_company_client.py",
+      ".gitleaksignore",
+      "docs/evidence/2026-11-13-web-e49a-scanner-identifier-disposition.json"
+    ],
+    "source_blobs": {
+      "services/company_discovery/public_client.py": "31a1a1ed629e4aa6b44cd37e28541b6df630ad51",
+      "tests/unit/test_public_company_client.py": "1e04f3531637067130b6f02ea07b73b8a1a619f8",
+      ".gitleaksignore": "6b32be9091c12e6eafdf6b4620403f73c68864f9",
+      "docs/evidence/2026-11-13-web-e49a-scanner-identifier-disposition.json": "3bc263a3ac6b0840568b3e437ffa60199ee00f6d",
+      "packages/persistence/store.py": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+      "tests/integration/test_ai_task_settings_restored_identity.py": "162f1e9eeaeef053d8657f31c730bf7f8b18c54f",
+      "planning/SESSION_HANDOFF.md": "9fbf9dfb51699394fa2eeaf89252e52d41e9ba6c"
+    },
+    "preservation": "Store and restored-identity tests retain exactea4 blobs. Canonical planning/SESSION_HANDOFF, planning tree, frontend and workflows retain parent content. Original candidate histories, branches, worktrees and prior evidence remain intact."
+  },
+  "reason": "The original ea4 integration gate failed on a real15RPM monitoring control read. Combine the reviewed bounded concurrency mitigation with the settings repair so required CI exercises both together, while respecting the separate canonical handoff owner. Include the independently reviewed exact historical requirement-ID scanner disposition reached by all-ref scanning.",
+  "fresh_verification": {
+    "source_head": "690d854e7897997d9bb9054824d93ed9c99d0e48",
+    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\e49a1cba-settings-monitoring-verification",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "-o",
+      "faulthandler_timeout=60",
+      "--tb=short",
+      "tests/integration/test_ai_task_settings_restored_identity.py::RestoredAITaskSettingsSQLiteTests",
+      "tests/unit/test_public_company_client.py",
+      "tests/unit/test_operation_control_reads.py",
+      "tests/integration/test_company_monitoring_policy_transport.py",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024540Z-e49a1cba-7018-43b1-9293-ccdeed6b81ad\\settings-monitoring-focused-junit.xml"
+    ],
+    "started_at": "2026-11-13T04:04:24.849887Z",
+    "completed_at": "2026-11-13T04:05:33.449638Z",
+    "pid": 6660,
+    "exit_code": 0,
+    "primary_testcase_elements": 43,
+    "suite_counts": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "58",
+        "time": "67.182",
+        "timestamp": "2026-11-12T22:04:25.144512-06:00",
+        "hostname": "MulattoTechBox"
+      }
+    ],
+    "log_sha256": "af6aa13a2a5fa7d4b494a698024ac221b0d88a391530cc3c3884d215fad27484",
+    "junit_sha256": "67c6f4e4784dc916765b78e006d77071b963c091df09d26aabaab80042b14ed5",
+    "source_status_after": "",
+    "environment": {
+      "python": "3.12.10",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "sqlite": "3.49.1"
+    },
+    "heavy_slot_requested": false,
+    "execution_kind": "bounded focused Python/SQLite/owned loopback TLS tests; no Docker/browser",
+    "postgres_on_this_composed_source": "NOT_RUN locally; required hosted integration pending",
+    "primary_passed": 43,
+    "subtests_passed": 15,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "pytest_seconds": 67.18,
+    "selected_cases": [
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_concurrent_first_saves_and_restored_updates_remain_atomic",
+        "time": "1.152",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_failed_later_selection_rolls_back_rows_timestamps_and_audit",
+        "time": "0.807",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_partial_save_preserves_unselected_tasks_and_other_profiles",
+        "time": "0.964",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_ai_task_settings_restored_identity.RestoredAITaskSettingsSQLiteTests",
+        "name": "test_restored_settings_keep_ids_noop_audit_and_durable_values",
+        "time": "0.824",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.ControlReadDiagnosticsTests",
+        "name": "test_dbapi_refusal_identity_privacy_bound_and_detached_snapshot",
+        "time": "0.001",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.ControlReadDiagnosticsTests",
+        "name": "test_metadata_failure_cannot_replace_original_refusal",
+        "time": "0.001",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.ControlReadDiagnosticsTests",
+        "name": "test_pool_refusal_is_distinguished_without_exposing_its_message",
+        "time": "0.000",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.ControlReadDiagnosticsTests",
+        "name": "test_success_delegates_once_and_preserves_result",
+        "time": "0.000",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_actual_tls_header_and_body_stalls_observe_two_second_request_budget",
+        "time": "4.576",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_both_client_paths_enforce_explicit_tls12_floor",
+        "time": "1.131",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_cancel_during_real_tls_handshake_owns_detached_tls_socket",
+        "time": "1.022",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_fresh_floor_fifteen_rpm_empty_feed_saves_receipt",
+        "time": "9.185",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_incompatible_rates_rejected_before_network_or_persistence",
+        "time": "1.105",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_real_tls_floor_fifteen_rpm_five_samples_save_receipt",
+        "time": "30.817",
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_monitoring_policy_transport.CompanyMonitoringPolicyTransportTests",
+        "name": "test_real_tls_worker_policy_parallel_sampling_receipt_and_fresh_readback",
+        "time": "9.879",
+        "result": "PASS"
+      }
+    ]
+  },
+  "independent_review": {
+    "reviewer": "ChatGPT-Web /root/coordination_inspection",
+    "reviewed_source": "690d854e7897997d9bb9054824d93ed9c99d0e48",
+    "static_result": "APPROVED",
+    "runtime_artifact_review": "APPROVED; independently read actual log/XML and verified hashes,43case elements/58total including15subtests, no failures/errors/skips",
+    "reviewer_executed_extra_tests": false
+  },
+  "preserved_failures": [
+    {
+      "head": "ea4b7cb072d8419fa7363f6d9a99c8abe2c1756c",
+      "pr": 1016,
+      "job": "https://github.com/MulattoTech/MJobs/actions/runs/43357142980/job/131661765511",
+      "result": "15RPM monitoring BLOCKED / OPERATION_CONTROL_UNAVAILABLE with SQLite BUSY code5; all8new restore tests passed",
+      "qualification": "Exact lock holder was not established; a bounded contention reduction does not establish elimination of every SQLITE_BUSY cause"
+    },
+    {
+      "head": "cfbcd89ed333f853dba210347f894166a396c776",
+      "pr": 1018,
+      "result": "Original historical public-identifier scanner false positive; corrected on258 with one exact fingerprint. Superseded integration jobs were cancelled, not successful."
+    }
+  ],
+  "limits": [
+    "Fresh local composition proof is SQLite/owned loopback TLS only. PostgreSQL on this exact composed commit is NOT_RUN locally; new published-head hosted integration must execute all required cases.",
+    "Earlier8SQLite/PostgreSQL restore cases passed on ea4, whose Store/test blobs are unchanged. This source equivalence does not relabel their hosted revision.",
+    "Only a new evidence file is added after the immutable690 runtime run; final published-head gates remain separately required.",
+    "No current-main integration, deployment, complete MJ-REQ-109/MJ-REQ-004 acceptance or canonical progress update is claimed.",
+    "PR1009 preserved frontend verification is a separate candidate and source lineage."
+  ],
+  "next_action": "Independent final metadata review; ordinary fast-forward update of existing ownedPR1016 through fresh admission; observe all required checks at exactpublishedhead; sole authorized integrator decides protected integration."
+}
