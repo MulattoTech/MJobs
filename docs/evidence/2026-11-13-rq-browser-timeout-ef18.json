@@ -32,13 +32,33 @@
       "tests/integration/test_rq_workhorse_recovery.py": "990b607fc204d85f45c980982fff882659d2e6b5",
       "tests/unit/test_rq_browser_timeout_fixture.py": "db5297289ac3bc21a07a8188117a25075f878cf8"
     },
-    "sha256": {
+    "production_source_changed": false,
+    "workflow_changed": false,
+    "native_working_tree_sha256": {
       "tests/integration/rq_workhorse_fixture.py": "b4fcb4fd5f7a685a37e951532aca4d1de70e7d75a27f0e24afe1f2de9418f7c7",
       "tests/integration/test_rq_workhorse_recovery.py": "61511ab977983697ea9266b170414121966400b4255212bec59d7b2e5f51eb6c",
       "tests/unit/test_rq_browser_timeout_fixture.py": "3555de1209805561bdfdc4e6940a2271337c47cbaa860fd9f2eda7e63f612507"
     },
-    "production_source_changed": false,
-    "workflow_changed": false
+    "git_blob_sha256": {
+      "tests/integration/rq_workhorse_fixture.py": "b4fcb4fd5f7a685a37e951532aca4d1de70e7d75a27f0e24afe1f2de9418f7c7",
+      "tests/integration/test_rq_workhorse_recovery.py": "cf4d8eb4454be7b3c5323d268042e99bf2aa43f1f8d8a0681f69e2da55f6b617",
+      "tests/unit/test_rq_browser_timeout_fixture.py": "3555de1209805561bdfdc4e6940a2271337c47cbaa860fd9f2eda7e63f612507"
+    },
+    "source_byte_binding": "Native working-tree hashes bind the Windows local helper/admission run. Git-blob hashes bind the immutable committed source used by hosted execution. CRLF-to-LF normalization exactly reproduces the integration test's Git bytes; the other two files already match byte-for-byte.",
+    "line_ending_bindings": {
+      "tests/integration/rq_workhorse_fixture.py": {
+        "native_bytes_equal_git_blob": true,
+        "native_crlf_to_lf_equals_git_blob": true
+      },
+      "tests/integration/test_rq_workhorse_recovery.py": {
+        "native_bytes_equal_git_blob": false,
+        "native_crlf_to_lf_equals_git_blob": true
+      },
+      "tests/unit/test_rq_browser_timeout_fixture.py": {
+        "native_bytes_equal_git_blob": true,
+        "native_crlf_to_lf_equals_git_blob": true
+      }
+    }
   },
   "implementation": [
     "Add one real Redis/RQ/Chromium regression using the public mock-run route with submit false and external submission disabled.",
@@ -374,5 +394,13 @@
     "The 40 skipped primary cases in the full integration matrix are not counted as passing evidence.",
     "New publication-head required checks, protected integration and any applicable runtime adoption remain separate from this exact-source hosted qualification."
   ],
-  "next_action": "Publish one coherent regression/fixture-safety candidate, pass its exact-head required checks, and hand it to the sole protected integration/canonical steward. No production repair is justified by this passing experiment."
+  "next_action": "Publish one coherent regression/fixture-safety candidate, pass its exact-head required checks, and hand it to the sole protected integration/canonical steward. No production repair is justified by this passing experiment.",
+  "metadata_review_history": [
+    {
+      "commit": "8fd8282d79b0258f78456732c769535e76177b7e",
+      "result": "CHANGES_REQUESTED",
+      "finding": "The generic source.sha256 label did not distinguish one native Windows CRLF working file from its immutable Git blob.",
+      "correction": "Preserve native_working_tree_sha256, compute git_blob_sha256 directly from all three immutable blobs, and record exact newline equivalence. No test or production bytes changed."
+    }
+  ]
 }
