@@ -58,10 +58,13 @@ def fixture_transport():
         assert request.method == "GET"
         endpoint = str(request.url).partition("?")[0]
         assert endpoint in {METADATA_URL, TEXT_URL}
+        assert dict(request.url.params) == {
+            "PositionSeries": "2210",
+            "StartPositionOpenDate": "11-07-2026",
+            "EndPositionOpenDate": "11-13-2026",
+        }
         if endpoint == METADATA_URL:
             return httpx.Response(200, json={"data": [raw["metadata"]]})
-        assert dict(request.url.params) == {
-            "USAJOBSControlNumbers": str(raw["metadata"]["usajobsControlNumber"])}
         return httpx.Response(200, json={"data": [raw["announcement_text"]]})
     return httpx.MockTransport(respond)
 

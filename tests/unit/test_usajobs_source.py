@@ -72,7 +72,7 @@ def test_search_uses_two_fixed_gets_exact_window_and_preserved_raw(payloads):
         "EndPositionOpenDate": "11-13-2026",
     }
     assert str(requests[1].url).partition("?")[0] == source.ANNOUNCEMENT_TEXT_URL
-    assert dict(requests[1].url.params) == {"USAJOBSControlNumbers": "990000103,990000101,990000102"}
+    assert dict(requests[1].url.params) == dict(requests[0].url.params)
     assert all(request.headers["accept"] == "application/json" for request in requests)
     assert all(request.headers["accept-encoding"] == "identity" for request in requests)
     assert all("authorization" not in request.headers and "authorization-key" not in request.headers
@@ -172,10 +172,10 @@ def test_selection_is_newest_first_bounded_and_text_order_does_not_join_by_index
     def respond(request):
         if request.url.path == "/api/historicjoa":
             return httpx.Response(200, json={"data": list(reversed(metadata_rows))})
-        controls = request.url.params["USAJOBSControlNumbers"].split(",")
-        assert len(controls) == 25 and len(set(controls)) == 25
-        return httpx.Response(200, json={"data": [
-            row for row in reversed(text_rows) if str(row["usajobsControlNumber"]) in controls]})
+        assert dict(request.url.params) == {
+            "PositionSeries": "2210", "StartPositionOpenDate": "11-07-2026",
+            "EndPositionOpenDate": "11-13-2026"}
+        return httpx.Response(200, json={"data": list(reversed(text_rows))})
 
     batch = adapter_for(payloads, requests, handler=respond).search()
     assert len(requests) == 2 and len(batch.items) == source.MAX_SELECTED == 25
@@ -217,10 +217,9 @@ def test_unselected_agency_label_does_not_poison_deterministic_newest_25(payload
             return response_for(request, (metadata, text))
         assert request.url.path == "/api/historicjoa/announcementtext"
         assert dict(request.url.params) == {
-            "USAJOBSControlNumbers": ",".join(map(str, expected))}
-        return httpx.Response(200, json={"data": [
-            row for row in reversed(text["data"])
-            if row["usajobsControlNumber"] in expected]})
+            "PositionSeries": "2210", "StartPositionOpenDate": "11-07-2026",
+            "EndPositionOpenDate": "11-13-2026"}
+        return httpx.Response(200, json={"data": list(reversed(text["data"]))})
 
     adapter = adapter_for((metadata, text), requests, handler=respond)
     batch = adapter.search()
@@ -315,9 +314,8 @@ def test_one_control_number_with_two_openings_is_ambiguous_not_a_guessed_newest_
 @pytest.mark.parametrize(("field", "value"), (
     ("hiringAgencyCode", "OTHER"), ("hiringDepartmentCode", "OTHER"),
     ("positionOpenDate", "2026-11-11"), ("announcementNumber", "ANOTHER-ANNOUNCEMENT"),
-    ("usajobsControlNumber", 990099999),
 ))
-def test_text_identity_mismatch_and_extras_are_rejected(payloads, field, value):
+def test_selected_text_identity_mismatch_is_rejected(payloads, field, value):
     metadata, text = single(payloads)
     text["data"][0][field] = value
     adapter = adapter_for((metadata, text))
@@ -326,12 +324,123 @@ def test_text_identity_mismatch_and_extras_are_rejected(payloads, field, value):
     assert adapter.health() == "SOURCE_JOIN_MISMATCH"
 
 
+@pytest.mark.parametrize(("field", "value"), (
+    ("hiringAgencyCode", "Other Agencies and Independent Organizations"),
+    ("hiringDepartmentCode", None), ("announcementNumber", None),
+))
+def test_selected_bulk_text_still_requires_full_native_identity(payloads, field, value):
+    metadata, text = single(payloads)
+    text["data"][0][field] = value
+    requests = []
+    adapter = adapter_for((metadata, text), requests)
+    with pytest.raises(SourceError, match="^SOURCE_INVALID_JOB$"):
+        adapter.search()
+    assert len(requests) == 2 and adapter.health() == "SOURCE_INVALID_JOB"
+
+
 def test_missing_text_prevents_partial_result(payloads):
     payloads[1]["data"].pop()
     adapter = adapter_for(payloads)
     with pytest.raises(SourceError, match="^SOURCE_JOIN_MISSING$"):
         adapter.search()
     assert adapter.health() == "SOURCE_JOIN_MISSING"
+
+
+@pytest.mark.parametrize("unsupported_identity", (False, True))
+@pytest.mark.parametrize("reverse", (False, True))
+def test_unselected_bulk_text_never_creates_an_item_or_company(payloads, unsupported_identity, reverse):
+    metadata, text = single(payloads)
+    extra = deepcopy(text["data"][0])
+    extra.update(usajobsControlNumber=990099999, hiringAgencyCode="ZZEX",
+                 hiringDepartmentCode="YY", announcementNumber="SYN-UNSELECTED")
+    if unsupported_identity:
+        extra.update(hiringAgencyCode="Other Agencies and Independent Organizations",
+                     hiringDepartmentCode=None, announcementNumber=None)
+    text["data"].append(extra)
+    if reverse:
+        text["data"].reverse()
+    before = deepcopy((metadata, text))
+    requests = []
+    batch = adapter_for((metadata, text), requests).search()
+    assert len(requests) == 2 and len(batch.items) == 1
+    assert batch.items[0].raw["metadata"] == metadata["data"][0]
+    assert batch.items[0].raw["announcement_text"] == next(
+        row for row in text["data"] if row["usajobsControlNumber"] != 990099999)
+    native = metadata["data"][0]
+    assert batch.items[0].company.identity_parts == (
+        "usajobs", native["hiringDepartmentCode"], native["hiringAgencyCode"])
+    assert batch.complete_inventory is False and (metadata, text) == before
+
+
+def test_missing_selected_text_is_not_backfilled_by_bulk_extras(payloads):
+    metadata, text = single(payloads)
+    text["data"][0]["usajobsControlNumber"] = 990099999
+    requests = []
+    adapter = adapter_for((metadata, text), requests)
+    with pytest.raises(SourceError, match="^SOURCE_JOIN_MISSING$"):
+        adapter.search()
+    assert len(requests) == 2 and adapter.health() == "SOURCE_JOIN_MISSING"
+
+
+@pytest.mark.parametrize(("field", "value"), (
+    ("usajobsControlNumber", True), ("positionOpenDate", "2026-11-99"),
+    ("jobcategories", "not a collection"), ("positionlocations", [None]),
+))
+def test_unselected_bulk_text_still_requires_selection_keys_and_collection_structure(payloads, field, value):
+    metadata, text = single(payloads)
+    extra = deepcopy(text["data"][0])
+    extra["usajobsControlNumber"] = 990099999
+    extra[field] = value
+    text["data"].append(extra)
+    adapter = adapter_for((metadata, text))
+    with pytest.raises(SourceError, match="^SOURCE_INVALID_JOB$"):
+        adapter.search()
+    assert adapter.health() == "SOURCE_INVALID_JOB"
+
+
+@pytest.mark.parametrize("conflicting", (False, True))
+def test_unselected_bulk_text_duplicates_are_checked_before_ignoring_rows(payloads, conflicting):
+    metadata, text = single(payloads)
+    extra = deepcopy(text["data"][0])
+    extra.update(usajobsControlNumber=990099999,
+                 hiringAgencyCode="Other Agencies and Independent Organizations")
+    duplicate = deepcopy(extra)
+    if conflicting:
+        duplicate["summary"] = "Conflicting unselected announcement text"
+    text["data"].extend((extra, duplicate))
+    adapter = adapter_for((metadata, text))
+    if conflicting:
+        with pytest.raises(SourceError, match="^SOURCE_JOIN_CONFLICT$"):
+            adapter.search()
+        assert adapter.health() == "SOURCE_JOIN_CONFLICT"
+    else:
+        assert len(adapter.search().items) == 1 and adapter.health() == "HEALTHY"
+
+
+def test_text_position_series_does_not_require_metadata_jobcategories(payloads):
+    metadata, text = single(payloads)
+    row = text["data"][0]
+    row.pop("jobcategories")
+    row["positionSeries"] = "2210"
+    before = deepcopy(row)
+    adapter = adapter_for((metadata, text))
+    batch = adapter.search()
+    assert len(batch.items) == 1
+    assert batch.items[0].raw["announcement_text"] == before
+    assert adapter.normalize(batch.items[0].raw)["description"]
+
+
+def test_bulk_text_accepts_1000_rows_without_expanding_selected_inventory(payloads):
+    metadata, text = single(payloads)
+    text["data"].extend({
+        "usajobsControlNumber": 990010000 + index,
+        "positionOpenDate": "2026-11-12",
+    } for index in range(999))
+    requests = []
+    batch = adapter_for((metadata, text), requests).search()
+    assert len(text["data"]) == source.MAX_TEXT_ITEMS == 1000
+    assert len(requests) == 2 and len(batch.items) == 1
+    assert source.MAX_SELECTED == 25 and batch.complete_inventory is False
 
 
 @pytest.mark.parametrize("control", (None, True, 0, -1, 1.5, "990000101", 2**63))
@@ -514,6 +623,7 @@ def test_paging_benefits_video_and_html_links_never_choose_network_destinations(
 @pytest.mark.parametrize("phase", ("metadata", "text"))
 @pytest.mark.parametrize(("status", "headers", "code", "retry"), (
     (302, {"location": "https://attacker.invalid"}, "SOURCE_REDIRECT_BLOCKED", 60),
+    (400, {}, "SOURCE_UNAVAILABLE", 300),
     (401, {}, "SOURCE_UNAVAILABLE", 300), (403, {}, "SOURCE_UNAVAILABLE", 300),
     (429, {"retry-after": "90"}, "SOURCE_RATE_LIMITED", 90),
     (503, {"retry-after": "600"}, "SOURCE_SERVER_ERROR", 600),
@@ -573,14 +683,16 @@ def test_content_type_and_encoding_are_checked_before_consuming_body(payloads, h
 @pytest.mark.parametrize("phase", ("metadata", "text"))
 def test_record_limits_apply_before_identity_expansion(payloads, phase):
     chosen = payloads[0 if phase == "metadata" else 1]
-    limit = source.MAX_METADATA_ITEMS if phase == "metadata" else source.MAX_SELECTED
-    chosen["data"] = [chosen["data"][0]] * (limit + 1)
+    limit = source.MAX_METADATA_ITEMS if phase == "metadata" else source.MAX_TEXT_ITEMS
+    assert limit == 1000
+    chosen["data"] = [chosen["data"][0]] * 1001
     adapter = adapter_for(payloads)
     with pytest.raises(SourceError, match="^SOURCE_PAYLOAD_INVALID$"):
         adapter.search()
 
 
-def test_response_body_limit_closes_stream_without_consuming_rest(payloads):
+@pytest.mark.parametrize("phase", ("metadata", "text"))
+def test_response_body_limit_closes_stream_without_consuming_rest(payloads, phase):
     yielded, closed = [], []
 
     class LargeStream(httpx.SyncByteStream):
@@ -592,8 +704,13 @@ def test_response_body_limit_closes_stream_without_consuming_rest(payloads):
         def close(self):
             closed.append(True)
 
-    adapter = adapter_for(payloads, handler=lambda _request: httpx.Response(
-        200, stream=LargeStream(), headers={"content-type": "application/json"}))
+    def respond(request):
+        if phase == "text" and request.url.path == "/api/historicjoa":
+            return response_for(request, payloads)
+        return httpx.Response(200, stream=LargeStream(),
+                              headers={"content-type": "application/json"})
+
+    adapter = adapter_for(payloads, handler=respond)
     with pytest.raises(SourceError, match="^SOURCE_PAYLOAD_LIMIT$"):
         adapter.search()
     assert len(yielded) == source.MAX_RESPONSE_BYTES // 65536 + 1
@@ -692,6 +809,36 @@ def test_identity_processing_cooperates_before_next_request_and_after_last_item(
             adapter.search()
     assert failure.value is stop and adapter.health() == "HEALTHY"
     assert len(requests) == (1 if phase == "metadata_identity" else 2)
+
+
+@pytest.mark.parametrize("control_error", (OperationCancelled, OperationTimedOut))
+def test_final_unselected_bulk_row_cannot_replace_local_stop_with_success(payloads, control_error):
+    metadata, text = single(payloads)
+    extra = deepcopy(text["data"][0])
+    extra["usajobsControlNumber"] = 990099999
+    text["data"].append(extra)
+    stopped, requests = [], []
+    stop = control_error("synthetic bulk parsing stop")
+    real_selection = source._selection_key
+
+    def check():
+        if stopped:
+            raise stop
+
+    def selection(row):
+        key = real_selection(row)
+        if key[0] == 990099999:
+            stopped.append(True)
+        return key
+
+    adapter = adapter_for((metadata, text), requests, check=check)
+    adapter.search()
+    requests.clear()
+    with patch.object(source, "_selection_key", side_effect=selection):
+        with pytest.raises(control_error) as failure:
+            adapter.search()
+    assert failure.value is stop and adapter.health() == "HEALTHY"
+    assert len(requests) == 2
 
 
 def test_decode_is_charged_to_monotonic_request_budget(payloads):

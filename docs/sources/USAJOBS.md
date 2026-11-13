@@ -38,13 +38,15 @@ The API declaration contains exactly `DISCOVERY` and `APPLICATION_REDIRECT`. The
 A search makes at most two fixed-origin GET requests:
 
 1. `https://data.usajobs.gov/api/historicjoa`, with series and opening-date bounds.
-2. `https://data.usajobs.gov/api/historicjoa/announcementtext`, with only the selected control numbers.
+2. `https://data.usajobs.gov/api/historicjoa/announcementtext`, with the same fixed series and opening-date bounds.
 
 Empty eligible metadata returns an empty, incomplete batch without a text request. No pagination, announcement-page crawl, external link fetch or Search API fallback occurs. Provider paging fields are never treated as proof of completeness.
 
-Each response is bounded to 5,000,000 bytes. Metadata is limited to 1,000 records; text is limited to 25. The existing verified-TLS SourceTransport enforces cancellation and bounded reads. HTTP proxies from the process environment and redirects are disabled. Request timeout, rate and concurrency remain within the configured source policy. Rate limits and failures return explicit source errors; there is no internal retry loop.
+Both requests use only `PositionSeries`, `StartPositionOpenDate` and `EndPositionOpenDate`; the date window is computed once per search. The Announcement Text reference documents these bulk filters. No control-number batch encoding is assumed.
 
-The plural control-number query is a separate live qualification gate until a production-adapter read verifies the exact request and all selected joins.
+Each response is bounded to 5,000,000 bytes and 1,000 records. At most 25 selected metadata records can become source items, regardless of the text response size. The existing verified-TLS SourceTransport enforces cancellation and bounded reads. HTTP proxies from the process environment and redirects are disabled. Request timeout, rate and concurrency remain within the configured source policy. Rate limits and failures return explicit source errors; there is no internal retry loop.
+
+The bulk series/date query is **NOT_RUN** as a live qualification gate until a production-adapter read verifies the exact two-request flow and all selected joins. A text response that exceeds the bounds or omits a selected control fails; neither pagination nor an alternative query repairs it.
 
 ## Identity, joining and raw evidence
 
@@ -60,7 +62,9 @@ Each posting has a provider-native numeric control number. Metadata and text mus
 - Opening calendar date.
 - Announcement number.
 
-Missing, extra, mismatched or conflicting text records fail the entire search before domain persistence. Identical duplicate records deduplicate; conflicting duplicates fail. Documented camel-case and observed lowercase collection aliases are accepted only when they agree if both occur.
+Every text row must have a valid positive numeric control number and opening date, bounded known collection structure and a strict raw fingerprint. The adapter checks duplicate controls across the entire bounded response: identical records deduplicate, while conflicting duplicates fail even when the control is unselected. Documented camel-case and observed lowercase collection aliases are accepted only when they agree if both occur. Text records do not have to repeat metadata's occupational-series collections; supplied `positionSeries` and other source fields remain raw evidence.
+
+Additional unselected text records are expected from the bulk endpoint. They cannot create companies, source items or postings, and unsupported agency identity on those unselected rows is not used. Every selected text record still requires the full native identity above. Missing selected text, mismatched identities or conflicting records fail the entire search before domain persistence. Extra records never fill a missing selected slot.
 
 Company identity is the tuple `("usajobs", department_code, agency_code)`. The stable display label is `USAJOBS agency <code>`; nullable or changed upstream names remain separate source evidence and cannot create false identity conflicts. The common USAJOBS host is not a verified employer website.
 
@@ -94,7 +98,9 @@ The first read-only schema probe ran on **2026-11-13 03:46 UTC**:
 - Both returned a data array; neither supplied paging metadata in that observation.
 - Collection names were lowercase in the response, some agency display names were null, and a future close date occurred with unknown opening status.
 
-This probe is schema evidence, not qualification of the completed adapter or its plural query. Synthetic fixtures are explicitly fictional and are not substituted for live proof.
+This probe is schema evidence, not qualification of the completed adapter or the bulk series/date query. Synthetic fixtures are explicitly fictional and are not substituted for live proof.
+
+A later production-adapter read on **2026-11-13 05:04–05:05 UTC** selected 25 metadata records but failed on the former comma-separated control-number text request. A separately bounded same-query diagnostic at **05:15 UTC** returned HTTP 400 with an integer-value parsing error. Those failure receipts remain preserved; they do not qualify the replacement bulk flow. The bulk request, complete selected joins and constructed listing route still require separate live qualification.
 
 Completed-adapter tests, actual browser enrollment, bounded live batch verification, immutable review and hosted checks are recorded in `docs/evidence/2026-11-13-usajobs-source.json` when executed. Until that evidence exists, those checks remain **NOT_RUN**. Protected integration, deployment and canonical acceptance are separate gates.
 

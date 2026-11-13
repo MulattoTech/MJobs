@@ -64,9 +64,14 @@ unsupported capabilities and validation instructions are in
 ## USAJOBS public federal IT source — MJ-REQ-017.F06
 
 The default-only usajobs provider reads one recent series2210 metadata page and
-at most one selected-control-number announcement-text batch. Join every native
-identity field before yielding any posting. Keep raw records together, preserve
-calendar-date uncertainty, and never infer inventory closure or fully remote work.
+at most one announcement-text page using the same documented series/opening-date
+filters. Each response is bounded to 1,000 rows and 5MB; only the newest 25
+selected metadata records can become postings. Validate selection keys, known
+collection structure and duplicate consistency across each response, then join
+every native identity field for selected controls before yielding any posting.
+Unselected text cannot create companies or fill missing selected slots.
+Keep raw records together, preserve calendar-date uncertainty, and never infer
+inventory closure or fully remote work.
 Native agency/department codes identify companies; the shared USAJOBS platform
 host does not establish employer or ATS authority. The exact public-access scope,
 two-request limits, manual routes and qualification state are documented in

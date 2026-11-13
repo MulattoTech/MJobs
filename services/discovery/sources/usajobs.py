@@ -2,7 +2,7 @@
 
 MJ-REQ-017.F06. Only series 2210 and seven inclusive UTC calendar dates are
 requested. At most 25 announcements are enriched; this is never an inventory.
-Plural control-number retrieval and constructed listing routes require separate
+Bulk announcement-text retrieval and constructed listing routes require separate
 live qualification. A provider observation never establishes employer ATS trust.
 """
 from __future__ import annotations
@@ -41,6 +41,7 @@ POSITION_SERIES = "2210"
 WINDOW_DAYS = 7
 MAX_SELECTED = 25
 MAX_METADATA_ITEMS = 1000
+MAX_TEXT_ITEMS = 1000
 MAX_RESPONSE_BYTES = 5_000_000
 POLL_INTERVAL = 0.05
 _CODE = re.compile(r"[A-Z0-9]{1,16}\Z")
@@ -117,7 +118,7 @@ def _date(value, *, required=False):
 
 
 def _selection_key(record):
-    """Validate metadata keys needed for deduplication and bounded selection."""
+    """Validate native keys needed for deduplication, selection and text joins."""
     if not isinstance(record, dict):
         raise SourceError("SOURCE_INVALID_JOB")
     control = record.get("usajobsControlNumber")
@@ -370,11 +371,12 @@ class USAJobs:
         self.check()
         first, last = self._window()
         try:
-            payload = self._request(METADATA_URL, {
+            parameters = {
                 "PositionSeries": POSITION_SERIES,
                 "StartPositionOpenDate": first.strftime("%m-%d-%Y"),
                 "EndPositionOpenDate": last.strftime("%m-%d-%Y"),
-            })
+            }
+            payload = self._request(METADATA_URL, parameters)
             unique = {}
             signatures = {}
             eligible = []
@@ -405,21 +407,26 @@ class USAJobs:
             texts = {}
             text_signatures = {}
             if selected:
-                payload = self._request(ANNOUNCEMENT_TEXT_URL, {
-                    "USAJOBSControlNumbers": ",".join(str(row["usajobsControlNumber"]) for row in selected),
-                })
-                for row in self._rows(payload, MAX_SELECTED):
+                payload = self._request(ANNOUNCEMENT_TEXT_URL, parameters)
+                for row in self._rows(payload, MAX_TEXT_ITEMS):
                     self.check()
-                    key = _identity(row)
+                    control, _opened = _selection_key(row)
                     _collections(row)
-                    expected = selected_by_control.get(key[0])
-                    if expected is None or key != _identity(expected):
-                        raise SourceError("SOURCE_JOIN_MISMATCH")
                     signature = _fingerprint(row)
-                    if key[0] in texts and text_signatures[key[0]] != signature:
-                        raise SourceError("SOURCE_JOIN_CONFLICT")
-                    texts[key[0]] = row
-                    text_signatures[key[0]] = signature
+                    if control in text_signatures:
+                        if text_signatures[control] != signature:
+                            raise SourceError("SOURCE_JOIN_CONFLICT")
+                        continue
+                    text_signatures[control] = signature
+                    expected = selected_by_control.get(control)
+                    if expected is None:
+                        # A bulk response includes unselected announcements.
+                        # They cannot create identities or replace selected text.
+                        continue
+                    if _identity(row) != _identity(expected):
+                        raise SourceError("SOURCE_JOIN_MISMATCH")
+                    texts[control] = row
+                self.check()
                 if set(texts) != set(selected_by_control):
                     raise SourceError("SOURCE_JOIN_MISSING")
             items = []

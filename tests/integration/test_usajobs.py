@@ -70,20 +70,12 @@ def transport(metadata, announcement_text, requests=None, *, limited_endpoint=No
         parameters = dict(request.url.params)
         if requests is not None:
             requests.append((endpoint, parameters))
-        if endpoint == METADATA_URL:
-            assert parameters == {
-                "PositionSeries": "2210",
-                "StartPositionOpenDate": "11-07-2026",
-                "EndPositionOpenDate": "11-13-2026",
-            }
-            body = metadata
-        else:
-            assert set(parameters) == {"USAJOBSControlNumbers"}
-            selected = parameters["USAJOBSControlNumbers"].split(",")
-            assert 1 <= len(selected) <= 25
-            assert set(selected) <= {str(row["usajobsControlNumber"])
-                                     for row in metadata["data"]}
-            body = announcement_text
+        assert parameters == {
+            "PositionSeries": "2210",
+            "StartPositionOpenDate": "11-07-2026",
+            "EndPositionOpenDate": "11-13-2026",
+        }
+        body = metadata if endpoint == METADATA_URL else announcement_text
         if endpoint == limited_endpoint:
             return httpx.Response(429, headers={"Retry-After": "120"},
                                   text="Synthetic upstream private failure body")
@@ -132,7 +124,7 @@ def test_joined_source_reopens_with_raw_snapshots_native_agencies_and_manual_rou
     assert result["direct_application"] is False
     assert bodies == originals
     assert [endpoint for endpoint, _ in calls] == [METADATA_URL, TEXT_URL]
-    assert calls[1][1] == {"USAJOBSControlNumbers": "990000103,990000101,990000102"}
+    assert calls[1][1] == calls[0][1]
 
     texts = {row["usajobsControlNumber"]: row for row in bodies[1]["data"]}
     expected = {str(row["usajobsControlNumber"]): {
@@ -216,6 +208,38 @@ def test_identical_duplicates_and_repeat_keep_canonical_and_raw_snapshot_identit
     assert {row["id"]: row["raw"] for row in rows(store, m.posting_snapshots)} == raw_before
 
 
+@pytest.mark.parametrize("unsupported_identity", (False, True))
+def test_unselected_bulk_text_creates_no_company_or_posting_records(store, unsupported_identity):
+    bodies = feed(990000101)
+    extra = deepcopy(bodies[1]["data"][0])
+    extra.update(usajobsControlNumber=990099999, hiringAgencyCode="ZZEX",
+                 hiringDepartmentCode="YY", announcementNumber="SYN-UNSELECTED")
+    if unsupported_identity:
+        extra.update(hiringAgencyCode="Other Agencies and Independent Organizations",
+                     hiringDepartmentCode=None, announcementNumber=None)
+    bodies[1]["data"].insert(0, extra)
+    original = deepcopy(bodies)
+    calls = []
+    result = collect(store, source(store), bodies, calls)
+    assert result["jobs_seen"] == 1 and result["rejected"] == 0
+    assert len(calls) == 2 and calls[0][1] == calls[1][1]
+    assert bodies == original
+    assert {row["id"] for row in rows(store, m.companies)} == {
+        identity("usajobs", "ZZ", "ZZIT")}
+    assert len(rows(store, m.company_sources)) == 1
+    assert {row["requisition"] for row in rows(store, m.jobs)} == {"990000101"}
+    assert len(rows(store, m.routes)) == 1
+    for table in (m.postings, m.posting_snapshots):
+        stored = rows(store, table)
+        assert len(stored) == 1
+        assert stored[0]["raw"] == {
+            "metadata": bodies[0]["data"][0],
+            "announcement_text": bodies[1]["data"][1],
+        }
+    for table in (m.company_ats_tenants, m.company_domains, m.applications, m.operations):
+        assert rows(store, table) == []
+
+
 def test_agency_display_name_changes_preserve_identity_and_append_raw_history(store):
     bodies = feed(990000101)
     source_id = source(store)
@@ -255,9 +279,11 @@ def test_same_agency_code_in_different_departments_stays_separate(store):
 
 @pytest.mark.parametrize("defect,code", [
     ("missing_text", "SOURCE_JOIN_MISSING"),
+    ("missing_selected_with_extras", "SOURCE_JOIN_MISSING"),
     ("mismatched_agency", "SOURCE_JOIN_MISMATCH"),
     ("conflicting_metadata", "SOURCE_JOIN_CONFLICT"),
     ("conflicting_text", "SOURCE_JOIN_CONFLICT"),
+    ("conflicting_unselected_text", "SOURCE_JOIN_CONFLICT"),
 ])
 def test_enrichment_failure_preserves_all_existing_domain_rows(store, defect, code):
     source_id = source(store)
@@ -266,6 +292,15 @@ def test_enrichment_failure_preserves_all_existing_domain_rows(store, defect, co
     bodies = feed()
     if defect == "missing_text":
         bodies[1]["data"].pop()
+    elif defect == "missing_selected_with_extras":
+        bodies[1]["data"][-1]["usajobsControlNumber"] = 990099999
+    elif defect == "conflicting_unselected_text":
+        extra = deepcopy(bodies[1]["data"][0])
+        extra.update(usajobsControlNumber=990099999,
+                     hiringAgencyCode="Other Agencies and Independent Organizations")
+        conflict = deepcopy(extra)
+        conflict["summary"] = "Conflicting unselected bulk announcement"
+        bodies[1]["data"].extend((extra, conflict))
     elif defect == "mismatched_agency":
         bodies[1]["data"][1]["hiringAgencyCode"] = "OTHER"
     elif defect == "conflicting_metadata":
