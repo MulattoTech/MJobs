@@ -73,13 +73,14 @@ class _RateClock:
         self.current += seconds
 
 
-def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, trace=None):
+def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, trace=None,
+                                responses=None, verification_policy=None, pending_sha256=None):
     """Replace socket reads and time, retaining production rate reservations/waits."""
     raw, normalized, source, policy, profile = values
     clock = clock or _RateClock()
     trace = trace if trace is not None else {}
     trace.update(clients=[], requests=[])
-    responses = pages()
+    responses = responses or pages()
 
     def factory(url, **kwargs):
         trace['clients'].append(url)
@@ -90,7 +91,7 @@ def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, 
         client._wait(deadline)
         client._budget()
         trace['requests'].append((url, clock.monotonic()))
-        if url.endswith('/robots.txt'):
+        if url.endswith('/robots.txt') and url not in responses:
             return httpx.Response(200, text='User-agent: *\nAllow: /', request=httpx.Request('GET', url))
         return responses[url]
 
@@ -99,7 +100,8 @@ def resolve_with_real_rate_gate(values, *, budget=None, check=None, clock=None, 
          patch.object(PublicCompanyClient, '_request_once', wire):
         return subject.corroborate_aggregator_job(raw, normalized, source, profile,
             source_policy=policy, check=check or (lambda: None),
-            client_factory=factory, budget=budget)
+            client_factory=factory, budget=budget,
+            verification_policy=verification_policy, pending_sha256=pending_sha256)
 
 
 @pytest.mark.parametrize('rate,seconds', [(1, 30), (6, 30), (15, 12)])
@@ -343,3 +345,265 @@ def test_duplicate_json_native_keys_are_not_accepted():
     responses[NATIVE] = httpx.Response(200, content=b'{"id":123,"id":124,"title":"Engineer"}',
                                      request=httpx.Request('GET', NATIVE))
     assert resolve(responses=responses)[0] is None
+
+
+def v2_inputs(description=None):
+    from packages.domain.employer_verification import verification_policy_snapshot
+
+    values = inputs(description)
+    values[3]['rate_limit'] = 1
+    values[4]['preferences'] = {'company_discovery': {'company_discovery_enabled': True,
+        'employer_verification': {'version': 1, 'mode': 'GREENHOUSE_RECIPROCAL_V1',
+                                  'activation_id': 'a' * 32}}}
+    return values, verification_policy_snapshot(values[4])
+
+
+def v2_binding(values, policy):
+    return dict(profile_id=values[4]['id'], profile_version=values[4]['version'],
+        verification_policy=policy, verification_policy_sha256=subject.canonical_digest(policy),
+        source_snapshot=values[2], source_policy_sha256=subject.canonical_digest(values[3]))
+
+
+def test_v2_direct_hint_keeps_collector_one_per_minute_and_shared_verification_spacing():
+    values, policy = v2_inputs()
+    original, trace = copy.deepcopy(values), {}
+    observed_policies = []
+    initialize = subject.BudgetedPublicClient.__init__
+    def record(client, *args, **kwargs):
+        observed_policies.append(kwargs['policy'])
+        initialize(client, *args, **kwargs)
+    with patch.object(subject.BudgetedPublicClient, '__init__', record):
+        proof = resolve_with_real_rate_gate(values, verification_policy=policy,
+            pending_sha256='c' * 64, trace=trace)
+    assert proof['version'] == 2 and proof['schema'] == 'AGGREGATOR_NATIVE_BOOTSTRAP_V2'
+    assert proof['execution_scope'] == 'CONTROLLED_TRANSPORT'
+    assert proof['pending_sha256'] == 'c' * 64
+    assert proof['source_policy_sha256'] == subject.canonical_digest(values[3])
+    assert values == original and values[3]['rate_limit'] == 1
+    assert len(observed_policies) == 2
+    assert all((p.request_timeout, p.rate_limit, p.concurrency) == (10, 30, 1) for p in observed_policies)
+    assert [row['role'] for row in proof['origin_policies']] == ['NATIVE_GREENHOUSE', 'EMPLOYER']
+    assert [row['http_requests'] for row in proof['origin_policies']] == [2, 2]
+    assert not any('weworkremotely.com' in url for url, _ in trace['requests'])
+    stamps = [stamp for _, stamp in trace['requests']]
+    assert len(stamps) == 4 and all(b - a >= 2 - 1e-9 for a, b in zip(stamps, stamps[1:]))
+    assert stamps[-1] - stamps[0] < 30
+    assert subject.validate_v2_observations(proof, v2_binding(values, policy),
+                                           subject.extract_bootstrap_hint(values[0], values[1]))
+
+
+def test_v2_listing_first_one_per_minute_is_blocked_before_client_creation():
+    values, policy = v2_inputs('<p>No direct employer or native link.</p>')
+    trace = {}
+    with pytest.raises(subject.BootstrapRateBudgetIncompatible):
+        resolve_with_real_rate_gate(values, verification_policy=policy, pending_sha256='c' * 64, trace=trace)
+    assert trace == {'clients': [], 'requests': []}
+
+
+def test_v2_employer_first_hint_keeps_reciprocity_and_shared_verification_spacing():
+    values, policy = v2_inputs(f'<a href="{EMPLOYER}">Apply for this job</a>')
+    original, trace = copy.deepcopy(values), {}
+    hint = subject.extract_bootstrap_hint(values[0], values[1])
+    assert (hint['candidate_kind'], hint['candidate_url']) == ('EMPLOYER_PAGE', EMPLOYER)
+    proof = resolve_with_real_rate_gate(values, verification_policy=policy,
+                                       pending_sha256='c' * 64, trace=trace)
+    assert (proof['schema'], proof['version']) == ('AGGREGATOR_NATIVE_BOOTSTRAP_V2', 2)
+    assert proof['execution_scope'] == 'CONTROLLED_TRANSPORT'
+    assert proof['pending_sha256'] == 'c' * 64
+    assert proof['employer_url'] == proof['native']['absolute_url'] == EMPLOYER
+    assert (proof['native']['tenant'], proof['native']['job_id']) == ('example', '123')
+    assert proof['source_policy_sha256'] == subject.canonical_digest(values[3])
+    assert proof['verification_policy_sha256'] == subject.canonical_digest(policy)
+    assert values == original and values[3]['rate_limit'] == 1
+    assert trace['clients'] == [EMPLOYER, NATIVE]
+    assert [url for url, _ in trace['requests']] == [
+        'https://example.com/robots.txt', EMPLOYER,
+        'https://boards-api.greenhouse.io/robots.txt', NATIVE]
+    assert [row['url'] for row in proof['discovery_chain']] == [EMPLOYER, NATIVE]
+    assert [row['role'] for row in proof['origin_policies']] == ['NATIVE_GREENHOUSE', 'EMPLOYER']
+    assert [row['http_requests'] for row in proof['origin_policies']] == [2, 2]
+    assert all(row['policy_sha256'] == subject.canonical_digest(policy)
+               for row in proof['origin_policies'])
+    assert (proof['budget']['document_requests'], proof['budget']['http_requests']) == (2, 4)
+    stamps = [stamp for _, stamp in trace['requests']]
+    assert all(b - a >= 2 - 1e-9 for a, b in zip(stamps, stamps[1:]))
+    assert stamps[-1] - stamps[0] < 30
+    assert subject.validate_v2_observations(proof, v2_binding(values, policy), hint)
+
+
+@pytest.mark.parametrize('failure', ['missing_native_link', 'wrong_native_job', 'different_employer'])
+def test_v2_employer_first_reciprocity_failure_never_falls_back_to_listing(failure):
+    values, policy = v2_inputs(f'<a href="{EMPLOYER}">Apply for this job</a>')
+    responses, trace = pages(), {}
+    if failure == 'missing_native_link':
+        responses[EMPLOYER] = httpx.Response(200, text='<p>No native application link.</p>',
+                                             request=httpx.Request('GET', EMPLOYER))
+    else:
+        native = responses[NATIVE].json()
+        if failure == 'wrong_native_job':
+            native['id'] = 124
+        else:
+            native['absolute_url'] = 'https://other-employer.example/jobs/123'
+        responses[NATIVE] = httpx.Response(200, json=native, request=httpx.Request('GET', NATIVE))
+    assert resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
+                                      pending_sha256='c' * 64, trace=trace) is None
+    expected = ['https://example.com/robots.txt', EMPLOYER]
+    if failure != 'missing_native_link':
+        expected += ['https://boards-api.greenhouse.io/robots.txt', NATIVE]
+    assert [url for url, _ in trace['requests']] == expected
+    assert trace['clients'] == ([EMPLOYER] if failure == 'missing_native_link' else [EMPLOYER, NATIVE])
+    assert values[3]['rate_limit'] == 1
+
+
+def test_v2_compatible_listing_keeps_source_lane_and_shared_native_employer_lane():
+    values, policy = v2_inputs('<p>No direct link.</p>')
+    values[3]['rate_limit'] = 15
+    responses, trace = pages(), {}
+    responses[LISTING] = httpx.Response(200, text=f'<a href="{BOARD}">Apply</a>', request=httpx.Request('GET', LISTING))
+    proof = resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
+                                       pending_sha256='c' * 64, trace=trace)
+    assert proof['version'] == 2 and len(proof['origin_policies']) == 3
+    source_stamps = [stamp for url, stamp in trace['requests'] if 'weworkremotely.com' in url]
+    verification_stamps = [stamp for url, stamp in trace['requests'] if 'weworkremotely.com' not in url]
+    assert len(source_stamps) == 2 and source_stamps[1] - source_stamps[0] >= 4 - 1e-9
+    assert len(verification_stamps) == 4
+    assert all(b - a >= 2 - 1e-9 for a, b in zip(verification_stamps, verification_stamps[1:]))
+    assert proof['source_policy_sha256'] == subject.canonical_digest(values[3])
+    assert subject.validate_v2_observations(proof, v2_binding(values, policy),
+                                           subject.extract_bootstrap_hint(values[0], values[1]))
+
+
+def test_v2_same_origin_redirect_counts_actual_http_without_resetting_lane():
+    values, policy = v2_inputs()
+    responses, trace = pages(), {}
+    redirected = NATIVE + '?view=public'
+    responses[NATIVE] = httpx.Response(302, headers={'Location': redirected}, request=httpx.Request('GET', NATIVE))
+    responses[redirected] = httpx.Response(200, json={'id': 123, 'title': 'Engineer', 'absolute_url': EMPLOYER},
+                                          request=httpx.Request('GET', redirected))
+    proof = resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
+                                       pending_sha256='c' * 64, trace=trace)
+    assert proof['budget']['http_requests'] == 5 and proof['budget']['document_requests'] == 2
+    assert proof['origin_policies'][0]['http_requests'] == 3
+    stamps = [stamp for _, stamp in trace['requests']]
+    assert all(b - a >= 2 - 1e-9 for a, b in zip(stamps, stamps[1:]))
+    assert subject.validate_v2_observations(proof, v2_binding(values, policy),
+                                           subject.extract_bootstrap_hint(values[0], values[1]))
+
+
+@pytest.mark.parametrize('host', ['weworkremotely.com', 'remotive.com', 'boards.greenhouse.io',
+    'job-boards.greenhouse.io', 'boards-api.greenhouse.io', 'jobs.lever.co'])
+@pytest.mark.parametrize('alias', ['{host}.', '{host_upper}.:443', '{host}:443', '{host_upper}'])
+def test_v2_reserved_employer_hint_aliases_cannot_create_any_public_client(host, alias):
+    authority = alias.format(host=host, host_upper=host.upper())
+    candidate = 'https://' + authority + '/careers/example'
+    values, policy = v2_inputs(f'<a href="{candidate}">Apply for this job</a>')
+    trace = {}
+    try:
+        proof = resolve_with_real_rate_gate(values, verification_policy=policy,
+                                           pending_sha256='c' * 64, trace=trace)
+    except subject.BootstrapRateBudgetIncompatible:
+        # Literal known-aggregator links may be discarded by the V1 extractor,
+        # leaving the unchanged infeasible listing-first hint. Neither route
+        # grants an EMPLOYER lane or opens a client.
+        proof = None
+    assert proof is None
+    assert trace == {'clients': [], 'requests': []}
+
+
+@pytest.mark.parametrize('host', ['weworkremotely.com', 'remotive.com', 'boards.greenhouse.io',
+    'job-boards.greenhouse.io', 'boards-api.greenhouse.io', 'jobs.lever.co'])
+@pytest.mark.parametrize('alias', ['{host}.', '{host_upper}.:443', '{host}:443', '{host_upper}'])
+def test_v2_reserved_native_absolute_url_never_creates_an_employer_client(host, alias):
+    values, policy = v2_inputs()
+    website = 'https://' + alias.format(host=host, host_upper=host.upper()) + '/careers/example'
+    responses, trace = pages(), {}
+    responses[NATIVE] = httpx.Response(200,
+        json={'id': 123, 'title': 'Engineer', 'absolute_url': website}, request=httpx.Request('GET', NATIVE))
+    assert resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
+                                      pending_sha256='c' * 64, trace=trace) is None
+    assert trace['clients'] == [NATIVE]
+    assert [url for url, _ in trace['requests']] == ['https://boards-api.greenhouse.io/robots.txt', NATIVE]
+
+
+@pytest.mark.parametrize('field,value', [('version', True), ('version', '1'),
+    ('rate_limit', 60), ('rate_limit', True), ('request_timeout', 20), ('concurrency', 2),
+    ('profile_id', 'another-profile'), ('profile_version', 'd' * 64),
+    ('activation_id', 'd' * 32), ('mode', 'DISABLED'), ('native_provider', 'lever')])
+def test_v2_changed_policy_cannot_create_a_client(field, value):
+    values, policy = v2_inputs()
+    policy[field] = value
+    trace = {}
+    assert resolve_with_real_rate_gate(values, verification_policy=policy,
+        pending_sha256='c' * 64, trace=trace) is None
+    assert trace == {'clients': [], 'requests': []}
+
+
+@pytest.mark.parametrize('pending', [None, True, 2, 'x', 'c' * 63])
+def test_v2_requires_the_exact_pending_digest(pending):
+    values, policy = v2_inputs()
+    trace = {}
+    assert resolve_with_real_rate_gate(values, verification_policy=policy,
+        pending_sha256=pending, trace=trace) is None
+    assert trace == {'clients': [], 'requests': []}
+
+
+@pytest.mark.parametrize('status,code', [(429, 'HTTP_STATUS_BLOCKED'), (503, 'HTTP_STATUS_ERROR')])
+def test_v2_http_denial_retains_fixed_stop_without_another_origin_read(status, code):
+    values, policy = v2_inputs()
+    responses, trace = pages(), {}
+    responses[NATIVE] = httpx.Response(status, headers={'Retry-After': '120'}, request=httpx.Request('GET', NATIVE))
+    with pytest.raises(PublicFetchError, match='^' + code + '$'):
+        resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
+                                   pending_sha256='c' * 64, trace=trace)
+    assert [url for url, _ in trace['requests']] == ['https://boards-api.greenhouse.io/robots.txt', NATIVE]
+    assert trace['clients'] == [NATIVE]
+
+
+@pytest.mark.parametrize('robots,code', [('User-agent: *\nDisallow: /', 'ROBOTS_DENIED'),
+                                       ('User-agent: *\nCrawl-delay: 31', 'BOOTSTRAP_DEADLINE')])
+def test_v2_robots_rules_still_override_the_local_maximum(robots, code):
+    values, policy = v2_inputs()
+    responses, trace = pages(), {}
+    url = 'https://boards-api.greenhouse.io/robots.txt'
+    responses[url] = httpx.Response(200, text=robots, request=httpx.Request('GET', url))
+    with pytest.raises(PublicFetchError, match='^' + code + '$'):
+        resolve_with_real_rate_gate(values, responses=responses, verification_policy=policy,
+                                   pending_sha256='c' * 64, trace=trace)
+    assert [url for url, _ in trace['requests']] == [url]
+
+
+@pytest.mark.parametrize('change', ['extra_origin', 'wrong_role', 'bool_count', 'missing_robots',
+    'wrong_policy', 'foreign_final_url', 'bool_budget', 'expanded_timeout', 'extra_budget', 'wrong_profile'])
+def test_v2_origin_and_budget_metadata_require_exact_typed_bindings(change):
+    values, policy = v2_inputs()
+    proof = resolve_with_real_rate_gate(values, verification_policy=policy, pending_sha256='c' * 64)
+    binding = v2_binding(values, policy)
+    if change == 'extra_origin':
+        proof['origin_policies'].append(dict(proof['origin_policies'][0], origin='https://foreign.example'))
+    elif change == 'wrong_role': proof['origin_policies'][0]['role'] = 'SOURCE_LISTING'
+    elif change == 'bool_count': proof['origin_policies'][0]['http_requests'] = True
+    elif change == 'missing_robots': proof['origin_policies'][0]['http_requests'] = 1
+    elif change == 'wrong_policy': proof['origin_policies'][0]['policy_sha256'] = 'd' * 64
+    elif change == 'foreign_final_url': proof['discovery_chain'][0]['final_url'] = 'https://foreign.example/job'
+    elif change == 'bool_budget': proof['budget']['max_document_requests'] = True
+    elif change == 'expanded_timeout': proof['budget']['timeout_seconds'] = 31
+    elif change == 'extra_budget': proof['budget']['elapsed_seconds'] = 1
+    elif change == 'wrong_profile': binding['profile_id'] = 'foreign'
+    assert not subject.validate_v2_observations(proof, binding,
+                                               subject.extract_bootstrap_hint(values[0], values[1]))
+
+
+@pytest.mark.parametrize('version', [True, False, '1', '2', 0, 3, None])
+def test_bootstrap_schema_selection_is_exact_and_cannot_downgrade(version):
+    with pytest.raises(ValueError, match='DISCOVERY_BOOTSTRAP_PROOF_CHANGED'):
+        subject.bootstrap_schemas(version)
+
+
+def test_disabled_preference_preserves_the_exact_v1_receipt_shape_and_digest():
+    from packages.domain.employer_verification import disabled_preference
+    values = inputs()
+    old = resolve(values)[0]
+    values[4]['preferences'] = {'company_discovery': {'employer_verification': disabled_preference()}}
+    disabled = resolve(values)[0]
+    assert disabled == old and disabled['version'] == 1
+    assert not {'pending_sha256', 'verification_policy_sha256', 'origin_policies'} & set(disabled)

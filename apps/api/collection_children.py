@@ -8,7 +8,7 @@ from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from services.company_discovery.aggregator_bootstrap import (
-    canonical_digest, normalized_projection, source_policy_projection,
+    bootstrap_schemas, canonical_digest, normalized_projection, source_policy_projection,
 )
 
 
@@ -43,7 +43,9 @@ def _enrolled_sources(connection, request, pending, operation):
         return []
     _require(len(evidence) >= 2)
     envelope = evidence[1]
-    _require(isinstance(envelope, dict) and envelope.get('schema') == 'AGGREGATOR_NATIVE_BOOTSTRAP_ENVELOPE_V1'
+    schemas = bootstrap_schemas(pending['version'])
+    _require(isinstance(envelope, dict) and envelope.get('schema') == schemas[2]
+        and type(envelope.get('version')) is int and envelope['version'] == pending['version']
         and envelope.get('pending_sha256') == pending['sha256']
         and envelope.get('sha256') == canonical_digest({key: value for key, value in envelope.items() if key != 'sha256'}))
     receipt = envelope['receipt']
@@ -51,6 +53,8 @@ def _enrolled_sources(connection, request, pending, operation):
     result = []
     for event in events:
         payload = event['payload']
+        if pending['version'] == 2:
+            _require(payload.get('verification_policy_sha256') == pending['binding']['verification_policy_sha256'])
         _require(payload.get('aggregator_pending_sha256') == pending['sha256']
             and payload.get('aggregator_receipt_sha256') == receipt['sha256']
             and payload.get('aggregator_envelope_sha256') == envelope['sha256'])
@@ -94,12 +98,15 @@ def _collection_children_on(connection, profile_id, source_id, parent_operation_
     result = dict(schema_version=1, profile_id=profile_id, profile_version=profile['version'], source_id=source_id,
         parent_operation_id=parent_operation_id, parent_operation_attempt=attempt, parent_request_id=params['request_id'],
         complete=parent['state'] == 'COMPLETED' and len(rows) <= 2, limit=2, children=[], enrolled_sources=[])
+    versions = set()
     for row in rows[:2]:
         evidence = row['domain_evidence']
         _require(isinstance(evidence, list) and evidence)
         pending = evidence[0]
-        _require(isinstance(pending, dict) and pending.get('schema') == 'AGGREGATOR_BOOTSTRAP_PENDING_V1'
-            and type(pending.get('version')) is int and pending['version'] == 1
+        _require(isinstance(pending, dict))
+        schemas = bootstrap_schemas(pending.get('version'))
+        versions.add(pending['version'])
+        _require(len(versions) == 1 and pending.get('schema') == schemas[0]
             and pending.get('sha256') == canonical_digest({key: value for key, value in pending.items() if key != 'sha256'}))
         binding = pending['binding']
         for key, value in dict(request_id=row['id'], request_revision=row['revision'], company_id=row['company_id'],
@@ -133,6 +140,10 @@ def _collection_children_on(connection, profile_id, source_id, parent_operation_
                     else datetime.now(timezone.utc)))
         operation = _one(connection, m.operations, row['operation_id']) if row['operation_id'] else None
         if operation is not None:
+            if pending['version'] == 2:
+                from services.company_discovery.requests import _current_aggregator_bootstrap, _fixture
+                current = _current_aggregator_bootstrap(connection, operation, row, fixture=_fixture(connection))
+                _require(current['pending'] == pending and binding['parent_request_id'] == params['request_id'])
             child_params = operation['params']
             _require(operation['kind'] == 'COMPANY_DISCOVER' and operation['entity_id'] == row['company_id']
                 and child_params.get('discovery_request_id') == row['id']
@@ -140,6 +151,8 @@ def _collection_children_on(connection, profile_id, source_id, parent_operation_
                 and child_params['discovery_request_revision'] == row['revision']
                 and child_params.get('profile_id') == profile_id and child_params.get('profile_version') == profile['version'])
             result['enrolled_sources'].extend(_enrolled_sources(connection, row, pending, operation))
+        else:
+            _require(pending['version'] == 1)
         result['children'].append(dict(request_id=row['id'], revision=row['revision'], company_id=row['company_id'],
             company_source_id=row['company_source_id'], profile_id=profile_id, profile_version=profile['version'],
             source_id=source_id, parent_operation_id=parent_operation_id, parent_operation_attempt=attempt,

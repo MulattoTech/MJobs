@@ -43,6 +43,9 @@ def execute_aggregator_bootstrap(store, operation, *, check, total_timeout,
         if timeout_seconds < 2:
             raise PublicFetchError('BOOTSTRAP_DEADLINE')
         kwargs = {}
+        if context['pending_intent']['version'] == 2:
+            kwargs.update(verification_policy=context['pending_intent']['binding']['verification_policy'],
+                          pending_sha256=context['pending_sha256'])
         if resolver_client_factory is not None:
             kwargs['client_factory'] = resolver_client_factory
         try:

@@ -20,7 +20,7 @@ from workers.operations import claim
 
 
 @pytest.fixture
-def staged():
+def staged(request):
     # Reuse actual collector admission, not manually authored proof rows. The
     # fixture owns a temporary SQLite database and all transport is controlled.
     from tests.integration.test_aggregator_bootstrap_worker import AggregatorBootstrapWorkerTests
@@ -28,6 +28,15 @@ def staged():
     fixture = AggregatorBootstrapWorkerTests()
     try:
         fixture.setUp()
+        if getattr(request, 'param', 1) == 2:
+            from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
+            case = AggregatorBootstrapCollectionTests()
+            case.setUp()
+            fixture.addCleanup(case.doCleanups)
+            fixture.addCleanup(case.tearDown)
+            parent, pending, operation = case._stage_v2()
+            fixture.case, fixture.parent_lineage = case, parent
+            fixture.request, fixture.operation = pending, operation
         store = fixture.case.store
         parent = fixture.parent_lineage
         with store.engine.begin() as connection:
@@ -274,3 +283,78 @@ def test_production_app_registers_domain_proofs(staged, tmp_path):
     with TestClient(app) as client:
         response = client.get(staged['path'])
     _assert_unavailable(response, 'BOOTSTRAP_RECEIPT_NOT_PERSISTED')
+
+
+@pytest.mark.parametrize('staged', [2], indirect=True)
+def test_v2_pending_metadata_is_exact_version_two_and_unavailable(staged):
+    response = _get(staged)
+    _assert_unavailable(response, 'BOOTSTRAP_RECEIPT_NOT_PERSISTED')
+    value = response.json()
+    assert value['schema_version'] == 2
+    assert collection_children(*staged['args'])['schema_version'] == 1
+    assert value['observations'][0]['proof'] is None
+    assert 'acceptance_observations' not in value
+
+
+@pytest.mark.parametrize('staged', [2], indirect=True)
+def test_v2_available_proof_binds_current_policy_and_real_acquisition_audit(acquired):
+    from packages.domain.employer_verification import verification_policy_snapshot
+
+    response = _get(acquired)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    proof = result['observations'][0]['proof']
+    assert result['schema_version'] == 2
+    assert proof['corroboration_method'] == 'AGGREGATOR_NATIVE_BOOTSTRAP_V2'
+    assert proof['verification_policy'] == verification_policy_snapshot(acquired['store'].profile('fixture'))
+    assert proof['verification_policy_sha256'] == canonical_digest(proof['verification_policy'])
+    assert acquired['audit']['payload']['verification_policy_sha256'] == proof['verification_policy_sha256']
+    pending = acquired['request']['domain_evidence'][0]
+    assert pending['binding']['source_policy']['rate_limit'] == 1
+    assert proof['source_policy_sha256'] == pending['binding']['source_policy_sha256']
+    assert proof['execution_scope'] == 'CONTROLLED_TRANSPORT'
+    assert collection_children(*acquired['args'])['schema_version'] == 1
+    assert 'acceptance_observations' not in result
+
+
+@pytest.mark.parametrize('staged', [2], indirect=True)
+@pytest.mark.parametrize('mutation', ['verification-audit', 'source-rate', 'activation',
+    'parent-request', 'enrollment-audit', 'receipt-policy', 'receipt-version', 'origin-count'])
+def test_v2_readback_rejects_drift_and_mixed_or_forged_policy(acquired, mutation):
+    store, request = acquired['store'], acquired['request']
+    if mutation == 'activation':
+        profile = deepcopy(store.profile('fixture'))
+        profile['preferences']['company_discovery']['employer_verification'] = {
+            'version': 1, 'mode': 'DISABLED', 'activation_id': None}
+        store.save_profile(profile, expected_version=profile['version'])
+    else:
+        with store.engine.begin() as connection:
+            if mutation == 'verification-audit':
+                audit = acquired['audit']
+                connection.execute(update(m.audit).where(m.audit.c.id == audit['id']).values(
+                    payload={**audit['payload'], 'verification_policy_sha256': 'e' * 64}))
+            elif mutation == 'source-rate':
+                connection.execute(update(m.job_sources).where(m.job_sources.c.id == acquired['args'][2]).values(rate_limit=2))
+            elif mutation == 'parent-request':
+                parent = connection.execute(select(m.operations).where(
+                    m.operations.c.id == acquired['args'][3])).mappings().one()
+                connection.execute(update(m.operations).where(m.operations.c.id == parent['id']).values(
+                    params={**parent['params'], 'request_id': 'foreign-parent'}))
+            elif mutation == 'enrollment-audit':
+                audit = connection.execute(select(m.audit).where(
+                    m.audit.c.action == 'COMPANY_SOURCE_DISCOVERED')).mappings().one()
+                connection.execute(update(m.audit).where(m.audit.c.id == audit['id']).values(
+                    payload={**audit['payload'], 'verification_policy_sha256': 'e' * 64}))
+            else:
+                evidence = deepcopy(request['domain_evidence'])
+                receipt = evidence[1]['receipt']
+                if mutation == 'receipt-policy': receipt['verification_policy_sha256'] = 'e' * 64
+                elif mutation == 'receipt-version': receipt.update(schema='AGGREGATOR_NATIVE_BOOTSTRAP_V1', version=1)
+                elif mutation == 'origin-count': receipt['origin_policies'][0]['http_requests'] = True
+                receipt['sha256'] = canonical_digest({k: v for k, v in receipt.items() if k != 'sha256'})
+                evidence[1]['sha256'] = canonical_digest({k: v for k, v in evidence[1].items() if k != 'sha256'})
+                connection.execute(update(m.company_discovery_requests).where(
+                    m.company_discovery_requests.c.id == request['id']).values(domain_evidence=evidence))
+    response = _get(acquired)
+    assert response.status_code == 409, response.text
+    assert response.json() == {'detail': 'COLLECTION_DOMAIN_PROOF_CHANGED'}

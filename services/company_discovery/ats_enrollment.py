@@ -106,6 +106,11 @@ def _validate_aggregator_bootstrap_enrollment(authorization, career_url, profile
             'AGGREGATOR_BOOTSTRAP_VERIFIED'):
         raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED')
     receipt = authorization.get('aggregator_bootstrap_receipt')
+    from services.company_discovery.aggregator_bootstrap import bootstrap_schemas
+    try:
+        schemas = bootstrap_schemas(receipt.get('version') if isinstance(receipt, dict) else None)
+    except ValueError:
+        raise PublicFetchError('DISCOVERY_AUTHORIZATION_CHANGED') from None
     domain = authorization.get('aggregator_bootstrap_domain')
     domain_url = domain.get('website') if isinstance(domain, dict) else ''
     try:
@@ -116,8 +121,7 @@ def _validate_aggregator_bootstrap_enrollment(authorization, career_url, profile
     if (not isinstance(receipt, dict) or not isinstance(domain, dict)
             or not isinstance(domain.get('evidence'), list) or not domain['evidence']
             or not same_domain
-            or receipt.get('schema') != 'AGGREGATOR_NATIVE_BOOTSTRAP_V1'
-            or receipt.get('version') != 1
+            or receipt.get('schema') != schemas[1]
             or receipt.get('employer_url') != career_url
             or receipt.get('profile_id') != profile_id
             or receipt.get('profile_version') != profile_version
@@ -423,6 +427,8 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
                 aggregator_pending_sha256=envelope['pending_sha256'],
                 aggregator_receipt_sha256=envelope['receipt']['sha256'],
                 aggregator_envelope_sha256=envelope['sha256'])
+            if envelope['version'] == 2:
+                source_audit['verification_policy_sha256'] = envelope['binding']['verification_policy_sha256']
         store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', source_audit)
     check()
     # Recurrence uses this same persisted binding; no parallel importer or job schema.

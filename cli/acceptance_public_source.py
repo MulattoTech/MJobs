@@ -369,12 +369,24 @@ def _observe_children(read, evidence, selection, source, *, timeout_seconds, pol
     progress.update(status='BLOCKED', reason='CHILD_DISCOVERY_TIMEOUT')
 
 
-def _validate_domain_proof(proof, child, source, evidence, enrolled):
+def _validate_domain_proof(proof, child, source, evidence, enrolled, *, version=1):
     fields = set(DOMAIN_PROOF_HASH_FIELDS) | {'company_id', 'request_id', 'request_revision',
         'operation_id', 'domain_id', 'domain', 'domain_verification_method', 'corroboration_method',
         'execution_scope', 'execution_scope_basis', 'native', 'apply_response_sha256',
         'audit_id', 'acquired_at'}
+    _require(type(version) is int and version in (1, 2), 'DOMAIN_PROOF_RECORD_INVALID')
+    if version == 2:
+        fields |= {'verification_policy', 'verification_policy_sha256'}
     _require(isinstance(proof, dict) and set(proof) == fields, 'DOMAIN_PROOF_RECORD_INVALID')
+    if version == 2:
+        from services.company_discovery.aggregator_bootstrap import validate_verification_policy
+        try:
+            policy = validate_verification_policy(proof['verification_policy'])
+        except (ValueError, TypeError, KeyError):
+            raise ObservationError('DOMAIN_PROOF_RECORD_INVALID') from None
+        _require(proof['verification_policy_sha256'] == _digest(policy)
+            and policy['profile_id'] == child['profile_id']
+            and policy['profile_version'] == child['profile_version'], 'DOMAIN_PROOF_LINEAGE_CHANGED')
     for key in DOMAIN_PROOF_HASH_FIELDS:
         _require(isinstance(proof[key], str) and re.fullmatch(r'[a-f0-9]{64}', proof[key]),
                  'DOMAIN_PROOF_RECORD_INVALID')
@@ -400,7 +412,7 @@ def _validate_domain_proof(proof, child, source, evidence, enrolled):
                 for label in domain.split('.')), 'DOMAIN_PROOF_RECORD_INVALID')
     _require(isinstance(proof['domain_verification_method'], str)
         and re.fullmatch(r'[A-Z][A-Z0-9_]{0,99}', proof['domain_verification_method'])
-        and proof['corroboration_method'] == 'AGGREGATOR_NATIVE_BOOTSTRAP_V1'
+        and proof['corroboration_method'] == 'AGGREGATOR_NATIVE_BOOTSTRAP_V' + str(version)
         and proof['execution_scope'] in {'CONTROLLED_TRANSPORT', 'PUBLIC_READ_ONLY'}
         and proof['execution_scope_basis'] == 'PERSISTED_RECEIPT_METADATA',
         'DOMAIN_PROOF_RECORD_INVALID')
@@ -449,7 +461,7 @@ def _observe_domain_proofs(read, evidence, source):
         'parent_operation_attempt', 'parent_request_id', 'complete', 'limit',
         'collection_lineage_sha256', 'collection_readback_sha256', 'observations', 'sha256'}
     _require(isinstance(result, dict) and set(result) == fields
-        and type(result['schema_version']) is int and result['schema_version'] == 1
+        and type(result['schema_version']) is int and result['schema_version'] in (1, 2)
         and result['complete'] is True and type(result['limit']) is int and result['limit'] == 2
         and result['sha256'] == _digest({key: value for key, value in result.items() if key != 'sha256'}),
         'DOMAIN_PROOF_READBACK_INVALID')
@@ -476,7 +488,8 @@ def _observe_domain_proofs(read, evidence, source):
                      'DOMAIN_PROOF_RECORD_INVALID')
         else:
             _require(row['status'] == 'AVAILABLE' and row['reason'] is None, 'DOMAIN_PROOF_RECORD_INVALID')
-            _validate_domain_proof(row['proof'], child, source, evidence, enrolled)
+            _validate_domain_proof(row['proof'], child, source, evidence, enrolled,
+                                   version=result['schema_version'])
     progress.update(status='CAPTURED', reason=None, response=deepcopy(result), response_sha256=result['sha256'])
 
 

@@ -380,6 +380,12 @@ def acquire_official_domain_from_aggregator_bootstrap(store, authorization, chec
     from services.company_discovery.requests import _origin, _website
     receipt = authorization['aggregator_bootstrap_receipt']
     envelope = authorization['aggregator_bootstrap_envelope']
+    from services.company_discovery.aggregator_bootstrap import bootstrap_schemas
+    schemas = bootstrap_schemas(receipt.get('version'))
+    if receipt.get('schema') != schemas[1] or envelope.get('schema') != schemas[2]:
+        raise PublicFetchError('DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
+    policy_binding = ({'verification_policy_sha256': receipt['verification_policy_sha256']}
+                      if receipt['version'] == 2 else {})
     website = _website(receipt.get('employer_url'))
     domain = normalize_domain(website)
     if not domain:
@@ -407,7 +413,7 @@ def acquire_official_domain_from_aggregator_bootstrap(store, authorization, chec
         record_id = identity(company_id, domain)
         old = next((row for row in rows if row['id'] == record_id), None)
         proof_record = dict(
-            method='AGGREGATOR_NATIVE_BOOTSTRAP_V1',
+            method=schemas[1],
             request_id=request_id,
             pending_sha256=envelope['pending_sha256'],
             receipt_sha256=receipt['sha256'],
@@ -423,6 +429,7 @@ def acquire_official_domain_from_aggregator_bootstrap(store, authorization, chec
             tenant=receipt['native']['tenant'],
             native_job_id=receipt['native']['job_id'],
             native_response_sha256=receipt['native']['native_response_sha256'],
+            **policy_binding,
         )
         evidence = ['Public aggregator posting identity reciprocally corroborated by an exact native ATS job and employer page.',
             json.dumps(proof_record, sort_keys=True)]
@@ -441,11 +448,11 @@ def acquire_official_domain_from_aggregator_bootstrap(store, authorization, chec
                 domain_evidence=[authorization['aggregator_bootstrap_pending'],
                     envelope, *domain_proof]))
         store._audit(connection, company_id, 'COMPANY_DOMAIN_ACQUIRED', dict(
-            request_id=request_id, method='AGGREGATOR_NATIVE_BOOTSTRAP_V1',
+            request_id=request_id, method=schemas[1],
             pending_sha256=envelope['pending_sha256'], receipt_sha256=receipt['sha256'],
             source_snapshot_sha256=receipt['source_snapshot_sha256'],
             employer_response_sha256=receipt['job_response_sha256'],
-            apply_response_sha256=receipt['apply_response_sha256']))
+            apply_response_sha256=receipt['apply_response_sha256'], **policy_binding))
     check()
     return {'company_id': company_id, 'domain': domain,
         'request_id': request_id, 'pending_sha256': envelope['pending_sha256'],

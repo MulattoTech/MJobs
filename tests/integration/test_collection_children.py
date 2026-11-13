@@ -239,3 +239,73 @@ def test_production_application_registers_collection_children(family, tmp_path):
     assert result['parent_operation_attempt'] == 1
     assert result['complete'] is True
     assert result['children'] == []
+
+
+@pytest.fixture
+def v2_family():
+    from tests.integration.test_aggregator_bootstrap_collection import AggregatorBootstrapCollectionTests
+
+    case = AggregatorBootstrapCollectionTests()
+    case.setUp()
+    try:
+        lineage, request, operation = case._stage_v2()
+        with case.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == lineage['parent_operation_id']).values(state='COMPLETED', completed_at=now()))
+        app = FastAPI()
+        app.include_router(create_collection_children_router(case.store))
+        with TestClient(app) as client:
+            path = f'/profiles/fixture/sources/{case.source_id}/collections/{lineage["parent_operation_id"]}/children?attempt=1'
+            yield dict(case=case, request=request, operation=operation, lineage=lineage, client=client, path=path)
+    finally:
+        case.doCleanups()
+        case.tearDown()
+
+
+def test_v2_current_pending_keeps_outer_children_contract_one(v2_family):
+    response = v2_family['client'].get(v2_family['path'])
+    assert response.status_code == 200, response.text
+    value = response.json()
+    assert set(value) == {'schema_version', 'profile_id', 'profile_version', 'source_id',
+        'parent_operation_id', 'parent_operation_attempt', 'parent_request_id', 'complete',
+        'limit', 'children', 'enrolled_sources', 'lineage_sha256', 'sha256'}
+    assert value['schema_version'] == 1 and value['limit'] == 2 and value['complete'] is True
+    assert len(value['children']) == 1 and value['enrolled_sources'] == []
+    intent = v2_family['request']['domain_evidence'][0]
+    assert intent['version'] == 2
+    assert value['children'][0]['pending_sha256'] == intent['sha256']
+    assert value['parent_request_id'] == intent['binding']['parent_request_id']
+    assert 'verification_policy' not in value['children'][0]
+
+
+@pytest.mark.parametrize('change', ['revocation', 'parent-attempt', 'source-rate', 'raw', 'policy'])
+def test_v2_children_rebuild_current_authority_and_reject_drift(v2_family, change):
+    case = v2_family['case']
+    if change == 'revocation':
+        profile = deepcopy(case.store.profile('fixture'))
+        profile['preferences']['company_discovery']['company_discovery_enabled'] = False
+        case.store.save_profile(profile, expected_version=profile['version'])
+    else:
+        with case.store.engine.begin() as connection:
+            if change == 'parent-attempt':
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == v2_family['lineage']['parent_operation_id']).values(attempt_count=2))
+            elif change == 'source-rate':
+                connection.execute(update(m.job_sources).where(m.job_sources.c.id == case.source_id).values(rate_limit=2))
+            elif change == 'raw':
+                snapshot_id = v2_family['request']['domain_evidence'][0]['binding']['posting_snapshot_id']
+                connection.execute(update(m.posting_snapshots).where(m.posting_snapshots.c.id == snapshot_id).values(raw={}))
+            else:
+                evidence = deepcopy(v2_family['request']['domain_evidence'])
+                pending = evidence[0]
+                pending['binding']['verification_policy']['activation_id'] = 'f' * 32
+                pending['binding']['verification_policy_sha256'] = canonical_digest(pending['binding']['verification_policy'])
+                pending['sha256'] = canonical_digest({k: v for k, v in pending.items() if k != 'sha256'})
+                connection.execute(update(m.company_discovery_requests).where(
+                    m.company_discovery_requests.c.id == v2_family['request']['id']).values(domain_evidence=evidence))
+                operation = v2_family['operation']
+                connection.execute(update(m.operations).where(m.operations.c.id == operation['id']).values(
+                    params={**operation['params'], 'aggregator_bootstrap_pending_sha256': pending['sha256']}))
+    response = v2_family['client'].get(v2_family['path'])
+    assert response.status_code == 409, response.text
+    assert response.json() == {'detail': 'COLLECTION_CHILD_LINEAGE_CHANGED'}

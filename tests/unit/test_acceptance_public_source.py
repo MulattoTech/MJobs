@@ -35,6 +35,7 @@ class ControlledAPI:
         self.after_child_poll = lambda: None
         self.enrolled_sources = []
         self.domain_proofs = {}
+        self.domain_version = 1
         self.domain_response_transform = lambda value: value
         self.profile = dict(id='profile', version=VERSION)
         self.app = dict(id='app', profile_id='profile', job_id='fixture-job', route_id='fixture-route',
@@ -107,6 +108,7 @@ class ControlledAPI:
                 'source_id', 'parent_operation_id', 'parent_operation_attempt', 'parent_request_id', 'complete', 'limit')}
             value.update(collection_lineage_sha256=collection['lineage_sha256'],
                 collection_readback_sha256=collection['sha256'], observations=[])
+            value['schema_version'] = self.domain_version
             for child in collection['children']:
                 proof = deepcopy(self.domain_proofs.get(child['request_id']))
                 enrolled = [{key: row[key] for key in ('source_id', 'company_source_id', 'operation_id',
@@ -218,8 +220,9 @@ class PublicSourceObservationTests(unittest.TestCase):
             authorization='AGGREGATOR_BOOTSTRAP_PENDING', reason=None, operation_attempt=1,
             operation_sha256='a' * 64, pending_sha256='b' * 64)
 
-    def domain_fixture(self, *, enrolled=False):
+    def domain_fixture(self, *, enrolled=False, version=1):
         """Controlled API metadata; it never represents a public HTTP observation."""
+        self.api.domain_version = version
         child = self.child('COMPLETED')
         self.api.children = [child]
         source = self.api.configured()
@@ -239,6 +242,15 @@ class PublicSourceObservationTests(unittest.TestCase):
                 'capabilities', 'enabled', 'request_timeout', 'rate_limit', 'concurrency')}),
             employer_response_sha256='7' * 64, apply_response_sha256=None, audit_id='domain-audit',
             audit_sha256='8' * 64, acquired_at=STAMP)
+        if version == 2:
+            from packages.domain.employer_verification import verification_policy_snapshot
+            self.api.domain_version = 2
+            policy = verification_policy_snapshot(dict(id='profile', version=VERSION,
+                preferences={'company_discovery': {'company_discovery_enabled': True,
+                    'employer_verification': {'version': 1, 'mode': 'GREENHOUSE_RECIPROCAL_V1',
+                                              'activation_id': 'a' * 32}}}))
+            proof.update(corroboration_method='AGGREGATOR_NATIVE_BOOTSTRAP_V2',
+                verification_policy=policy, verification_policy_sha256=_digest(policy))
         proof['sha256'] = _digest(proof)
         self.api.domain_proofs[child['request_id']] = proof
         if enrolled:
@@ -276,6 +288,57 @@ class PublicSourceObservationTests(unittest.TestCase):
         self.assertNotIn('acceptance_observations', response)
         self.assertFalse(self.api.source['enabled'])
         self.assertEqual(json.loads(self.path.read_text()), result)
+
+    def test_v2_domain_metadata_remains_controlled_and_adds_no_numbered_acceptance(self):
+        expected = self.domain_fixture(enrolled=True, version=2)
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        response = result['domain_proof_readback']['response']
+        self.assertEqual(response['schema_version'], 2)
+        self.assertEqual(response['observations'][0]['proof'], expected)
+        self.assertEqual(expected['execution_scope'], 'CONTROLLED_TRANSPORT')
+        self.assertEqual([(row['step'], row['status']) for row in result['acceptance_observations']], [(11, 'NOT_RUN')])
+        self.assertNotIn('acceptance_observations', response)
+        self.assertEqual(sum(path.endswith('/domain-proofs') for _, path, _ in self.api.calls), 1)
+
+    def test_v2_unavailable_metadata_stays_null_and_cannot_supply_policy_authority(self):
+        self.api.children = [self.child('BLOCKED')]
+        self.api.domain_version = 2
+        result = self.observe()
+        self.assertEqual(result['result'], 'PASS', result)
+        response = result['domain_proof_readback']['response']
+        self.assertEqual(response['schema_version'], 2)
+        self.assertIsNone(response['observations'][0]['proof'])
+        self.assertEqual(response['observations'][0]['status'], 'UNAVAILABLE')
+        self.assertEqual(result['child_discovery']['status'], 'BLOCKED')
+
+    def test_v2_policy_and_version_substitutions_fail_closed_after_rehash(self):
+        variants = ['version-bool', 'version-string', 'unknown-version', 'wrong-method',
+            'missing-policy', 'extra-policy', 'rate-bool', 'higher-rate', 'wrong-profile',
+            'wrong-profile-version', 'bad-activation', 'wrong-policy-digest']
+        for variant in variants:
+            with self.subTest(variant=variant):
+                self.api = ControlledAPI()
+                proof = self.domain_fixture(version=2)
+                if variant == 'version-bool': self.api.domain_version = True
+                elif variant == 'version-string': self.api.domain_version = '2'
+                elif variant == 'unknown-version': self.api.domain_version = 3
+                elif variant == 'wrong-method': proof['corroboration_method'] = 'AGGREGATOR_NATIVE_BOOTSTRAP_V1'
+                elif variant == 'missing-policy': proof.pop('verification_policy')
+                elif variant == 'extra-policy': proof['verification_policy']['extra'] = True
+                elif variant == 'rate-bool': proof['verification_policy']['rate_limit'] = True
+                elif variant == 'higher-rate': proof['verification_policy']['rate_limit'] = 60
+                elif variant == 'wrong-profile': proof['verification_policy']['profile_id'] = 'foreign-profile'
+                elif variant == 'wrong-profile-version': proof['verification_policy']['profile_version'] = 'a' * 64
+                elif variant == 'bad-activation': proof['verification_policy']['activation_id'] = 'old'
+                elif variant == 'wrong-policy-digest': proof['verification_policy_sha256'] = 'f' * 64
+                if 'verification_policy' in proof and variant != 'wrong-policy-digest':
+                    proof['verification_policy_sha256'] = _digest(proof['verification_policy'])
+                proof['sha256'] = _digest({k: v for k, v in proof.items() if k != 'sha256'})
+                result = self.observe()
+                self.assertEqual(result['result'], 'FAIL')
+                self.assertIsNone(result['domain_proof_readback']['response'])
+                self.assertEqual(result['domain_proof_readback']['status'], 'FAIL')
 
     def test_domain_metadata_retains_missing_proof_without_promoting_it(self):
         self.api.children = [self.child('COMPLETED')]

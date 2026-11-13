@@ -319,11 +319,12 @@ def _parent_collection_binding(connection, request, source_id, parent_operation_
 
 def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, target_revision=None,
                                   parent_operation_id=None, parent_operation_attempt=None,
-                                  validate_parent_staging=False):
+                                  validate_parent_staging=False, verification_version=None, lock=False):
     """Bind a generated, non-authoritative pointer to current persisted intake."""
     from services.company_discovery.aggregator_bootstrap import (
-        AGGREGATORS, canonical_digest, normalized_projection, source_policy_projection,
+        AGGREGATORS, bootstrap_schemas, canonical_digest, normalized_projection, source_policy_projection,
     )
+    from packages.domain.employer_verification import verification_policy_snapshot
 
     fields = {'schema', 'version', 'provider', 'listing_url', 'selected_requisition',
               'raw_sha256', 'normalized_sha256', 'candidate_url', 'candidate_kind'}
@@ -354,7 +355,17 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
         normalized['application_url'] = raw_join['application_url']
         projection = normalized_projection(normalized)
         raw = raw_join['snapshot_raw']
+        if lock and verification_version == 2:
+            # Preserve the intake lock order: never wait on a profile writer
+            # while holding ingestion/source/request locks. SHARE, not KEY
+            # SHARE, blocks ordinary profile UPDATE through this transaction.
+            locked_version = connection.execute(select(m.profiles.c.version).where(
+                m.profiles.c.id == request['profile_id']).with_for_update(
+                    read=True, skip_locked=True)).scalar_one_or_none()
+            if locked_version != request['profile_version']:
+                return None
         profile = Store._profile_on(connection, request['profile_id']) if request['profile_id'] else None
+        verification_policy = verification_policy_snapshot(profile) if profile else None
         profile_policy = ((profile or {}).get('preferences') or {}).get('company_discovery') or {}
         endpoint = urlsplit(str(source['endpoint']))
         listing = urlsplit(str(hint.get('listing_url') or ''))
@@ -391,9 +402,26 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
         parent_operation_id, parent_operation_attempt, staging=validate_parent_staging)
     if (parent_operation_id is not None or parent_operation_attempt is not None) and parent_binding is None:
         return None
+    version = 2 if verification_policy is not None else 1
+    if verification_version is not None and (
+            type(verification_version) is not int or verification_version != version):
+        return None
+    extra_binding = {}
+    if version == 2:
+        if parent_binding is None:
+            return None
+        parent = connection.execute(select(m.operations).where(
+            m.operations.c.id == parent_operation_id)).mappings().one_or_none()
+        parent_request_id = (parent['params'] or {}).get('request_id') if parent else None
+        if (type(parent_request_id) is not str
+                or re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:-]{0,127}', parent_request_id) is None):
+            return None
+        extra_binding = dict(parent_request_id=parent_request_id,
+            verification_policy=verification_policy,
+            verification_policy_sha256=canonical_digest(verification_policy))
     intent = {
-        'schema': 'AGGREGATOR_BOOTSTRAP_PENDING_V1',
-        'version': 1,
+        'schema': bootstrap_schemas(version)[0],
+        'version': version,
         'hint': dict(hint),
         'binding': {
             'request_id': request['id'], 'company_id': request['company_id'],
@@ -411,6 +439,7 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
             'normalized_sha256': canonical_digest(projection),
             'selected_requisition': projection['requisition'],
             **(parent_binding or {}),
+            **extra_binding,
         },
     }
     intent['sha256'] = canonical_digest(intent)
@@ -420,8 +449,15 @@ def _aggregator_bootstrap_pending(connection, request, hint, *, fixture=False, t
 def _aggregator_bootstrap_receipt(connection, request, intent, receipt):
     """Validate resolver output against the current durable pending intent."""
     from services.company_discovery.aggregator_bootstrap import (
-        canonical_digest, normalized_projection, source_policy_projection,
+        bootstrap_schemas, canonical_digest, normalized_projection, source_policy_projection,
+        validate_v2_observations,
     )
+
+    try:
+        version = intent['version']
+        schemas = bootstrap_schemas(version)
+    except (ValueError, TypeError, KeyError):
+        return None
 
     receipt_fields = {
         'schema', 'version', 'execution_scope', 'raw_sha256', 'normalized_projection',
@@ -430,14 +466,19 @@ def _aggregator_bootstrap_receipt(connection, request, intent, receipt):
         'employer_url', 'job_response_sha256', 'apply_url', 'apply_response_sha256',
         'native', 'discovery_chain', 'budget', 'sha256',
     }
+    if version == 2:
+        receipt_fields |= {'pending_sha256', 'verification_policy_sha256', 'origin_policies'}
     if (not isinstance(receipt, dict) or set(receipt) != receipt_fields
-            or receipt.get('schema') != AGGREGATOR_NATIVE_BOOTSTRAP_SCHEMA
-            or type(receipt.get('version')) is not int or receipt['version'] != 1):
+            or receipt.get('schema') != schemas[1]
+            or type(receipt.get('version')) is not int or receipt['version'] != version):
         return None
     unsigned = {key: value for key, value in receipt.items() if key != 'sha256'}
     if receipt.get('sha256') != canonical_digest(unsigned):
         return None
     binding = intent['binding']
+    if version == 2 and (receipt['pending_sha256'] != intent['sha256']
+            or not validate_v2_observations(receipt, binding, intent['hint'])):
+        return None
     try:
         source = _source(connection, request)
         collector = connection.execute(select(m.job_sources).where(
@@ -524,31 +565,32 @@ def _aggregator_bootstrap_receipt(connection, request, intent, receipt):
                 r'[0-9a-f]{64}', str(receipt.get('apply_response_sha256'))))
             or not chain_valid or not budget_valid):
         return None
-    envelope = {'schema': 'AGGREGATOR_NATIVE_BOOTSTRAP_ENVELOPE_V1',
-        'version': 1, 'pending_sha256': intent['sha256'],
+    envelope = {'schema': schemas[2],
+        'version': version, 'pending_sha256': intent['sha256'],
         'binding': dict(binding), 'receipt': dict(receipt)}
     envelope['sha256'] = canonical_digest(envelope)
     return envelope
 
 
-def _current_aggregator_bootstrap(connection, operation, request, *, fixture):
+def _current_aggregator_bootstrap(connection, operation, request, *, fixture, lock=False):
     """Rebuild the pending proof from DB state; operation parameters are references only."""
-    from services.company_discovery.aggregator_bootstrap import canonical_digest
+    from services.company_discovery.aggregator_bootstrap import bootstrap_schemas, canonical_digest
 
     params = operation.get('params') or {}
+    version = params.get('aggregator_bootstrap_version')
+    schemas = bootstrap_schemas(version)
     if (operation.get('kind') != 'COMPANY_DISCOVER'
-            or params.get('aggregator_bootstrap') != AGGREGATOR_BOOTSTRAP_OPERATION_MARKER
-            or type(params.get('aggregator_bootstrap_version')) is not int
-            or params['aggregator_bootstrap_version'] != 1
+            or params.get('aggregator_bootstrap') != schemas[0]
             or params.get('discovery_request_id') != request['id']
             or params.get('aggregator_bootstrap_pending_sha256') is None
             or params.get('candidate', {}).get('company_website') != request['selected_website']
             or any(key in params for key in ('fixture_monitoring', 'fixture_source_id',
-                'fixture_native_acquisition', 'monitoring_source_id'))):
+                'fixture_native_acquisition', 'monitoring_source_id',
+                'verification_policy', 'verification_policy_override'))):
         raise ValueError('DISCOVERY_AUTHORIZATION_CHANGED')
     fixture_marker = params.get('fixture_aggregator_bootstrap')
     if fixture:
-        if (fixture_marker != FIXTURE_AGGREGATOR_BOOTSTRAP
+        if (fixture_marker != schemas[3]
                 or params.get('fetch_mode') != 'PUBLIC_HTTPS'):
             raise ValueError('DISCOVERY_AUTHORIZATION_REQUIRED')
     elif fixture_marker is not None or params.get('fetch_mode') != 'PUBLIC_HTTPS':
@@ -557,12 +599,25 @@ def _current_aggregator_bootstrap(connection, operation, request, *, fixture):
     if not isinstance(evidence, list) or not evidence:
         raise ValueError('DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
     stored_intent = evidence[0]
-    if not isinstance(stored_intent, dict) or stored_intent.get('schema') != 'AGGREGATOR_BOOTSTRAP_PENDING_V1':
+    if (not isinstance(stored_intent, dict) or stored_intent.get('schema') != schemas[0]
+            or type(stored_intent.get('version')) is not int or stored_intent['version'] != version):
         raise ValueError('DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
+    if version == 2:
+        binding_fields = {'request_id', 'company_id', 'request_revision', 'company_source_id',
+            'candidate_id', 'trigger_job_id', 'profile_id', 'profile_version', 'posting_snapshot_id',
+            'quality_observation_id', 'source_id', 'source_snapshot', 'source_snapshot_sha256',
+            'source_policy', 'source_policy_sha256', 'raw_sha256', 'normalized_sha256',
+            'selected_requisition', 'parent_operation_id', 'parent_operation_attempt',
+            'parent_request_id', 'verification_policy', 'verification_policy_sha256'}
+        if (set(stored_intent) != {'schema', 'version', 'hint', 'binding', 'sha256'}
+                or not isinstance(stored_intent.get('binding'), dict)
+                or set(stored_intent['binding']) != binding_fields):
+            raise ValueError('DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
     current = _aggregator_bootstrap_pending(connection, request, stored_intent.get('hint'),
         fixture=fixture, target_revision=request['revision'],
         parent_operation_id=(stored_intent.get('binding') or {}).get('parent_operation_id'),
-        parent_operation_attempt=(stored_intent.get('binding') or {}).get('parent_operation_attempt'))
+        parent_operation_attempt=(stored_intent.get('binding') or {}).get('parent_operation_attempt'),
+        verification_version=version, lock=lock)
     if (current is None or current != stored_intent
             or stored_intent.get('sha256') != canonical_digest({
                 key: value for key, value in stored_intent.items() if key != 'sha256'})
@@ -577,8 +632,12 @@ def _current_aggregator_bootstrap(connection, operation, request, *, fixture):
         if len(evidence) not in {2, 3}:
             raise ValueError('DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
         envelope = evidence[1]
-        if (not isinstance(envelope, dict) or envelope.get('schema') != 'AGGREGATOR_NATIVE_BOOTSTRAP_ENVELOPE_V1'
-                or envelope.get('version') != 1 or envelope.get('pending_sha256') != stored_intent['sha256']
+        if version == 2 and (not isinstance(envelope, dict) or set(envelope) != {
+                'schema', 'version', 'pending_sha256', 'binding', 'receipt', 'sha256'}):
+            raise ValueError('DISCOVERY_BOOTSTRAP_PROOF_CHANGED')
+        if (not isinstance(envelope, dict) or envelope.get('schema') != schemas[2]
+                or type(envelope.get('version')) is not int or envelope['version'] != version
+                or envelope.get('pending_sha256') != stored_intent['sha256']
                 or envelope.get('binding') != stored_intent['binding']
                 or envelope.get('sha256') != canonical_digest({
                     key: value for key, value in envelope.items() if key != 'sha256'})):
@@ -632,17 +691,22 @@ def _queue(connection, request, website, authorization, evidence, *, audit_detai
     if authorization == 'ATS_JOB_LINK_CANDIDATE':
         params['native_job_link'] = evidence[0]
     if authorization == AGGREGATOR_BOOTSTRAP_PENDING:
-        params.update(aggregator_bootstrap=AGGREGATOR_BOOTSTRAP_OPERATION_MARKER,
-            aggregator_bootstrap_version=1,
+        from services.company_discovery.aggregator_bootstrap import bootstrap_schemas
+        version = evidence[0]['version']
+        schemas = bootstrap_schemas(version)
+        params.update(aggregator_bootstrap=schemas[0],
+            aggregator_bootstrap_version=version,
             aggregator_bootstrap_pending_sha256=evidence[0]['sha256'])
         if _fixture(connection):
-            params['fixture_aggregator_bootstrap'] = FIXTURE_AGGREGATOR_BOOTSTRAP
+            params['fixture_aggregator_bootstrap'] = schemas[3]
     if _fixture(connection):
         native_fixture = (authorization == 'ATS_JOB_LINK_CANDIDATE' and evidence
             and _fixture_native_proof(connection, request) == evidence[0])
         bootstrap_fixture = (authorization == AGGREGATOR_BOOTSTRAP_PENDING and evidence
             and isinstance(evidence[0], dict)
-            and evidence[0].get('schema') == 'AGGREGATOR_BOOTSTRAP_PENDING_V1')
+            and evidence[0].get('schema') == params.get('aggregator_bootstrap')
+            and type(evidence[0].get('version')) is int
+            and evidence[0]['version'] == params.get('aggregator_bootstrap_version'))
         if not (native_fixture or bootstrap_fixture):
             raise ValueError('DISCOVERY_AUTHORIZATION_REQUIRED')
         if native_fixture:
@@ -1134,7 +1198,11 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
             and row['profile_id'] == params.get('profile_id')
             and row['profile_version'] == params.get('profile_version'))
         fixture_bootstrap = (row is not None and _fixture(connection)
-            and params.get('fixture_aggregator_bootstrap') == FIXTURE_AGGREGATOR_BOOTSTRAP
+            and type(params.get('aggregator_bootstrap_version')) is int
+            and ((params['aggregator_bootstrap_version'] == 1
+                  and params.get('fixture_aggregator_bootstrap') == FIXTURE_AGGREGATOR_BOOTSTRAP)
+                 or (params['aggregator_bootstrap_version'] == 2
+                     and params.get('fixture_aggregator_bootstrap') == 'fixture-aggregator-bootstrap-v2'))
             and row['authorization'] in {AGGREGATOR_BOOTSTRAP_PENDING, AGGREGATOR_BOOTSTRAP_VERIFIED})
         mode_authorized = ((_personal(connection) and 'fixture_native_acquisition' not in params
             and 'fixture_aggregator_bootstrap' not in params) or fixture_native or fixture_bootstrap)
@@ -1151,7 +1219,7 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
         aggregator_bootstrap = None
         if row['authorization'] in {AGGREGATOR_BOOTSTRAP_PENDING, AGGREGATOR_BOOTSTRAP_VERIFIED}:
             aggregator_bootstrap = _current_aggregator_bootstrap(
-                connection, operation, row, fixture=_fixture(connection))
+                connection, operation, row, fixture=_fixture(connection), lock=lock)
         native_authorization = row['authorization'] in {'ATS_JOB_LINK_CANDIDATE', 'ATS_JOB_LINK_VERIFIED'}
         native_proof = None
         if native_authorization:
@@ -1282,7 +1350,9 @@ def persist_aggregator_bootstrap_proof(store, operation, receipt):
                 normalized_sha256=intent['binding']['normalized_sha256'],
                 receipt_sha256=envelope['sha256'],
                 provider='greenhouse', tenant=receipt['native']['tenant'],
-                native_job_id=receipt['native']['job_id'])
+                native_job_id=receipt['native']['job_id'],
+                **({'verification_policy_sha256': intent['binding']['verification_policy_sha256']}
+                   if intent['version'] == 2 else {}))
         else:
             raise PublicFetchError('DISCOVERY_AUTHORIZATION_REQUIRED')
     return authorize_discovery_request(store, operation)

@@ -67,6 +67,209 @@ class AggregatorBootstrapCollectionTests(unittest.TestCase):
             return [dict(row) for row in connection.execute(select(m.company_discovery_requests)).mappings()
                     if row["authorization"] == "AGGREGATOR_BOOTSTRAP_PENDING"]
 
+    def _activate_v2(self):
+        current = self.store.profile('fixture')
+        profile = deepcopy(PROFILE)
+        profile['preferences'] = deepcopy(current['preferences'])
+        expected = current['version']
+        profile['preferences'].setdefault('company_discovery', {}).update(
+            company_discovery_enabled=True,
+            employer_verification=dict(version=1, mode='GREENHOUSE_RECIPROCAL_V1', activation_id=None))
+        self.store.save_profile(profile, expected_version=expected)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.job_sources).where(
+                m.job_sources.c.id == self.source_id).values(rate_limit=1))
+        self.rows[0]['description'] += '<a href="https://job-boards.greenhouse.io/acme/jobs/1001">Apply</a>'
+        return self.store.profile('fixture')
+
+    def _stage_v2(self):
+        self._activate_v2()
+        lineage = self.parent_operation()
+        self.collect(**lineage)
+        request = self.pending()[0]
+        with self.store.engine.connect() as connection:
+            operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == request['operation_id'])).mappings().one())
+        return lineage, request, operation
+
+    def test_v2_intake_binds_current_activation_actual_parent_and_unchanged_collector(self):
+        from packages.domain.employer_verification import verification_policy_snapshot
+        from services.company_discovery.aggregator_bootstrap import canonical_digest
+        from services.company_discovery.requests import authorize_discovery_request
+
+        lineage, request, operation = self._stage_v2()
+        intent = request['domain_evidence'][0]
+        binding = intent['binding']
+        with self.store.engine.connect() as connection:
+            parent = connection.execute(select(m.operations).where(
+                m.operations.c.id == lineage['parent_operation_id'])).mappings().one()
+        self.assertEqual((intent['schema'], intent['version']), ('AGGREGATOR_BOOTSTRAP_PENDING_V2', 2))
+        self.assertEqual(binding['parent_request_id'], parent['params']['request_id'])
+        self.assertEqual(binding['parent_operation_attempt'], parent['attempt_count'])
+        self.assertEqual(binding['verification_policy'], verification_policy_snapshot(self.store.profile('fixture')))
+        self.assertEqual(binding['verification_policy_sha256'], canonical_digest(binding['verification_policy']))
+        self.assertEqual(binding['source_policy']['rate_limit'], 1)
+        self.assertEqual(binding['source_policy_sha256'], canonical_digest(binding['source_policy']))
+        self.assertEqual(operation['params']['aggregator_bootstrap'], 'AGGREGATOR_BOOTSTRAP_PENDING_V2')
+        self.assertEqual(operation['params']['fixture_aggregator_bootstrap'], 'fixture-aggregator-bootstrap-v2')
+        self.assertNotIn('verification_policy', operation['params'])
+        self.assertEqual(authorize_discovery_request(self.store, operation)['aggregator_bootstrap_pending'], intent)
+        self.assertEqual(len(self.http_requests), 1)
+        self.assertEqual(self.store.count('company_domains'), 0)
+
+    def test_v2_active_preference_without_a_parent_cannot_downgrade_to_v1(self):
+        self._activate_v2()
+        self.assertEqual(self.collect()['jobs_seen'], 1)
+        self.assertEqual(self.pending(), [])
+        self.assertEqual(self.store.count('worker_operations'), 0)
+
+    def test_v2_employer_hint_is_reconstructed_from_exact_persisted_intake(self):
+        from packages.domain.employer_verification import verification_policy_snapshot
+        from services.company_discovery.aggregator_bootstrap import canonical_digest, extract_bootstrap_hint
+        from services.company_discovery.requests import authorize_discovery_request, load_aggregator_bootstrap_context
+
+        self._activate_v2()
+        employer = 'https://acme.example/jobs/1001'
+        self.rows[0]['description'] = '<p>Python development role.</p>' + f'<a href="{employer}">Apply</a>'
+        raw = deepcopy(self.rows[0])
+        lineage = self.parent_operation()
+        self.assertEqual(self.collect(**lineage)['jobs_seen'], 1)
+        self.assertEqual(len(self.pending()), 1)
+        request = self.pending()[0]
+        reopened = Store(self.url)
+        self.addCleanup(reopened.engine.dispose)
+        with reopened.engine.connect() as connection:
+            joined = connection.execute(select(
+                m.posting_value_candidates.c.id.label('candidate_id'),
+                m.posting_value_candidates.c.normalized,
+                m.posting_value_candidates.c.application_url,
+                m.posting_snapshots.c.id.label('snapshot_id'),
+                m.posting_snapshots.c.raw, m.posting_snapshots.c.sha256,
+                m.postings.c.job_id, m.jobs.c.company_id,
+                m.company_sources.c.id.label('company_source_id'),
+                m.company_sources.c.collector_source_id,
+            ).select_from(m.posting_value_candidates)
+                .join(m.posting_snapshots, m.posting_snapshots.c.id == m.posting_value_candidates.c.posting_snapshot_id)
+                .join(m.postings, m.postings.c.id == m.posting_value_candidates.c.posting_id)
+                .join(m.jobs, m.jobs.c.id == m.postings.c.job_id)
+                .join(m.company_sources, m.company_sources.c.id == m.posting_value_candidates.c.company_source_id)
+                .where(m.posting_value_candidates.c.id == request['candidate_id'])).mappings().one()
+            operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == request['operation_id'])).mappings().one())
+            parent = connection.execute(select(m.operations).where(
+                m.operations.c.id == lineage['parent_operation_id'])).mappings().one()
+        with patch.object(PublicCompanyClient, '_request_once', side_effect=AssertionError('No employer network in admission')):
+            authorization = authorize_discovery_request(reopened, operation)
+            context = load_aggregator_bootstrap_context(reopened, operation)
+        pending = request['domain_evidence'][0]
+        binding, hint = pending['binding'], pending['hint']
+        normalized = dict(joined['normalized'], application_url=joined['application_url'])
+        self.assertEqual((pending['schema'], pending['version']), ('AGGREGATOR_BOOTSTRAP_PENDING_V2', 2))
+        self.assertEqual((hint['candidate_kind'], hint['candidate_url']), ('EMPLOYER_PAGE', employer))
+        self.assertEqual(hint, extract_bootstrap_hint(joined['raw'], normalized))
+        self.assertEqual(joined['raw'], raw)
+        self.assertEqual(binding['raw_sha256'], canonical_digest(raw))
+        self.assertEqual(joined['sha256'], binding['raw_sha256'])
+        for bound, observed in [('candidate_id', 'candidate_id'), ('posting_snapshot_id', 'snapshot_id'),
+                                ('trigger_job_id', 'job_id'), ('company_id', 'company_id'),
+                                ('company_source_id', 'company_source_id'), ('source_id', 'collector_source_id')]:
+            self.assertEqual(binding[bound], joined[observed])
+        self.assertEqual((binding['parent_operation_id'], binding['parent_operation_attempt'], binding['parent_request_id']),
+                         (parent['id'], parent['attempt_count'], parent['params']['request_id']))
+        self.assertEqual(binding['verification_policy'], verification_policy_snapshot(reopened.profile('fixture')))
+        self.assertEqual(binding['source_policy']['rate_limit'], 1)
+        self.assertEqual(authorization['aggregator_bootstrap_pending'], pending)
+        self.assertEqual(context['pending_intent'], pending)
+        self.assertEqual(context['hint'], hint)
+        self.assertEqual(context['raw'], raw)
+        self.assertEqual(context['source_policy']['rate_limit'], 1)
+        self.assertEqual((operation['params']['aggregator_bootstrap'], operation['params']['aggregator_bootstrap_version']),
+                         ('AGGREGATOR_BOOTSTRAP_PENDING_V2', 2))
+        self.assertEqual(len(self.http_requests), 1)
+        self.assertEqual(reopened.count('company_domains'), 0)
+        self.assertEqual(reopened.count('applications'), 0)
+
+    def test_v2_missing_actual_parent_request_id_cannot_stage_authority(self):
+        self._activate_v2()
+        lineage = self.parent_operation()
+        with self.store.engine.begin() as connection:
+            parent = connection.execute(select(m.operations).where(
+                m.operations.c.id == lineage['parent_operation_id'])).mappings().one()
+            params = dict(parent['params'])
+            params.pop('request_id')
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == parent['id']).values(params=params))
+        self.collect(**lineage)
+        self.assertEqual(self.pending(), [])
+
+    def test_v2_disable_reenable_rotates_authority_and_cannot_revive_pending(self):
+        from services.company_discovery.public_client import PublicFetchError
+        from services.company_discovery.requests import authorize_discovery_request
+
+        _, request, operation = self._stage_v2()
+        old = request['domain_evidence'][0]['binding']['verification_policy']['activation_id']
+        profile = deepcopy(self.store.profile('fixture'))
+        profile['preferences']['company_discovery']['employer_verification'] = {
+            'version': 1, 'mode': 'DISABLED', 'activation_id': None}
+        self.store.save_profile(profile, expected_version=profile['version'])
+        with self.assertRaises(PublicFetchError):
+            authorize_discovery_request(self.store, operation)
+        profile = deepcopy(self.store.profile('fixture'))
+        profile['preferences']['company_discovery']['employer_verification']['mode'] = 'GREENHOUSE_RECIPROCAL_V1'
+        self.store.save_profile(profile, expected_version=profile['version'])
+        current = self.store.profile('fixture')['preferences']['company_discovery']['employer_verification']
+        self.assertNotEqual(current['activation_id'], old)
+        with self.assertRaises(PublicFetchError):
+            authorize_discovery_request(self.store, operation)
+        self.assertEqual(self.store.count('company_domains'), 0)
+
+    def test_v2_ordinary_active_edit_then_revert_uses_current_content_semantics(self):
+        from services.company_discovery.public_client import PublicFetchError
+        from services.company_discovery.requests import authorize_discovery_request
+
+        _, request, operation = self._stage_v2()
+        original_version = self.store.profile('fixture')['version']
+        original = deepcopy(PROFILE)
+        original['preferences'] = deepcopy(self.store.profile('fixture')['preferences'])
+        edited = deepcopy(original)
+        edited['name'] += ' edited'
+        self.store.save_profile(edited, expected_version=original_version)
+        with self.assertRaises(PublicFetchError):
+            authorize_discovery_request(self.store, operation)
+        self.store.save_profile(original, expected_version=self.store.profile('fixture')['version'])
+        self.assertEqual(self.store.profile('fixture')['version'], original_version)
+        self.assertEqual(authorize_discovery_request(self.store, operation)['aggregator_bootstrap_pending'],
+                         request['domain_evidence'][0])
+
+    def test_v2_mixed_markers_overrides_and_typed_version_changes_are_rejected(self):
+        from services.company_discovery.public_client import PublicFetchError
+        from services.company_discovery.requests import authorize_discovery_request
+
+        _, _, operation = self._stage_v2()
+        variants = [('aggregator_bootstrap', 'AGGREGATOR_BOOTSTRAP_PENDING_V1'),
+            ('aggregator_bootstrap_version', True), ('aggregator_bootstrap_version', '2'),
+            ('fixture_aggregator_bootstrap', 'fixture-aggregator-bootstrap-v1'),
+            ('verification_policy', {}), ('verification_policy_override', {})]
+        for key, value in variants:
+            with self.subTest(field=key, value=value):
+                candidate = deepcopy(operation)
+                candidate['params'][key] = value
+                with self.assertRaises(PublicFetchError):
+                    authorize_discovery_request(self.store, candidate)
+
+    def test_v2_parent_request_identity_drift_is_not_accepted(self):
+        from services.company_discovery.public_client import PublicFetchError
+        from services.company_discovery.requests import authorize_discovery_request
+
+        lineage, _, operation = self._stage_v2()
+        with self.store.engine.begin() as connection:
+            parent = connection.execute(select(m.operations).where(
+                m.operations.c.id == lineage['parent_operation_id'])).mappings().one()
+            connection.execute(update(m.operations).where(m.operations.c.id == parent['id']).values(
+                params={**parent['params'], 'request_id': 'foreign-parent-request'}))
+        with self.assertRaises(PublicFetchError):
+            authorize_discovery_request(self.store, operation)
+
     def test_collection_stages_exact_candidate_without_granting_employer_authority(self):
         original = deepcopy(self.rows[0])
         result = self.collect()

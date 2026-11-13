@@ -55,11 +55,13 @@ def _domain_proof_on(connection, child):
     if not events:
         return None, 'DOMAIN_ACQUISITION_AUDIT_UNAVAILABLE'
     event = events[0]
-    expected = dict(request_id=request['id'], method='AGGREGATOR_NATIVE_BOOTSTRAP_V1',
+    expected = dict(request_id=request['id'], method=receipt['schema'],
         pending_sha256=pending['sha256'], receipt_sha256=receipt['sha256'],
         source_snapshot_sha256=receipt['source_snapshot_sha256'],
         employer_response_sha256=receipt['job_response_sha256'],
         apply_response_sha256=receipt['apply_response_sha256'])
+    if pending['version'] == 2:
+        expected['verification_policy_sha256'] = pending['binding']['verification_policy_sha256']
     _require(event['entity_id'] == child['company_id'] and all(
         event['payload'].get(key) == value for key, value in expected.items()))
     acquired_at = datetime.fromisoformat(event['timestamp'])
@@ -84,6 +86,9 @@ def _domain_proof_on(connection, child):
         apply_response_sha256=receipt['apply_response_sha256'],
         audit_id=event['id'], audit_sha256=canonical_digest(dict(event)),
         acquired_at=acquired_at.isoformat())
+    if pending['version'] == 2:
+        proof.update(verification_policy=pending['binding']['verification_policy'],
+                     verification_policy_sha256=pending['binding']['verification_policy_sha256'])
     proof['sha256'] = canonical_digest(proof)
     return proof, None
 
@@ -104,7 +109,14 @@ def collection_domain_proofs(store, profile_id, source_id, parent_operation_id, 
             'parent_operation_attempt', 'parent_request_id', 'complete', 'limit')}
         result.update(collection_lineage_sha256=collection['lineage_sha256'],
             collection_readback_sha256=collection['sha256'], observations=[])
+        versions = set()
         for child in collection['children']:
+            request = _one(connection, m.company_discovery_requests, child['request_id'])
+            version = request['domain_evidence'][0]['version']
+            _require(type(version) is int and version in (1, 2))
+            versions.add(version)
+            _require(len(versions) == 1)
+            result['schema_version'] = version
             proof, reason = _domain_proof_on(connection, child)
             enrolled = [{key: row[key] for key in ('source_id', 'company_source_id',
                 'operation_id', 'request_id', 'audit_id', 'audit_sha256',

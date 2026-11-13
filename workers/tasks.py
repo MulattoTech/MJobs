@@ -395,16 +395,18 @@ def execute_operation(operation_id, *, registry_module=None,
                 # Presence selects this restricted path even for malformed
                 # markers. An unverified aggregator hint must never fall through
                 # to a broader company-discovery handler.
-                from services.company_discovery.requests import AGGREGATOR_BOOTSTRAP_OPERATION_MARKER
+                from services.company_discovery.aggregator_bootstrap import bootstrap_schemas
                 params = operation["params"]
-                if (params.get("aggregator_bootstrap") != AGGREGATOR_BOOTSTRAP_OPERATION_MARKER
-                        or type(params.get("aggregator_bootstrap_version")) is not int
-                        or params["aggregator_bootstrap_version"] != 1
+                try:
+                    schemas = bootstrap_schemas(params.get("aggregator_bootstrap_version"))
+                except ValueError:
+                    raise FixtureOperationDisabled() from None
+                if (params.get("aggregator_bootstrap") != schemas[0]
                         or params.get("fetch_mode") != "PUBLIC_HTTPS"
                         or not params.get("discovery_request_id")
                         or any(key in params for key in (
                             "fixture_monitoring", "fixture_source_id", "fixture_native_acquisition",
-                            "monitoring_source_id"))):
+                            "monitoring_source_id", "verification_policy", "verification_policy_override"))):
                     raise FixtureOperationDisabled()
                 from services.company_discovery.aggregator_workflow import execute_aggregator_bootstrap
                 result = execute_aggregator_bootstrap(
@@ -631,7 +633,14 @@ def execute_operation(operation_id, *, registry_module=None,
                     except DurableEvaluationError as failure:
                         state, error = 'BLOCKED', ai_operation_error_category(failure.code)
             finished_at = now()
-            retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
+            v2_bootstrap = (operation['kind'] == 'COMPANY_DISCOVER'
+                and operation['params'].get('aggregator_bootstrap') == 'AGGREGATOR_BOOTSTRAP_PENDING_V2')
+            # V2 is a single bounded attempt. A transport 503/Retry-After or
+            # transient DNS result must not enter the generic discovery retry
+            # policy, create next_attempt_at, or revive this pending grant.
+            if v2_bootstrap and state == 'FAILED':
+                state = 'BLOCKED'
+            retry = None if v2_bootstrap else discovery_retry_plan(connection, operation, retry_failure, finished_at)
             if retry is not None and deadline is not None and time.monotonic() >= deadline:
                 # The fenced operation and any committed receipt now have
                 # precedence. Recheck the monotonic deadline only for a failure
