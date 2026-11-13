@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-204.N05",
+  "objective": "Deliver and verify the opt-in browser Desktop provider with honest capability and evidence scope.",
+  "owner": "WEB-20261113T024609Z-ca95dbc6-f1bb-49e0-b442-badd5c9598e0",
+  "branch": "web/ca95dbc6/desktop-notifications",
+  "head_sha": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Publish the reviewed public-identifier scanner correction to existing PR1017, observe exact current-head required checks, then obtain verified integration/canonical ownership before protected merge and full acceptance review.",
+  "created_at": "2026-11-13T03:31:45.369754Z",
+  "requirements": [
+    "MJ-REQ-204.N05",
+    "MJ-REQ-204"
+  ],
+  "tests": [
+    {
+      "command": "npm --prefix apps/web test -- src/desktop-notification-provider.test.ts src/desktop-notifications.test.tsx src/operation-notifications.test.tsx --maxWorkers=1 --coverage.enabled=false",
+      "result": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q -s tests/browser/test_desktop_notifications.py tests/browser/test_operation_notifications.py --junitxml=<owned-run>/desktop-browser-a0de7db56eaf-attempt2.junit.xml",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent immutable source review",
+      "result": "PASS"
+    },
+    {
+      "command": "Protected hosted checks on eventual published metadata head",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Protected integration, guarded deployment where required and formal canonical acceptance",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Security / secret scan on60dd9d4a: one public requirement identifier false positive; reviewed exact historical fingerprint correction prepared",
+      "result": "FAIL"
+    },
+    {
+      "command": "Required hosted gates on corrected publication head",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Exact November 9 resumed integration steward claim remains ACTIVE with no matching release/transfer: web:web-20261109T132018Z-0d9f5a0511ab:resume-20261109T153054Z:steward.",
+    "Exact November 9 resumed canonical-acceptance and derived-support claims remain ACTIVE; no canonical acceptance update is authorized by a general release of another generation."
+  ],
+  "evidence_file": "docs/evidence/2026-11-13-desktop-notifications-ca95.json",
+  "source_test_revision": "a0de7db56eafced3f78f14c37e3d0045244ee66a",
+  "source_tree": "6ff7ba1c874a6a6b84738bbd0762d2f6340af1e9",
+  "source_binding": "head_sha identifies the tested source preceding this metadata-only checkpoint; subsequent checkpoint ancestry and source equivalence must be read explicitly.",
+  "canonical_status": "NOT_RUN",
+  "original_acceptance": "183/366 unchanged",
+  "reference_acceptance": "19/59 unchanged",
+  "scope_limits": [
+    "Native construction and browser show events were observed; OS-visible Windows toast was not inspected.",
+    "No live simultaneous two-tab race was run; native Web Lock use and deterministic serialization contracts were verified.",
+    "Browser permission was pregranted in the isolated browser context; gesture-only permission request and stale-result races were verified deterministically.",
+    "Open-page desktop Chromium 153.0.8010.12 only; other browsers, mobile, closed-page service-worker push and cross-device preferences are not claimed.",
+    "Receipts retain512 outcome identities and are persisted before native construction; at-most-once attempts are bounded, and delivery is not guaranteed or retried automatically.",
+    "An unsaved Disable is suppressed within this tab/module lifetime; other tabs or a reload cannot inherit a preference that failed to persist.",
+    "Only generic operation terminal outcomes are supported; the parent requirement potential match/authentication-expiry events remain separate.",
+    "This browser execution surface is implemented in apps/web; common server-provider catalogue metadata is coordinated with the independent ntfy lane. No server Desktop sender exists.",
+    "Global MJOBS_NOTIFICATIONS_ENABLED remains off by default; no production setting, migration or deployment changed.",
+    "Protected current-head hosted checks, verified integration stewardship and canonical acceptance ownership remain separate gates."
+  ],
+  "related_independent_work": {
+    "arbeitnow_ui_commit": "64819d7d650ed60759d38d0da97f714272999f49",
+    "integration_by_F07_owner": "b954747e2ff6446f41c2fb8a0276b455e29d0943",
+    "main_tsx_claim": "Transferred atomically to F07 owner; Desktop source frozen and further edits require reacquisition."
+  },
+  "updated_at": "2026-11-13T03:40:01.005228Z",
+  "pull_request": "https://github.com/MulattoTech/MJobs/pull/1017"
+}
