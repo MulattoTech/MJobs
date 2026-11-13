@@ -1,0 +1,2008 @@
+{
+  "schema_version": 1,
+  "record_status": "SOURCE_QUALIFIED_EVIDENCE_PREPARED",
+  "intended_repository_path": "docs/evidence/2026-11-13-usajobs-source.json",
+  "requirement_id": "MJ-REQ-017.F06",
+  "parent_requirement": "MJ-REQ-017",
+  "issue": 316,
+  "provider": "usajobs",
+  "created_at_utc": "2026-11-13T05:52:58.517Z",
+  "last_updated_at_utc": "2026-11-13T06:20:02.299360+00:00",
+  "prepared_by": "/root/campaign_review",
+  "repository": "MulattoTech/MJobs",
+  "owner_run": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "branch": "web/p6-usajobs-20261113-4dae",
+  "implementation_source_sha": "e9594dd84868cc0828aca34da40cfb31d0029390",
+  "implementation_source_tree": "0fba5a86d6fcad22d75d9c0d75ed176a61c29991",
+  "source_repair_commit": "5b871b7f61ff15f2988b7e85276ce49a6aa0a953",
+  "original_implementation_head": "d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5",
+  "selection_repair_head": "65e7b6623e39af408a6b78b0cf536a60234f3ebb",
+  "incorporated_f07_head": "6df4fd2483f3416f729a715ff58d2715d479aaea",
+  "incorporated_protected_main": "5b2e306144ca39fff1c199e1b0c215efe18f6fc1",
+  "source_was_clean_at_assembled_test_and_live_execution": true,
+  "routing_state": "VERIFY",
+  "source_binding_note": "All execution claims bind immutable e9594dd84868cc0828aca34da40cfb31d0029390 and recorded source hashes. The source guide, evidence and handoff are prepared in a documentation-only successor; its actual commit/tree and executable-source equivalence are separately recorded after commit. No successor SHA or new runtime result is inferred here.",
+  "delivery_state": {
+    "implemented": true,
+    "assembled_focused_tests": "PASS",
+    "historical_frontend_component_build": "PASS",
+    "historical_real_browser_enrollment": "PASS",
+    "bounded_production_adapter_read": "PASS",
+    "constructed_official_url_http_observation": "HTTP_200_OBSERVED",
+    "page_identity_or_application_flow": "NOT_PROVED",
+    "current_final_metadata_review": "PREPARATION_REVIEW_PASS_IMMUTABLE_SUCCESSOR_REVIEW_PENDING",
+    "required_hosted_checks": "NOT_RUN",
+    "protected_integration": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "formal_acceptance": "NOT_RUN",
+    "canonical_requirement_index_status": "NOT_RUN",
+    "acceptance_promoted": false
+  },
+  "source_and_assembly": {
+    "assembly_receipt": {
+      "name": "usajobs-bulk-current-main-candidate.json",
+      "bytes": 8041,
+      "sha256": "66e0c2491dee55eabcaeabb716e74c17ef2236f5ab017c4286071c9b4d7921f9"
+    },
+    "assembly_receipt_runtime_at_creation": "NOT_RUN; superseded only for the recorded focused and bounded-live scopes by the later receipts below",
+    "incoming_files_verified": 18,
+    "incoming_f07_main_blobs": {
+      ".gitleaksignore": "6b32be9091c12e6eafdf6b4620403f73c68864f9",
+      "docs/evidence/2026-11-12-astra-sqlite-low-rate-13b3.json": "229ade2bc2e6d9eb6c2780424354c55d78a564b0",
+      "docs/evidence/2026-11-13-arbeitnow-ci-prerequisites.json": "9fff364df71312bea374ba4e064493519a98b0f8",
+      "docs/evidence/2026-11-13-arbeitnow-source.json": "8b1a4ec993d9276b73f4d37d87df77dde6330f4a",
+      "docs/evidence/2026-11-13-public-worker-deadline-diagnostics.json": "9dade0084c418a41db5f47a265f567221550d16c",
+      "docs/evidence/2026-11-13-web-e49a-ai-settings-restored-identity.json": "52e3889dace78e34a9c0c16dd1c53fb372aa94aa",
+      "docs/evidence/2026-11-13-web-e49a-scanner-identifier-disposition.json": "3bc263a3ac6b0840568b3e437ffa60199ee00f6d",
+      "docs/evidence/2026-11-13-web-e49a-settings-monitoring-composition.json": "ecfdde180ee40e3c3886316611eca970f4b4e096",
+      "docs/evidence/2026-11-13-web-e49a-sqlite-low-rate-verification.json": "e333afe0c2d3410f70029061827ba535c7594ba0",
+      "packages/persistence/store.py": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+      "planning/SESSION_HANDOFF.md": "ccc8dcc92f6dc2d252e9c0b4a12f7caf9c64e761",
+      "planning/agent_handoffs/MJ-REQ-004-e49a-low-rate.json": "bc90322aa85b1cbf7220f374ca0741376f079c34",
+      "planning/agent_handoffs/MJ-REQ-017.F07.json": "5d11568b4682203fcf86571a45f3124fbf6b420b",
+      "planning/agent_handoffs/MJ-REQ-109-e49a.json": "ee692367ad7203ae62035207d7bca3273eee7dd5",
+      "services/company_discovery/public_client.py": "31a1a1ed629e4aa6b44cd37e28541b6df630ad51",
+      "tests/integration/test_ai_task_settings_restored_identity.py": "162f1e9eeaeef053d8657f31c730bf7f8b18c54f",
+      "tests/integration/test_mock_discovery_request_bounds.py": "02b1957f95223a295796b60cba2a0b5129d6aa02",
+      "tests/unit/test_public_company_client.py": "1e04f3531637067130b6f02ea07b73b8a1a619f8"
+    },
+    "f06_files_verified": 22,
+    "owned_source_blobs": {
+      "apps/web/src/main.tsx": "171674d4f8c2ef7229f4f1e65eabc659c156bfbd",
+      "docs/ADDING_JOB_SOURCE.md": "d0f264bb0b3621522344da33b818f6a1ecd1e223",
+      "docs/sources/USAJOBS.md": "c43c976294b0ba1bf98e8b59e717790b35bc7b90",
+      "packages/persistence/prompt_provenance.py": "f8c7579cc9b63166323dfda55f7c36226285c836",
+      "services/ai/prompt_provenance.py": "5d4fcc6f5eb8c5a8faced84d77cc792b26ad96b1",
+      "services/company_discovery/domains.py": "d7fe80a5a77bfc5034026618f258fc7e76053ff2",
+      "services/discovery/sources/AREA.md": "c07d07cc4ddc3651ac13dc39080cb2502779d403",
+      "services/discovery/sources/collect.py": "98b1e57a31a51c2c1f0aacbafaf0093b2ed50530",
+      "services/discovery/sources/registry.py": "6cc940eb4a1163b90a21923709416bd0edf5e5dc",
+      "services/discovery/sources/usajobs.py": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+      "tests/browser/test_usajobs_source_enrollment.py": "75f1be2e61f2539e03a132fdeeb633c8a7c93c5d",
+      "tests/fixtures/usajobs_announcement_text.json": "9a6233d43414fded9ffd65b137de2942a1837de0",
+      "tests/fixtures/usajobs_metadata.json": "8cfd08861b37ea3b66404f02f08e35aac62bea11",
+      "tests/integration/test_company_source_view.py": "5cb906fe1715beac61361ff962fe564263110db4",
+      "tests/integration/test_usajobs.py": "fa7e9618a2fe904f0bd9441813b39b332b47ac1e",
+      "tests/unit/test_company_source_capabilities.py": "17358317cd13a02d3df9855c97b30200877713de",
+      "tests/unit/test_company_source_contract_sustain_224.py": "73eb049d1fc75d32de16acf255e654669f4d6106",
+      "tests/unit/test_extension_point_contracts.py": "b62a1dfd66253dbd86161cb518b38b99388ada70",
+      "tests/unit/test_source_adapter_contract_223.py": "7020d9bef1263b9efe05eecbb27bcfb27abd24d1",
+      "tests/unit/test_usajobs_provenance.py": "e903b53e2071e7ef23adfb34ff6592cbb8dd7927",
+      "tests/unit/test_usajobs_source.py": "95fd3f1fc9fc313a69ade7d5d530e3cbb84e50eb",
+      "workers/structured_logging.py": "57ce9fcad799abc482b7bf04fd7981a7ea4e2558"
+    },
+    "reviewed_six_file_repair": [
+      {
+        "path": "docs/sources/USAJOBS.md",
+        "reviewed_blob": "c43c976294b0ba1bf98e8b59e717790b35bc7b90",
+        "sha256": "e15b2c7422d243df41cebfb70626fcb4386458e2766f1e9f40ba8f1cd7bffd89",
+        "bytes": 10022
+      },
+      {
+        "path": "services/discovery/sources/AREA.md",
+        "reviewed_blob": "c07d07cc4ddc3651ac13dc39080cb2502779d403",
+        "sha256": "de89e8d637951c3352328652a245c3a8263be0ae9c1618b92d190ac354a4c267",
+        "bytes": 5259
+      },
+      {
+        "path": "services/discovery/sources/usajobs.py",
+        "reviewed_blob": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+        "sha256": "86908a4fbe45154548e75564cb8b4e48060316d05143a111a3d4fc2a066e887d",
+        "bytes": 25540
+      },
+      {
+        "path": "tests/integration/test_usajobs.py",
+        "reviewed_blob": "fa7e9618a2fe904f0bd9441813b39b332b47ac1e",
+        "sha256": "9c7b699bdcdb53711d91e163c27404b2d2f35dbfd7c90fbc2ad17a47bd0ca64c",
+        "bytes": 21313
+      },
+      {
+        "path": "tests/unit/test_usajobs_provenance.py",
+        "reviewed_blob": "e903b53e2071e7ef23adfb34ff6592cbb8dd7927",
+        "sha256": "a6d44dc4932daa23f60bbb6491c24aeda61e53433e0d1d48ce0d2a0b5afb986e",
+        "bytes": 8050
+      },
+      {
+        "path": "tests/unit/test_usajobs_source.py",
+        "reviewed_blob": "95fd3f1fc9fc313a69ade7d5d530e3cbb84e50eb",
+        "sha256": "6c3e9395af2f7ae92d263a71195014338c67a228c688c3afb7631dd5e559af48",
+        "bytes": 44470
+      }
+    ],
+    "reviewed_repair_blobs_match_assembled_head": true,
+    "current_store_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+    "canonical_matrices_and_global_handoff_not_authored_by_this_slice": true,
+    "incoming_f07_main_actual_vs_receipt_all_match": true,
+    "owned_source_actual_vs_receipt_all_match": true,
+    "current_live_binding_reference": "live_readonly_validation.source_identities; complete source-before/source-after records are in the hashed full live receipt"
+  },
+  "capabilities": {
+    "strategy": "PUBLIC_JSON",
+    "declared": [
+      "DISCOVERY",
+      "APPLICATION_REDIRECT"
+    ],
+    "tenant": "default",
+    "adapter_defaults": {
+      "request_timeout_seconds": 10,
+      "rate_limit_per_minute": 60,
+      "concurrency": 1
+    },
+    "accepted_configuration_bounds": {
+      "request_timeout_seconds": [
+        2,
+        60
+      ],
+      "rate_limit_per_minute": [
+        1,
+        600
+      ],
+      "concurrency": [
+        1,
+        8
+      ]
+    },
+    "standalone_detail_fetch": false,
+    "salary_normalization": false,
+    "remote_metadata": false,
+    "direct_application": false,
+    "application_status": false,
+    "complete_inventory": false,
+    "absence_based_closure": false,
+    "submission_mode": "MANUAL_ONLY"
+  },
+  "collection_contract": {
+    "metadata_endpoint": "https://data.usajobs.gov/api/historicjoa",
+    "text_endpoint": "https://data.usajobs.gov/api/historicjoa/announcementtext",
+    "maximum_gets_per_search": 2,
+    "empty_selection_gets": 1,
+    "parameters": [
+      "PositionSeries",
+      "StartPositionOpenDate",
+      "EndPositionOpenDate"
+    ],
+    "position_series": "2210",
+    "utc_calendar_days": 7,
+    "max_selected": 25,
+    "selection_order": "Opening calendar date descending, then numeric control number descending; fixed newest subset before text enrichment",
+    "window": "Computed once per search from an aware clock, converted to UTC; current UTC date plus previous six dates. Current day can be partial.",
+    "metadata_rows_maximum": 1000,
+    "text_rows_maximum": 1000,
+    "response_bytes_maximum_each": 5000000,
+    "no_pagination": true,
+    "no_control_number_CSV": true,
+    "no_alternative_endpoint_or_protected_Search_API_fallback": true,
+    "no_internal_retry_loop": true,
+    "strict_decoding": "Only JSON media type and identity/no content encoding; rejects duplicate JSON keys, nonfinite numbers, invalid envelopes, malformed required fields and alias conflicts.",
+    "transport": "Verified-TLS SourceTransport; redirects and environment proxies disabled. Configured concurrency/rate, request deadline and remaining operation budget are enforced, with cooperative cancellation.",
+    "polling_interval_seconds": 0.05,
+    "stable_errors_and_cooldowns": {
+      "http_429": "SOURCE_RATE_LIMITED with parsed Retry-After",
+      "http_5xx": "SOURCE_SERVER_ERROR, minimum/default 300-second retry delay",
+      "other_non200": "SOURCE_UNAVAILABLE with 300-second retry delay",
+      "http_timeout": "SOURCE_TIMEOUT with 120-second retry delay",
+      "network_error": "SOURCE_NETWORK_ERROR with 120-second retry delay"
+    },
+    "collection_admission": "Existing source policy and persisted backoff govern scheduled/manual collection. Enrollment itself makes no provider request."
+  },
+  "identity_and_persistence": {
+    "native_posting_id": "Positive non-boolean signed-64-bit control number, serialized as a string",
+    "joined_identity_fields": [
+      "usajobsControlNumber",
+      "hiringAgencyCode",
+      "positionOpenDate",
+      "announcementNumber",
+      "hiringDepartmentCode"
+    ],
+    "native_company_identity": [
+      "usajobs",
+      "department_code",
+      "agency_code"
+    ],
+    "stable_company_label": "USAJOBS agency <agency_code>",
+    "upstream_names": "Nullable or changing agency/department display names remain separate source evidence; they do not determine identity.",
+    "all_metadata_validation": "Every row requires valid control/date, bounded collection/alias structure, occupational-series values and strict raw fingerprint before selection. Identical duplicates deduplicate; conflicting duplicates fail even if unselected.",
+    "selected_metadata_validation": "All selected rows require full native agency/department/announcement identity before the second request. No company-code inference or older-row backfill.",
+    "all_text_validation": "Every bounded text row requires selection keys, collection/alias structure and raw fingerprint; conflicting duplicate controls fail even when unselected.",
+    "selected_text_validation": "Every selected text row must match the complete native identity. Missing or mismatched selected text fails the search before domain persistence.",
+    "unselected_text": "Additional valid bulk rows are expected; they cannot create companies/postings/source items or fill a missing selected slot.",
+    "raw_envelope_keys": [
+      "metadata",
+      "announcement_text"
+    ],
+    "raw_envelope_preserved": true,
+    "snapshots": "Complete joined native objects retained in immutable posting snapshots; repeat identity is stable and changed source content appends history.",
+    "provenance": "Allowlisted services.discovery.sources.usajobs.USAJobs.normalize producer and helper fingerprint are persisted with normalized values; historical readback survives parser changes/database reopen and rejects unrelated/unknown providers and tampered/missing capture.",
+    "authority": "USAJOBS is a listing origin. Collector agency/company records do not gain verified employer domains, first-party ATS tenancy or automatic submission authority from this feed.",
+    "failure_atomicity": "Search joins finish before domain-item persistence. Missing/mismatched/conflicting enrichment leaves prior domain rows intact; failure-health bookkeeping is separate."
+  },
+  "normalization": {
+    "text": "Bounded sanitized announcement sections feed title, skills and requirements parsing; complete original provider records remain raw evidence.",
+    "dates": {
+      "source_open_date": "Validated native calendar date",
+      "source_close_date": "Unaltered native value",
+      "source_expire_date": "Unaltered native value",
+      "source_date_timezone": null,
+      "source_open_date_precision": "DATE",
+      "source_close_expire_date_precision": "DATE only for valid ISO date, otherwise UNKNOWN",
+      "reported_posted_at": null,
+      "reported_posted_at_raw": null
+    },
+    "explicit_lifecycle_map": {
+      "Accepting applications": "POSSIBLY_ACTIVE",
+      "Applications under review": "CLOSED",
+      "Reviewing applications": "CLOSED",
+      "Job closed": "CLOSED",
+      "Job canceled": "CLOSED",
+      "Position filled": "FILLED"
+    },
+    "lifecycle_limits": "CLOSED means an explicit no-longer-accepting-applications claim, not an inferred filled position. Null, unfamiliar status and Hiring complete remain UNKNOWN. Dates, rolling-window absence and empty batches do not establish lifecycle closure.",
+    "location": "Only explicit structured locations inform geography. Exact full US state names/codes normalize only with explicit US country; multiple locations remain preserved without arbitrarily choosing a country.",
+    "remote": "UNKNOWN; teleworkEligible is retained raw without inferring fully remote work, country eligibility or worldwide eligibility.",
+    "salary": "Normalized salary amount/currency/period remain unknown/null; source salary fields remain raw claims.",
+    "application_url": "https://www.usajobs.gov/job/<validated-control-number>",
+    "output_route_flags": {
+      "application_url_status": "CONSTRUCTED_UNVERIFIED",
+      "route_confirmation": "NOT_RUN",
+      "submission_capability": "MANUAL_ONLY"
+    },
+    "route_observation_does_not_promote_all_normalized_routes": true
+  },
+  "assembled_backend_verification": {
+    "scope": "Exact clean e9594dd8 with current protected Store: USAJobs unit, integration, provenance and shared adapter-contract modules",
+    "head": "e9594dd84868cc0828aca34da40cfb31d0029390",
+    "dirty_source": false,
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "-rs",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-bulk-e9594dd8.xml",
+      "tests/unit/test_usajobs_source.py",
+      "tests/integration/test_usajobs.py",
+      "tests/unit/test_usajobs_provenance.py",
+      "tests/unit/test_source_adapter_contract_223.py"
+    ],
+    "cwd": "C:\\Tools\\Dev\\MJobs-Web\\p6-usajobs-20261113-4dae",
+    "started_at_utc": "2026-11-13T05:41:29.542Z",
+    "finished_at_utc": "2026-11-13T05:41:44.768Z",
+    "counts": {
+      "passed": 220,
+      "subtests_passed": 0,
+      "junit_entries": 220,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pytest_elapsed_seconds": 13.92,
+    "returncode": 0,
+    "child_finished": true,
+    "source_unchanged": true,
+    "selected_source_bindings": {
+      "services/discovery/sources/usajobs.py": {
+        "git_blob": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+        "sha256": "86908a4fbe45154548e75564cb8b4e48060316d05143a111a3d4fc2a066e887d"
+      },
+      "tests/unit/test_usajobs_source.py": {
+        "git_blob": "95fd3f1fc9fc313a69ade7d5d530e3cbb84e50eb",
+        "sha256": "6c3e9395af2f7ae92d263a71195014338c67a228c688c3afb7631dd5e559af48"
+      },
+      "tests/integration/test_usajobs.py": {
+        "git_blob": "fa7e9618a2fe904f0bd9441813b39b332b47ac1e",
+        "sha256": "9c7b699bdcdb53711d91e163c27404b2d2f35dbfd7c90fbc2ad17a47bd0ca64c"
+      },
+      "tests/unit/test_usajobs_provenance.py": {
+        "git_blob": "e903b53e2071e7ef23adfb34ff6592cbb8dd7927",
+        "sha256": "a6d44dc4932daa23f60bbb6491c24aeda61e53433e0d1d48ce0d2a0b5afb986e"
+      },
+      "tests/unit/test_source_adapter_contract_223.py": {
+        "git_blob": "7020d9bef1263b9efe05eecbb27bcfb27abd24d1",
+        "sha256": "232ceb9ab440112d94d1c972fc2311737ccbec08d3e44c8d37c9da0b1b5ddbe9"
+      },
+      "packages/persistence/store.py": {
+        "git_blob": "ab3a3729b1eb5f71b4b9e6c595c5b4480c85810f",
+        "sha256": "1da863de0deca8c525bd9738b8bc59d745b7ae2958955ec96c7fa371065215a9"
+      }
+    },
+    "full_source_bindings_reference": "usajobs-bulk-e9594dd8.json",
+    "receipt": {
+      "name": "usajobs-bulk-e9594dd8.json",
+      "bytes": 5196,
+      "sha256": "23ddbc5743a05625b109c6aa32ae6200678dca590b249ae4bf52eeff080f4579"
+    },
+    "log": {
+      "name": "usajobs-bulk-e9594dd8.log",
+      "bytes": 346,
+      "sha256": "e2497c921054288424093660ab94384c56bf1bb3628e4bfac09623b46a1c49ec"
+    },
+    "junit": {
+      "name": "usajobs-bulk-e9594dd8.xml",
+      "bytes": 35195,
+      "sha256": "9c2b9e99dfeef85d0755452d705a53fd9299391d0a5ff631499f6346520bc72b"
+    }
+  },
+  "historical_backend_verification": [
+    {
+      "scope": "Earlier dirty implementation over 86cafb5c, including shared/F07 regressions. Provider950abd and old normalization tests; this is not current bulk-query execution.",
+      "head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+      "dirty_source": true,
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-backend-reviewed.xml",
+        "tests/unit/test_usajobs_source.py",
+        "tests/integration/test_usajobs.py",
+        "tests/unit/test_usajobs_provenance.py",
+        "tests/unit/test_arbeitnow_source.py",
+        "tests/integration/test_arbeitnow.py",
+        "tests/unit/test_arbeitnow_provenance.py",
+        "tests/unit/test_company_source_capabilities.py",
+        "tests/unit/test_company_source_contract_sustain_224.py",
+        "tests/unit/test_extension_point_contracts.py",
+        "tests/unit/test_source_adapter_contract_223.py",
+        "tests/unit/test_ai_prompt_versioning.py::PersistedPromptProvenanceTests",
+        "tests/integration/test_company_source_view.py::CompanySourceViewTests"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\p6-usajobs-20261113-4dae",
+      "started_at_utc": "2026-11-13T04:27:50.800Z",
+      "finished_at_utc": "2026-11-13T04:28:25.609Z",
+      "counts": {
+        "passed": 357,
+        "subtests_passed": 69,
+        "junit_entries": 426,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "pytest_elapsed_seconds": 32.62,
+      "returncode": 0,
+      "child_finished": true,
+      "source_unchanged": true,
+      "selected_source_bindings": {
+        "services/discovery/sources/usajobs.py": {
+          "git_blob": "950abd982a2592a36d5561dadec97650be33a962",
+          "sha256": "16e04bd4925bbd5c2de43f5c54cd7c4265fb409fdc76da56f7544eb5e41eff00"
+        },
+        "tests/unit/test_usajobs_source.py": {
+          "git_blob": "c440b68666f739d1d8900c57ab110da51a3f5f24",
+          "sha256": "0413d8434258b5011fb16ac553a1d36ef9bd19b2b3c99246eb2dc90984ac2cf6"
+        },
+        "tests/integration/test_usajobs.py": {
+          "git_blob": "a00083bc87b2c57f767eaeb220ed4dde152a2c76",
+          "sha256": "21f84c87b3306ac29e7af21e336394bf852b70eebe122ad06092eac44eabad33"
+        },
+        "tests/unit/test_usajobs_provenance.py": {
+          "git_blob": "5afb7454d55b006c2cb1ce830b1ec6fac5b44870",
+          "sha256": "4e51599097d46067b8339f6cb3dbf3e3baf7253f129276fcd644e52b21f8d66f"
+        },
+        "tests/unit/test_source_adapter_contract_223.py": {
+          "git_blob": "7020d9bef1263b9efe05eecbb27bcfb27abd24d1",
+          "sha256": "232ceb9ab440112d94d1c972fc2311737ccbec08d3e44c8d37c9da0b1b5ddbe9"
+        }
+      },
+      "full_source_bindings_reference": "usajobs-backend-reviewed.json",
+      "receipt": {
+        "name": "usajobs-backend-reviewed.json",
+        "bytes": 10741,
+        "sha256": "9b9bdc5d0a3cfa1f5a8bfcd8f2253d373f0e6b199db908882c28f71dd6071dbe"
+      },
+      "log": {
+        "name": "usajobs-backend-reviewed.log",
+        "bytes": 459,
+        "sha256": "40dc045445b5f3ad760c0a210afe8899a66644a4a7a77776fcee4e8ec6f098b2"
+      },
+      "junit": {
+        "name": "usajobs-backend-reviewed.xml",
+        "bytes": 58656,
+        "sha256": "6196489f6c5409905c1a762c0d7829311f3c863bd16d5b72180de86e30a1263a"
+      }
+    },
+    {
+      "scope": "Earlier dirty selection repair over d540098e, later committed as65e7b662. Old CSV enrichment flow; not current bulk-query execution.",
+      "head": "d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5",
+      "dirty_source": true,
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-selection-focused-d540.xml",
+        "tests/unit/test_usajobs_source.py",
+        "tests/integration/test_usajobs.py",
+        "tests/unit/test_usajobs_provenance.py",
+        "tests/unit/test_source_adapter_contract_223.py"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\p6-usajobs-20261113-4dae",
+      "started_at_utc": "2026-11-13T05:01:59.793Z",
+      "finished_at_utc": "2026-11-13T05:02:12.062Z",
+      "counts": {
+        "passed": 196,
+        "subtests_passed": 0,
+        "junit_entries": 196,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "pytest_elapsed_seconds": 11.38,
+      "returncode": 0,
+      "child_finished": true,
+      "source_unchanged": true,
+      "selected_source_bindings": {
+        "services/discovery/sources/usajobs.py": {
+          "git_blob": "d540290b6be99295b8fa107af1ffcf5958bccdb9",
+          "sha256": "2c3b9ab94e956012a5b02741eac88e1446fd2a1f1221533241bc3d02ceb32ec4"
+        },
+        "tests/unit/test_usajobs_source.py": {
+          "git_blob": "18006b43ee8b00838104190ce011f9efd246f2ab",
+          "sha256": "bdc38e641011772d648984e2b8014b81eda1bf69352091aad989ae08b163fcd5"
+        },
+        "tests/integration/test_usajobs.py": {
+          "git_blob": "a00083bc87b2c57f767eaeb220ed4dde152a2c76",
+          "sha256": "21f84c87b3306ac29e7af21e336394bf852b70eebe122ad06092eac44eabad33"
+        },
+        "tests/unit/test_usajobs_provenance.py": {
+          "git_blob": "5afb7454d55b006c2cb1ce830b1ec6fac5b44870",
+          "sha256": "4e51599097d46067b8339f6cb3dbf3e3baf7253f129276fcd644e52b21f8d66f"
+        },
+        "tests/unit/test_source_adapter_contract_223.py": {
+          "git_blob": "7020d9bef1263b9efe05eecbb27bcfb27abd24d1",
+          "sha256": "232ceb9ab440112d94d1c972fc2311737ccbec08d3e44c8d37c9da0b1b5ddbe9"
+        }
+      },
+      "full_source_bindings_reference": "usajobs-selection-focused-d540.json",
+      "receipt": {
+        "name": "usajobs-selection-focused-d540.json",
+        "bytes": 3746,
+        "sha256": "f52e9d5662d8d57aeadddfcf4252bca8a0cfb9c4e167b6148413d4992076b0b2"
+      },
+      "log": {
+        "name": "usajobs-selection-focused-d540.log",
+        "bytes": 265,
+        "sha256": "716cd78ca960054ca3926ccbebb289e11a6474799bf035abe591627d712d402f"
+      },
+      "junit": {
+        "name": "usajobs-selection-focused-d540.xml",
+        "bytes": 31305,
+        "sha256": "235652aacbbe1e777914d6d40ff107819784cbe8b0417b8b44a4f9335e64aacf"
+      },
+      "result_committed_as": "65e7b6623e39af408a6b78b0cf536a60234f3ebb",
+      "repair_receipt": {
+        "name": "usajobs-selection-repair-commit.json",
+        "bytes": 515,
+        "sha256": "83c27210c6e135650319d916450368bb3b8c4f969bace86267fadd93994d081f"
+      },
+      "root_review": {
+        "name": "usajobs-selection-repair-root-review.json",
+        "bytes": 985,
+        "sha256": "f2b8c9bfd640ebe47a42f62e4b64a9f0047ff04f7476112dea812235647b174a"
+      }
+    }
+  ],
+  "frontend_build": {
+    "status": "PASS_COMPONENT",
+    "tested_head": "d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5",
+    "command": [
+      "cmd",
+      "/c",
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "build"
+    ],
+    "started_at_utc": "2026-11-13T04:42:29.468Z",
+    "finished_at_utc": "2026-11-13T04:42:31.634Z",
+    "exit_code": 0,
+    "typescript_typecheck": "PASS",
+    "vite_production_build": "PASS",
+    "frontend_tree_at_execution": "fce045ae734db4d955b11f2f65c791c740f01f19",
+    "frontend_tree_at_e959": "fce045ae734db4d955b11f2f65c791c740f01f19",
+    "frontend_tree_identical": true,
+    "lock_sha256": "13c65a92fdfd93de6ce225abb10b86ed4764be906ed9ae939310221f1f67d4cd",
+    "receipt": {
+      "name": "usajobs-frontend-build-d540098e.json",
+      "bytes": 1997,
+      "sha256": "41f5c9143cca5b6a996b18a1469152f8764d6c52f7982140f99961754debbbc1"
+    },
+    "log": {
+      "name": "usajobs-frontend-build-d540098e.log",
+      "bytes": 905,
+      "sha256": "5aba96093810bd9636c4c2f4b271900dcea93b3019ea2f86bc08ba21a3f28319"
+    },
+    "artifact_hashes_rechecked": [
+      {
+        "name": "apps\\web\\dist\\assets\\index-BhLb-RrD.js",
+        "bytes": 995827,
+        "sha256": "cc3b4230548f570abee0f12f8d0c36c830d53829c38ec203fb174d8597fd2dba"
+      },
+      {
+        "name": "apps\\web\\dist\\assets\\index-BYoKyum1.css",
+        "bytes": 12090,
+        "sha256": "62f0bbf50c044d4ad96b705c424b3178792f69d174ffde337045c6b8232c2539"
+      },
+      {
+        "name": "apps\\web\\dist\\index.html",
+        "bytes": 411,
+        "sha256": "38fdedbad9abd0c9519aa16db46f163accce8cab9833570250f1310aee0f232b"
+      }
+    ],
+    "warning": "Vite reported a JavaScript chunk over500kB; build completed successfully.",
+    "scope_limit": "Historical frontend component build; no new assembled-head browser/build execution is claimed."
+  },
+  "browser_verification": {
+    "scope": "Real Chromium/React/FastAPI source enrollment in an isolated FIXTURE SQLite workspace at d540098e",
+    "head": "d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5",
+    "dirty_source": false,
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--tb=short",
+      "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-browser-d540098e.xml",
+      "tests/browser/test_usajobs_source_enrollment.py"
+    ],
+    "cwd": "C:\\Tools\\Dev\\MJobs-Web\\p6-usajobs-20261113-4dae",
+    "started_at_utc": "2026-11-13T04:44:25.330Z",
+    "finished_at_utc": "2026-11-13T04:44:33.269Z",
+    "counts": {
+      "passed": 1,
+      "subtests_passed": 0,
+      "junit_entries": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pytest_elapsed_seconds": 7.41,
+    "returncode": 0,
+    "child_finished": true,
+    "source_unchanged": true,
+    "selected_source_bindings": {
+      "services/discovery/sources/usajobs.py": {
+        "git_blob": "950abd982a2592a36d5561dadec97650be33a962",
+        "sha256": "16e04bd4925bbd5c2de43f5c54cd7c4265fb409fdc76da56f7544eb5e41eff00"
+      }
+    },
+    "full_source_bindings_reference": "usajobs-browser-d540098e.json",
+    "receipt": {
+      "name": "usajobs-browser-d540098e.json",
+      "bytes": 3183,
+      "sha256": "7d0749f7c0c524275c121ab99aef5d487416099835f4fab12ec63dba532f0a46"
+    },
+    "log": {
+      "name": "usajobs-browser-d540098e.log",
+      "bytes": 100,
+      "sha256": "886bbb7faa0541617c5df1c64918c5e46b2be974c60b257231099c3daf37cc98"
+    },
+    "junit": {
+      "name": "usajobs-browser-d540098e.xml",
+      "bytes": 434,
+      "sha256": "77dbb85c86b195a367a1a4d4ff08b211619df7fa02550e1ed9503832e4e2f6b8"
+    },
+    "frontend_and_enrollment_component_equivalence": [
+      {
+        "path": "apps/api/main.py",
+        "current": "c172440c68bca5884f1dfd183315a429771f617d",
+        "d540": "c172440c68bca5884f1dfd183315a429771f617d"
+      },
+      {
+        "path": "services/discovery/sources/registry.py",
+        "current": "6cc940eb4a1163b90a21923709416bd0edf5e5dc",
+        "d540": "6cc940eb4a1163b90a21923709416bd0edf5e5dc"
+      },
+      {
+        "path": "services/discovery/sources/collect.py",
+        "current": "98b1e57a31a51c2c1f0aacbafaf0093b2ed50530",
+        "d540": "98b1e57a31a51c2c1f0aacbafaf0093b2ed50530"
+      },
+      {
+        "path": "tests/browser/test_usajobs_source_enrollment.py",
+        "current": "75f1be2e61f2539e03a132fdeeb633c8a7c93c5d",
+        "d540": "75f1be2e61f2539e03a132fdeeb633c8a7c93c5d"
+      },
+      {
+        "path": "services/company_discovery/domains.py",
+        "current": "d7fe80a5a77bfc5034026618f258fc7e76053ff2",
+        "d540": "d7fe80a5a77bfc5034026618f258fc7e76053ff2"
+      },
+      {
+        "path": "packages/persistence/prompt_provenance.py",
+        "current": "f8c7579cc9b63166323dfda55f7c36226285c836",
+        "d540": "f8c7579cc9b63166323dfda55f7c36226285c836"
+      },
+      {
+        "path": "services/ai/prompt_provenance.py",
+        "current": "5d4fcc6f5eb8c5a8faced84d77cc792b26ad96b1",
+        "d540": "5d4fcc6f5eb8c5a8faced84d77cc792b26ad96b1"
+      },
+      {
+        "path": "workers/structured_logging.py",
+        "current": "57ce9fcad799abc482b7bf04fd7981a7ea4e2558",
+        "d540": "57ce9fcad799abc482b7bf04fd7981a7ea4e2558"
+      },
+      {
+        "path": "services/discovery/sources/http_transport.py",
+        "current": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "d540": "9b67f712daf745f996455fa3c82415d5439323dd"
+      }
+    ],
+    "browser_test_blob": "75f1be2e61f2539e03a132fdeeb633c8a7c93c5d",
+    "actual_environment": "Loopback Uvicorn/FastAPI, actual built React UI and Playwright Chromium, temporary SQLite; external browser requests aborted and asserted absent.",
+    "exercised": [
+      "Provider choice and default tenant without employer/account credential inputs",
+      "Actual PUT /sources and persisted readback with exact PUBLIC_JSON/DISCOVERY/APPLICATION_REDIRECT capabilities",
+      "Visible USAJOBS credit, bounded coverage and telework limitations after reload",
+      "Disablement retains the same source identity",
+      "Zero jobs, queued operations, applications, external requests or browser page errors"
+    ],
+    "scope_limit": "This did not collect live jobs or exercise an external application. The provider implementation and Store later changed; frontend/API/registry/test equivalence preserves component coverage but does not turn this into an e959 assembled-browser pass."
+  },
+  "ui_scope": {
+    "provider_label": "USAJOBS (recent federal IT)",
+    "credit_url": "https://www.usajobs.gov/",
+    "visible_limits": [
+      "Up to25 announcements opened in seven calendar days",
+      "Incomplete federal IT coverage; not every government job",
+      "Telework does not establish fully remote work",
+      "Unofficial MJobs integration, not operated or endorsed by OPM"
+    ],
+    "credential_fields_requested": false,
+    "automatic_collection_on_enrollment": false,
+    "external_application_submission": false
+  },
+  "initial_schema_probe": {
+    "status": "PASS_SCHEMA_OBSERVATION_ONLY",
+    "source_head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+    "started_at_utc": "2026-11-13T03:46:10.004Z",
+    "finished_at_utc": "2026-11-13T03:46:18.377Z",
+    "policy": {
+      "max_get_requests": 2,
+      "max_seconds_per_request": 20,
+      "max_decoded_response_bytes": 5000000,
+      "max_rows": 1000,
+      "tls_verify": true,
+      "trust_env": false,
+      "follow_redirects": false,
+      "request_retries": 0,
+      "credentials": false,
+      "follow_paging": false,
+      "crawl_job_pages": false,
+      "database_profile_application_actions": false,
+      "raw_response_saved": false,
+      "descriptions_or_contacts_printed": false
+    },
+    "window": {
+      "first_utc_date_inclusive": "2026-11-07",
+      "last_utc_date_inclusive": "2026-11-13",
+      "utc_calendar_days": 7,
+      "current_day_is_partial": true
+    },
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://data.usajobs.gov/api/historicjoa?PositionSeries=2210&StartPositionOpenDate=11-07-2026&EndPositionOpenDate=11-13-2026",
+        "parameters": {
+          "PositionSeries": "2210",
+          "StartPositionOpenDate": "11-07-2026",
+          "EndPositionOpenDate": "11-13-2026"
+        },
+        "http_status": 200,
+        "decoded_bytes": 187764,
+        "row_count": 117,
+        "paging_present": false,
+        "body_sha256": "27e30229c248297a5e289a293f2f59333c2200a52d4752e38b3f5da56f080088"
+      },
+      {
+        "method": "GET",
+        "url": "https://data.usajobs.gov/api/historicjoa/announcementtext?USAJOBSControlNumbers=891062900",
+        "parameters": {
+          "USAJOBSControlNumbers": "891062900"
+        },
+        "http_status": 200,
+        "decoded_bytes": 31992,
+        "row_count": 1,
+        "paging_present": false,
+        "body_sha256": "58ae05bbf1aed728346bf61bbe81481444a60d2abd18c4e5f906d48d3cccc055"
+      }
+    ],
+    "identity_and_open_date_match_count": 1,
+    "receipt": {
+      "name": "usajobs-public-probe.json",
+      "bytes": 10797,
+      "sha256": "6137d21a266a1051ccda41caf611166ed2759dd8dd106581f49af1cc344822fd"
+    },
+    "program": {
+      "name": "usajobs-public-probe.py",
+      "bytes": 16980,
+      "sha256": "3ec96bb8b218fe28958641941ebce5b03ecd86e0a09bb6b0a7beda7c0280ffef"
+    },
+    "scope_limit": "Two availability/schema GETs and one single-control join before the completed provider existed; not completed-adapter or bulk-query qualification."
+  },
+  "prior_failures_preserved": [
+    {
+      "phase": "Initial synthetic backend run",
+      "scope": "Initial dirty implementation over86cafb5c; failure preserved",
+      "head": "86cafb5cbaa656c5d32eb9c342969e199e4c7919",
+      "dirty_source": true,
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--tb=short",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-backend-initial.xml",
+        "tests/unit/test_usajobs_source.py",
+        "tests/integration/test_usajobs.py",
+        "tests/unit/test_usajobs_provenance.py",
+        "tests/unit/test_arbeitnow_source.py",
+        "tests/integration/test_arbeitnow.py",
+        "tests/unit/test_arbeitnow_provenance.py",
+        "tests/unit/test_company_source_capabilities.py",
+        "tests/unit/test_company_source_contract_sustain_224.py",
+        "tests/unit/test_extension_point_contracts.py",
+        "tests/unit/test_source_adapter_contract_223.py",
+        "tests/unit/test_ai_prompt_versioning.py::PersistedPromptProvenanceTests",
+        "tests/integration/test_company_source_view.py::CompanySourceViewTests"
+      ],
+      "cwd": "C:\\Tools\\Dev\\MJobs-Web\\p6-usajobs-20261113-4dae",
+      "started_at_utc": "2026-11-13T04:21:41.338Z",
+      "finished_at_utc": "2026-11-13T04:22:19.330Z",
+      "counts": {
+        "passed": 345,
+        "subtests_passed": 69,
+        "junit_entries": 415,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "pytest_elapsed_seconds": 35.27,
+      "returncode": 1,
+      "child_finished": true,
+      "source_unchanged": true,
+      "selected_source_bindings": {
+        "services/discovery/sources/usajobs.py": {
+          "git_blob": "14e2a299a8bab027253628aa2e2280a8a8e45e15",
+          "sha256": "56fe5fbb254e01bee8b4d28828039b8176979c7987ef5a9c9f05826959548d41"
+        },
+        "tests/unit/test_usajobs_source.py": {
+          "git_blob": "bebbf1243923b24df070cfea1847c4a68423e9e3",
+          "sha256": "64ed05785c62ae821b30bac9d5ef286041fadfbf2158f8cade0c0ff271dc3c08"
+        },
+        "tests/integration/test_usajobs.py": {
+          "git_blob": "a00083bc87b2c57f767eaeb220ed4dde152a2c76",
+          "sha256": "21f84c87b3306ac29e7af21e336394bf852b70eebe122ad06092eac44eabad33"
+        },
+        "tests/unit/test_usajobs_provenance.py": {
+          "git_blob": "5b49e61afed6534316be5c196f976effa92b286c",
+          "sha256": "825b5e5090fc39aec692a4265958f6b4d8c60387192c6326b368f1053bd29ffc"
+        },
+        "tests/unit/test_source_adapter_contract_223.py": {
+          "git_blob": "7020d9bef1263b9efe05eecbb27bcfb27abd24d1",
+          "sha256": "232ceb9ab440112d94d1c972fc2311737ccbec08d3e44c8d37c9da0b1b5ddbe9"
+        }
+      },
+      "full_source_bindings_reference": "usajobs-backend-initial.json",
+      "receipt": {
+        "name": "usajobs-backend-initial.json",
+        "bytes": 10739,
+        "sha256": "cd22f21deb7206439141a14de8daa7fe31ecf96ad7695392972125979d782ff1"
+      },
+      "log": {
+        "name": "usajobs-backend-initial.log",
+        "bytes": 1120,
+        "sha256": "e9225eb93efd80e1354ba4e41545f6e80ab80dd1e6cdba543119b4b19ccbce42"
+      },
+      "junit": {
+        "name": "usajobs-backend-initial.xml",
+        "bytes": 57061,
+        "sha256": "3ffebcfd5d532c08b358d7d1e852add6d0e6962cd26c7fe08662ac551b92bcf0"
+      },
+      "failure": "tests/unit/test_usajobs_provenance.py::test_persisted_parser_readback_rejects_changed_source_binding[replacement1]: expected PROVENANCE_BINDING_MISMATCH but no ValueError",
+      "resolution": "The final test asserts the actual captured producer/provider binding, with independent rejection of unrelated/unknown providers and tampered/missing capture. Historical parser identity and reopen behavior remain covered; initial failure is not erased."
+    },
+    {
+      "phase": "First production-adapter search",
+      "head": "d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5",
+      "provider_blob": "950abd982a2592a36d5561dadec97650be33a962",
+      "started_at_utc": "2026-11-13T04:48:00.812Z",
+      "finished_at_utc": "2026-11-13T04:48:03.898Z",
+      "status": "FAILED_SEARCH",
+      "error_code": "SOURCE_INVALID_JOB",
+      "search_invocations": 1,
+      "api_method_calls": 1,
+      "normalized_count": 0,
+      "route_requests": 0,
+      "limits": {
+        "search_invocations": 1,
+        "fixed_api_gets_maximum": 2,
+        "metadata_endpoint": "https://data.usajobs.gov/api/historicjoa",
+        "announcement_endpoint": "https://data.usajobs.gov/api/historicjoa/announcementtext",
+        "request_timeout_seconds": 20,
+        "rate_limit_per_minute": 6,
+        "concurrency": 1,
+        "global_deadline_seconds": 60,
+        "metadata_rows_maximum": 1000,
+        "selected_items_maximum": 25,
+        "decoded_api_response_bytes_maximum": 5000000,
+        "conditional_route_gets_maximum": 1,
+        "route_gate": "Only after successful search and normalization of every returned item, with a nonempty selection.",
+        "route_origin": "https://www.usajobs.gov",
+        "route_path": "/job/<validated selected numeric control number>",
+        "route_timeout_seconds": 15,
+        "decoded_route_response_bytes_maximum": 2000000,
+        "redirects_followed": 0,
+        "retries": 0,
+        "paging": 0,
+        "credentials": false,
+        "protected_search_fallback": false,
+        "persistence_operations_or_application_actions": false
+      },
+      "receipt": {
+        "name": "usajobs-live-production-d540098e.json",
+        "bytes": 16244,
+        "sha256": "b1d3ed94812abd0bc205752be83ac58e14e2edcbb915e9c7fa59f4a84adad9f8"
+      },
+      "program": {
+        "name": "usajobs-live-production-d540098e.py",
+        "bytes": 23750,
+        "sha256": "10e06303e369bc62c7bca17c39c373d9cbacd32b871094600b8a4cdf7ad9a676"
+      },
+      "diagnosis": {
+        "receipt": {
+          "name": "usajobs-metadata-diagnostic-d540098e.json",
+          "bytes": 14367,
+          "sha256": "ceab02f880ba7c013ef6bcac456de1f83bb16ad83a0b782581f08fff1551417d"
+        },
+        "request_count": 1,
+        "metadata_rows": 117,
+        "first_rejection_index": 47,
+        "invalid_agency_identity_rows": 3,
+        "other_selection_collection_series_fingerprint_checks": "All117 passed",
+        "explanation": "Three rows supplied an unsupported descriptive agency label instead of a code. The first implementation validated full agency identity before selecting the newest25."
+      },
+      "repair": "65e7b662 validates all selection keys/structure/fingerprints first, fixes the newest25 subset, then requires full identity for every selected row without agency inference or older-row backfill. The separately executed196-test proof is preserved above."
+    },
+    {
+      "phase": "Selection-repaired production-adapter search with former CSV text query",
+      "head": "65e7b6623e39af408a6b78b0cf536a60234f3ebb",
+      "provider_blob": "d540290b6be99295b8fa107af1ffcf5958bccdb9",
+      "started_at_utc": "2026-11-13T05:04:57.923Z",
+      "finished_at_utc": "2026-11-13T05:05:09.627Z",
+      "status": "FAILED_SEARCH",
+      "error_code": "SOURCE_UNAVAILABLE",
+      "selected_count": 25,
+      "normalized_count": 0,
+      "search_invocations": 1,
+      "api_method_calls": 2,
+      "route_requests": 0,
+      "former_query": {
+        "parameter": "USAJOBSControlNumbers",
+        "encoding": "25 comma-separated numeric controls"
+      },
+      "http_status_at_method_level": null,
+      "http_status_note": "This receipt did not observe the HTTP status; the separately authorized diagnostic below did.",
+      "limits": {
+        "search_invocations": 1,
+        "fixed_api_gets_maximum": 2,
+        "metadata_endpoint": "https://data.usajobs.gov/api/historicjoa",
+        "announcement_endpoint": "https://data.usajobs.gov/api/historicjoa/announcementtext",
+        "request_timeout_seconds": 20,
+        "rate_limit_per_minute": 6,
+        "concurrency": 1,
+        "global_deadline_seconds": 60,
+        "metadata_rows_maximum": 1000,
+        "selected_items_maximum": 25,
+        "decoded_api_response_bytes_maximum": 5000000,
+        "conditional_route_gets_maximum": 1,
+        "route_gate": "Only after successful search and normalization of every returned item, with a nonempty selection.",
+        "route_origin": "https://www.usajobs.gov",
+        "route_path": "/job/<validated selected numeric control number>",
+        "route_timeout_seconds": 15,
+        "decoded_route_response_bytes_maximum": 2000000,
+        "redirects_followed": 0,
+        "retries": 0,
+        "paging": 0,
+        "credentials": false,
+        "protected_search_fallback": false,
+        "persistence_operations_or_application_actions": false
+      },
+      "receipt": {
+        "name": "usajobs-live-production-65e7b662.json",
+        "bytes": 21108,
+        "sha256": "dde623b7a05d31afd2e57944a45cf927a9e5d41146f15e2b00b56b0d45a77974"
+      },
+      "program": {
+        "name": "usajobs-live-production-65e7b662.py",
+        "bytes": 24884,
+        "sha256": "526590391a6f0c7721bb5517f9d41bdd31a1a5096ed2514a990308b4be1cbb60"
+      }
+    },
+    {
+      "phase": "Separately bounded same-query HTTP refusal diagnostic",
+      "head": "65e7b6623e39af408a6b78b0cf536a60234f3ebb",
+      "status": "HTTP_400_INTEGER_VALUE_REFUSAL_OBSERVED",
+      "started_at_utc": "2026-11-13T05:15:05.770Z",
+      "finished_at_utc": "2026-11-13T05:15:07.523Z",
+      "request_count": 1,
+      "same_query_as_failed_search": true,
+      "search_invocations": 0,
+      "route_requests": 0,
+      "http_status": 400,
+      "production_error_code": "SOURCE_UNAVAILABLE",
+      "reason": "Preserved298-byte error body rejected the comma-separated control value as an integer.",
+      "limits": {
+        "fixed_announcement_text_gets": 1,
+        "metadata_gets": 0,
+        "search_invocations": 0,
+        "route_gets": 0,
+        "retries": 0,
+        "redirects": 0,
+        "request_timeout_seconds": 20,
+        "global_deadline_seconds": 60,
+        "not_before_utc": "2026-11-13T05:10:10Z",
+        "non200_error_body_capture_bytes_maximum": 65536,
+        "decoded_success_payload_bytes_maximum": 5000000,
+        "tls_verify": true,
+        "check_hostname": true,
+        "trust_env": false,
+        "credentials": false,
+        "persistence_or_application_actions": false
+      },
+      "error_body": {
+        "name": "usajobs-announcement-refusal-65e7b662.error-body.bin",
+        "bytes": 298,
+        "sha256": "778629c71dcb0a67780f9bb9e2a9364f7119cd9d7137d8ce9ecd9d5df1582baf"
+      },
+      "receipt": {
+        "name": "usajobs-announcement-refusal-65e7b662.json",
+        "bytes": 14118,
+        "sha256": "5722e04910c81f41c15656308df1832e1846f4d219da1fb3f4ab340f81e71a20"
+      },
+      "program": {
+        "name": "usajobs-announcement-refusal-65e7b662.py",
+        "bytes": 16945,
+        "sha256": "8762b00dc0096f75a824e78e40643a884d1cddfa5389a5e59227ea4855d8d332"
+      },
+      "scope_limit": "Diagnostic success is not provider-search success. No syntax variation, retry loop, paging or protected-API fallback was exercised.",
+      "repair": "Current source uses the documented same series/date bulk filters for both fixed endpoints; its separate actual qualification follows."
+    }
+  ],
+  "live_readonly_validation": {
+    "status": "PASS_BOUNDED_BULK_AND_ROUTE_OBSERVATION",
+    "tested_head": "e9594dd84868cc0828aca34da40cfb31d0029390",
+    "tested_tree": "0fba5a86d6fcad22d75d9c0d75ed176a61c29991",
+    "provider_blob": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+    "started_at_utc": "2026-11-13T05:46:48.243Z",
+    "finished_at_utc": "2026-11-13T05:47:07.535Z",
+    "elapsed_seconds": 19.297,
+    "exit_code": 0,
+    "receipt": {
+      "name": "usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.json",
+      "bytes": 38842,
+      "sha256": "72a8ace53010e5dfd154b4c528f0404311d0af8b9af475a1e9ff117d8f25c060"
+    },
+    "launch_receipt": {
+      "name": "usajobs-live-bulk-e9594dd8-launch.json",
+      "bytes": 948,
+      "sha256": "49b334b27a2ba060cec8ed2594c1557f281aaf9d0c8833bf810099d9edaaa503"
+    },
+    "launch_log": {
+      "name": "usajobs-live-bulk-e9594dd8-launch.log",
+      "bytes": 701,
+      "sha256": "300f82749e21b566d46978f783fdd085c4c23ba90b6db6be8d89246f769e3421"
+    },
+    "program": {
+      "name": "usajobs-live-bulk-qualification.py",
+      "bytes": 42210,
+      "sha256": "ead2f08f3a814b79c22882efabfa4c53ce59567531351f29be786eab8a68e4c1"
+    },
+    "runner_review": {
+      "receipt": {
+        "name": "usajobs-live-bulk-root-runner-review.json",
+        "bytes": 853,
+        "sha256": "27f86d32c0b6f5e75cd4258017e01228bf1edc23feacff505b13934be5d40b8c"
+      },
+      "source_author": "/root/p6_readonly",
+      "root_reviewer": "/root",
+      "author_program_sha256": "16eabfe36b66a0fba357ab43152201ddd2616cfef35c2c892bd43919fbb8b88c",
+      "executed_program_sha256": "ead2f08f3a814b79c22882efabfa4c53ce59567531351f29be786eab8a68e4c1",
+      "preflight_corrections": [
+        "Full native owner record equals private receipt before reads",
+        "Conflicts include ACTIVE and PAUSED_READY for every other claim key, including same-run; exact owner key alone excluded"
+      ],
+      "review_execution_state_at_creation": "NOT_RUN; later launch/full receipt records the actual execution"
+    },
+    "runtime": {
+      "python": "3.12.10",
+      "python_executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "httpx": "0.28.1",
+      "httpcore": "1.0.9",
+      "openssl": "OpenSSL 3.0.16 11 Feb 2025"
+    },
+    "executed_argv": [
+      "C:\\Users\\Dylan\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-live-bulk-qualification.py",
+      "--expected-head",
+      "e9594dd84868cc0828aca34da40cfb31d0029390"
+    ],
+    "cwd": "C:\\Tools\\Dev\\MJobs-Web\\p6-usajobs-20261113-4dae",
+    "limits": {
+      "search_invocations": 1,
+      "api_gets": 2,
+      "route_gets": 1,
+      "api_request_timeout_seconds": 20,
+      "rate_limit_rpm": 6,
+      "concurrency": 1,
+      "global_operation_seconds": 60,
+      "api_response_bytes": 5000000,
+      "rows_per_response": 1000,
+      "selected_items": 25,
+      "error_body_capture_bytes": 65536,
+      "route_timeout_seconds": 15,
+      "route_response_bytes": 2000000
+    },
+    "instrumentation": [
+      "Pass-through instance _request observer calls the original bound method with unchanged arguments.",
+      "Pass-through httpx.Client.send observer calls the original send with unchanged arguments.",
+      "HTTP 200 responses return untouched for production streaming and strict decoding.",
+      "Non200 bodies are read diagnostically up to 64KiB, saved privately, then the same response is returned.",
+      "Diagnostic error-body reads consume the original request deadline; an observed HTTP error can coexist with a later local read limit.",
+      "Decoded successful payloads are canonically reserialized for private offline diagnosis; canonical byte counts are not wire byte counts."
+    ],
+    "cooldown": {
+      "receipt": "C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f\\usajobs-announcement-refusal-65e7b662.json",
+      "receipt_sha256": "5722e04910c81f41c15656308df1832e1846f4d219da1fb3f4ab340f81e71a20",
+      "prior_wire_send_at_utc": "2026-11-13T05:15:06.635564+00:00",
+      "prior_finish_at_utc": "2026-11-13T05:15:07.523946+00:00",
+      "minimum_seconds_after_prior_call": 300,
+      "not_before_utc": "2026-11-13T05:20:10+00:00"
+    },
+    "requests": [
+      {
+        "ordinal": 1,
+        "endpoint": "https://data.usajobs.gov/api/historicjoa",
+        "method": "GET",
+        "parameters": {
+          "PositionSeries": "2210",
+          "StartPositionOpenDate": "11-07-2026",
+          "EndPositionOpenDate": "11-13-2026"
+        },
+        "status": "DECODED_RESPONSE_RETURNED",
+        "http_send_invocations": 1,
+        "http_status": 200,
+        "response_content_type": "application/json; charset=utf-8",
+        "response_content_encoding": null,
+        "exact_response_url": true,
+        "redirects_followed": 0,
+        "row_count": 117,
+        "canonical_payload_bytes": 187647,
+        "canonical_payload_sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8",
+        "payload_artifact": {
+          "name": "usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.api1-metadata.json",
+          "bytes": 187647,
+          "sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8"
+        },
+        "byte_count_semantics": "Canonical serialization of successful decoded JSON; not wire-byte count. Production response enforcement remains 5000000 bytes.",
+        "started_at_utc": "2026-11-13T05:46:49.344Z",
+        "wire_send_started_at_utc": "2026-11-13T05:46:49.538Z",
+        "finished_at_utc": "2026-11-13T05:46:50.947Z",
+        "elapsed_seconds": 1.594,
+        "transport_policy": {
+          "type": "services.discovery.sources.http_transport.SourceTransport",
+          "tls_verify_mode": 2,
+          "check_hostname": true,
+          "trust_env": false,
+          "follow_redirects": false,
+          "transport_retries": 0,
+          "credential_or_cookie_header_present": false
+        }
+      },
+      {
+        "ordinal": 2,
+        "endpoint": "https://data.usajobs.gov/api/historicjoa/announcementtext",
+        "method": "GET",
+        "parameters": {
+          "PositionSeries": "2210",
+          "StartPositionOpenDate": "11-07-2026",
+          "EndPositionOpenDate": "11-13-2026"
+        },
+        "status": "DECODED_RESPONSE_RETURNED",
+        "http_send_invocations": 1,
+        "http_status": 200,
+        "response_content_type": "application/json; charset=utf-8",
+        "response_content_encoding": null,
+        "exact_response_url": true,
+        "redirects_followed": 0,
+        "row_count": 117,
+        "canonical_payload_bytes": 2611448,
+        "canonical_payload_sha256": "33a43e0d4fdbc73a499d5df4da60c65ee5e49e64310e0d727e920976165cdd01",
+        "payload_artifact": {
+          "name": "usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.api2-announcement-text.json",
+          "bytes": 2611448,
+          "sha256": "33a43e0d4fdbc73a499d5df4da60c65ee5e49e64310e0d727e920976165cdd01"
+        },
+        "byte_count_semantics": "Canonical serialization of successful decoded JSON; not wire-byte count. Production response enforcement remains 5000000 bytes.",
+        "started_at_utc": "2026-11-13T05:46:50.953Z",
+        "wire_send_started_at_utc": "2026-11-13T05:46:59.567Z",
+        "finished_at_utc": "2026-11-13T05:47:05.099Z",
+        "elapsed_seconds": 14.141,
+        "transport_policy": {
+          "type": "services.discovery.sources.http_transport.SourceTransport",
+          "tls_verify_mode": 2,
+          "check_hostname": true,
+          "trust_env": false,
+          "follow_redirects": false,
+          "transport_retries": 0,
+          "credential_or_cookie_header_present": false
+        }
+      }
+    ],
+    "network_calls": {
+      "adapter_search_invocations": 1,
+      "fixed_api_method_calls": 2,
+      "api_httpx_send_invocations": 2,
+      "constructed_route_httpx_send_invocations": 1,
+      "http_retries": 0,
+      "pagination_requests": 0,
+      "alternative_queries": 0,
+      "authentication_or_protected_search_requests": 0
+    },
+    "metadata_rows": 117,
+    "text_rows": 117,
+    "eligible_metadata_rows_in_this_observation": 117,
+    "selected_count": 25,
+    "deterministic_selection_order_verified_from_saved_metadata": true,
+    "selected_order_and_identity": [
+      {
+        "selection_rank": 1,
+        "control_number": 892518400,
+        "agency_code": "HSAC",
+        "department_code": "HS",
+        "opening_date": "2026-11-13",
+        "announcement_number": "27-13083657-HQVP-DHA",
+        "identity_sha256": "c78196164385a700d7b88111b08fadf0dc17fe41ef84b45a406769c3281bc322"
+      },
+      {
+        "selection_rank": 2,
+        "control_number": 892455400,
+        "agency_code": "NV19",
+        "department_code": "NV",
+        "opening_date": "2026-11-13",
+        "announcement_number": "DE-13114607-27-HLM",
+        "identity_sha256": "ade2c63955ecd6cf9f7b07bcda57dad21be6058c30583a171413742f9c9de90b"
+      },
+      {
+        "selection_rank": 3,
+        "control_number": 892289000,
+        "agency_code": "NV25",
+        "department_code": "NV",
+        "opening_date": "2026-11-13",
+        "announcement_number": "ST-13112536-27-JDA",
+        "identity_sha256": "adbea2a7cf55ccbba0757e2d8d4866017d173f138a8715d2275f0920b25d5466"
+      },
+      {
+        "selection_rank": 4,
+        "control_number": 892541600,
+        "agency_code": "SZ00",
+        "department_code": "SZ",
+        "opening_date": "2026-11-12",
+        "announcement_number": "SSA-13102026-MP27-OIG",
+        "identity_sha256": "db8cef574f44276d8208e4edabc5f31c7e14ed236a050e417ec8d90de472ea86"
+      },
+      {
+        "selection_rank": 5,
+        "control_number": 892519700,
+        "agency_code": "NV25",
+        "department_code": "NV",
+        "opening_date": "2026-11-12",
+        "announcement_number": "DE-13114516-27-MRW",
+        "identity_sha256": "bfa414d52e4634016b9f3bdbe521b28324e4608444c0e413b6de42d4779fe26a"
+      },
+      {
+        "selection_rank": 6,
+        "control_number": 892507100,
+        "agency_code": "HE70",
+        "department_code": "HE",
+        "opening_date": "2026-11-12",
+        "announcement_number": "CMS-CMCS-27-13114185-DE",
+        "identity_sha256": "4ac6bd3c4b227994ac9999ff277a2264ff8f56f65aaac0fe8a7e9cdbe37ffbeb"
+      },
+      {
+        "selection_rank": 7,
+        "control_number": 892498400,
+        "agency_code": "DJ01",
+        "department_code": "DJ",
+        "opening_date": "2026-11-12",
+        "announcement_number": "JMD-OCIO-27-13104089-ST",
+        "identity_sha256": "f7593725567342a3e10c2a2ab4e070475992333059efd6d28e8cc36f0b52e782"
+      },
+      {
+        "selection_rank": 8,
+        "control_number": 892464400,
+        "agency_code": "ART2",
+        "department_code": "AR",
+        "opening_date": "2026-11-12",
+        "announcement_number": "DAKB-26-13112644-CES",
+        "identity_sha256": "53021d7acd96083697b75d201f865c54f6c7aedbbf1351c16c1103209fb7133a"
+      },
+      {
+        "selection_rank": 9,
+        "control_number": 892459000,
+        "agency_code": "SZ00",
+        "department_code": "SZ",
+        "opening_date": "2026-11-12",
+        "announcement_number": "SSA-13112344-MP27-CIO",
+        "identity_sha256": "fbdab6b22dcbafe153e09a6e1cb9858117307704aac751e4b95f4d6150b24d97"
+      },
+      {
+        "selection_rank": 10,
+        "control_number": 892372800,
+        "agency_code": "AR2A",
+        "department_code": "AR",
+        "opening_date": "2026-11-12",
+        "announcement_number": "DAKB-26-13113680-CES",
+        "identity_sha256": "d1355e75dbd8d1ad0d83722e3cf1a9a230a78fb77565b423c893b2e2d1f2c79e"
+      },
+      {
+        "selection_rank": 11,
+        "control_number": 892236300,
+        "agency_code": "SZ00",
+        "department_code": "SZ",
+        "opening_date": "2026-11-12",
+        "announcement_number": "SSA-13112377-MP27-CIO",
+        "identity_sha256": "b26bc8aa1b72b4c540cdeea8acb1cfad8f304c71ad29b4403d7dc5deb09a33f5"
+      },
+      {
+        "selection_rank": 12,
+        "control_number": 892199900,
+        "agency_code": "NV19",
+        "department_code": "NV",
+        "opening_date": "2026-11-12",
+        "announcement_number": "DE-13112995-27-TEG",
+        "identity_sha256": "f10547b555b46f7e56edb0a6af1466ea330adae4a573ba5fc9213a25348b5b09"
+      },
+      {
+        "selection_rank": 13,
+        "control_number": 891062900,
+        "agency_code": "HSBD",
+        "department_code": "HS",
+        "opening_date": "2026-11-12",
+        "announcement_number": "OIT-IMP-13100987-LEB",
+        "identity_sha256": "0b62fba52e5f7afa8c8975a1087b4a1b83900ee1b823a8743f149edde7b40664"
+      },
+      {
+        "selection_rank": 14,
+        "control_number": 892397500,
+        "agency_code": "ARNG",
+        "department_code": "AR",
+        "opening_date": "2026-11-11",
+        "announcement_number": "MD-13110958-AR-27-031",
+        "identity_sha256": "efc18c955b988579b28641317f9858a7aee8bcd5f33e8b13c7157282bed2292a"
+      },
+      {
+        "selection_rank": 15,
+        "control_number": 892362600,
+        "agency_code": "DD69",
+        "department_code": "DD",
+        "opening_date": "2026-11-11",
+        "announcement_number": "NDU-27-13098080-EB",
+        "identity_sha256": "355421e095a85448ab7962493c178f1af8a7b9a2d1019eadab56cba0b4ba8e71"
+      },
+      {
+        "selection_rank": 16,
+        "control_number": 892361800,
+        "agency_code": "DD69",
+        "department_code": "DD",
+        "opening_date": "2026-11-11",
+        "announcement_number": "NDU-27-13098169-EB",
+        "identity_sha256": "cef4f7590e183c4509cd4f14f402dc774938477880bf291869d4a2cfb5a94ffc"
+      },
+      {
+        "selection_rank": 17,
+        "control_number": 892297100,
+        "agency_code": "DD60",
+        "department_code": "DD",
+        "opening_date": "2026-11-11",
+        "announcement_number": "HQ-KF-26-13113254-DHA",
+        "identity_sha256": "d92d6f443242df7e76986fd3a5a1f79637da9616fe64c77e6a59282aba5ca2e0"
+      },
+      {
+        "selection_rank": 18,
+        "control_number": 892546200,
+        "agency_code": "LL01",
+        "department_code": "LL",
+        "opening_date": "2026-11-10",
+        "announcement_number": "req1126",
+        "identity_sha256": "2d3713615063f0bccb4a0666802aa6eb8342755a45fa1ffb356b6911ab137c5f"
+      },
+      {
+        "selection_rank": 19,
+        "control_number": 892507000,
+        "agency_code": "TRAJ",
+        "department_code": "TR",
+        "opening_date": "2026-11-10",
+        "announcement_number": "MP-WT-27-5598-13114501",
+        "identity_sha256": "2a9eb39a19d37d1d96cc459244a426e48ea7cf358af4297d31cae725709039af"
+      },
+      {
+        "selection_rank": 20,
+        "control_number": 892506800,
+        "agency_code": "HSCB",
+        "department_code": "HS",
+        "opening_date": "2026-11-10",
+        "announcement_number": "JGE-13107403-IMAT",
+        "identity_sha256": "0254d789e808696f97cd4de69a84dfdd0a92a1ae2c0072577ec0318f3cd3a10d"
+      },
+      {
+        "selection_rank": 21,
+        "control_number": 892506200,
+        "agency_code": "TRAJ",
+        "department_code": "TR",
+        "opening_date": "2026-11-10",
+        "announcement_number": "DEU-WT-27-5599-13114921",
+        "identity_sha256": "8c0e5ba8424028060da1e09c24b103e033e72844dee59907a2b571ebbe2bdad0"
+      },
+      {
+        "selection_rank": 22,
+        "control_number": 892458900,
+        "agency_code": "AFNG",
+        "department_code": "AF",
+        "opening_date": "2026-11-10",
+        "announcement_number": "WI-13113552-Air-27-040",
+        "identity_sha256": "b90f37cd55e9aa2a04567ba6545e9bba578b6a459158defe45bee41c4dc64f48"
+      },
+      {
+        "selection_rank": 23,
+        "control_number": 892455000,
+        "agency_code": "SB00",
+        "department_code": "SB",
+        "opening_date": "2026-11-10",
+        "announcement_number": "27-018-TLM-MP",
+        "identity_sha256": "b727b7eeb457c51ca3a39be4ab22a489089665e24bff4a9ab8378df64cf5eef1"
+      },
+      {
+        "selection_rank": 24,
+        "control_number": 892454800,
+        "agency_code": "SB00",
+        "department_code": "SB",
+        "opening_date": "2026-11-10",
+        "announcement_number": "27-018-TLM-DE",
+        "identity_sha256": "cfcfe9312499d779c22c84c5ac254155e36ace01ca17aa1f8dcc8cbfa162ccf3"
+      },
+      {
+        "selection_rank": 25,
+        "control_number": 892447400,
+        "agency_code": "AR2A",
+        "department_code": "AR",
+        "opening_date": "2026-11-10",
+        "announcement_number": "DAKB-27-13103865-CES",
+        "identity_sha256": "86a39d1c70d1a90e2922565dcb5c80a67e1012f669be3a588ba36f96810614d5"
+      }
+    ],
+    "normalization": {
+      "status": "PASS",
+      "attempted": 25,
+      "succeeded": 25,
+      "error_counts": {},
+      "lifecycle_counts": {
+        "UNKNOWN": 13,
+        "POSSIBLY_ACTIVE": 12
+      },
+      "raw_immutability_verified": true,
+      "joined_identifiers_all_match": true
+    },
+    "normalization_failures": [],
+    "error_counts": {},
+    "errors": [],
+    "final_health": "HEALTHY",
+    "complete_inventory": false,
+    "source_unchanged": true,
+    "program_unchanged": true,
+    "history": {
+      "artifact_count": 11,
+      "all_preserved": true,
+      "independent_hash_readback": [
+        {
+          "name": "usajobs-live-production-d540098e.py",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-live-production-d540098e.json",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-metadata-diagnostic-d540098e.py",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-metadata-diagnostic-d540098e.json",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-metadata-diagnostic-d540098e.metadata.json",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-live-production-65e7b662.py",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-live-production-65e7b662.json",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-live-production-65e7b662.api1-metadata.json",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-announcement-refusal-65e7b662.py",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-announcement-refusal-65e7b662.json",
+          "found": true,
+          "match": true
+        },
+        {
+          "name": "usajobs-announcement-refusal-65e7b662.error-body.bin",
+          "found": true,
+          "match": true
+        }
+      ],
+      "preserved_artifact_hashes": {
+        "usajobs-live-production-d540098e.py": "10e06303e369bc62c7bca17c39c373d9cbacd32b871094600b8a4cdf7ad9a676",
+        "usajobs-live-production-d540098e.json": "b1d3ed94812abd0bc205752be83ac58e14e2edcbb915e9c7fa59f4a84adad9f8",
+        "usajobs-metadata-diagnostic-d540098e.py": "f83a46c33ff0ca90e5fa99156cd4650323302b12074305a46ebfbfac383f8182",
+        "usajobs-metadata-diagnostic-d540098e.json": "ceab02f880ba7c013ef6bcac456de1f83bb16ad83a0b782581f08fff1551417d",
+        "usajobs-metadata-diagnostic-d540098e.metadata.json": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8",
+        "usajobs-live-production-65e7b662.py": "526590391a6f0c7721bb5517f9d41bdd31a1a5096ed2514a990308b4be1cbb60",
+        "usajobs-live-production-65e7b662.json": "dde623b7a05d31afd2e57944a45cf927a9e5d41146f15e2b00b56b0d45a77974",
+        "usajobs-live-production-65e7b662.api1-metadata.json": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8",
+        "usajobs-announcement-refusal-65e7b662.py": "8762b00dc0096f75a824e78e40643a884d1cddfa5389a5e59227ea4855d8d332",
+        "usajobs-announcement-refusal-65e7b662.json": "5722e04910c81f41c15656308df1832e1846f4d219da1fb3f4ab340f81e71a20",
+        "usajobs-announcement-refusal-65e7b662.error-body.bin": "778629c71dcb0a67780f9bb9e2a9364f7119cd9d7137d8ce9ecd9d5df1582baf"
+      },
+      "recorded_before_and_after_equal": true
+    },
+    "offline_artifact_readback": "No new network calls: saved metadata/text contained117 rows each; each of25 selected controls had one matching full native identity in both responses and the recorded order matched newest date then numeric control.",
+    "route_observation": {
+      "status": "OFFICIAL_SAME_HOST_HTTP_200_OBSERVED",
+      "url": "https://www.usajobs.gov/job/892518400",
+      "method": "GET",
+      "started_at_utc": "2026-11-13T05:47:05.988569+00:00",
+      "decoded_bytes": 139637,
+      "redirects_followed": 0,
+      "successful_body_saved": false,
+      "page_identity_or_application_flow_validated": false,
+      "transport_policy": {
+        "type": "services.discovery.sources.http_transport.SourceTransport",
+        "tls_verify_mode": 2,
+        "check_hostname": true,
+        "trust_env": false,
+        "follow_redirects": false,
+        "transport_retries": 0,
+        "credential_or_cookie_header_present": false
+      },
+      "wire_send_started_at_utc": "2026-11-13T05:47:06.273721+00:00",
+      "seconds_since_prior_call": 1919.638157,
+      "response": {
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "retry_after": null,
+        "content_encoding": null,
+        "declared_content_length": null,
+        "headers_received_at_utc": "2026-11-13T05:47:06.609253+00:00",
+        "exact_response_url": true,
+        "redirects_followed": 0
+      },
+      "exact_requested_url": true,
+      "same_official_host": true,
+      "declared_content_length": null,
+      "body_sha256": "9d1bf3edcd008babba59941ba2b83eb8b549d7aa104b84790124858d54006ea2",
+      "body_complete": true,
+      "reason": "BOUNDED_HTTP_RESPONSE_ONLY",
+      "finished_at_utc": "2026-11-13T05:47:06.662173+00:00",
+      "elapsed_seconds": 0.672
+    },
+    "route_limit": "One constructed official URL returned HTTP200 with exact same host, no redirect and a complete bounded139637-byte body. Page identity, application instructions/flow and employer submission routes were not proved.",
+    "persistence_or_application_actions": false,
+    "credentials_or_login": false,
+    "acceptance_promoted": false,
+    "source_identities": {
+      "services/discovery/sources/usajobs.py": {
+        "git_blob": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+        "working_git_blob": "c7afc9720e0a658d1d9d3f70245a1d465bcd51ad",
+        "sha256": "86908a4fbe45154548e75564cb8b4e48060316d05143a111a3d4fc2a066e887d",
+        "bytes": 25540
+      },
+      "services/discovery/sources/http_transport.py": {
+        "git_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "working_git_blob": "9b67f712daf745f996455fa3c82415d5439323dd",
+        "sha256": "64db749e005529e10dd6f8e258ae37b48f5f84d4e811624d5392e0db22d147f1",
+        "bytes": 10445
+      },
+      "services/discovery/sources/contract.py": {
+        "git_blob": "6ed7d7fe9b60d871b001c2e8ec9e53e62a7b0424",
+        "working_git_blob": "6ed7d7fe9b60d871b001c2e8ec9e53e62a7b0424",
+        "sha256": "f9a0d473a017fdf7d3efca5fa2b002e107207c27db34f758a6c075f1401cdf9c",
+        "bytes": 1951
+      },
+      "services/discovery/sources/errors.py": {
+        "git_blob": "28183d9b8fea686cf9d9577d8e98090cdcc8e68e",
+        "working_git_blob": "28183d9b8fea686cf9d9577d8e98090cdcc8e68e",
+        "sha256": "56db073c314c6f04d65618c2a28ac7819b2d7b8adc321e7b1f774e1f52aac66f",
+        "bytes": 258
+      },
+      "services/discovery/sources/retry_after.py": {
+        "git_blob": "a6bcd65c970c3ffe499f0d8938e3eb341d90d84d",
+        "working_git_blob": "a6bcd65c970c3ffe499f0d8938e3eb341d90d84d",
+        "sha256": "e2b9ba7dccd162ff2129554e6a77af619ae65553be6be24c725bf89b3b4163e1",
+        "bytes": 3469
+      },
+      "services/discovery/sources/structured_text.py": {
+        "git_blob": "bbb02f329756425df238324095786a33ffbbc246",
+        "working_git_blob": "bbb02f329756425df238324095786a33ffbbc246",
+        "sha256": "1343eb4a9cf3e5693f10727c08879ce055d775b416431b6b8491aa1c50c3a84d",
+        "bytes": 2255
+      },
+      "services/discovery/negative_filters.py": {
+        "git_blob": "63edf77b33bfb996c1a9affa86f3bbc1c644871f",
+        "working_git_blob": "63edf77b33bfb996c1a9affa86f3bbc1c644871f",
+        "sha256": "a39f604f0560003842a5caa48e4b5dffd344538e54201fdcb90b0dd910628ec1",
+        "bytes": 3193
+      },
+      "services/discovery/requirement_parsers.py": {
+        "git_blob": "b1ab04eaf7cc08b48c2ccc33e57e06331a1db793",
+        "working_git_blob": "b1ab04eaf7cc08b48c2ccc33e57e06331a1db793",
+        "sha256": "f2cb5c1385dfd8b48b71b72f96722627e5f4b6e45cedbe89a203222e159d6dde",
+        "bytes": 19639
+      },
+      "services/discovery/search_semantics.py": {
+        "git_blob": "adc2952d3cbf53f9fbc033797484957e899a3e8f",
+        "working_git_blob": "adc2952d3cbf53f9fbc033797484957e899a3e8f",
+        "sha256": "e9330f2f5c2fbb3d11335d50878213a1e1ea0aac7e28ec1390ac57980e2bc4d3",
+        "bytes": 39196
+      },
+      "services/discovery/skill_taxonomy.py": {
+        "git_blob": "dec519e509939724687860253fecbc3d8ac45093",
+        "working_git_blob": "dec519e509939724687860253fecbc3d8ac45093",
+        "sha256": "0653b171b3183471e0af18a68eaa0e6c0a24b70e0454f98521f00e82192538be",
+        "bytes": 4698
+      },
+      "tools/coordination/lane_coordination.py": {
+        "git_blob": "d5822b10b8cc50ab561b59b254ab1ed8d00fcfa9",
+        "working_git_blob": "d5822b10b8cc50ab561b59b254ab1ed8d00fcfa9",
+        "sha256": "d57e4d481d755c7ace878847cc91744bd4af6d83bb169dcd0eac5768b581fdfb",
+        "bytes": 12775
+      }
+    },
+    "source_before_and_after_equal": true,
+    "selected_identity_validation": {
+      "selected_count": 25,
+      "metadata_matches_per_control": 1,
+      "text_matches_per_control": 1,
+      "all_five_fields_equal": true,
+      "all_company_identities_equal": true
+    }
+  },
+  "review": {
+    "independent_repair_review": {
+      "status": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviewer": "/root/integration_coordination",
+      "source_author": "/root/p6_readonly",
+      "reviewer_is_source_author": false,
+      "reviewed_at_utc": "2026-11-13T05:38:16.886Z",
+      "receipt": {
+        "name": "independent-review-usajobs-bulk-c7afc972.json",
+        "bytes": 11915,
+        "sha256": "bd911cfd49d70cece98efb7f53ac1a874226f70edc780b9d89c9019ad802b16a"
+      },
+      "exact_six_reviewed_blobs_preserved": true
+    },
+    "evidence_preparer": "/root/campaign_review",
+    "preparer_authorship_disclosure": "Prepared the original USAJobs integration/provenance tests earlier in the session. This evidence assembly is not claimed as independent approval of those authored tests; independent bulk-repair review is attributed separately.",
+    "root_final_metadata_review": {
+      "status": "REVIEWED_PREPARATION_PENDING_IMMUTABLE_SUCCESSOR_BINDING",
+      "reviewed_at_utc": "2026-11-13T06:20:02.299360+00:00",
+      "reviewer": "/root",
+      "scope": "Reviewed complete independent artifact/source findings and evidence state, normalized seven same-instant timestamp spellings, archived the referenced mutable claim, and preserved source-specific runtime limitations.",
+      "independent_evidence_review": {
+        "name": "independent-review-usajobs-evidence-e9594dd8.json",
+        "bytes": 37731,
+        "sha256": "a1ec709d6375306bd49674e3bcbcace6e7cf78f068f82b58efd1fdd845e477f3"
+      }
+    },
+    "independent_evidence_review": {
+      "status": "PASS_SCOPED_NO_BLOCKING_FINDINGS",
+      "reviewer": "/root/integration_coordination",
+      "preparer": "/root/campaign_review",
+      "reviewer_is_preparer": false,
+      "receipt": {
+        "name": "independent-review-usajobs-evidence-e9594dd8.json",
+        "bytes": 37731,
+        "sha256": "a1ec709d6375306bd49674e3bcbcace6e7cf78f068f82b58efd1fdd845e477f3"
+      },
+      "reviewed_evidence_draft": {
+        "name": "usajobs-source-evidence-proposed.json",
+        "bytes": 86578,
+        "sha256": "78ebd1d0ccd13d05a53017f0875662e46944a1008619be87ea00c24c8dd0f1f9"
+      },
+      "reviewed_handoff_draft": {
+        "name": "usajobs-handoff-proposed.json",
+        "bytes": 5209,
+        "sha256": "cff7c695b594d3fec677078fe6065eeb2f2dba53dd8eb20f16fdad3f105611f9"
+      },
+      "nonblocking_timestamp_spelling_corrections": {
+        "cooldown.prior_wire_send_at_utc": "2026-11-13T05:15:06.635564+00:00",
+        "cooldown.prior_finish_at_utc": "2026-11-13T05:15:07.523946+00:00",
+        "cooldown.not_before_utc": "2026-11-13T05:20:10+00:00",
+        "route_observation.started_at_utc": "2026-11-13T05:47:05.988569+00:00",
+        "route_observation.wire_send_started_at_utc": "2026-11-13T05:47:06.273721+00:00",
+        "route_observation.response.headers_received_at_utc": "2026-11-13T05:47:06.609253+00:00",
+        "route_observation.finished_at_utc": "2026-11-13T05:47:06.662173+00:00"
+      }
+    }
+  },
+  "coordination": {
+    "source_claim_status_at_observation": "ACTIVE",
+    "claim_key": "web:WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f:usajobs:01ac0ef0f7544121950935b8358a4438",
+    "observed_at_utc": "2026-11-13T05:48:36.5561983Z",
+    "recorded_head": "e9594dd84868cc0828aca34da40cfb31d0029390",
+    "full_private_receipt_match": true,
+    "owner_token_match_without_recording_value": true,
+    "private_receipt": {
+      "name": "usajobs-claim-at-e9594dd8.json",
+      "bytes": 8569,
+      "sha256": "9d85f9e82350897c140faa8811772a16bff957f0355f234b9c8ac850eb51d79e"
+    },
+    "registry_sha256": "f6e630125ef3ee1ba986dd7eab721d552027a0113722a5b19b6a759b813bfb4c",
+    "required_dependency": "Published F07 candidate6df4fd24 is incorporated; this does not assert that F07 has protected-merged into main.",
+    "protected_integration_and_canonical_acceptance_are_separate": true
+  },
+  "pending_finalization": [
+    "Bind the committed metadata/docs successor to unchanged executable/test blobs and complete native integrity/provenance and independent immutable review.",
+    "Incorporate the released exact two-file scanner correction under a fresh native claim; publication admission and exact published-head hosted checks remain separate.",
+    "Coordinate dependency-aware protected integration with the sole steward, applicable integrated/runtime validation and canonical acceptance."
+  ],
+  "limitations": [
+    "The source covers only series2210 announcements opened in seven UTC calendar dates and returns at most25; all-government coverage and complete inventory are not claimed.",
+    "The actual successful bulk read is one bounded observation, not a guarantee of continued endpoint availability, completeness or future join success.",
+    "A real browser enrollment pass at d540 is historical component proof, not a new e959 browser run or live job collection through the UI.",
+    "The official route observation establishes bounded same-host HTTP200 only. Normalized routes remain constructed/unverified and manual-only.",
+    "No live production database, applicant profile or external application was modified; external submission remains unsupported.",
+    "No required hosted checks, protected integration, deployment, formal acceptance or generalized timing/root-cause fix is claimed."
+  ],
+  "official_references": [
+    {
+      "url": "https://developer.usajobs.gov/api-reference/get-api-historicjoa",
+      "role": "Historic metadata endpoint and supported filters",
+      "review_source": "Previously opened by root; this draft made no network requests"
+    },
+    {
+      "url": "https://developer.usajobs.gov/api-reference/get-api-announcementtext",
+      "role": "Announcement text endpoint and supported series/date bulk filters",
+      "review_source": "Previously opened by root and cited in current source guide"
+    },
+    {
+      "url": "https://developer.usajobs.gov/apirequest/index",
+      "role": "Public API access, source identification and unofficial-service disclosure",
+      "review_source": "Previously opened by root; no new terms interpretation or legal advice"
+    }
+  ],
+  "artifacts": {
+    "location": "Private run directory; referenced artifacts are immutable evidence, not commands to execute",
+    "items": [
+      {
+        "name": "independent-review-usajobs-bulk-c7afc972.json",
+        "bytes": 11915,
+        "sha256": "bd911cfd49d70cece98efb7f53ac1a874226f70edc780b9d89c9019ad802b16a"
+      },
+      {
+        "name": "usajobs-announcement-refusal-65e7b662.error-body.bin",
+        "bytes": 298,
+        "sha256": "778629c71dcb0a67780f9bb9e2a9364f7119cd9d7137d8ce9ecd9d5df1582baf"
+      },
+      {
+        "name": "usajobs-announcement-refusal-65e7b662.json",
+        "bytes": 14118,
+        "sha256": "5722e04910c81f41c15656308df1832e1846f4d219da1fb3f4ab340f81e71a20"
+      },
+      {
+        "name": "usajobs-announcement-refusal-65e7b662.py",
+        "bytes": 16945,
+        "sha256": "8762b00dc0096f75a824e78e40643a884d1cddfa5389a5e59227ea4855d8d332"
+      },
+      {
+        "name": "usajobs-backend-initial.json",
+        "bytes": 10739,
+        "sha256": "cd22f21deb7206439141a14de8daa7fe31ecf96ad7695392972125979d782ff1"
+      },
+      {
+        "name": "usajobs-backend-initial.log",
+        "bytes": 1120,
+        "sha256": "e9225eb93efd80e1354ba4e41545f6e80ab80dd1e6cdba543119b4b19ccbce42"
+      },
+      {
+        "name": "usajobs-backend-initial.xml",
+        "bytes": 57061,
+        "sha256": "3ffebcfd5d532c08b358d7d1e852add6d0e6962cd26c7fe08662ac551b92bcf0"
+      },
+      {
+        "name": "usajobs-backend-reviewed.json",
+        "bytes": 10741,
+        "sha256": "9b9bdc5d0a3cfa1f5a8bfcd8f2253d373f0e6b199db908882c28f71dd6071dbe"
+      },
+      {
+        "name": "usajobs-backend-reviewed.log",
+        "bytes": 459,
+        "sha256": "40dc045445b5f3ad760c0a210afe8899a66644a4a7a77776fcee4e8ec6f098b2"
+      },
+      {
+        "name": "usajobs-backend-reviewed.xml",
+        "bytes": 58656,
+        "sha256": "6196489f6c5409905c1a762c0d7829311f3c863bd16d5b72180de86e30a1263a"
+      },
+      {
+        "name": "usajobs-browser-d540098e.json",
+        "bytes": 3183,
+        "sha256": "7d0749f7c0c524275c121ab99aef5d487416099835f4fab12ec63dba532f0a46"
+      },
+      {
+        "name": "usajobs-browser-d540098e.log",
+        "bytes": 100,
+        "sha256": "886bbb7faa0541617c5df1c64918c5e46b2be974c60b257231099c3daf37cc98"
+      },
+      {
+        "name": "usajobs-browser-d540098e.xml",
+        "bytes": 434,
+        "sha256": "77dbb85c86b195a367a1a4d4ff08b211619df7fa02550e1ed9503832e4e2f6b8"
+      },
+      {
+        "name": "usajobs-bulk-current-main-candidate.json",
+        "bytes": 8041,
+        "sha256": "66e0c2491dee55eabcaeabb716e74c17ef2236f5ab017c4286071c9b4d7921f9"
+      },
+      {
+        "name": "usajobs-bulk-e9594dd8.json",
+        "bytes": 5196,
+        "sha256": "23ddbc5743a05625b109c6aa32ae6200678dca590b249ae4bf52eeff080f4579"
+      },
+      {
+        "name": "usajobs-bulk-e9594dd8.log",
+        "bytes": 346,
+        "sha256": "e2497c921054288424093660ab94384c56bf1bb3628e4bfac09623b46a1c49ec"
+      },
+      {
+        "name": "usajobs-bulk-e9594dd8.xml",
+        "bytes": 35195,
+        "sha256": "9c2b9e99dfeef85d0755452d705a53fd9299391d0a5ff631499f6346520bc72b"
+      },
+      {
+        "name": "usajobs-frontend-build-d540098e.json",
+        "bytes": 1997,
+        "sha256": "41f5c9143cca5b6a996b18a1469152f8764d6c52f7982140f99961754debbbc1"
+      },
+      {
+        "name": "usajobs-frontend-build-d540098e.log",
+        "bytes": 905,
+        "sha256": "5aba96093810bd9636c4c2f4b271900dcea93b3019ea2f86bc08ba21a3f28319"
+      },
+      {
+        "name": "usajobs-frontend-install-d540098e.json",
+        "bytes": 1188,
+        "sha256": "e8b2d7b032ec7925fb03f33bd3bd6b1b70cd5334b04693c8f80cb08e9c35aa42"
+      },
+      {
+        "name": "usajobs-frontend-install-d540098e.log",
+        "bytes": 148,
+        "sha256": "ae231b1c93e3182e0ed97bd81e805433fb1447398fea615abe056f3c38543cfa"
+      },
+      {
+        "name": "usajobs-live-bulk-e9594dd8-launch.json",
+        "bytes": 948,
+        "sha256": "49b334b27a2ba060cec8ed2594c1557f281aaf9d0c8833bf810099d9edaaa503"
+      },
+      {
+        "name": "usajobs-live-bulk-e9594dd8-launch.log",
+        "bytes": 701,
+        "sha256": "300f82749e21b566d46978f783fdd085c4c23ba90b6db6be8d89246f769e3421"
+      },
+      {
+        "name": "usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.api1-metadata.json",
+        "bytes": 187647,
+        "sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8"
+      },
+      {
+        "name": "usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.api2-announcement-text.json",
+        "bytes": 2611448,
+        "sha256": "33a43e0d4fdbc73a499d5df4da60c65ee5e49e64310e0d727e920976165cdd01"
+      },
+      {
+        "name": "usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.json",
+        "bytes": 38842,
+        "sha256": "72a8ace53010e5dfd154b4c528f0404311d0af8b9af475a1e9ff117d8f25c060"
+      },
+      {
+        "name": "usajobs-live-bulk-qualification.py",
+        "bytes": 42210,
+        "sha256": "ead2f08f3a814b79c22882efabfa4c53ce59567531351f29be786eab8a68e4c1"
+      },
+      {
+        "name": "usajobs-live-bulk-root-runner-review.json",
+        "bytes": 853,
+        "sha256": "27f86d32c0b6f5e75cd4258017e01228bf1edc23feacff505b13934be5d40b8c"
+      },
+      {
+        "name": "usajobs-live-production-65e7b662.api1-metadata.json",
+        "bytes": 187647,
+        "sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8"
+      },
+      {
+        "name": "usajobs-live-production-65e7b662.json",
+        "bytes": 21108,
+        "sha256": "dde623b7a05d31afd2e57944a45cf927a9e5d41146f15e2b00b56b0d45a77974"
+      },
+      {
+        "name": "usajobs-live-production-65e7b662.py",
+        "bytes": 24884,
+        "sha256": "526590391a6f0c7721bb5517f9d41bdd31a1a5096ed2514a990308b4be1cbb60"
+      },
+      {
+        "name": "usajobs-live-production-d540098e.json",
+        "bytes": 16244,
+        "sha256": "b1d3ed94812abd0bc205752be83ac58e14e2edcbb915e9c7fa59f4a84adad9f8"
+      },
+      {
+        "name": "usajobs-live-production-d540098e.py",
+        "bytes": 23750,
+        "sha256": "10e06303e369bc62c7bca17c39c373d9cbacd32b871094600b8a4cdf7ad9a676"
+      },
+      {
+        "name": "usajobs-metadata-diagnostic-d540098e.json",
+        "bytes": 14367,
+        "sha256": "ceab02f880ba7c013ef6bcac456de1f83bb16ad83a0b782581f08fff1551417d"
+      },
+      {
+        "name": "usajobs-metadata-diagnostic-d540098e.metadata.json",
+        "bytes": 187647,
+        "sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8"
+      },
+      {
+        "name": "usajobs-metadata-diagnostic-d540098e.py",
+        "bytes": 14726,
+        "sha256": "f83a46c33ff0ca90e5fa99156cd4650323302b12074305a46ebfbfac383f8182"
+      },
+      {
+        "name": "usajobs-public-probe.json",
+        "bytes": 10797,
+        "sha256": "6137d21a266a1051ccda41caf611166ed2759dd8dd106581f49af1cc344822fd"
+      },
+      {
+        "name": "usajobs-public-probe.py",
+        "bytes": 16980,
+        "sha256": "3ec96bb8b218fe28958641941ebce5b03ecd86e0a09bb6b0a7beda7c0280ffef"
+      },
+      {
+        "name": "usajobs-public-probe.started.json",
+        "bytes": 258,
+        "sha256": "3ed88877624b7e4b5ab8658d52533a91f7ada5567e3cf6c4850c27c4b9995c1a"
+      },
+      {
+        "name": "usajobs-public-probe.summary.md",
+        "bytes": 5115,
+        "sha256": "dde7cf184d138de1669ff1990fca8722c77a45adc329f94a8a2bc66a10f23756"
+      },
+      {
+        "name": "usajobs-selection-focused-d540.json",
+        "bytes": 3746,
+        "sha256": "f52e9d5662d8d57aeadddfcf4252bca8a0cfb9c4e167b6148413d4992076b0b2"
+      },
+      {
+        "name": "usajobs-selection-focused-d540.log",
+        "bytes": 265,
+        "sha256": "716cd78ca960054ca3926ccbebb289e11a6474799bf035abe591627d712d402f"
+      },
+      {
+        "name": "usajobs-selection-focused-d540.xml",
+        "bytes": 31305,
+        "sha256": "235652aacbbe1e777914d6d40ff107819784cbe8b0417b8b44a4f9335e64aacf"
+      },
+      {
+        "name": "usajobs-selection-repair-commit-message.txt",
+        "bytes": 796,
+        "sha256": "255d423eb0319fd2a9be97b4d2caf44006ad4d8c773791c739d47902539fc9d4"
+      },
+      {
+        "name": "usajobs-selection-repair-commit.json",
+        "bytes": 515,
+        "sha256": "83c27210c6e135650319d916450368bb3b8c4f969bace86267fadd93994d081f"
+      },
+      {
+        "name": "usajobs-selection-repair-root-review.json",
+        "bytes": 985,
+        "sha256": "f2b8c9bfd640ebe47a42f62e4b64a9f0047ff04f7476112dea812235647b174a"
+      }
+    ]
+  },
+  "draft_preparation": {
+    "network_or_provider_calls": false,
+    "tests_run": false,
+    "application_imports": false,
+    "tracked_writes": false,
+    "claim_mutations": false,
+    "receipt_and_source_reads": true,
+    "offline_payload_analysis_only": true,
+    "scope": "Historical private draft preparation only; root adoption and later immutable validation are recorded separately."
+  },
+  "handoff_schema_review": {
+    "source_blob": "743792a5a586ef991afa557876e1478394ca5f68",
+    "model_handoff_blob": "5d11568b4682203fcf86571a45f3124fbf6b420b",
+    "result": "NATIVE_SCHEMA_VALIDATION_PASS",
+    "native_validator_executed": true,
+    "errors": [],
+    "validated_at_utc": "2026-11-13T06:20:02.299360+00:00"
+  }
+}

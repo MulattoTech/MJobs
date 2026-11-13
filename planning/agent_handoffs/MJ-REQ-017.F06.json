@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-017.F06",
+  "objective": "Deliver and qualify bounded public USAJOBS recent federal IT discovery with strict joins, persisted provenance, conservative normalization and manual-only application routes; retain protected integration and formal acceptance as separate gates.",
+  "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "branch": "web/p6-usajobs-20261113-4dae",
+  "head_sha": "e9594dd84868cc0828aca34da40cfb31d0029390",
+  "routing_state": "VERIFY",
+  "next_action": "Complete native integrity and independent immutable metadata/docs successor review, incorporate the released exact scanner correction under fresh ownership, obtain new-PR admission, then earn exact-head hosted checks and coordinate dependency-aware protected integration and applicable acceptance.",
+  "created_at": "2026-11-13T05:52:58.517Z",
+  "updated_at": "2026-11-13T06:20:02.299360+00:00",
+  "requirements": [
+    "MJ-REQ-017.F06"
+  ],
+  "tests": [
+    {
+      "command": "Exact clean e9594dd84868cc0828aca34da40cfb31d0029390: pytest tests/unit/test_usajobs_source.py tests/integration/test_usajobs.py tests/unit/test_usajobs_provenance.py tests/unit/test_source_adapter_contract_223.py — 220 PASS, 0 failures/errors/skips in13.92s; actual current Store ab3a and provider c7af; see usajobs-bulk-e9594dd8.{json,log,xml}.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact e9594dd8 production USAJobs.search/normalize, 2026-11-13T05:46:48Z–05:47:07Z: two fixed verified-TLS GETs with identical2210/Nov7–13 filters returned117 metadata and117 text rows; newest25 selected, full identity joined and normalized with0 errors, HEALTHY, incomplete inventory. Receipt usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.json.",
+      "result": "PASS"
+    },
+    {
+      "command": "Same bounded live run: one conditional https://www.usajobs.gov/job/892518400 GET returned exact same-host HTTP200, no redirect,139637 bytes. This is HTTP observation only; page identity/application flow and other routes remain unproved.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical clean d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5: npm --prefix apps/web run build, TypeScript/Vite PASS; full frontend tree fce045ae unchanged at e959. Component proof, not a new build execution.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical clean d540098e: actual Chromium/React/FastAPI enrollment/reload/credit/disable browser case 1 PASS,0 skips in7.41s; isolated SQLite and zero jobs/operations/applications/external requests. Frontend/API/registry/test components unchanged; provider and Store later changed, so this is not an e959 assembled-browser pass.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical reviewed dirty implementation over86cafb5c:357 PASS +69 subtests,0 failures/errors/skips in32.62s. Source-bound older provider950abd; preserved without claiming current bulk execution.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical dirty selection repair over d540, later committed65e7b662:196 PASS,0 failures/errors/skips in11.38s. Strict newest25 identity validation; former CSV text query still present then.",
+      "result": "PASS"
+    },
+    {
+      "command": "Preserved initial dirty86cafb5c backend attempt:345 PASS +69 subtests and1 failed provenance binding expectation. Corrected producer-binding test and actual receipt/log/XML retained.",
+      "result": "FAIL"
+    },
+    {
+      "command": "Preserved d540 production search: one metadata request then SOURCE_INVALID_JOB,0 normalization/routes; separate bounded metadata diagnostic identified three unsupported agency labels. Selection repair and196-test proof retained.",
+      "result": "FAIL"
+    },
+    {
+      "command": "Preserved65e7 production search:25 selected metadata controls, two API method calls, former CSV AnnouncementText query failed SOURCE_UNAVAILABLE;0 normalized/routes. Separate one-request diagnostic observed HTTP400 integer-value refusal after cooldown; full failures retained.",
+      "result": "FAIL"
+    },
+    {
+      "command": "Final evidence/docs successor source-equivalence review and native catalogue/progress/handoff/provenance/whitespace checks.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Required hosted checks on the eventual exact F06 published head; protected integration with F07 dependency and applicable integrated/runtime validation.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Formal canonical requirement acceptance or deployment promotion.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "The reviewed evidence/handoff and source guide are prepared; final immutable successor review, native integrity and publication admission remain pending.",
+    "Required exact-head hosted checks, dependency-aware protected integration and formal acceptance have not occurred.",
+    "The historical browser result covers unchanged components; no current assembled-head browser result is claimed.",
+    "Bounded same-host HTTP200 does not prove page identity or an application/submission flow; manual-only constructed-route limitations remain explicit."
+  ],
+  "source_binding_note": "head_sha identifies the actual executable source tested locally and live. The later metadata/docs-only successor is bound by a private candidate receipt and final review, without a self-referential commit hash.",
+  "reviewed_evidence_preparation": {
+    "result": "PASS",
+    "receipt": {
+      "name": "independent-review-usajobs-evidence-e9594dd8.json",
+      "bytes": 37731,
+      "sha256": "a1ec709d6375306bd49674e3bcbcace6e7cf78f068f82b58efd1fdd845e477f3"
+    },
+    "timestamp_corrections_only": 7
+  }
+}

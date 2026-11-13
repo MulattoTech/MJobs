@@ -46,7 +46,7 @@ Both requests use only `PositionSeries`, `StartPositionOpenDate` and `EndPositio
 
 Each response is bounded to 5,000,000 bytes and 1,000 records. At most 25 selected metadata records can become source items, regardless of the text response size. The existing verified-TLS SourceTransport enforces cancellation and bounded reads. HTTP proxies from the process environment and redirects are disabled. Request timeout, rate and concurrency remain within the configured source policy. Rate limits and failures return explicit source errors; there is no internal retry loop.
 
-The bulk series/date query is **NOT_RUN** as a live qualification gate until a production-adapter read verifies the exact two-request flow and all selected joins. A text response that exceeds the bounds or omits a selected control fails; neither pagination nor an alternative query repairs it.
+The fixed bulk series/date flow was observed successfully on **2026-11-13 05:46–05:47 UTC**, including both requests and all 25 selected joins. This is one bounded observation of a changing source, not evidence of complete inventory. A text response that exceeds the bounds or omits a selected control fails; neither pagination nor an alternative query repairs it.
 
 ## Identity, joining and raw evidence
 
@@ -100,8 +100,14 @@ The first read-only schema probe ran on **2026-11-13 03:46 UTC**:
 
 This probe is schema evidence, not qualification of the completed adapter or the bulk series/date query. Synthetic fixtures are explicitly fictional and are not substituted for live proof.
 
-A later production-adapter read on **2026-11-13 05:04–05:05 UTC** selected 25 metadata records but failed on the former comma-separated control-number text request. A separately bounded same-query diagnostic at **05:15 UTC** returned HTTP 400 with an integer-value parsing error. Those failure receipts remain preserved; they do not qualify the replacement bulk flow. The bulk request, complete selected joins and constructed listing route still require separate live qualification.
+A later production-adapter read on **2026-11-13 05:04–05:05 UTC** selected 25 metadata records but failed on the former comma-separated control-number text request. A separately bounded same-query diagnostic at **05:15 UTC** returned HTTP 400 with an integer-value parsing error. Those failure receipts remain preserved and remain distinct from the later replacement-flow qualification.
 
-Completed-adapter tests, actual browser enrollment, bounded live batch verification, immutable review and hosted checks are recorded in `docs/evidence/2026-11-13-usajobs-source.json` when executed. Until that evidence exists, those checks remain **NOT_RUN**. Protected integration, deployment and canonical acceptance are separate gates.
+The replacement production-adapter flow ran once on **2026-11-13 05:46–05:47 UTC**, at source head e9594dd84868cc0828aca34da40cfb31d0029390. Both fixed API requests returned HTTP 200 for the same series 2210 and November 7–13 window. Each response contained 117 rows. All 25 selected native identities joined and normalized without errors; raw envelopes remained unchanged and source health was healthy. The normalized lifecycle claims were 12 possibly active and 13 unknown, without inferring status from dates.
+
+Only after that successful batch, one constructed listing URL returned a bounded HTML HTTP 200 response from the exact official host, with verified TLS and no redirects. This establishes that one URL responded. Page identity, application instructions, submission and future routes remain unverified; normalized routes continue to identify their construction explicitly.
+
+The current assembled provider, persistence, provenance and shared source-contract qualification passed **220 tests**, with no failures or skips. Earlier component evidence separately records 357 tests and 69 subtests, TypeScript and production-build success, and one actual browser enrollment case. The current frontend tree and enrollment case remain unchanged from that browser run; the later Store dependency was exercised by the current focused tests, not by a repeated browser run.
+
+Completed checks, immutable identities, preserved failures and bounded live evidence are recorded in `docs/evidence/2026-11-13-usajobs-source.json`. Hosted checks on the eventual published head, protected integration, deployment and canonical acceptance remain separate pending gates.
 
 The browser case exercises the actual React/API enrollment, exact capabilities, visible scope after reload, disablement, and zero queued operations/applications/provider requests in an isolated fixture workspace.
