@@ -4,6 +4,8 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from packages.domain.employer_verification import EmployerVerificationPreference
+
 ShortText = Annotated[str, Field(max_length=300)]
 AvoidTerm = Annotated[str, Field(min_length=1, max_length=120)]
 SensitiveAnswerCategory = Literal[
@@ -57,6 +59,7 @@ class CompanyDiscoveryPreferences(BaseModel):
     minimum_match_for_discovery: int = Field(default=60, ge=0, le=100)
     priority_match_for_discovery: int = Field(default=80, ge=0, le=100)
     max_new_company_discoveries_per_hour: int = Field(default=12, ge=1, le=100)
+    employer_verification: EmployerVerificationPreference = Field(default_factory=EmployerVerificationPreference)
 
     @model_validator(mode='after')
     def validate_match_thresholds(self):

@@ -60,10 +60,44 @@ class CompanyDiscoveryPolicyBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Profile", exact=True).click()
                     enabled = page.get_by_label("Enable company discovery", exact=False)
                     expect(enabled).to_be_checked()
+                    verification = page.get_by_label("Verify employer links from imported jobs", exact=True)
+                    expect(verification).not_to_be_checked()
+                    expect(verification).to_be_enabled()
+
+                    def save_profile():
+                        button = page.get_by_role("button", name="Save profile", exact=True).first
+                        with page.expect_response(lambda response: response.request.method == "PUT"
+                                                   and urlsplit(response.url).path == "/profiles") as saved:
+                            button.click()
+                        self.assertEqual(saved.value.status, 200)
+                        expect(button).to_be_enabled()
+
+                    verification.check()
+                    self.assertEqual(store.profile(PROFILE["id"])["preferences"]["company_discovery"]
+                                     ["employer_verification"]["mode"], "DISABLED",
+                                     "An unsaved checkbox must not grant authorization")
+                    save_profile()
+                    first = store.profile(PROFILE["id"])["preferences"]["company_discovery"]["employer_verification"]
+                    self.assertEqual(first["mode"], "GREENHOUSE_RECIPROCAL_V1")
+                    self.assertRegex(first["activation_id"], r"^[0-9a-f]{32}$")
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Profile", exact=True).click()
+                    expect(verification).to_be_checked()
+                    verification.uncheck()
+                    save_profile()
+                    revoked = store.profile(PROFILE["id"])["preferences"]["company_discovery"]["employer_verification"]
+                    self.assertEqual(revoked, {"version": 1, "mode": "DISABLED", "activation_id": None})
+                    verification.check()
+                    save_profile()
+                    second = store.profile(PROFILE["id"])["preferences"]["company_discovery"]["employer_verification"]
+                    self.assertEqual(second["mode"], "GREENHOUSE_RECIPROCAL_V1")
+                    self.assertNotEqual(second["activation_id"], first["activation_id"])
                     expect(page.get_by_label("Minimum match score for discovery")).to_have_value("60")
                     expect(page.get_by_label("Match score for priority discovery")).to_have_value("80")
                     expect(page.get_by_label("Maximum new company discoveries per hour")).to_have_value("12")
                     enabled.uncheck()
+                    expect(verification).not_to_be_checked()
+                    expect(verification).to_be_disabled()
                     page.get_by_label("Minimum match score for discovery").fill("65")
                     page.get_by_label("Match score for priority discovery").fill("90")
                     page.get_by_label("Maximum new company discoveries per hour").fill("4")
@@ -78,6 +112,11 @@ class CompanyDiscoveryPolicyBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Match score for priority discovery")).to_have_value("90")
                     expect(page.get_by_label("Maximum new company discoveries per hour")).to_have_value("4")
                     expect(page.get_by_text("This never submits applications.", exact=False)).to_be_visible()
+                    expect(verification).not_to_be_checked()
+                    expect(verification).to_be_disabled()
+                    self.assertEqual(store.profile(PROFILE["id"])["preferences"]["company_discovery"]
+                                     ["employer_verification"],
+                                     {"version": 1, "mode": "DISABLED", "activation_id": None})
                     self.assertEqual(errors, [])
                     self.assertEqual(external, [])
                     context.close()
