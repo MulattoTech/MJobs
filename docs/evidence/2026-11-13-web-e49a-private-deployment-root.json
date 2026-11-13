@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "windows_private_deployment_root_qualification",
-  "status": "PASS_WITH_TWO_EXISTING_PLATFORM_SKIPS",
+  "status": "PASS",
   "recorded_at": "2026-11-13T08:24:30.238761+00:00",
   "requirement_scope": [
     "MJ-REQ-166",
@@ -33,7 +33,7 @@
     "ntfs_privacy_algorithm_changed": false
   },
   "focused_suite": {
-    "status": "PASS_WITH_TWO_EXISTING_PLATFORM_SKIPS",
+    "status": "PASS",
     "command": "python -B -m pytest -q -p no:cacheprovider tests/unit/test_windows_micro_home.py tests/unit/test_windows_micro_cd.py tests/unit/test_windows_micro_backup_diagnostics.py tests/unit/test_windows_micro_command_bounds.py --junitxml=<private-receipt>",
     "private_output_path_redacted": true,
     "started_at": "2026-11-13T08:09:06.217360+00:00",
@@ -78,7 +78,7 @@
     "production_configuration_read_or_copied": false
   },
   "separate_empty_root_bootstrap": {
-    "status": "PASS_EMPTY_PRIVATE_PLACEMENT_ONLY",
+    "status": "PASS",
     "root": "C:\\MJobsMicroProtected",
     "recorded_at": "2026-11-13T08:09:05.858394+00:00",
     "atomic_private_creation": true,
@@ -99,7 +99,8 @@
     "task_changed": false,
     "production_runtime_changed": false,
     "qualification_sha256": "5a82cbcf0df1d0efd83c2eea5fb086cb6e5e9eb79c27e1ead67f8746711dfec3",
-    "independent_bootstrap_static_review_sha256": "f6a6e42bbaa20e203e0a969600055b8ec46254dc6d4c7990e27ab6270d820a5c"
+    "independent_bootstrap_static_review_sha256": "f6a6e42bbaa20e203e0a969600055b8ec46254dc6d4c7990e27ab6270d820a5c",
+    "scope": "EMPTY_PRIVATE_PLACEMENT_ONLY"
   },
   "independent_source_review": {
     "status": "PASS",
@@ -180,7 +181,7 @@
     "Pure path/layout validation is not an NTFS privacy proof. Bootstrap-time stock ACL results do not establish per-invocation ACL validation.",
     "GetDriveTypeW rejects network/removable/unknown roots; a local SUBST mapping may still report DRIVE_FIXED.",
     "The actual candidate check selected an empty root only; it did not call main or run_update.",
-    "This qualification and the root-selection step did not install the updater, alter a scheduled task, adopt a baseline, copy configuration or rotate keys. Normal gated updater behavior is preserved; production cutover still needs separate authorization.",
+    "This qualification and the root-selection step did not install the updater, alter a scheduled task, adopt a baseline, copy configuration or rotate keys. Normal gated updater behavior is preserved; production cutover still requires current-head release gates, native runtime admission, protected backup, and guarded migration admission.",
     "Legacy task/process/lock handoff, trusted original configuration and key reconciliation, state adoption, and exact production release admission remain separate.",
     "Hosted candidate gates and final bundled-head metadata qualification were not run at this evidence-recording point.",
     "Historical guarded-rehearsal source/image/schema bindings remain unchanged; do not relabel them as this candidate."
