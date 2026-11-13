@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-151",
+  "issue": 152,
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/152",
+  "run_id": "web-20261109T031055Z-f61f749bf2d7",
+  "recorded_utc": "2026-11-09T03:39:10.425230+00:00",
+  "implementation_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+  "implementation_tree": "8843cb13655531ed037cae1a9259a10a15acb041",
+  "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+  "integration_authority": "PR_ONLY",
+  "slice": "Rolling company submission limit with conservative unresolved reservations",
+  "canonical_state_changed": false,
+  "whole_requirement_acceptance": "NOT_ESTABLISHED",
+  "behavior": {
+    "confirmed_expiry": "Only an aware confirmed timestamp strictly older than the inclusive rolling 24-hour cutoff releases company capacity.",
+    "uncertain_reservations": "SUBMITTING and SUBMISSION_UNCONFIRMED never expire by age; missing, malformed, naive, oversized or future confirmed timestamps continue to count.",
+    "scope_and_concurrency": "Existing profile/company/state predicates and profile lock or SQLite immediate transaction remain in force. Only state and timestamp are streamed; counting stops at the enforced cap.",
+    "configuration": "Existing MJOBS_SUBMISSION_COMPANY_LIMIT remains configurable with default1 and range0..10000; zero still denies.",
+    "external_actions": "External submission remains disabled in configured policy. All executed fixtures are synthetic MOCK admissions; no employer request or submission occurred."
+  },
+  "criteria": [
+    {
+      "criterion": "Confirmed company usage becomes available after rolling24h",
+      "result": "PASS",
+      "evidence": "SQLite admission boundary, offset and expired-history concurrency tests"
+    },
+    {
+      "criterion": "Unresolved or unknown outcomes retain conservative capacity",
+      "result": "PASS",
+      "evidence": "Unit and SQLite cases for age, missing, malformed, naive and future timestamps"
+    },
+    {
+      "criterion": "Profile/company isolation, durable serialization and cancellation",
+      "result": "PASS",
+      "evidence": "SQLite race, reopen, rollback/reuse and isolation tests"
+    },
+    {
+      "criterion": "PostgreSQL SQL/transaction parity",
+      "result": "NOT_RUN",
+      "reason": "No isolated PostgreSQL URL locally; hosted exact-head checks required"
+    },
+    {
+      "criterion": "Complete MJ-REQ-151 application limits",
+      "result": "NOT_RUN",
+      "reason": "This slice does not establish configurable canonical-route caps, minimum-match configuration or full acceptance."
+    }
+  ],
+  "tests": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-rs",
+        "-p",
+        "no:cacheprovider",
+        "tests/unit/test_company_submission_window_152.py",
+        "tests/integration/test_company_submission_window_152.py"
+      ],
+      "source_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+      "started_utc": "2026-11-09T03:37:22.023230+00:00",
+      "finished_utc": "2026-11-09T03:37:23.936895+00:00",
+      "exit_code": 0,
+      "passed": 18,
+      "subtests_passed": 49,
+      "skipped": 10,
+      "skipped_reason": "PostgreSQL database not configured",
+      "environment": "Linux scratch Python3.12.14 with isolated exact pinned dependencies; real SQLite/Store; no stubs",
+      "source_unchanged": true
+    },
+    {
+      "command": "Load original exact-main admission module under its canonical module name in an isolated process, then pytest the listed regression selections",
+      "selections": [
+        "tests/integration/test_company_submission_window_152.py::CompanySubmissionWindowTests::test_confirmed_submission_expires_strictly_before_inclusive_cutoff",
+        "tests/integration/test_company_submission_window_152.py::CompanySubmissionWindowTests::test_aware_offsets_are_compared_as_instants_not_strings",
+        "tests/integration/test_company_submission_window_152.py::CompanySubmissionWindowTests::test_expired_confirmed_capacity_does_not_enable_external_submission"
+      ],
+      "base_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "original_admission_blob": "2aa1a6ab7da09097f7ab34937b3ff711ea3091df",
+      "regression_test_blob": "a35ba85fcfa127ae887cbeb430c45f9f9a3f2ea7",
+      "started_utc": "2026-11-09T03:33:04.097033+00:00",
+      "finished_utc": "2026-11-09T03:33:05.311004+00:00",
+      "exit_code": 1,
+      "result": "EXPECTED_BASELINE_FAILURE",
+      "failed": 3,
+      "subtests_passed": 3,
+      "reason": "Each assertion exposes COMPANY_LIMIT_REACHED remaining on expired confirmed history; no import or environment error."
+    },
+    {
+      "command": "python -B -m tools.verification.commit_provenance --commit HEAD --strict",
+      "source_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+      "result": "PASS",
+      "details": "Provenance complete for5 source files"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -B -m tools.agent_context bootstrap --task MJ-REQ-151",
+      "source_sha": "971ba931418fc271e7a652e27c288e1776448b6d",
+      "result": "PASS"
+    },
+    {
+      "command": "python -B -m tools.agent_context validate --task MJ-REQ-151",
+      "source_sha": "3254eb40079725d213129a8f71c12731ee4f6b1e",
+      "result": "PASS"
+    }
+  ],
+  "git_blobs": {
+    ".env.example": "c89801e6c2b51687d50a4f64f93590cb5e805434",
+    "services/applications/submission_admission.py": "6d2c4af1f17b1273dbbe6d78315470bbc64c8499",
+    "services/applications/submission_windows.py": "198174b57537324b4f6f4f8587f0d71d42d84c6c",
+    "tests/integration/test_configured_submission_limits.py": "cc983660fb29aa84da4feeb71b3905931a180293",
+    "tests/integration/test_company_submission_window_152.py": "a35ba85fcfa127ae887cbeb430c45f9f9a3f2ea7",
+    "tests/unit/test_company_submission_window_152.py": "22a81e7181e3cd58c45fa632d289da0da5cc568d"
+  },
+  "environment": {
+    "platform": "linux",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "packages": {
+      "SQLAlchemy": "2.1.1",
+      "alembic": "1.20.0",
+      "greenlet": "3.5.6",
+      "Mako": "1.4.3",
+      "MarkupSafe": "3.0.3",
+      "typing_extensions": "4.16.0",
+      "pytest": "9.0.3",
+      "pluggy": "1.7.0",
+      "iniconfig": "2.3.1",
+      "pydantic": "2.13.5",
+      "pydantic_core": "2.46.5",
+      "annotated-types": "0.8.0",
+      "typing-inspection": "0.4.4",
+      "httpx": "0.28.1"
+    },
+    "isolated_dependency_install": true,
+    "workstation_compute_slots_consumed": 0
+  },
+  "independent_review": {
+    "reviewer": "ChatGPT-Web independent pr_recon subagent",
+    "method": "Separate production and final integration-test source review; exact content hashes checked",
+    "outcome": "No scoped blocking finding",
+    "limits": "AI review is not human approval, protected merge authorization or full-requirement acceptance; reviewer did not rerun Python suite."
+  },
+  "not_run": [
+    "Existing configured-limit integration suite locally because its skipped PostgreSQL fixture loads the full API dependency graph",
+    "Local PostgreSQL variants",
+    "Full repository validation/catalogue/dashboard suites in sparse checkout",
+    "Connected browser and deployed-runtime acceptance",
+    "Entire MJ-REQ-151 and downstream MJ-REF-048 acceptance"
+  ],
+  "remaining_limits": [
+    "Hourly/daily counters retain existing lexical timestamp comparisons; this repair changes company counting only.",
+    "Unknown or unresolved company reservations can continue blocking until proper reconciliation.",
+    "PostgreSQL fixture uses metadata.create_all; transaction tests do not verify migrations.",
+    "MJ-REF-048 remains blocked by other original prerequisites; no parent requirement was promoted."
+  ],
+  "rollback": "Protected revert of this isolated change; no schema or data migration."
+}
