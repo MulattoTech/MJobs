@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-204.N02",
+  "objective": "Deliver and verify opt-in ntfy activity notifications with honest capabilities, durable delivery state and owned event scope",
+  "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+  "branch": "web/20261113-2d4f/ntfy-provider",
+  "head_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+  "routing_state": "PARTIALLY_BLOCKED",
+  "next_action": "Resolve exact resumed steward coordination; acquire fresh publication admission, publish one reviewed candidate and obtain hosted gates; canonical acceptance requires separate writer authority",
+  "created_at": "2026-11-13T03:21:03.498083+00:00",
+  "requirements": [
+    "MJ-REQ-204.N02"
+  ],
+  "tests": [
+    {
+      "command": "40eec0a5e73ed5ed64f4c90446a15d08245567b7: python -m pytest -q tests/unit/test_notification_configuration.py tests/unit/test_ntfy_provider.py tests/integration/test_notification_delivery.py tests/integration/test_ntfy_live.py; 92 passed, zero failures/errors/skips; actual owned PostgreSQL17.11 and ntfy2.37.2; docs/evidence/2026-11-13-ntfy-delivery.json",
+      "result": "PASS"
+    },
+    {
+      "command": "Fresh named /data volume: UID/GID10001 write and second-start persistence PASS using cached runtime image; owned test resources removed and absence verified; evidence manifest records image and instance IDs",
+      "result": "PASS"
+    },
+    {
+      "command": "Independent provider/transport review and post-repair event/journal actual-producer rereview PASS; generic outcomes preserve external-submission truth",
+      "result": "PASS"
+    },
+    {
+      "command": "Candidate Compose image startup, hosted CI, protected integration, deployed workflow, canonical acceptance; no third-party notifications or external applications sent",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Exact Nov9 resumed steward and canonical claims remain ACTIVE without matching release; preserve their ownership"
+  ],
+  "source_test_revision": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+  "evidence": [
+    "docs/evidence/2026-11-13-ntfy-delivery.json"
+  ],
+  "delivery_state": {
+    "implemented": true,
+    "local_tests": "92 PASS;0 failures/errors/skips",
+    "published": false,
+    "hosted_checks": "NOT_RUN",
+    "integrated": false,
+    "deployed": false,
+    "formally_accepted": false
+  },
+  "continuation": {
+    "state": "QUEUED_PENDING_EXACT_STEWARD_COORDINATION",
+    "worktree": "C:\\Tools\\Dev\\MJobs-Web\\ntfy-2d4f",
+    "last_checkpoint_author": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+    "claim_authority": "Native shared coordinator; this handoff is context, not an ownership lease",
+    "live_jobs": [],
+    "canonical_acceptance_changed": false,
+    "publication_notes": "Private run directory contains prepared PR body and candidate preflight inputs. Requery all pages and acquire all three admission aliases only after exact steward coordination. Recheck source/ownership before any mutation.",
+    "desktop_peer": "Separate browser implementation pending corrected frozen candidate; no backend sender or integrated descriptor fabricated."
+  }
+}

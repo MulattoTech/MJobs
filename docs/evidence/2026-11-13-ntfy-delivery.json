@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-204.N02",
+  "parent_requirement": "MJ-REQ-204",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/363",
+  "recorded_at_utc": "2026-11-13T03:20:45.700678+00:00",
+  "run_id": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+  "source": {
+    "repository": "MulattoTech/MJobs",
+    "base_sha": "4bf76a643d5de991d4c818ebaac3c20dc8ca2499",
+    "tested_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+    "tested_tree": "ed3475ade353519cd52b532d573cdd1f204997d4",
+    "branch": "web/20261113-2d4f/ntfy-provider",
+    "files": [
+      {
+        "path": "cli/notifications.py",
+        "git_blob": "b34823e51c650bad5b040462628c32248d1600ed",
+        "sha256": "5ae38bdd2d45c3c1812d603b8540ccdad54535ac61858dd94c8b261e0caa5144"
+      },
+      {
+        "path": "compose.notifications.yml",
+        "git_blob": "73b035ab4ca488d51316b147d8c17dc311a749fe",
+        "sha256": "b9c1027dfa59d1b1c3b4724548be4085cd0c433b71d9f0dcd570d386330bce73"
+      },
+      {
+        "path": "docs/NOTIFICATIONS.md",
+        "git_blob": "54d924d9ba2711da1cc2d3f3f806acd7b5e29751",
+        "sha256": "430e5e71dcc71207a5f3afe6f7062f728ba43087f2dbc22a5e7677d3ddeae842"
+      },
+      {
+        "path": "services/notifications/__init__.py",
+        "git_blob": "ba5ac8ed84ca6f965b63e0782ef56b425adfc08d",
+        "sha256": "32d1496e5e1e2921b376fa0d47b5a78f26ee8a9cbfb8c5b530d422a338bebe13"
+      },
+      {
+        "path": "services/notifications/configuration.py",
+        "git_blob": "15f5548dab9b643bb0810c46dd17f90f3d32db32",
+        "sha256": "41de59a5f616f2c116d472d62d37bfcd8ac81479909d32ea314a43005dec0976"
+      },
+      {
+        "path": "services/notifications/contract.py",
+        "git_blob": "c5dadb885ed24cfe1edcf30680a57b7725c3ca6e",
+        "sha256": "d23a1ccc479a78ba099095aed2e3dadbc509c360960445581eb648817e3f4dc9"
+      },
+      {
+        "path": "services/notifications/events.py",
+        "git_blob": "72ae601b29b40cd30a51b0553cb44b6f051059cb",
+        "sha256": "a6add79b656cba6ffa17e68c785531be29895eeef6e91880dd6d8b5a59e8abf4"
+      },
+      {
+        "path": "services/notifications/journal.py",
+        "git_blob": "94b19c7375d6f4b47c737e3f19bd9a7a6b8cf953",
+        "sha256": "cf31c6dc76703a7fb020fd224153e28cfe739c080595affd4bce3b8151d5f216"
+      },
+      {
+        "path": "services/notifications/providers/__init__.py",
+        "git_blob": "9acdf855482920c2eabca8b3bced4a4ba0ea4b53",
+        "sha256": "eeef4daba79198414813852c9967ed3984884dadc8e10a1ffadbe766b005aef3"
+      },
+      {
+        "path": "services/notifications/providers/ntfy.py",
+        "git_blob": "f1c88f7f02ec3045d7ff0d5f8b0adf67328ffe4b",
+        "sha256": "e42af97c02c76dc89e73c944226ae1452aee6433769edf8e279f1263a3f4fa34"
+      },
+      {
+        "path": "services/notifications/runner.py",
+        "git_blob": "a099708fc1274647146aef4448dad8334ceda9b4",
+        "sha256": "36cfc4ec3af30f3a69183a645e7c5fd6436c91c3ef3a5c2c22774b24a4bf111f"
+      },
+      {
+        "path": "tests/integration/test_notification_delivery.py",
+        "git_blob": "2ba1c8e3e20920747e072d837af7ef073d6f0b17",
+        "sha256": "b4fc7dc95ac0b8bfbbc3571d4cb484bc4e7e147ac0ebc68dc88ce598d4b9a6c8"
+      },
+      {
+        "path": "tests/integration/test_ntfy_live.py",
+        "git_blob": "e5641abfc6ed6e94741a5f1d090f7df11e974cd9",
+        "sha256": "057034565ccb801cf13191d041855aaf12a8bf63e8049f69109d7ef93353c10f"
+      },
+      {
+        "path": "tests/unit/test_notification_configuration.py",
+        "git_blob": "b4c26c3af4eecaebe7b356491b548ac4fe32e57c",
+        "sha256": "2eb533013dca87c04359f2d2090a3167f14a08b1dca1408204456034619de4c7"
+      },
+      {
+        "path": "tests/unit/test_ntfy_provider.py",
+        "git_blob": "2d350c141ba9f2bacb2935c6df8996d16a2be706",
+        "sha256": "c71748fbb8673d94399b736f9d036240ef5416c12e5b63accaad8db9921a5856"
+      }
+    ],
+    "binding": "All implementation and test bytes are committed at tested_sha. A later evidence-only commit does not acquire this run's identity or hosted-check status."
+  },
+  "delivery_state": {
+    "implemented": true,
+    "locally_verified": true,
+    "published": false,
+    "hosted_checks": "NOT_RUN",
+    "integrated": false,
+    "deployed": false,
+    "formally_accepted": false,
+    "canonical_changes": false
+  },
+  "capabilities": {
+    "provider": "ntfy",
+    "execution_surface": "server",
+    "opt_in": "Disabled by default; strict private operator JSON; optional token environment or absolute token file",
+    "supported_events": "Latest observed terminal outcomes of explicitly supported profile/application/resume operations; see docs/NOTIFICATIONS.md",
+    "privacy": "Fixed generic content; no job, resume, applicant, raw operation parameter, error, or credential text in payloads",
+    "durability": "Private SQLite delivery journal; stable operation/kind/state/attempt identity; persisted activation and cursor; durable reservation before network",
+    "retries": "No automatic uncertain replay; explicit safe-rejection retry only, capped at three attempts; durable Retry-After cooldown",
+    "truth": "DELIVERED means matching server acknowledgement, not device display. Generic operation completion is not real application submission."
+  },
+  "criteria": [
+    {
+      "criterion": "Declare exact supported capabilities",
+      "result": "PASS_CANDIDATE",
+      "evidence": [
+        "services/notifications/contract.py",
+        "services/notifications/providers/ntfy.py",
+        "docs/NOTIFICATIONS.md"
+      ]
+    },
+    {
+      "criterion": "Deterministic fixtures and contract tests",
+      "result": "PASS",
+      "evidence": "92-test source-bound execution below includes strict config, disabled paths, ownership, actual producer shapes, bounded transport, safe retries and deduplication"
+    },
+    {
+      "criterion": "Bounded permitted live validation",
+      "result": "PASS_LOCAL_SINK",
+      "evidence": "Official ntfy2.37.2 actual HTTP JSON publication, acknowledgement and poll readback; synthetic owned topic only; no third-party recipient"
+    },
+    {
+      "criterion": "Limitations and last-tested evidence",
+      "result": "PASS_CANDIDATE",
+      "evidence": [
+        "docs/NOTIFICATIONS.md",
+        "this manifest"
+      ]
+    },
+    {
+      "criterion": "No anti-bot or access-control circumvention",
+      "result": "PASS_SCOPED_REVIEW",
+      "evidence": "Ordinary documented ntfy protocol, TLS validation, configured credentials, no proxy/redirect bypass; independent source reviews"
+    }
+  ],
+  "verification": {
+    "exact_candidate_suite": {
+      "source_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "dirty_before": false,
+      "started_at": "2026-11-13T03:14:24.116185+00:00",
+      "command": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit/test_notification_configuration.py",
+        "tests/unit/test_ntfy_provider.py",
+        "tests/integration/test_notification_delivery.py",
+        "tests/integration/test_ntfy_live.py",
+        "--junitxml=C:\\Tools\\Dev\\MJobs-Web\\_run_WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26\\ntfy-40e-runtime.xml"
+      ],
+      "fixtures": {
+        "ntfy": "official 2.37.2 on owned loopback18963",
+        "postgres": "17.11 on owned loopback18964; isolated test schemas"
+      },
+      "exit_code": 0,
+      "ended_at": "2026-11-13T03:14:32.491049+00:00",
+      "head_after": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "dirty_after": false,
+      "log_sha256": "62f752506ac01e592f3e7e6fd5a60334da3351db274308535d47335756b3c361",
+      "xml_sha256": "8ced69555495f6cbf3d1577f34074c2f6f8c24a2f7316a152cec6456750e23d1",
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "92",
+          "time": "7.838",
+          "timestamp": "2026-11-12T21:14:24.415536-06:00",
+          "hostname": "MulattoTechBox"
+        }
+      ]
+    },
+    "runtime_versions": {
+      "ntfy_version": "ntfy version 2.37.2",
+      "ntfy_image": "binwiederhier/ntfy@sha256:e5d978c57b5a6a1095c8a74fd1cfe846dabef14369f2ff7a0d16456e727d40ec",
+      "ntfy_health": {
+        "healthy": true,
+        "role": "active"
+      },
+      "pg_version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "pg_image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f"
+    },
+    "runtime_instances": [
+      {
+        "id": "bcc95052b55a6e9158c7b4dd8839c1964527879d264f339b41364fa945521bc8",
+        "name": "/mjobs-ntfy-2d4f-sink",
+        "image": "sha256:e5d978c57b5a6a1095c8a74fd1cfe846dabef14369f2ff7a0d16456e727d40ec",
+        "ports": {
+          "80/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "18963"
+            }
+          ]
+        },
+        "memory": 134217728,
+        "nano_cpus": 250000000,
+        "OOMKilled": false
+      },
+      {
+        "id": "2389998bc3ec3929262c379abd7cad512baf24238280fd6055226a7c29154880",
+        "name": "/mjobs-ntfy-2d4f-pg",
+        "image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+        "ports": {
+          "5432/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "18964"
+            }
+          ]
+        },
+        "memory": 536870912,
+        "nano_cpus": 500000000,
+        "OOMKilled": false
+      }
+    ],
+    "test_schemas_cleaned": true,
+    "fresh_volume_uid_proof": {
+      "run_id": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "volume": "mjobs-ntfy-2d4f-volume-proof",
+      "container_id": "c964c49f9375a60fc9a95a0fac036c553d506944273633f584487a03cc73f121",
+      "image_id": "sha256:c47f29fd576a14f164f30bb7c3c5225d1ea50f75a23fa057d0d770e706211ef5",
+      "scope": "fresh named volume /data population and UID10001 persistence; cached runtime image, not candidate deployment",
+      "run_1": {
+        "uid": 10001,
+        "gid": 10001,
+        "fresh": true,
+        "data_uid": 10001,
+        "file_uid": 10001
+      },
+      "run_2": {
+        "uid": 10001,
+        "gid": 10001,
+        "fresh": false,
+        "data_uid": 10001,
+        "file_uid": 10001
+      },
+      "cleanup_verified_at": "2026-11-13T03:16:18.282106+00:00",
+      "result": "PASS"
+    },
+    "private_receipts": [
+      {
+        "filename": "ntfy-40e-runtime-receipt.json",
+        "sha256": "ed8331aa1f8bfc07666515b777e47c7a303ebd19b17f2eb9dd41d9e2f993aae3"
+      },
+      {
+        "filename": "ntfy-runtime-setup.json",
+        "sha256": "1270603a3b44b310cbfbb77550ede4e8c19a6cf2fc34bf0eb03b2c72f153a83e"
+      },
+      {
+        "filename": "ntfy-volume-proof.json",
+        "sha256": "b12861fe82c12a76dccb77e7efe685bd08feef1a0d7190bd034e0ff3ca684955"
+      }
+    ],
+    "source_note": "The 92-test execution includes both PostgreSQL tests and the official local ntfy test, with zero skips. The separate volume proof uses the cached runtime image only; it does not claim candidate image build, Compose startup or deployment."
+  },
+  "independent_reviews": [
+    {
+      "reviewer": "/root/campaign_review",
+      "scope": "configuration, provider, transport deadline, acknowledgements, privacy, disabled behavior and capability description",
+      "reviewed_sha": "e79cab2800089f93d193fff9b2232e1812a5e818",
+      "result": "PASS_SCOPED",
+      "source_equivalence": "Provider, configuration, contract, CLI and their unit-test blobs are unchanged at tested_sha. Reservation-gap documentation correction is recorded in the repair.",
+      "executed_probes": [
+        "Slow acknowledgement body crossing total deadline returns UNKNOWN/NOTIFICATION_DELIVERY_TIMEOUT and closes stream",
+        "Infinite uncompressed acknowledgement stops after17x4096-byte chunks with UNKNOWN/NOTIFICATION_ACK_TOO_LARGE and closes stream"
+      ]
+    },
+    {
+      "reviewer": "/root/coordination_review",
+      "scope": "journal, event ownership, actual producers, runner, CLI, Compose and integration tests",
+      "reviewed_sha": "40eec0a5e73ed5ed64f4c90446a15d08245567b7",
+      "result": "PASS_SCOPED_AFTER_REPAIR",
+      "closed_finding": "APPLY_MOCK formerly required a top-level profile_id absent from both actual producers; current frozen-snapshot and narrow legacy paths now retain owned-MOCK validation and pass actual-producer tests on SQLite/PostgreSQL"
+    }
+  ],
+  "prior_failures_preserved": [
+    {
+      "stage": "uncommitted strict-configuration draft",
+      "result": "FAIL",
+      "detail": "Two URL delimiter tests failed before the intended bare-query/fragment rejection was actually applied; corrected and covered by the passing immutable suites"
+    },
+    {
+      "stage": "unpublished provenance draft179f9875",
+      "result": "FAIL",
+      "detail": "Date-only UTC-Date rejected; unpublished commit was corrected to a full timestamp before source freeze; no remote history rewrite"
+    },
+    {
+      "stage": "immutable e79 source review",
+      "result": "P2_FOUND",
+      "detail": "Both real APPLY_MOCK producer shapes excluded; repaired in40eec0a5 with positive, foreign-owner, malformed-snapshot, fingerprint and legacy-shape regressions"
+    },
+    {
+      "stage": "Docker fixture setup",
+      "result": "FAILED_ATTEMPTS",
+      "detail": "Default address pools exhausted, then internal bridge suppressed loopback published ports. Exact owned fixtures were removed; verified unused subnet10.254.77.0/28 and loopback-only ordinary bridge fixtures succeeded. No shared network was changed."
+    }
+  ],
+  "limits_and_not_run": [
+    "No claim of full parent MJ-REQ-204 event coverage: excellent match, authentication expiry, source degradation and new-employer discovery are not implemented by this slice.",
+    "No guaranteed device display, background mobile push, exactly-once transport delivery or reconstruction of transitions entirely between polling observations.",
+    "Real external job applications remain off. Supported fixture/dry-run/review outcomes do not confirm external submission.",
+    "No third-party notification sent; public hosted ntfy/TLS/authenticated account live validation was not run. Authentication and TLS policy have deterministic coverage.",
+    "Candidate Compose image build/startup, protected hosted checks, integration, deployed workflow and formal acceptance remain NOT_RUN.",
+    "Desktop is a separate browser implementation; its pending peer descriptor does not create a backend sender or an integrated capability here."
+  ],
+  "ownership_blocker": {
+    "owner_run": "web-20261109T132018Z-0d9f5a0511ab",
+    "exact_steward_suffix": "resume-20261109T153054Z:steward",
+    "exact_canonical_suffixes": [
+      "resume-canonical-acceptance",
+      "resume-canonical-derived-support"
+    ],
+    "evidence": "Native ACTIVE claims and later17:16:59UTC Nov9 resume checkpoint all_owned_claims_released=false; earlier release predates reacquisition; no exact later release observed",
+    "required_action": "Exact-generation steward coordination/release/transfer; separate canonical writer authority before acceptance edits"
+  },
+  "acceptance": {
+    "original_before": 183,
+    "original_after": 183,
+    "original_total": 366,
+    "reference_before": 19,
+    "reference_after": 19,
+    "reference_total": 59,
+    "p6_before": 0,
+    "p6_after": 0,
+    "p6_total": 12,
+    "scope": "Canonical data at base_sha; local provider proof does not promote a canonical row"
+  },
+  "cleanup": {
+    "all_owned_docker_resources_absent": true,
+    "private_fixture_credentials_removed": true,
+    "heavy_runtime_claim": "RELEASED",
+    "verified_at": "2026-11-13T03:16:18.282106+00:00"
+  },
+  "next_action": "Resolve exact steward coordination, acquire all publication admission aliases, obtain fresh all-page live inventory and exact candidate preflight, publish one coherent PR, pass required current-head gates, integrate through protection, then let the canonical writer assess all child criteria. Parent remains separate."
+}
