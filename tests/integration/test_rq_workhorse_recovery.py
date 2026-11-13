@@ -25,6 +25,7 @@ from uuid import uuid4
 from fastapi.responses import Response, StreamingResponse
 from fastapi.testclient import TestClient
 import httpx
+import pytest
 from redis import Redis
 from rq import Queue, Worker
 from rq.exceptions import InvalidJobOperation
@@ -46,6 +47,13 @@ from tests.integration import rq_workhorse_fixture as workhorse_fixture
 from tests.integration.rq_workhorse_fixture import (
     OwnedWorker, ProcessIdentity, admit_redis, process_identity, signal_owned, until,
 )
+
+
+@pytest.fixture
+def browser_timeout_receipt(request, record_property):
+    # The existing hosted workflow uploads JUnit XML. Preserve the sanitized
+    # pre-teardown observation there even when the cleanup assertion passes.
+    request.instance.record_browser_timeout_receipt = record_property
 
 
 class WorkhorseFixtureAdmissionTests(unittest.TestCase):
@@ -636,6 +644,140 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                     self.assertEqual(self.queue.started_job_registry.get_job_ids(cleanup=False), [])
                 finally:
                     reopened.engine.dispose()
+
+    @pytest.mark.usefixtures("browser_timeout_receipt")
+    def test_frozen_mock_browser_timeout_reaps_captured_descendants(self):
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        app = create_mock_app()
+
+        @app.middleware("http")
+        async def hold_browser_navigation(request, call_next):
+            response = await call_next(request)
+            if (request.method != "GET" or not request.url.path.startswith("/ats/")
+                    or request.headers.get("sec-fetch-dest") != "document"
+                    or response.status_code != 200):
+                return response
+
+            async def held_document():
+                entered.set()
+                deadline = time.monotonic() + 10
+                while not release.is_set() and time.monotonic() < deadline:
+                    yield b" "
+                    await asyncio.sleep(.1)
+                async for chunk in response.body_iterator:
+                    yield chunk
+
+            return StreamingResponse(held_document(), media_type="text/html")
+
+        with patch("fixtures.mock_server.create_mock_app", return_value=app), fixture_server() as origin:
+            self.store.save_profile(dict(PROFILE))
+            discover(self.store, origin, PROFILE["id"])
+            application = prepare(self.store, self.store.jobs(PROFILE["id"])[0]["id"],
+                                  PROFILE["id"], self.root)
+            endpoint = f"/profiles/{PROFILE['id']}/applications/{application}/mock-run"
+            # Dispatch reads this process's environment; the worker's own 30s
+            # environment alone does not set the enqueued RQ Job.timeout.
+            with self.client(self.store, origin) as client, patch.dict(
+                    os.environ, {"MJOBS_OPERATION_TIMEOUT": "30"}):
+                response = client.post(endpoint, json={"submit": False, "request_id": uuid4().hex})
+                self.assertEqual(response.status_code, 202, response.text)
+                identifier = response.json()["operation_id"]
+                self.operation_ids.add(identifier)
+                self.assertFalse(response.json()["external_submission_enabled"])
+                self.assertEqual(dispatch_pending(self.store, self.redis_url)["count"], 1)
+            job = Job.fetch(identifier, connection=self.redis)
+            self.assertEqual((job.func_name, job.args, job.origin, job.timeout),
+                             ("workers.tasks.execute_operation", (identifier,), "mjobs-application", 30))
+            with self.worker(origin, "browser-timeout", queue="mjobs-application") as worker:
+                try:
+                    until(entered.is_set, "Production browser did not reach loopback ATS", seconds=25)
+                    execution = until(lambda: worker.capture_horse(job), "Browser horse not established")
+                    self.capture_execution(identifier, execution)
+                    job.refresh()
+                    self.assertIsNotNone(job.started_at)
+                    self.assertLess(time.time() - job.started_at.timestamp(), 25,
+                                    "Insufficient RQ budget remains to establish the browser fault")
+                    from services.applications.browser_profiles import browser_profile_path
+                    browser = worker.freeze_browser(browser_profile_path(self.root / application))
+                    # Keep a nonempty immutable inventory before any ancestor
+                    # exits. A later empty /proc children list proves nothing.
+                    original = tuple(worker.owned.values())
+                    self.assertIn(browser, original)
+                    self.assertGreater(len(original), 3)  # worker, horse, driver, browser
+                    frozen_after_seconds = time.time() - job.started_at.timestamp()
+                    release.set()
+                    self.assertEqual(worker.worker.job_monitoring_interval, 30)
+                    terminal_after_seconds = None
+                    observation_error = None
+
+                    def outcome():
+                        nonlocal terminal_after_seconds
+                        self.assertIsNone(worker.process.poll(), "Production RQ monitor exited")
+                        for owned in list(worker.owned.values()):
+                            if workhorse_fixture.running(owned):
+                                worker.remember(workhorse_fixture.descendants(owned.pid))
+                        settled = (job.get_status(refresh=True) in {"finished", "failed"}
+                                   and not workhorse_fixture.running(worker.horse))
+                        if settled:
+                            terminal_after_seconds = time.time() - job.started_at.timestamp()
+                        return settled
+
+                    try:
+                        # RQ 2.12: timeout+60, checked at the next 30s monitor
+                        # interval. Never cancel, kill, or freeze the horse/parent.
+                        until(outcome, "Production timeout did not settle the original RQ horse",
+                              seconds=job.timeout + 60 + worker.worker.job_monitoring_interval + 10)
+                        until(lambda: not any(workhorse_fixture.running(owned)
+                                              for owned in worker.owned.values()
+                                              if owned.pid != worker.identity.pid),
+                              "Captured processes survived the production timeout", seconds=5)
+                    except AssertionError as error:
+                        # Preserve the observation before the final oracle raises
+                        # and before OwnedWorker performs any containment cleanup.
+                        observation_error = str(error)
+                    finally:
+                        row = self.read(identifier)
+                        elapsed = time.time() - job.started_at.timestamp()
+                        exception = job.exc_info or ""
+                        if row["error"] == "JobTimeoutException" or "JobTimeoutException" in exception:
+                            mechanism = "rq-timeout-exception"
+                        elif ("Work-horse terminated unexpectedly" in exception
+                              and terminal_after_seconds is not None
+                              and terminal_after_seconds >= job.timeout + 60):
+                            mechanism = "horse-termination-in-rq-monitor-window"
+                        elif row["error"] in {"PLAYWRIGHT_TIMEOUT", "OPERATION_TIMEOUT"}:
+                            mechanism = "browser-or-operation-timeout"
+                        else:
+                            mechanism = "unclassified-failure"
+                        receipt = {
+                            "schema_version": 1, "operation_id": identifier,
+                            "rq_status": job.get_status(refresh=True), "rq_timeout_seconds": job.timeout,
+                            "frozen_after_seconds": round(frozen_after_seconds, 3),
+                            "observed_after_seconds": round(elapsed, 3),
+                            "terminal_after_seconds": (round(terminal_after_seconds, 3)
+                                                       if terminal_after_seconds is not None else None),
+                            "mechanism": mechanism, "observation_error": observation_error,
+                            "sql": {key: row[key] for key in ("state", "error", "attempt_count")},
+                            "browser_pid": browser.pid,
+                            "initial_identity_count": len(original),
+                            "processes": [workhorse_fixture.process_snapshot(owned)
+                                          for owned in worker.owned.values()],
+                            "observation_before_fixture_teardown": True,
+                        }
+                        encoded = json.dumps(receipt, sort_keys=True)
+                        print("RQ_BROWSER_TIMEOUT_RECEIPT " + encoded, flush=True)
+                        recorder = getattr(self, "record_browser_timeout_receipt", None)
+                        if recorder is not None:
+                            recorder("rq_browser_timeout_receipt", encoded)
+                    self.assertIsNone(observation_error, encoded)
+                    self.assertNotEqual(mechanism, "unclassified-failure", encoded)
+                    self.assertIn(row["state"], {"FAILED", "BLOCKED", "DEAD_LETTERED"}, encoded)
+                    self.assertEqual(row["attempt_count"], 1, encoded)
+                    self.assertEqual(httpx.get(origin + "/_test/request-counts", timeout=3,
+                                               trust_env=False).json(), {"review": 0, "submit": 0})
+                finally:
+                    release.set()
 
     def test_abandoned_mock_submit_with_unavailable_receipt_remains_uncertain_without_resubmission(self):
         accepted, release, receipt_outage = threading.Event(), threading.Event(), threading.Event()

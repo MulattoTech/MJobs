@@ -189,6 +189,43 @@ def descendants(parent):
     return found
 
 
+def process_snapshot(owned):
+    """Small original-identity receipt; a reused PID is never a survivor."""
+    value = {"pid": owned.pid, "group": owned.group, "session": owned.session,
+             "started": owned.started, "alive": False, "state": "EXITED"}
+    try:
+        current = process_identity(owned.pid)
+    except FileNotFoundError:
+        return value
+    if ((current.pid, current.group, current.session, current.started)
+            != (owned.pid, owned.group, owned.session, owned.started)):
+        value["state"] = "PID_REUSED"
+    else:
+        value.update(state=current.state, alive=current.state not in {"Z", "X"})
+    return value
+
+
+def process_command(owned, *, proc=Path("/proc")):
+    """Read bounded metadata only for an unchanged, still-parented descendant."""
+    expected = (owned.pid, owned.parent, owned.group, owned.session, owned.started)
+    before = process_identity(owned.pid)
+    if (before.pid, before.parent, before.group, before.session, before.started) != expected:
+        raise RuntimeError("Descendant identity changed before browser selection")
+    if before.state in {"Z", "X"}:
+        return None
+    with (proc / str(owned.pid) / "cmdline").open("rb") as stream:
+        command = stream.read(16385)
+    executable = Path(os.readlink(proc / str(owned.pid) / "exe")).name
+    after = process_identity(owned.pid)
+    if (after.pid, after.parent, after.group, after.session, after.started) != expected:
+        raise RuntimeError("Descendant identity changed during browser selection")
+    if after.state in {"Z", "X"} or not command:
+        return None
+    if len(command) > 16384 or not command.endswith(b"\0"):
+        raise RuntimeError("Browser command metadata exceeds the fixture bound")
+    return executable, tuple(os.fsdecode(value) for value in command[:-1].split(b"\0"))
+
+
 class OwnedWorker:
     """Actual production entry point, with signals limited to verified PIDs."""
 
@@ -313,6 +350,48 @@ class OwnedWorker:
         self.children = descendants(horse.pid)
         self.remember([horse, *self.children])
         return executions[0]
+
+    def freeze_browser(self, profile):
+        """Freeze one exact Chromium root, leaving production timeout owners live."""
+        if (self.identity is None or self.horse is None or self.process.poll() is not None
+                or not running(self.identity) or not running(self.horse)):
+            raise RuntimeError("A live captured production workhorse is required")
+        profile = Path(profile).resolve(strict=True)
+        root = self.root.resolve(strict=True)
+        if profile == root or not profile.is_relative_to(root) or not profile.is_dir():
+            raise RuntimeError("Browser profile is outside the owned fixture directory")
+        self.children = descendants(self.horse.pid)
+        self.remember([self.horse, *self.children])
+        matches = []
+        for child in self.children:
+            try:
+                metadata = process_command(child)
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+            if metadata is None:
+                continue
+            executable, arguments = metadata
+            profiles = [value for value in arguments if value.startswith("--user-data-dir=")]
+            if (executable in {"chrome", "chromium", "headless_shell", "chrome-headless-shell"}
+                    and profiles == [f"--user-data-dir={profile}"]
+                    and "--user-data-dir" not in arguments
+                    and [value for value in arguments if value.startswith("--remote-debugging-pipe")]
+                    == ["--remote-debugging-pipe"]
+                    and not any(value == "--type" or value.startswith("--type=")
+                                for value in arguments)):
+                matches.append(child)
+        if len(matches) != 1:
+            raise RuntimeError("Expected one exact owned Chromium root; refusing freeze")
+        browser = matches[0]
+        if (browser.group, browser.session) != (browser.pid, browser.pid):
+            raise RuntimeError("Chromium root does not own the detached session under test")
+        if not running(self.identity) or not running(self.horse):
+            raise RuntimeError("Production timeout owner exited before browser freeze")
+        if not freeze_process(browser):
+            raise RuntimeError("Chromium exited before the frozen-browser fault was established")
+        if not running(self.identity) or not running(self.horse):
+            raise RuntimeError("Production timeout owner exited during browser freeze")
+        return browser
 
     def abandon(self):
         if self.horse is None:
