@@ -3,10 +3,10 @@
   "task_id": "MJ-REQ-204.N05",
   "objective": "Deliver and verify the opt-in browser Desktop provider with honest capability and evidence scope.",
   "owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
-  "branch": "web/20261113-2d4f/n05-acceptance",
-  "head_sha": "1f1a578ee84554e81c76df59b28d88f008a93815",
+  "branch": "web/20261113-2d4f/ntfy-provider",
+  "head_sha": "4466d0321f5f08a1a59243174a20383592d6ddf5",
   "routing_state": "VERIFY",
-  "next_action": "Obtain independent final generated-diff review, commit with provenance, and publish N05-only canonical acceptance through protected controls. Parent204 and production remain unchanged.",
+  "next_action": "Validate the corrected Ntfy publication candidate and publish N05-only acceptance through PR1021 protected gates; N02, parent204 and production remain unchanged",
   "created_at": "2026-11-13T03:31:45.369754Z",
   "requirements": [
     "MJ-REQ-204.N05",
@@ -111,6 +111,24 @@
           "result": "NOT_RUN"
         }
       ]
+    },
+    {
+      "recorded_at": "2026-11-13T08:45:59.809753+00:00",
+      "source_head": "4466d0321f5f08a1a59243174a20383592d6ddf5",
+      "tests": [
+        {
+          "command": "python -m tools.verification.progress sync on the exact composed candidate",
+          "result": "PASS"
+        },
+        {
+          "command": "python -m tools.agent_context validate --task MJ-REQ-204.N05 on the exact composed candidate",
+          "result": "FAIL"
+        }
+      ],
+      "diagnosis": "The actual validator returned OTHER_BRANCH_CHECK_OWNERSHIP because this checkpoint still named the N05 preparation branch. Same-root transfer to the actual ntfy publication branch is recorded in transfer_history. The command and validator are unchanged; corrected-candidate validation is pending.",
+      "execution_receipt_sha256": "97b13bc92a8c5eb82ff46a32dec887fe50dc9f68923e58d61ce31fc7fa1770ab",
+      "child_result_sha256": "81ea75b007b6e7a7200f42b676fb5baf70f91ec6885513677843c0b5075d87b8",
+      "scope": "Operational continuity metadata only; no application/runtime test or acceptance status changed."
     }
   ],
   "blocker_history": [
@@ -151,6 +169,12 @@
       "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
       "reason": "User-authorized canonical stewardship and fresh exact N05 metadata ownership after protected source integration",
       "transferred_at": "2026-11-13T08:05:30.127900+00:00"
+    },
+    {
+      "from_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "to_owner": "WEB-20261113T024529Z-2d4f15a3-ff40-4141-9410-905d1382ad26",
+      "reason": "Same authorized root owner moves the frozen N05 acceptance checkpoint from its preparation branch to the actual Ntfy publication branch after exact composition; preserve actual a0de runtime identity and failed branch-mismatch validation",
+      "transferred_at": "2026-11-13T08:45:59.800682+00:00"
     }
   ]
 }
