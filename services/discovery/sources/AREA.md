@@ -8,8 +8,10 @@ search and application submission are not supported. Requirements: MJ-REQ-016,
 Interfaces: SourceAdapter.search/fetch/normalize/health/capabilities;
 SearchBatch contains per-posting SourceCompany attribution so a future global
 feed can persist multiple employers in one collection. `source_adapter` is a
-closed provider registry supporting Greenhouse (employer board), Remotive (global JSON),
-We Work Remotely (global RSS feed), and Remote OK (global JSON).
+closed provider registry supporting Greenhouse and Lever (employer boards), Remotive
+(global JSON), We Work Remotely (global RSS feed), Remote OK (global JSON), and
+Arbeitnow (one latest public European feed page), and USAJOBS (recent federal IT
+announcements through two public data endpoints). Both have incomplete inventory.
 The legacy Greenhouse.collect method delegates to search for compatibility.
 configure_source and collect_source own policy and provider-neutral persistence.
 Persist job_sources, company sources, canonical jobs/routes, raw postings and
@@ -47,3 +49,30 @@ Tests: `python -m unittest tests.integration.test_greenhouse tests.integration.t
 is separately invoked, bounded, public and read-only; fixtures never stand in
 for live evidence. Adding a provider requires official collection policy,
 contract fixtures, native provenance and explicit unsupported capabilities.
+
+## Arbeitnow niche source — MJ-REQ-017.F07
+
+The `arbeitnow` provider uses the fixed public HTTPS JSON endpoint and the existing
+collector, health, cancellation, identity and immutable-provenance path. It does
+not follow pagination URLs or infer job closure from absence. Provider-native
+company URL identity is scoped by the validated regional host; a display label
+is not an employer-domain assertion. Source links stay aggregator routes and do
+not acquire verified employer/ATS authority. API source credit, supported fields,
+unsupported capabilities and validation instructions are in
+`docs/sources/ARBEITNOW.md`.
+
+## USAJOBS public federal IT source — MJ-REQ-017.F06
+
+The default-only usajobs provider reads one recent series2210 metadata page and
+at most one announcement-text page using the same documented series/opening-date
+filters. Each response is bounded to 1,000 rows and 5MB; only the newest 25
+selected metadata records can become postings. Validate selection keys, known
+collection structure and duplicate consistency across each response, then join
+every native identity field for selected controls before yielding any posting.
+Unselected text cannot create companies or fill missing selected slots.
+Keep raw records together, preserve calendar-date uncertainty, and never infer
+inventory closure or fully remote work.
+Native agency/department codes identify companies; the shared USAJOBS platform
+host does not establish employer or ATS authority. The exact public-access scope,
+two-request limits, manual routes and qualification state are documented in
+docs/sources/USAJOBS.md.

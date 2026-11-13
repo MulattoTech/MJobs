@@ -64,6 +64,10 @@ _SAFE_LEGACY_SOURCE_CODES = frozenset({
     "SOURCE_JOB_ID_MISMATCH",
     "SOURCE_JOB_LIMIT",
     "SOURCE_JOB_NOT_FOUND",
+    "SOURCE_JOIN_CONFLICT",
+    "SOURCE_JOIN_MISMATCH",
+    "SOURCE_JOIN_MISSING",
+    "SOURCE_ALIAS_CONFLICT",
     "SOURCE_NO_VALID_JOBS",
     "SOURCE_PAYLOAD_INVALID",
     "SOURCE_PAYLOAD_LIMIT",
@@ -90,7 +94,7 @@ _LEGACY_COMPANY_SNAPSHOT_LIMIT = 64
 
 def _legacy_company_label(provider, raw):
     # Recover the full adapter label, never the 200-character display attribute.
-    from services.discovery.sources import remoteok, remotive, wwr
+    from services.discovery.sources import arbeitnow, remoteok, remotive, usajobs, wwr
     if type(raw) is not dict:
         raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
     adapter = {"wwr": wwr, "remoteok": remoteok, "remotive": remotive}.get(provider)
@@ -100,6 +104,10 @@ def _legacy_company_label(provider, raw):
         label = remoteok.plain_text(raw.get("company") or "Unknown Company")
     elif provider == "remotive":
         label = remotive.plain_text(raw.get("company_name") or "Unknown Company")
+    elif provider in {"arbeitnow", "usajobs"}:
+        module = arbeitnow if provider == "arbeitnow" else usajobs
+        company = module.company_identity(raw)
+        return company.name, identity(*company.identity_parts)
     else:
         raise SourceError("SOURCE_COMPANY_IDENTITY_REVIEW_REQUIRED")
     return label, identity(provider, adapter.company_slug(label))
@@ -484,7 +492,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 raise
             bound = fresh_bound
             first_party_ats = source["provider"] in {"greenhouse", "lever"}
-            aggregator_identity = not bound and source["provider"] in {"wwr", "remoteok", "remotive"}
+            aggregator_identity = not bound and source["provider"] in {"wwr", "remoteok", "remotive", "arbeitnow", "usajobs"}
             def company_identity(company):
                 return bound['company_id'] if bound else identity(*company.identity_parts)
             check()

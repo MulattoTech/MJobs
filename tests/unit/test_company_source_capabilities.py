@@ -35,10 +35,10 @@ class CompanySourceCapabilityTests(unittest.TestCase):
 
     def test_every_registered_collector_preserves_its_own_declaration(self):
         providers = set(DEFAULT_SOURCE_ADAPTER_REGISTRY.providers())
-        self.assertEqual(providers, {"greenhouse", "lever", "remotive", "remoteok", "wwr"})
+        self.assertEqual(providers, {"greenhouse", "lever", "remotive", "remoteok", "wwr", "arbeitnow", "usajobs"})
         for provider in sorted(providers):
             with self.subTest(provider=provider):
-                tenant = "global:acme" if provider == "lever" else "acme"
+                tenant = "default" if provider in {"arbeitnow", "usajobs"} else "global:acme" if provider == "lever" else "acme"
                 declaration = source_adapter({"provider": provider, "tenant": tenant}).capabilities().as_dict()
                 collector = dict(id="collector", provider=provider, tenant=tenant, enabled=False,
                                  strategy=declaration["strategy"], capabilities=declaration)
@@ -47,7 +47,7 @@ class CompanySourceCapabilityTests(unittest.TestCase):
                 actual = company_source_capabilities(source, collector).as_dict()
                 self.assert_declaration(actual)
                 self.assertEqual(actual, declaration)
-                if provider == "wwr":
+                if provider in {"wwr", "arbeitnow", "usajobs"}:
                     self.assertFalse(actual["salary"])
 
     def test_malformed_or_mismatched_link_never_falls_back_to_generic_feed_support(self):

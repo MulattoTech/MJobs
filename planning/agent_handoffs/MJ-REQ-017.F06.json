@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-017.F06",
+  "objective": "Deliver and qualify bounded public USAJOBS recent federal IT discovery with strict joins, persisted provenance, conservative normalization and manual-only application routes; retain protected integration and formal acceptance as separate gates.",
+  "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "branch": "web/p6-usajobs-20261113-4dae",
+  "head_sha": "7db8d97a0afd7cf711ee3176ff97a63c3b85e048",
+  "routing_state": "VERIFY",
+  "next_action": "Use separate immutable candidate/operator receipts to bind metadata-only applicability to actually frontend-tested 7db8d97a0afd7cf711ee3176ff97a63c3b85e048, obtain fresh ordinary existing-PR 1022 update admission, then earn exact new-head hosted checks and sole-steward protected integration. Acceptance and deployment remain separate.",
+  "created_at": "2026-11-13T05:52:58.517Z",
+  "updated_at": "2026-11-13T09:10:40.294083+00:00",
+  "requirements": [
+    "MJ-REQ-017.F06"
+  ],
+  "tests": [
+    {
+      "command": "Exact clean e9594dd84868cc0828aca34da40cfb31d0029390: pytest tests/unit/test_usajobs_source.py tests/integration/test_usajobs.py tests/unit/test_usajobs_provenance.py tests/unit/test_source_adapter_contract_223.py — 220 PASS, 0 failures/errors/skips in13.92s; actual current Store ab3a and provider c7af; see usajobs-bulk-e9594dd8.{json,log,xml}.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact e9594dd8 production USAJobs.search/normalize, 2026-11-13T05:46:48Z–05:47:07Z: two fixed verified-TLS GETs with identical2210/Nov7–13 filters returned117 metadata and117 text rows; newest25 selected, full identity joined and normalized with0 errors, HEALTHY, incomplete inventory. Receipt usajobs-live-bulk-qualification-e9594dd84868cc0828aca34da40cfb31d0029390.json.",
+      "result": "PASS"
+    },
+    {
+      "command": "Same bounded live run: one conditional https://www.usajobs.gov/job/892518400 GET returned exact same-host HTTP200, no redirect,139637 bytes. This is HTTP observation only; page identity/application flow and other routes remain unproved.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical clean d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5: npm --prefix apps/web run build, TypeScript/Vite PASS; full frontend tree fce045ae unchanged at e959. Component proof, not a new build execution.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical clean d540098e: actual Chromium/React/FastAPI enrollment/reload/credit/disable browser case 1 PASS,0 skips in7.41s; isolated SQLite and zero jobs/operations/applications/external requests. Frontend/API/registry/test components unchanged; provider and Store later changed, so this is not an e959 assembled-browser pass.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical reviewed dirty implementation over86cafb5c:357 PASS +69 subtests,0 failures/errors/skips in32.62s. Source-bound older provider950abd; preserved without claiming current bulk execution.",
+      "result": "PASS"
+    },
+    {
+      "command": "Historical dirty selection repair over d540, later committed65e7b662:196 PASS,0 failures/errors/skips in11.38s. Strict newest25 identity validation; former CSV text query still present then.",
+      "result": "PASS"
+    },
+    {
+      "command": "Preserved initial dirty86cafb5c backend attempt:345 PASS +69 subtests and1 failed provenance binding expectation. Corrected producer-binding test and actual receipt/log/XML retained.",
+      "result": "FAIL"
+    },
+    {
+      "command": "Preserved d540 production search: one metadata request then SOURCE_INVALID_JOB,0 normalization/routes; separate bounded metadata diagnostic identified three unsupported agency labels. Selection repair and196-test proof retained.",
+      "result": "FAIL"
+    },
+    {
+      "command": "Preserved65e7 production search:25 selected metadata controls, two API method calls, former CSV AnnouncementText query failed SOURCE_UNAVAILABLE;0 normalized/routes. Separate one-request diagnostic observed HTTP400 integer-value refusal after cooldown; full failures retained.",
+      "result": "FAIL"
+    },
+    {
+      "command": "Immutable163db72d final metadata/source-equivalence review PASS: only three guide/evidence/handoff and two approved scanner paths differ from actually tested e959. Seven native integrity/provenance/whitespace/handoff checks exited0; receipts independent-review-usajobs-final-163db72d.json and f06-integrity-163db72d.json.",
+      "result": "PASS"
+    },
+    {
+      "command": "Required hosted checks on the eventual exact F06 published head; protected integration with F07 dependency and applicable integrated/runtime validation.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Formal canonical requirement acceptance or deployment promotion.",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Exact clean 7db8d97a0afd7cf711ee3176ff97a63c3b85e048: TypeScript and Vite production build PASS, exit0, 1.906s; distinct current web tree and build assets retained in merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact clean F06 7db8d97a0afd7cf711ee3176ff97a63c3b85e048: 28 Desktop/Activity Vitest cases PASS,0 failures/errors/skips. Original assertions/timers unchanged; exact command/JUnit/log retained.",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact clean 7db8d97a0afd7cf711ee3176ff97a63c3b85e048: actual mounted loopback browser 5 cases PASS,0 failures/errors/skips, 145.14s. USAJOBS+Arbeitnow enrollment and3 native Desktop cases. Retained Job0/original-host signaled, temporary fixtures removed and heavy reservation released.",
+      "result": "PASS"
+    },
+    {
+      "command": "Final post-frontend metadata successor: fresh exact-head hosted qualification, protected integration, deployment and formal acceptance remain NOT_RUN; historical published 36c72a5386a1fb43818311d6d863256e2209dcaf Security failure is retained with exact payload-digest disposition adopted locally at 156a3f25942d902197650f1845858e55183a6262.",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [
+    "Required hosted checks on the final newly published head, protected integration, applicable integrated/runtime validation, deployment and formal acceptance remain separate gates.",
+    "The actual frontend proof does not establish an OS-visible toast, closed-page delivery or an external application flow."
+  ],
+  "source_binding_note": "head_sha identifies the actual current merged frontend execution. Historical backend/live/diagnostic entries retain their own original source anchors and are not reruns at this head. The final metadata-only successor is identified separately after commit, avoiding a self-referential commit hash.",
+  "reviewed_evidence_preparation": {
+    "result": "PASS",
+    "receipt": {
+      "name": "independent-review-usajobs-evidence-e9594dd8.json",
+      "bytes": 37731,
+      "sha256": "a1ec709d6375306bd49674e3bcbcace6e7cf78f068f82b58efd1fdd845e477f3"
+    },
+    "timestamp_corrections_only": 7
+  },
+  "final_reviewed_predecessor": {
+    "head": "163db72d92b178bdbc0b91dee79db0c157f67f40",
+    "tree": "e05630597e9096c6929f4193221cc39bf54063f6",
+    "review": {
+      "name": "independent-review-usajobs-final-163db72d.json",
+      "bytes": 13480,
+      "sha256": "5c4fa69414479f8545704555d3667e23cf0d67d207447b9796d1b8438c713fce"
+    },
+    "native_integrity": {
+      "name": "f06-integrity-163db72d.json",
+      "bytes": 17527,
+      "sha256": "fb8a57b932fb3a3da123ceed560ea01e153f9512f3f5b5da1da7c7acfb644d35"
+    },
+    "scanner_adoption": {
+      "name": "scanner-adoption-complete.json",
+      "bytes": 3494,
+      "sha256": "9e6fb8db09360324b5116c1ff6ee6138dd45d2191c27bc46ade8636b860b1c4a"
+    }
+  },
+  "historical_metadata_summaries": [
+    {
+      "recorded_at_utc": "2026-11-13T09:10:40.294083+00:00",
+      "source_head_before_metadata_edit": "7db8d97a0afd7cf711ee3176ff97a63c3b85e048",
+      "fields": {
+        "head_sha": "e9594dd84868cc0828aca34da40cfb31d0029390",
+        "next_action": "Bind the final metadata-only successor to reviewed163db72d and unchanged executed e959, obtain fresh new-PR publication admission, then earn exact-head hosted checks and coordinate dependency-aware protected integration and applicable acceptance.",
+        "updated_at": "2026-11-13T06:30:49.429972+00:00",
+        "blockers": [
+          "Source, evidence, scanner adoption and seven native checks passed review at163db72d; the final metadata successor still needs its exact operator binding and publication admission.",
+          "Required exact-head hosted checks, dependency-aware protected integration and formal acceptance have not occurred.",
+          "The historical browser result covers unchanged components; no current assembled-head browser result is claimed.",
+          "Bounded same-host HTTP200 does not prove page identity or an application/submission flow; manual-only constructed-route limitations remain explicit."
+        ],
+        "source_binding_note": "head_sha identifies the actual executable source tested locally and live. The later metadata/docs-only successor is bound by a private candidate receipt and final review, without a self-referential commit hash."
+      },
+      "tests_prefix_preserved_count": 13
+    }
+  ],
+  "published_head_sha": "36c72a5386a1fb43818311d6d863256e2209dcaf",
+  "published_head_observation_scope": "Predecessor observed by root through authenticated GitHub at 2026-11-13 08:53 UTC; fresh API verification is required before publication. This is not the future metadata candidate.",
+  "current_frontend_qualification": {
+    "tested_head": "7db8d97a0afd7cf711ee3176ff97a63c3b85e048",
+    "tested_tree": "cd00c6706713022cdcb382da88966129787323e5",
+    "web_tree": "66af0e74b411f17cc91fe53128dacd5c98c05a9f",
+    "result_receipt": {
+      "name": "merged-frontend-7db8d97a-f056e9c5-27a6170df9384517b00340228604ef88/result.json",
+      "bytes": 198551,
+      "sha256": "1b6b391544c207dafef70dc1cf9941dad41a47647f7ed1edc4e290ed29b0b1a0"
+    },
+    "independent_actual_audit": {
+      "status": "PASS",
+      "receipt": {
+        "name": "independent-review-merged-frontend-runtime-7db8d97a-f056e9c5.json",
+        "bytes": 87590,
+        "sha256": "5d274b1d75add77b27c8822cf9935917bb58147ddcfa5a38f84a52cde11c5003",
+        "result": "PASS_SCOPED_MERGED_FRONTEND_QUALIFICATION"
+      },
+      "preparer_is_controller_and_provider_author": true,
+      "preparer_claims_independent_approval": false
+    },
+    "historical_backend_reference": "e9594dd84868cc0828aca34da40cfb31d0029390",
+    "source_evidence": "docs/evidence/2026-11-13-usajobs-source.json",
+    "future_metadata_hosted_checks": "NOT_RUN",
+    "historical_execution_scope_note": "Original test entries retain their original source and creation-time scope; former whole-tree-equivalence or NOT_RUN statements are not current claims.",
+    "metadata_successor_identity_binding": "Separate immutable post-commit candidate/operator receipt; no pending self-referential hash."
+  }
+}

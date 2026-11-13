@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "task_id": "MJ-REQ-017.F07",
+  "objective": "Deliver and formally accept a bounded Arbeitnow niche-source adapter with exact capabilities, deterministic contracts, safe live readback and user-visible configuration",
+  "owner": "WEB-20261113T024542Z-4dae2abf-2dd6-493a-ab4d-4e23e9f65b6f",
+  "branch": "web/p6-arbeitnow-20261113-4dae",
+  "head_sha": "53d986635aff953f5a7eafce4ffc8a0de48f8351",
+  "routing_state": "VERIFY",
+  "next_action": "Publish reviewed evidence-only successor of current-main53d to existingPR1019 under fresh admission, then observe required new-head gates and coordinate sole-steward integration/acceptance.",
+  "created_at": "2026-11-13T03:41:53.261607+00:00",
+  "requirements": [
+    "MJ-REQ-017.F07"
+  ],
+  "tests": [
+    {
+      "command": "Exact17a14da4:193 focused backend tests and68 subtests PASS; see docs/evidence/2026-11-13-arbeitnow-source.json",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact17a14da4:TypeScript and Vite build PASS; frontend source tree identical at cf68318a",
+      "result": "PASS"
+    },
+    {
+      "command": "Exactcf68318a:real browser enrollment/reload/credit/disable/no-side-effects1 PASS,0 skips",
+      "result": "PASS"
+    },
+    {
+      "command": "Exact0ea6cd30:one bounded production-transport public API search,300 received/normalized,0 failures; same provider/discovery blobs at cf68318a",
+      "result": "PASS"
+    },
+    {
+      "command": "Catalogue/progress/projection/agent-skills/reference-provenance and all source commit provenance PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Protected integration and applicable deployed/integrated runtime validation",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Formal canonical acceptance and dashboard status promotion",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Prior published d3: CI/SecretScan/Dependencies/Compose PASS; IntegrationFAIL in public fixture deadline case, fullfailure retained",
+      "result": "FAIL"
+    },
+    {
+      "command": "Exact diagnostic02b1957f over d3:16 actual pending-connect/control/readback cases PASS,0 failures/errors/skips; independent review PASS",
+      "result": "PASS"
+    },
+    {
+      "command": "Required hosted checks on next published current-main candidate",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Exact53d currentmain5b2 Storedependency:16 focused actual socket/worker/durable casesPASS,0skip; nativeintegrity/provenancePASS",
+      "result": "PASS"
+    }
+  ],
+  "blockers": [
+    "Prior d3 exact-head Integration failed public worker deadline completion; diagnostic source is locally qualified, new-head hosted qualification remains required.",
+    "Protected integration and formal acceptance have not occurred; sole steward2d4f ownership is resolved."
+  ],
+  "updated_at": "2026-11-13T05:24:23.577012+00:00"
+}

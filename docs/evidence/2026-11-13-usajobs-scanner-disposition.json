@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "record_type": "exact_historical_scanner_disposition",
+  "requirement_id": "MJ-REQ-017.F06",
+  "affected_dependency": "The same historical finding can appear in subsequent repository-wide history scans, including F07.",
+  "observed_at_utc": "2026-11-13T07:10:01.660121+00:00",
+  "prepared_by": "ChatGPT-Web /root/p6_readonly",
+  "disposition": "VERIFIED_NONCREDENTIAL_PAYLOAD_DIGEST",
+  "disposition_scope": "Only the exact historical fingerprint identified below. This record does not assert a new scanner pass or feature acceptance.",
+  "finding": {
+    "fingerprint": "b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523",
+    "rule_id": "generic-api-key",
+    "commit": "b57e2c4101baf724725ac1d05b735f42db3825dd",
+    "path": "docs/evidence/2026-11-13-usajobs-source.json",
+    "line": 1523,
+    "field_parent": "live_readonly_validation.history.preserved_artifact_hashes",
+    "artifact_name": "usajobs-live-production-65e7b662.api1-metadata.json",
+    "value_kind": "SHA-256 of canonical reserialized decoded public metadata JSON",
+    "digest": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8"
+  },
+  "evidence_source": {
+    "git_blob": "f5c3d85f5ccddc23b2f7c46f087e4b675ca7d3ac",
+    "bytes": 89003,
+    "sha256": "15d01352658256675e398adf6630cdd11ca37feb98c1cf0308ed6644ea2ebdae"
+  },
+  "verification": {
+    "method": "Offline byte hashing, JSON parsing, immutable Git object reads and static inspection of the preserved probe programs. No application imports, tests, scanner execution or network requests.",
+    "payload_bytes": 187647,
+    "payload_rows": 117,
+    "payload_top_level_keys": [
+      "data"
+    ],
+    "two_saved_payloads_byte_identical": true,
+    "recomputed_payload_digest_equals_historical_value": true,
+    "owner_token_fields_compared": 1,
+    "raw_owner_token_in_historical_evidence": false,
+    "raw_owner_token_in_payload": false,
+    "historical_program_hashes_match_receipts": true,
+    "canonicalization": "json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False, separators=(',', ':')).encode('utf-8')",
+    "payload_is_wire_capture": false,
+    "original_request_observer": "The production probe calls the original bound USAJobs._request with unchanged endpoint and parameters, canonicalizes its decoded return value, writes exactly those bytes, and records SHA-256 of those bytes.",
+    "earlier_diagnostic": "The earlier diagnostic calls production USAJobs._request exactly once, applies the same canonicalization and writes an independently captured payload with identical bytes and digest.",
+    "request_endpoint": "https://data.usajobs.gov/api/historicjoa",
+    "request_parameters": {
+      "PositionSeries": "2210",
+      "StartPositionOpenDate": "11-07-2026",
+      "EndPositionOpenDate": "11-13-2026"
+    },
+    "production_source_headers": [
+      "User-Agent: MJobs-Discovery/1.0",
+      "Accept: application/json",
+      "Accept-Encoding: identity"
+    ],
+    "production_source_authentication": "No authentication headers, credentials or protected Search request; SourceTransport with verified TLS, trust_env=False and follow_redirects=False.",
+    "original_probe_source": {
+      "head": "65e7b6623e39af408a6b78b0cf536a60234f3ebb",
+      "provider_blob": "d540290b6be99295b8fa107af1ffcf5958bccdb9",
+      "program_name": "usajobs-live-production-65e7b662.py",
+      "program_sha256": "526590391a6f0c7721bb5517f9d41bdd31a1a5096ed2514a990308b4be1cbb60",
+      "recorded_start_utc": "2026-11-13T05:04:57.923132+00:00",
+      "recorded_end_utc": "2026-11-13T05:05:09.627240+00:00",
+      "recorded_status": "FAILED_SEARCH",
+      "source_unchanged": true
+    },
+    "earlier_diagnostic_source": {
+      "head": "d540098e92c48c5b6b3ba6f7ed55fbd6a11570a5",
+      "provider_blob": "950abd982a2592a36d5561dadec97650be33a962",
+      "program_name": "usajobs-metadata-diagnostic-d540098e.py",
+      "program_sha256": "f83a46c33ff0ca90e5fa99156cd4650323302b12074305a46ebfbfac383f8182",
+      "recorded_status": "DIAGNOSED_REJECTION",
+      "source_unchanged": true
+    },
+    "raw_payload_or_owner_token_published": false
+  },
+  "historical_failures": [
+    {
+      "job_id": "131740117628",
+      "historical_result": "FAIL",
+      "artifact_id": "14016323437",
+      "findings_count": 1,
+      "only_fingerprint": "b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523",
+      "redacted_report": {
+        "name": "scanner-14016323437-secret-scan-redacted.json",
+        "bytes": 1638,
+        "sha256": "fc19ea094a542b1185517675d8dbbe321b54950671182a4c24e9b848eeaeb47b"
+      },
+      "archive": {
+        "name": "scanner-14016323437.zip",
+        "bytes": 1040,
+        "sha256": "2af5f98e8fda53fa20d46cb099d77adf36a4f4bf57b091b5479183966f09c4ed",
+        "members": [
+          {
+            "name": "secret-scan-redacted.json",
+            "bytes": 1638,
+            "sha256": "fc19ea094a542b1185517675d8dbbe321b54950671182a4c24e9b848eeaeb47b"
+          }
+        ]
+      },
+      "summary": {
+        "name": "scanner-14016323437-summary.json",
+        "bytes": 702,
+        "sha256": "6f983c13a67d90ce9619d4fc11b5c598444cb080acec44ab4784ca94f8bf5731"
+      },
+      "log": {
+        "name": "ci-scanner-131740117628.log",
+        "bytes": 41476,
+        "sha256": "498bcbe76713a1a53dece05167953f8428effd14b43a52857bfe1b98e7ee9fe4"
+      }
+    },
+    {
+      "job_id": "131742982589",
+      "historical_result": "FAIL",
+      "artifact_id": "14016982280",
+      "findings_count": 1,
+      "only_fingerprint": "b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523",
+      "redacted_report": {
+        "name": "scanner-14016982280-secret-scan-redacted.json",
+        "bytes": 1638,
+        "sha256": "fc19ea094a542b1185517675d8dbbe321b54950671182a4c24e9b848eeaeb47b"
+      },
+      "archive": {
+        "name": "scanner-14016982280.zip",
+        "bytes": 1040,
+        "sha256": "b7575b4de4efc2f16432edbc62b6575cbc02187874238119a6e4ec256d4b2c37",
+        "members": [
+          {
+            "name": "secret-scan-redacted.json",
+            "bytes": 1638,
+            "sha256": "fc19ea094a542b1185517675d8dbbe321b54950671182a4c24e9b848eeaeb47b"
+          }
+        ]
+      },
+      "summary": {
+        "name": "scanner-14016982280-summary.json",
+        "bytes": 702,
+        "sha256": "4e2ca98a54aec90c43113d95594a93443f55cab4520957272529e028fa02f96f"
+      },
+      "log": {
+        "name": "ci-scanner-131742982589.log",
+        "bytes": 41475,
+        "sha256": "83b2432545d1d8944862cadf13fe2d95ff24106b22eb37219e149c47d2fc47cd"
+      }
+    }
+  ],
+  "preserved_probe_artifacts": [
+    {
+      "name": "usajobs-live-production-d540098e.py",
+      "bytes": 23750,
+      "sha256": "10e06303e369bc62c7bca17c39c373d9cbacd32b871094600b8a4cdf7ad9a676",
+      "recorded_history_hash_matches": true
+    },
+    {
+      "name": "usajobs-live-production-d540098e.json",
+      "bytes": 16244,
+      "sha256": "b1d3ed94812abd0bc205752be83ac58e14e2edcbb915e9c7fa59f4a84adad9f8",
+      "recorded_history_hash_matches": true,
+      "historical_status": "FAILED_SEARCH"
+    },
+    {
+      "name": "usajobs-metadata-diagnostic-d540098e.py",
+      "bytes": 14726,
+      "sha256": "f83a46c33ff0ca90e5fa99156cd4650323302b12074305a46ebfbfac383f8182",
+      "recorded_history_hash_matches": true
+    },
+    {
+      "name": "usajobs-metadata-diagnostic-d540098e.json",
+      "bytes": 14367,
+      "sha256": "ceab02f880ba7c013ef6bcac456de1f83bb16ad83a0b782581f08fff1551417d",
+      "recorded_history_hash_matches": true,
+      "historical_status": "DIAGNOSED_REJECTION"
+    },
+    {
+      "name": "usajobs-metadata-diagnostic-d540098e.metadata.json",
+      "bytes": 187647,
+      "sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8",
+      "recorded_history_hash_matches": true
+    },
+    {
+      "name": "usajobs-live-production-65e7b662.py",
+      "bytes": 24884,
+      "sha256": "526590391a6f0c7721bb5517f9d41bdd31a1a5096ed2514a990308b4be1cbb60",
+      "recorded_history_hash_matches": true
+    },
+    {
+      "name": "usajobs-live-production-65e7b662.json",
+      "bytes": 21108,
+      "sha256": "dde623b7a05d31afd2e57944a45cf927a9e5d41146f15e2b00b56b0d45a77974",
+      "recorded_history_hash_matches": true,
+      "historical_status": "FAILED_SEARCH"
+    },
+    {
+      "name": "usajobs-live-production-65e7b662.api1-metadata.json",
+      "bytes": 187647,
+      "sha256": "2a250b4c660630ec32df2dbe8abc8da9738e9970ac404c6726875721b20271a8",
+      "recorded_history_hash_matches": true
+    },
+    {
+      "name": "usajobs-announcement-refusal-65e7b662.py",
+      "bytes": 16945,
+      "sha256": "8762b00dc0096f75a824e78e40643a884d1cddfa5389a5e59227ea4855d8d332",
+      "recorded_history_hash_matches": true
+    },
+    {
+      "name": "usajobs-announcement-refusal-65e7b662.json",
+      "bytes": 14118,
+      "sha256": "5722e04910c81f41c15656308df1832e1846f4d219da1fb3f4ab340f81e71a20",
+      "recorded_history_hash_matches": true,
+      "historical_status": "RESPONSE_DIAGNOSED"
+    },
+    {
+      "name": "usajobs-announcement-refusal-65e7b662.error-body.bin",
+      "bytes": 298,
+      "sha256": "778629c71dcb0a67780f9bb9e2a9364f7119cd9d7137d8ce9ecd9d5df1582baf",
+      "recorded_history_hash_matches": true
+    }
+  ],
+  "preserved_history_count": 11,
+  "preserved_history_all_hashes_match": true,
+  "preservation_note": "The failed d540 and 65e7 searches, diagnosed metadata rejection, later HTTP refusal, their programs, payloads and receipts remain unchanged. Successful metadata capture does not promote either failed full search.",
+  "proposed_change": {
+    "path": ".gitleaksignore",
+    "base_blob": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+    "base_sha256": "d2a725ea1e5efa13d80ce8f7ad422a1621c8cfcca346aab73d6d39942fde4e81",
+    "change": "Append exactly one newline-terminated historical fingerprint; preserve every existing Git blob byte.",
+    "added_fingerprints": [
+      "b57e2c4101baf724725ac1d05b735f42db3825dd:docs/evidence/2026-11-13-usajobs-source.json:generic-api-key:1523"
+    ],
+    "removed_fingerprints": [],
+    "rule_or_directory_suppression": false,
+    "proposed_blob": "7c78a37823b5c1ab05e44b740a51d90f44aa476b",
+    "proposed_sha256": "44ce320ba3abfa373f1b35d3edaca7260a385e3d69b21afb9ef1b9fa1071ef6b"
+  },
+  "unchanged_policy_anchors": [
+    {
+      "path": ".github/secret-scanner.json",
+      "blob": "3d84a2a1f9f4dc4ef4403363ad77de699be17b78",
+      "sha256": "6b9b7b4daf0b061e592ae85067cf5b14f5b063495f8da879c3f0258effd7668c",
+      "bytes": 155
+    },
+    {
+      "path": ".github/workflows/secret-scan.yml",
+      "blob": "82111982831efece8fd9a3ef6d56e5d8fd87728a",
+      "sha256": "ca33b999ef7c1258aec9e37c0bc121a90e86725261e982d5d0826ae3afb2e3e8",
+      "bytes": 1203
+    },
+    {
+      "path": "tools/ci/secret_scan.py",
+      "blob": "64c017cdef2a99bd7f40cfb63a921b2664fa0189",
+      "sha256": "c6613ec96d2661f1d35674583b9cb2b07595c23dbb65fe39101c36e3a8e39253",
+      "bytes": 2532
+    }
+  ],
+  "source_review_snapshots": [
+    {
+      "head": "36c72a5386a1fb43818311d6d863256e2209dcaf",
+      "clean": true,
+      "ignore_blob": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+      "branch_role": "F06"
+    },
+    {
+      "head": "289111609b1ea75c7d19b2d784c0820acbd53c1c",
+      "clean": true,
+      "ignore_blob": "6d9cb8755c0793bd4d942a246f5eea10d199cab5",
+      "branch_role": "F07"
+    }
+  ],
+  "remaining_gates": [
+    "Root independent review and fresh claim/adoption checks before either tracked change.",
+    "Fresh hosted scanner result for any adopted revision; historical failed jobs remain failed.",
+    "Existing feature and integration gates remain separate; no acceptance state change."
+  ],
+  "boundaries": {
+    "tracked_edits_performed": false,
+    "history_rewritten": false,
+    "scanner_run": false,
+    "scanner_rules_or_version_changed": false,
+    "workflow_changed": false,
+    "source_changed": false,
+    "claim_changed": false,
+    "network_requests": 0,
+    "formal_acceptance_changed": false
+  }
+}
