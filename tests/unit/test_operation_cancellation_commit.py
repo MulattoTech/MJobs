@@ -3,7 +3,9 @@ from collections import deque
 from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+import gc
 import re
+import sys
 import tempfile
 import threading
 import time
@@ -47,11 +49,16 @@ class OperationCancellationCommitTests(unittest.TestCase):
         return identifier
 
     def exercise_pending_commit(self, kind, watcher_name, *, rollback=False,
-                                prior_rollback=False, rollback_error=RuntimeError):
+                                prior_rollback=False, rollback_error=RuntimeError,
+                                wait_for_commit_entry=False, precommit_delay=0):
         identifier = self.seed(kind)
         local = operations.register_operation_cancellation(identifier)
         poll_entered = threading.Event()
         writer_finished = threading.Event()
+        actual_commit_entered = threading.Event()
+        commit_or_writer_finished = threading.Event()
+        commit_handshake_errors = []
+        writer_thread = threading.current_thread()
         reads_before_resolution = []
         watcher_results = []
         watcher_errors = []
@@ -80,6 +87,11 @@ class OperationCancellationCommitTests(unittest.TestCase):
         def observed_span(label, operation):
             def observed(*args, **kwargs):
                 record_phase(label + "_enter")
+                if (wait_for_commit_entry and label == "dbapi_commit"
+                        and threading.current_thread() is writer_thread):
+                    # Only entry to the real owned commit grants this signal.
+                    actual_commit_entered.set()
+                    commit_or_writer_finished.set()
                 try:
                     return operation(*args, **kwargs)
                 finally:
@@ -102,6 +114,18 @@ class OperationCancellationCommitTests(unittest.TestCase):
                      "audit" if m.audit.name.upper() in upper else "other")
             return verb + "_" + table
 
+        def before_execute(_connection, clauseelement, *_args):
+            # Do not stringify or compile the statement to create a marker.
+            record_phase("sa_before_execute_" + type(clauseelement).__name__)
+
+        def observe_gc(phase, info):
+            if recording:
+                record_phase(f"gc_{phase}_generation_{info.get('generation', 'unknown')}")
+
+        def remove_gc_observer():
+            if observe_gc in gc.callbacks:
+                gc.callbacks.remove(observe_gc)
+
         def before_sql(_connection, _cursor, statement, *_args):
             record_phase("sql_" + sql_phase(statement) + "_enter")
 
@@ -114,6 +138,9 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 return operations.request_cancel(self.store, identifier)
             finally:
                 record_phase("request_exit")
+                if wait_for_commit_entry:
+                    # Wake an aborted writer's reader without inventing entry.
+                    commit_or_writer_finished.set()
 
         def observe_stage():
             record_phase("stage_enter")
@@ -145,8 +172,21 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 reads_before_resolution.append(True)
                 record_phase("premature_read")
                 poll_entered.set()
-                writer_finished.wait(.5)
-                record_phase("premature_read_released")
+                try:
+                    if wait_for_commit_entry:
+                        # The negative control must overlap the real commit even
+                        # when genuine audit/SQL preparation outlasts the trap.
+                        awakened = commit_or_writer_finished.wait(2)
+                        if not awakened or not actual_commit_entered.is_set():
+                            reason = ("NEGATIVE_CONTROL_COMMIT_ENTRY_TIMEOUT" if not awakened
+                                      else "NEGATIVE_CONTROL_WRITER_EXITED_BEFORE_COMMIT")
+                            commit_handshake_errors.append(reason)
+                            record_phase(reason)
+                            return
+                        record_phase("negative_control_commit_observed")
+                    writer_finished.wait(.5)
+                finally:
+                    record_phase("premature_read_released")
 
         def check():
             record_phase("watcher_check_enter")
@@ -176,6 +216,12 @@ class OperationCancellationCommitTests(unittest.TestCase):
                     record_phase("poll_acknowledged")
                     if rollback:
                         raise rollback_failure
+                    if wait_for_commit_entry and precommit_delay:
+                        record_phase("negative_precommit_delay_enter")
+                        time.sleep(precommit_delay)
+                        record_phase("negative_precommit_delay_exit")
+                    if not snapshot_observed:
+                        record_phase("snapshot_helper_not_loaded")
                 return original_audit(connection, entity_id, action, payload)
             finally:
                 if cancellation_audit:
@@ -185,6 +231,17 @@ class OperationCancellationCommitTests(unittest.TestCase):
         # No SQL parameters or payloads are retained, and no clocks are replaced.
         diagnostics = ExitStack()
         self.addCleanup(diagnostics.close)
+        # Observe an already imported helper only; preserve a cold audit import.
+        snapshot_module = sys.modules.get("services.audit_history")
+        snapshot_helper = getattr(snapshot_module, "snapshot_application_audit_payload", None)
+        snapshot_observed = callable(snapshot_helper)
+        if snapshot_observed:
+            diagnostics.enter_context(patch.object(
+                snapshot_module, "snapshot_application_audit_payload",
+                new=observed_span("audit_snapshot", snapshot_helper),
+            ))
+        gc.callbacks.append(observe_gc)
+        diagnostics.callback(remove_gc_observer)
         diagnostics.enter_context(patch.object(
             operations, "_stage_operation_cancellation", new=observe_staging,
         ))
@@ -196,6 +253,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 owner, attribute, new=observed_span(label, getattr(owner, attribute)),
             ))
         for event_name, listener in (
+                ("before_execute", before_execute),
                 ("before_cursor_execute", before_sql),
                 ("after_cursor_execute", after_sql)):
             event.listen(self.store.engine, event_name, listener)
@@ -232,6 +290,8 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 watcher.join(2)
         finally:
             writer_finished.set()
+            if wait_for_commit_entry:
+                commit_or_writer_finished.set()
             if watcher.ident is not None:
                 watcher.join(2)
             event.remove(self.store.engine, "after_cursor_execute", observe_read)
@@ -261,6 +321,11 @@ class OperationCancellationCommitTests(unittest.TestCase):
         print(f"cancel-commit {kind}/{watcher_name}: rollback={rollback} "
               f"store={elapsed:.3f}s premature_reads={len(reads_before_resolution)} "
               f"phases=[{phase_details}]")
+        if wait_for_commit_entry:
+            self.assertEqual(
+                commit_handshake_errors, [],
+                f"Negative-control commit handshake failed; phases=[{phase_details}]",
+            )
         self.assertEqual(
             reads_before_resolution, [],
             f"phases=[{phase_details}]; "
@@ -282,7 +347,7 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 with self.subTest(kind=kind, watcher=watcher):
                     self.exercise_pending_commit(kind, watcher)
 
-    def test_execution_thread_negative_control_detects_a_premature_sqlite_read(self):
+    def assert_execution_thread_negative_control(self, *, precommit_delay=0):
         # A non-watcher name takes the real SQL path and must trip the read-lock
         # trap. Require that specific failure, not merely a slow request.
         watcher_name = "mjobs-synthetic-execution"
@@ -290,7 +355,10 @@ class OperationCancellationCommitTests(unittest.TestCase):
                 AssertionError,
                 "Local polling acquired a read lock during its cancellation transaction$",
         ) as raised:
-            self.exercise_pending_commit("DISCOVER", watcher_name)
+            self.exercise_pending_commit(
+                "DISCOVER", watcher_name, wait_for_commit_entry=True,
+                precommit_delay=precommit_delay,
+            )
         self.assertEqual(self.store.engine.pool.checkedout(), 0)
 
         message = str(raised.exception)
@@ -313,6 +381,29 @@ class OperationCancellationCommitTests(unittest.TestCase):
         self.assertLessEqual(phases["premature_read"], phases["dbapi_commit_enter"])
         self.assertLess(phases["dbapi_commit_enter"], phases["premature_read_released"])
         self.assertLessEqual(phases["premature_read_released"], phases["dbapi_commit_exit"])
+        return phases
+
+    def test_execution_thread_negative_control_detects_a_premature_sqlite_read(self):
+        self.assert_execution_thread_negative_control()
+
+    def test_execution_thread_negative_control_survives_precommit_delay(self):
+        phases = self.assert_execution_thread_negative_control(precommit_delay=.6)
+        # Establish the control's premise: entry occurred after the old .5s
+        # reader window. This is not a new positive cancellation latency limit.
+        self.assertGreater(phases["dbapi_commit_enter"] - phases["premature_read"], .5)
+
+    def test_execution_thread_negative_control_releases_on_writer_abort(self):
+        with self.assertRaisesRegex(
+                AssertionError, "NEGATIVE_CONTROL_WRITER_EXITED_BEFORE_COMMIT",
+        ) as raised:
+            self.exercise_pending_commit(
+                "DISCOVER", "mjobs-synthetic-execution", rollback=True,
+                wait_for_commit_entry=True,
+            )
+        self.assertEqual(self.store.engine.pool.checkedout(), 0)
+        message = str(raised.exception)
+        self.assertIn("premature_read_released@mjobs-synthetic-execution=", message)
+        self.assertNotIn("dbapi_commit_enter@", message)
 
     def test_source_watchers_observe_rollback_without_false_cancellation(self):
         for watcher in SOURCE_WATCHERS:
